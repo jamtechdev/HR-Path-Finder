@@ -154,7 +154,7 @@ export function Footer({ canRegister = true }: FooterProps) {
                             <input
                                 type="email"
                                 placeholder="Enter your email"
-                                className="flex-1 md:flex-none md:w-64 px-4 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                className="flex-1 md:flex-none w-full md:w-64 px-4 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                             />
                             <button className="px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium flex items-center gap-2">
                                 Subscribe

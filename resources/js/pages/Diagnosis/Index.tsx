@@ -574,7 +574,7 @@ export default function DiagnosisStep({ company, project }: PageProps) {
                                         ))}
                                     </div>
 
-                                    <Button className="h-11 px-8" onClick={handleNext}>
+                                    <Button className="h-11 has-[>svg]:px-8" onClick={handleNext}>
                                         Start Diagnosis
                                         <ArrowRight className="w-4 h-4 ml-2" />
                                     </Button>

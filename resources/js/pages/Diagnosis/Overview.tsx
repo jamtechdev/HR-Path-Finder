@@ -213,7 +213,7 @@ export default function DiagnosisOverview({ company, project, stepStatuses }: Pa
                                 <Button 
                                     onClick={handleStartDiagnosis}
                                     size="lg"
-                                    className="h-11 px-8 cursor-pointer"
+                                    className="h-11 has-[>svg]:px-8 cursor-pointer"
                                 >
                                     Start Diagnosis
                                     <ArrowRight className="w-4 h-4 ml-2" />

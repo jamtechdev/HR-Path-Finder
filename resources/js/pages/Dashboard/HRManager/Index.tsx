@@ -172,12 +172,12 @@ export default function HRManagerDashboard({ project, stepStatuses, progressCoun
                         
                         <div className="rounded-lg border bg-card text-card-foreground shadow-sm card-hover">
                             <div className="p-5 flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center">
-                                    <Users className="w-6 h-6 text-muted-foreground" />
+                                <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
+                                    <Users className="w-6 h-6 text-success" />
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">CEO Survey</p>
-                                    <p className="text-2xl font-bold text-muted-foreground">Locked</p>
+                                    <p className="text-2xl font-bold text-foreground">Locked</p>
                                 </div>
                             </div>
                         </div>
@@ -200,8 +200,8 @@ export default function HRManagerDashboard({ project, stepStatuses, progressCoun
                         <div className="flex flex-col space-y-1.5 p-6 pb-4">
                             <h3 className="font-semibold tracking-tight text-lg">HR System Design Progress</h3>
                         </div>
-                        <div className="p-6 pt-0">
-                            <div className="flex items-center justify-between">
+                        <div className="p-3 md:p-6 pt-0">
+                            <div className="flex items-center justify-between gap-2">
                                 {stepCards.map((step, index) => {
                                     const state = getStepState(step.id);
                                     const isCurrent = state === 'current';
@@ -212,7 +212,7 @@ export default function HRManagerDashboard({ project, stepStatuses, progressCoun
                                         <div key={step.id} className="flex items-center flex-1">
                                             <div className="flex flex-col items-center">
                                                 <div
-                                                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                                                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
                                                         isComplete
                                                             ? 'bg-success/10 text-success border-success'
                                                             : isCurrent
@@ -241,7 +241,7 @@ export default function HRManagerDashboard({ project, stepStatuses, progressCoun
                                                 </div>
                                             </div>
                                             {index < stepCards.length - 1 && (
-                                                <div className={`flex-1 h-0.5 mx-3 transition-colors duration-300 ${
+                                                <div className={`flex-1 h-0.5 mx-3 transition-colors duration-300 hidden md:block ${
                                                     isComplete ? 'bg-success' : 'bg-border'
                                                 }`}></div>
                                             )}
@@ -280,7 +280,7 @@ export default function HRManagerDashboard({ project, stepStatuses, progressCoun
                                         } ${state === 'current' ? 'ring-2 ring-primary/20' : ''}`}
                                     >
                                         <div className="p-6">
-                                            <div className="flex items-start gap-4">
+                                            <div className="flex items-start gap-4 flex-col md:flex-row">
                                                 <div
                                                     className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
                                                         state === 'completed'

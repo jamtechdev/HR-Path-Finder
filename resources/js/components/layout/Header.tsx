@@ -35,7 +35,7 @@ export function Header({ canRegister = true }: HeaderProps) {
                     <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center transition-transform group-hover:scale-105">
                         <span className="text-white font-bold text-sm">HR</span>
                     </div>
-                    <div>
+                    <div className="sm:block hidden">
                         <span className="font-display font-bold text-foreground">HR Path-Finder</span>
                         <span className="text-muted-foreground text-xs ml-2">by BetterCompany</span>
                     </div>

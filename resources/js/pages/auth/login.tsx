@@ -35,7 +35,7 @@ export default function Login({
                 <div className="animate-in fade-in slide-in-from-left-4 duration-700">
                     <div className="flex items-center gap-3 mb-8">
                         <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20">
-                            <Sparkles className="w-6 h-6 text-white" />
+                            HR
                         </div>
                         <div>
                             <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
@@ -95,8 +95,8 @@ export default function Login({
 
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex items-center gap-3 justify-center mb-8 animate-in fade-in slide-in-from-top-4">
-                        <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg cursor-pointer">
-                            <Sparkles className="w-6 h-6 text-white" />
+                        <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg cursor-pointer text-white">
+                            HR
                         </div>
                         <div>
                             <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
@@ -108,7 +108,7 @@ export default function Login({
                     <div className="bg-card border border-border rounded-2xl shadow-xl p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4">
                         {/* Header */}
                         <div className="text-center lg:text-left">
-                            <h2 className="text-3xl font-display font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">
+                            <h2 className="text-3xl font-display font-bold">
                                 Welcome back
                             </h2>
                             <p className="text-muted-foreground mt-2 text-sm">Sign in to continue your HR system design</p>

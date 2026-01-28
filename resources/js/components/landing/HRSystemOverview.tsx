@@ -10,7 +10,7 @@ export function HRSystemOverview() {
     ];
 
     return (
-        <Card className="bg-slate-900 text-white">
+        <Card className="bg-slate-900 text-white py-0">
             <CardHeader>
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-white">HR System Overview</CardTitle>

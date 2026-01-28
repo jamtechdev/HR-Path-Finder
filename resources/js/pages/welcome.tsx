@@ -99,9 +99,9 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                 <Header canRegister={canRegister} />
 
                 {/* Hero Section - Exact Match */}
-                <section className="pt-32 pb-20 px-6">
+                <section className="pt-8 pb-4 px-4 sm:pt-32 sm:pb-20 sm:px-6">
                     <div className="max-w-7xl mx-auto">
-                        <div className="grid lg:grid-cols-2 gap-12 items-center">
+                        <div className="grid lg:grid-cols-2 gap-8">
                             {/* Left Column */}
                             <div className="space-y-8">
                                 {/* Badge */}
@@ -111,19 +111,19 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                 </div>
 
                                 {/* Main Heading */}
-                                <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-foreground">
+                                <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-none text-foreground text-center sm:text-start">
                                     Design your <span className="text-primary">HR system</span> with precision
                                 </h1>
 
                                 {/* Description */}
-                                <p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
+                                <p className="text-xl text-muted-foreground leading-relaxed max-w-lg text-center sm:text-start">
                                     Transform how SMBs build HR frameworks. Our step-by-step guided approach
                                     replicates professional consulting engagements inside a modern SaaS platform.
                                 </p>
 
                                 {/* CTA Buttons */}
                                 <div className="flex flex-col sm:flex-row gap-4">
-                                    <Button asChild size="lg" className="h-12 px-8">
+                                    <Button asChild size="lg" className="h-12 has-[>svg]:px-8">
                                         <Link href={canRegister ? register() : login()}>
                                             Start Free Trial
                                             <ArrowRight className="ml-2 size-5" />
@@ -156,7 +156,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                             {/* Right Column - HR System Overview Card */}
                             <div className="relative">
                                 <div className="absolute inset-0 gradient-primary opacity-10 rounded-3xl blur-3xl"></div>
-                                <Card className="relative overflow-hidden border-2 shadow-sm">
+                                <Card className="relative overflow-hidden border-2 shadow-sm p-0">
                                     {/* Gradient Header */}
                                     <div className="gradient-hero p-6 text-white">
                                         <div className="flex items-center justify-between mb-4">
@@ -211,7 +211,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                 </section>
 
                 {/* Main Features Section */}
-                <section className="py-20 px-6 bg-muted/30">
+                <section className="py-6 sm:py-20 px-6 bg-muted/30">
                     <div className="max-w-7xl mx-auto">
                         <div className="text-center mb-16">
                             <h2 className="font-display text-3xl md:text-4xl font-bold mb-4 text-foreground">
@@ -239,7 +239,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                 </section>
 
                 {/* Why HR Path-Finder Section */}
-                <section className="py-20 px-6">
+                <section className="py-6 sm:py-20 px-6">
                     <div className="max-w-7xl mx-auto">
                         <div className="grid lg:grid-cols-2 gap-16 items-center">
                             {/* Left Side */}
@@ -263,7 +263,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                 </div>
                             </div>
                             {/* Right Side - 2x2 Grid */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid sm:grid-cols-2 grid-cols-1 gap-4">
                                 {capabilityFeatures.map((feature, index) => (
                                     <Card
                                         key={index}
@@ -292,10 +292,10 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                 </section>
 
                 {/* CTA Section */}
-                <section className="py-20 px-6">
+                <section className="py-6 md:py-20 px-6">
                     <div className="max-w-4xl mx-auto">
                         <Card className="gradient-primary overflow-hidden border-0 shadow-sm">
-                            <CardContent className="p-12 text-center text-white">
+                            <CardContent className="p-8 md:p-12 text-center text-white">
                                 <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
                                     Ready to design your HR system?
                                 </h2>
@@ -303,7 +303,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                     Start your free trial today and experience consulting-grade HR design that
                                     scales from prototype to full implementation.
                                 </p>
-                                <Button asChild size="lg" variant="secondary" className="h-12 px-8 bg-white text-foreground hover:bg-white/90">
+                                <Button asChild size="lg" variant="secondary" className="h-12 has-[>svg]:px-8 bg-white text-foreground hover:bg-white/90">
                                     <Link href={canRegister ? register() : '#'}>
                                         Get Started Free
                                         <ArrowRight className="ml-2 size-5" />
