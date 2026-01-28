@@ -24,31 +24,22 @@ export default function HrProjectsIndex({ projects }: Props) {
         <AppLayout>
             <Head title="HR Projects" />
             <div className="container mx-auto max-w-7xl py-8">
-                <div className="mb-8 flex items-center justify-between">
+                <div className="mb-8">
                     <div>
                         <h1 className="text-3xl font-bold">HR Projects</h1>
                         <p className="text-muted-foreground mt-2">
                             Manage your HR system design projects
                         </p>
                     </div>
-                    <Button asChild>
-                        <Link href="/companies/create">
-                            <Plus className="mr-2 size-4" />
-                            New Company & Project
-                        </Link>
-                    </Button>
                 </div>
 
                 {projects.length === 0 ? (
                     <Card>
                         <CardContent className="py-12 text-center">
                             <p className="text-muted-foreground mb-4">No HR projects yet.</p>
-                            <Button asChild>
-                                <Link href="/companies/create">
-                                    <Plus className="mr-2 size-4" />
-                                    Create Your First Project
-                                </Link>
-                            </Button>
+                            <p className="text-sm text-muted-foreground">
+                                Your first project will be created automatically when you start the diagnosis process.
+                            </p>
                         </CardContent>
                     </Card>
                 ) : (

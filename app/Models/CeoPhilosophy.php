@@ -10,6 +10,8 @@ class CeoPhilosophy extends Model
 {
     use HasFactory;
 
+    protected $table = 'ceo_philosophy_surveys';
+
     protected $fillable = [
         'hr_project_id',
         'user_id',

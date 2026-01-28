@@ -31,9 +31,62 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $input['password'],
         ]);
 
-        // Assign role if provided
-        if (isset($input['role']) && in_array($input['role'], ['hr_manager', 'ceo'])) {
-            $user->assignRole($input['role']);
+        // Debug: Log the input to see what's being received
+        \Log::info('Registration input', ['input' => $input, 'role' => $input['role'] ?? 'NOT SET']);
+        
+        // Ensure roles exist before assigning
+        $availableRoles = ['hr_manager', 'ceo', 'consultant'];
+        
+        // Check if the requested role exists, otherwise default to hr_manager
+        $roleToAssign = 'hr_manager'; // Default role
+        
+        // Check if role is provided and valid
+        if (isset($input['role']) && !empty($input['role']) && is_string($input['role'])) {
+            $requestedRole = trim($input['role']);
+            
+            if (in_array($requestedRole, $availableRoles)) {
+                // Verify role exists in database
+                $roleExists = \Spatie\Permission\Models\Role::where('name', $requestedRole)
+                    ->where('guard_name', 'web')
+                    ->exists();
+                
+                if ($roleExists) {
+                    $roleToAssign = $requestedRole;
+                    \Log::info('Role assigned', ['role' => $roleToAssign, 'user_email' => $input['email']]);
+                } else {
+                    \Log::warning('Role does not exist in database', ['requested_role' => $requestedRole]);
+                }
+            } else {
+                \Log::warning('Invalid role provided', ['requested_role' => $requestedRole, 'available_roles' => $availableRoles]);
+            }
+        } else {
+            \Log::warning('No role provided in registration', ['input_keys' => array_keys($input)]);
+        }
+        
+        // Assign the role (will create if it doesn't exist via firstOrCreate in seeder)
+        try {
+            $user->assignRole($roleToAssign);
+        } catch (\Spatie\Permission\Exceptions\RoleDoesNotExist $e) {
+            // If role doesn't exist, create it and assign
+            \Spatie\Permission\Models\Role::firstOrCreate(
+                ['name' => $roleToAssign, 'guard_name' => 'web']
+            );
+            $user->assignRole($roleToAssign);
+        }
+        
+        // Clear permission cache to ensure roles are fresh
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        
+        // Reload user with fresh roles from database
+        $user->refresh();
+        $user->load('roles');
+        
+        // Verify role was assigned
+        if (!$user->hasRole($roleToAssign)) {
+            // Force assign if somehow not assigned
+            $user->assignRole($roleToAssign);
+            $user->refresh();
+            $user->load('roles');
         }
 
         return $user;

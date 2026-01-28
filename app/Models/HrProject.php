@@ -16,11 +16,13 @@ class HrProject extends Model
         'company_id',
         'status',
         'current_step',
+        'step_statuses',
     ];
 
     protected $casts = [
         'status' => 'string',
         'current_step' => 'string',
+        'step_statuses' => 'array',
     ];
 
     /**
@@ -53,6 +55,46 @@ class HrProject extends Model
     public function ceoPhilosophy(): HasOne
     {
         return $this->hasOne(CeoPhilosophy::class);
+    }
+
+    /**
+     * Get the business profile for the HR project.
+     */
+    public function businessProfile(): HasOne
+    {
+        return $this->hasOne(BusinessProfile::class);
+    }
+
+    /**
+     * Get the workforce details for the HR project.
+     */
+    public function workforce(): HasOne
+    {
+        return $this->hasOne(HrProjectWorkforce::class);
+    }
+
+    /**
+     * Get the current HR status for the HR project.
+     */
+    public function currentHrStatus(): HasOne
+    {
+        return $this->hasOne(HrProjectCurrentHrStatus::class);
+    }
+
+    /**
+     * Get the culture details for the HR project.
+     */
+    public function culture(): HasOne
+    {
+        return $this->hasOne(HrProjectCulture::class);
+    }
+
+    /**
+     * Get the confidential notes for the HR project.
+     */
+    public function confidentialNote(): HasOne
+    {
+        return $this->hasOne(HrProjectConfidentialNote::class);
     }
 
     /**
@@ -156,9 +198,20 @@ class HrProject extends Model
      */
     public function lock(): void
     {
+        $this->initializeStepStatuses();
+        
+        // Lock all step statuses
+        $stepStatuses = $this->step_statuses ?? [];
+        foreach (['diagnosis', 'organization', 'performance', 'compensation'] as $step) {
+            if (isset($stepStatuses[$step]) && $stepStatuses[$step] === 'submitted') {
+                $stepStatuses[$step] = 'locked';
+            }
+        }
+        
         $this->update([
             'status' => 'locked',
             'current_step' => 'dashboard',
+            'step_statuses' => $stepStatuses,
         ]);
     }
 
@@ -171,5 +224,94 @@ class HrProject extends Model
             'status' => 'in_progress',
             'current_step' => $nextStep,
         ]);
+    }
+
+    /**
+     * Initialize step statuses if not set.
+     */
+    public function initializeStepStatuses(): void
+    {
+        if (empty($this->step_statuses)) {
+            $this->step_statuses = [
+                'diagnosis' => 'not_started',
+                'organization' => 'not_started',
+                'performance' => 'not_started',
+                'compensation' => 'not_started',
+            ];
+            $this->save();
+        }
+    }
+
+    /**
+     * Get the status of a specific step.
+     */
+    public function getStepStatus(string $step): string
+    {
+        $this->initializeStepStatuses();
+        return $this->step_statuses[$step] ?? 'not_started';
+    }
+
+    /**
+     * Set the status of a specific step.
+     */
+    public function setStepStatus(string $step, string $status): void
+    {
+        $this->initializeStepStatuses();
+        
+        // Get the current array, modify it, and set it back
+        // This is required because indirect modification of JSON columns doesn't work
+        $stepStatuses = $this->step_statuses ?? [];
+        $stepStatuses[$step] = $status;
+        $this->step_statuses = $stepStatuses;
+        $this->save();
+    }
+
+    /**
+     * Check if a step is unlocked (previous step is submitted and verified).
+     */
+    public function isStepUnlocked(string $step): bool
+    {
+        // Admin/Consultant always have access
+        $user = auth()->user();
+        if ($user && ($user->hasRole('consultant') || $user->hasRole('admin'))) {
+            return true;
+        }
+
+        $stepOrder = [
+            'diagnosis' => 1,
+            'organization' => 2,
+            'performance' => 3,
+            'compensation' => 4,
+        ];
+
+        $currentStepNumber = $stepOrder[$step] ?? 0;
+        
+        // Step 1 (diagnosis) is always unlocked
+        if ($currentStepNumber === 1) {
+            return true;
+        }
+
+        // Check if previous step is submitted
+        $previousStepNumber = $currentStepNumber - 1;
+        $previousStep = array_search($previousStepNumber, $stepOrder);
+        
+        if (!$previousStep) {
+            return false;
+        }
+
+        $previousStatus = $this->getStepStatus($previousStep);
+        
+        // Step is unlocked if previous step is submitted
+        return $previousStatus === 'submitted';
+    }
+
+    /**
+     * Get the CEO user for this project's company.
+     */
+    public function getCeoUser(): ?User
+    {
+        return $this->company->users()
+            ->wherePivot('role', 'ceo')
+            ->first();
     }
 }

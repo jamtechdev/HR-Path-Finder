@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('hr_project_confidential_notes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('hr_project_id')->constrained()->onDelete('cascade');
-            $table->text('notes')->nullable();
+            $table->foreignId('hr_project_id')->constrained('hr_projects')->onDelete('cascade');
+            $table->text('notes')->nullable()->comment('Confidential notes about the HR project');
             $table->timestamps();
+            
+            // Ensure one confidential note record per HR project
+            $table->unique('hr_project_id');
         });
     }
 

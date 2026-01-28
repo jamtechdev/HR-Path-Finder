@@ -33,7 +33,12 @@ class CompanyController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'industry' => 'nullable|string|max:255',
+            'brand_name' => 'nullable|string|max:255',
+            'foundation_date' => 'required|date',
+            'hq_location' => 'required|string|max:255',
+            'industry' => 'required|string|max:255',
+            'secondary_industries' => 'nullable|array',
+            'secondary_industries.*' => 'string|max:255',
             'size' => 'nullable|string|max:255',
             'growth_stage' => 'nullable|in:early,growth,maturity,decline',
             'logo' => 'nullable|image|max:2048',
@@ -41,7 +46,11 @@ class CompanyController extends Controller
 
         $company = Company::create([
             'name' => $validated['name'],
-            'industry' => $validated['industry'] ?? null,
+            'brand_name' => $validated['brand_name'] ?? null,
+            'foundation_date' => $validated['foundation_date'],
+            'hq_location' => $validated['hq_location'],
+            'industry' => $validated['industry'],
+            'secondary_industries' => $validated['secondary_industries'] ?? [],
             'size' => $validated['size'] ?? null,
             'growth_stage' => $validated['growth_stage'] ?? null,
             'created_by' => Auth::id(),
@@ -61,7 +70,8 @@ class CompanyController extends Controller
             $company->update(['logo_path' => $path]);
         }
 
-        return redirect()->route('hr-projects.show', $hrProject->id);
+        // Redirect to diagnosis overview after creating company
+        return redirect()->route('diagnosis.index');
     }
 
     public function show(Company $company): Response
@@ -81,7 +91,12 @@ class CompanyController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'brand_name' => 'nullable|string|max:255',
+            'foundation_date' => 'nullable|date',
+            'hq_location' => 'nullable|string|max:255',
             'industry' => 'nullable|string|max:255',
+            'secondary_industries' => 'nullable|array',
+            'secondary_industries.*' => 'string|max:255',
             'size' => 'nullable|string|max:255',
             'growth_stage' => 'nullable|in:early,growth,maturity,decline',
             'logo' => 'nullable|image|max:2048',

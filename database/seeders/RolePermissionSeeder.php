@@ -2,7 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Company;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -121,5 +124,94 @@ class RolePermissionSeeder extends Seeder
             'update consultant review',
             'view hr system dashboard',
         ]);
+
+        // Demo data (temporary)
+        $ceo = User::firstOrCreate(
+            ['email' => 'ceo@demo.com'],
+            [
+                'name' => 'CEO Demo User',
+                'password' => Hash::make('password123'),
+                'email_verified_at' => now(),
+            ]
+        );
+        if (!$ceo->hasRole('ceo')) {
+            $ceo->assignRole('ceo');
+        }
+
+        $company = Company::firstOrCreate(
+            ['name' => 'Demo Tech Solutions'],
+            [
+                'industry' => 'Technology',
+                'size' => '100-500',
+                'created_by' => $ceo->id,
+            ]
+        );
+        $ceo->companies()->syncWithoutDetaching([$company->id => ['role' => 'ceo']]);
+
+        $hrManager = User::firstOrCreate(
+            ['email' => 'hr@demo.com'],
+            [
+                'name' => 'HR Manager Demo User',
+                'password' => Hash::make('password123'),
+                'email_verified_at' => now(),
+            ]
+        );
+        if (!$hrManager->hasRole('hr_manager')) {
+            $hrManager->assignRole('hr_manager');
+        }
+        $hrManager->companies()->syncWithoutDetaching([$company->id => ['role' => 'hr_manager']]);
+
+        $consultant = User::firstOrCreate(
+            ['email' => 'consultant@demo.com'],
+            [
+                'name' => 'Consultant Demo User',
+                'password' => Hash::make('password123'),
+                'email_verified_at' => now(),
+            ]
+        );
+        if (!$consultant->hasRole('consultant')) {
+            $consultant->assignRole('consultant');
+        }
+
+        $legacyHrManager = User::firstOrCreate(
+            ['email' => 'hr@company.com'],
+            [
+                'name' => 'HR Manager Demo',
+                'email' => 'hr@company.com',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+        if (!$legacyHrManager->hasRole('hr_manager')) {
+            $legacyHrManager->assignRole('hr_manager');
+        }
+
+        $legacyCeo = User::firstOrCreate(
+            ['email' => 'ceo@company.com'],
+            [
+                'name' => 'CEO Demo',
+                'email' => 'ceo@company.com',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+        if (!$legacyCeo->hasRole('ceo')) {
+            $legacyCeo->assignRole('ceo');
+        }
+
+        $legacyConsultant = User::firstOrCreate(
+            ['email' => 'admin@hrpathfinder.com'],
+            [
+                'name' => 'Consultant Demo',
+                'email' => 'admin@hrpathfinder.com',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+        if (!$legacyConsultant->hasRole('consultant')) {
+            $legacyConsultant->assignRole('consultant');
+        }
+
+        $this->command->info('Demo accounts seeded.');
     }
 }

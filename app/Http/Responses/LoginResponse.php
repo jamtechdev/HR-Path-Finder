@@ -18,18 +18,20 @@ class LoginResponse implements LoginResponseContract
     {
         $user = $request->user();
         
+        // Reload user with roles to ensure they're loaded
+        $user->load('roles');
+        
         // Get user's primary role
         $role = $user->roles->first()?->name;
 
-        // Redirect based on role (all roles go to dashboard for now)
-        // You can customize this to redirect to role-specific dashboards
-        $redirectPath = match ($role) {
-            'ceo' => '/dashboard',
-            'hr_manager' => '/dashboard',
-            'consultant' => '/dashboard',
-            default => '/dashboard',
+        // Redirect based on role to role-specific dashboards
+        $redirectRoute = match ($role) {
+            'ceo' => 'dashboard.ceo',
+            'hr_manager' => 'dashboard.hr-manager',
+            'consultant' => 'dashboard.consultant',
+            default => 'dashboard', // Fallback to generic dashboard if no role
         };
 
-        return redirect()->intended($redirectPath);
+        return redirect()->intended(route($redirectRoute));
     }
 }

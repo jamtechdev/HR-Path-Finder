@@ -28,8 +28,42 @@ class HrSystemDashboardController extends Controller
         // Calculate CEO alignment score (simplified)
         $alignmentScore = $this->calculateAlignmentScore($hrProject);
 
+        // Initialize step statuses to ensure they're set
+        $hrProject->initializeStepStatuses();
+        $hrProject->refresh();
+        
+        // Aggregate all step data for the dashboard
+        $projectData = [
+            'id' => $hrProject->id,
+            'status' => $hrProject->status,
+            'company' => $hrProject->company ? [
+                'id' => $hrProject->company->id,
+                'name' => $hrProject->company->name,
+                'logo_path' => $hrProject->company->logo_path,
+            ] : null,
+            'company_attributes' => $hrProject->companyAttributes,
+            'organizational_sentiment' => $hrProject->organizationalSentiment,
+            'ceo_philosophy' => $hrProject->ceoPhilosophy ? [
+                'main_trait' => $hrProject->ceoPhilosophy->main_trait,
+                'sub_trait' => $hrProject->ceoPhilosophy->sub_trait,
+            ] : null,
+            'organization_design' => $hrProject->organizationDesign ? [
+                'structure_type' => $hrProject->organizationDesign->structure_type,
+                'job_grade_structure' => $hrProject->organizationDesign->job_grade_structure,
+                'grade_title_relationship' => $hrProject->organizationDesign->grade_title_relationship,
+            ] : null,
+            'performance_system' => $hrProject->performanceSystem ? [
+                'performance_method' => $hrProject->performanceSystem->performance_method,
+                'performance_unit' => $hrProject->performanceSystem->performance_unit,
+            ] : null,
+            'compensation_system' => $hrProject->compensationSystem ? [
+                'compensation_structure' => $hrProject->compensationSystem->compensation_structure,
+                'differentiation_method' => $hrProject->compensationSystem->differentiation_method,
+            ] : null,
+        ];
+
         return Inertia::render('hr-projects/dashboard', [
-            'project' => $hrProject,
+            'project' => $projectData,
             'alignmentScore' => $alignmentScore,
         ]);
     }
