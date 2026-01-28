@@ -10,6 +10,10 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+// Invitation routes - accept can be accessed without auth
+Route::get('invitations/accept/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'accept'])
+    ->name('invitations.accept');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     // Main dashboard with role-based redirect
     Route::get('dashboard', function () {
@@ -65,6 +69,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('companies/create', [\App\Http\Controllers\CompanyController::class, 'create'])
         ->name('companies.create');
     Route::resource('companies', \App\Http\Controllers\CompanyController::class)->except(['create']);
+    
+    // Company Invitations
+    Route::post('companies/{company}/invitations', [\App\Http\Controllers\CompanyInvitationController::class, 'store'])
+        ->name('companies.invitations.store');
+    Route::delete('companies/{company}/invitations/{invitation}', [\App\Http\Controllers\CompanyInvitationController::class, 'destroy'])
+        ->name('companies.invitations.destroy');
     
     // HR Projects
     Route::resource('hr-projects', \App\Http\Controllers\HrProjectController::class);

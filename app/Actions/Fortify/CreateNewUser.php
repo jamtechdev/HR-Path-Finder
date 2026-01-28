@@ -89,6 +89,34 @@ class CreateNewUser implements CreatesNewUsers
             $user->load('roles');
         }
 
+        // Check if there's a pending invitation for this email
+        $invitationToken = session('invitation_token');
+        if ($invitationToken) {
+            $invitation = \App\Models\CompanyInvitation::where('token', $invitationToken)
+                ->where('email', $user->email)
+                ->whereNull('accepted_at')
+                ->first();
+
+            if ($invitation && $invitation->isValid()) {
+                // Accept the invitation
+                $company = $invitation->company;
+                $company->users()->syncWithoutDetaching([
+                    $user->id => ['role' => $invitation->role],
+                ]);
+
+                // Assign role if not already assigned
+                if (!$user->hasRole($invitation->role)) {
+                    $user->assignRole($invitation->role);
+                }
+
+                // Mark invitation as accepted
+                $invitation->update(['accepted_at' => now()]);
+
+                // Clear invitation token from session
+                session()->forget('invitation_token');
+            }
+        }
+
         return $user;
     }
 }

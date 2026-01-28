@@ -55,4 +55,12 @@ class Company extends Model
     {
         return $this->hasMany(HrProject::class);
     }
+
+    /**
+     * Get the invitations for the company.
+     */
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(CompanyInvitation::class);
+    }
 }

@@ -78,10 +78,21 @@ class CompanyController extends Controller
     {
         $this->authorize('view', $company);
 
-        $company->load(['hrProjects', 'users']);
+        $company->load(['hrProjects', 'users', 'invitations' => function ($query) {
+            $query->whereNull('accepted_at')
+                ->where(function ($q) {
+                    $q->whereNull('expires_at')
+                        ->orWhere('expires_at', '>', now());
+                })
+                ->latest();
+        }]);
+
+        $user = Auth::user();
+        $canInvite = $user->hasRole('hr_manager') && $company->created_by === $user->id;
 
         return Inertia::render('companies/show', [
             'company' => $company,
+            'canInvite' => $canInvite,
         ]);
     }
 
