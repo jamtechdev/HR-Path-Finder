@@ -50,7 +50,7 @@ export default function Register({ status }: Props) {
     };
 
     return (
-        <div className="min-h-screen gradient-hero flex relative overflow-hidden">
+        <div className="min-h-screen gradient-hero flex flex-nowrap relative overflow-hidden">
             {/* Animated Background Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
@@ -59,7 +59,7 @@ export default function Register({ status }: Props) {
             </div>
 
             {/* Left Side - Promotional Section */}
-            <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 text-white relative z-10">
+            <div className="hidden lg:flex lg:w-1/2 lg:flex-shrink-0 flex-col justify-between p-12 text-white relative z-10">
                 <div className="animate-in fade-in slide-in-from-left-4 duration-700">
                     <div className="flex items-center gap-3 mb-8">
                         <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20 cursor-pointer">
@@ -116,7 +116,7 @@ export default function Register({ status }: Props) {
             </div>
 
             {/* Right Side - Register Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-background/95 backdrop-blur-sm relative z-10">
+            <div className="w-full lg:w-1/2 lg:flex-shrink-0 flex items-center justify-center p-6 md:p-12 bg-background/95 backdrop-blur-sm relative z-10">
                 <div className="w-full max-w-md">
                     <Head title="Create account" />
 

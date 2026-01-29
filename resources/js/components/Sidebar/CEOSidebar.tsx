@@ -2,7 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { CheckCircle, FileText, Menu } from 'lucide-react';
 import { useState } from 'react';
 import UserDropdown from './UserDropdown';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 
 interface User {
@@ -125,6 +125,8 @@ export default function CEOSidebar() {
                         side="left" 
                         className="w-64 p-0 bg-sidebar border-r border-sidebar-border overflow-hidden"
                     >
+                        <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                        <SheetDescription className="sr-only">Main navigation menu for HR Path-Finder</SheetDescription>
                         <SidebarContent />
                     </SheetContent>
                 </Sheet>

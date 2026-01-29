@@ -2,7 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { FileText, CheckCircle, Building2, Menu } from 'lucide-react';
 import { useState } from 'react';
 import UserDropdown from './UserDropdown';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 
 interface User {
