@@ -125,6 +125,8 @@ export default function ConsultantSidebar() {
                         side="left" 
                         className="w-64 p-0 bg-sidebar border-r border-sidebar-border overflow-hidden"
                     >
+                        <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                        <SheetDescription className="sr-only">Main navigation menu for HR Path-Finder</SheetDescription>
                         <SidebarContent />
                     </SheetContent>
                 </Sheet>
