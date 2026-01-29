@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import { ArrowRight, ArrowLeft, Building2, Briefcase, Users, Settings, MessageSquare, FileText, Check } from 'lucide-react';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
@@ -83,7 +83,8 @@ export default function Culture({ company, project }: PageProps) {
             preserveScroll: true,
             only: ['company', 'project'],
             onSuccess: () => {
-                // Data will be automatically updated via Inertia
+                // Navigate to next step (confidential)
+                router.visit(`/diagnosis/${project.id}/confidential`);
             },
         });
     };

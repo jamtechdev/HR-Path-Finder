@@ -119,11 +119,14 @@ class CeoPhilosophyController extends Controller
             ]);
         }
 
-        // Check if diagnosis is submitted - CEO survey should only be available after diagnosis
+        // For onboarding flow: CEO can complete survey immediately after joining (if attached to company)
+        // OR after diagnosis is submitted (for cases where CEO wasn't invited initially)
         $hrProject->initializeStepStatuses();
         $diagnosisStatus = $hrProject->getStepStatus('diagnosis');
+        $isCeoAttached = $userCompanies->contains($hrProject->company_id);
         
-        if ($diagnosisStatus !== 'submitted') {
+        // Allow access if CEO is attached to company (onboarding flow) OR diagnosis is submitted
+        if (!$isCeoAttached && $diagnosisStatus !== 'submitted') {
             return redirect()->route('ceo.philosophy-survey')->withErrors([
                 'message' => 'Please wait for the HR Manager to complete and submit Step 1: Diagnosis before starting the Management Philosophy Survey.',
             ]);

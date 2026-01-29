@@ -114,6 +114,9 @@ export default function CompanyInfo({ company, project }: PageProps) {
                 // If CEO, redirect will be handled by backend
                 if (isCeo) {
                     // Backend will redirect to CEO Philosophy Survey
+                } else {
+                    // HR Manager: Navigate to next step (business-profile)
+                    router.visit(`/diagnosis/${project.id}/business-profile`);
                 }
             },
         });

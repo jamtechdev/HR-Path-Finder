@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\HrProject;
 use App\Models\OrganizationDesign;
 use App\Notifications\StepSubmittedNotification;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -55,7 +56,7 @@ class OrganizationWizardController extends Controller
     /**
      * Overview page - shows when clicking Organization from sidebar
      */
-    public function overview(Request $request): Response|ResponseFactory
+    public function overview(Request $request): Response|ResponseFactory|RedirectResponse
     {
         try {
             ['company' => $company, 'project' => $project] = $this->getProject($request);
