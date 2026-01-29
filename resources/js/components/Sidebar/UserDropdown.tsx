@@ -64,7 +64,7 @@ export default function UserDropdown({ user, getInitials }: UserDropdownProps) {
             </button>
 
             {isOpen && (
-                <div className="absolute bottom-full left-0 mb-2 w-full bg-white rounded-lg shadow-lg border border-border z-50 overflow-hidden">
+                <div className="absolute bottom-full left-0 mb-2 w-full bg-card rounded-lg shadow-lg border border-border z-50 overflow-hidden">
                     {/* User Info Section */}
                     <div className="p-4 border-b border-border">
                         <p className="font-semibold text-sm text-foreground">{user?.name || 'User'}</p>

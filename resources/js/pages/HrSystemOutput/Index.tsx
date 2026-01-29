@@ -168,7 +168,7 @@ export default function HrSystemOutput({ company, project }: PageProps) {
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {/* Company Name Card */}
                         <Card className="gradient-primary text-white">
-                            <CardContent className="p-6">
+                            <CardContent>
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center">
                                         <Building2 className="w-6 h-6" />

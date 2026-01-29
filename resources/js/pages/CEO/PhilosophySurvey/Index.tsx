@@ -60,47 +60,47 @@ export default function PhilosophySurveyIndex({ projects }: PageProps) {
 
                     {/* Summary Cards */}
                     <div className="grid gap-4 md:grid-cols-4 mb-6">
-                        <Card>
-                            <CardContent className="p-4">
+                        <Card className="border-orange-600">
+                            <CardContent className="px-4">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Pending</p>
                                         <p className="text-2xl font-bold text-orange-600">{pendingProjects.length}</p>
                                     </div>
-                                    <AlertCircle className="w-8 h-8 text-orange-500 opacity-50" />
+                                    <AlertCircle className="w-8 h-8 text-orange-600 opacity-50" />
                                 </div>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardContent className="p-4">
+                        <Card className="border-blue-600">
+                            <CardContent className="px-4">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">In Progress</p>
                                         <p className="text-2xl font-bold text-blue-600">{inProgressProjects.length}</p>
                                     </div>
-                                    <Clock className="w-8 h-8 text-blue-500 opacity-50" />
+                                    <Clock className="w-8 h-8 text-blue-600 opacity-50" />
                                 </div>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardContent className="p-4">
+                        <Card className="border-green-600">
+                            <CardContent className="px-4">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Completed</p>
                                         <p className="text-2xl font-bold text-green-600">{completedProjects.length}</p>
                                     </div>
-                                    <CheckCircle2 className="w-8 h-8 text-green-500 opacity-50" />
+                                    <CheckCircle2 className="w-8 h-8 text-green-600 opacity-50" />
                                 </div>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardContent className="p-4">
+                        <Card className="border-gray-600">
+                            <CardContent className="px-4">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Locked</p>
                                         <p className="text-2xl font-bold text-gray-600">{lockedProjects.length}</p>
                                     </div>
-                                    <Lock className="w-8 h-8 text-gray-500 opacity-50" />
+                                    <Lock className="w-8 h-8 text-gray-600 opacity-50" />
                                 </div>
                             </CardContent>
                         </Card>
