@@ -70,8 +70,9 @@ class CompanyController extends Controller
             $company->update(['logo_path' => $path]);
         }
 
-        // Redirect to diagnosis overview after creating company
-        return redirect()->route('diagnosis.index');
+        // Redirect to company show page so HR Manager can invite CEO
+        return redirect()->route('companies.show', $company->id)
+            ->with('success', 'Company created successfully! Please invite the CEO to join the workspace.');
     }
 
     public function show(Company $company): Response

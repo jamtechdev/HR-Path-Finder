@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
-import { Building2, Mail, UserPlus, X, CheckCircle2, Clock } from 'lucide-react';
+import { Building2, Mail, UserPlus, X, CheckCircle2, Clock, FileText, Edit, ArrowRight, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useState } from 'react';
 
@@ -78,6 +78,9 @@ export default function CompanyShow({ company, canInvite: canInviteProp }: PageP
 
     const ceoUser = company.users?.find((u) => u.pivot?.role === 'ceo');
     const hrManagerUser = company.users?.find((u) => u.pivot?.role === 'hr_manager');
+    const isCeo = user?.roles?.some((role: any) => role.name === 'ceo') || false;
+    const isHrManager = user?.roles?.some((role: any) => role.name === 'hr_manager') || false;
+    const hrProject = company.hr_projects?.[0];
 
     return (
         <AppLayout>
@@ -104,6 +107,26 @@ export default function CompanyShow({ company, canInvite: canInviteProp }: PageP
                             </Button>
                         )}
                     </div>
+
+                    {/* HR Manager Onboarding Guidance */}
+                    {isHrManager && canInvite && !ceoUser && !company.invitations?.length && (
+                        <Alert className="mb-4 border-primary/50 bg-primary/5">
+                            <Info className="h-4 w-4 text-primary" />
+                            <AlertDescription className="text-sm">
+                                <strong>Next Step:</strong> Invite the CEO to join this workspace. They will be able to review and modify company information before completing the Management Philosophy Survey.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+
+                    {/* CEO Onboarding Guidance */}
+                    {isCeo && ceoUser && user?.id === ceoUser.id && (
+                        <Alert className="mb-4 border-primary/50 bg-primary/5">
+                            <Info className="h-4 w-4 text-primary" />
+                            <AlertDescription className="text-sm">
+                                <strong>Welcome!</strong> Please review the company information below. You can edit it if needed, then proceed to complete the Management Philosophy Survey.
+                            </AlertDescription>
+                        </Alert>
+                    )}
 
                     {/* Invite Form */}
                     {showInviteForm && canInvite && (
@@ -165,9 +188,29 @@ export default function CompanyShow({ company, canInvite: canInviteProp }: PageP
                     {/* Company Information */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Company Information</CardTitle>
+                            <div className="flex items-center justify-between">
+                                <CardTitle>Company Information</CardTitle>
+                                {isCeo && ceoUser && user?.id === ceoUser.id && hrProject && (
+                                    <Link href={`/diagnosis/${hrProject.id}/company-info`}>
+                                        <Button variant="outline" size="sm">
+                                            <Edit className="h-4 w-4 mr-2" />
+                                            Edit
+                                        </Button>
+                                    </Link>
+                                )}
+                            </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
+                            <div>
+                                <Label className="text-muted-foreground">Company Name</Label>
+                                <p className="font-medium">{company.name}</p>
+                            </div>
+                            {company.brand_name && (
+                                <div>
+                                    <Label className="text-muted-foreground">Brand Name</Label>
+                                    <p className="font-medium">{company.brand_name}</p>
+                                </div>
+                            )}
                             <div>
                                 <Label className="text-muted-foreground">Industry</Label>
                                 <p className="font-medium">{company.industry || 'Not specified'}</p>
@@ -290,14 +333,45 @@ export default function CompanyShow({ company, canInvite: canInviteProp }: PageP
                     </Card>
                 )}
 
+                {/* CEO Actions */}
+                {isCeo && ceoUser && user?.id === ceoUser.id && hrProject && (
+                    <Card className="mt-6 border-primary/20 bg-primary/5">
+                        <CardHeader>
+                            <CardTitle>Next Steps</CardTitle>
+                            <CardDescription>
+                                Complete the Management Philosophy Survey to continue with the HR project
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <Link href={`/hr-projects/${hrProject.id}/ceo-philosophy`} className="flex-1">
+                                    <Button className="w-full" size="lg">
+                                        <FileText className="h-4 w-4 mr-2" />
+                                        Complete Management Philosophy Survey
+                                        <ArrowRight className="h-4 w-4 ml-2" />
+                                    </Button>
+                                </Link>
+                                <Link href={`/diagnosis/${hrProject.id}/company-info`}>
+                                    <Button variant="outline" size="lg">
+                                        <Edit className="h-4 w-4 mr-2" />
+                                        Review Company Info
+                                    </Button>
+                                </Link>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* Actions */}
                 <div className="mt-6 flex gap-4">
-                    <Link href="/diagnosis">
-                        <Button variant="outline">
-                            <Building2 className="h-4 w-4 mr-2" />
-                            View Diagnosis
-                        </Button>
-                    </Link>
+                    {isHrManager && (
+                        <Link href="/diagnosis">
+                            <Button variant="outline">
+                                <Building2 className="h-4 w-4 mr-2" />
+                                View Diagnosis
+                            </Button>
+                        </Link>
+                    )}
                     <Link href="/companies">
                         <Button variant="ghost">Back to Companies</Button>
                     </Link>

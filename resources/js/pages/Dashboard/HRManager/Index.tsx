@@ -141,7 +141,7 @@ export default function HRManagerDashboard({ project, stepStatuses, progressCoun
             <RoleBasedSidebar />
 
             {/* Main Content */}
-            <main className="flex-1 overflow-auto">
+            <main className="flex-1 overflow-auto md:pt-0 pt-14">
                 <Head title="HR Manager Dashboard" />
                 
                 <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">

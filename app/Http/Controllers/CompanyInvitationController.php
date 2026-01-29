@@ -150,8 +150,18 @@ class CompanyInvitationController extends Controller
 
         // Redirect based on role
         if ($invitation->role === 'ceo') {
+            // Get the company's first HR project for CEO onboarding
+            $company = $invitation->company;
+            $hrProject = $company->hrProjects()->latest()->first();
+            
+            if ($hrProject) {
+                // Redirect CEO to review company info first, then they can complete the survey
+                return redirect()->route('companies.show', $company->id)
+                    ->with('success', 'Welcome! You have successfully joined ' . $company->name . ' as CEO. Please review the company information and complete the Management Philosophy Survey.');
+            }
+            
             return redirect()->route('dashboard.ceo')
-                ->with('success', 'You have successfully joined ' . $invitation->company->name . ' as CEO.');
+                ->with('success', 'You have successfully joined ' . $company->name . ' as CEO.');
         }
 
         return redirect()->route('dashboard')

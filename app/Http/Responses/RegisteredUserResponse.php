@@ -63,6 +63,18 @@ class RegisteredUserResponse implements RegisterResponseContract
             return redirect()->route('dashboard');
         }
 
+        // Check if CEO just joined via invitation - redirect to company page for onboarding
+        if ($role === 'ceo') {
+            $user->load('companies');
+            $company = $user->companies()->wherePivot('role', 'ceo')->latest('company_users.created_at')->first();
+            
+            if ($company) {
+                // CEO just joined a company, redirect them to review company info
+                return redirect()->route('companies.show', $company->id)
+                    ->with('success', 'Welcome! You have successfully joined ' . $company->name . ' as CEO. Please review the company information and complete the Management Philosophy Survey.');
+            }
+        }
+
         // Redirect based on role to role-specific dashboards
         $redirectRoute = match ($role) {
             'ceo' => 'dashboard.ceo',
