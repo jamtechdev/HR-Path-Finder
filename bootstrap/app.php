@@ -28,5 +28,17 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Handle CSRF token mismatch for Inertia requests
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+            if ($request->expectsJson() || $request->header('X-Inertia')) {
+                return response()->json([
+                    'message' => 'Page expired. Please refresh and try again.',
+                    'errors' => ['_token' => ['CSRF token mismatch. Please refresh the page and try again.']]
+                ], 419);
+            }
+            
+            return redirect()->back()->withInput()->withErrors([
+                '_token' => 'Page expired. Please refresh and try again.'
+            ]);
+        });
     })->create();

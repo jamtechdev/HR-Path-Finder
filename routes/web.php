@@ -13,6 +13,8 @@ Route::get('/', function () {
 // Invitation routes - accept can be accessed without auth
 Route::get('invitations/accept/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'accept'])
     ->name('invitations.accept');
+Route::post('invitations/accept/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'processAccept'])
+    ->name('invitations.accept.process');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Main dashboard with role-based redirect

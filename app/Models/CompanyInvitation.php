@@ -14,6 +14,7 @@ class CompanyInvitation extends Model
         'email',
         'role',
         'token',
+        'temporary_password',
         'accepted_at',
         'expires_at',
     ];

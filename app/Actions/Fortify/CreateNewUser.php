@@ -19,10 +19,13 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        // #region agent log
+        $logData = ['location' => 'CreateNewUser.php:21', 'message' => 'Registration create method called', 'data' => ['hasName' => isset($input['name']), 'hasEmail' => isset($input['email']), 'hasPassword' => isset($input['password']), 'hasRole' => isset($input['role']), 'sessionId' => session()->getId()], 'timestamp' => time() * 1000, 'sessionId' => 'debug-session', 'runId' => 'run1', 'hypothesisId' => 'A'];
+        file_put_contents('c:\laragon\www\HRCopilotSaaS\.cursor\debug.log', json_encode($logData) . "\n", FILE_APPEND);
+        // #endregion
         Validator::make($input, [
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
-            'role' => ['nullable', 'string', 'in:hr_manager,ceo'],
         ])->validate();
 
         $user = User::create([
@@ -31,37 +34,8 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $input['password'],
         ]);
 
-        // Debug: Log the input to see what's being received
-        \Log::info('Registration input', ['input' => $input, 'role' => $input['role'] ?? 'NOT SET']);
-        
-        // Ensure roles exist before assigning
-        $availableRoles = ['hr_manager', 'ceo', 'consultant'];
-        
-        // Check if the requested role exists, otherwise default to hr_manager
-        $roleToAssign = 'hr_manager'; // Default role
-        
-        // Check if role is provided and valid
-        if (isset($input['role']) && !empty($input['role']) && is_string($input['role'])) {
-            $requestedRole = trim($input['role']);
-            
-            if (in_array($requestedRole, $availableRoles)) {
-                // Verify role exists in database
-                $roleExists = \Spatie\Permission\Models\Role::where('name', $requestedRole)
-                    ->where('guard_name', 'web')
-                    ->exists();
-                
-                if ($roleExists) {
-                    $roleToAssign = $requestedRole;
-                    \Log::info('Role assigned', ['role' => $roleToAssign, 'user_email' => $input['email']]);
-                } else {
-                    \Log::warning('Role does not exist in database', ['requested_role' => $requestedRole]);
-                }
-            } else {
-                \Log::warning('Invalid role provided', ['requested_role' => $requestedRole, 'available_roles' => $availableRoles]);
-            }
-        } else {
-            \Log::warning('No role provided in registration', ['input_keys' => array_keys($input)]);
-        }
+        // Always assign HR Manager role
+        $roleToAssign = 'hr_manager';
         
         // Assign the role (will create if it doesn't exist via firstOrCreate in seeder)
         try {

@@ -7,47 +7,23 @@ import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 import { Head, useForm } from '@inertiajs/react';
-import { ArrowRight, Briefcase, User, CheckCircle2, Sparkles } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import React from 'react';
 
 type Props = {
     status?: string;
 };
 
 export default function Register({ status }: Props) {
-    const [selectedRole, setSelectedRole] = useState<'hr_manager' | 'ceo' | null>(null);
-    const [isAnimating, setIsAnimating] = useState(false);
-    
     const form = useForm({
         name: '',
         email: '',
         password: '',
         password_confirmation: '',
-        role: '',
+        role: 'hr_manager', // Always HR Manager
     });
     
-    // Update form role when selectedRole changes
-    useEffect(() => {
-        if (selectedRole) {
-            form.setData('role', selectedRole);
-        }
-    }, [selectedRole]);
-
-    const handleRoleSelect = (role: 'hr_manager' | 'ceo') => {
-        setIsAnimating(true);
-        setTimeout(() => {
-            setSelectedRole(role);
-            setIsAnimating(false);
-        }, 150);
-    };
-
-    const handleBack = () => {
-        setIsAnimating(true);
-        setTimeout(() => {
-            setSelectedRole(null);
-            setIsAnimating(false);
-        }, 150);
-    };
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
 
     return (
         <div className="min-h-screen gradient-hero flex flex-nowrap relative overflow-hidden">
@@ -131,76 +107,13 @@ export default function Register({ status }: Props) {
                         </div>
                     </div>
 
-                    {!selectedRole ? (
-                        <div className={`bg-card border border-border rounded-2xl shadow-xl p-8 space-y-6 transition-all duration-300 ${isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+                    <div className="bg-card border border-border rounded-2xl shadow-xl p-8 space-y-6">
                             <div className="text-center lg:text-left animate-in fade-in slide-in-from-bottom-4">
-                                <h2 className="text-3xl font-display font-bold ">
-                                    Choose your role
-                                </h2>
-                                <p className="text-muted-foreground mt-2 text-sm">Select how you will use HR Path-Finder</p>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-bottom-4 delay-150">
-                                <button
-                                    onClick={() => handleRoleSelect('hr_manager')}
-                                    className="group relative flex items-center gap-4 p-4 rounded-xl border-2 border-border hover:border-primary hover:bg-primary/5 transition-all duration-300 text-left transform hover:scale-[1.02] hover:shadow-lg cursor-pointer"
-                                >
-                                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300 group-hover:scale-110">
-                                        <Briefcase className="h-5 w-5 text-primary transition-transform duration-300 group-hover:rotate-6" />
-                                    </div>
-                                    <div className="relative flex-1">
-                                        <h3 className="font-bold text-sm md:text-base text-foreground mb-0">HR Manager</h3>
-                                        <p className="text-xs md:text-sm text-muted-foreground">Design and manage the HR system</p>
-                                    </div>
-                                    <ArrowRight className="relative h-5 w-5 text-muted-foreground group-hover:text-primary opacity-100  transition-all duration-300 transform group-hover:translate-x-1" />
-                                </button>
-
-                                <button
-                                    onClick={() => handleRoleSelect('ceo')}
-                                    className="group relative flex items-center gap-4 p-4 rounded-xl border-2 border-border hover:border-primary hover:bg-primary/5 transition-all duration-300 text-left transform hover:scale-[1.02] hover:shadow-lg cursor-pointer"
-                                >
-                                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300 group-hover:scale-110">
-                                        <User className="h-5 w-5 text-primary transition-transform duration-300 group-hover:rotate-6" />
-                                    </div>
-                                    <div className="relative flex-1">
-                                        <h3 className="font-bold text-sm md:text-base text-foreground mb-0">CEO / Owner</h3>
-                                        <p className="text-xs md:text-sm text-muted-foreground">Review and approve HR strategy</p>
-                                    </div>
-                                    <ArrowRight className="relative h-5 w-5 text-muted-foreground group-hover:text-primary opacity-100 transition-all duration-300 transform group-hover:translate-x-1" />
-                                </button>
-                            </div>
-
-                            <div className="pt-4 border-t border-border">
-                                <p className="text-center text-sm text-muted-foreground">
-                                    Already have an account?{' '}
-                                    <TextLink 
-                                        href={login()} 
-                                        className="text-primary font-semibold hover:text-primary/80 transition-all duration-200 hover:underline cursor-pointer inline-flex items-center gap-1"
-                                    >
-                                        Sign in
-                                        <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-1" />
-                                    </TextLink>
-                                </p>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className={`bg-card border border-border rounded-2xl shadow-xl p-8 space-y-6 transition-all duration-300 ${isAnimating ? 'opacity-0 scale-95 translate-x-4' : 'opacity-100 scale-100 translate-x-0'}`}>
-                            <button
-                                onClick={handleBack}
-                                className="text-sm text-muted-foreground hover:text-primary flex items-center gap-2 transition-all duration-200 group cursor-pointer w-fit"
-                            >
-                                <ArrowRight className="h-4 w-4 rotate-180 transition-transform duration-200 group-hover:-translate-x-1" />
-                                Back to role selection
-                            </button>
-
-                            <div className="text-center lg:text-left animate-in fade-in slide-in-from-right-4 delay-100">
                                 <h2 className="text-3xl font-display font-bold">
-                                    Create account
+                                    Create HR Manager Account
                                 </h2>
                                 <p className="text-muted-foreground mt-2 text-sm">
-                                    Registering as <span className="text-primary font-bold capitalize px-2 py-1 rounded-md bg-primary/10">{selectedRole.replace('_', ' ')}</span>
+                                    Register to start designing your HR system
                                 </p>
                             </div>
 
@@ -215,9 +128,37 @@ export default function Register({ status }: Props) {
                             <form
                                 onSubmit={(e) => {
                                     e.preventDefault();
-                                    form.post(store.url(), {
+                                    if (isSubmitting || form.processing) {
+                                        return;
+                                    }
+                                    setIsSubmitting(true);
+                                    // #region agent log
+                                    fetch('http://127.0.0.1:7244/ingest/37ad418c-1f1a-45d5-845c-a1ee722a9836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'register.tsx:128',message:'Form submission started',data:{hasData:!!form.data,email:form.data.email,name:form.data.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+                                    // #endregion
+                                    form.post('/register', {
+                                        preserveScroll: true,
                                         onSuccess: () => {
+                                            // #region agent log
+                                            fetch('http://127.0.0.1:7244/ingest/37ad418c-1f1a-45d5-845c-a1ee722a9836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'register.tsx:132',message:'Form submission success',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+                                            // #endregion
+                                            setIsSubmitting(false);
                                             form.reset('password', 'password_confirmation');
+                                        },
+                                        onError: (errors) => {
+                                            // #region agent log
+                                            fetch('http://127.0.0.1:7244/ingest/37ad418c-1f1a-45d5-845c-a1ee722a9836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'register.tsx:147',message:'Form submission error',data:{errors:Object.keys(errors),errorMessages:errors,allErrors:JSON.stringify(errors)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+                                            // #endregion
+                                            console.error('Registration error:', errors);
+                                            setIsSubmitting(false);
+                                        },
+                                        onFinish: () => {
+                                            setIsSubmitting(false);
+                                        },
+                                        onCancel: () => {
+                                            setIsSubmitting(false);
+                                        },
+                                        onFinish: () => {
+                                            setIsSubmitting(false);
                                         },
                                     });
                                 }}
@@ -308,7 +249,7 @@ export default function Register({ status }: Props) {
                                             type="submit"
                                             className="w-full h-11 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
                                             tabIndex={5}
-                                            disabled={processing}
+                                            disabled={processing || isSubmitting}
                                             data-test="register-user-button"
                                         >
                                             {processing ? (
@@ -327,8 +268,20 @@ export default function Register({ status }: Props) {
                                     );
                                 })()}
                             </form>
+
+                            <div className="pt-4 border-t border-border">
+                                <p className="text-center text-sm text-muted-foreground">
+                                    Already have an account?{' '}
+                                    <TextLink 
+                                        href={login()} 
+                                        className="text-primary font-semibold hover:text-primary/80 transition-all duration-200 hover:underline cursor-pointer inline-flex items-center gap-1"
+                                    >
+                                        Sign in
+                                        <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-1" />
+                                    </TextLink>
+                                </p>
+                            </div>
                         </div>
-                    )}
                 </div>
             </div>
         </div>

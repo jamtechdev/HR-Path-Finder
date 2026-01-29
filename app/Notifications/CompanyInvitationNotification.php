@@ -38,19 +38,45 @@ class CompanyInvitationNotification extends Notification implements ShouldQueue
     {
         $company = $this->invitation->company;
         $inviter = $this->invitation->inviter;
-        $acceptUrl = route('invitations.accept', ['token' => $this->invitation->token]);
-
-        $mail = (new MailMessage)
-            ->subject('Invitation to join ' . $company->name . ' on HR Path-Finder')
-            ->greeting('Hello!')
-            ->line($inviter->name . ' has invited you to join **' . $company->name . '** as ' . ucfirst($this->invitation->role) . ' on HR Path-Finder.')
-            ->line('You will be able to:')
-            ->line('• Review and modify company information')
-            ->line('• Complete the Management Philosophy Survey')
-            ->line('• Collaborate on the HR project with the HR Manager')
-            ->action('Accept Invitation', $acceptUrl)
-            ->line('This invitation will expire in 7 days.')
-            ->line('If you did not expect this invitation, you can safely ignore this email.');
+        
+        // If invitation is accepted, send credentials email
+        if ($this->invitation->accepted_at && $this->invitation->temporary_password) {
+            $loginUrl = route('login');
+            
+            $mail = (new MailMessage)
+                ->subject('Welcome to ' . $company->name . ' - Your CEO Account Credentials')
+                ->greeting('Welcome!')
+                ->line($inviter->name . ' has created your CEO account for **' . $company->name . '** on HR Path-Finder.')
+                ->line('**Your Login Credentials:**')
+                ->line('**Email:** ' . $this->invitation->email)
+                ->line('**Password:** ' . $this->invitation->temporary_password)
+                ->line('**Important:** Please change your password after your first login for security.')
+                ->line('**What you can do:**')
+                ->line('• Review and modify company information')
+                ->line('• Complete the Management Philosophy Survey')
+                ->line('• Collaborate on the HR project with the HR Manager')
+                ->line('• Review and approve HR strategy steps')
+                ->action('Login to Your Account', $loginUrl)
+                ->line('We recommend changing your password after your first login.')
+                ->line('If you did not expect this invitation, please contact ' . $inviter->name . ' immediately.');
+        } else {
+            // Initial invitation email (before acceptance)
+            $acceptUrl = route('invitations.accept', ['token' => $this->invitation->token]);
+            
+            $mail = (new MailMessage)
+                ->subject('Invitation to join ' . $company->name . ' as CEO on HR Path-Finder')
+                ->greeting('Hello!')
+                ->line($inviter->name . ' has invited you to join **' . $company->name . '** as CEO on HR Path-Finder.')
+                ->line('**What you will be able to do:**')
+                ->line('• Review and modify company information')
+                ->line('• Complete the Management Philosophy Survey')
+                ->line('• Collaborate on the HR project with the HR Manager')
+                ->line('• Review and approve HR strategy steps')
+                ->action('Accept Invitation', $acceptUrl)
+                ->line('After accepting, you will receive your login credentials via email.')
+                ->line('This invitation will expire in 7 days.')
+                ->line('If you did not expect this invitation, you can safely ignore this email.');
+        }
 
         return $mail;
     }

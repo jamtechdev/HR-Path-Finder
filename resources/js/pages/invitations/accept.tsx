@@ -20,11 +20,17 @@ interface PageProps {
     invitation?: Invitation;
     error?: string;
     isAuthenticated?: boolean;
+    token?: string;
+    password?: string;
+    message?: string;
 }
 
-export default function AcceptInvitation({ invitation, error, isAuthenticated }: PageProps) {
+export default function AcceptInvitation({ invitation, error, isAuthenticated, password, message }: PageProps) {
     const { props } = usePage<PageProps>();
     const user = (props as any).auth?.user;
+    const flash = (props as any).flash || {};
+    const pagePassword = password || flash.password || (props as any).password;
+    const pageMessage = message || flash.message || (props as any).message;
 
     if (error) {
         return (
@@ -65,14 +71,19 @@ export default function AcceptInvitation({ invitation, error, isAuthenticated }:
     }
 
     const handleAccept = () => {
-        // If user is authenticated, accept directly by visiting the URL (which will process it)
-        if (isAuthenticated && user) {
-            // The backend will handle the acceptance when we visit the URL
-            window.location.href = `/invitations/accept/${(props as any).token || ''}`;
-        } else {
-            // Redirect to registration - the token is already stored in session by the backend
-            window.location.href = '/register';
+        // If invitation is already accepted (password exists), redirect to login
+        if (pagePassword) {
+            router.visit('/login');
+            return;
         }
+        
+        // POST to process acceptance (creates CEO account)
+        router.post(`/invitations/accept/${(props as any).token || ''}`, {}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Page will reload with password displayed
+            },
+        });
     };
 
     return (
@@ -103,42 +114,60 @@ export default function AcceptInvitation({ invitation, error, isAuthenticated }:
                         </div>
                     </div>
 
-                    <Alert>
-                        <CheckCircle2 className="h-4 w-4" />
-                        <AlertDescription>
-                            As {invitation.role.toUpperCase()}, you will be able to:
-                            <ul className="list-disc list-inside mt-2 space-y-1">
-                                <li>Review and modify company information</li>
-                                <li>Complete the Management Philosophy Survey</li>
-                                <li>Collaborate on the HR project with the HR Manager</li>
-                            </ul>
-                        </AlertDescription>
-                    </Alert>
-
-                    {isAuthenticated ? (
-                        <div className="space-y-2">
-                            <Button onClick={handleAccept} className="w-full" size="lg">
-                                Accept Invitation
-                            </Button>
-                            <p className="text-xs text-center text-muted-foreground">
-                                You're logged in as {user?.email}. Click to accept and join the workspace.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="space-y-2">
-                            <Button onClick={handleAccept} className="w-full" size="lg">
-                                Create Account & Accept
-                            </Button>
-                            <p className="text-xs text-center text-muted-foreground">
-                                You'll need to create an account first, then you'll automatically be added to the
-                                workspace.
-                            </p>
-                            <div className="text-center">
-                                <Link href="/login" className="text-sm text-primary hover:underline">
-                                    Already have an account? Sign in
-                                </Link>
+                    {/* Show credentials if invitation is accepted */}
+                    {pagePassword ? (
+                        <>
+                            <Alert className="border-success/50 bg-success/5">
+                                <CheckCircle2 className="h-4 w-4 text-success" />
+                                <AlertDescription>
+                                    {pageMessage || 'Your CEO account has been created successfully!'}
+                                </AlertDescription>
+                            </Alert>
+                            
+                            <div className="rounded-lg border-2 border-primary/20 bg-primary/5 p-4 space-y-3">
+                                <h3 className="font-semibold text-sm">Your Login Credentials:</h3>
+                                <div className="space-y-2">
+                                    <div>
+                                        <p className="text-xs text-muted-foreground mb-1">Email:</p>
+                                        <p className="font-mono text-sm font-medium">{invitation.email}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-muted-foreground mb-1">Password:</p>
+                                        <p className="font-mono text-sm font-medium bg-background px-2 py-1 rounded border">{pagePassword}</p>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-3">
+                                    <strong>Important:</strong> Login credentials have also been sent to your email. Please change your password after first login.
+                                </p>
                             </div>
-                        </div>
+                            
+                            <Button onClick={handleAccept} className="w-full" size="lg">
+                                Go to Login
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <Alert>
+                                <CheckCircle2 className="h-4 w-4" />
+                                <AlertDescription>
+                                    As {invitation.role.toUpperCase()}, you will be able to:
+                                    <ul className="list-disc list-inside mt-2 space-y-1">
+                                        <li>Review and modify company information</li>
+                                        <li>Complete the Management Philosophy Survey</li>
+                                        <li>Collaborate on the HR project with the HR Manager</li>
+                                    </ul>
+                                </AlertDescription>
+                            </Alert>
+
+                            <div className="space-y-2">
+                                <Button onClick={handleAccept} className="w-full" size="lg">
+                                    Accept Invitation
+                                </Button>
+                                <p className="text-xs text-center text-muted-foreground">
+                                    Click to accept. Your CEO account will be created automatically and login credentials will be sent to your email.
+                                </p>
+                            </div>
+                        </>
                     )}
                 </CardContent>
             </Card>

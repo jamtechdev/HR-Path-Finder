@@ -132,10 +132,9 @@ export default function CompanyShow({ company, canInvite: canInviteProp }: PageP
                     {showInviteForm && canInvite && (
                         <Card className="mb-6">
                             <CardHeader>
-                                <CardTitle>Invite CEO to Workspace</CardTitle>
+                                <CardTitle>Add & Invite CEO</CardTitle>
                                 <CardDescription>
-                                    Send an invitation to the CEO to join this workspace. They will be able to review
-                                    and modify company information before completing the Management Philosophy Survey.
+                                    Send an invitation to the CEO. When they accept, their account will be created automatically and they will receive login credentials via email.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>

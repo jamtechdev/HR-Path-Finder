@@ -37,6 +37,11 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
         
+        // Ensure session is started for CSRF token
+        if (!$request->hasSession()) {
+            $request->session()->start();
+        }
+        
         return [
             ...parent::share($request),
             'name' => config('app.name'),
