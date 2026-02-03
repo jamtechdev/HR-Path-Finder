@@ -16,11 +16,13 @@ class CompanyInvitation extends Model
         'token',
         'temporary_password',
         'accepted_at',
+        'rejected_at',
         'expires_at',
     ];
 
     protected $casts = [
         'accepted_at' => 'datetime',
+        'rejected_at' => 'datetime',
         'expires_at' => 'datetime',
     ];
 
@@ -41,11 +43,23 @@ class CompanyInvitation extends Model
             return false;
         }
 
+        if ($this->rejected_at !== null) {
+            return false;
+        }
+
         if ($this->expires_at && $this->expires_at->isPast()) {
             return false;
         }
 
         return true;
+    }
+    
+    /**
+     * Check if the invitation has been rejected.
+     */
+    public function isRejected(): bool
+    {
+        return $this->rejected_at !== null;
     }
 
     /**

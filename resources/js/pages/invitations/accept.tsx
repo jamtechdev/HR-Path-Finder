@@ -1,7 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, CheckCircle2, AlertCircle, UserPlus } from 'lucide-react';
+import { Building2, CheckCircle2, AlertCircle, UserPlus, X } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Company {
@@ -85,6 +85,16 @@ export default function AcceptInvitation({ invitation, error, isAuthenticated, p
             },
         });
     };
+    
+    const handleReject = () => {
+        if (confirm('Are you sure you want to reject this invitation? This action cannot be undone.')) {
+            router.post(`/invitations/reject/${(props as any).token || ''}`, {}, {
+                onSuccess: () => {
+                    router.visit('/');
+                },
+            });
+        }
+    };
 
     return (
         <div className="min-h-screen gradient-hero flex items-center justify-center p-4">
@@ -162,6 +172,15 @@ export default function AcceptInvitation({ invitation, error, isAuthenticated, p
                             <div className="space-y-2">
                                 <Button onClick={handleAccept} className="w-full" size="lg">
                                     Accept Invitation
+                                </Button>
+                                <Button 
+                                    onClick={handleReject} 
+                                    variant="outline" 
+                                    className="w-full" 
+                                    size="lg"
+                                >
+                                    <X className="h-4 w-4 mr-2" />
+                                    Reject Invitation
                                 </Button>
                                 <p className="text-xs text-center text-muted-foreground">
                                     Click to accept. Your CEO account will be created automatically and login credentials will be sent to your email.

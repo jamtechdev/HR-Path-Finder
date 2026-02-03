@@ -30,6 +30,19 @@ class CompanyController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', Company::class);
+        
+        // Check if user email is verified
+        $user = Auth::user();
+        if (!$user->hasVerifiedEmail()) {
+            return back()->withErrors(['email' => 'Please verify your email address before creating a company.'])
+                ->withInput();
+        }
+        
+        // Check SMTP configuration before allowing company creation
+        if (!\App\Services\SmtpConfigurationService::isConfigured()) {
+            return back()->withErrors(['smtp' => 'SMTP is not configured. Please configure email settings before creating a company.'])
+                ->withInput();
+        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -42,6 +55,9 @@ class CompanyController extends Controller
             'size' => 'nullable|string|max:255',
             'growth_stage' => 'nullable|in:early,growth,maturity,decline',
             'logo' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:2048',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
         $company = Company::create([
@@ -53,6 +69,8 @@ class CompanyController extends Controller
             'secondary_industries' => $validated['secondary_industries'] ?? [],
             'size' => $validated['size'] ?? null,
             'growth_stage' => $validated['growth_stage'] ?? null,
+            'latitude' => $validated['latitude'] ?? null,
+            'longitude' => $validated['longitude'] ?? null,
             'created_by' => Auth::id(),
         ]);
 
@@ -70,6 +88,11 @@ class CompanyController extends Controller
             $company->update(['logo_path' => $path]);
         }
 
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('company-images', 'public');
+            $company->update(['image_path' => $path]);
+        }
+
         // Redirect to company show page so HR Manager can invite CEO
         return redirect()->route('companies.show', $company->id)
             ->with('success', 'Company created successfully! Please invite the CEO to join the workspace.');
@@ -81,6 +104,7 @@ class CompanyController extends Controller
 
         $company->load(['hrProjects', 'users', 'invitations' => function ($query) {
             $query->whereNull('accepted_at')
+                ->whereNull('rejected_at')
                 ->where(function ($q) {
                     $q->whereNull('expires_at')
                         ->orWhere('expires_at', '>', now());
@@ -112,13 +136,23 @@ class CompanyController extends Controller
             'size' => 'nullable|string|max:255',
             'growth_stage' => 'nullable|in:early,growth,maturity,decline',
             'logo' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:2048',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
-        $company->update($validated);
+        $updateData = $validated;
+        unset($updateData['logo'], $updateData['image']);
+        $company->update($updateData);
 
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->store('company-logos', 'public');
             $company->update(['logo_path' => $path]);
+        }
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('company-images', 'public');
+            $company->update(['image_path' => $path]);
         }
 
         return redirect()->route('companies.show', $company->id);

@@ -22,12 +22,17 @@ class Company extends Model
         'size',
         'growth_stage',
         'logo_path',
+        'image_path',
+        'latitude',
+        'longitude',
         'created_by',
     ];
 
     protected $casts = [
         'foundation_date' => 'date',
         'secondary_industries' => 'array',
+        'latitude' => 'decimal:8',
+        'longitude' => 'decimal:8',
     ];
 
     /**

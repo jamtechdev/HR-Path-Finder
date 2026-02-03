@@ -11,7 +11,11 @@ import {
     ArrowRight,
     Lock,
     Check,
+    Plus,
+    Mail,
+    AlertCircle,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 
 interface Project {
@@ -34,9 +38,10 @@ interface PageProps {
     };
     progressCount: number;
     currentStepNumber: number;
+    smtpConfigured?: boolean;
 }
 
-export default function HRManagerDashboard({ project, stepStatuses, progressCount, currentStepNumber }: PageProps) {
+export default function HRManagerDashboard({ project, stepStatuses, progressCount, currentStepNumber, smtpConfigured = true }: PageProps) {
     const page = usePage<any>();
     const userName = page.props.auth?.user?.name?.split(' ')[0] || 'Sarah';
     
@@ -145,6 +150,34 @@ export default function HRManagerDashboard({ project, stepStatuses, progressCoun
                 <Head title="HR Manager Dashboard" />
                 
                 <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
+                    {/* SMTP Configuration Warning */}
+                    {!smtpConfigured && (
+                        <div className="rounded-lg border border-orange-500/50 bg-orange-50 dark:bg-orange-950/20 p-4">
+                            <div className="flex items-start gap-3">
+                                <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                    <h3 className="font-semibold text-orange-900 dark:text-orange-100 mb-1">
+                                        SMTP Configuration Required
+                                    </h3>
+                                    <p className="text-sm text-orange-800 dark:text-orange-200 mb-3">
+                                        Email services are not configured. You must configure SMTP settings before you can send CEO invitations and other emails.
+                                    </p>
+                                    <Button
+                                        onClick={() => {
+                                            // Open .env file or settings page
+                                            window.open('/settings', '_blank');
+                                        }}
+                                        className="bg-orange-600 hover:bg-orange-700 text-white"
+                                        size="sm"
+                                    >
+                                        <Mail className="w-4 h-4 mr-2" />
+                                        Configure SMTP Settings
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex items-start gap-3">
                             <div>

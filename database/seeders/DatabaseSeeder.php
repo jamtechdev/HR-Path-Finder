@@ -14,5 +14,8 @@ class DatabaseSeeder extends Seeder
     {
         // Seed roles and permissions first
         $this->call(RolePermissionSeeder::class);
+
+        // Seed sample HR project if needed
+        // $this->call(HrProjectSeeder::class);
     }
 }

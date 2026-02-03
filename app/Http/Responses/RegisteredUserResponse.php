@@ -63,15 +63,35 @@ class RegisteredUserResponse implements RegisterResponseContract
             return redirect()->route('dashboard');
         }
 
+        // Check email verification for HR Manager - redirect to verification page if not verified
+        if ($role === 'hr_manager' && !$user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice')
+                ->with('warning', 'Please verify your email address before accessing the dashboard.');
+        }
+
         // Check if CEO just joined via invitation - redirect to company page for onboarding
         if ($role === 'ceo') {
             $user->load('companies');
             $company = $user->companies()->wherePivot('role', 'ceo')->latest('company_users.created_at')->first();
             
             if ($company) {
+                $hrProject = $company->hrProjects()->latest()->first();
+                
+                // If there's a project and CEO hasn't completed philosophy survey, redirect to philosophy survey
+                if ($hrProject) {
+                    $hrProject->initializeStepStatuses();
+                    $ceoPhilosophy = $hrProject->ceoPhilosophy;
+                    
+                    // If philosophy not completed, redirect to philosophy survey for onboarding
+                    if (!$ceoPhilosophy || !$ceoPhilosophy->completed_at) {
+                        return redirect()->route('hr-projects.ceo-philosophy.show', $hrProject->id)
+                            ->with('success', 'Welcome! Please complete the Management Philosophy Survey to continue.');
+                    }
+                }
+                
                 // CEO just joined a company, redirect them to review company info
                 return redirect()->route('companies.show', $company->id)
-                    ->with('success', 'Welcome! You have successfully joined ' . $company->name . ' as CEO. Please review the company information and complete the Management Philosophy Survey.');
+                    ->with('success', 'Welcome! You have successfully joined ' . $company->name . ' as CEO.');
             }
         }
 

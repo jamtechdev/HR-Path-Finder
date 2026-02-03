@@ -62,6 +62,7 @@ class CompanyInvitationNotification extends Notification implements ShouldQueue
         } else {
             // Initial invitation email (before acceptance)
             $acceptUrl = route('invitations.accept', ['token' => $this->invitation->token]);
+            $rejectUrl = route('invitations.reject', ['token' => $this->invitation->token]);
             
             $mail = (new MailMessage)
                 ->subject('Invitation to join ' . $company->name . ' as CEO on HR Path-Finder')
@@ -73,9 +74,13 @@ class CompanyInvitationNotification extends Notification implements ShouldQueue
                 ->line('• Collaborate on the HR project with the HR Manager')
                 ->line('• Review and approve HR strategy steps')
                 ->action('Accept Invitation', $acceptUrl)
+                ->line('**Or reject this invitation:**')
+                ->line('If you do not wish to accept this invitation, you can [reject it here](' . $rejectUrl . ').')
                 ->line('After accepting, you will receive your login credentials via email.')
+                ->line('**Email Verification:**')
+                ->line('Your email will be automatically verified when you accept the invitation.')
                 ->line('This invitation will expire in 7 days.')
-                ->line('If you did not expect this invitation, you can safely ignore this email.');
+                ->line('If you did not expect this invitation, you can safely ignore this email or reject it using the link above.');
         }
 
         return $mail;

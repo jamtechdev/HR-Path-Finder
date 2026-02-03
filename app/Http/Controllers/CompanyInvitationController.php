@@ -36,10 +36,16 @@ class CompanyInvitationController extends Controller
             return back()->withErrors(['email' => 'This user is already a member of this company.']);
         }
 
+        // Check SMTP configuration before sending invitation
+        if (!\App\Services\SmtpConfigurationService::isConfigured()) {
+            return back()->withErrors(['email' => 'SMTP is not configured. Please configure email settings before sending invitations.']);
+        }
+
         // Check if there's a pending invitation for this email and company
         $existingInvitation = CompanyInvitation::where('company_id', $company->id)
             ->where('email', $email)
             ->whereNull('accepted_at')
+            ->whereNull('rejected_at')
             ->where(function ($query) {
                 $query->whereNull('expires_at')
                     ->orWhere('expires_at', '>', now());
@@ -74,12 +80,19 @@ class CompanyInvitationController extends Controller
     {
         $invitation = CompanyInvitation::where('token', $token)
             ->whereNull('accepted_at')
+            ->whereNull('rejected_at')
             ->with('company')
             ->first();
 
         if (!$invitation) {
             return Inertia::render('invitations/accept', [
-                'error' => 'Invitation not found or already accepted.',
+                'error' => 'Invitation not found, already accepted, or has been rejected.',
+            ]);
+        }
+
+        if ($invitation->isRejected()) {
+            return Inertia::render('invitations/accept', [
+                'error' => 'This invitation has been rejected.',
             ]);
         }
 
@@ -110,25 +123,102 @@ class CompanyInvitationController extends Controller
     }
 
     /**
+     * Show reject invitation confirmation page.
+     */
+    public function showReject(Request $request, string $token)
+    {
+        $invitation = CompanyInvitation::where('token', $token)
+            ->whereNull('accepted_at')
+            ->whereNull('rejected_at')
+            ->with('company')
+            ->first();
+
+        if (!$invitation) {
+            return Inertia::render('invitations/accept', [
+                'error' => 'Invitation not found, already accepted, or has been rejected.',
+            ]);
+        }
+
+        if (!$invitation->isValid()) {
+            return Inertia::render('invitations/accept', [
+                'error' => 'This invitation has expired.',
+            ]);
+        }
+
+        return Inertia::render('invitations/reject', [
+            'invitation' => $invitation,
+            'token' => $token,
+        ]);
+    }
+
+    /**
+     * Reject an invitation.
+     */
+    public function reject(Request $request, string $token)
+    {
+        $invitation = CompanyInvitation::where('token', $token)
+            ->whereNull('accepted_at')
+            ->whereNull('rejected_at')
+            ->with('company')
+            ->first();
+
+        if (!$invitation) {
+            return redirect()->route('home')
+                ->withErrors(['error' => 'Invitation not found, already accepted, or has been rejected.']);
+        }
+
+        if (!$invitation->isValid()) {
+            return redirect()->route('home')
+                ->withErrors(['error' => 'This invitation has expired.']);
+        }
+
+        // Mark invitation as rejected
+        $invitation->update([
+            'rejected_at' => now(),
+        ]);
+
+        return redirect()->route('home')
+            ->with('success', 'Invitation has been rejected.');
+    }
+
+    /**
      * Process the invitation acceptance (POST request).
      */
     public function processAccept(Request $request, string $token)
     {
         $invitation = CompanyInvitation::where('token', $token)
             ->whereNull('accepted_at')
+            ->whereNull('rejected_at')
             ->with('company')
             ->first();
 
         if (!$invitation) {
             return redirect()->route('invitations.accept', ['token' => $token])
-                ->withErrors(['error' => 'Invitation not found or already accepted.']);
+                ->withErrors(['error' => 'Invitation not found, already accepted, or has been rejected.']);
+        }
+
+        if ($invitation->isRejected()) {
+            return redirect()->route('invitations.accept', ['token' => $token])
+                ->withErrors(['error' => 'This invitation has been rejected.']);
         }
 
         if (!$invitation->isValid()) {
             return redirect()->route('invitations.accept', ['token' => $token])
                 ->withErrors(['error' => 'This invitation has expired.']);
         }
+        
+        // Check SMTP configuration before processing
+        if (!\App\Services\SmtpConfigurationService::isConfigured()) {
+            return redirect()->route('invitations.accept', ['token' => $token])
+                ->withErrors(['error' => 'Email services are not configured. Please contact the administrator.']);
+        }
 
+        // Check if company exists
+        if (!$invitation->company) {
+            return redirect()->route('invitations.accept', ['token' => $token])
+                ->withErrors(['error' => 'Company account does not exist. Please contact the HR Manager.']);
+        }
+        
         // Check if user already exists
         $existingUser = User::where('email', $invitation->email)->first();
         
@@ -142,7 +232,7 @@ class CompanyInvitationController extends Controller
                     'name' => explode('@', $invitation->email)[0], // Use email prefix as default name
                     'email' => $invitation->email,
                     'password' => Hash::make($temporaryPassword),
-                    'email_verified_at' => now(), // Auto-verify email
+                    'email_verified_at' => now(), // Auto-verify email when accepting invitation
                 ]);
 
                 // Assign CEO role
@@ -171,7 +261,12 @@ class CompanyInvitationController extends Controller
 
         // Send email with login credentials
         $ceoUser = User::where('email', $invitation->email)->first();
-        $ceoUser->notify(new CompanyInvitationNotification($invitation->fresh()));
+        try {
+            $ceoUser->notify(new CompanyInvitationNotification($invitation->fresh()));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send CEO welcome email: ' . $e->getMessage());
+            // Continue even if email fails - credentials are shown on page
+        }
 
         // Redirect back to accept page with credentials
         return redirect()->route('invitations.accept', ['token' => $token])
