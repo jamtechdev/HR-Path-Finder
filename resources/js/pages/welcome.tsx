@@ -34,6 +34,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
         setMounted(true);
     }, []);
 
+    // Use scroll hooks safely - they should work in browser context
     const { scrollYProgress } = useScroll();
     const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
@@ -42,7 +43,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
     const whyInView = useInView(whyRef, { once: true, margin: '-100px' });
     const ctaInView = useInView(ctaRef, { once: true, margin: '-100px' });
 
-    // Prevent hydration mismatch
+    // Prevent hydration mismatch - show loading state initially
     if (!mounted) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
@@ -115,7 +116,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
     ];
 
     const containerVariants = {
-        hidden: { opacity: 0 },
+        hidden: { opacity: 1 },
         visible: {
             opacity: 1,
             transition: {
@@ -126,7 +127,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
     };
 
     const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
+        hidden: { opacity: 1, y: 0 },
         visible: {
             opacity: 1,
             y: 0,
@@ -138,7 +139,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
     };
 
     const cardVariants = {
-        hidden: { opacity: 0, y: 30, scale: 0.95 },
+        hidden: { opacity: 1, y: 0, scale: 1 },
         visible: {
             opacity: 1,
             y: 0,
@@ -205,8 +206,8 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                             {/* Left Column */}
                             <motion.div
                                 className="space-y-8"
-                                initial="hidden"
-                                animate={heroInView ? 'visible' : 'hidden'}
+                                initial="visible"
+                                animate={heroInView ? 'visible' : 'visible'}
                                 variants={containerVariants}
                             >
                                 {/* Badge */}
@@ -329,8 +330,8 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                             {/* Right Column - HR System Overview Card */}
                             <motion.div
                                 className="relative"
-                                initial={{ opacity: 0, x: 50 }}
-                                animate={heroInView ? { opacity: 1, x: 0 } : {}}
+                                initial={{ opacity: 1, x: 0 }}
+                                animate={heroInView ? { opacity: 1, x: 0 } : { opacity: 1, x: 0 }}
                                 transition={{ duration: 0.8, delay: 0.3 }}
                             >
                                 <motion.div
@@ -485,8 +486,8 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                     <div className="max-w-7xl mx-auto">
                         <motion.div
                             className="text-center mb-16"
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={featuresInView ? { opacity: 1, y: 0 } : {}}
+                            initial={{ opacity: 1, y: 0 }}
+                            animate={featuresInView ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
                             transition={{ duration: 0.6 }}
                         >
                             <h2 className="font-display text-3xl md:text-4xl font-bold mb-4 text-foreground">
@@ -500,8 +501,8 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                         <motion.div
                             className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
                             variants={containerVariants}
-                            initial="hidden"
-                            animate={featuresInView ? 'visible' : 'hidden'}
+                            initial="visible"
+                            animate={featuresInView ? 'visible' : 'visible'}
                         >
                             {mainFeatures.map((feature, index) => (
                                 <motion.div key={index} variants={cardVariants}>
@@ -546,8 +547,8 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                         <div className="grid lg:grid-cols-2 gap-16 items-center">
                             {/* Left Side */}
                             <motion.div
-                                initial={{ opacity: 0, x: -50 }}
-                                animate={whyInView ? { opacity: 1, x: 0 } : {}}
+                                initial={{ opacity: 1, x: 0 }}
+                                animate={whyInView ? { opacity: 1, x: 0 } : { opacity: 1, x: 0 }}
                                 transition={{ duration: 0.6 }}
                             >
                                 <h2 className="font-display text-3xl md:text-4xl font-bold mb-6 text-foreground">
@@ -583,12 +584,12 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                 </motion.div>
                             </motion.div>
                             {/* Right Side - 2x2 Grid */}
-                            <motion.div
-                                className="grid sm:grid-cols-2 grid-cols-1 gap-4"
-                                variants={containerVariants}
-                                initial="hidden"
-                                animate={whyInView ? 'visible' : 'hidden'}
-                            >
+                                <motion.div
+                                    className="grid sm:grid-cols-2 grid-cols-1 gap-4"
+                                    variants={containerVariants}
+                                    initial="visible"
+                                    animate={whyInView ? 'visible' : 'visible'}
+                                >
                                 {capabilityFeatures.map((feature, index) => (
                                     <motion.div
                                         key={index}
@@ -645,8 +646,8 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                 <section ref={ctaRef as React.RefObject<HTMLElement>} className="py-6 md:py-20 px-6 relative">
                     <div className="max-w-4xl mx-auto">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={ctaInView ? { opacity: 1, scale: 1 } : {}}
+                            initial={{ opacity: 1, scale: 1 }}
+                            animate={ctaInView ? { opacity: 1, scale: 1 } : { opacity: 1, scale: 1 }}
                             transition={{ duration: 0.6, type: 'spring' }}
                         >
                             <Card className="gradient-primary overflow-hidden border-0 shadow-2xl relative">
