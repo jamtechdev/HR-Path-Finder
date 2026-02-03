@@ -13,7 +13,31 @@ class CompanyController extends Controller
     public function index(): Response
     {
         $user = Auth::user();
-        $companies = $user->companies()->with('hrProjects')->get();
+        $companies = $user->companies()
+            ->with(['users', 'invitations' => function ($query) {
+                $query->whereNull('accepted_at')
+                    ->whereNull('rejected_at')
+                    ->where(function ($q) {
+                        $q->whereNull('expires_at')
+                            ->orWhere('expires_at', '>', now());
+                    });
+            }])
+            ->get()
+            ->map(function ($company) {
+                return [
+                    'id' => $company->id,
+                    'name' => $company->name,
+                    'brand_name' => $company->brand_name,
+                    'industry' => $company->industry,
+                    'logo_path' => $company->logo_path ? asset('storage/' . $company->logo_path) : null,
+                    'image_path' => $company->image_path ? asset('storage/' . $company->image_path) : null,
+                    'created_by' => $company->created_by,
+                    'users' => $company->users,
+                    'invitations' => $company->invitations,
+                    'diagnosis_status' => $company->diagnosis_status,
+                    'overall_status' => $company->overall_status,
+                ];
+            });
 
         return Inertia::render('companies/index', [
             'companies' => $companies,
@@ -24,7 +48,61 @@ class CompanyController extends Controller
     {
         $this->authorize('create', Company::class);
 
-        return Inertia::render('companies/create');
+        $user = Auth::user();
+        
+        // Check if user has an existing company
+        $company = $user->companies()
+            ->with(['businessProfile', 'workforce', 'currentHrStatus', 'culture', 'confidentialNote'])
+            ->first();
+
+        return Inertia::render('companies/create', [
+            'company' => $company ? [
+                'id' => $company->id,
+                'name' => $company->name,
+                'brand_name' => $company->brand_name,
+                'foundation_date' => $company->foundation_date?->format('Y-m-d'),
+                'hq_location' => $company->hq_location,
+                'industry' => $company->industry,
+                'secondary_industries' => $company->secondary_industries ?? [],
+                'latitude' => $company->latitude,
+                'longitude' => $company->longitude,
+                'logo_path' => $company->logo_path ? asset('storage/' . $company->logo_path) : null,
+                'image_path' => $company->image_path ? asset('storage/' . $company->image_path) : null,
+                'diagnosis_status' => $company->diagnosis_status,
+                'business_profile' => $company->businessProfile ? [
+                    'annual_revenue' => $company->businessProfile->annual_revenue,
+                    'operational_margin_rate' => $company->businessProfile->operational_margin_rate,
+                    'annual_human_cost' => $company->businessProfile->annual_human_cost,
+                    'business_type' => $company->businessProfile->business_type,
+                ] : null,
+                'workforce' => $company->workforce ? [
+                    'headcount_year_minus_2' => $company->workforce->headcount_year_minus_2,
+                    'headcount_year_minus_1' => $company->workforce->headcount_year_minus_1,
+                    'headcount_current' => $company->workforce->headcount_current,
+                    'total_employees' => $company->workforce->total_employees,
+                    'contract_employees' => $company->workforce->contract_employees,
+                    'org_chart_path' => $company->workforce->org_chart_path,
+                ] : null,
+                'current_hr_status' => $company->currentHrStatus ? [
+                    'dedicated_hr_team' => $company->currentHrStatus->dedicated_hr_team,
+                    'labor_union_present' => $company->currentHrStatus->labor_union_present,
+                    'labor_relations_stability' => $company->currentHrStatus->labor_relations_stability,
+                    'evaluation_system_status' => $company->currentHrStatus->evaluation_system_status,
+                    'compensation_system_status' => $company->currentHrStatus->compensation_system_status,
+                    'evaluation_system_issues' => $company->currentHrStatus->evaluation_system_issues,
+                    'job_rank_levels' => $company->currentHrStatus->job_rank_levels,
+                    'job_title_levels' => $company->currentHrStatus->job_title_levels,
+                ] : null,
+                'culture' => $company->culture ? [
+                    'work_format' => $company->culture->work_format,
+                    'decision_making_style' => $company->culture->decision_making_style,
+                    'core_values' => $company->culture->core_values ?? [],
+                ] : null,
+                'confidential_note' => $company->confidentialNote ? [
+                    'notes' => $company->confidentialNote->notes,
+                ] : null,
+            ] : null,
+        ]);
     }
 
     public function store(Request $request)
@@ -77,11 +155,8 @@ class CompanyController extends Controller
         // Attach user to company
         $company->users()->attach(Auth::id(), ['role' => 'hr_manager']);
 
-        // Create initial HR project
-        $hrProject = $company->hrProjects()->create([
-            'status' => 'not_started',
-            'current_step' => 'diagnosis',
-        ]);
+        // Set initial diagnosis status
+        $company->update(['diagnosis_status' => 'not_started']);
 
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->store('company-logos', 'public');
@@ -93,6 +168,12 @@ class CompanyController extends Controller
             $company->update(['image_path' => $path]);
         }
 
+        // If step_wise parameter is set, return back to continue the form
+        // The frontend will reload the page to get updated data
+        if ($request->has('step_wise') && $request->boolean('step_wise')) {
+            return back()->with('success', 'Company information saved successfully.');
+        }
+
         // Redirect to company show page so HR Manager can invite CEO
         return redirect()->route('companies.show', $company->id)
             ->with('success', 'Company created successfully! Please invite the CEO to join the workspace.');
@@ -102,7 +183,7 @@ class CompanyController extends Controller
     {
         $this->authorize('view', $company);
 
-        $company->load(['hrProjects', 'users', 'invitations' => function ($query) {
+        $company->load(['users', 'invitations' => function ($query) {
             $query->whereNull('accepted_at')
                 ->whereNull('rejected_at')
                 ->where(function ($q) {

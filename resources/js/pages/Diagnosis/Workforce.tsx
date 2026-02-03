@@ -35,11 +35,22 @@ interface Project {
 
 interface PageProps {
     company: Company;
-    project: Project;
+    project?: Project | null;
 }
 
 export default function Workforce({ company, project }: PageProps) {
-    const workforce = project.workforce;
+    // Provide safe defaults if project is undefined
+    const safeProject = project || {
+        id: 0,
+        status: 'not_started',
+        workforce: null,
+        business_profile: null,
+        current_hr_status: null,
+        culture: null,
+        confidential_note: null,
+    };
+    
+    const workforce = safeProject.workforce;
     
     const [totalEmployees, setTotalEmployees] = useState<number>(
         workforce?.total_employees || 50
@@ -59,15 +70,18 @@ export default function Workforce({ company, project }: PageProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!safeProject.id) {
+            return; // Cannot submit without a valid project
+        }
         form.setData('total_employees', totalEmployees.toString());
         form.setData('contract_employees', contractEmployees.toString());
-        form.post(`/diagnosis/${project.id}/workforce`, {
+        form.post(`/diagnosis/${safeProject.id}/workforce`, {
             forceFormData: true,
             preserveScroll: true,
             only: ['company', 'project'],
             onSuccess: () => {
                 // Navigate to next step (current-hr)
-                router.visit(`/diagnosis/${project.id}/current-hr`);
+                router.visit(`/diagnosis/${safeProject.id}/current-hr`);
             },
         });
     };
@@ -78,11 +92,11 @@ export default function Workforce({ company, project }: PageProps) {
 
     const stepStatus = {
         'company-info': true,
-        'business-profile': Boolean(project.business_profile),
+        'business-profile': Boolean(safeProject.business_profile),
         'workforce': Boolean(workforce),
-        'current-hr': Boolean(project.current_hr_status),
-        'culture': Boolean(project.culture),
-        'confidential': Boolean(project.confidential_note),
+        'current-hr': Boolean(safeProject.current_hr_status),
+        'culture': Boolean(safeProject.culture),
+        'confidential': Boolean(safeProject.confidential_note),
         'review': false,
     };
 
@@ -91,19 +105,19 @@ export default function Workforce({ company, project }: PageProps) {
     const totalSteps = 7;
 
     const status: 'not_started' | 'in_progress' | 'submitted' = 
-        project.status === 'not_started' ? 'not_started' : 
-        project.status === 'in_progress' ? 'in_progress' : 
+        safeProject.status === 'not_started' ? 'not_started' : 
+        safeProject.status === 'in_progress' ? 'in_progress' : 
         'submitted';
 
     const tabs = [
         { id: 'overview' as TabId, name: 'Overview', icon: FileText, route: `/diagnosis` },
-        { id: 'company-info' as TabId, name: 'Company Info', icon: Building2, route: `/diagnosis/${project.id}/company-info` },
-        { id: 'business-profile' as TabId, name: 'Business Profile', icon: Briefcase, route: `/diagnosis/${project.id}/business-profile` },
-        { id: 'workforce' as TabId, name: 'Workforce', icon: Users, route: `/diagnosis/${project.id}/workforce` },
-        { id: 'current-hr' as TabId, name: 'Current HR', icon: Settings, route: `/diagnosis/${project.id}/current-hr` },
-        { id: 'culture' as TabId, name: 'Culture', icon: MessageSquare, route: `/diagnosis/${project.id}/culture` },
-        { id: 'confidential' as TabId, name: 'Confidential', icon: FileText, route: `/diagnosis/${project.id}/confidential` },
-        { id: 'review' as TabId, name: 'Review & Submit', icon: Check, route: `/diagnosis/${project.id}/review` },
+        { id: 'company-info' as TabId, name: 'Company Info', icon: Building2, route: safeProject.id ? `/diagnosis/${safeProject.id}/company-info` : '#' },
+        { id: 'business-profile' as TabId, name: 'Business Profile', icon: Briefcase, route: safeProject.id ? `/diagnosis/${safeProject.id}/business-profile` : '#' },
+        { id: 'workforce' as TabId, name: 'Workforce', icon: Users, route: safeProject.id ? `/diagnosis/${safeProject.id}/workforce` : '#' },
+        { id: 'current-hr' as TabId, name: 'Current HR', icon: Settings, route: safeProject.id ? `/diagnosis/${safeProject.id}/current-hr` : '#' },
+        { id: 'culture' as TabId, name: 'Culture', icon: MessageSquare, route: safeProject.id ? `/diagnosis/${safeProject.id}/culture` : '#' },
+        { id: 'confidential' as TabId, name: 'Confidential', icon: FileText, route: safeProject.id ? `/diagnosis/${safeProject.id}/confidential` : '#' },
+        { id: 'review' as TabId, name: 'Review & Submit', icon: Check, route: safeProject.id ? `/diagnosis/${safeProject.id}/review` : '#' },
     ];
 
     return (
@@ -118,7 +132,7 @@ export default function Workforce({ company, project }: PageProps) {
                         title="Step 1: Diagnosis"
                         description="Input company information and organizational context"
                         status={status}
-                        backHref={`/diagnosis/${project.id}/business-profile`}
+                        backHref={safeProject.id ? `/diagnosis/${safeProject.id}/business-profile` : '/diagnosis'}
                     />
 
                     <DiagnosisProgressBar
@@ -133,7 +147,7 @@ export default function Workforce({ company, project }: PageProps) {
                         activeTab="workforce"
                         stepStatus={stepStatus}
                         stepOrder={stepOrder}
-                        projectId={project.id}
+                        projectId={safeProject.id}
                     />
 
                     <Card>

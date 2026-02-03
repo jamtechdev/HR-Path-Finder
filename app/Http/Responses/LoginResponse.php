@@ -65,6 +65,12 @@ class LoginResponse implements LoginResponseContract
             default => 'dashboard', // Fallback to generic dashboard if no role
         };
 
-        return redirect()->intended(route($redirectRoute));
+        // If there's an intended URL (from middleware), use it, otherwise go to dashboard
+        $intended = $request->session()->pull('url.intended');
+        if ($intended && $intended !== route('login')) {
+            return redirect()->to($intended);
+        }
+
+        return redirect()->route($redirectRoute);
     }
 }

@@ -218,7 +218,7 @@ class CompanyInvitationController extends Controller
             return redirect()->route('invitations.accept', ['token' => $token])
                 ->withErrors(['error' => 'Company account does not exist. Please contact the HR Manager.']);
         }
-        
+
         // Check if user already exists
         $existingUser = User::where('email', $invitation->email)->first();
         
@@ -262,7 +262,7 @@ class CompanyInvitationController extends Controller
         // Send email with login credentials
         $ceoUser = User::where('email', $invitation->email)->first();
         try {
-            $ceoUser->notify(new CompanyInvitationNotification($invitation->fresh()));
+        $ceoUser->notify(new CompanyInvitationNotification($invitation->fresh()));
         } catch (\Exception $e) {
             \Log::error('Failed to send CEO welcome email: ' . $e->getMessage());
             // Continue even if email fails - credentials are shown on page

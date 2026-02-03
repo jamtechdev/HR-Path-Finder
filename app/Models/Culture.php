@@ -6,14 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class HrProjectCulture extends Model
+class Culture extends Model
 {
     use HasFactory;
 
-    protected $table = 'hr_project_cultures';
+    protected $table = 'cultures';
 
     protected $fillable = [
-        'hr_project_id',
+        'company_id',
         'work_format',
         'decision_making_style',
         'core_values',
@@ -24,10 +24,10 @@ class HrProjectCulture extends Model
     ];
 
     /**
-     * Get the HR project that owns the culture record.
+     * Get the company that owns the culture record.
      */
-    public function hrProject(): BelongsTo
+    public function company(): BelongsTo
     {
-        return $this->belongsTo(HrProject::class);
+        return $this->belongsTo(Company::class);
     }
 }

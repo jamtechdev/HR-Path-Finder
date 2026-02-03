@@ -6,14 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class HrProjectCurrentHrStatus extends Model
+class CurrentHrStatus extends Model
 {
     use HasFactory;
 
-    protected $table = 'hr_project_current_hr_statuses';
+    protected $table = 'current_hr_statuses';
 
     protected $fillable = [
-        'hr_project_id',
+        'company_id',
         'dedicated_hr_team',
         'labor_union_present',
         'labor_relations_stability',
@@ -30,10 +30,10 @@ class HrProjectCurrentHrStatus extends Model
     ];
 
     /**
-     * Get the HR project that owns the current HR status.
+     * Get the company that owns the current HR status.
      */
-    public function hrProject(): BelongsTo
+    public function company(): BelongsTo
     {
-        return $this->belongsTo(HrProject::class);
+        return $this->belongsTo(Company::class);
     }
 }

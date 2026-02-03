@@ -6,14 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class HrProjectWorkforce extends Model
+class Workforce extends Model
 {
     use HasFactory;
 
-    protected $table = 'hr_project_workforces';
+    protected $table = 'workforces';
 
     protected $fillable = [
-        'hr_project_id',
+        'company_id',
         'headcount_year_minus_2',
         'headcount_year_minus_1',
         'headcount_current',
@@ -23,10 +23,10 @@ class HrProjectWorkforce extends Model
     ];
 
     /**
-     * Get the HR project that owns the workforce record.
+     * Get the company that owns the workforce record.
      */
-    public function hrProject(): BelongsTo
+    public function company(): BelongsTo
     {
-        return $this->belongsTo(HrProject::class);
+        return $this->belongsTo(Company::class);
     }
 }

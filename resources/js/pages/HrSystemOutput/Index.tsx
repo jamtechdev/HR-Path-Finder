@@ -1,6 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
 import { Building2, Users, Target, Wallet, FileText, CheckCircle2, ArrowLeft } from 'lucide-react';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import AppHeader from '@/components/Header/AppHeader';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -119,12 +121,17 @@ const differentiationLabels: Record<string, string> = {
 export default function HrSystemOutput({ company, project }: PageProps) {
     if (!company || !project) {
         return (
-            <div className="flex h-screen bg-background">
-                <RoleBasedSidebar />
-                <main className="flex-1 overflow-auto md:pt-0 pt-14 flex items-center justify-center">
-                    <div>No HR system data available. Please complete all steps first.</div>
-                </main>
-            </div>
+            <SidebarProvider defaultOpen={true}>
+                <Sidebar collapsible="icon" variant="sidebar">
+                    <RoleBasedSidebar />
+                </Sidebar>
+                <SidebarInset className="flex flex-col overflow-hidden">
+                    <AppHeader />
+                    <main className="flex-1 overflow-auto flex items-center justify-center">
+                        <div>No HR system data available. Please complete all steps first.</div>
+                    </main>
+                </SidebarInset>
+            </SidebarProvider>
         );
     }
 
@@ -132,10 +139,13 @@ export default function HrSystemOutput({ company, project }: PageProps) {
         (project.organization_design && project.performance_system && project.compensation_system);
 
     return (
-        <div className="flex h-screen bg-background">
-            <RoleBasedSidebar />
-
-            <main className="flex-1 overflow-auto md:pt-0 pt-14">
+        <SidebarProvider defaultOpen={true}>
+            <Sidebar collapsible="icon" variant="sidebar">
+                <RoleBasedSidebar />
+            </Sidebar>
+            <SidebarInset className="flex flex-col overflow-hidden">
+                <AppHeader />
+                <main className="flex-1 overflow-auto">
                 <Head title="HR System Overview" />
 
                 <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
@@ -354,7 +364,8 @@ export default function HrSystemOutput({ company, project }: PageProps) {
                         )}
                     </div>
                 </div>
-            </main>
-        </div>
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
     );
 }

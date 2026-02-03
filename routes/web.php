@@ -20,6 +20,11 @@ Route::get('invitations/reject/{token}', [\App\Http\Controllers\CompanyInvitatio
 Route::post('invitations/reject/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'reject'])
     ->name('invitations.reject.post');
 
+// Manual email verification (only when SMTP not configured, development only)
+Route::post('email/verify-manual', [\App\Http\Controllers\EmailVerificationController::class, 'manualVerify'])
+    ->middleware('auth')
+    ->name('verification.manual');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     // Main dashboard with role-based redirect
     Route::get('dashboard', function () {
@@ -74,22 +79,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // HR Projects
     Route::resource('hr-projects', \App\Http\Controllers\HrProjectController::class);
     
-    // Diagnosis
+    // Diagnosis - Single route with tab parameter
     Route::get('diagnosis', [\App\Http\Controllers\DiagnosisWizardController::class, 'show'])
         ->name('diagnosis.index');
-    Route::post('diagnosis/{hrProject}/company-info', [\App\Http\Controllers\DiagnosisWizardController::class, 'updateCompanyInfo'])
+    
+    // Diagnosis Steps - POST routes for updating each step
+    Route::post('diagnosis/{company}/company-info', [\App\Http\Controllers\DiagnosisWizardController::class, 'updateCompanyInfo'])
         ->name('diagnosis.company-info.update');
-    Route::post('diagnosis/{hrProject}/business-profile', [\App\Http\Controllers\DiagnosisWizardController::class, 'updateBusinessProfile'])
+    Route::post('diagnosis/{company}/business-profile', [\App\Http\Controllers\DiagnosisWizardController::class, 'updateBusinessProfile'])
         ->name('diagnosis.business-profile.update');
-    Route::post('diagnosis/{hrProject}/workforce', [\App\Http\Controllers\DiagnosisWizardController::class, 'updateWorkforce'])
+    Route::post('diagnosis/{company}/workforce', [\App\Http\Controllers\DiagnosisWizardController::class, 'updateWorkforce'])
         ->name('diagnosis.workforce.update');
-    Route::post('diagnosis/{hrProject}/current-hr', [\App\Http\Controllers\DiagnosisWizardController::class, 'updateCurrentHr'])
+    Route::post('diagnosis/{company}/current-hr', [\App\Http\Controllers\DiagnosisWizardController::class, 'updateCurrentHr'])
         ->name('diagnosis.current-hr.update');
-    Route::post('diagnosis/{hrProject}/culture', [\App\Http\Controllers\DiagnosisWizardController::class, 'updateCulture'])
+    Route::post('diagnosis/{company}/culture', [\App\Http\Controllers\DiagnosisWizardController::class, 'updateCulture'])
         ->name('diagnosis.culture.update');
-    Route::post('diagnosis/{hrProject}/confidential', [\App\Http\Controllers\DiagnosisWizardController::class, 'updateConfidential'])
+    Route::post('diagnosis/{company}/confidential', [\App\Http\Controllers\DiagnosisWizardController::class, 'updateConfidential'])
         ->name('diagnosis.confidential.update');
-    Route::post('diagnosis/{hrProject}/submit', [\App\Http\Controllers\DiagnosisWizardController::class, 'submit'])
+    Route::post('diagnosis/{company}/submit', [\App\Http\Controllers\DiagnosisWizardController::class, 'submit'])
         ->name('diagnosis.submit');
     
     Route::get('hr-projects/{hrProject}/diagnosis/company-attributes', [\App\Http\Controllers\DiagnosisController::class, 'show'])->name('hr-projects.diagnosis.show');
@@ -128,6 +135,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // HR System Dashboard
     Route::get('hr-projects/{hrProject}/dashboard', [\App\Http\Controllers\HrSystemDashboardController::class, 'show'])->name('hr-projects.dashboard.show');
+    
+    // HR System Output
+    Route::get('hr-system-output', [\App\Http\Controllers\HrSystemOutputController::class, 'index'])->name('hr-system-output.index');
 });
 
 require __DIR__.'/settings.php';

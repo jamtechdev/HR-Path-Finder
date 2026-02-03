@@ -132,22 +132,13 @@ export default function Register({ status }: Props) {
                                         return;
                                     }
                                     setIsSubmitting(true);
-                                    // #region agent log
-                                    fetch('http://127.0.0.1:7244/ingest/37ad418c-1f1a-45d5-845c-a1ee722a9836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'register.tsx:128',message:'Form submission started',data:{hasData:!!form.data,email:form.data.email,name:form.data.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-                                    // #endregion
                                     form.post('/register', {
                                         preserveScroll: true,
                                         onSuccess: () => {
-                                            // #region agent log
-                                            fetch('http://127.0.0.1:7244/ingest/37ad418c-1f1a-45d5-845c-a1ee722a9836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'register.tsx:132',message:'Form submission success',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-                                            // #endregion
                                             setIsSubmitting(false);
                                             form.reset('password', 'password_confirmation');
                                         },
                                         onError: (errors) => {
-                                            // #region agent log
-                                            fetch('http://127.0.0.1:7244/ingest/37ad418c-1f1a-45d5-845c-a1ee722a9836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'register.tsx:147',message:'Form submission error',data:{errors:Object.keys(errors),errorMessages:errors,allErrors:JSON.stringify(errors)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-                                            // #endregion
                                             console.error('Registration error:', errors);
                                             setIsSubmitting(false);
                                         },

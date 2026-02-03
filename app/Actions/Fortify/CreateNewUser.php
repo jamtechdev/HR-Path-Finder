@@ -19,48 +19,62 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
-        // #region agent log
-        $logData = ['location' => 'CreateNewUser.php:21', 'message' => 'Registration create method called', 'data' => ['hasName' => isset($input['name']), 'hasEmail' => isset($input['email']), 'hasPassword' => isset($input['password']), 'hasRole' => isset($input['role']), 'sessionId' => session()->getId()], 'timestamp' => time() * 1000, 'sessionId' => 'debug-session', 'runId' => 'run1', 'hypothesisId' => 'A'];
-        file_put_contents('c:\laragon\www\HRCopilotSaaS\.cursor\debug.log', json_encode($logData) . "\n", FILE_APPEND);
-        // #endregion
+        // Remove role from input if present (we assign it automatically)
+        unset($input['role']);
+        
         Validator::make($input, [
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
         ])->validate();
 
-        $user = User::create([
-            'name' => $input['name'],
-            'email' => $input['email'],
-            'password' => $input['password'],
-        ]);
+        try {
+            $user = User::create([
+                'name' => $input['name'],
+                'email' => $input['email'],
+                'password' => $input['password'],
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('User creation failed', [
+                'error' => $e->getMessage(),
+                'input' => array_merge($input, ['password' => '***']),
+            ]);
+            throw $e;
+        }
 
         // Always assign HR Manager role
         $roleToAssign = 'hr_manager';
         
         // Assign the role (will create if it doesn't exist via firstOrCreate in seeder)
         try {
-            $user->assignRole($roleToAssign);
-        } catch (\Spatie\Permission\Exceptions\RoleDoesNotExist $e) {
-            // If role doesn't exist, create it and assign
+            // Ensure role exists
             \Spatie\Permission\Models\Role::firstOrCreate(
                 ['name' => $roleToAssign, 'guard_name' => 'web']
             );
+            
             $user->assignRole($roleToAssign);
-        }
-        
-        // Clear permission cache to ensure roles are fresh
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-        
-        // Reload user with fresh roles from database
-        $user->refresh();
-        $user->load('roles');
-        
-        // Verify role was assigned
-        if (!$user->hasRole($roleToAssign)) {
-            // Force assign if somehow not assigned
-            $user->assignRole($roleToAssign);
+            
+            // Clear permission cache to ensure roles are fresh
+            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+            
+            // Reload user with fresh roles from database
             $user->refresh();
             $user->load('roles');
+            
+            // Verify role was assigned
+            if (!$user->hasRole($roleToAssign)) {
+                // Force assign if somehow not assigned
+                $user->assignRole($roleToAssign);
+                $user->refresh();
+                $user->load('roles');
+            }
+        } catch (\Exception $e) {
+            \Log::error('Role assignment failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $user->id,
+                'role' => $roleToAssign,
+            ]);
+            // Don't fail registration if role assignment fails - user can still be created
+            // Admin can assign role manually if needed
         }
 
         // Check if there's a pending invitation for this email
@@ -89,6 +103,11 @@ class CreateNewUser implements CreatesNewUsers
                 // Clear invitation token from session
                 session()->forget('invitation_token');
             }
+        }
+
+        // Send email verification notification after user creation
+        if (!$user->hasVerifiedEmail()) {
+            $user->sendEmailVerificationNotification();
         }
 
         return $user;

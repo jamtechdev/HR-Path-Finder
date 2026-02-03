@@ -27,6 +27,6 @@ class PasswordController extends Controller
             'password' => $request->password,
         ]);
 
-        return back();
+        return redirect()->route('settings.index', ['tab' => 'password'])->with('status', 'Password updated successfully!');
     }
 }

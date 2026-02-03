@@ -13,6 +13,8 @@ import type { BreadcrumbItem, SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Form, Head, Link, usePage } from '@inertiajs/react';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import AppHeader from '@/components/Header/AppHeader';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Profile settings',
@@ -30,10 +32,13 @@ export default function Profile({
     const { auth } = usePage<SharedData>().props;
 
     return (
-        
-            <div className="flex h-screen bg-background">
-              <RoleBasedSidebar />
-                    <main className="flex-1 overflow-auto md:pt-0 pt-14">
+        <SidebarProvider defaultOpen={true}>
+            <Sidebar collapsible="icon" variant="sidebar">
+                <RoleBasedSidebar />
+            </Sidebar>
+            <SidebarInset className="flex flex-col overflow-hidden">
+                <AppHeader />
+                <main className="flex-1 overflow-auto">
                         <Head title="Profile settings" />
                         <h1 className="sr-only">Profile Settings</h1>
                         <SettingsLayout>
@@ -146,8 +151,8 @@ export default function Profile({
 
                             <DeleteUser />
                         </SettingsLayout>
-                    </main>
-            </div>
-        
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
     );
 }

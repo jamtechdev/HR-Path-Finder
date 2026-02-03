@@ -6,22 +6,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class HrProjectConfidentialNote extends Model
+class ConfidentialNote extends Model
 {
     use HasFactory;
 
-    protected $table = 'hr_project_confidential_notes';
+    protected $table = 'confidential_notes';
 
     protected $fillable = [
-        'hr_project_id',
+        'company_id',
         'notes',
     ];
 
     /**
-     * Get the HR project that owns the confidential notes.
+     * Get the company that owns the confidential notes.
      */
-    public function hrProject(): BelongsTo
+    public function company(): BelongsTo
     {
-        return $this->belongsTo(HrProject::class);
+        return $this->belongsTo(Company::class);
     }
 }

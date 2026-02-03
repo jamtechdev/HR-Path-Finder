@@ -10,10 +10,10 @@ class BusinessProfile extends Model
 {
     use HasFactory;
 
-    protected $table = 'hr_project_business_profiles';
+    protected $table = 'business_profiles';
 
     protected $fillable = [
-        'hr_project_id',
+        'company_id',
         'annual_revenue',
         'operational_margin_rate',
         'annual_human_cost',
@@ -21,10 +21,10 @@ class BusinessProfile extends Model
     ];
 
     /**
-     * Get the HR project that owns the profile.
+     * Get the company that owns the profile.
      */
-    public function hrProject(): BelongsTo
+    public function company(): BelongsTo
     {
-        return $this->belongsTo(HrProject::class);
+        return $this->belongsTo(Company::class);
     }
 }

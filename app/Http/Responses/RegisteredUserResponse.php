@@ -96,6 +96,7 @@ class RegisteredUserResponse implements RegisterResponseContract
         }
 
         // Redirect based on role to role-specific dashboards
+        // For new registrations, always go to dashboard (no intended URL)
         $redirectRoute = match ($role) {
             'ceo' => 'dashboard.ceo',
             'hr_manager' => 'dashboard.hr-manager',

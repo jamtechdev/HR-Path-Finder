@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 import {
     TrendingUp,
     Users,
@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import AppHeader from '@/components/Header/AppHeader';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 
 interface Project {
     id: number;
@@ -48,7 +50,8 @@ export default function HRManagerDashboard({ project, stepStatuses, progressCoun
     const getStepState = (step: string): 'current' | 'locked' | 'completed' => {
         const status = stepStatuses[step as keyof typeof stepStatuses] || 'not_started';
         
-        if (status === 'submitted') {
+        // Check for completed or submitted status
+        if (status === 'completed' || status === 'submitted') {
             return 'completed';
         }
         
@@ -65,26 +68,26 @@ export default function HRManagerDashboard({ project, stepStatuses, progressCoun
             return 'current';
         }
         
-        // For steps 2, 3, 4: Check if previous step is submitted
-        // If previous step is submitted, next step is unlocked (can be started)
+        // For steps 2, 3, 4: Check if previous step is completed or submitted
+        // If previous step is completed/submitted, next step is unlocked (can be started)
         const previousStep = stepOrder[stepIndex - 1];
         const previousStatus = stepStatuses[previousStep as keyof typeof stepStatuses] || 'not_started';
         
-        // Step is unlocked only if previous step is submitted (verified by CEO)
-        if (previousStatus === 'submitted') {
+        // Step is unlocked only if previous step is completed or submitted (verified by CEO)
+        if (previousStatus === 'completed' || previousStatus === 'submitted') {
             // Next step is unlocked and can be started
             return status === 'not_started' ? 'current' : status === 'in_progress' ? 'current' : 'current';
         }
         
-        // By default, steps 2, 3, 4 are locked until previous step is submitted
+        // By default, steps 2, 3, 4 are locked until previous step is completed/submitted
         return 'locked';
     };
 
     const getStepBadge = (step: string) => {
         const status = stepStatuses[step as keyof typeof stepStatuses] || 'not_started';
         
-        if (status === 'submitted') {
-            return 'Submitted';
+        if (status === 'completed' || status === 'submitted') {
+            return 'Completed';
         }
         
         if (status === 'in_progress') {
@@ -101,7 +104,7 @@ export default function HRManagerDashboard({ project, stepStatuses, progressCoun
 
     const getStepRoute = (step: string) => {
         const routes: Record<string, string> = {
-            'diagnosis': '/diagnosis',
+            'diagnosis': '/diagnosis?tab=overview',
             'organization': '/step2',
             'performance': '/step3',
             'compensation': '/step4',
@@ -142,11 +145,14 @@ export default function HRManagerDashboard({ project, stepStatuses, progressCoun
     ];
 
     return (
-        <div className="flex h-screen bg-background">
-            <RoleBasedSidebar />
-
-            {/* Main Content */}
-            <main className="flex-1 overflow-auto md:pt-0 pt-14">
+        <SidebarProvider defaultOpen={true}>
+            <Sidebar collapsible="icon" variant="sidebar">
+                <RoleBasedSidebar />
+            </Sidebar>
+            <SidebarInset className="flex flex-col overflow-hidden">
+                <AppHeader />
+                {/* Main Content */}
+                <main className="flex-1 overflow-auto">
                 <Head title="HR Manager Dashboard" />
                 
                 <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
@@ -164,8 +170,7 @@ export default function HRManagerDashboard({ project, stepStatuses, progressCoun
                                     </p>
                                     <Button
                                         onClick={() => {
-                                            // Open .env file or settings page
-                                            window.open('/settings', '_blank');
+                                            router.visit('/settings/index');
                                         }}
                                         className="bg-orange-600 hover:bg-orange-700 text-white"
                                         size="sm"
@@ -296,7 +301,7 @@ export default function HRManagerDashboard({ project, stepStatuses, progressCoun
                                 const isLocked = state === 'locked';
                                 const route = getStepRoute(card.id);
                                 const status = stepStatuses[card.id as keyof typeof stepStatuses] || 'not_started';
-                                const buttonLabel = status === 'submitted' ? 'View' : 'Continue';
+                                const buttonLabel = (status === 'completed' || status === 'submitted') ? 'View' : 'Continue';
 
                                 return (
                                     <Link
@@ -369,7 +374,7 @@ export default function HRManagerDashboard({ project, stepStatuses, progressCoun
                                 </p>
                             </div>
                             <Link
-                                href="/diagnosis"
+                                href="/diagnosis?tab=overview"
                                 className="inline-flex items-center justify-center gap-2 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-11 rounded-md px-8 whitespace-nowrap"
                             >
                                 Continue Step 1
@@ -378,7 +383,8 @@ export default function HRManagerDashboard({ project, stepStatuses, progressCoun
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
     );
 }

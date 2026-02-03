@@ -33,7 +33,7 @@ interface Project {
 
 interface PageProps {
     company: Company;
-    project: Project;
+    project?: Project | null;
 }
 
 // Options matching backend validation rules
@@ -57,7 +57,17 @@ const coreValueKeywords = [
 ];
 
 export default function Culture({ company, project }: PageProps) {
-    const culture = project.culture;
+    // Provide safe defaults if project is undefined
+    const safeProject = project || {
+        id: 0,
+        status: 'not_started',
+        culture: null,
+        current_hr_status: null,
+        workforce: null,
+        business_profile: null,
+    };
+    
+    const culture = safeProject.culture;
     const coreValues = culture?.core_values || [];
 
     const form = useForm({
@@ -79,12 +89,15 @@ export default function Culture({ company, project }: PageProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        form.post(`/diagnosis/${project.id}/culture`, {
+        if (!safeProject.id) {
+            return; // Cannot submit without a valid project
+        }
+        form.post(`/diagnosis/${safeProject.id}/culture`, {
             preserveScroll: true,
             only: ['company', 'project'],
             onSuccess: () => {
                 // Navigate to next step (confidential)
-                router.visit(`/diagnosis/${project.id}/confidential`);
+                router.visit(`/diagnosis/${safeProject.id}/confidential`);
             },
         });
     };
@@ -92,11 +105,11 @@ export default function Culture({ company, project }: PageProps) {
     // Calculate step status - a step is completed if it has data
     const stepStatus = {
         'company-info': Boolean(company?.name && company?.industry),
-        'business-profile': Boolean(project.business_profile),
-        'workforce': Boolean(project.workforce),
-        'current-hr': Boolean(project.current_hr_status),
+        'business-profile': Boolean(safeProject.business_profile),
+        'workforce': Boolean(safeProject.workforce),
+        'current-hr': Boolean(safeProject.current_hr_status),
         'culture': Boolean(culture && culture.work_format && culture.decision_making_style && coreValues.length > 0),
-        'confidential': Boolean(project.confidential_note),
+        'confidential': Boolean(safeProject.confidential_note),
         'review': false,
     };
 
@@ -105,19 +118,19 @@ export default function Culture({ company, project }: PageProps) {
     const totalSteps = 7;
 
     const status: 'not_started' | 'in_progress' | 'submitted' = 
-        project.status === 'not_started' ? 'not_started' : 
-        project.status === 'in_progress' ? 'in_progress' : 
+        safeProject.status === 'not_started' ? 'not_started' : 
+        safeProject.status === 'in_progress' ? 'in_progress' : 
         'submitted';
 
     const tabs = [
         { id: 'overview' as TabId, name: 'Overview', icon: FileText, route: `/diagnosis` },
-        { id: 'company-info' as TabId, name: 'Company Info', icon: Building2, route: `/diagnosis/${project.id}/company-info` },
-        { id: 'business-profile' as TabId, name: 'Business Profile', icon: Briefcase, route: `/diagnosis/${project.id}/business-profile` },
-        { id: 'workforce' as TabId, name: 'Workforce', icon: Users, route: `/diagnosis/${project.id}/workforce` },
-        { id: 'current-hr' as TabId, name: 'Current HR', icon: Settings, route: `/diagnosis/${project.id}/current-hr` },
-        { id: 'culture' as TabId, name: 'Culture', icon: MessageSquare, route: `/diagnosis/${project.id}/culture` },
-        { id: 'confidential' as TabId, name: 'Confidential', icon: FileText, route: `/diagnosis/${project.id}/confidential` },
-        { id: 'review' as TabId, name: 'Review & Submit', icon: Check, route: `/diagnosis/${project.id}/review` },
+        { id: 'company-info' as TabId, name: 'Company Info', icon: Building2, route: safeProject.id ? `/diagnosis/${safeProject.id}/company-info` : '#' },
+        { id: 'business-profile' as TabId, name: 'Business Profile', icon: Briefcase, route: safeProject.id ? `/diagnosis/${safeProject.id}/business-profile` : '#' },
+        { id: 'workforce' as TabId, name: 'Workforce', icon: Users, route: safeProject.id ? `/diagnosis/${safeProject.id}/workforce` : '#' },
+        { id: 'current-hr' as TabId, name: 'Current HR', icon: Settings, route: safeProject.id ? `/diagnosis/${safeProject.id}/current-hr` : '#' },
+        { id: 'culture' as TabId, name: 'Culture', icon: MessageSquare, route: safeProject.id ? `/diagnosis/${safeProject.id}/culture` : '#' },
+        { id: 'confidential' as TabId, name: 'Confidential', icon: FileText, route: safeProject.id ? `/diagnosis/${safeProject.id}/confidential` : '#' },
+        { id: 'review' as TabId, name: 'Review & Submit', icon: Check, route: safeProject.id ? `/diagnosis/${safeProject.id}/review` : '#' },
     ];
 
     return (
@@ -132,7 +145,7 @@ export default function Culture({ company, project }: PageProps) {
                         title="Step 1: Diagnosis"
                         description="Input company information and organizational context"
                         status={status}
-                        backHref={`/diagnosis/${project.id}/current-hr`}
+                        backHref={safeProject.id ? `/diagnosis/${safeProject.id}/current-hr` : '/diagnosis'}
                     />
 
                     <DiagnosisProgressBar

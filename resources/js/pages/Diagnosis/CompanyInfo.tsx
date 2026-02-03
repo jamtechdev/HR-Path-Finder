@@ -62,7 +62,7 @@ interface AuthUser {
 
 interface PageProps {
     company: Company;
-    project: Project;
+    project?: Project | null;
     auth?: {
         user: AuthUser | null;
     };
@@ -72,6 +72,16 @@ const secondaryIndustryOptions = ['Technology', 'Manufacturing', 'Healthcare', '
 const primaryIndustryOptions = ['Technology', 'Manufacturing', 'Healthcare', 'Finance', 'Retail', 'Consulting', 'Other'];
 
 export default function CompanyInfo({ company, project }: PageProps) {
+    // Provide safe defaults if project is undefined
+    const safeProject = project || {
+        id: 0,
+        status: 'not_started',
+        business_profile: null,
+        workforce: null,
+        current_hr_status: null,
+        culture: null,
+        confidential_note: null,
+    };
     const { props } = usePage<PageProps>();
     const user = props.auth?.user;
     const isCeo = user?.roles?.some(role => role.name === 'ceo') || false;
@@ -91,8 +101,8 @@ export default function CompanyInfo({ company, project }: PageProps) {
     });
 
     const status: 'not_started' | 'in_progress' | 'submitted' = 
-        project.status === 'not_started' ? 'not_started' : 
-        project.status === 'in_progress' ? 'in_progress' : 
+        safeProject.status === 'not_started' ? 'not_started' : 
+        safeProject.status === 'in_progress' ? 'in_progress' : 
         'submitted';
 
     const toggleSecondaryIndustry = (industry: string) => {
@@ -106,7 +116,10 @@ export default function CompanyInfo({ company, project }: PageProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        form.post(`/diagnosis/${project.id}/company-info`, {
+        if (!safeProject.id) {
+            return; // Cannot submit without a valid project
+        }
+        form.post(`/diagnosis/${safeProject.id}/company-info`, {
             forceFormData: true,
             preserveScroll: true,
             only: ['company', 'project'],
@@ -116,14 +129,17 @@ export default function CompanyInfo({ company, project }: PageProps) {
                     // Backend will redirect to CEO Philosophy Survey
                 } else {
                     // HR Manager: Navigate to next step (business-profile)
-                    router.visit(`/diagnosis/${project.id}/business-profile`);
+                    router.visit(`/diagnosis/${safeProject.id}/business-profile`);
                 }
             },
         });
     };
 
     const handleBackToSurvey = () => {
-        router.visit(`/hr-projects/${project.id}/ceo-philosophy`);
+        if (!safeProject.id) {
+            return; // Cannot navigate without a valid project
+        }
+        router.visit(`/hr-projects/${safeProject.id}/ceo-philosophy`);
     };
 
     // Calculate step completion status
@@ -134,12 +150,12 @@ export default function CompanyInfo({ company, project }: PageProps) {
             company.hq_location &&
             company.industry
         ),
-        'business-profile': Boolean(project.business_profile),
-        'workforce': Boolean(project.workforce),
-        'current-hr': Boolean(project.current_hr_status),
-        'culture': Boolean(project.culture && (project.culture.core_values || []).length > 0),
-        'confidential': Boolean(project.confidential_note),
-        'review': Boolean(project.status === 'submitted'),
+        'business-profile': Boolean(safeProject.business_profile),
+        'workforce': Boolean(safeProject.workforce),
+        'current-hr': Boolean(safeProject.current_hr_status),
+        'culture': Boolean(safeProject.culture && (safeProject.culture.core_values || []).length > 0),
+        'confidential': Boolean(safeProject.confidential_note),
+        'review': Boolean(safeProject.status === 'submitted'),
     };
 
     const stepOrder = ['company-info', 'business-profile', 'workforce', 'current-hr', 'culture', 'confidential', 'review'] as const;
@@ -148,13 +164,13 @@ export default function CompanyInfo({ company, project }: PageProps) {
 
     const tabs = [
         { id: 'overview' as TabId, name: 'Overview', icon: FileText, route: `/diagnosis` },
-        { id: 'company-info' as TabId, name: 'Company Info', icon: Building2, route: `/diagnosis/${project.id}/company-info` },
-        { id: 'business-profile' as TabId, name: 'Business Profile', icon: Briefcase, route: `/diagnosis/${project.id}/business-profile` },
-        { id: 'workforce' as TabId, name: 'Workforce', icon: Users, route: `/diagnosis/${project.id}/workforce` },
-        { id: 'current-hr' as TabId, name: 'Current HR', icon: Settings, route: `/diagnosis/${project.id}/current-hr` },
-        { id: 'culture' as TabId, name: 'Culture', icon: MessageSquare, route: `/diagnosis/${project.id}/culture` },
-        { id: 'confidential' as TabId, name: 'Confidential', icon: FileText, route: `/diagnosis/${project.id}/confidential` },
-        { id: 'review' as TabId, name: 'Review & Submit', icon: Check, route: `/diagnosis/${project.id}/review` },
+        { id: 'company-info' as TabId, name: 'Company Info', icon: Building2, route: safeProject.id ? `/diagnosis/${safeProject.id}/company-info` : '#' },
+        { id: 'business-profile' as TabId, name: 'Business Profile', icon: Briefcase, route: safeProject.id ? `/diagnosis/${safeProject.id}/business-profile` : '#' },
+        { id: 'workforce' as TabId, name: 'Workforce', icon: Users, route: safeProject.id ? `/diagnosis/${safeProject.id}/workforce` : '#' },
+        { id: 'current-hr' as TabId, name: 'Current HR', icon: Settings, route: safeProject.id ? `/diagnosis/${safeProject.id}/current-hr` : '#' },
+        { id: 'culture' as TabId, name: 'Culture', icon: MessageSquare, route: safeProject.id ? `/diagnosis/${safeProject.id}/culture` : '#' },
+        { id: 'confidential' as TabId, name: 'Confidential', icon: FileText, route: safeProject.id ? `/diagnosis/${safeProject.id}/confidential` : '#' },
+        { id: 'review' as TabId, name: 'Review & Submit', icon: Check, route: safeProject.id ? `/diagnosis/${safeProject.id}/review` : '#' },
     ];
 
     return (
@@ -184,7 +200,7 @@ export default function CompanyInfo({ company, project }: PageProps) {
                         activeTab="company-info"
                         stepStatus={stepStatus}
                         stepOrder={stepOrder}
-                        projectId={project.id}
+                        projectId={safeProject.id}
                     />
 
                     {/* CEO Review Alert */}

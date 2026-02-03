@@ -4,10 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { register } from '@/routes';
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, useForm } from '@inertiajs/react';
 import { ArrowRight, Sparkles, CheckCircle2, Shield, Zap } from 'lucide-react';
 
 type Props = {
@@ -21,6 +20,12 @@ export default function Login({
     canResetPassword,
     canRegister,
 }: Props) {
+    const form = useForm({
+        email: '',
+        password: '',
+        remember: false,
+    });
+
     return (
         <div className="min-h-screen gradient-hero flex flex-nowrap relative overflow-hidden">
             {/* Animated Background Elements */}
@@ -122,81 +127,86 @@ export default function Login({
                         )}
 
                         {/* Login Form */}
-                        <Form
-                            {...store.form()}
-                            resetOnSuccess={['password']}
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                form.post('/login', {
+                                    preserveScroll: true,
+                                    onSuccess: () => {
+                                        form.reset('password');
+                                    },
+                                });
+                            }}
                             className="space-y-5"
                         >
-                            {({ processing, errors }) => (
-                                <>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="email" className="text-sm font-medium leading-none cursor-pointer">
-                                            Email
-                                        </Label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            name="email"
-                                            required
-                                            autoFocus
-                                            tabIndex={1}
-                                            autoComplete="email"
-                                            placeholder="you@company.com"
-                                            className="h-11 w-full transition-all duration-200 focus:ring-2 focus:ring-primary/20 cursor-text"
-                                        />
-                                        <InputError message={errors.email} />
-                                    </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="email" className="text-sm font-medium leading-none cursor-pointer">
+                                    Email
+                                </Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    value={form.data.email}
+                                    onChange={(e) => form.setData('email', e.target.value)}
+                                    required
+                                    autoFocus
+                                    tabIndex={1}
+                                    autoComplete="email"
+                                    placeholder="you@company.com"
+                                    className="h-11 w-full transition-all duration-200 focus:ring-2 focus:ring-primary/20 cursor-text"
+                                />
+                                <InputError message={form.errors.email} />
+                            </div>
 
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <Label htmlFor="password" className="text-sm font-medium leading-none cursor-pointer">
-                                                Password
-                                            </Label>
-                                            {canResetPassword && (
-                                                <TextLink
-                                                    href={request()}
-                                                    className="text-sm text-primary hover:text-primary/80 font-medium transition-all duration-200 hover:underline cursor-pointer"
-                                                    tabIndex={5}
-                                                >
-                                                    Forgot password?
-                                                </TextLink>
-                                            )}
-                                        </div>
-                                        <Input
-                                            id="password"
-                                            type="password"
-                                            name="password"
-                                            required
-                                            tabIndex={2}
-                                            autoComplete="current-password"
-                                            placeholder="••••••••"
-                                            className="h-11 w-full transition-all duration-200 focus:ring-2 focus:ring-primary/20 cursor-text"
-                                        />
-                                        <InputError message={errors.password} />
-                                    </div>
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="password" className="text-sm font-medium leading-none cursor-pointer">
+                                        Password
+                                    </Label>
+                                    {canResetPassword && (
+                                        <TextLink
+                                            href={request()}
+                                            className="text-sm text-primary hover:text-primary/80 font-medium transition-all duration-200 hover:underline cursor-pointer"
+                                            tabIndex={5}
+                                        >
+                                            Forgot password?
+                                        </TextLink>
+                                    )}
+                                </div>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    value={form.data.password}
+                                    onChange={(e) => form.setData('password', e.target.value)}
+                                    required
+                                    tabIndex={2}
+                                    autoComplete="current-password"
+                                    placeholder="••••••••"
+                                    className="h-11 w-full transition-all duration-200 focus:ring-2 focus:ring-primary/20 cursor-text"
+                                />
+                                <InputError message={form.errors.password} />
+                            </div>
 
-                                    <Button
-                                        type="submit"
-                                        className="w-full h-11 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
-                                        tabIndex={3}
-                                        disabled={processing}
-                                        data-test="login-button"
-                                    >
-                                        {processing ? (
-                                            <>
-                                                <Spinner className="mr-2" />
-                                                Signing in...
-                                            </>
-                                        ) : (
-                                            <>
-                                                Sign in
-                                                <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                                            </>
-                                        )}
-                                    </Button>
-                                </>
-                            )}
-                        </Form>
+                            <Button
+                                type="submit"
+                                className="w-full h-11 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
+                                tabIndex={3}
+                                disabled={form.processing}
+                                data-test="login-button"
+                            >
+                                {form.processing ? (
+                                    <>
+                                        <Spinner className="mr-2" />
+                                        Signing in...
+                                    </>
+                                ) : (
+                                    <>
+                                        Sign in
+                                        <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                                    </>
+                                )}
+                            </Button>
+                        </form>
 
                         {canRegister && (
                             <div className="pt-4 border-t border-border">

@@ -59,15 +59,30 @@ interface Project {
 
 interface PageProps {
     company: Company;
-    project: Project;
+    project?: Project | null;
 }
 
 export default function Review({ company, project }: PageProps) {
+    // Provide safe defaults if project is undefined
+    const safeProject = project || {
+        id: 0,
+        status: 'not_started',
+        company,
+        business_profile: null,
+        workforce: null,
+        current_hr_status: null,
+        culture: null,
+        confidential_note: null,
+    };
+    
     const form = useForm({});
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        form.post(`/diagnosis/${project.id}/submit`, {
+        if (!safeProject.id) {
+            return; // Cannot submit without a valid project
+        }
+        form.post(`/diagnosis/${safeProject.id}/submit`, {
             preserveScroll: true,
             onSuccess: () => {
                 // Redirect to dashboard after successful submission
@@ -78,11 +93,11 @@ export default function Review({ company, project }: PageProps) {
 
     const stepStatus = {
         'company-info': true,
-        'business-profile': Boolean(project.business_profile),
-        'workforce': Boolean(project.workforce),
-        'current-hr': Boolean(project.current_hr_status),
-        'culture': Boolean(project.culture),
-        'confidential': Boolean(project.confidential_note),
+        'business-profile': Boolean(safeProject.business_profile),
+        'workforce': Boolean(safeProject.workforce),
+        'current-hr': Boolean(safeProject.current_hr_status),
+        'culture': Boolean(safeProject.culture),
+        'confidential': Boolean(safeProject.confidential_note),
         'review': true,
     };
 
@@ -91,19 +106,19 @@ export default function Review({ company, project }: PageProps) {
     const totalSteps = 7;
 
     const status: 'not_started' | 'in_progress' | 'submitted' = 
-        project.status === 'not_started' ? 'not_started' : 
-        project.status === 'in_progress' ? 'in_progress' : 
+        safeProject.status === 'not_started' ? 'not_started' : 
+        safeProject.status === 'in_progress' ? 'in_progress' : 
         'submitted';
 
     const tabs = [
         { id: 'overview' as TabId, name: 'Overview', icon: FileText, route: `/diagnosis` },
-        { id: 'company-info' as TabId, name: 'Company Info', icon: Building2, route: `/diagnosis/${project.id}/company-info` },
-        { id: 'business-profile' as TabId, name: 'Business Profile', icon: Briefcase, route: `/diagnosis/${project.id}/business-profile` },
-        { id: 'workforce' as TabId, name: 'Workforce', icon: Users, route: `/diagnosis/${project.id}/workforce` },
-        { id: 'current-hr' as TabId, name: 'Current HR', icon: Settings, route: `/diagnosis/${project.id}/current-hr` },
-        { id: 'culture' as TabId, name: 'Culture', icon: MessageSquare, route: `/diagnosis/${project.id}/culture` },
-        { id: 'confidential' as TabId, name: 'Confidential', icon: FileText, route: `/diagnosis/${project.id}/confidential` },
-        { id: 'review' as TabId, name: 'Review & Submit', icon: Check, route: `/diagnosis/${project.id}/review` },
+        { id: 'company-info' as TabId, name: 'Company Info', icon: Building2, route: safeProject.id ? `/diagnosis/${safeProject.id}/company-info` : '#' },
+        { id: 'business-profile' as TabId, name: 'Business Profile', icon: Briefcase, route: safeProject.id ? `/diagnosis/${safeProject.id}/business-profile` : '#' },
+        { id: 'workforce' as TabId, name: 'Workforce', icon: Users, route: safeProject.id ? `/diagnosis/${safeProject.id}/workforce` : '#' },
+        { id: 'current-hr' as TabId, name: 'Current HR', icon: Settings, route: safeProject.id ? `/diagnosis/${safeProject.id}/current-hr` : '#' },
+        { id: 'culture' as TabId, name: 'Culture', icon: MessageSquare, route: safeProject.id ? `/diagnosis/${safeProject.id}/culture` : '#' },
+        { id: 'confidential' as TabId, name: 'Confidential', icon: FileText, route: safeProject.id ? `/diagnosis/${safeProject.id}/confidential` : '#' },
+        { id: 'review' as TabId, name: 'Review & Submit', icon: Check, route: safeProject.id ? `/diagnosis/${safeProject.id}/review` : '#' },
     ];
 
     const sections = [
@@ -124,10 +139,10 @@ export default function Review({ company, project }: PageProps) {
             title: 'Business Profile',
             icon: Briefcase,
             completed: stepStatus['business-profile'],
-            data: project.business_profile ? {
-                'Annual Revenue': project.business_profile.annual_revenue,
-                'Operational Margin': project.business_profile.operational_margin_rate,
-                'Business Type': project.business_profile.business_type,
+            data: safeProject.business_profile ? {
+                'Annual Revenue': safeProject.business_profile.annual_revenue,
+                'Operational Margin': safeProject.business_profile.operational_margin_rate,
+                'Business Type': safeProject.business_profile.business_type,
             } : {},
         },
         {
@@ -135,9 +150,9 @@ export default function Review({ company, project }: PageProps) {
             title: 'Workforce',
             icon: Users,
             completed: stepStatus['workforce'],
-            data: project.workforce ? {
-                'Current Headcount': project.workforce.headcount_current,
-                'Total Employees': project.workforce.total_employees,
+            data: safeProject.workforce ? {
+                'Current Headcount': safeProject.workforce.headcount_current,
+                'Total Employees': safeProject.workforce.total_employees,
             } : {},
         },
         {
@@ -145,9 +160,9 @@ export default function Review({ company, project }: PageProps) {
             title: 'Current HR',
             icon: Settings,
             completed: stepStatus['current-hr'],
-            data: project.current_hr_status ? {
-                'Dedicated HR Team': project.current_hr_status.dedicated_hr_team ? 'Yes' : 'No',
-                'Evaluation System': project.current_hr_status.evaluation_system_status,
+            data: safeProject.current_hr_status ? {
+                'Dedicated HR Team': safeProject.current_hr_status.dedicated_hr_team ? 'Yes' : 'No',
+                'Evaluation System': safeProject.current_hr_status.evaluation_system_status,
             } : {},
         },
         {
@@ -155,9 +170,9 @@ export default function Review({ company, project }: PageProps) {
             title: 'Culture',
             icon: MessageSquare,
             completed: stepStatus['culture'],
-            data: project.culture ? {
-                'Work Format': project.culture.work_format,
-                'Core Values': project.culture.core_values?.join(', ') || 'None',
+            data: safeProject.culture ? {
+                'Work Format': safeProject.culture.work_format,
+                'Core Values': safeProject.culture.core_values?.join(', ') || 'None',
             } : {},
         },
         {
@@ -165,8 +180,8 @@ export default function Review({ company, project }: PageProps) {
             title: 'Confidential',
             icon: FileText,
             completed: stepStatus['confidential'],
-            data: project.confidential_note ? {
-                'Notes': project.confidential_note.notes || 'None',
+            data: safeProject.confidential_note ? {
+                'Notes': safeProject.confidential_note.notes || 'None',
             } : {},
         },
     ];
@@ -183,7 +198,7 @@ export default function Review({ company, project }: PageProps) {
                         title="Step 1: Diagnosis"
                         description="Input company information and organizational context"
                         status={status}
-                        backHref={`/diagnosis/${project.id}/confidential`}
+                        backHref={safeProject.id ? `/diagnosis/${safeProject.id}/confidential` : '/diagnosis'}
                     />
 
                     <DiagnosisProgressBar
@@ -198,7 +213,7 @@ export default function Review({ company, project }: PageProps) {
                         activeTab="review"
                         stepStatus={stepStatus}
                         stepOrder={stepOrder}
-                        projectId={project.id}
+                        projectId={safeProject.id}
                     />
 
                     <Card>

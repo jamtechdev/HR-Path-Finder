@@ -11,6 +11,8 @@ import {
     Check,
 } from 'lucide-react';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import AppHeader from '@/components/Header/AppHeader';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 
 export default function Dashboard() {
     const progressSteps = [
@@ -21,31 +23,14 @@ export default function Dashboard() {
     ] as const;
 
     return (
-        <div className="flex h-screen bg-background">
-            <RoleBasedSidebar />
-            
-            {/* Mobile Header */}
-            <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-background border-b border-border z-50 flex items-center px-4">
-                <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium h-10 w-10">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <line x1="4" x2="20" y1="12" y2="12"/>
-                        <line x1="4" x2="20" y1="6" y2="6"/>
-                        <line x1="4" x2="20" y1="18" y2="18"/>
-                    </svg>
-                </button>
-                <div className="flex-1 flex items-center justify-center gap-2">
-                    <div className="w-6 h-6 rounded-md gradient-primary flex items-center justify-center">
-                        <span className="text-white font-bold text-xs">HR</span>
-                    </div>
-                    <span className="font-display font-semibold text-sm">HR Path-Finder</span>
-                </div>
-                <span className="relative flex shrink-0 overflow-hidden rounded-full w-8 h-8">
-                    <span className="flex h-full w-full items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">SK</span>
-                </span>
-            </div>
-            
-            {/* Main Content */}
-            <main className="flex-1 overflow-auto md:pt-0 pt-14">
+        <SidebarProvider defaultOpen={true}>
+            <Sidebar collapsible="icon" variant="sidebar">
+                <RoleBasedSidebar />
+            </Sidebar>
+            <SidebarInset className="flex flex-col overflow-hidden">
+                <AppHeader />
+                {/* Main Content */}
+                <main className="flex-1 overflow-auto">
                 <Head title="Dashboard" />
                 
                 <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
@@ -219,7 +204,8 @@ export default function Dashboard() {
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
     );
 }

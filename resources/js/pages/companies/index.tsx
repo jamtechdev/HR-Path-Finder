@@ -1,10 +1,12 @@
-import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { Building2, Plus, Users, Mail, CheckCircle2, Clock, ArrowRight } from 'lucide-react';
+import { Building2, Plus, Users, Mail, CheckCircle2, Clock, ArrowRight, Image as ImageIcon } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import AppHeader from '@/components/Header/AppHeader';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 
 interface User {
     id: number;
@@ -20,6 +22,8 @@ interface Company {
     name: string;
     brand_name?: string | null;
     industry?: string | null;
+    logo_path?: string | null;
+    image_path?: string | null;
     created_by?: number;
     users?: User[];
     invitations?: Array<{
@@ -44,9 +48,15 @@ export default function CompaniesIndex({ companies }: PageProps) {
     const isHrManager = user?.roles?.some((role: any) => role.name === 'hr_manager') || false;
 
     return (
-        <AppLayout>
-            <Head title="Companies" />
-            <div className="container mx-auto max-w-6xl py-8 px-4">
+        <SidebarProvider defaultOpen={true}>
+            <Sidebar collapsible="icon" variant="sidebar">
+                <RoleBasedSidebar />
+            </Sidebar>
+            <SidebarInset className="flex flex-col overflow-hidden">
+                <AppHeader />
+                <main className="flex-1 overflow-auto">
+                    <Head title="Companies" />
+                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-4">
                         <div>
@@ -88,7 +98,7 @@ export default function CompaniesIndex({ companies }: PageProps) {
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="grid md:grid-cols-2 gap-6">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {companies.map((company) => {
                             const ceoUser = company.users?.find((u) => u.pivot?.role === 'ceo');
                             const hrManagerUser = company.users?.find((u) => u.pivot?.role === 'hr_manager');
@@ -97,7 +107,37 @@ export default function CompaniesIndex({ companies }: PageProps) {
                             const canInvite = isHrManager && company.created_by === user?.id;
 
                             return (
-                                <Card key={company.id} className="hover:shadow-lg transition-shadow">
+                                <Card key={company.id} className="hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer">
+                                    {/* Company Image/Logo */}
+                                    <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden">
+                                        {company.image_path ? (
+                                            <img 
+                                                src={company.image_path} 
+                                                alt={company.name}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                            />
+                                        ) : company.logo_path ? (
+                                            <div className="w-full h-full flex items-center justify-center p-8">
+                                                <img 
+                                                    src={company.logo_path} 
+                                                    alt={company.name}
+                                                    className="max-w-full max-h-full object-contain"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <Building2 className="w-16 h-16 text-primary/30" />
+                                            </div>
+                                        )}
+                                        <div className="absolute top-3 right-3">
+                                            {company.industry && (
+                                                <Badge className="bg-background/90 backdrop-blur-sm">
+                                                    {company.industry}
+                                                </Badge>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
                                     <CardHeader>
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
@@ -105,17 +145,7 @@ export default function CompaniesIndex({ companies }: PageProps) {
                                                 {company.brand_name && (
                                                     <CardDescription>{company.brand_name}</CardDescription>
                                                 )}
-                                                {company.industry && (
-                                                    <Badge variant="outline" className="mt-2">
-                                                        {company.industry}
-                                                    </Badge>
-                                                )}
                                             </div>
-                                            <Link href={`/companies/${company.id}`}>
-                                                <Button variant="ghost" size="sm">
-                                                    <ArrowRight className="h-4 w-4" />
-                                                </Button>
-                                            </Link>
                                         </div>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
@@ -168,9 +198,9 @@ export default function CompaniesIndex({ companies }: PageProps) {
                                         {/* Actions */}
                                         <div className="pt-4 border-t">
                                             <Link href={`/companies/${company.id}`} className="block">
-                                                <Button variant="outline" className="w-full">
+                                                <Button className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                                                     {hasCeo ? 'View Company' : 'Invite CEO'}
-                                                    <ArrowRight className="h-4 w-4 ml-2" />
+                                                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                                                 </Button>
                                             </Link>
                                         </div>
@@ -180,7 +210,9 @@ export default function CompaniesIndex({ companies }: PageProps) {
                         })}
                     </div>
                 )}
-            </div>
-        </AppLayout>
+                    </div>
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
     );
 }
