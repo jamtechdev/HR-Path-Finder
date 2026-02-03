@@ -151,9 +151,6 @@ export default function Register({ status }: Props) {
                                             console.error('Registration error:', errors);
                                             setIsSubmitting(false);
                                         },
-                                        onFinish: () => {
-                                            setIsSubmitting(false);
-                                        },
                                         onCancel: () => {
                                             setIsSubmitting(false);
                                         },
