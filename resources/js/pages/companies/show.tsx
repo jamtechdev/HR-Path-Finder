@@ -60,7 +60,7 @@ export default function CompanyShow({ company, canInvite: canInviteProp }: PageP
 
     const handleInvite = (e: React.FormEvent) => {
         e.preventDefault();
-        inviteForm.post(`/companies/${company.id}/invitations`, {
+        inviteForm.post(`/hr-manager/companies/${company.id}/invitations`, {
             onSuccess: () => {
                 inviteForm.reset();
                 setShowInviteForm(false);
@@ -70,7 +70,7 @@ export default function CompanyShow({ company, canInvite: canInviteProp }: PageP
 
     const handleCancelInvitation = (invitationId: number) => {
         if (confirm('Are you sure you want to cancel this invitation?')) {
-            router.delete(`/companies/${company.id}/invitations/${invitationId}`, {
+            router.delete(`/hr-manager/companies/${company.id}/invitations/${invitationId}`, {
                 preserveScroll: true,
             });
         }
@@ -371,7 +371,7 @@ export default function CompanyShow({ company, canInvite: canInviteProp }: PageP
                             </Button>
                         </Link>
                     )}
-                    <Link href="/companies">
+                    <Link href="/hr-manager/companies">
                         <Button variant="ghost">Back to Companies</Button>
                     </Link>
                 </div>

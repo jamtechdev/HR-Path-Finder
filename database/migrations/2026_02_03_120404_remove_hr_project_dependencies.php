@@ -146,8 +146,8 @@ return new class extends Migration
             }
         }
         
-        // Step 8: Drop hr_projects table (after all foreign keys are removed)
-        Schema::dropIfExists('hr_projects');
+        // Step 8: Keep hr_projects table - it's still needed for the workflow
+        // Don't drop hr_projects table as it's required for step status tracking
     }
 
     /**
@@ -155,15 +155,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Recreate hr_projects table
-        Schema::create('hr_projects', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('company_id')->constrained()->onDelete('cascade');
-            $table->enum('status', ['not_started', 'in_progress', 'completed', 'locked'])->default('not_started');
-            $table->string('current_step')->nullable();
-            $table->timestamps();
-        });
-        
+        // hr_projects table should already exist, no need to recreate
         // Reverse table renames and foreign key changes
         // This is complex and may lose data, so we'll keep it simple
         // In production, you'd want to backup data first
@@ -176,14 +168,16 @@ return new class extends Migration
         
         // Reverse foreign key changes (simplified - would need data migration in production)
         foreach (['hr_project_business_profiles', 'hr_project_workforces', 'hr_project_current_hr_statuses', 'hr_project_cultures', 'hr_project_confidential_notes'] as $tableName) {
-            Schema::table($tableName, function (Blueprint $table) use ($tableName) {
-                $table->dropForeign(['company_id']);
-                $table->dropUnique(['company_id']);
-                $table->dropColumn('company_id');
-                $table->foreignId('hr_project_id')->after('id');
-                $table->foreign('hr_project_id')->references('id')->on('hr_projects')->onDelete('cascade');
-                $table->unique('hr_project_id');
-            });
+            if (Schema::hasTable($tableName)) {
+                Schema::table($tableName, function (Blueprint $table) use ($tableName) {
+                    $table->dropForeign(['company_id']);
+                    $table->dropUnique(['company_id']);
+                    $table->dropColumn('company_id');
+                    $table->foreignId('hr_project_id')->after('id');
+                    $table->foreign('hr_project_id')->references('id')->on('hr_projects')->onDelete('cascade');
+                    $table->unique('hr_project_id');
+                });
+            }
         }
     }
 };

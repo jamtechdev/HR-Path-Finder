@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { Building2, Briefcase, Users, Settings, MessageSquare, FileText, Check, LucideIcon } from 'lucide-react';
 
-export type TabId = 'overview' | 'company-info' | 'business-profile' | 'workforce' | 'current-hr' | 'culture' | 'confidential' | 'review';
+export type TabId = 'overview' | 'company-info' | 'business-profile' | 'workforce' | 'executives' | 'job-grades' | 'organizational-charts' | 'organizational-structure' | 'hr-issues' | 'current-hr' | 'culture' | 'confidential' | 'review';
 
 interface Tab {
     id: TabId;

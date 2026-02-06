@@ -20,6 +20,23 @@ class Workforce extends Model
         'total_employees',
         'contract_employees',
         'org_chart_path',
+        'expected_workforce_1_year',
+        'expected_workforce_2_years',
+        'expected_workforce_3_years',
+        'average_tenure_active',
+        'average_tenure_leavers',
+        'average_age_active',
+        'male_employees',
+        'female_employees',
+        'total_leaders_above_team_leader',
+        'leaders_percentage',
+    ];
+
+    protected $casts = [
+        'average_tenure_active' => 'decimal:2',
+        'average_tenure_leavers' => 'decimal:2',
+        'average_age_active' => 'decimal:2',
+        'leaders_percentage' => 'decimal:2',
     ];
 
     /**

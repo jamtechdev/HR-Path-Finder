@@ -69,7 +69,7 @@ export default function CompaniesIndex({ companies }: PageProps) {
                             </p>
                         </div>
                         {isHrManager && (
-                            <Link href="/companies/create">
+                            <Link href="/hr-manager/companies/create">
                                 <Button>
                                     <Plus className="h-4 w-4 mr-2" />
                                     Create Company
@@ -88,7 +88,7 @@ export default function CompaniesIndex({ companies }: PageProps) {
                                 Create your first company to get started with HR Path-Finder
                             </p>
                             {isHrManager && (
-                                <Link href="/companies/create">
+                                <Link href="/hr-manager/companies/create">
                                     <Button>
                                         <Plus className="h-4 w-4 mr-2" />
                                         Create Your First Company
@@ -197,7 +197,7 @@ export default function CompaniesIndex({ companies }: PageProps) {
 
                                         {/* Actions */}
                                         <div className="pt-4 border-t">
-                                            <Link href={`/companies/${company.id}`} className="block">
+                                            <Link href={`/hr-manager/companies/${company.id}`} className="block">
                                                 <Button className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                                                     {hasCeo ? 'View Company' : 'Invite CEO'}
                                                     <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />

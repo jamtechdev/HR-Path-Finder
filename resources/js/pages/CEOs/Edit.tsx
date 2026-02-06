@@ -1,12 +1,15 @@
-import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { UserPlus, ArrowLeft, Mail, Building2 } from 'lucide-react';
 import { FormEventHandler } from 'react';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import AppHeader from '@/components/Header/AppHeader';
+import DashboardHeader from '@/components/Dashboard/DashboardHeader';
 
 interface Company {
     id: number;
@@ -44,7 +47,7 @@ export default function EditCEO({ ceo, companies }: PageProps) {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        put(`/ceos/${ceo.id}`, {
+        put(`/hr-manager/ceos/${ceo.id}`, {
             forceFormData: false,
         });
     };
@@ -59,24 +62,39 @@ export default function EditCEO({ ceo, companies }: PageProps) {
     };
 
     return (
-        <AppLayout>
-            <Head title="Edit CEO" />
-            <div className="container mx-auto max-w-3xl py-8 px-4">
-                <div className="mb-6">
-                    <Link href="/ceos">
-                        <Button variant="ghost" size="sm" className="mb-4">
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Back to CEOs
-                        </Button>
-                    </Link>
-                    <h1 className="text-3xl font-bold flex items-center gap-2">
-                        <UserPlus className="h-8 w-8" />
-                        Edit CEO
-                    </h1>
-                    <p className="text-muted-foreground mt-1">
-                        Update CEO information and company associations
-                    </p>
-                </div>
+        <SidebarProvider defaultOpen={true}>
+            <Sidebar collapsible="icon" variant="sidebar">
+                <RoleBasedSidebar />
+            </Sidebar>
+            <SidebarInset className="flex flex-col overflow-hidden">
+                <AppHeader />
+                <main className="flex-1 overflow-auto">
+                    <Head title="Edit CEO" />
+                    
+                    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-4">
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => router.visit('/hr-manager/ceos')}
+                                    className="-ml-2"
+                                >
+                                    <ArrowLeft className="h-4 w-4 mr-2" />
+                                    Back to CEOs
+                                </Button>
+                                <DashboardHeader
+                                    title="Edit CEO"
+                                    subtitle="Update CEO information and company associations"
+                                    breadcrumbs={[
+                                        { title: 'CEO Management', href: '/hr-manager/ceos' },
+                                        { title: 'Edit CEO' }
+                                    ]}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="max-w-4xl">
 
                 <Card>
                     <CardHeader>
@@ -224,16 +242,21 @@ export default function EditCEO({ ceo, companies }: PageProps) {
                                 <Button type="submit" disabled={processing}>
                                     {processing ? 'Updating...' : 'Update CEO'}
                                 </Button>
-                                <Link href="/ceos">
-                                    <Button type="button" variant="outline">
-                                        Cancel
-                                    </Button>
-                                </Link>
+                                <Button 
+                                    type="button" 
+                                    variant="outline"
+                                    onClick={() => router.visit('/hr-manager/ceos')}
+                                >
+                                    Cancel
+                                </Button>
                             </div>
                         </form>
                     </CardContent>
                 </Card>
-            </div>
-        </AppLayout>
+                        </div>
+                    </div>
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
     );
 }

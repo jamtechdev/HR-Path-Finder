@@ -27,6 +27,24 @@ export function Header({ canRegister = true }: HeaderProps) {
         { name: 'Resources', href: '#resources' },
     ];
 
+    const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+        if (href.startsWith('#')) {
+            e.preventDefault();
+            const element = document.querySelector(href);
+            if (element) {
+                const headerOffset = 80;
+                const elementPosition = element.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth',
+                });
+            }
+            setMobileMenuOpen(false);
+        }
+    };
+
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 dark:bg-[hsl(var(--background))]/95 backdrop-blur-md border-b border-border transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -44,13 +62,14 @@ export function Header({ canRegister = true }: HeaderProps) {
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center gap-6">
                     {navLinks.map((link) => (
-                        <Link
+                        <a
                             key={link.name}
                             href={link.href}
-                            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                            onClick={(e) => handleAnchorClick(e, link.href)}
+                            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                         >
                             {link.name}
-                        </Link>
+                        </a>
                     ))}
                 </div>
 
@@ -108,14 +127,17 @@ export function Header({ canRegister = true }: HeaderProps) {
                 <div className="md:hidden border-t border-border bg-background">
                     <div className="px-6 py-4 space-y-4">
                         {navLinks.map((link) => (
-                            <Link
+                            <a
                                 key={link.name}
                                 href={link.href}
-                                className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                                onClick={() => setMobileMenuOpen(false)}
+                                onClick={(e) => {
+                                    handleAnchorClick(e, link.href);
+                                    setMobileMenuOpen(false);
+                                }}
+                                className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                             >
                                 {link.name}
-                            </Link>
+                            </a>
                         ))}
                         <div className="pt-4 border-t border-border space-y-2">
                             {auth.user ? (

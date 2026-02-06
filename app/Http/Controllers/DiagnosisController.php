@@ -86,6 +86,6 @@ class DiagnosisController extends Controller
             }
         });
 
-        return redirect()->route('hr-projects.ceo-philosophy.show', $hrProject->id);
+        return redirect()->route('ceo.hr-projects.ceo-philosophy.show', $hrProject->id);
     }
 }

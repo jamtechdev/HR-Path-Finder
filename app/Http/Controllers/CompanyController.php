@@ -13,31 +13,45 @@ class CompanyController extends Controller
     public function index(): Response
     {
         $user = Auth::user();
-        $companies = $user->companies()
-            ->with(['users', 'invitations' => function ($query) {
-                $query->whereNull('accepted_at')
-                    ->whereNull('rejected_at')
-                    ->where(function ($q) {
-                        $q->whereNull('expires_at')
-                            ->orWhere('expires_at', '>', now());
-                    });
-            }])
-            ->get()
-            ->map(function ($company) {
-                return [
-                    'id' => $company->id,
-                    'name' => $company->name,
-                    'brand_name' => $company->brand_name,
-                    'industry' => $company->industry,
-                    'logo_path' => $company->logo_path ? asset('storage/' . $company->logo_path) : null,
-                    'image_path' => $company->image_path ? asset('storage/' . $company->image_path) : null,
-                    'created_by' => $company->created_by,
-                    'users' => $company->users,
-                    'invitations' => $company->invitations,
-                    'diagnosis_status' => $company->diagnosis_status,
-                    'overall_status' => $company->overall_status,
-                ];
-            });
+        
+        // Filter companies based on user role
+        // CEO: Only show companies where they are attached (accepted invitation)
+        // HR Manager: Show companies they created or are attached to
+        if ($user->hasRole('ceo')) {
+            $companies = $user->companies()
+                ->wherePivot('role', 'ceo') // Only companies where CEO accepted invitation
+                ->with(['users', 'hrProjects'])
+                ->get();
+        } else {
+            // HR Manager or other roles
+            $companies = $user->companies()
+                ->with(['users', 'invitations' => function ($query) {
+                    $query->whereNull('accepted_at')
+                        ->whereNull('rejected_at')
+                        ->where(function ($q) {
+                            $q->whereNull('expires_at')
+                                ->orWhere('expires_at', '>', now());
+                        });
+                }])
+                ->get();
+        }
+        
+        $companies = $companies->map(function ($company) {
+            return [
+                'id' => $company->id,
+                'name' => $company->name,
+                'brand_name' => $company->brand_name,
+                'industry' => $company->industry,
+                'logo_path' => $company->logo_path ? asset('storage/' . $company->logo_path) : null,
+                'image_path' => $company->image_path ? asset('storage/' . $company->image_path) : null,
+                'created_by' => $company->created_by,
+                'users' => $company->users,
+                'invitations' => $company->invitations ?? [],
+                'diagnosis_status' => $company->diagnosis_status,
+                'overall_status' => $company->overall_status,
+                'hr_projects' => $company->hrProjects ?? [],
+            ];
+        });
 
         return Inertia::render('companies/index', [
             'companies' => $companies,
@@ -174,9 +188,9 @@ class CompanyController extends Controller
             return back()->with('success', 'Company information saved successfully.');
         }
 
-        // Redirect to company show page so HR Manager can invite CEO
-        return redirect()->route('companies.show', $company->id)
-            ->with('success', 'Company created successfully! Please invite the CEO to join the workspace.');
+        // Redirect to HR Manager dashboard after company creation
+        return redirect()->route('dashboard.hr-manager')
+            ->with('success', 'Company created successfully! You can now start the diagnosis process.');
     }
 
     public function show(Company $company): Response
@@ -195,6 +209,9 @@ class CompanyController extends Controller
 
         $user = Auth::user();
         $canInvite = $user->hasRole('hr_manager') && $company->created_by === $user->id;
+
+        // Load HR projects for the company
+        $company->load('hrProjects');
 
         return Inertia::render('companies/show', [
             'company' => $company,

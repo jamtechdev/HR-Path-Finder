@@ -232,9 +232,21 @@ class CompensationWizardController extends Controller
             $hrProject->initializeStepStatuses();
             $hrProject->setStepStatus('compensation', 'submitted');
             
+            // Check if all steps are submitted
+            $stepStatuses = [
+                'diagnosis' => $hrProject->getStepStatus('diagnosis'),
+                'organization' => $hrProject->getStepStatus('organization'),
+                'performance' => $hrProject->getStepStatus('performance'),
+                'compensation' => 'submitted', // Just set
+            ];
+            
+            $allStepsSubmitted = collect($stepStatuses)->every(fn($status) => 
+                in_array($status, ['submitted', 'completed'])
+            );
+            
             $hrProject->update([
                 'current_step' => 'complete',
-                'status' => 'submitted',
+                'status' => $allStepsSubmitted ? 'pending_consultant_review' : 'submitted',
             ]);
         });
 

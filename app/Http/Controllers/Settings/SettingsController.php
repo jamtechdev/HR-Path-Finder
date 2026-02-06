@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use App\Services\SmtpConfigurationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -20,16 +21,8 @@ class SettingsController extends Controller
     {
         $smtpConfigured = SmtpConfigurationService::isConfigured();
         
-        // Get current SMTP settings (without passwords)
-        $smtpSettings = [
-            'mailer' => Config::get('mail.default'),
-            'host' => Config::get('mail.mailers.smtp.host'),
-            'port' => Config::get('mail.mailers.smtp.port'),
-            'username' => Config::get('mail.mailers.smtp.username'),
-            'from_address' => Config::get('mail.from.address'),
-            'from_name' => Config::get('mail.from.name'),
-            'encryption' => Config::get('mail.mailers.smtp.encryption'),
-        ];
+        // Get current SMTP settings - check .env first, then database, then config
+        $smtpSettings = $this->getSmtpSettings();
         
         // Get application settings
         $appSettings = [
@@ -111,12 +104,69 @@ class SettingsController extends Controller
         $envContent = $this->setEnvValue($envContent, 'MAIL_FROM_ADDRESS', $validated['from_address']);
         $envContent = $this->setEnvValue($envContent, 'MAIL_FROM_NAME', $validated['from_name']);
         
-        file_put_contents($envPath, $envContent);
+        // Try to update .env file
+        try {
+            file_put_contents($envPath, $envContent);
+            // Clear config cache to reload new values
+            Artisan::call('config:clear');
+        } catch (\Exception $e) {
+            // If .env update fails, continue to save in database
+        }
         
-        // Clear config cache to reload new values
-        Artisan::call('config:clear');
+        // Also save to database (as backup/alternative)
+        try {
+            Setting::saveSmtpSettings($validated);
+        } catch (\Exception $e) {
+            // Database table might not exist yet, that's okay
+        }
         
         return back()->with('success', 'SMTP settings updated successfully!');
+    }
+    
+    /**
+     * Get SMTP settings - check .env first, then database, then config.
+     */
+    private function getSmtpSettings(): array
+    {
+        // Step 1: Check .env
+        $mailer = env('MAIL_MAILER', Config::get('mail.default'));
+        $host = env('MAIL_HOST');
+        $port = env('MAIL_PORT');
+        $username = env('MAIL_USERNAME');
+        $fromAddress = env('MAIL_FROM_ADDRESS');
+        $fromName = env('MAIL_FROM_NAME');
+        $encryption = env('MAIL_ENCRYPTION');
+        
+        // Step 2: If .env values are empty, check database
+        if (empty($host) || empty($port) || empty($fromAddress)) {
+            try {
+                $dbSettings = Setting::getSmtpSettings();
+                if (!empty($dbSettings['host']) && !empty($dbSettings['port']) && !empty($dbSettings['from_address'])) {
+                    return [
+                        'mailer' => $dbSettings['mailer'] ?? $mailer,
+                        'host' => $dbSettings['host'] ?? '',
+                        'port' => $dbSettings['port'] ?? 587,
+                        'username' => $dbSettings['username'] ?? '',
+                        'from_address' => $dbSettings['from_address'] ?? '',
+                        'from_name' => $dbSettings['from_name'] ?? '',
+                        'encryption' => $dbSettings['encryption'] ?? 'tls',
+                    ];
+                }
+            } catch (\Exception $e) {
+                // Database table might not exist yet, continue to config
+            }
+        }
+        
+        // Step 3: Fallback to config values
+        return [
+            'mailer' => $mailer,
+            'host' => $host ?: Config::get('mail.mailers.smtp.host', ''),
+            'port' => $port ?: Config::get('mail.mailers.smtp.port', 587),
+            'username' => $username ?: Config::get('mail.mailers.smtp.username', ''),
+            'from_address' => $fromAddress ?: Config::get('mail.from.address', ''),
+            'from_name' => $fromName ?: Config::get('mail.from.name', ''),
+            'encryption' => $encryption ?: Config::get('mail.mailers.smtp.encryption', 'tls'),
+        ];
     }
 
     /**

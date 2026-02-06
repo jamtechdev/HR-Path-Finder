@@ -24,7 +24,19 @@ class CompensationSystemController extends Controller
     {
         $this->authorize('view', $hrProject->company);
 
+        // Check if step is unlocked
+        $hrProject->initializeStepStatuses();
+        if (!$hrProject->isStepUnlocked('compensation')) {
+            return redirect()->route('dashboard.hr-manager')
+                ->withErrors(['step_locked' => 'Step 4 (Compensation System) is locked. Please complete and submit Step 3 (Performance System) first, then wait for CEO verification.']);
+        }
+
         $hrProject->load(['compensationSystem', 'performanceSystem']);
+
+        // Set step to in_progress if not started
+        if ($hrProject->getStepStatus('compensation') === 'not_started') {
+            $hrProject->setStepStatus('compensation', 'in_progress');
+        }
 
         $recommendations = $this->recommendationService->getRecommendedCompensationStructure($hrProject);
 
@@ -79,16 +91,45 @@ class CompensationSystemController extends Controller
         DB::transaction(function () use ($system, $hrProject) {
             $system->update(['submitted_at' => now()]);
 
+            // Set compensation step status to submitted
+            $hrProject->initializeStepStatuses();
+            $hrProject->setStepStatus('compensation', 'submitted');
+            
+            // Check if all steps are submitted
+            $stepStatuses = [
+                'diagnosis' => $hrProject->getStepStatus('diagnosis'),
+                'organization' => $hrProject->getStepStatus('organization'),
+                'performance' => $hrProject->getStepStatus('performance'),
+                'compensation' => 'submitted', // Just set
+            ];
+            
+            $allStepsSubmitted = collect($stepStatuses)->every(fn($status) => 
+                in_array($status, ['submitted', 'completed'])
+            );
+            
+            $hrProject->update([
+                'current_step' => 'complete',
+                'status' => $allStepsSubmitted ? 'pending_consultant_review' : 'submitted',
+            ]);
+
             HrProjectAudit::create([
                 'hr_project_id' => $hrProject->id,
                 'user_id' => Auth::id(),
                 'action' => 'compensation_system_submitted',
                 'step' => 'compensation',
             ]);
-
-            $hrProject->moveToNextStep('consultant_review');
         });
 
-        return redirect()->route('hr-projects.consultant-review.show', $hrProject->id);
+        // Send email notification to CEO only if CEO exists
+        $ceo = $hrProject->getCeoUser();
+        if ($ceo) {
+            try {
+                $ceo->notify(new \App\Notifications\StepSubmittedNotification($hrProject, 'compensation'));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send CEO notification: ' . $e->getMessage());
+            }
+        }
+
+        return redirect()->route('dashboard.hr-manager')->with('success', 'Compensation System – Step 4 has been submitted successfully! An email notification has been sent to the CEO for verification. All steps are now complete.');
     }
 }

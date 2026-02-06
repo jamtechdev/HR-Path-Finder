@@ -15,8 +15,8 @@ class ConsultantReviewController extends Controller
 {
     public function show(HrProject $hrProject): Response
     {
-        // Only consultants can access
-        if (!Auth::user()->hasRole('consultant')) {
+        // Only consultants/admins can access (they are the same)
+        if (!Auth::user()->hasRole('consultant') && !Auth::user()->hasRole('admin')) {
             abort(403);
         }
 
@@ -37,7 +37,8 @@ class ConsultantReviewController extends Controller
 
     public function store(Request $request, HrProject $hrProject)
     {
-        if (!Auth::user()->hasRole('consultant')) {
+        // Only consultants/admins can access (they are the same)
+        if (!Auth::user()->hasRole('consultant') && !Auth::user()->hasRole('admin')) {
             abort(403);
         }
 

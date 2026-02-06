@@ -50,18 +50,24 @@ class StepVerificationController extends Controller
 
             $nextStep = $stepOrder[$step] ?? null;
 
+            // Mark current step as completed (verified by CEO)
+            $hrProject->initializeStepStatuses();
+            $hrProject->setStepStatus($step, 'completed');
+
             if ($nextStep) {
-                // Unlock next step - the step is already unlocked because previous step is submitted
-                // But we ensure the current_step is updated and next step status is initialized
+                // Unlock next step by setting its status to 'not_started'
                 $hrProject->initializeStepStatuses();
+                $nextStepStatus = $hrProject->getStepStatus($nextStep);
+                
+                // Only set to 'not_started' if it's currently 'locked' or not initialized
+                if ($nextStepStatus === 'locked' || $nextStepStatus === 'not_started') {
+                    $hrProject->setStepStatus($nextStep, 'not_started');
+                }
                 
                 // Update current_step to next step
                 $hrProject->update([
                     'current_step' => $nextStep,
                 ]);
-                
-                // Ensure next step status is at least 'not_started' (it's already unlocked)
-                // The isStepUnlocked method will return true because previous step is 'submitted'
             }
 
             HrProjectAudit::create([
@@ -81,9 +87,9 @@ class StepVerificationController extends Controller
 
         $nextStepName = $stepNames[$step] ?? 'Next Step';
         $nextStepRoutes = [
-            'diagnosis' => route('organization.index'),
-            'organization' => route('performance.index'),
-            'performance' => route('compensation.index'),
+            'diagnosis' => route('hr-projects.organization-design.show', $hrProject->id),
+            'organization' => route('hr-projects.performance-system.show', $hrProject->id),
+            'performance' => route('hr-projects.compensation-system.show', $hrProject->id),
             'compensation' => route('hr-system-output.index'),
         ];
 
@@ -143,20 +149,10 @@ class StepVerificationController extends Controller
 
         $allStepsComplete = collect($stepsStatus)->every(fn($status) => $status === true);
 
-        // Render dashboard without page refresh
-        return Inertia::render('CEO/Dashboard/Index', [
-            'company' => $companies->first(),
-            'project' => $hrProject,
-            'ceoPhilosophyStatus' => $ceoPhilosophyStatus,
-            'stepsStatus' => $stepsStatus,
-            'stepStatuses' => $stepStatuses,
-            'pendingVerifications' => $pendingVerifications,
-            'allStepsComplete' => $allStepsComplete,
-            'flash' => [
-                'success' => "Step verified successfully! The next step has been unlocked for the HR Manager.",
-                'nextStep' => $nextStepName,
-                'nextStepRoute' => $nextStepRoute,
-            ],
+        // Redirect back to CEO dashboard
+        return redirect()->route('dashboard.ceo')->with([
+            'success' => "Step verified successfully! The next step has been unlocked for the HR Manager.",
+            'nextStep' => $nextStepName,
         ]);
     }
 }

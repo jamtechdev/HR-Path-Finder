@@ -43,39 +43,9 @@ class EmailVerificationController extends Controller
             // Get user's primary role
             $role = $user->roles->first()?->name;
             
-            // Use the same redirect logic as RegisteredUserResponse - check onboarding steps
+            // Always redirect HR Manager to dashboard after email verification
+            // Status will remain "not_started" until they click "Start" from overview page
             if ($role === 'hr_manager') {
-                // Check if HR Manager has any companies
-                $user->load('companies');
-                $companies = $user->companies()->wherePivot('role', 'hr_manager')->get();
-                
-                // If no company, redirect to create company (first step)
-                if ($companies->isEmpty()) {
-                    return redirect()->route('companies.create')
-                        ->with('success', 'Your email has been verified! Please create your company to get started.');
-                }
-                
-                // Get the latest company and check for HR project
-                $company = $companies->first();
-                $hrProject = $company->hrProjects()->latest()->first();
-                
-                // If no project, redirect to company show page
-                if (!$hrProject) {
-                    return redirect()->route('companies.show', $company->id)
-                        ->with('success', 'Your email has been verified! Please start your HR project.');
-                }
-                
-                // Check if diagnosis step is completed
-                $hrProject->initializeStepStatuses();
-                $diagnosisStatus = $hrProject->getStepStatus('diagnosis');
-                
-                // If diagnosis not completed, redirect to diagnosis
-                if ($diagnosisStatus !== 'submitted') {
-                    return redirect()->route('diagnosis.index')
-                        ->with('success', 'Your email has been verified! Please complete the diagnosis step.');
-                }
-                
-                // All steps completed, go to dashboard
                 return redirect()->route('dashboard.hr-manager')
                     ->with('success', 'Your email has been verified successfully!');
             }
@@ -95,7 +65,7 @@ class EmailVerificationController extends Controller
                         
                         // If philosophy not completed, redirect to philosophy survey for onboarding
                         if (!$ceoPhilosophy || !$ceoPhilosophy->completed_at) {
-                            return redirect()->route('hr-projects.ceo-philosophy.show', $hrProject->id)
+                            return redirect()->route('ceo.hr-projects.ceo-philosophy.show', $hrProject->id)
                                 ->with('success', 'Welcome! Please complete the Management Philosophy Survey to continue.');
                         }
                     } else {
@@ -108,9 +78,9 @@ class EmailVerificationController extends Controller
             
             // Redirect based on role to role-specific dashboards
             $redirectRoute = match ($role) {
-                'ceo' => 'dashboard.ceo',
-                'hr_manager' => 'dashboard.hr-manager',
-                'consultant' => 'dashboard.consultant',
+                'ceo' => 'ceo.dashboard',
+                'hr_manager' => 'hr-manager.dashboard',
+                'consultant' => 'consultant.dashboard',
                 default => 'dashboard',
             };
             

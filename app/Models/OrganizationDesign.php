@@ -13,6 +13,7 @@ class OrganizationDesign extends Model
     protected $fillable = [
         'hr_project_id',
         'structure_type',
+        'structure_types',
         'job_grade_structure',
         'grade_title_relationship',
         'managerial_role_definition',
@@ -20,6 +21,7 @@ class OrganizationDesign extends Model
     ];
 
     protected $casts = [
+        'structure_types' => 'array',
         'submitted_at' => 'datetime',
     ];
 

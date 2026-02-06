@@ -142,7 +142,7 @@ export default function Dashboard() {
                     <div className="space-y-4">
                         <h2 className="text-lg font-semibold">Design Steps</h2>
                         <div className="grid gap-4">
-                        <Link href="/diagnosis?tab=overview" className="rounded-lg border bg-card text-card-foreground shadow-sm relative overflow-hidden transition-all duration-300 card-hover cursor-pointer">
+                        <Link href="/diagnosis/overview" className="rounded-lg border bg-card text-card-foreground shadow-sm relative overflow-hidden transition-all duration-300 card-hover cursor-pointer">
                                 <div className="p-6">
                                     <div className="flex items-start gap-4">
                                         <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-success/10 text-success">
@@ -197,7 +197,7 @@ export default function Dashboard() {
                                 <h3 className="text-xl font-semibold mb-1">Ready to continue?</h3>
                                 <p className="text-white/80">Pick up where you left off and complete your HR system design.</p>
                             </div>
-                        <Link href="/diagnosis?tab=overview" className="inline-flex items-center justify-center gap-2 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-11 rounded-md px-8 whitespace-nowrap">
+                        <Link href="/diagnosis/overview" className="inline-flex items-center justify-center gap-2 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-11 rounded-md px-8 whitespace-nowrap">
                                 Continue Step 1
                                 <ArrowRight className="w-4 h-4 ml-2" />
                             </Link>

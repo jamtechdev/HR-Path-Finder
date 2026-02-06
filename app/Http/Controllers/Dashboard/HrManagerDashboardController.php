@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Company;
+use App\Models\HrProject;
 use App\Services\SmtpConfigurationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -23,23 +24,70 @@ class HrManagerDashboardController extends Controller
         // Get the latest/active company (most recently updated)
         $currentCompany = $companies->sortByDesc('updated_at')->first();
 
-        // Prepare step statuses based on company status fields
-        $stepStatuses = [
-            'diagnosis' => $currentCompany?->diagnosis_status ?? 'not_started',
-            'organization' => $currentCompany?->organization_status ?? 'not_started',
-            'performance' => $currentCompany?->performance_status ?? 'not_started',
-            'compensation' => $currentCompany?->compensation_status ?? 'not_started',
-        ];
+        // Get HR Project for current company
+        $hrProject = null;
+        if ($currentCompany) {
+            $hrProject = HrProject::where('company_id', $currentCompany->id)
+                ->latest()
+                ->first();
+        }
+
+        // Prepare step statuses from HR Project or company status fields
+        if ($hrProject) {
+            $hrProject->initializeStepStatuses();
+            $diagnosisStatus = $hrProject->getStepStatus('diagnosis');
+            
+            // If diagnosis is completed on company but not updated on project, sync it
+            if ($currentCompany && $currentCompany->diagnosis_status === 'completed' && $diagnosisStatus !== 'submitted') {
+                $hrProject->setStepStatus('diagnosis', 'submitted');
+                $diagnosisStatus = 'submitted';
+            }
+            
+            $stepStatuses = [
+                'diagnosis' => $diagnosisStatus,
+                'organization' => $hrProject->getStepStatus('organization'),
+                'performance' => $hrProject->getStepStatus('performance'),
+                'compensation' => $hrProject->getStepStatus('compensation'),
+            ];
+            $verifiedSteps = [
+                'diagnosis' => $hrProject->isStepVerified('diagnosis'),
+                'organization' => $hrProject->isStepVerified('organization'),
+                'performance' => $hrProject->isStepVerified('performance'),
+                'compensation' => $hrProject->isStepVerified('compensation'),
+            ];
+        } else {
+            // Use company's diagnosis_status field, but map 'completed' to 'submitted' for consistency
+            $diagnosisStatus = $currentCompany?->diagnosis_status ?? 'not_started';
+            // Map 'completed' to 'submitted' for dashboard display consistency
+            if ($diagnosisStatus === 'completed') {
+                $diagnosisStatus = 'submitted';
+            }
+            
+            $stepStatuses = [
+                'diagnosis' => $diagnosisStatus,
+                'organization' => $currentCompany?->organization_status ?? 'not_started',
+                'performance' => $currentCompany?->performance_status ?? 'not_started',
+                'compensation' => $currentCompany?->compensation_status ?? 'not_started',
+            ];
+            $verifiedSteps = [
+                'diagnosis' => $currentCompany?->diagnosis_status === 'completed',
+                'organization' => false,
+                'performance' => false,
+                'compensation' => false,
+            ];
+        }
         
-        // Count completed steps
-        $progressCount = collect($stepStatuses)->filter(fn($status) => $status === 'completed')->count();
+        // Count submitted/completed steps
+        $progressCount = collect($stepStatuses)->filter(fn($status) => 
+            in_array($status, ['submitted', 'completed'])
+        )->count();
         
         // Determine current step number based on step statuses
         $stepOrder = ['diagnosis' => 1, 'organization' => 2, 'performance' => 3, 'compensation' => 4];
         $currentStepNumber = 1;
         
         foreach ($stepOrder as $step => $number) {
-            if ($stepStatuses[$step] !== 'completed') {
+            if (!in_array($stepStatuses[$step], ['submitted', 'completed'])) {
                 $currentStepNumber = $number;
                 break;
             }
@@ -80,11 +128,15 @@ class HrManagerDashboardController extends Controller
                 'compensation_status' => $currentCompany->compensation_status,
                 'overall_status' => $currentCompany->overall_status,
             ] : null,
-            'project' => $currentCompany ? [
+            'project' => $hrProject ? [
+                'id' => $hrProject->id,
+                'step_statuses' => $stepStatuses,
+            ] : ($currentCompany ? [
                 'id' => $currentCompany->id,
                 'step_statuses' => $stepStatuses,
-            ] : null,
+            ] : null),
             'stepStatuses' => $stepStatuses,
+            'verifiedSteps' => $verifiedSteps,
             'progressCount' => $progressCount,
             'currentStepNumber' => $currentStepNumber,
             'smtpConfigured' => $smtpConfigured,

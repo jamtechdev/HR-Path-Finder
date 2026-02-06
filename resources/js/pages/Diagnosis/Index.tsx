@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import {
     ArrowRight,
     ArrowLeft,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
+import DashboardHeader from '@/components/Dashboard/DashboardHeader';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -138,18 +139,18 @@ const stepOrder = [
 
 type StepId = 'overview' | (typeof stepOrder)[number];
 
-// Simple function to get active tab from URL query parameter
+// Simple function to get active tab from URL path
 function getActiveTabFromRoute(): StepId {
     if (typeof window === 'undefined') return 'overview';
     
-    const urlParams = new URLSearchParams(window.location.search);
-    const tabParam = urlParams.get('tab');
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    const tabFromPath = pathParts[1]; // After 'diagnosis'
     
     // Valid tabs
     const validTabs: StepId[] = ['overview', 'company', 'business', 'workforce', 'current-hr', 'culture', 'confidential', 'review'];
     
-    if (tabParam && validTabs.includes(tabParam as StepId)) {
-        return tabParam as StepId;
+    if (tabFromPath && validTabs.includes(tabFromPath as StepId)) {
+        return tabFromPath as StepId;
     }
     
     // Default to overview
@@ -157,9 +158,6 @@ function getActiveTabFromRoute(): StepId {
 }
 
 export default function DiagnosisStep({ company }: PageProps) {
-    // #region agent log
-    fetch('http://127.0.0.1:7244/ingest/37ad418c-1f1a-45d5-845c-a1ee722a9836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.tsx:159',message:'Component render - company prop check',data:{companyIsUndefined:company===undefined,companyIsNull:company===null,companyType:typeof company,hasCulture:company?.culture!==undefined,cultureType:typeof company?.culture},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     // Ensure company has default values to prevent undefined errors
     const safeCompany: Company = (company && typeof company === 'object' && company.id !== undefined) ? {
         id: company.id ?? 0,
@@ -192,145 +190,246 @@ export default function DiagnosisStep({ company }: PageProps) {
         culture: null,
         confidential_note: null,
     };
-    // #region agent log
-    fetch('http://127.0.0.1:7244/ingest/37ad418c-1f1a-45d5-845c-a1ee722a9836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.tsx:177',message:'safeCompany computed',data:{safeCompanyIsUndefined:safeCompany===undefined,safeCompanyIsNull:safeCompany===null,hasCulture:safeCompany?.culture!==undefined,cultureType:typeof safeCompany?.culture},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     
     const foundationDate = safeCompany.foundation_date ? safeCompany.foundation_date.slice(0, 10) : '';
     const secondaryIndustries = Array.isArray(safeCompany.secondary_industries) ? safeCompany.secondary_industries : [];
-    // #region agent log
-    fetch('http://127.0.0.1:7244/ingest/37ad418c-1f1a-45d5-845c-a1ee722a9836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.tsx:180',message:'Before cultureValues access',data:{safeCompanyCulture:safeCompany?.culture,safeCompanyCultureIsUndefined:safeCompany?.culture===undefined},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     const cultureValues = Array.isArray(safeCompany.culture?.core_values) ? safeCompany.culture?.core_values : [];
-    // #region agent log
-    fetch('http://127.0.0.1:7244/ingest/37ad418c-1f1a-45d5-845c-a1ee722a9836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.tsx:181',message:'After cultureValues access',data:{cultureValuesLength:cultureValues?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     const page = usePage();
 
+    // Load form data from localStorage or use safeCompany data
+    const getStoredFormData = (key: string, defaultValue: any) => {
+        if (typeof window === 'undefined') return defaultValue;
+        try {
+            const stored = localStorage.getItem(`diagnosis_form_${key}`);
+            if (stored) {
+                return JSON.parse(stored);
+            }
+        } catch (e) {
+            console.error('Error loading from localStorage:', e);
+        }
+        return defaultValue;
+    };
+
+    // Save form data to localStorage
+    const saveFormData = (key: string, data: any) => {
+        if (typeof window === 'undefined') return;
+        try {
+            // Don't store File objects
+            const dataToStore = { ...data };
+            if (dataToStore.logo) delete dataToStore.logo;
+            if (dataToStore.image) delete dataToStore.image;
+            if (dataToStore.org_chart) delete dataToStore.org_chart;
+            localStorage.setItem(`diagnosis_form_${key}`, JSON.stringify(dataToStore));
+        } catch (e) {
+            console.error('Error saving to localStorage:', e);
+        }
+    };
+
+    // State for logo and banner image previews
+    const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+    const [orgChartPreview, setOrgChartPreview] = useState<string | null>(null);
+
+    // Load existing logo preview on mount
+    useEffect(() => {
+        if (safeCompany?.logo_path && !companyForm.data.logo) {
+            const logoUrl = safeCompany.logo_path.startsWith('http') || safeCompany.logo_path.startsWith('/')
+                ? safeCompany.logo_path
+                : `/storage/${safeCompany.logo_path}`;
+            setLogoPreview(logoUrl);
+        }
+    }, [safeCompany?.logo_path]);
+
+    // Load existing banner preview on mount
+    useEffect(() => {
+        if (safeCompany?.image_path && !companyForm.data.image) {
+            const bannerUrl = safeCompany.image_path.startsWith('http') || safeCompany.image_path.startsWith('/')
+                ? safeCompany.image_path
+                : `/storage/${safeCompany.image_path}`;
+            setBannerPreview(bannerUrl);
+        }
+    }, [safeCompany?.image_path]);
+
+    // Load existing org chart preview on mount
+    useEffect(() => {
+        if (safeCompany?.workforce?.org_chart_path && !workforceForm.data.org_chart) {
+            const chartUrl = safeCompany.workforce.org_chart_path.startsWith('http') || safeCompany.workforce.org_chart_path.startsWith('/')
+                ? safeCompany.workforce.org_chart_path
+                : `/storage/${safeCompany.workforce.org_chart_path}`;
+            setOrgChartPreview(chartUrl);
+        }
+    }, [safeCompany?.workforce?.org_chart_path]);
+
+    // Handle logo preview when file is selected
+    useEffect(() => {
+        if (companyForm.data.logo) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setLogoPreview(reader.result as string);
+            };
+            reader.readAsDataURL(companyForm.data.logo);
+        } else if (!safeCompany?.logo_path) {
+            setLogoPreview(null);
+        }
+    }, [companyForm.data.logo]);
+
+    // Handle banner preview when file is selected
+    useEffect(() => {
+        if (companyForm.data.image) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setBannerPreview(reader.result as string);
+            };
+            reader.readAsDataURL(companyForm.data.image);
+        } else if (!safeCompany?.image_path) {
+            setBannerPreview(null);
+        }
+    }, [companyForm.data.image]);
+
+    // Handle org chart preview when file is selected
+    useEffect(() => {
+        if (workforceForm.data.org_chart) {
+            const file = workforceForm.data.org_chart;
+            // Only show preview for image files, not PDFs
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setOrgChartPreview(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                setOrgChartPreview(null);
+            }
+        } else if (!safeCompany?.workforce?.org_chart_path) {
+            setOrgChartPreview(null);
+        }
+    }, [workforceForm.data.org_chart]);
+
+    // Initialize forms with stored data or safeCompany data
     const companyForm = useForm({
-        name: safeCompany.name || '',
-        brand_name: safeCompany.brand_name || '',
-        foundation_date: foundationDate,
-        hq_location: safeCompany.hq_location || '',
-        industry: safeCompany.industry || '',
-        secondary_industries: secondaryIndustries,
+        name: getStoredFormData('company', {}).name || safeCompany.name || '',
+        brand_name: getStoredFormData('company', {}).brand_name || safeCompany.brand_name || '',
+        foundation_date: getStoredFormData('company', {}).foundation_date || foundationDate,
+        hq_location: getStoredFormData('company', {}).hq_location || safeCompany.hq_location || '',
+        industry: getStoredFormData('company', {}).industry || safeCompany.industry || '',
+        secondary_industries: getStoredFormData('company', {}).secondary_industries || secondaryIndustries,
         logo: null as File | null,
         image: null as File | null,
-        latitude: null as number | null,
-        longitude: null as number | null,
+        latitude: getStoredFormData('company', {}).latitude || null,
+        longitude: getStoredFormData('company', {}).longitude || null,
     });
 
     const businessForm = useForm({
-        annual_revenue: safeCompany.business_profile?.annual_revenue?.toString() || '',
-        operational_margin_rate: safeCompany.business_profile?.operational_margin_rate?.toString() || '',
-        annual_human_cost: safeCompany.business_profile?.annual_human_cost?.toString() || '',
-        business_type: safeCompany.business_profile?.business_type || '',
+        annual_revenue: getStoredFormData('business', {}).annual_revenue || safeCompany.business_profile?.annual_revenue?.toString() || '',
+        operational_margin_rate: getStoredFormData('business', {}).operational_margin_rate || safeCompany.business_profile?.operational_margin_rate?.toString() || '',
+        annual_human_cost: getStoredFormData('business', {}).annual_human_cost || safeCompany.business_profile?.annual_human_cost?.toString() || '',
+        business_type: getStoredFormData('business', {}).business_type || safeCompany.business_profile?.business_type || '',
     });
 
     const workforceForm = useForm({
-        headcount_year_minus_2: safeCompany.workforce?.headcount_year_minus_2?.toString() || '',
-        headcount_year_minus_1: safeCompany.workforce?.headcount_year_minus_1?.toString() || '',
-        headcount_current: safeCompany.workforce?.headcount_current?.toString() || '',
-        total_employees: safeCompany.workforce?.total_employees?.toString() || '',
-        contract_employees: safeCompany.workforce?.contract_employees?.toString() || '',
+        headcount_year_minus_2: getStoredFormData('workforce', {}).headcount_year_minus_2 || safeCompany.workforce?.headcount_year_minus_2?.toString() || '',
+        headcount_year_minus_1: getStoredFormData('workforce', {}).headcount_year_minus_1 || safeCompany.workforce?.headcount_year_minus_1?.toString() || '',
+        headcount_current: getStoredFormData('workforce', {}).headcount_current || safeCompany.workforce?.headcount_current?.toString() || '',
+        total_employees: getStoredFormData('workforce', {}).total_employees || safeCompany.workforce?.total_employees?.toString() || '',
+        contract_employees: getStoredFormData('workforce', {}).contract_employees || safeCompany.workforce?.contract_employees?.toString() || '',
         org_chart: null as File | null,
     });
 
     const currentHrForm = useForm({
-        dedicated_hr_team: safeCompany.current_hr_status?.dedicated_hr_team ?? false,
-        labor_union_present: safeCompany.current_hr_status?.labor_union_present ?? false,
-        labor_relations_stability: safeCompany.current_hr_status?.labor_relations_stability || '',
-        evaluation_system_status: safeCompany.current_hr_status?.evaluation_system_status || '',
-        compensation_system_status: safeCompany.current_hr_status?.compensation_system_status || '',
-        evaluation_system_issues: safeCompany.current_hr_status?.evaluation_system_issues || '',
-        job_rank_levels: safeCompany.current_hr_status?.job_rank_levels ?? null,
-        job_title_levels: safeCompany.current_hr_status?.job_title_levels ?? null,
+        dedicated_hr_team: getStoredFormData('currentHr', {}).dedicated_hr_team ?? safeCompany.current_hr_status?.dedicated_hr_team ?? false,
+        labor_union_present: getStoredFormData('currentHr', {}).labor_union_present ?? safeCompany.current_hr_status?.labor_union_present ?? false,
+        labor_relations_stability: getStoredFormData('currentHr', {}).labor_relations_stability || safeCompany.current_hr_status?.labor_relations_stability || '',
+        evaluation_system_status: getStoredFormData('currentHr', {}).evaluation_system_status || safeCompany.current_hr_status?.evaluation_system_status || '',
+        compensation_system_status: getStoredFormData('currentHr', {}).compensation_system_status || safeCompany.current_hr_status?.compensation_system_status || '',
+        evaluation_system_issues: getStoredFormData('currentHr', {}).evaluation_system_issues || safeCompany.current_hr_status?.evaluation_system_issues || '',
+        job_rank_levels: getStoredFormData('currentHr', {}).job_rank_levels ?? safeCompany.current_hr_status?.job_rank_levels ?? null,
+        job_title_levels: getStoredFormData('currentHr', {}).job_title_levels ?? safeCompany.current_hr_status?.job_title_levels ?? null,
     });
 
     const cultureForm = useForm({
-        work_format: safeCompany.culture?.work_format || '',
-        decision_making_style: safeCompany.culture?.decision_making_style || '',
-        core_values: cultureValues,
+        work_format: getStoredFormData('culture', {}).work_format || safeCompany.culture?.work_format || '',
+        decision_making_style: getStoredFormData('culture', {}).decision_making_style || safeCompany.culture?.decision_making_style || '',
+        core_values: getStoredFormData('culture', {}).core_values || cultureValues,
     });
 
     const confidentialForm = useForm({
-        notes: safeCompany.confidential_note?.notes || '',
+        notes: getStoredFormData('confidential', {}).notes || safeCompany.confidential_note?.notes || '',
     });
+
+    // Save form data to localStorage whenever it changes
+    useEffect(() => {
+        saveFormData('company', companyForm.data);
+    }, [companyForm.data]);
+
+    useEffect(() => {
+        saveFormData('business', businessForm.data);
+    }, [businessForm.data]);
+
+    useEffect(() => {
+        saveFormData('workforce', workforceForm.data);
+    }, [workforceForm.data]);
+
+    useEffect(() => {
+        saveFormData('currentHr', currentHrForm.data);
+    }, [currentHrForm.data]);
+
+    useEffect(() => {
+        saveFormData('culture', cultureForm.data);
+    }, [cultureForm.data]);
+
+    useEffect(() => {
+        saveFormData('confidential', confidentialForm.data);
+    }, [confidentialForm.data]);
 
     const submitForm = useForm({});
     const submitErrors = submitForm.errors as Record<string, string>;
     const [coreValueInput, setCoreValueInput] = useState('');
+    const isSubmittingRef = useRef(false);
 
     const stepStatus = useMemo(() => {
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/37ad418c-1f1a-45d5-845c-a1ee722a9836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.tsx:249',message:'useMemo stepStatus entry',data:{safeCompanyIsUndefined:safeCompany===undefined,safeCompanyIsNull:safeCompany===null,hasSafeCompany:!!safeCompany,safeCompanyCulture:safeCompany?.culture,safeCompanyCultureIsUndefined:safeCompany?.culture===undefined},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
-        
-        // Defensive check: ensure safeCompany exists
-        if (!safeCompany) {
-            // #region agent log
-            fetch('http://127.0.0.1:7244/ingest/37ad418c-1f1a-45d5-845c-a1ee722a9836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.tsx:252',message:'safeCompany is undefined in useMemo',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-            // #endregion
-            return {
-                company: false,
-                business: false,
-                workforce: false,
-                'current-hr': false,
-                culture: false,
-                confidential: false,
-                review: false,
-            };
-        }
+        // Check completion based on FORM DATA (local state) to show green checkmarks as user fills form
+        // This allows real-time feedback without saving to database
         
         // Check company info completion - all required fields must be filled
         const companyComplete = Boolean(
-            safeCompany.name &&
-                safeCompany.foundation_date &&
-                safeCompany.hq_location &&
-                safeCompany.industry
+            companyForm.data.name &&
+                companyForm.data.foundation_date &&
+                companyForm.data.hq_location &&
+                companyForm.data.industry
         );
         
         // Check business profile completion - must have business_type and annual_revenue
         const businessComplete = Boolean(
-            safeCompany.business_profile &&
-            safeCompany.business_profile.business_type &&
-            safeCompany.business_profile.annual_revenue !== null &&
-            safeCompany.business_profile.annual_revenue !== undefined
+            businessForm.data.business_type &&
+            businessForm.data.annual_revenue &&
+            parseFloat(businessForm.data.annual_revenue) > 0
         );
         
         // Check workforce completion - must have total_employees
         const workforceComplete = Boolean(
-            safeCompany.workforce &&
-            safeCompany.workforce.total_employees !== null &&
-            safeCompany.workforce.total_employees !== undefined
+            workforceForm.data.total_employees &&
+            parseInt(workforceForm.data.total_employees) > 0
         );
         
         // Check current HR completion - must have dedicated_hr_team and labor_relations_stability
         const currentHrComplete = Boolean(
-            safeCompany.current_hr_status &&
-            safeCompany.current_hr_status.dedicated_hr_team !== null &&
-            safeCompany.current_hr_status.dedicated_hr_team !== undefined &&
-            safeCompany.current_hr_status.labor_relations_stability
+            currentHrForm.data.dedicated_hr_team !== null &&
+            currentHrForm.data.dedicated_hr_team !== undefined &&
+            currentHrForm.data.labor_relations_stability
         );
         
         // Check culture completion - must have work_format, decision_making_style, and at least one core value
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/37ad418c-1f1a-45d5-845c-a1ee722a9836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.tsx:288',message:'Before cultureComplete check',data:{safeCompanyCulture:safeCompany?.culture,safeCompanyCultureIsUndefined:safeCompany?.culture===undefined,willAccessCulture:!!safeCompany?.culture},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
         const cultureComplete = Boolean(
-            safeCompany?.culture &&
-            safeCompany.culture.work_format &&
-            safeCompany.culture.decision_making_style &&
-            (safeCompany.culture.core_values || []).length > 0
+            cultureForm.data.work_format &&
+            cultureForm.data.decision_making_style &&
+            (cultureForm.data.core_values || []).length > 0
         );
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/37ad418c-1f1a-45d5-845c-a1ee722a9836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.tsx:295',message:'After cultureComplete check',data:{cultureComplete},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
         
         // Confidential is optional but if filled, mark as complete
-        const confidentialComplete = Boolean(safeCompany.confidential_note?.notes);
+        const confidentialComplete = Boolean(confidentialForm.data.notes && confidentialForm.data.notes.trim().length > 0);
         
-        const submitted = safeCompany.diagnosis_status === 'completed';
+        // Review is complete when diagnosis is submitted
+        const submitted = safeCompany?.diagnosis_status === 'completed';
 
         return {
             company: companyComplete,
@@ -341,37 +440,51 @@ export default function DiagnosisStep({ company }: PageProps) {
             confidential: confidentialComplete,
             review: submitted,
         };
-    }, [safeCompany]);
+    }, [companyForm.data, businessForm.data, workforceForm.data, currentHrForm.data, cultureForm.data, confidentialForm.data, safeCompany?.diagnosis_status]);
+
+    // Get initial tab from URL path, always default to 'overview'
+    const [activeTab, setActiveTab] = useState<StepId>(() => {
+        // Always get from URL path first, ignore backend activeTab prop
+        // This ensures URL is the source of truth
+        if (typeof window !== 'undefined') {
+            const pathParts = window.location.pathname.split('/').filter(Boolean);
+            const tabFromPath = pathParts[1]; // After 'diagnosis'
+            
+            const validTabs: StepId[] = ['overview', 'company', 'business', 'workforce', 'current-hr', 'culture', 'confidential', 'review'];
+            
+            if (tabFromPath && validTabs.includes(tabFromPath as StepId)) {
+                return tabFromPath as StepId;
+            }
+        }
+        
+        // Always default to 'overview'
+        return 'overview';
+    });
 
     const totalSteps = stepOrder.length;
     const completedCount = stepOrder.filter((step) => stepStatus?.[step]).length;
-    const hasStarted = safeCompany.diagnosis_status !== 'not_started' || completedCount > 0;
+    // Only consider started if not on overview page and status is in_progress or completed
+    const hasStarted = activeTab !== 'overview' && (safeCompany.diagnosis_status !== 'not_started' || completedCount > 0);
 
-    // Get initial tab from URL query parameter or props, default to 'overview'
-    const [activeTab, setActiveTab] = useState<StepId>(() => {
-        // Check if activeTab is passed from backend (from query param)
-        const pageProps = page.props as { activeTab?: StepId };
-        if (pageProps?.activeTab) {
-            return pageProps.activeTab;
+    // Update active tab when URL path changes - ensure it always matches URL
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        
+        // If accessing /diagnosis without tab, redirect to /diagnosis/overview
+        if (pathParts[0] === 'diagnosis' && !pathParts[1]) {
+            window.history.replaceState({}, '', '/diagnosis/overview');
+            setActiveTab('overview');
+            return;
         }
         
-        // Otherwise get from URL
-        return getActiveTabFromRoute();
-    });
-
-    // Update active tab when URL query parameter changes
-    useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const tabParam = urlParams.get('tab');
+        // Get current tab from URL
+        const currentTab = getActiveTabFromRoute();
         
-        if (tabParam) {
-            const validTabs: StepId[] = ['overview', 'company', 'business', 'workforce', 'current-hr', 'culture', 'confidential', 'review'];
-            if (validTabs.includes(tabParam as StepId) && tabParam !== activeTab) {
-                setActiveTab(tabParam as StepId);
-            }
-        } else if (activeTab !== 'overview') {
-            // If no tab param, default to overview
-            setActiveTab('overview');
+        // Always sync activeTab with URL - URL is the source of truth
+        if (currentTab !== activeTab) {
+            setActiveTab(currentTab);
         }
     }, [page.url]);
     
@@ -386,12 +499,11 @@ export default function DiagnosisStep({ company }: PageProps) {
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
 
-    // Simple navigation - just update URL query parameter and state
+    // Simple navigation - just update URL path and state
     const navigateToStep = (stepId: StepId) => {
-        if (!company?.id) return;
-        
-        // Update URL without page reload
-        const newUrl = `/diagnosis?tab=${stepId}`;
+        // Allow navigation even without company - company will be created on final submit
+        // Update URL without page reload using path-based routing
+        const newUrl = `/diagnosis/${stepId}`;
         window.history.pushState({}, '', newUrl);
         
         // Update active tab state
@@ -401,11 +513,13 @@ export default function DiagnosisStep({ company }: PageProps) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    // Progress should be 0% on overview page, start from 1 when on company-info
     const activeStepNumber =
         activeTab === 'overview'
             ? 0
             : stepOrder.indexOf(activeTab as (typeof stepOrder)[number]) + 1;
-    const progressPercent = Math.round((activeStepNumber / totalSteps) * 100);
+    // Show 0% progress on overview page, actual progress on other tabs
+    const progressPercent = activeTab === 'overview' ? 0 : Math.round((activeStepNumber / totalSteps) * 100);
     const activeIndex = activeTab === 'overview' 
         ? -1 
         : stepOrder.indexOf(activeTab as (typeof stepOrder)[number]);
@@ -450,128 +564,79 @@ export default function DiagnosisStep({ company }: PageProps) {
         );
     };
 
-    // Save forms without auto-navigation - user can review all forms before final submit
+    // DISABLED: Save functions - Data is only saved on final submit
+    // These functions are kept for reference but should not be called
+    // All data stays in local state until final submit
     const saveCompanyInfo = () => {
-        companyForm.post(`/diagnosis/${safeCompany.id}/company-info`, {
-            forceFormData: true,
-            preserveScroll: true,
-            onSuccess: () => {
-                router.reload({ only: ['company', 'project'] });
-            },
-        });
+        // Disabled - data only saved on final submit
+        return;
     };
 
     const saveBusinessProfile = () => {
-        businessForm.post(`/diagnosis/${safeCompany.id}/business-profile`, {
-            preserveScroll: true,
-            onSuccess: () => {
-                router.reload({ only: ['company'] });
-            },
-        });
+        // Disabled - data only saved on final submit
+        return;
     };
 
     const saveWorkforce = () => {
-        workforceForm.post(`/diagnosis/${safeCompany.id}/workforce`, {
-            forceFormData: true,
-            preserveScroll: true,
-            onSuccess: () => {
-                router.reload({ only: ['company'] });
-            },
-        });
+        // Disabled - data only saved on final submit
+        return;
     };
 
     const saveCurrentHr = () => {
-        currentHrForm.post(`/diagnosis/${safeCompany.id}/current-hr`, {
-            preserveScroll: true,
-            onSuccess: () => {
-                router.reload({ only: ['company'] });
-            },
-        });
+        // Disabled - data only saved on final submit
+        return;
     };
 
     const saveCulture = () => {
-        cultureForm.post(`/diagnosis/${safeCompany.id}/culture`, {
-            preserveScroll: true,
-            onSuccess: () => {
-                router.reload({ only: ['company'] });
-            },
-        });
+        // Disabled - data only saved on final submit
+        return;
     };
 
     const saveConfidential = () => {
-        confidentialForm.post(`/diagnosis/${safeCompany.id}/confidential`, {
-            preserveScroll: true,
-            onSuccess: () => {
-                router.reload({ only: ['company'] });
-            },
-        });
+        // Disabled - data only saved on final submit
+        return;
     };
 
-    // Legacy functions for backward compatibility (used by handleNext)
-    // These save the form and then navigate to the next step
+    // DISABLED: Legacy submit functions - Data is only saved on final submit
+    // These functions are kept for reference but should not be called
     const submitCompanyInfo = () => {
-        companyForm.post(`/diagnosis/${safeCompany.id}/company-info`, {
-            forceFormData: true,
-            preserveScroll: false,
-            onSuccess: () => {
-                router.reload({ only: ['company', 'project'] });
-                navigateToStep('business');
-            },
-        });
+        // Disabled - data only saved on final submit
+        return;
     };
 
     const submitBusinessProfile = () => {
-        businessForm.post(`/diagnosis/${safeCompany.id}/business-profile`, {
-            preserveScroll: false,
-            onSuccess: () => {
-                router.reload({ only: ['project'] });
-                navigateToStep('workforce');
-            },
-        });
+        // Disabled - data only saved on final submit
+        return;
     };
 
     const submitWorkforce = () => {
-        workforceForm.post(`/diagnosis/${safeCompany.id}/workforce`, {
-            forceFormData: true,
-            preserveScroll: false,
-            onSuccess: () => {
-                router.reload({ only: ['project'] });
-                navigateToStep('current-hr');
-            },
-        });
+        // Disabled - data only saved on final submit
+        return;
     };
 
     const submitCurrentHr = () => {
-        currentHrForm.post(`/diagnosis/${safeCompany.id}/current-hr`, {
-            preserveScroll: false,
-            onSuccess: () => {
-                router.reload({ only: ['project'] });
-                navigateToStep('culture');
-            },
-        });
+        // Disabled - data only saved on final submit
+        return;
     };
 
     const submitCulture = () => {
-        cultureForm.post(`/diagnosis/${safeCompany.id}/culture`, {
-            preserveScroll: false,
-            onSuccess: () => {
-                router.reload({ only: ['project'] });
-                navigateToStep('confidential');
-            },
-        });
+        // Disabled - data only saved on final submit
+        return;
     };
 
     const submitConfidential = () => {
-        confidentialForm.post(`/diagnosis/${safeCompany.id}/confidential`, {
-            preserveScroll: false,
-            onSuccess: () => {
-                router.reload({ only: ['project'] });
-                navigateToStep('review');
-            },
-        });
+        // Disabled - data only saved on final submit
+        return;
     };
 
     const submitDiagnosis = () => {
+        // Prevent double-click submission
+        if (isSubmittingRef.current || submitForm.processing) {
+            return;
+        }
+        
+        isSubmittingRef.current = true;
+        
         // Collect all form data and set it in submitForm
         submitForm.setData({
             // Company Info
@@ -619,8 +684,27 @@ export default function DiagnosisStep({ company }: PageProps) {
             notes: confidentialForm.data.notes,
         });
         
-        submitForm.post(`/diagnosis/${safeCompany.id}/submit`, {
+        // Submit without company ID - backend will create company if it doesn't exist
+        submitForm.post('/diagnosis/submit', {
             forceFormData: true,
+            onSuccess: () => {
+                // Clear localStorage after successful submission
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('diagnosis_form_company');
+                    localStorage.removeItem('diagnosis_form_business');
+                    localStorage.removeItem('diagnosis_form_workforce');
+                    localStorage.removeItem('diagnosis_form_currentHr');
+                    localStorage.removeItem('diagnosis_form_culture');
+                    localStorage.removeItem('diagnosis_form_confidential');
+                }
+                isSubmittingRef.current = false;
+            },
+            onError: () => {
+                isSubmittingRef.current = false;
+            },
+            onFinish: () => {
+                isSubmittingRef.current = false;
+            },
         });
     };
 
@@ -639,29 +723,38 @@ export default function DiagnosisStep({ company }: PageProps) {
         }
     };
 
+    const handleStartDiagnosis = () => {
+        // Simply navigate to company-info tab - no company creation needed
+        // Company will be created on final submit
+        navigateToStep('company');
+    };
+
     const handleNext = () => {
         if (!canGoNext) return;
+        
+        // Only navigate to next step - DO NOT save data
+        // Data will only be saved on final submit (review & submit step)
         switch (activeTab) {
             case 'overview':
-                navigateToStep('company');
+                handleStartDiagnosis();
                 break;
             case 'company':
-                submitCompanyInfo();
+                navigateToStep('business');
                 break;
             case 'business':
-                submitBusinessProfile();
+                navigateToStep('workforce');
                 break;
             case 'workforce':
-                submitWorkforce();
+                navigateToStep('current-hr');
                 break;
             case 'current-hr':
-                submitCurrentHr();
+                navigateToStep('culture');
                 break;
             case 'culture':
-                submitCulture();
+                navigateToStep('confidential');
                 break;
             case 'confidential':
-                submitConfidential();
+                navigateToStep('review');
                 break;
             default:
                 break;
@@ -721,9 +814,19 @@ export default function DiagnosisStep({ company }: PageProps) {
 
     const { errors } = page.props as { errors: Record<string, string> };
     const isSubmitted = safeCompany.diagnosis_status === 'completed';
-    const statusLabel = isSubmitted ? 'Completed' : hasStarted ? 'In Progress' : 'Not Started';
+    // On overview page, always show "Not Started" unless already submitted
+    // On overview page, always show "Not Started" unless already submitted
+    const statusLabel = isSubmitted 
+        ? 'Completed' 
+        : activeTab === 'overview' 
+        ? 'Not Started' 
+        : hasStarted 
+        ? 'In Progress' 
+        : 'Not Started';
     const statusClasses = isSubmitted
         ? 'bg-success/10 text-success'
+        : activeTab === 'overview'
+        ? 'bg-muted text-muted-foreground'
         : hasStarted
         ? 'bg-primary/10 text-primary'
         : 'bg-muted text-muted-foreground';
@@ -739,28 +842,17 @@ export default function DiagnosisStep({ company }: PageProps) {
                 <Head title="Step 1: Diagnosis" />
 
                 <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6">
-                    <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-start gap-3">
-                            <Link
-                                href="/dashboard"
-                                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground h-10 w-10 mt-0.5"
-                            >
-                                <ChevronLeft className="w-5 h-5" />
-                            </Link>
-                            <div>
-                                <div className="flex items-center gap-3">
-                                    <h1 className="text-2xl font-display font-bold tracking-tight">
-                                        Step 1: Diagnosis
-                                    </h1>
-                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusClasses}`}>
-                                        {statusLabel}
-                                    </span>
-                                </div>
-                                <p className="text-muted-foreground mt-1">
-                                    Input company information and organizational context
-                                </p>
-                            </div>
-                        </div>
+                    <DashboardHeader
+                        title="Step 1: Diagnosis"
+                        subtitle="Input company information and organizational context"
+                        breadcrumbs={[
+                            { title: 'Diagnosis' }
+                        ]}
+                    />
+                    <div className="flex items-center gap-3 -mt-2">
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusClasses}`}>
+                            {statusLabel}
+                        </span>
                     </div>
 
                     <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
@@ -772,7 +864,7 @@ export default function DiagnosisStep({ company }: PageProps) {
                                         : tabs.find((tab) => tab.id === activeTab)?.name}
                                 </span>
                                 <span className="text-sm text-muted-foreground">
-                                    {activeStepNumber} of {totalSteps}
+                                    {activeTab === 'overview' ? '0' : activeStepNumber} of {totalSteps}
                                 </span>
                             </div>
                             <div className="relative w-full overflow-hidden rounded-full bg-secondary h-2">
@@ -799,8 +891,8 @@ export default function DiagnosisStep({ company }: PageProps) {
                             const isClickable = isOverview || !locked;
                             const isDisabled = !isOverview && locked;
 
-                            // Simple route with query parameter
-                            const tabRoute = `/diagnosis?tab=${tab.id}`;
+                            // Simple route with path-based routing
+                            const tabRoute = `/diagnosis/${tab.id}`;
                             
                             return (
                                 <button
@@ -861,8 +953,8 @@ export default function DiagnosisStep({ company }: PageProps) {
                                         ))}
                                     </div>
 
-                                    <Button className="h-11 has-[>svg]:px-8" onClick={handleNext}>
-                                        Start Diagnosis
+                                    <Button className="h-11 has-[>svg]:px-8" onClick={handleStartDiagnosis}>
+                                        Start Company Setup
                                         <ArrowRight className="w-4 h-4 ml-2" />
                                     </Button>
                                 </div>
@@ -1002,42 +1094,156 @@ export default function DiagnosisStep({ company }: PageProps) {
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <Label htmlFor="logo">Company Logo</Label>
-                                            <label
-                                                htmlFor="logo"
-                                                className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer block"
-                                            >
-                                                <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                                                <p className="text-sm text-muted-foreground">
-                                                    Click to upload or drag and drop
-                                                </p>
-                                                <p className="text-xs text-muted-foreground mt-1">
-                                                    PNG, JPG up to 2MB
-                                                </p>
-                                                {companyForm.data.logo && (
-                                                    <p className="text-xs text-muted-foreground mt-2">
-                                                        Selected: {companyForm.data.logo.name}
+                                        <div className="grid md:grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="logo">Company Logo</Label>
+                                                <label
+                                                    htmlFor="logo"
+                                                    className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer block"
+                                                >
+                                                    <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Click to upload or drag and drop
                                                     </p>
-                                                )}
-                                                {safeCompany.logo_path && !companyForm.data.logo && (
-                                                    <p className="text-xs text-muted-foreground mt-2">
-                                                        Current logo uploaded.
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        PNG, JPG up to 2MB
                                                     </p>
+                                                    {logoPreview && (
+                                                        <div className="mt-4">
+                                                            <img 
+                                                                src={logoPreview}
+                                                                alt="Logo preview"
+                                                                className="w-full max-w-xs mx-auto h-32 object-contain rounded border cursor-pointer hover:opacity-80 transition-opacity"
+                                                                onClick={() => {
+                                                                    if (logoPreview) {
+                                                                        if (logoPreview.startsWith('data:')) {
+                                                                            const newWindow = window.open();
+                                                                            if (newWindow) {
+                                                                                newWindow.document.write(`<img src="${logoPreview}" style="max-width: 100%; height: auto;" />`);
+                                                                            }
+                                                                        } else {
+                                                                            window.open(logoPreview, '_blank');
+                                                                        }
+                                                                    }
+                                                                }}
+                                                                onError={(e) => {
+                                                                    const target = e.target as HTMLImageElement;
+                                                                    target.style.display = 'none';
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    {companyForm.data.logo && !logoPreview && (
+                                                        <p className="text-xs text-muted-foreground mt-2">
+                                                            Selected: {companyForm.data.logo.name}
+                                                        </p>
+                                                    )}
+                                                    {safeCompany?.logo_path && !companyForm.data.logo && !logoPreview && (
+                                                        <p className="text-xs text-muted-foreground mt-2">
+                                                            Current logo uploaded.
+                                                        </p>
+                                                    )}
+                                                </label>
+                                                <Input
+                                                    id="logo"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0] || null;
+                                                        companyForm.setData('logo', file);
+                                                        if (!file) {
+                                                            // Restore existing logo preview if file is cleared
+                                                            if (safeCompany?.logo_path) {
+                                                                const logoUrl = safeCompany.logo_path.startsWith('http') || safeCompany.logo_path.startsWith('/')
+                                                                    ? safeCompany.logo_path
+                                                                    : `/storage/${safeCompany.logo_path}`;
+                                                                setLogoPreview(logoUrl);
+                                                            } else {
+                                                                setLogoPreview(null);
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                                {companyForm.errors.logo && (
+                                                    <p className="text-xs text-destructive">{companyForm.errors.logo}</p>
                                                 )}
-                                            </label>
-                                            <Input
-                                                id="logo"
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={(e) =>
-                                                    companyForm.setData('logo', e.target.files?.[0] || null)
-                                                }
-                                            />
-                                            {companyForm.errors.logo && (
-                                                <p className="text-xs text-destructive">{companyForm.errors.logo}</p>
-                                            )}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="image">Banner Image</Label>
+                                                <label
+                                                    htmlFor="image"
+                                                    className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer block"
+                                                >
+                                                    <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Click to upload or drag and drop
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        PNG, JPG up to 2MB
+                                                    </p>
+                                                    {bannerPreview && (
+                                                        <div className="mt-4">
+                                                            <img 
+                                                                src={bannerPreview}
+                                                                alt="Banner preview"
+                                                                className="w-full max-w-md mx-auto h-48 object-contain rounded border cursor-pointer hover:opacity-80 transition-opacity"
+                                                                onClick={() => {
+                                                                    if (bannerPreview) {
+                                                                        if (bannerPreview.startsWith('data:')) {
+                                                                            const newWindow = window.open();
+                                                                            if (newWindow) {
+                                                                                newWindow.document.write(`<img src="${bannerPreview}" style="max-width: 100%; height: auto;" />`);
+                                                                            }
+                                                                        } else {
+                                                                            window.open(bannerPreview, '_blank');
+                                                                        }
+                                                                    }
+                                                                }}
+                                                                onError={(e) => {
+                                                                    const target = e.target as HTMLImageElement;
+                                                                    target.style.display = 'none';
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    {companyForm.data.image && !bannerPreview && (
+                                                        <p className="text-xs text-muted-foreground mt-2">
+                                                            Selected: {companyForm.data.image.name}
+                                                        </p>
+                                                    )}
+                                                    {safeCompany?.image_path && !companyForm.data.image && !bannerPreview && (
+                                                        <p className="text-xs text-muted-foreground mt-2">
+                                                            Current banner uploaded.
+                                                        </p>
+                                                    )}
+                                                </label>
+                                                <Input
+                                                    id="image"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0] || null;
+                                                        companyForm.setData('image', file);
+                                                        if (!file) {
+                                                            // Restore existing banner preview if file is cleared
+                                                            if (safeCompany?.image_path) {
+                                                                const bannerUrl = safeCompany.image_path.startsWith('http') || safeCompany.image_path.startsWith('/')
+                                                                    ? safeCompany.image_path
+                                                                    : `/storage/${safeCompany.image_path}`;
+                                                                setBannerPreview(bannerUrl);
+                                                            } else {
+                                                                setBannerPreview(null);
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                                {companyForm.errors.image && (
+                                                    <p className="text-xs text-destructive">{companyForm.errors.image}</p>
+                                                )}
+                                            </div>
                                         </div>
 
                                     </form>
@@ -1313,12 +1519,37 @@ export default function DiagnosisStep({ company }: PageProps) {
                                                 <p className="text-xs text-muted-foreground mt-1">
                                                     PDF, PNG, JPG up to 5MB
                                                 </p>
-                                                {workforceForm.data.org_chart && (
+                                                {orgChartPreview && (
+                                                    <div className="mt-4">
+                                                        <img 
+                                                            src={orgChartPreview}
+                                                            alt="Organization chart preview"
+                                                            className="w-full max-w-md mx-auto h-48 object-contain rounded border cursor-pointer hover:opacity-80 transition-opacity"
+                                                            onClick={() => {
+                                                                if (orgChartPreview) {
+                                                                    if (orgChartPreview.startsWith('data:')) {
+                                                                        const newWindow = window.open();
+                                                                        if (newWindow) {
+                                                                            newWindow.document.write(`<img src="${orgChartPreview}" style="max-width: 100%; height: auto;" />`);
+                                                                        }
+                                                                    } else {
+                                                                        window.open(orgChartPreview, '_blank');
+                                                                    }
+                                                                }
+                                                            }}
+                                                            onError={(e) => {
+                                                                const target = e.target as HTMLImageElement;
+                                                                target.style.display = 'none';
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )}
+                                                {workforceForm.data.org_chart && !orgChartPreview && (
                                                     <p className="text-xs text-muted-foreground mt-2">
                                                         Selected: {workforceForm.data.org_chart.name}
                                                     </p>
                                                 )}
-                                                {safeCompany.workforce?.org_chart_path && !workforceForm.data.org_chart && (
+                                                {safeCompany.workforce?.org_chart_path && !workforceForm.data.org_chart && !orgChartPreview && (
                                                     <p className="text-xs text-muted-foreground mt-2">
                                                         Existing org chart uploaded.
                                                     </p>
@@ -1327,13 +1558,23 @@ export default function DiagnosisStep({ company }: PageProps) {
                                             <Input
                                                 id="orgChart"
                                                 type="file"
+                                                accept=".pdf,.png,.jpg,.jpeg"
                                                 className="hidden"
-                                                onChange={(e) =>
-                                                    workforceForm.setData(
-                                                        'org_chart',
-                                                        e.target.files?.[0] || null
-                                                    )
-                                                }
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0] || null;
+                                                    workforceForm.setData('org_chart', file);
+                                                    if (!file) {
+                                                        // Restore existing chart preview if file is cleared
+                                                        if (safeCompany?.workforce?.org_chart_path) {
+                                                            const chartUrl = safeCompany.workforce.org_chart_path.startsWith('http') || safeCompany.workforce.org_chart_path.startsWith('/')
+                                                                ? safeCompany.workforce.org_chart_path
+                                                                : `/storage/${safeCompany.workforce.org_chart_path}`;
+                                                            setOrgChartPreview(chartUrl);
+                                                        } else {
+                                                            setOrgChartPreview(null);
+                                                        }
+                                                    }
+                                                }}
                                             />
                                             {workforceForm.errors.org_chart && (
                                                 <p className="text-xs text-destructive">
@@ -1690,157 +1931,46 @@ export default function DiagnosisStep({ company }: PageProps) {
 
                         {activeTab === 'review' && (
                             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                                <div className="flex flex-col space-y-1.5 p-6">
+                                <div className="flex flex-col space-y-1.5 p-6 border-b">
                                     <h3 className="text-2xl font-semibold leading-none tracking-tight">
                                         Review & Submit Diagnosis
                                     </h3>
+                                    <p className="text-sm text-muted-foreground mt-2">
+                                        Please review all information before submitting. Once submitted, you can proceed to the next steps.
+                                    </p>
                                 </div>
-                                <div className="p-6 pt-0 space-y-6">
-                                    <div className="space-y-4">
-                                        <div className="rounded-lg bg-muted/40 p-4">
-                                            <p className="text-sm font-semibold mb-3">Company Information</p>
-                                            <div className="space-y-2 text-sm text-muted-foreground">
-                                                <div className="flex items-center justify-between">
-                                                    <span>Company Name:</span>
-                                                    <span>{safeCompany.name || '-'}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Industry:</span>
-                                                    <span>{safeCompany.industry || '-'}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>HQ Location:</span>
-                                                    <span>{safeCompany.hq_location || '-'}</span>
-                                                </div>
+                                <div className="p-6 pt-6 space-y-6">
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        <div className="rounded-lg border bg-card p-5 shadow-sm hover:shadow-md transition-shadow">
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <div className="h-2 w-2 rounded-full bg-primary"></div>
+                                                <p className="text-base font-semibold">Company Information</p>
                                             </div>
-                                        </div>
-                                        <div className="rounded-lg bg-muted/40 p-4">
-                                            <p className="text-sm font-semibold mb-3">Business Profile</p>
-                                            <div className="space-y-2 text-sm text-muted-foreground">
-                                                <div className="flex items-center justify-between">
-                                                    <span>Business Type:</span>
-                                                    <span>
-                                                        {safeCompany.business_profile?.business_type
-                                                            ? safeCompany.business_profile.business_type.toUpperCase()
-                                                            : '-'}
-                                                    </span>
+                                            <div className="space-y-3 text-sm">
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <span className="text-muted-foreground font-medium">Company Name:</span>
+                                                    <span className="text-foreground font-semibold text-right">{companyForm.data.name || '-'}</span>
                                                 </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Annual Revenue:</span>
-                                                    <span>
-                                                        {safeCompany.business_profile?.annual_revenue !== null &&
-                                                        safeCompany.business_profile?.annual_revenue !== undefined
-                                                            ? formatKrwBillions(
-                                                                  toNumber(safeCompany.business_profile.annual_revenue)
-                                                              )
-                                                            : '-'}
-                                                    </span>
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <span className="text-muted-foreground font-medium">Industry:</span>
+                                                    <span className="text-foreground font-semibold text-right">{companyForm.data.industry || '-'}</span>
                                                 </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Operational Margin Rate:</span>
-                                                    <span>
-                                                        {safeCompany.business_profile?.operational_margin_rate !== null &&
-                                                        safeCompany.business_profile?.operational_margin_rate !== undefined
-                                                            ? `${safeCompany.business_profile.operational_margin_rate}%`
-                                                            : '-'}
-                                                    </span>
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <span className="text-muted-foreground font-medium">HQ Location:</span>
+                                                    <span className="text-foreground font-semibold text-right">{companyForm.data.hq_location || '-'}</span>
                                                 </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Annual Human Cost:</span>
-                                                    <span>
-                                                        {safeCompany.business_profile?.annual_human_cost !== null &&
-                                                        safeCompany.business_profile?.annual_human_cost !== undefined
-                                                            ? formatKrwBillions(
-                                                                  toNumber(safeCompany.business_profile.annual_human_cost)
-                                                              )
-                                                            : '-'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="rounded-lg bg-muted/40 p-4">
-                                            <p className="text-sm font-semibold mb-3">Workforce</p>
-                                            <div className="space-y-2 text-sm text-muted-foreground">
-                                                <div className="flex items-center justify-between">
-                                                    <span>Headcount (2 years ago):</span>
-                                                    <span>{safeCompany.workforce?.headcount_year_minus_2 ?? '-'}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Headcount (1 year ago):</span>
-                                                    <span>{safeCompany.workforce?.headcount_year_minus_1 ?? '-'}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Current Headcount:</span>
-                                                    <span>{safeCompany.workforce?.headcount_current ?? '-'}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Total Employees:</span>
-                                                    <span>{safeCompany.workforce?.total_employees ?? '-'}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Contract Employees:</span>
-                                                    <span>{safeCompany.workforce?.contract_employees ?? '-'}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="rounded-lg bg-muted/40 p-4">
-                                            <p className="text-sm font-semibold mb-3">Current HR</p>
-                                            <div className="space-y-2 text-sm text-muted-foreground">
-                                                <div className="flex items-center justify-between">
-                                                    <span>Dedicated HR Team:</span>
-                                                    <span>{safeCompany.current_hr_status?.dedicated_hr_team ? 'Yes' : 'No'}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Labor Union Present:</span>
-                                                    <span>{safeCompany.current_hr_status?.labor_union_present ? 'Yes' : 'No'}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Labor Relations Stability:</span>
-                                                    <span>{safeCompany.current_hr_status?.labor_relations_stability ?? '-'}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Evaluation System:</span>
-                                                    <span>{safeCompany.current_hr_status?.evaluation_system_status ?? '-'}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Compensation System:</span>
-                                                    <span>{safeCompany.current_hr_status?.compensation_system_status ?? '-'}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Job Rank Levels:</span>
-                                                    <span>{safeCompany.current_hr_status?.job_rank_levels ?? '-'}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Job Title Levels:</span>
-                                                    <span>{safeCompany.current_hr_status?.job_title_levels ?? '-'}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="rounded-lg bg-muted/40 p-4">
-                                            <p className="text-sm font-semibold mb-3">Culture</p>
-                                            <div className="space-y-2 text-sm text-muted-foreground">
-                                                <div className="flex items-center justify-between">
-                                                    <span>Work Format:</span>
-                                                    <span>{safeCompany.culture?.work_format ? safeCompany.culture.work_format.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : '-'}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Decision Making Style:</span>
-                                                    <span>{safeCompany.culture?.decision_making_style ? safeCompany.culture.decision_making_style.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : '-'}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Core Values:</span>
-                                                    <span>
-                                                        {(safeCompany.culture?.core_values || []).length > 0
-                                                            ? (safeCompany.culture?.core_values || []).join(', ')
-                                                            : '-'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="rounded-lg bg-muted/40 p-4">
-                                            <p className="text-sm font-semibold mb-3">Confidential</p>
-                                            <div className="text-sm text-muted-foreground">
-                                                {safeCompany.confidential_note?.notes || '-'}
+                                                {companyForm.data.brand_name && (
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <span className="text-muted-foreground font-medium">Brand Name:</span>
+                                                        <span className="text-foreground font-semibold text-right">{companyForm.data.brand_name}</span>
+                                                    </div>
+                                                )}
+                                                {companyForm.data.foundation_date && (
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <span className="text-muted-foreground font-medium">Foundation Date:</span>
+                                                        <span className="text-foreground font-semibold text-right">{companyForm.data.foundation_date}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -1853,30 +1983,17 @@ export default function DiagnosisStep({ company }: PageProps) {
                                         <p className="text-sm text-destructive">{errors.diagnosis}</p>
                                     )}
 
-                                    <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 mb-4">
-                                        <p className="text-sm font-semibold text-primary mb-2">Important</p>
-                                        <p className="text-xs text-muted-foreground">
-                                            After submission, Step 1 will be locked and the CEO Management Philosophy Survey will be unlocked. You will also be able to proceed to Step 2: Organization Design.
-                                        </p>
-                                    </div>
 
                                     <Button
-                                        className="w-full h-11"
+                                        className="w-full h-11 font-semibold"
                                         onClick={(e) => {
                                             e.preventDefault();
                                             submitDiagnosis();
                                         }}
-                                        disabled={submitForm.processing || !(
-                                            stepStatus?.company &&
-                                            stepStatus?.business &&
-                                            stepStatus?.workforce &&
-                                            stepStatus?.['current-hr'] &&
-                                            stepStatus?.culture &&
-                                            stepStatus?.confidential
-                                        )}
+                                        disabled={submitForm.processing || isSubmittingRef.current}
                                     >
                                         <Check className="w-4 h-4 mr-2" />
-                                        {submitForm.processing ? 'Submitting...' : 'Submit & Lock Step 1'}
+                                        {submitForm.processing || isSubmittingRef.current ? 'Submitting...' : 'Submit Diagnosis'}
                                     </Button>
                                 </div>
                             </div>

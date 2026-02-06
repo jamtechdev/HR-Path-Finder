@@ -24,7 +24,19 @@ class PerformanceSystemController extends Controller
     {
         $this->authorize('view', $hrProject->company);
 
+        // Check if step is unlocked
+        $hrProject->initializeStepStatuses();
+        if (!$hrProject->isStepUnlocked('performance')) {
+            return redirect()->route('dashboard.hr-manager')
+                ->withErrors(['step_locked' => 'Step 3 (Performance System) is locked. Please complete and submit Step 2 (Organization Design) first, then wait for CEO verification.']);
+        }
+
         $hrProject->load(['performanceSystem', 'organizationDesign', 'ceoPhilosophy']);
+
+        // Set step to in_progress if not started
+        if ($hrProject->getStepStatus('performance') === 'not_started') {
+            $hrProject->setStepStatus('performance', 'in_progress');
+        }
 
         $recommendations = $this->recommendationService->getRecommendedPerformanceMethod($hrProject);
 
@@ -80,16 +92,32 @@ class PerformanceSystemController extends Controller
         DB::transaction(function () use ($system, $hrProject) {
             $system->update(['submitted_at' => now()]);
 
+            // Set performance step status to submitted
+            $hrProject->initializeStepStatuses();
+            $hrProject->setStepStatus('performance', 'submitted');
+            
+            $hrProject->update([
+                'current_step' => 'compensation',
+            ]);
+
             HrProjectAudit::create([
                 'hr_project_id' => $hrProject->id,
                 'user_id' => Auth::id(),
                 'action' => 'performance_system_submitted',
                 'step' => 'performance',
             ]);
-
-            $hrProject->moveToNextStep('compensation');
         });
 
-        return redirect()->route('hr-projects.compensation-system.show', $hrProject->id);
+        // Send email notification to CEO only if CEO exists
+        $ceo = $hrProject->getCeoUser();
+        if ($ceo) {
+            try {
+                $ceo->notify(new \App\Notifications\StepSubmittedNotification($hrProject, 'performance'));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send CEO notification: ' . $e->getMessage());
+            }
+        }
+
+        return redirect()->route('dashboard.hr-manager')->with('success', 'Performance System – Step 3 has been submitted successfully! An email notification has been sent to the CEO for verification. Step 4 will unlock automatically once the CEO verifies your submission.');
     }
 }

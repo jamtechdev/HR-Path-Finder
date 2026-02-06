@@ -78,32 +78,37 @@ class CompanyInvitationController extends Controller
      */
     public function accept(Request $request, string $token)
     {
+        // #region agent log
+        \Log::info('Accepting invitation', [
+            'token' => $token,
+        ]);
+        // #endregion
+
+        // Find invitation by token (don't filter by accepted_at yet - we'll check it separately)
         $invitation = CompanyInvitation::where('token', $token)
-            ->whereNull('accepted_at')
             ->whereNull('rejected_at')
             ->with('company')
             ->first();
 
         if (!$invitation) {
-            return Inertia::render('invitations/accept', [
-                'error' => 'Invitation not found, already accepted, or has been rejected.',
+            // #region agent log
+            \Log::warning('Invitation not found', [
+                'token' => $token,
             ]);
-        }
-
-        if ($invitation->isRejected()) {
+            // #endregion
             return Inertia::render('invitations/accept', [
-                'error' => 'This invitation has been rejected.',
-            ]);
-        }
-
-        if (!$invitation->isValid()) {
-            return Inertia::render('invitations/accept', [
-                'error' => 'This invitation has expired.',
+                'error' => 'Invitation not found or has been rejected.',
             ]);
         }
 
         // Check if invitation is already accepted
         if ($invitation->accepted_at) {
+            // #region agent log
+            \Log::info('Invitation already accepted, showing credentials', [
+                'invitation_id' => $invitation->id,
+                'email' => $invitation->email,
+            ]);
+            // #endregion
             // Show credentials if already accepted
             return Inertia::render('invitations/accept', [
                 'invitation' => $invitation,
@@ -113,6 +118,37 @@ class CompanyInvitationController extends Controller
                 'message' => 'Your CEO account has been created! Login credentials have been sent to your email.',
             ]);
         }
+
+        if ($invitation->isRejected()) {
+            // #region agent log
+            \Log::warning('Invitation has been rejected', [
+                'invitation_id' => $invitation->id,
+            ]);
+            // #endregion
+            return Inertia::render('invitations/accept', [
+                'error' => 'This invitation has been rejected.',
+            ]);
+        }
+
+        if (!$invitation->isValid()) {
+            // #region agent log
+            \Log::warning('Invitation is not valid (expired)', [
+                'invitation_id' => $invitation->id,
+                'expires_at' => $invitation->expires_at,
+            ]);
+            // #endregion
+            return Inertia::render('invitations/accept', [
+                'error' => 'This invitation has expired.',
+            ]);
+        }
+
+        // #region agent log
+        \Log::info('Showing invitation acceptance page', [
+            'invitation_id' => $invitation->id,
+            'email' => $invitation->email,
+            'company_id' => $invitation->company_id,
+        ]);
+        // #endregion
 
         // Show invitation page (don't create account yet - wait for accept button click)
         return Inertia::render('invitations/accept', [

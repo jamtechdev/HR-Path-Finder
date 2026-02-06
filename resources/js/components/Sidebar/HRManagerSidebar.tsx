@@ -13,9 +13,9 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
         if (path === '/') {
             return currentPath === '/';
         }
-        // Special handling for dashboard - check both /dashboard and /dashboard/hr-manager
+        // Special handling for dashboard - check both /dashboard and /hr-manager/dashboard
         if (path === '/dashboard') {
-            return currentPath === '/dashboard' || currentPath === '/dashboard/hr-manager' || currentPath.startsWith('/dashboard/hr-manager/');
+            return currentPath === '/dashboard' || currentPath === '/hr-manager/dashboard' || currentPath.startsWith('/hr-manager/dashboard/');
         }
         return currentPath === path || currentPath.startsWith(`${path}/`);
     };
@@ -37,7 +37,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
             <nav className="flex-1 py-4 px-2 overflow-y-auto">
                     <div className="space-y-1">
                         <Link
-                            href="/dashboard"
+                            href="/hr-manager/dashboard"
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                                 isActive('/dashboard')
                                     ? 'bg-sidebar-accent text-sidebar-primary'
@@ -54,7 +54,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                         </Link>
                         
                         <Link
-                            href="/diagnosis?tab=overview"
+                            href="/hr-manager/diagnosis/overview"
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                                 isActive('/diagnosis')
                                     ? 'bg-sidebar-accent text-sidebar-primary'
@@ -84,7 +84,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                         </button>
                         
                         <Link
-                            href="/hr-system-output"
+                            href="/hr-manager/hr-system-output"
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                                 isActive('/hr-system-output')
                                     ? 'bg-sidebar-accent text-sidebar-primary'
@@ -105,7 +105,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                         )}
                         <div className="space-y-1">
                             <Link
-                                href="/ceos"
+                                href="/hr-manager/ceos"
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                                     isActive('/ceos')
                                         ? 'bg-sidebar-accent text-sidebar-primary'
@@ -117,7 +117,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                             </Link>
                             
                             <Link
-                                href="/companies"
+                                href="/hr-manager/companies"
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                                     isActive('/companies')
                                         ? 'bg-sidebar-accent text-sidebar-primary'

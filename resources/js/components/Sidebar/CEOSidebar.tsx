@@ -13,9 +13,9 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
         if (path === '/') {
             return currentPath === '/';
         }
-        // Special handling for dashboard - check both /dashboard and /dashboard/ceo
-        if (path === '/dashboard') {
-            return currentPath === '/dashboard' || currentPath === '/dashboard/ceo' || currentPath.startsWith('/dashboard/ceo/');
+        // Special handling for CEO dashboard
+        if (path === '/ceo/dashboard') {
+            return currentPath === '/ceo/dashboard' || currentPath.startsWith('/ceo/dashboard/');
         }
         return currentPath === path || currentPath.startsWith(`${path}/`);
     };
@@ -37,9 +37,9 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
             <nav className="flex-1 py-4 px-2 overflow-y-auto">
                 <div className="space-y-1">
                     <Link 
-                        href="/dashboard" 
+                        href="/ceo/dashboard" 
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                            isActive('/dashboard')
+                            isActive('/ceo/dashboard')
                                 ? 'bg-sidebar-accent text-sidebar-primary'
                                 : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
                         }`}
@@ -54,9 +54,9 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
                         </Link>
                         
                         <Link 
-                            href="/dashboard/ceo/approvals" 
+                            href="/ceo/dashboard/approvals" 
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                isActive('/dashboard/ceo/approvals')
+                                isActive('/ceo/dashboard/approvals')
                                     ? 'bg-sidebar-accent text-sidebar-primary'
                                     : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
                             }`}
@@ -66,39 +66,15 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
                         </Link>
                         
                         <Link 
-                            href="/companies" 
+                            href="/ceo/philosophy-survey" 
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                isActive('/companies')
-                                    ? 'bg-sidebar-accent text-sidebar-primary'
-                                    : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                            }`}
-                        >
-                            <Building2 className="w-5 h-5 flex-shrink-0" />
-                            {!isCollapsed && <span className="flex-1 text-left truncate">Companies</span>}
-                        </Link>
-                        
-                        <Link 
-                            href="/ceo-philosophy" 
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                isActive('/ceo-philosophy')
+                                isActive('/ceo/philosophy-survey')
                                     ? 'bg-sidebar-accent text-sidebar-primary'
                                     : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
                             }`}
                         >
                             <Users className="w-5 h-5 flex-shrink-0" />
                             {!isCollapsed && <span className="flex-1 text-left truncate">CEO Philosophy</span>}
-                        </Link>
-                        
-                        <Link 
-                            href="/reports" 
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                isActive('/reports')
-                                    ? 'bg-sidebar-accent text-sidebar-primary'
-                                    : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                            }`}
-                        >
-                            <FileText className="w-5 h-5 flex-shrink-0" />
-                            {!isCollapsed && <span className="flex-1 text-left truncate">Reports</span>}
                         </Link>
                     </div>
                 </nav>

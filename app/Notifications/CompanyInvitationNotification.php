@@ -36,6 +36,15 @@ class CompanyInvitationNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
+        // #region agent log
+        \Log::info('CompanyInvitationNotification::toMail called', [
+            'invitation_id' => $this->invitation->id,
+            'email' => $this->invitation->email,
+            'accepted_at' => $this->invitation->accepted_at,
+            'has_temp_password' => !empty($this->invitation->temporary_password),
+        ]);
+        // #endregion
+        
         $company = $this->invitation->company;
         $inviter = $this->invitation->inviter;
         
@@ -64,23 +73,30 @@ class CompanyInvitationNotification extends Notification implements ShouldQueue
             $acceptUrl = route('invitations.accept', ['token' => $this->invitation->token]);
             $rejectUrl = route('invitations.reject', ['token' => $this->invitation->token]);
             
+            $expiresAt = $this->invitation->expires_at 
+                ? $this->invitation->expires_at->format('F j, Y \a\t g:i A') 
+                : '7 days from now';
+            
             $mail = (new MailMessage)
-                ->subject('Invitation to join ' . $company->name . ' as CEO on HR Path-Finder')
+                ->subject('🎯 CEO Invitation: Join ' . $company->name . ' on HR Path-Finder')
                 ->greeting('Hello!')
-                ->line($inviter->name . ' has invited you to join **' . $company->name . '** as CEO on HR Path-Finder.')
+                ->line('**' . $inviter->name . '** has invited you to join **' . $company->name . '** as **CEO** on HR Path-Finder.')
+                ->line('As the CEO, you will play a crucial role in shaping the HR strategy and organizational design for your company.')
                 ->line('**What you will be able to do:**')
-                ->line('• Review and modify company information')
-                ->line('• Complete the Management Philosophy Survey')
-                ->line('• Collaborate on the HR project with the HR Manager')
-                ->line('• Review and approve HR strategy steps')
-                ->action('Accept Invitation', $acceptUrl)
-                ->line('**Or reject this invitation:**')
+                ->line('✅ Review and modify company information')
+                ->line('✅ Complete the Management Philosophy Survey')
+                ->line('✅ Collaborate on the HR project with the HR Manager')
+                ->line('✅ Review and approve HR strategy steps')
+                ->line('✅ Provide strategic input on performance and compensation systems')
+                ->action('🎉 Accept Invitation', $acceptUrl)
+                ->line('**Important Details:**')
+                ->line('• **Expires:** ' . $expiresAt)
+                ->line('• After accepting, you will receive your login credentials via email')
+                ->line('• Your email will be automatically verified upon acceptance')
+                ->line('**Not interested?**')
                 ->line('If you do not wish to accept this invitation, you can [reject it here](' . $rejectUrl . ').')
-                ->line('After accepting, you will receive your login credentials via email.')
-                ->line('**Email Verification:**')
-                ->line('Your email will be automatically verified when you accept the invitation.')
-                ->line('This invitation will expire in 7 days.')
-                ->line('If you did not expect this invitation, you can safely ignore this email or reject it using the link above.');
+                ->line('If you did not expect this invitation, you can safely ignore this email or reject it using the link above.')
+                ->salutation('Best regards,<br>The HR Path-Finder Team');
         }
 
         return $mail;

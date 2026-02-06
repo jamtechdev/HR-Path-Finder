@@ -17,6 +17,7 @@ export default function DiagnosisHeader({
 }: DiagnosisHeaderProps) {
     const statusLabel = status === 'not_started' ? 'Not Started' : 
                        status === 'in_progress' ? 'In Progress' : 
+                       status === 'submitted' ? 'Completed' : 
                        'Submitted';
     
     const statusClasses = status === 'not_started' 

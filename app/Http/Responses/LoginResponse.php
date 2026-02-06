@@ -39,16 +39,24 @@ class LoginResponse implements LoginResponseContract
             if ($company) {
                 $hrProject = $company->hrProjects()->latest()->first();
                 
-                // If there's a project and CEO hasn't completed philosophy survey, redirect to philosophy survey
+                // If there's a project, show CEO the diagnosis workspace (same as HR manager sees)
                 if ($hrProject) {
                     $hrProject->initializeStepStatuses();
                     $ceoPhilosophy = $hrProject->ceoPhilosophy;
+                    $diagnosisStatus = $hrProject->getStepStatus('diagnosis');
                     
-                    // If philosophy not completed, redirect to philosophy survey for onboarding
-                    if (!$ceoPhilosophy || !$ceoPhilosophy->completed_at) {
-                        return redirect()->route('hr-projects.ceo-philosophy.show', $hrProject->id)
-                            ->with('success', 'Welcome! Please complete the Management Philosophy Survey to continue.');
+                    // If diagnosis is submitted but CEO hasn't completed survey, redirect to survey
+                    if ($diagnosisStatus === 'submitted' && (!$ceoPhilosophy || !$ceoPhilosophy->completed_at)) {
+                        return redirect()->route('ceo.hr-projects.ceo-philosophy.show', $hrProject->id)
+                            ->with('success', 'Welcome! Please complete the Management Philosophy Survey to verify Step 1: Diagnosis.');
                     }
+                    
+                    // If survey completed OR diagnosis not yet submitted, show diagnosis workspace
+                    // CEO can review diagnosis and see the same workspace as HR manager
+                    return redirect()->route('hr-manager.diagnosis.tab.with-project', [
+                        'projectId' => $hrProject->id,
+                        'tab' => 'overview'
+                    ])->with('success', 'Welcome! You can review the diagnosis for ' . $company->name . '.');
                 } else {
                     // No project yet, but CEO is attached - show company page
                     return redirect()->route('companies.show', $company->id)
@@ -59,9 +67,9 @@ class LoginResponse implements LoginResponseContract
 
         // Redirect based on role to role-specific dashboards
         $redirectRoute = match ($role) {
-            'ceo' => 'dashboard.ceo',
-            'hr_manager' => 'dashboard.hr-manager',
-            'consultant' => 'dashboard.consultant',
+            'ceo' => 'ceo.dashboard',
+            'hr_manager' => 'hr-manager.dashboard',
+            'consultant' => 'consultant.dashboard',
             default => 'dashboard', // Fallback to generic dashboard if no role
         };
 

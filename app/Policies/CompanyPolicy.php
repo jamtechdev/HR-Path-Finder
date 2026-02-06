@@ -12,7 +12,8 @@ class CompanyPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['ceo', 'hr_manager', 'consultant']);
+        // Consultant and Admin are the same
+        return $user->hasAnyRole(['ceo', 'hr_manager', 'consultant', 'admin']);
     }
 
     /**
@@ -21,8 +22,10 @@ class CompanyPolicy
     public function view(User $user, Company $company): bool
     {
         // User must be associated with the company
+        // Consultant and Admin can view all companies (they are the same)
         return $company->users->contains($user) || 
-               $user->hasRole('consultant'); // Consultants can view all companies
+               $user->hasRole('consultant') || 
+               $user->hasRole('admin');
     }
 
     /**

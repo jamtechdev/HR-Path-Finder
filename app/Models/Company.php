@@ -19,7 +19,10 @@ class Company extends Model
         'foundation_date',
         'hq_location',
         'industry',
+        'industry_sub_category',
         'secondary_industries',
+        'registration_number',
+        'public_listing_status',
         'size',
         'growth_stage',
         'logo_path',
@@ -38,6 +41,7 @@ class Company extends Model
     protected $casts = [
         'foundation_date' => 'date',
         'secondary_industries' => 'array',
+        'public_listing_status' => 'boolean',
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
     ];
@@ -178,5 +182,45 @@ class Company extends Model
     public function isCeoSurveyCompleted(): bool
     {
         return $this->ceo_survey_status === 'completed';
+    }
+
+    /**
+     * Get the HR projects for the company.
+     */
+    public function hrProjects(): HasMany
+    {
+        return $this->hasMany(HrProject::class);
+    }
+
+    /**
+     * Get the executives for the company.
+     */
+    public function executives(): HasMany
+    {
+        return $this->hasMany(Executive::class);
+    }
+
+    /**
+     * Get the job grades for the company.
+     */
+    public function jobGrades(): HasMany
+    {
+        return $this->hasMany(JobGrade::class);
+    }
+
+    /**
+     * Get the organizational charts for the company.
+     */
+    public function organizationalCharts(): HasMany
+    {
+        return $this->hasMany(OrganizationalChart::class);
+    }
+
+    /**
+     * Get the HR issues for the company.
+     */
+    public function hrIssues(): HasMany
+    {
+        return $this->hasMany(HrIssue::class);
     }
 }

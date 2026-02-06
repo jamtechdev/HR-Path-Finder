@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('hr_projects', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
-            $table->enum('status', ['not_started', 'in_progress', 'completed', 'locked'])->default('not_started');
+            $table->enum('status', ['not_started', 'in_progress', 'completed', 'locked', 'pending_consultant_review'])->default('not_started');
             $table->string('current_step')->nullable(); // e.g., 'diagnosis', 'organization', 'performance', etc.
+            $table->json('step_statuses')->nullable(); // Store step statuses: diagnosis, organization, performance, compensation
             $table->timestamps();
         });
     }

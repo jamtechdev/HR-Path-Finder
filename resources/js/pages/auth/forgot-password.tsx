@@ -4,12 +4,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { email } from '@/routes/password';
 import { login } from '@/routes';
-import { Form, Head } from '@inertiajs/react';
-import { ArrowRight, Mail } from 'lucide-react';
+import { Head, useForm, router } from '@inertiajs/react';
+import { ArrowRight, Mail, Shield } from 'lucide-react';
 
 export default function ForgotPassword({ status }: { status?: string }) {
+    const form = useForm({
+        email: '',
+    });
+
+    const submit = (e: React.FormEvent) => {
+        e.preventDefault();
+        form.post('/forgot-password', {
+            preserveScroll: true,
+        });
+    };
+
     return (
         <div className="min-h-screen gradient-hero flex">
             {/* Left Side - Promotional Section */}
@@ -28,19 +38,19 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 <div className="space-y-6">
                     <h2 className="font-display text-4xl font-bold leading-tight">
                         Reset your password<br />
-                        and get back to<br />
-                        <span className="text-success">designing.</span>
+                        with secure<br />
+                        <span className="text-success">OTP verification.</span>
                     </h2>
                     <p className="text-white/70 text-lg max-w-md">
-                        Enter your email address and we'll send you a link to reset your password.
+                        Enter your email address and we'll send you a 6-digit OTP code to reset your password securely.
                     </p>
                 </div>
                 <div className="flex items-center gap-8 text-white/50 text-sm">
-                    <span>Secure password reset</span>
+                    <span>🔐 OTP-based security</span>
                     <span>•</span>
-                    <span>Email verification</span>
+                    <span>10-minute validity</span>
                     <span>•</span>
-                    <span>Quick recovery</span>
+                    <span>One-time use</span>
                 </div>
             </div>
 
@@ -63,18 +73,16 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     {/* Header */}
                     <div className="text-center lg:text-left">
                         <h2 className="text-2xl font-display font-bold">Forgot password?</h2>
-                        <p className="text-muted-foreground mt-2">Enter your email to receive a password reset link</p>
+                        <p className="text-muted-foreground mt-2">Enter your email to receive a 6-digit OTP code</p>
                     </div>
 
             {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                        <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-center text-sm font-medium text-green-800 dark:text-green-200">
                     {status}
                 </div>
             )}
 
-                    <Form {...email.form()} className="space-y-4">
-                    {({ processing, errors }) => (
-                        <>
+                    <form onSubmit={submit} className="space-y-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="email" className="text-sm font-medium leading-none">
                                         Email address
@@ -82,36 +90,35 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                 <Input
                                     id="email"
                                     type="email"
-                                    name="email"
-                                    autoComplete="off"
+                                value={form.data.email}
+                                onChange={(e) => form.setData('email', e.target.value)}
+                                autoComplete="email"
                                     autoFocus
                                         placeholder="you@company.com"
                                         className="h-10 w-full"
+                                required
                                 />
-                                <InputError message={errors.email} />
+                            <InputError message={form.errors.email} />
                             </div>
 
                                 <Button
                                     type="submit"
                                     className="w-full h-10 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-                                    disabled={processing}
-                                    data-test="email-password-reset-link-button"
+                            disabled={form.processing}
                                 >
-                                    {processing ? (
+                            {form.processing ? (
                                         <>
                                             <Spinner className="mr-2" />
-                                            Sending...
+                                    Sending OTP...
                                         </>
                                     ) : (
                                         <>
                                             <Mail className="mr-2 h-4 w-4" />
-                                    Email password reset link
+                                    Send OTP Code
                                         </>
                                     )}
                                 </Button>
-                        </>
-                    )}
-                </Form>
+                    </form>
 
                     <p className="text-center text-sm text-muted-foreground">
                         Remember your password?{' '}

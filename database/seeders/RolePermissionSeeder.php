@@ -73,22 +73,8 @@ class RolePermissionSeeder extends Seeder
             );
         }
 
-        // Create roles
-        $ceoRole = Role::firstOrCreate(['name' => 'ceo', 'guard_name' => 'web']);
+        // Create HR Manager role
         $hrManagerRole = Role::firstOrCreate(['name' => 'hr_manager', 'guard_name' => 'web']);
-        $consultantRole = Role::firstOrCreate(['name' => 'consultant', 'guard_name' => 'web']);
-
-        // Assign permissions to CEO role
-        $ceoRole->givePermissionTo([
-            'view company',
-            'view ceo philosophy',
-            'update ceo philosophy',
-            'submit ceo philosophy',
-            'view ceo approval',
-            'approve hr system',
-            'request changes',
-            'view hr system dashboard',
-        ]);
 
         // Assign permissions to HR Manager role
         $hrManagerRole->givePermissionTo([
@@ -111,107 +97,37 @@ class RolePermissionSeeder extends Seeder
             'view hr system dashboard',
         ]);
 
-        // Assign permissions to Consultant role
-        $consultantRole->givePermissionTo([
+        // Create CEO role
+        $ceoRole = Role::firstOrCreate(['name' => 'ceo', 'guard_name' => 'web']);
+
+        // Assign permissions to CEO role
+        $ceoRole->givePermissionTo([
             'view company',
-            'view diagnosis',
             'view ceo philosophy',
+            'update ceo philosophy',
+            'submit ceo philosophy',
             'view organization design',
             'view performance system',
             'view compensation system',
-            'view consultant review',
-            'create consultant review',
-            'update consultant review',
+            'view ceo approval',
+            'approve hr system',
+            'request changes',
             'view hr system dashboard',
         ]);
 
-        // Demo data (temporary)
-        $ceo = User::firstOrCreate(
-            ['email' => 'ceo@demo.com'],
-            [
-                'name' => 'CEO Demo User',
-                'password' => Hash::make('password123'),
-                'email_verified_at' => now(),
-            ]
-        );
-        if (!$ceo->hasRole('ceo')) {
-            $ceo->assignRole('ceo');
-        }
-
-        $company = Company::firstOrCreate(
-            ['name' => 'Demo Tech Solutions'],
-            [
-                'industry' => 'Technology',
-                'size' => '100-500',
-                'created_by' => $ceo->id,
-            ]
-        );
-        $ceo->companies()->syncWithoutDetaching([$company->id => ['role' => 'ceo']]);
-
+        // Create only HR Manager User
         $hrManager = User::firstOrCreate(
             ['email' => 'hr@demo.com'],
             [
-                'name' => 'HR Manager Demo User',
+                'name' => 'HR Manager',
                 'password' => Hash::make('password123'),
                 'email_verified_at' => now(),
             ]
         );
-        if (!$hrManager->hasRole('hr_manager')) {
-            $hrManager->assignRole('hr_manager');
-        }
-        $hrManager->companies()->syncWithoutDetaching([$company->id => ['role' => 'hr_manager']]);
+        // Assign only hr_manager role
+        $hrManager->syncRoles(['hr_manager']);
 
-        $consultant = User::firstOrCreate(
-            ['email' => 'consultant@demo.com'],
-            [
-                'name' => 'Consultant Demo User',
-                'password' => Hash::make('password123'),
-                'email_verified_at' => now(),
-            ]
-        );
-        if (!$consultant->hasRole('consultant')) {
-            $consultant->assignRole('consultant');
-        }
-
-        $legacyHrManager = User::firstOrCreate(
-            ['email' => 'hr@company.com'],
-            [
-                'name' => 'HR Manager Demo',
-                'email' => 'hr@company.com',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]
-        );
-        if (!$legacyHrManager->hasRole('hr_manager')) {
-            $legacyHrManager->assignRole('hr_manager');
-        }
-
-        $legacyCeo = User::firstOrCreate(
-            ['email' => 'ceo@company.com'],
-            [
-                'name' => 'CEO Demo',
-                'email' => 'ceo@company.com',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]
-        );
-        if (!$legacyCeo->hasRole('ceo')) {
-            $legacyCeo->assignRole('ceo');
-        }
-
-        $legacyConsultant = User::firstOrCreate(
-            ['email' => 'admin@hrpathfinder.com'],
-            [
-                'name' => 'Consultant Demo',
-                'email' => 'admin@hrpathfinder.com',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]
-        );
-        if (!$legacyConsultant->hasRole('consultant')) {
-            $legacyConsultant->assignRole('consultant');
-        }
-
-        $this->command->info('Demo accounts seeded.');
+        $this->command->info('HR Manager seeded successfully!');
+        $this->command->info('HR Manager: hr@demo.com / password123');
     }
 }

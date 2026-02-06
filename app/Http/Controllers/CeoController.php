@@ -80,9 +80,48 @@ class CeoController extends Controller
                 ];
             });
 
+        // Get accepted invitations for status display - get the latest accepted invitation per email+company
+        $acceptedInvitations = CompanyInvitation::whereIn('company_id', $companyIds)
+            ->whereNotNull('accepted_at')
+            ->with('company')
+            ->get()
+            ->groupBy(function($invitation) {
+                return $invitation->email . '_' . $invitation->company_id;
+            })
+            ->map(function($group) {
+                // Get the latest accepted invitation for each email+company combination
+                return $group->sortByDesc('accepted_at')->first();
+            })
+            ->map(function($invitation) {
+                return [
+                    'id' => $invitation->id,
+                    'email' => $invitation->email,
+                    'company_id' => $invitation->company_id,
+                    'company_name' => $invitation->company->name,
+                    'accepted_at' => $invitation->accepted_at ? $invitation->accepted_at->toDateTimeString() : null,
+                ];
+            })
+            ->values();
+
+        // Create a map of pending invitations by CEO email and company ID for easy lookup
+        $pendingInvitationsMap = [];
+        foreach ($pendingInvitations as $invitation) {
+            $key = $invitation['email'] . '_' . $invitation['company_id'];
+            $pendingInvitationsMap[$key] = $invitation['id'];
+        }
+
+        // Create a map of accepted invitations by CEO email and company ID for easy lookup
+        $acceptedInvitationsMap = [];
+        foreach ($acceptedInvitations as $invitation) {
+            $key = $invitation['email'] . '_' . $invitation['company_id'];
+            $acceptedInvitationsMap[$key] = $invitation;
+        }
+
         return Inertia::render('CEOs/Index', [
             'ceos' => $ceos,
             'pendingInvitations' => $pendingInvitations,
+            'pendingInvitationsMap' => $pendingInvitationsMap,
+            'acceptedInvitationsMap' => $acceptedInvitationsMap,
             'companies' => $companies,
         ]);
     }
@@ -189,7 +228,7 @@ class CeoController extends Controller
             }
         }
 
-        return redirect()->route('ceos.index')
+        return redirect()->route('hr-manager.ceos.index')
             ->with('success', 'CEO added successfully' . ($request->boolean('send_invitation') ? ' and invitation sent.' : '.'));
     }
 
@@ -295,7 +334,7 @@ class CeoController extends Controller
 
         $ceo->companies()->sync($syncData);
 
-        return redirect()->route('ceos.index')
+        return redirect()->route('hr-manager.ceos.index')
             ->with('success', 'CEO updated successfully.');
     }
 
@@ -315,11 +354,18 @@ class CeoController extends Controller
             abort(403);
         }
 
+        // Delete pending invitations for this CEO and company
+        CompanyInvitation::where('company_id', $company->id)
+            ->where('email', $ceo->email)
+            ->whereNull('accepted_at')
+            ->whereNull('rejected_at')
+            ->delete();
+
         // Detach CEO from company
         $company->users()->detach($ceo->id);
 
-        return redirect()->route('ceos.index')
-            ->with('success', 'CEO removed from company successfully.');
+        return redirect()->route('hr-manager.ceos.index')
+            ->with('success', 'CEO removed from company successfully. Pending invitations have been cancelled.');
     }
 
     /**
@@ -359,7 +405,18 @@ class CeoController extends Controller
         }
         
         // Check SMTP configuration before sending invitation
-        if (!\App\Services\SmtpConfigurationService::isConfigured()) {
+        // #region agent log
+        $smtpConfigured = \App\Services\SmtpConfigurationService::isConfigured();
+        \Log::info('CEO Invitation Debug', [
+            'smtp_configured' => $smtpConfigured,
+            'ceo_email' => $ceo->email,
+            'company_id' => $company->id,
+            'mail_default' => config('mail.default'),
+            'queue_connection' => config('queue.default'),
+        ]);
+        // #endregion
+        
+        if (!$smtpConfigured) {
             return back()->withErrors(['error' => 'SMTP is not configured. Please configure email settings before sending invitations.']);
         }
 
@@ -377,14 +434,152 @@ class CeoController extends Controller
         ]);
 
         // Send invitation email
+        // #region agent log
+        \Log::info('Sending CEO invitation email', [
+            'invitation_id' => $invitation->id,
+            'email' => $ceo->email,
+            'notification_class' => CompanyInvitationNotification::class,
+            'queue_connection' => config('queue.default'),
+            'mail_driver' => config('mail.default'),
+        ]);
+        // #endregion
+        
         try {
-            \Illuminate\Support\Facades\Notification::route('mail', $ceo->email)
-                ->notify(new CompanyInvitationNotification($invitation));
+            // Send email directly using Mail::send (no queue needed)
+            // #region agent log
+            \Log::info('Sending email directly using Mail::send', [
+                'email' => $ceo->email,
+                'invitation_id' => $invitation->id,
+            ]);
+            // #endregion
+            
+            // Create notification instance to get mail message
+            $notification = new CompanyInvitationNotification($invitation);
+            $mailMessage = $notification->toMail($ceo);
+            
+            // Extract data from MailMessage
+            $mailData = [
+                'subject' => $mailMessage->subject,
+                'greeting' => $mailMessage->greeting ?? 'Hello!',
+                'introLines' => $mailMessage->introLines ?? [],
+                'actionText' => $mailMessage->actionText ?? null,
+                'actionUrl' => $mailMessage->actionUrl ?? null,
+                'outroLines' => $mailMessage->outroLines ?? [],
+                'salutation' => $mailMessage->salutation ?? 'Best regards,<br>The HR Path-Finder Team',
+            ];
+            
+            // Send email directly using Mail facade
+            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($mailData, $ceo) {
+                $message->to($ceo->email)
+                    ->subject($mailData['subject']);
+                
+                // Build HTML content
+                $html = view('emails.invitation', $mailData)->render();
+                
+                $message->html($html);
+            });
+            
+            // #region agent log
+            \Log::info('Email sent successfully via Mail::send', [
+                'email' => $ceo->email,
+                'invitation_id' => $invitation->id,
+                'sent_at' => now()->toDateTimeString(),
+            ]);
+            // #endregion
         } catch (\Exception $e) {
-            \Log::error('Failed to send CEO invitation email: ' . $e->getMessage());
-            return back()->withErrors(['error' => 'Failed to send invitation email. Please check SMTP configuration.']);
+            // #region agent log
+            \Log::error('Failed to send CEO invitation email', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'email' => $ceo->email,
+            ]);
+            // #endregion
+            return back()->withErrors(['error' => 'Failed to send invitation email: ' . $e->getMessage()]);
         }
 
         return back()->with('success', 'Invitation sent successfully to ' . $ceo->email . '.');
+    }
+
+    /**
+     * Resend invitation email.
+     */
+    public function resendInvitation(CompanyInvitation $invitation)
+    {
+        if (!Auth::user()->hasRole('hr_manager')) {
+            abort(403);
+        }
+
+        $user = Auth::user();
+        
+        // Verify HR Manager has access to this company
+        if (!$user->companies()->wherePivot('role', 'hr_manager')->where('companies.id', $invitation->company_id)->exists()) {
+            abort(403);
+        }
+
+        // Check if invitation is still valid (not accepted/rejected)
+        if ($invitation->accepted_at || $invitation->rejected_at) {
+            return back()->withErrors(['error' => 'This invitation has already been ' . ($invitation->accepted_at ? 'accepted' : 'rejected') . '.']);
+        }
+
+        // Check if invitation has expired - extend it
+        if ($invitation->expires_at && $invitation->expires_at->isPast()) {
+            $invitation->update(['expires_at' => now()->addDays(7)]);
+        }
+
+        // #region agent log
+        \Log::info('Resending CEO invitation email', [
+            'invitation_id' => $invitation->id,
+            'email' => $invitation->email,
+            'company_id' => $invitation->company_id,
+        ]);
+        // #endregion
+
+        // Send invitation email directly using Mail::send
+        try {
+            // Create notification instance to get mail message
+            $notification = new CompanyInvitationNotification($invitation->fresh());
+            $mailMessage = $notification->toMail((object)['email' => $invitation->email]);
+            
+            // Extract data from MailMessage
+            $mailData = [
+                'subject' => $mailMessage->subject,
+                'greeting' => $mailMessage->greeting ?? 'Hello!',
+                'introLines' => $mailMessage->introLines ?? [],
+                'actionText' => $mailMessage->actionText ?? null,
+                'actionUrl' => $mailMessage->actionUrl ?? null,
+                'outroLines' => $mailMessage->outroLines ?? [],
+                'salutation' => $mailMessage->salutation ?? 'Best regards,<br>The HR Path-Finder Team',
+            ];
+            
+            // Send email directly using Mail facade
+            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($mailData, $invitation) {
+                $message->to($invitation->email)
+                    ->subject($mailData['subject']);
+                
+                // Build HTML content
+                $html = view('emails.invitation', $mailData)->render();
+                
+                $message->html($html);
+            });
+            
+            // #region agent log
+            \Log::info('Invitation email resent successfully via Mail::send', [
+                'invitation_id' => $invitation->id,
+                'email' => $invitation->email,
+                'resent_at' => now()->toDateTimeString(),
+            ]);
+            // #endregion
+
+            return back()->with('success', 'Invitation email resent successfully to ' . $invitation->email . '.');
+        } catch (\Exception $e) {
+            // #region agent log
+            \Log::error('Failed to resend invitation email', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'invitation_id' => $invitation->id,
+            ]);
+            // #endregion
+            return back()->withErrors(['error' => 'Failed to resend invitation email: ' . $e->getMessage()]);
+        }
     }
 }

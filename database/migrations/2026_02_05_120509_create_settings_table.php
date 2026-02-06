@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('company_invitations', function (Blueprint $table) {
-            $table->string('temporary_password')->nullable()->after('email');
+        Schema::create('settings', function (Blueprint $table) {
+            $table->id();
+            $table->string('key')->unique();
+            $table->text('value')->nullable();
+            $table->timestamps();
         });
     }
 
@@ -21,8 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('company_invitations', function (Blueprint $table) {
-            $table->dropColumn('temporary_password');
-        });
+        Schema::dropIfExists('settings');
     }
 };

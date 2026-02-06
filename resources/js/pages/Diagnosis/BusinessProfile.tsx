@@ -1,6 +1,9 @@
+import React, { useState, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import { ArrowRight, ArrowLeft, Building2, Briefcase, Users, Settings, MessageSquare, FileText, Check } from 'lucide-react';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import AppHeader from '@/components/Header/AppHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -8,7 +11,7 @@ import { Slider } from '@/components/ui/slider';
 import DiagnosisHeader from '@/components/Diagnosis/DiagnosisHeader';
 import DiagnosisProgressBar from '@/components/Diagnosis/DiagnosisProgressBar';
 import DiagnosisTabs, { TabId } from '@/components/Diagnosis/DiagnosisTabs';
-import { useState } from 'react';
+import { diagnosisTabs } from '@/config/diagnosisTabs';
 
 interface Company {
     id: number;
@@ -34,7 +37,7 @@ interface Project {
 }
 
 interface PageProps {
-    company: Company;
+    company?: Company | null;
     project?: Project | null;
 }
 
@@ -59,74 +62,138 @@ const parseKRW = (value: string) => {
 };
 
 export default function BusinessProfile({ company, project }: PageProps) {
-    // Provide safe defaults if project is undefined
-    const safeProject = project || {
-        id: 0,
-        status: 'not_started',
-        business_profile: null,
-        workforce: null,
-        current_hr_status: null,
-        culture: null,
-        confidential_note: null,
-    };
+    const basePath = '/hr-manager/diagnosis';
     
-    const businessProfile = safeProject.business_profile;
+    // Load from localStorage or use project data
+    const getStoredData = (key: string, defaultValue: any) => {
+        if (typeof window === 'undefined') return defaultValue;
+        try {
+            const stored = localStorage.getItem(`diagnosis_form_${key}`);
+            if (stored) {
+                return JSON.parse(stored);
+            }
+        } catch (e) {
+            console.error('Error loading from localStorage:', e);
+        }
+        return defaultValue;
+    };
+
+    // Save to localStorage
+    const saveToLocalStorage = (key: string, data: any) => {
+        if (typeof window === 'undefined') return;
+        try {
+            localStorage.setItem(`diagnosis_form_${key}`, JSON.stringify(data));
+        } catch (e) {
+            console.error('Error saving to localStorage:', e);
+        }
+    };
+
+    // Get stored business profile data
+    const storedBusinessProfile = getStoredData('business-profile', {});
+    const businessProfile = project?.business_profile || storedBusinessProfile;
     
     // Initialize slider values (in billions)
-    // If businessProfile exists, convert stored numeric values back to billions for display
-    const [annualRevenue, setAnnualRevenue] = useState<number>(
-        businessProfile?.annual_revenue ? parseFloat(businessProfile.annual_revenue.toString()) / 1000 : 0
-    );
-    const [operationalMargin, setOperationalMargin] = useState<number>(
-        businessProfile?.operational_margin_rate ? parseFloat(businessProfile.operational_margin_rate.toString()) : 0
-    );
-    const [annualHumanCost, setAnnualHumanCost] = useState<number>(
-        businessProfile?.annual_human_cost ? parseFloat(businessProfile.annual_human_cost.toString()) / 1000 : 0
-    );
+    const getInitialRevenue = () => {
+        if (storedBusinessProfile.annual_revenue) {
+            return parseFloat(storedBusinessProfile.annual_revenue.toString()) / 1000;
+        }
+        if (businessProfile?.annual_revenue) {
+            return parseFloat(businessProfile.annual_revenue.toString()) / 1000;
+        }
+        return 0;
+    };
+
+    const getInitialMargin = () => {
+        if (storedBusinessProfile.operational_margin_rate) {
+            return parseFloat(storedBusinessProfile.operational_margin_rate.toString());
+        }
+        if (businessProfile?.operational_margin_rate) {
+            return parseFloat(businessProfile.operational_margin_rate.toString());
+        }
+        return 0;
+    };
+
+    const getInitialHumanCost = () => {
+        if (storedBusinessProfile.annual_human_cost) {
+            return parseFloat(storedBusinessProfile.annual_human_cost.toString()) / 1000;
+        }
+        if (businessProfile?.annual_human_cost) {
+            return parseFloat(businessProfile.annual_human_cost.toString()) / 1000;
+        }
+        return 0;
+    };
+
+    const [annualRevenue, setAnnualRevenue] = useState<number>(getInitialRevenue());
+    const [operationalMargin, setOperationalMargin] = useState<number>(getInitialMargin());
+    const [annualHumanCost, setAnnualHumanCost] = useState<number>(getInitialHumanCost());
 
     const form = useForm({
-        annual_revenue: businessProfile?.annual_revenue || (annualRevenue * 1000).toString(),
-        operational_margin_rate: businessProfile?.operational_margin_rate || operationalMargin.toString(),
-        annual_human_cost: businessProfile?.annual_human_cost || (annualHumanCost * 1000).toString(),
-        business_type: businessProfile?.business_type || '',
+        annual_revenue: storedBusinessProfile.annual_revenue || businessProfile?.annual_revenue || (annualRevenue * 1000).toString(),
+        operational_margin_rate: storedBusinessProfile.operational_margin_rate || businessProfile?.operational_margin_rate || operationalMargin.toString(),
+        annual_human_cost: storedBusinessProfile.annual_human_cost || businessProfile?.annual_human_cost || (annualHumanCost * 1000).toString(),
+        business_type: storedBusinessProfile.business_type || businessProfile?.business_type || '',
     });
+
+    // Save to localStorage whenever form data changes
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const dataToSave = {
+                annual_revenue: (annualRevenue * 1000).toString(),
+                operational_margin_rate: operationalMargin.toString(),
+                annual_human_cost: (annualHumanCost * 1000).toString(),
+                business_type: form.data.business_type,
+            };
+            saveToLocalStorage('business-profile', dataToSave);
+        }, 500); // Debounce saves
+        return () => clearTimeout(timer);
+    }, [annualRevenue, operationalMargin, annualHumanCost, form.data.business_type]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Convert slider values to numeric values (not formatted strings)
-        // annual_revenue and annual_human_cost are stored in billions, so multiply by 1000
-        const annualRevenueValue = annualRevenue * 1000; // Convert billions to actual value
-        const annualHumanCostValue = annualHumanCost * 1000; // Convert billions to actual value
         
-        // Convert business_type to lowercase for backend validation
+        // Convert slider values to numeric values
+        const annualRevenueValue = annualRevenue * 1000;
+        const annualHumanCostValue = annualHumanCost * 1000;
         const businessTypeValue = form.data.business_type.toLowerCase();
         
-        // Update form data with numeric values
-        form.setData('annual_revenue', annualRevenueValue.toString());
-        form.setData('operational_margin_rate', operationalMargin.toString());
-        form.setData('annual_human_cost', annualHumanCostValue.toString());
-        form.setData('business_type', businessTypeValue);
+        // Save to localStorage
+        const dataToSave = {
+            annual_revenue: annualRevenueValue.toString(),
+            operational_margin_rate: operationalMargin.toString(),
+            annual_human_cost: annualHumanCostValue.toString(),
+            business_type: businessTypeValue,
+        };
+        saveToLocalStorage('business-profile', dataToSave);
         
-        if (!safeProject.id) {
-            return; // Cannot submit without a valid project
+        // Navigate to next step
+        router.visit(`${basePath}/workforce`);
+    };
+
+    // Calculate step completion status from localStorage
+    const checkStepComplete = (key: string): boolean => {
+        if (typeof window === 'undefined') return false;
+        try {
+            const stored = localStorage.getItem(`diagnosis_form_${key}`);
+            if (!stored || stored === '{}' || stored === 'null') return false;
+            const data = JSON.parse(stored);
+            return Object.keys(data).length > 0 && Object.values(data).some(v => v !== null && v !== '' && (Array.isArray(v) ? v.length > 0 : true));
+        } catch {
+            return false;
         }
-        form.post(`/diagnosis/${safeProject.id}/business-profile`, {
-            preserveScroll: true,
-            only: ['company', 'project'],
-            onSuccess: () => {
-                // Navigate to next step (workforce)
-                router.visit(`/diagnosis/${safeProject.id}/workforce`);
-            },
-        });
     };
 
     const stepStatus = {
-        'company-info': true,
-        'business-profile': Boolean(businessProfile),
-        'workforce': Boolean(safeProject.workforce),
-        'current-hr': Boolean(safeProject.current_hr_status),
-        'culture': Boolean(safeProject.culture),
-        'confidential': Boolean(safeProject.confidential_note),
+        'company-info': checkStepComplete('company'),
+        'business-profile': Boolean(
+            form.data.annual_revenue &&
+            form.data.operational_margin_rate &&
+            form.data.annual_human_cost &&
+            form.data.business_type
+        ),
+        'workforce': checkStepComplete('workforce'),
+        'current-hr': checkStepComplete('current-hr'),
+        'culture': checkStepComplete('culture'),
+        'confidential': checkStepComplete('confidential'),
         'review': false,
     };
 
@@ -134,51 +201,43 @@ export default function BusinessProfile({ company, project }: PageProps) {
     const completedSteps = Object.values(stepStatus).filter(Boolean).length;
     const totalSteps = 7;
 
-    const status: 'not_started' | 'in_progress' | 'submitted' = 
-        safeProject.status === 'not_started' ? 'not_started' : 
-        safeProject.status === 'in_progress' ? 'in_progress' : 
-        'submitted';
+    const status: 'not_started' | 'in_progress' | 'submitted' = 'not_started';
 
-    const tabs = [
-        { id: 'overview' as TabId, name: 'Overview', icon: FileText, route: `/diagnosis` },
-        { id: 'company-info' as TabId, name: 'Company Info', icon: Building2, route: safeProject.id ? `/diagnosis/${safeProject.id}/company-info` : '#' },
-        { id: 'business-profile' as TabId, name: 'Business Profile', icon: Briefcase, route: safeProject.id ? `/diagnosis/${safeProject.id}/business-profile` : '#' },
-        { id: 'workforce' as TabId, name: 'Workforce', icon: Users, route: safeProject.id ? `/diagnosis/${safeProject.id}/workforce` : '#' },
-        { id: 'current-hr' as TabId, name: 'Current HR', icon: Settings, route: safeProject.id ? `/diagnosis/${safeProject.id}/current-hr` : '#' },
-        { id: 'culture' as TabId, name: 'Culture', icon: MessageSquare, route: safeProject.id ? `/diagnosis/${safeProject.id}/culture` : '#' },
-        { id: 'confidential' as TabId, name: 'Confidential', icon: FileText, route: safeProject.id ? `/diagnosis/${safeProject.id}/confidential` : '#' },
-        { id: 'review' as TabId, name: 'Review & Submit', icon: Check, route: safeProject.id ? `/diagnosis/${safeProject.id}/review` : '#' },
-    ];
+    // Use shared tabs configuration
+    const tabs = diagnosisTabs;
 
     return (
-        <div className="flex h-screen bg-background">
-            <RoleBasedSidebar />
+        <SidebarProvider defaultOpen={true}>
+            <Sidebar collapsible="icon" variant="sidebar">
+                <RoleBasedSidebar />
+            </Sidebar>
+            <SidebarInset className="flex flex-col overflow-hidden">
+                <AppHeader />
+                <main className="flex-1 overflow-auto">
+                    <Head title="Business Profile - Diagnosis" />
 
-            <main className="flex-1 overflow-auto md:pt-0 pt-14">
-                <Head title="Business Profile - Diagnosis" />
+                    <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6">
+                        <DiagnosisHeader
+                            title="Step 1: Diagnosis"
+                            description="Input company information and organizational context"
+                            status={status}
+                            backHref={`${basePath}/company-info`}
+                        />
 
-                <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6">
-                    <DiagnosisHeader
-                        title="Step 1: Diagnosis"
-                        description="Input company information and organizational context"
-                        status={status}
-                        backHref={safeProject.id ? `/diagnosis/${safeProject.id}/company-info` : '/diagnosis'}
-                    />
+                        <DiagnosisProgressBar
+                            stepName="Business Profile"
+                            completedSteps={completedSteps}
+                            totalSteps={totalSteps}
+                            currentStep={3}
+                        />
 
-                    <DiagnosisProgressBar
-                        stepName="Business Profile"
-                        completedSteps={completedSteps}
-                        totalSteps={totalSteps}
-                        currentStep={3}
-                    />
-
-                    <DiagnosisTabs
-                        tabs={tabs}
-                        activeTab="business-profile"
-                        stepStatus={stepStatus}
-                        stepOrder={stepOrder}
-                        projectId={safeProject.id}
-                    />
+                        <DiagnosisTabs
+                            tabs={tabs}
+                            activeTab="business-profile"
+                            stepStatus={stepStatus}
+                            stepOrder={stepOrder}
+                            projectId={null}
+                        />
 
                     <Card>
                         <CardHeader>
@@ -278,7 +337,7 @@ export default function BusinessProfile({ company, project }: PageProps) {
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        onClick={() => window.history.back()}
+                                        onClick={() => router.visit(`${basePath}/company-info`)}
                                     >
                                         <ArrowLeft className="w-4 h-4 mr-2" />
                                         Back
@@ -291,8 +350,9 @@ export default function BusinessProfile({ company, project }: PageProps) {
                             </form>
                         </CardContent>
                     </Card>
-                </div>
-            </main>
-        </div>
+                    </div>
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
     );
 }

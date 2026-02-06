@@ -39,6 +39,18 @@ class CeoDashboardController extends Controller
             ]);
         }
         
+        // Get the primary HR project for the first company (or most recent)
+        $hrProject = HrProject::whereIn('company_id', $companies->pluck('id'))
+            ->with([
+                'company',
+                'ceoPhilosophy',
+                'organizationDesign',
+                'performanceSystem',
+                'compensationSystem',
+            ])
+            ->latest()
+            ->first();
+
         // Get HR projects requiring CEO approval
         $pendingApprovals = HrProject::whereIn('company_id', $companies->pluck('id'))
             ->where('status', 'pending_ceo_approval')
@@ -53,11 +65,64 @@ class CeoDashboardController extends Controller
             ->take(5)
             ->get();
 
+        // Initialize step statuses if project exists
+        if ($hrProject) {
+            $hrProject->initializeStepStatuses();
+            $stepStatuses = [
+                'diagnosis' => $hrProject->getStepStatus('diagnosis'),
+                'organization' => $hrProject->getStepStatus('organization'),
+                'performance' => $hrProject->getStepStatus('performance'),
+                'compensation' => $hrProject->getStepStatus('compensation'),
+            ];
+
+            // Get verified steps
+            $verifiedSteps = [
+                'diagnosis' => $hrProject->isStepVerified('diagnosis'),
+                'organization' => $hrProject->isStepVerified('organization'),
+                'performance' => $hrProject->isStepVerified('performance'),
+                'compensation' => $hrProject->isStepVerified('compensation'),
+            ];
+
+            // Get pending verifications (steps that are submitted but not verified)
+            $pendingVerifications = [];
+            foreach ($stepStatuses as $step => $status) {
+                if ($status === 'submitted' && !$verifiedSteps[$step]) {
+                    $pendingVerifications[] = $step;
+                }
+            }
+
+            // CEO Philosophy status
+            $ceoPhilosophyStatus = 'not_started';
+            if ($hrProject->ceoPhilosophy) {
+                $ceoPhilosophyStatus = $hrProject->ceoPhilosophy->completed_at ? 'completed' : 'in_progress';
+            }
+        } else {
+            $stepStatuses = [
+                'diagnosis' => 'not_started',
+                'organization' => 'not_started',
+                'performance' => 'not_started',
+                'compensation' => 'not_started',
+            ];
+            $verifiedSteps = [
+                'diagnosis' => false,
+                'organization' => false,
+                'performance' => false,
+                'compensation' => false,
+            ];
+            $pendingVerifications = [];
+            $ceoPhilosophyStatus = 'not_started';
+        }
+
         return Inertia::render('Dashboard/CEO/Index', [
             'companies' => $companies,
+            'project' => $hrProject,
             'pendingApprovals' => $pendingApprovals,
             'completedProjects' => $completedProjects,
             'noCompany' => false,
+            'stepStatuses' => $stepStatuses,
+            'verifiedSteps' => $verifiedSteps,
+            'pendingVerifications' => $pendingVerifications,
+            'ceoPhilosophyStatus' => $ceoPhilosophyStatus,
             'stats' => [
                 'total_companies' => $companies->count(),
                 'pending_approvals' => $pendingApprovals->count(),

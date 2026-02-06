@@ -25,7 +25,19 @@ class OrganizationDesignController extends Controller
     {
         $this->authorize('view', $hrProject->company);
 
+        // Check if step is unlocked
+        $hrProject->initializeStepStatuses();
+        if (!$hrProject->isStepUnlocked('organization')) {
+            return redirect()->route('dashboard.hr-manager')
+                ->withErrors(['step_locked' => 'Step 2 (Organization Design) is locked. Please complete and submit Step 1 (Diagnosis) first, then wait for CEO verification.']);
+        }
+
         $hrProject->load(['organizationDesign', 'companyAttributes', 'ceoPhilosophy', 'company']);
+
+        // Set step to in_progress if not started
+        if ($hrProject->getStepStatus('organization') === 'not_started') {
+            $hrProject->setStepStatus('organization', 'in_progress');
+        }
 
         $recommendations = $this->recommendationService->getRecommendedOrganizationStructure(
             $hrProject->companyAttributes,
@@ -86,17 +98,33 @@ class OrganizationDesignController extends Controller
         DB::transaction(function () use ($design, $hrProject) {
             $design->update(['submitted_at' => now()]);
 
+            // Set organization step status to submitted
+            $hrProject->initializeStepStatuses();
+            $hrProject->setStepStatus('organization', 'submitted');
+            
+            $hrProject->update([
+                'current_step' => 'performance',
+            ]);
+
             HrProjectAudit::create([
                 'hr_project_id' => $hrProject->id,
                 'user_id' => Auth::id(),
                 'action' => 'organization_design_submitted',
                 'step' => 'organization',
             ]);
-
-            $hrProject->moveToNextStep('performance');
         });
 
-        return redirect()->route('hr-projects.performance-system.show', $hrProject->id);
+        // Send email notification to CEO only if CEO exists
+        $ceo = $hrProject->getCeoUser();
+        if ($ceo) {
+            try {
+                $ceo->notify(new \App\Notifications\StepSubmittedNotification($hrProject, 'organization'));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send CEO notification: ' . $e->getMessage());
+            }
+        }
+
+        return redirect()->route('dashboard.hr-manager')->with('success', 'Organization Design – Step 2 has been submitted successfully! An email notification has been sent to the CEO for verification. Step 3 will unlock automatically once the CEO verifies your submission.');
     }
 
     public function getRecommendations(HrProject $hrProject)

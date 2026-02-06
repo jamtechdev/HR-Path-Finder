@@ -1,6 +1,9 @@
+import React, { useState, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
-import { ArrowRight, ArrowLeft, Building2, Briefcase, Users, Settings, MessageSquare, FileText, Check } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Building2, Briefcase, Users, Settings, MessageSquare, FileText, Check, BriefcaseBusiness, Upload, Network, AlertTriangle, UserCog } from 'lucide-react';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import AppHeader from '@/components/Header/AppHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -8,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import DiagnosisHeader from '@/components/Diagnosis/DiagnosisHeader';
 import DiagnosisProgressBar from '@/components/Diagnosis/DiagnosisProgressBar';
 import DiagnosisTabs, { TabId } from '@/components/Diagnosis/DiagnosisTabs';
+import { diagnosisTabs } from '@/config/diagnosisTabs';
 
 interface Company {
     id: number;
@@ -30,102 +34,145 @@ interface Project {
 }
 
 interface PageProps {
-    company: Company;
+    company?: Company | null;
     project?: Project | null;
 }
 
 export default function Confidential({ company, project }: PageProps) {
-    // Provide safe defaults if project is undefined
-    const safeProject = project || {
-        id: 0,
-        status: 'not_started',
-        confidential_note: null,
-        culture: null,
-        current_hr_status: null,
-        workforce: null,
-        business_profile: null,
-    };
+    const basePath = '/hr-manager/diagnosis';
     
-    const confidentialNote = safeProject.confidential_note;
+    // Load from localStorage or use project data
+    const getStoredData = (key: string, defaultValue: any) => {
+        if (typeof window === 'undefined') return defaultValue;
+        try {
+            const stored = localStorage.getItem(`diagnosis_form_${key}`);
+            if (stored) {
+                return JSON.parse(stored);
+            }
+        } catch (e) {
+            console.error('Error loading from localStorage:', e);
+        }
+        return defaultValue;
+    };
+
+    // Save to localStorage
+    const saveToLocalStorage = (key: string, data: any) => {
+        if (typeof window === 'undefined') return;
+        try {
+            localStorage.setItem(`diagnosis_form_${key}`, JSON.stringify(data));
+        } catch (e) {
+            console.error('Error saving to localStorage:', e);
+        }
+    };
+
+    // Get stored confidential note data
+    const storedConfidential = getStoredData('confidential', {});
+    const confidentialNote = project?.confidential_note || storedConfidential;
 
     const form = useForm({
-        notes: confidentialNote?.notes || '',
+        notes: confidentialNote?.notes || storedConfidential?.notes || storedConfidential?.confidential_note || '',
     });
+
+    // Save to localStorage whenever form data changes
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const dataToSave = {
+                notes: form.data.notes,
+                confidential_note: form.data.notes, // Also save as confidential_note for consistency
+            };
+            if (dataToSave.notes) {
+                saveToLocalStorage('confidential', dataToSave);
+            }
+        }, 500); // Debounce saves
+        return () => clearTimeout(timer);
+    }, [form.data]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!safeProject.id) {
-            return; // Cannot submit without a valid project
+        
+        // Save to localStorage
+        const dataToSave = {
+            notes: form.data.notes,
+            confidential_note: form.data.notes, // Also save as confidential_note for consistency
+        };
+        saveToLocalStorage('confidential', dataToSave);
+        
+        // Navigate to next step
+        router.visit(`${basePath}/review`);
+    };
+
+    // Calculate step completion status from localStorage
+    const checkStepComplete = (key: string): boolean => {
+        if (typeof window === 'undefined') return false;
+        try {
+            const stored = localStorage.getItem(`diagnosis_form_${key}`);
+            if (!stored || stored === '{}' || stored === 'null') return false;
+            const data = JSON.parse(stored);
+            if (Array.isArray(data)) {
+                return data.length > 0 && data.some((item: any) => Object.values(item).some(v => v !== null && v !== ''));
+            }
+            return Object.keys(data).length > 0 && Object.values(data).some(v => v !== null && v !== '' && (Array.isArray(v) ? v.length > 0 : true));
+        } catch {
+            return false;
         }
-        form.post(`/diagnosis/${safeProject.id}/confidential`, {
-            preserveScroll: true,
-            only: ['company', 'project'],
-            onSuccess: () => {
-                // Navigate to next step (review)
-                router.visit(`/diagnosis/${safeProject.id}/review`);
-            },
-        });
     };
 
     const stepStatus = {
-        'company-info': true,
-        'business-profile': Boolean(safeProject.business_profile),
-        'workforce': Boolean(safeProject.workforce),
-        'current-hr': Boolean(safeProject.current_hr_status),
-        'culture': Boolean(safeProject.culture),
-        'confidential': Boolean(confidentialNote),
+        'company-info': checkStepComplete('company'),
+        'business-profile': checkStepComplete('business-profile'),
+        'workforce': checkStepComplete('workforce'),
+        'executives': checkStepComplete('executives'),
+        'job-grades': checkStepComplete('job-grades'),
+        'organizational-charts': checkStepComplete('organizational-charts'),
+        'organizational-structure': checkStepComplete('organizational-structure'),
+        'hr-issues': checkStepComplete('hr-issues'),
+        'current-hr': checkStepComplete('current-hr'),
+        'culture': checkStepComplete('culture'),
+        'confidential': Boolean(form.data.notes && form.data.notes.trim() !== ''),
         'review': false,
     };
 
-    const stepOrder = ['company-info', 'business-profile', 'workforce', 'current-hr', 'culture', 'confidential', 'review'] as const;
+    const stepOrder = ['company-info', 'business-profile', 'workforce', 'executives', 'job-grades', 'organizational-charts', 'organizational-structure', 'hr-issues', 'current-hr', 'culture', 'confidential', 'review'] as const;
     const completedSteps = Object.values(stepStatus).filter(Boolean).length;
-    const totalSteps = 7;
+    const totalSteps = 12;
 
-    const status: 'not_started' | 'in_progress' | 'submitted' = 
-        safeProject.status === 'not_started' ? 'not_started' : 
-        safeProject.status === 'in_progress' ? 'in_progress' : 
-        'submitted';
+    const status: 'not_started' | 'in_progress' | 'submitted' = 'not_started';
 
-    const tabs = [
-        { id: 'overview' as TabId, name: 'Overview', icon: FileText, route: `/diagnosis` },
-        { id: 'company-info' as TabId, name: 'Company Info', icon: Building2, route: safeProject.id ? `/diagnosis/${safeProject.id}/company-info` : '#' },
-        { id: 'business-profile' as TabId, name: 'Business Profile', icon: Briefcase, route: safeProject.id ? `/diagnosis/${safeProject.id}/business-profile` : '#' },
-        { id: 'workforce' as TabId, name: 'Workforce', icon: Users, route: safeProject.id ? `/diagnosis/${safeProject.id}/workforce` : '#' },
-        { id: 'current-hr' as TabId, name: 'Current HR', icon: Settings, route: safeProject.id ? `/diagnosis/${safeProject.id}/current-hr` : '#' },
-        { id: 'culture' as TabId, name: 'Culture', icon: MessageSquare, route: safeProject.id ? `/diagnosis/${safeProject.id}/culture` : '#' },
-        { id: 'confidential' as TabId, name: 'Confidential', icon: FileText, route: safeProject.id ? `/diagnosis/${safeProject.id}/confidential` : '#' },
-        { id: 'review' as TabId, name: 'Review & Submit', icon: Check, route: safeProject.id ? `/diagnosis/${safeProject.id}/review` : '#' },
-    ];
+    // Use shared tabs configuration
+    const tabs = diagnosisTabs;
 
     return (
-        <div className="flex h-screen bg-background">
-            <RoleBasedSidebar />
+        <SidebarProvider defaultOpen={true}>
+            <Sidebar collapsible="icon" variant="sidebar">
+                <RoleBasedSidebar />
+            </Sidebar>
+            <SidebarInset className="flex flex-col overflow-hidden">
+                <AppHeader />
+                <main className="flex-1 overflow-auto">
+                    <Head title="Confidential - Diagnosis" />
 
-            <main className="flex-1 overflow-auto md:pt-0 pt-14">
-                <Head title="Confidential - Diagnosis" />
+                    <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6">
+                        <DiagnosisHeader
+                            title="Step 1: Diagnosis"
+                            description="Input company information and organizational context"
+                            status={status}
+                            backHref={`${basePath}/culture`}
+                        />
 
-                <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6">
-                    <DiagnosisHeader
-                        title="Step 1: Diagnosis"
-                        description="Input company information and organizational context"
-                        status={status}
-                        backHref={safeProject.id ? `/diagnosis/${safeProject.id}/culture` : '/diagnosis'}
-                    />
+                        <DiagnosisProgressBar
+                            stepName="Confidential"
+                            completedSteps={completedSteps}
+                            totalSteps={totalSteps}
+                            currentStep={12}
+                        />
 
-                    <DiagnosisProgressBar
-                        stepName="Confidential"
-                        completedSteps={completedSteps}
-                        totalSteps={totalSteps}
-                        currentStep={7}
-                    />
-
-                    <DiagnosisTabs
-                        tabs={tabs}
-                        activeTab="confidential"
-                        stepStatus={stepStatus}
-                        stepOrder={stepOrder}
-                        projectId={safeProject.id}
-                    />
+                        <DiagnosisTabs
+                            tabs={tabs}
+                            activeTab="confidential"
+                            stepStatus={stepStatus}
+                            stepOrder={stepOrder}
+                            projectId={null}
+                        />
 
                     <Card>
                         <CardHeader>
@@ -163,7 +210,7 @@ export default function Confidential({ company, project }: PageProps) {
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        onClick={() => window.history.back()}
+                                        onClick={() => router.visit(`${basePath}/culture`)}
                                     >
                                         <ArrowLeft className="w-4 h-4 mr-2" />
                                         Back
@@ -176,8 +223,9 @@ export default function Confidential({ company, project }: PageProps) {
                             </form>
                         </CardContent>
                     </Card>
-                </div>
-            </main>
-        </div>
+                    </div>
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
     );
 }

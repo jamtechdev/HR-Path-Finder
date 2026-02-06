@@ -3,16 +3,28 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { update } from '@/routes/password';
-import { Form, Head } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { ArrowRight, Lock } from 'lucide-react';
 
 type Props = {
-    token: string;
     email: string;
+    status?: string;
 };
 
-export default function ResetPassword({ token, email }: Props) {
+export default function ResetPassword({ email, status }: Props) {
+    const form = useForm({
+        email: email || '',
+        password: '',
+        password_confirmation: '',
+    });
+
+    const submit = (e: React.FormEvent) => {
+        e.preventDefault();
+        form.post('/reset-password', {
+            preserveScroll: true,
+        });
+    };
+
     return (
         <div className="min-h-screen gradient-hero flex">
             {/* Left Side - Promotional Section */}
@@ -69,14 +81,13 @@ export default function ResetPassword({ token, email }: Props) {
                         <p className="text-muted-foreground mt-2">Please enter your new password below</p>
                     </div>
 
-            <Form
-                {...update.form()}
-                transform={(data) => ({ ...data, token, email })}
-                resetOnSuccess={['password', 'password_confirmation']}
-                        className="space-y-4"
-            >
-                {({ processing, errors }) => (
-                            <>
+            {status && (
+                <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-center text-sm font-medium text-green-800 dark:text-green-200">
+                    {status}
+                </div>
+            )}
+
+            <form onSubmit={submit} className="space-y-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="email" className="text-sm font-medium leading-none">
                                         Email
@@ -84,13 +95,11 @@ export default function ResetPassword({ token, email }: Props) {
                             <Input
                                 id="email"
                                 type="email"
-                                name="email"
-                                autoComplete="email"
-                                value={email}
+                        value={form.data.email}
                                 readOnly
                                         className="h-10 w-full bg-muted"
                             />
-                                    <InputError message={errors.email} />
+                    <InputError message={form.errors.email} />
                         </div>
 
                                 <div className="space-y-2">
@@ -100,13 +109,15 @@ export default function ResetPassword({ token, email }: Props) {
                             <Input
                                 id="password"
                                 type="password"
-                                name="password"
+                        value={form.data.password}
+                        onChange={(e) => form.setData('password', e.target.value)}
                                 autoComplete="new-password"
                                 autoFocus
                                         placeholder="••••••••"
                                         className="h-10 w-full"
+                        required
                             />
-                            <InputError message={errors.password} />
+                    <InputError message={form.errors.password} />
                         </div>
 
                                 <div className="space-y-2">
@@ -116,21 +127,23 @@ export default function ResetPassword({ token, email }: Props) {
                             <Input
                                 id="password_confirmation"
                                 type="password"
-                                name="password_confirmation"
+                        value={form.data.password_confirmation}
+                        onChange={(e) => form.setData('password_confirmation', e.target.value)}
                                 autoComplete="new-password"
                                         placeholder="••••••••"
                                         className="h-10 w-full"
+                        required
                             />
-                                    <InputError message={errors.password_confirmation} />
+                    <InputError message={form.errors.password_confirmation} />
                         </div>
 
                         <Button
                             type="submit"
                                     className="w-full h-10 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-                            disabled={processing}
+                    disabled={form.processing}
                             data-test="reset-password-button"
                         >
-                                    {processing ? (
+                    {form.processing ? (
                                         <>
                                             <Spinner className="mr-2" />
                                             Resetting...
@@ -143,9 +156,7 @@ export default function ResetPassword({ token, email }: Props) {
                                         </>
                                     )}
                         </Button>
-                            </>
-                )}
-            </Form>
+            </form>
                 </div>
             </div>
         </div>

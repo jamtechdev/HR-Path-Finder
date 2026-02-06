@@ -187,6 +187,7 @@ export default function CreateCompany() {
     const [companyId, setCompanyId] = useState<number | null>(existingCompany?.id || null);
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [orgChartPreview, setOrgChartPreview] = useState<string | null>(null);
     
     const companyForm = useForm({
         name: existingCompany?.name || '',
@@ -341,6 +342,25 @@ export default function CreateCompany() {
         }
     }, [companyForm.data.image]);
 
+    // Handle image preview for organization chart (only for images, not PDFs)
+    useEffect(() => {
+        if (workforceForm.data.org_chart) {
+            const file = workforceForm.data.org_chart;
+            // Only show preview for image files, not PDFs
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setOrgChartPreview(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                setOrgChartPreview(null);
+            }
+        } else {
+            setOrgChartPreview(null);
+        }
+    }, [workforceForm.data.org_chart]);
+
     const saveCompanyInfo = () => {
         if (companyId) {
             // Update existing company
@@ -355,7 +375,7 @@ export default function CreateCompany() {
         } else {
             // Create new company with step_wise flag to stay on the page
             const formData = { ...companyForm.data, step_wise: true };
-            router.post('/companies', formData, {
+            router.post('/hr-manager/companies', formData, {
                 forceFormData: true,
                 preserveScroll: true,
                 onSuccess: () => {
@@ -389,7 +409,7 @@ export default function CreateCompany() {
     };
 
     const saveWorkforce = () => {
-        if (!projectId) return;
+        if (!companyId) return;
 
         const workforceData = {
             headcount_year_minus_2: toNumber(workforceForm.data.headcount_year_minus_2),
@@ -410,7 +430,7 @@ export default function CreateCompany() {
     };
 
     const saveCurrentHr = () => {
-        if (!projectId) return;
+        if (!companyId) return;
 
         const currentHrData = {
             dedicated_hr_team: currentHrForm.data.dedicated_hr_team,
@@ -432,7 +452,7 @@ export default function CreateCompany() {
     };
 
     const saveCulture = () => {
-        if (!projectId) return;
+        if (!companyId) return;
 
         const cultureData = {
             work_format: cultureForm.data.work_format,
@@ -449,7 +469,7 @@ export default function CreateCompany() {
     };
 
     const saveConfidential = () => {
-        if (!projectId) return;
+        if (!companyId) return;
 
         const confidentialData = {
             notes: confidentialForm.data.notes,
@@ -658,7 +678,7 @@ export default function CreateCompany() {
             if (!companyId) return;
             submitForm.post(`/diagnosis/${companyId}/submit`, {
                 onSuccess: () => {
-                    router.visit('/dashboard');
+                    router.visit('/hr-manager/dashboard');
                 },
             });
         } else if (currentTabIndex < tabOrder.length - 1) {
@@ -1221,17 +1241,65 @@ export default function CreateCompany() {
                                         <Label htmlFor="orgChart">Organization Chart</Label>
                                         <label
                                             htmlFor="orgChart"
-                                            className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer block"
+                                            className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer block relative"
                                         >
-                                            <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                                            <p className="text-sm text-muted-foreground">
-                                                Upload organization chart (optional)
-                                            </p>
-                                            <p className="text-xs text-muted-foreground mt-1">PDF, PNG, JPG up to 5MB</p>
-                                            {workforceForm.data.org_chart && (
-                                                <p className="text-xs text-muted-foreground mt-2">
-                                                    Selected: {workforceForm.data.org_chart.name}
-                                                </p>
+                                            {orgChartPreview || (existingCompany?.workforce?.org_chart_path && (existingCompany.workforce.org_chart_path.endsWith('.png') || existingCompany.workforce.org_chart_path.endsWith('.jpg') || existingCompany.workforce.org_chart_path.endsWith('.jpeg'))) ? (
+                                                <div className="space-y-2">
+                                                    <img
+                                                        src={orgChartPreview || existingCompany.workforce?.org_chart_path || ''}
+                                                        alt="Organization Chart Preview"
+                                                        className="max-h-64 mx-auto rounded-lg object-contain"
+                                                    />
+                                                    <p className="text-xs text-muted-foreground mt-2">
+                                                        {workforceForm.data.org_chart?.name || 'Current organization chart'}
+                                                    </p>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            workforceForm.setData('org_chart', null);
+                                                            setOrgChartPreview(null);
+                                                        }}
+                                                        className="mt-2"
+                                                    >
+                                                        Remove
+                                                    </Button>
+                                                </div>
+                                            ) : workforceForm.data.org_chart || existingCompany?.workforce?.org_chart_path ? (
+                                                <div className="space-y-2">
+                                                    <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {workforceForm.data.org_chart?.name || 'Organization chart uploaded'}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {workforceForm.data.org_chart?.type === 'application/pdf' ? 'PDF file' : 'File uploaded'}
+                                                    </p>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            workforceForm.setData('org_chart', null);
+                                                            setOrgChartPreview(null);
+                                                        }}
+                                                        className="mt-2"
+                                                    >
+                                                        Remove
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Upload organization chart (optional)
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground mt-1">PDF, PNG, JPG up to 5MB</p>
+                                                </>
                                             )}
                                         </label>
                                         <Input
@@ -1239,7 +1307,10 @@ export default function CreateCompany() {
                                             type="file"
                                             accept=".pdf,.png,.jpg,.jpeg"
                                             className="hidden"
-                                            onChange={(e) => workforceForm.setData('org_chart', e.target.files?.[0] || null)}
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0] || null;
+                                                workforceForm.setData('org_chart', file);
+                                            }}
                                         />
                                     </div>
                                 </form>

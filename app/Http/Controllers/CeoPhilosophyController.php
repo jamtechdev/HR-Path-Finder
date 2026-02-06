@@ -14,6 +14,38 @@ use Inertia\Response;
 class CeoPhilosophyController extends Controller
 {
     /**
+     * Format project data for Inertia response
+     */
+    private function formatProjectData(HrProject $hrProject): array
+    {
+        return [
+            'id' => $hrProject->id,
+            'current_step' => $hrProject->current_step,
+            'status' => $hrProject->status,
+            'company' => $hrProject->company ? [
+                'id' => $hrProject->company->id,
+                'name' => $hrProject->company->name,
+                'industry' => $hrProject->company->industry,
+                'hr_issues' => $hrProject->company->hrIssues ? $hrProject->company->hrIssues->map(function($issue) {
+                    return [
+                        'id' => $issue->id,
+                        'issue_type' => $issue->issue_type,
+                        'is_custom' => $issue->is_custom,
+                        'description' => $issue->description,
+                    ];
+                })->toArray() : [],
+            ] : null,
+            'ceo_philosophy' => $hrProject->ceoPhilosophy ? [
+                'id' => $hrProject->ceoPhilosophy->id,
+                'responses' => $hrProject->ceoPhilosophy->responses,
+                'main_trait' => $hrProject->ceoPhilosophy->main_trait,
+                'sub_trait' => $hrProject->ceoPhilosophy->sub_trait,
+                'completed_at' => $hrProject->ceoPhilosophy->completed_at?->toISOString(),
+            ] : null,
+        ];
+    }
+
+    /**
      * Show all projects that need CEO philosophy survey
      */
     public function index(): Response
@@ -134,7 +166,7 @@ class CeoPhilosophyController extends Controller
 
         $hrProject->load([
             'ceoPhilosophy',
-            'company',
+            'company.hrIssues',
             'companyAttributes',
             'organizationalSentiment',
             'businessProfile',
@@ -144,7 +176,7 @@ class CeoPhilosophyController extends Controller
         ]);
 
         return Inertia::render('hr-projects/diagnosis/ceo-philosophy', [
-            'project' => $hrProject,
+            'project' => $this->formatProjectData($hrProject),
             'allowCompanyReview' => true, // Allow CEO to review company info before survey
         ]);
     }
@@ -177,6 +209,7 @@ class CeoPhilosophyController extends Controller
 
         $validated = $request->validate([
             'responses' => 'required|array',
+            'responses.*' => 'nullable', // Allow various types (string, number, array)
             'main_trait' => 'nullable|string',
             'sub_trait' => 'nullable|string',
         ]);
@@ -203,10 +236,10 @@ class CeoPhilosophyController extends Controller
 
         // Reload project data and render without page refresh
         $hrProject->refresh();
-        $hrProject->load(['ceoPhilosophy', 'company', 'companyAttributes', 'organizationalSentiment', 'businessProfile', 'workforce', 'currentHrStatus', 'culture']);
+        $hrProject->load(['ceoPhilosophy', 'company.hrIssues', 'companyAttributes', 'organizationalSentiment', 'businessProfile', 'workforce', 'currentHrStatus', 'culture']);
 
         return Inertia::render('hr-projects/diagnosis/ceo-philosophy', [
-            'project' => $hrProject,
+            'project' => $this->formatProjectData($hrProject),
             'allowCompanyReview' => true,
         ]);
     }
@@ -250,10 +283,21 @@ class CeoPhilosophyController extends Controller
             $hrProject->initializeStepStatuses();
             $diagnosisStatus = $hrProject->getStepStatus('diagnosis');
             
-            // If diagnosis is submitted, CEO survey completion acts as verification
-            // This unlocks Step 2: Organization Design
-            // The isStepUnlocked method already checks if previous step is 'submitted'
-            // So Step 2 will be accessible now for HR Manager
+            // CEO survey completion automatically verifies Step 1: Diagnosis
+            // Always mark diagnosis as 'completed' (verified by CEO) to unlock Step 2: Organization Design
+            // This ensures Step 1 is verified when CEO completes the survey
+            $hrProject->setStepStatus('diagnosis', 'completed');
+            
+            // Ensure Organization Design step is unlocked (set to 'not_started' if it's locked)
+            $organizationStatus = $hrProject->getStepStatus('organization');
+            if ($organizationStatus === 'locked' || $organizationStatus === 'not_started') {
+                $hrProject->setStepStatus('organization', 'not_started');
+            }
+            
+            // Update current_step to organization
+            $hrProject->update([
+                'current_step' => 'organization',
+            ]);
 
             HrProjectAudit::create([
                 'hr_project_id' => $hrProject->id,
@@ -319,34 +363,11 @@ class CeoPhilosophyController extends Controller
             }
         }
 
-        $allStepsComplete = collect($stepsStatus)->every(fn($status) => $status === true);
-
-        // Render dashboard without page refresh
-        return Inertia::render('CEO/Dashboard/Index', [
-            'company' => $companies->first(),
-            'project' => [
-                'id' => $hrProject->id,
-                'company_id' => $hrProject->company_id,
-                'company_name' => $hrProject->company->name ?? 'Unknown Company',
-                'company_industry' => $hrProject->company->industry ?? null,
-                'status' => $hrProject->status,
-                'current_step' => $hrProject->current_step,
-                'ceo_philosophy' => $hrProject->ceoPhilosophy ? [
-                    'main_trait' => $hrProject->ceoPhilosophy->main_trait,
-                    'sub_trait' => $hrProject->ceoPhilosophy->sub_trait,
-                    'completed_at' => $hrProject->ceoPhilosophy->completed_at,
-                ] : null,
-            ],
-            'ceoPhilosophyStatus' => $ceoPhilosophyStatus,
-            'stepsStatus' => $stepsStatus,
-            'stepStatuses' => $stepStatuses,
-            'pendingVerifications' => $pendingVerifications,
-            'allStepsComplete' => $allStepsComplete,
-            'flash' => [
-                'success' => 'Management Philosophy Survey completed successfully! Diagnosis has been verified and Step 2: Organization Design has been unlocked for the HR Manager.',
-                'nextStep' => 'Step 2: Organization Design',
-                'nextStepRoute' => route('organization.index'),
-            ],
-        ]);
+        // After survey completion, redirect CEO to diagnosis workspace (same as HR manager sees)
+        // This shows the same diagnosis data that HR manager filled
+        return redirect()->route('hr-manager.diagnosis.tab.with-project', [
+            'projectId' => $hrProject->id,
+            'tab' => 'overview'
+        ])->with('success', 'Management Philosophy Survey completed successfully! Step 1: Diagnosis has been verified and Step 2: Organization Design has been unlocked for the HR Manager.');
     }
 }

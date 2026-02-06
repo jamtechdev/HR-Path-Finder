@@ -40,7 +40,7 @@ export default function AppHeader() {
                 {/* Left Side - Sidebar Toggle & Logo/Branding */}
                 <div className="flex items-center gap-4">
                     <SidebarTrigger className="md:flex hidden size-9 h-7 w-7 -ml-1" />
-                    <Link href="/dashboard" className="flex items-center gap-3">
+                    <Link href="/" className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
                             <span className="text-white font-bold text-sm">HR</span>
                         </div>
@@ -75,29 +75,41 @@ export default function AppHeader() {
                                 <ChevronDown className="h-4 w-4 text-muted-foreground hidden md:block" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
-                            <DropdownMenuLabel>
+                        <DropdownMenuContent 
+                            align="end" 
+                            className="w-56 bg-primary text-white border-primary/20 shadow-lg [&>*]:text-white"
+                        >
+                            <DropdownMenuLabel className="text-white">
                                 <div className="flex flex-col space-y-1">
-                                    <p className="text-sm font-medium">{user?.name || 'User'}</p>
-                                    <p className="text-xs text-muted-foreground">{user?.email || ''}</p>
+                                    <p className="text-sm font-medium text-white">{user?.name || 'User'}</p>
+                                    <p className="text-xs text-white/80">{user?.email || ''}</p>
                                 </div>
                             </DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild>
-                                <Link href="/settings/index" className="flex items-center cursor-pointer">
-                                    <Settings className="mr-2 h-4 w-4" />
+                            <DropdownMenuSeparator className="bg-white/20" />
+                            <DropdownMenuItem 
+                                asChild 
+                                className="text-white focus:bg-primary/80 focus:text-white data-[highlighted]:bg-primary/80 data-[highlighted]:text-white [&_svg]:text-white"
+                            >
+                                <Link href="/settings/index" className="flex items-center cursor-pointer text-white">
+                                    <Settings className="mr-2 h-4 w-4 text-white" />
                                     Settings
                                 </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                                <Link href="/settings/profile" className="flex items-center cursor-pointer">
-                                    <User className="mr-2 h-4 w-4" />
+                            <DropdownMenuItem 
+                                asChild 
+                                className="text-white focus:bg-primary/80 focus:text-white data-[highlighted]:bg-primary/80 data-[highlighted]:text-white [&_svg]:text-white"
+                            >
+                                <Link href="/settings/profile" className="flex items-center cursor-pointer text-white">
+                                    <User className="mr-2 h-4 w-4 text-white" />
                                     Profile
                                 </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">
-                                <LogOut className="mr-2 h-4 w-4" />
+                            <DropdownMenuSeparator className="bg-white/20" />
+                            <DropdownMenuItem 
+                                onClick={handleLogout} 
+                                className="text-white focus:bg-primary/80 focus:text-white data-[highlighted]:bg-primary/80 data-[highlighted]:text-white cursor-pointer [&_svg]:text-white"
+                            >
+                                <LogOut className="mr-2 h-4 w-4 text-white" />
                                 Logout
                             </DropdownMenuItem>
                         </DropdownMenuContent>
