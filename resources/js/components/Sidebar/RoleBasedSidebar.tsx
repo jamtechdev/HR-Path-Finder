@@ -1,7 +1,7 @@
 import { usePage } from '@inertiajs/react';
 import HRManagerSidebar from './HRManagerSidebar';
 import CEOSidebar from './CEOSidebar';
-import ConsultantSidebar from './ConsultantSidebar';
+import AdminSidebar from './AdminSidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 
 interface User {
@@ -38,12 +38,13 @@ export default function RoleBasedSidebar() {
     };
     
     // Return appropriate sidebar based on role
-    if (hasRole('ceo')) {
+    // Only 3 roles: admin, hr_manager, ceo
+    if (hasRole('admin')) {
+        return <AdminSidebar isCollapsed={isCollapsed} />;
+    } else if (hasRole('ceo')) {
         return <CEOSidebar isCollapsed={isCollapsed} />;
     } else if (hasRole('hr_manager')) {
         return <HRManagerSidebar isCollapsed={isCollapsed} />;
-    } else if (hasRole('consultant')) {
-        return <ConsultantSidebar isCollapsed={isCollapsed} />;
     }
     
     // Default to HR Manager sidebar if no role found

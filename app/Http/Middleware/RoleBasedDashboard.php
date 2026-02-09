@@ -17,7 +17,7 @@ class RoleBasedDashboard
         }
 
         // Role-wise dashboard redirects
-        // Note: Consultant and Admin are the same role
+        // Only 3 roles: admin, hr_manager, ceo
         if ($user->hasRole('ceo')) {
             if ($request->route()->getName() === 'dashboard') {
                 return redirect()->route('ceo.dashboard');
@@ -26,9 +26,9 @@ class RoleBasedDashboard
             if ($request->route()->getName() === 'dashboard') {
                 return redirect()->route('hr-manager.dashboard');
             }
-        } elseif ($user->hasRole('consultant') || $user->hasRole('admin')) {
+        } elseif ($user->hasRole('admin')) {
             if ($request->route()->getName() === 'dashboard') {
-                return redirect()->route('consultant.dashboard');
+                return redirect()->route('admin.dashboard');
             }
         }
 

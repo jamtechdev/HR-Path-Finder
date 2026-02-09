@@ -36,14 +36,14 @@ class RegisteredUserResponse implements RegisterResponseContract
         }
         
         // Method 2: Check using hasRole method if roles collection is empty
-        // Note: Consultant and Admin are the same role
+        // Only 3 roles: admin, hr_manager, ceo
         if (!$role) {
             if ($user->hasRole('ceo')) {
                 $role = 'ceo';
             } elseif ($user->hasRole('hr_manager')) {
                 $role = 'hr_manager';
-            } elseif ($user->hasRole('consultant') || $user->hasRole('admin')) {
-                $role = 'consultant'; // Treat admin as consultant
+            } elseif ($user->hasRole('admin')) {
+                $role = 'admin';
             }
         }
         
@@ -98,11 +98,11 @@ class RegisteredUserResponse implements RegisterResponseContract
 
         // Redirect based on role to role-specific dashboards
         // For new registrations, always go to dashboard (no intended URL)
-        // Note: Admin role redirects to consultant dashboard (they are the same)
+        // Only 3 roles: admin, hr_manager, ceo
         $redirectRoute = match ($role) {
             'ceo' => 'ceo.dashboard',
             'hr_manager' => 'hr-manager.dashboard',
-            'consultant', 'admin' => 'consultant.dashboard', // Admin and Consultant are the same
+            'admin' => 'admin.dashboard',
             default => 'dashboard', // Fallback to generic dashboard if no role
         };
 

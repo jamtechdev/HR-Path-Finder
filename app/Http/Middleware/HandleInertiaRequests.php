@@ -42,7 +42,7 @@ class HandleInertiaRequests extends Middleware
             $request->session()->start();
         }
         
-        return [
+        $shared = [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
@@ -63,5 +63,35 @@ class HandleInertiaRequests extends Middleware
                 'nextStepRoute' => $request->session()->get('nextStepRoute'),
             ],
         ];
+        
+        // Add projects to shared data for roles that need them in sidebar
+        if ($user) {
+            $projects = [];
+            
+            if ($user->hasRole('ceo')) {
+                $projects = \App\Models\HrProject::whereHas('company', function ($query) use ($user) {
+                    $query->whereHas('users', function ($q) use ($user) {
+                        $q->where('users.id', $user->id)
+                          ->where('company_users.role', 'ceo');
+                    });
+                })->with(['company:id,name'])->select('id', 'company_id')->get()->map(function ($project) {
+                    return [
+                        'id' => $project->id,
+                        'company' => $project->company ? ['name' => $project->company->name] : null,
+                    ];
+                })->toArray();
+            } elseif ($user->hasRole('admin')) {
+                $projects = \App\Models\HrProject::with(['company:id,name'])->select('id', 'company_id')->get()->map(function ($project) {
+                    return [
+                        'id' => $project->id,
+                        'company' => $project->company ? ['name' => $project->company->name] : null,
+                    ];
+                })->toArray();
+            }
+            
+            $shared['projects'] = $projects;
+        }
+        
+        return $shared;
     }
 }

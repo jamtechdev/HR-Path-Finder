@@ -65,19 +65,17 @@ class LoginResponse implements LoginResponseContract
             }
         }
 
-        // Redirect based on role to role-specific dashboards
+        // Always redirect to role-specific dashboard (ignore intended URL)
+        // All users should first land on their dashboard
         $redirectRoute = match ($role) {
             'ceo' => 'ceo.dashboard',
             'hr_manager' => 'hr-manager.dashboard',
-            'consultant' => 'consultant.dashboard',
+            'admin' => 'admin.dashboard',
             default => 'dashboard', // Fallback to generic dashboard if no role
         };
 
-        // If there's an intended URL (from middleware), use it, otherwise go to dashboard
-        $intended = $request->session()->pull('url.intended');
-        if ($intended && $intended !== route('login')) {
-            return redirect()->to($intended);
-        }
+        // Clear any intended URL from session - always go to dashboard first
+        $request->session()->forget('url.intended');
 
         return redirect()->route($redirectRoute);
     }

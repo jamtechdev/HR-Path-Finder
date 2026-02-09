@@ -2,43 +2,41 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StepStatus;
+use App\Http\Requests\StoreOrganizationDesignRequest;
 use App\Models\HrProject;
-use App\Models\HrProjectAudit;
 use App\Models\OrganizationDesign;
+use App\Services\AuditLogService;
 use App\Services\RecommendationService;
-use App\Services\ValidationService;
+use App\Services\StepTransitionService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class OrganizationDesignController extends Controller
 {
     public function __construct(
-        protected RecommendationService $recommendationService,
-        protected ValidationService $validationService
+        protected AuditLogService $auditLogService,
+        protected StepTransitionService $stepTransitionService,
+        protected RecommendationService $recommendationService
     ) {
     }
 
-    public function show(HrProject $hrProject): Response
+    /**
+     * Show organization design step.
+     */
+    public function index(Request $request, HrProject $hrProject)
     {
-        $this->authorize('view', $hrProject->company);
+        if (!$request->user()->hasRole('hr_manager')) {
+            abort(403);
+        }
 
         // Check if step is unlocked
-        $hrProject->initializeStepStatuses();
-        if (!$hrProject->isStepUnlocked('organization')) {
-            return redirect()->route('dashboard.hr-manager')
-                ->withErrors(['step_locked' => 'Step 2 (Organization Design) is locked. Please complete and submit Step 1 (Diagnosis) first, then wait for CEO verification.']);
+        if (!$hrProject->isStepUnlocked('job_analysis')) {
+            return back()->withErrors(['error' => 'Job Analysis step is not yet unlocked.']);
         }
 
-        $hrProject->load(['organizationDesign', 'companyAttributes', 'ceoPhilosophy', 'company']);
+        $hrProject->load(['diagnosis', 'ceoPhilosophy', 'companyAttributes', 'organizationDesign']);
 
-        // Set step to in_progress if not started
-        if ($hrProject->getStepStatus('organization') === 'not_started') {
-            $hrProject->setStepStatus('organization', 'in_progress');
-        }
-
+        // Get recommendations
         $recommendations = $this->recommendationService->getRecommendedOrganizationStructure(
             $hrProject->companyAttributes,
             $hrProject->ceoPhilosophy,
@@ -46,98 +44,57 @@ class OrganizationDesignController extends Controller
             $hrProject->company
         );
 
-        return Inertia::render('hr-projects/organization-design', [
+        $stepStatuses = $hrProject->step_statuses ?? [];
+        $mainStepStatuses = [
+            'diagnosis' => $stepStatuses['diagnosis'] ?? 'not_started',
+            'job_analysis' => $stepStatuses['job_analysis'] ?? 'not_started',
+            'performance' => $stepStatuses['performance'] ?? 'not_started',
+            'compensation' => $stepStatuses['compensation'] ?? 'not_started',
+        ];
+
+        return \Inertia\Inertia::render('OrganizationDesign/Index', [
             'project' => $hrProject,
+            'organizationDesign' => $hrProject->organizationDesign,
             'recommendations' => $recommendations,
+            'stepStatuses' => $mainStepStatuses,
+            'projectId' => $hrProject->id,
         ]);
     }
 
-    public function update(Request $request, HrProject $hrProject)
+    /**
+     * Store organization design.
+     */
+    public function store(StoreOrganizationDesignRequest $request, HrProject $hrProject)
     {
-        $this->authorize('update', $hrProject->company);
+        $data = $request->validated();
 
-        $validated = $request->validate([
-            'structure_type' => 'required|in:functional,team,divisional,matrix',
-            'job_grade_structure' => 'required|in:single,multi',
-            'grade_title_relationship' => 'required|in:integrated,separated',
-            'managerial_role_definition' => 'nullable|string',
-        ]);
+        $design = OrganizationDesign::updateOrCreate(
+            ['hr_project_id' => $hrProject->id],
+            array_merge($data, ['status' => StepStatus::IN_PROGRESS])
+        );
 
-        $validation = $this->validationService->validateLogicalConsistency($hrProject, 'organization', $validated);
-        if (!$validation['valid']) {
-            return redirect()->back()->withErrors($validation['errors']);
-        }
+        $hrProject->setStepStatus('job_analysis', StepStatus::IN_PROGRESS);
 
-        DB::transaction(function () use ($hrProject, $validated) {
-            $hrProject->organizationDesign()->updateOrCreate(
-                ['hr_project_id' => $hrProject->id],
-                $validated
-            );
-
-            HrProjectAudit::create([
-                'hr_project_id' => $hrProject->id,
-                'user_id' => Auth::id(),
-                'action' => 'organization_design_updated',
-                'step' => 'organization',
-                'new_data' => $validated,
-            ]);
-        });
-
-        return redirect()->back();
+        return back()->with('success', 'Organization design saved successfully.');
     }
 
+    /**
+     * Submit organization design.
+     */
     public function submit(Request $request, HrProject $hrProject)
     {
-        $this->authorize('update', $hrProject->company);
+        if (!$request->user()->hasRole('hr_manager')) {
+            abort(403);
+        }
 
         $design = $hrProject->organizationDesign;
+        
         if (!$design) {
-            return redirect()->back()->withErrors(['message' => 'Please complete the organization design first.']);
+            return back()->withErrors(['error' => 'Please complete the organization design first.']);
         }
 
-        DB::transaction(function () use ($design, $hrProject) {
-            $design->update(['submitted_at' => now()]);
+        $this->stepTransitionService->submitStep($hrProject, 'job_analysis');
 
-            // Set organization step status to submitted
-            $hrProject->initializeStepStatuses();
-            $hrProject->setStepStatus('organization', 'submitted');
-            
-            $hrProject->update([
-                'current_step' => 'performance',
-            ]);
-
-            HrProjectAudit::create([
-                'hr_project_id' => $hrProject->id,
-                'user_id' => Auth::id(),
-                'action' => 'organization_design_submitted',
-                'step' => 'organization',
-            ]);
-        });
-
-        // Send email notification to CEO only if CEO exists
-        $ceo = $hrProject->getCeoUser();
-        if ($ceo) {
-            try {
-                $ceo->notify(new \App\Notifications\StepSubmittedNotification($hrProject, 'organization'));
-            } catch (\Exception $e) {
-                \Log::error('Failed to send CEO notification: ' . $e->getMessage());
-            }
-        }
-
-        return redirect()->route('dashboard.hr-manager')->with('success', 'Organization Design – Step 2 has been submitted successfully! An email notification has been sent to the CEO for verification. Step 3 will unlock automatically once the CEO verifies your submission.');
-    }
-
-    public function getRecommendations(HrProject $hrProject)
-    {
-        $this->authorize('view', $hrProject->company);
-
-        $recommendations = $this->recommendationService->getRecommendedOrganizationStructure(
-            $hrProject->companyAttributes,
-            $hrProject->ceoPhilosophy,
-            $hrProject->organizationalSentiment,
-            $hrProject->company
-        );
-
-        return response()->json($recommendations);
+        return back()->with('success', 'Organization design submitted successfully.');
     }
 }

@@ -1,317 +1,275 @@
-import React, { useState, useEffect } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
-import { ArrowRight, ArrowLeft, Building2, Briefcase, Users, Settings, MessageSquare, FileText, Check, Plus, X, UserCog, BriefcaseBusiness, Upload, Network, AlertTriangle } from 'lucide-react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useEffect, useState } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import FormLayout from '@/components/Diagnosis/FormLayout';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import DiagnosisHeader from '@/components/Diagnosis/DiagnosisHeader';
-import DiagnosisProgressBar from '@/components/Diagnosis/DiagnosisProgressBar';
-import DiagnosisTabs, { TabId } from '@/components/Diagnosis/DiagnosisTabs';
-import { diagnosisTabs } from '@/config/diagnosisTabs';
+import { Button } from '@/components/ui/button';
+import { Plus, X } from 'lucide-react';
+import MultiSelectQuestion from '@/components/Forms/MultiSelectQuestion';
 
-interface Company {
+interface Diagnosis {
     id: number;
-    name: string;
+    total_executives?: number;
+    executive_positions?: Array<{ role: string; count: number }> | Record<string, number>;
 }
 
-interface Executive {
-    id?: number;
-    position_title: string;
-    number_of_executives: number;
-    is_custom?: boolean;
+interface Props {
+    project: {
+        id: number;
+        company: {
+            name: string;
+        };
+    };
+    company: {
+        name: string;
+    };
+    diagnosis?: Diagnosis;
+    activeTab: string;
+    diagnosisStatus: string;
+    stepStatuses: Record<string, string>;
+    projectId?: number;
 }
 
-interface Project {
-    id: number;
-    status: string;
-    executives?: Executive[];
-    business_profile?: { id?: number } | null;
-    workforce?: { id?: number } | null;
+interface ExecutivePosition {
+    id: string;
+    role: string;
+    count: number;
 }
 
-interface PageProps {
-    company?: Company | null;
-    project?: Project | null;
-}
+const DEFAULT_POSITIONS = ['CEO', 'CTO', 'COO', 'CFO'];
 
-const commonExecutiveTitles = ['CEO', 'CTO', 'CFO', 'COO', 'CMO', 'CHRO', 'CCO', 'CSO'];
-
-export default function Executives({ company, project }: PageProps) {
-    const basePath = '/hr-manager/diagnosis';
-    
-    // Load from localStorage or use project data
-    const getStoredData = (key: string, defaultValue: any) => {
-        if (typeof window === 'undefined') return defaultValue;
-        try {
-            const stored = localStorage.getItem(`diagnosis_form_${key}`);
-            if (stored) {
-                return JSON.parse(stored);
+export default function Executives({
+    project,
+    company,
+    diagnosis,
+    activeTab,
+    diagnosisStatus,
+    stepStatuses,
+    projectId,
+}: Props) {
+    const [positions, setPositions] = useState<ExecutivePosition[]>(() => {
+        if (diagnosis?.executive_positions) {
+            if (Array.isArray(diagnosis.executive_positions)) {
+                return diagnosis.executive_positions.map((pos, index) => ({
+                    id: `pos-${index}`,
+                    role: pos.role || '',
+                    count: pos.count || 0,
+                }));
+            } else {
+                // Convert object to array
+                return Object.entries(diagnosis.executive_positions).map(([role, count], index) => ({
+                    id: `pos-${index}`,
+                    role,
+                    count: count as number,
+                }));
             }
-        } catch (e) {
-            console.error('Error loading from localStorage:', e);
         }
-        return defaultValue;
-    };
-
-    // Save to localStorage
-    const saveToLocalStorage = (key: string, data: any) => {
-        if (typeof window === 'undefined') return;
-        try {
-            localStorage.setItem(`diagnosis_form_${key}`, JSON.stringify(data));
-        } catch (e) {
-            console.error('Error saving to localStorage:', e);
-        }
-    };
-
-    // Get stored executives data
-    const storedExecutives = getStoredData('executives', []);
-    const existingExecutives = project?.executives || storedExecutives;
-    
-    const [executives, setExecutives] = useState<Executive[]>(
-        existingExecutives.length > 0
-            ? existingExecutives
-            : [{ position_title: '', number_of_executives: 1, is_custom: false }]
-    );
-
-    const form = useForm({
-        executives: executives,
+        return [];
+    });
+    const [selectedDefaultPositions, setSelectedDefaultPositions] = useState<string[]>(() => {
+        const selected: string[] = [];
+        positions.forEach(pos => {
+            if (DEFAULT_POSITIONS.includes(pos.role)) {
+                selected.push(pos.role);
+            }
+        });
+        return selected;
     });
 
-    // Save to localStorage whenever executives change
+    const { data, setData, post, processing, errors } = useForm({
+        total_executives: diagnosis?.total_executives || 0,
+        executive_positions: [] as Array<{ role: string; count: number }>,
+    });
+
+    // Sync selected default positions with positions array
     useEffect(() => {
-        const timer = setTimeout(() => {
-            const validExecutives = executives.filter(e => e.position_title.trim() !== '');
-            if (validExecutives.length > 0) {
-                saveToLocalStorage('executives', validExecutives);
-            }
-        }, 500); // Debounce saves
-        return () => clearTimeout(timer);
-    }, [executives]);
-
-    const addExecutive = () => {
-        const newExecutives = [...executives, { position_title: '', number_of_executives: 1, is_custom: false }];
-        setExecutives(newExecutives);
-        form.setData('executives', newExecutives);
-    };
-
-    const removeExecutive = (index: number) => {
-        const newExecutives = executives.filter((_, i) => i !== index);
-        setExecutives(newExecutives);
-        form.setData('executives', newExecutives);
-    };
-
-    const updateExecutive = (index: number, field: keyof Executive, value: any) => {
-        const updated = [...executives];
-        updated[index] = { ...updated[index], [field]: value };
-        setExecutives(updated);
-    };
-
-    const selectCommonTitle = (index: number, title: string) => {
-        const updated = [...executives];
-        updated[index] = { ...updated[index], position_title: title, is_custom: false };
-        setExecutives(updated);
-        form.setData('executives', updated);
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+        const newPositions = [...positions];
         
-        // Validate executives
-        const validExecutives = executives.filter(e => e.position_title.trim() !== '');
-        if (validExecutives.length === 0) {
-            alert('Please add at least one executive position.');
-            return;
-        }
-
-        // Save to localStorage
-        saveToLocalStorage('executives', validExecutives);
-        
-        // Navigate to next step
-        router.visit(`${basePath}/job-grades`);
-    };
-
-    // Calculate step completion status from localStorage
-    const checkStepComplete = (key: string): boolean => {
-        if (typeof window === 'undefined') return false;
-        try {
-            const stored = localStorage.getItem(`diagnosis_form_${key}`);
-            if (!stored || stored === '{}' || stored === 'null') return false;
-            const data = JSON.parse(stored);
-            if (Array.isArray(data)) {
-                return data.length > 0 && data.some((item: any) => Object.values(item).some(v => v !== null && v !== ''));
+        // Remove unselected default positions
+        newPositions.forEach((pos, index) => {
+            if (DEFAULT_POSITIONS.includes(pos.role) && !selectedDefaultPositions.includes(pos.role)) {
+                newPositions.splice(index, 1);
             }
-            return Object.keys(data).length > 0 && Object.values(data).some(v => v !== null && v !== '' && (Array.isArray(v) ? v.length > 0 : true));
-        } catch {
-            return false;
+        });
+
+        // Add newly selected default positions
+        selectedDefaultPositions.forEach(role => {
+            if (!newPositions.find(p => p.role === role)) {
+                newPositions.push({ id: `pos-${Date.now()}-${role}`, role, count: 1 });
+            }
+        });
+
+        setPositions(newPositions);
+    }, [selectedDefaultPositions]);
+
+    // Update form data when positions change
+    useEffect(() => {
+        const positionsArray = positions
+            .filter(pos => pos.role && pos.count > 0)
+            .map(pos => ({ role: pos.role, count: pos.count }));
+        setData('executive_positions', positionsArray);
+    }, [positions]);
+
+    // Removed auto-save - only save on review and submit
+
+    const addCustomPosition = () => {
+        setPositions([...positions, { id: `pos-${Date.now()}`, role: '', count: 1 }]);
+    };
+
+    const removePosition = (id: string) => {
+        const pos = positions.find(p => p.id === id);
+        if (pos && DEFAULT_POSITIONS.includes(pos.role)) {
+            setSelectedDefaultPositions(selectedDefaultPositions.filter(r => r !== pos.role));
         }
+        setPositions(positions.filter((p) => p.id !== id));
     };
 
-    const stepStatus = {
-        'company-info': checkStepComplete('company'),
-        'business-profile': checkStepComplete('business-profile'),
-        'workforce': checkStepComplete('workforce'),
-        'executives': executives.length > 0 && executives.some(e => e.position_title.trim() !== ''),
-        'job-grades': checkStepComplete('job-grades'),
-        'organizational-charts': checkStepComplete('organizational-charts'),
-        'organizational-structure': checkStepComplete('organizational-structure'),
-        'hr-issues': checkStepComplete('hr-issues'),
-        'current-hr': checkStepComplete('current-hr'),
-        'culture': checkStepComplete('culture'),
-        'confidential': checkStepComplete('confidential'),
-        'review': false,
+    const updatePosition = (id: string, updates: Partial<ExecutivePosition>) => {
+        setPositions(positions.map((p) => {
+            if (p.id === id) {
+                const updated = { ...p, ...updates };
+                // Validate: cannot be "CXO"
+                if (updated.role.toUpperCase() === 'CXO') {
+                    return p; // Don't update if trying to set to CXO
+                }
+                return updated;
+            }
+            return p;
+        }));
     };
-
-    const stepOrder = ['company-info', 'business-profile', 'workforce', 'executives', 'job-grades', 'organizational-charts', 'organizational-structure', 'hr-issues', 'current-hr', 'culture', 'confidential', 'review'] as const;
-    const completedSteps = Object.values(stepStatus).filter(Boolean).length;
-    const totalSteps = 12;
-
-    const status: 'not_started' | 'in_progress' | 'submitted' = 'not_started';
-
-    // Use shared tabs configuration
-    const tabs = diagnosisTabs;
-
-    const totalExecutives = executives.reduce((sum, e) => sum + (e.number_of_executives || 0), 0);
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto">
-                    <Head title="Executives - Diagnosis" />
+        <>
+            <Head title={`Executives - ${company?.name || project?.company?.name || 'Company'}`} />
+            <FormLayout
+                title="Executives"
+                project={project}
+                diagnosis={diagnosis}
+                activeTab={activeTab}
+                diagnosisStatus={diagnosisStatus}
+                stepStatuses={stepStatuses}
+                projectId={projectId}
+                backRoute="workforce"
+                nextRoute="leaders"
+                formData={{
+                    total_executives: data.total_executives,
+                    executive_positions: data.executive_positions,
+                }}
+                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
+            >
+                <Card>
+                    <CardContent className="p-6 space-y-6">
+                        {/* Total Executives */}
+                        <div className="space-y-2">
+                            <Label htmlFor="total_executives">Total Executives</Label>
+                            <Input
+                                id="total_executives"
+                                type="number"
+                                min="0"
+                                value={data.total_executives || ''}
+                                onChange={(e) => setData('total_executives', parseInt(e.target.value) || 0)}
+                                placeholder="0"
+                            />
+                        </div>
 
-                    <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6">
-                        <DiagnosisHeader
-                            title="Step 1: Diagnosis"
-                            description="Input company information and organizational context"
-                            status={status}
-                            backHref={`${basePath}/workforce`}
-                        />
+                        {/* Executive Positions - Default Options */}
+                        <div className="space-y-3">
+                            <Label>Executive Positions</Label>
+                            <MultiSelectQuestion
+                                question="Select default positions"
+                                value={selectedDefaultPositions}
+                                onChange={setSelectedDefaultPositions}
+                                options={DEFAULT_POSITIONS}
+                                columns={2}
+                            />
+                        </div>
 
-                        <DiagnosisProgressBar
-                            stepName="Executives"
-                            completedSteps={completedSteps}
-                            totalSteps={totalSteps}
-                            currentStep={5}
-                        />
-
-                        <DiagnosisTabs
-                            tabs={tabs}
-                            activeTab="executives"
-                            stepStatus={stepStatus}
-                            stepOrder={stepOrder}
-                            projectId={null}
-                        />
-
-                    <Card>
-                        <CardContent>
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <h3 className="text-lg font-semibold">Total Number of Executives</h3>
-                                            <p className="text-sm text-muted-foreground">Total: {totalExecutives} executives</p>
-                                        </div>
-                                        <Button type="button" onClick={addExecutive} variant="outline" size="sm">
-                                            <Plus className="w-4 h-4 mr-2" />
-                                            Add Position
-                                        </Button>
-                                    </div>
-
-                                    {executives.map((executive, index) => (
-                                        <div key={index} className="border rounded-lg p-4 space-y-4">
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex-1 space-y-4">
-                                                    <div className="space-y-2">
-                                                        <Label>Position Title *</Label>
-                                                        <div className="flex gap-2">
-                                                            <Input
-                                                                value={executive.position_title || ''}
-                                                                onChange={(e) => {
-                                                                    const updated = [...executives];
-                                                                    updated[index] = { ...updated[index], position_title: e.target.value, is_custom: true };
-                                                                    setExecutives(updated);
-                                                                    form.setData('executives', updated);
-                                                                }}
-                                                                placeholder="e.g., CEO, CTO, CFO, or custom title"
-                                                                required
-                                                            />
-                                                            {executives.length > 1 && (
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    onClick={() => removeExecutive(index)}
-                                                                >
-                                                                    <X className="w-4 h-4" />
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {commonExecutiveTitles.map((title) => (
-                                                                <button
-                                                                    type="button"
-                                                                    key={title}
-                                                                    onClick={() => selectCommonTitle(index, title)}
-                                                                    className={`text-xs px-2 py-1 rounded border transition-colors ${
-                                                                        executive.position_title === title
-                                                                            ? 'bg-primary text-primary-foreground border-primary'
-                                                                            : 'hover:bg-accent'
-                                                                    }`}
-                                                                >
-                                                                    {title}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label>Number of Executives per Position *</Label>
-                                                        <Input
-                                                            type="number"
-                                                            min="1"
-                                                            value={executive.number_of_executives || 1}
-                                                            onChange={(e) => {
-                                                                const value = parseInt(e.target.value) || 1;
-                                                                const updated = [...executives];
-                                                                updated[index] = { ...updated[index], number_of_executives: value };
-                                                                setExecutives(updated);
-                                                                form.setData('executives', updated);
-                                                            }}
-                                                            required
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
+                        {/* Custom Positions */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <Label>Other Positions</Label>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={addCustomPosition}
+                                >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Add Custom Position
+                                </Button>
+                            </div>
+                            <div className="space-y-2">
+                                {positions
+                                    .filter(pos => !DEFAULT_POSITIONS.includes(pos.role))
+                                    .map((position) => (
+                                        <div key={position.id} className="flex items-center gap-2">
+                                            <Input
+                                                placeholder="Position name (cannot be CXO)"
+                                                value={position.role}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    if (value.toUpperCase() !== 'CXO') {
+                                                        updatePosition(position.id, { role: value });
+                                                    }
+                                                }}
+                                                className="flex-1"
+                                            />
+                                            <Input
+                                                type="number"
+                                                placeholder="Count"
+                                                value={position.count || ''}
+                                                onChange={(e) => updatePosition(position.id, { count: parseInt(e.target.value) || 0 })}
+                                                min="0"
+                                                className="w-24"
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => removePosition(position.id)}
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </Button>
                                         </div>
                                     ))}
-                                </div>
+                            </div>
+                        </div>
 
-                                <div className="flex justify-between pt-4">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => router.visit(`${basePath}/workforce`)}
-                                    >
-                                        <ArrowLeft className="w-4 h-4 mr-2" />
-                                        Back
-                                    </Button>
-                                    <Button type="submit" disabled={form.processing}>
-                                        {form.processing ? 'Saving...' : 'Next'}
-                                        <ArrowRight className="w-4 h-4 ml-2" />
-                                    </Button>
-                                </div>
-                            </form>
-                        </CardContent>
-                    </Card>
-                    </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+                        {/* Positions with Counts */}
+                        <div className="space-y-3">
+                            <Label>Position Counts</Label>
+                            <div className="space-y-2">
+                                {positions
+                                    .filter(pos => pos.role)
+                                    .map((position) => (
+                                        <div key={position.id} className="flex items-center gap-2 p-2 border rounded-md">
+                                            <span className="flex-1 font-medium">{position.role}</span>
+                                            <Input
+                                                type="number"
+                                                value={position.count || ''}
+                                                onChange={(e) => updatePosition(position.id, { count: parseInt(e.target.value) || 0 })}
+                                                min="0"
+                                                className="w-24"
+                                            />
+                                            <span className="text-sm text-muted-foreground">people</span>
+                                            {!DEFAULT_POSITIONS.includes(position.role) && (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => removePosition(position.id)}
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    ))}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </FormLayout>
+        </>
     );
 }

@@ -20,7 +20,7 @@ class RecommendationService
      * Get recommended organization structure based on diagnostics.
      */
     public function getRecommendedOrganizationStructure(
-        CompanyAttribute $attributes,
+        ?CompanyAttribute $attributes = null,
         ?CeoPhilosophy $philosophy = null,
         ?OrganizationalSentiment $sentiment = null,
         ?Company $company = null
@@ -32,9 +32,9 @@ class RecommendationService
             $score = 0;
             $reasons = [];
 
-            // Company growth stage influence
-            if ($company && $company->growth_stage) {
-                $growthRules = $this->rules->getGrowthStageRules($company->growth_stage);
+            // Company growth stage influence (from CompanyAttribute)
+            if ($attributes && $attributes->growth_stage) {
+                $growthRules = $this->rules->getGrowthStageRules($attributes->growth_stage);
                 if (isset($growthRules['organization'][$option])) {
                     $score += $growthRules['organization'][$option]['weight'];
                     $reasons[] = $growthRules['organization'][$option]['reason'];
@@ -51,7 +51,7 @@ class RecommendationService
             }
 
             // Job standardization influence
-            if ($attributes->job_standardization_level) {
+            if ($attributes && $attributes->job_standardization_level) {
                 if ($attributes->job_standardization_level >= 4 && in_array($option, ['functional', 'divisional'])) {
                     $score += 2;
                     $reasons[] = 'High job standardization favors structured organizations';

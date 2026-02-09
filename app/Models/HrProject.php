@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\ProjectStatus;
+use App\Enums\StepStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class HrProject extends Model
@@ -15,16 +16,18 @@ class HrProject extends Model
     protected $fillable = [
         'company_id',
         'status',
-        'current_step',
         'step_statuses',
     ];
 
     protected $casts = [
+        'status' => ProjectStatus::class,
         'step_statuses' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
-     * Get the company that owns the HR project.
+     * Get the company that owns this project.
      */
     public function company(): BelongsTo
     {
@@ -32,52 +35,15 @@ class HrProject extends Model
     }
 
     /**
-     * Get the business profile for the HR project.
-     * Note: BusinessProfile uses company_id, not hr_project_id
+     * Get the diagnosis for this project.
      */
-    public function businessProfile(): HasOne
+    public function diagnosis(): HasOne
     {
-        return $this->hasOne(BusinessProfile::class, 'company_id', 'company_id');
+        return $this->hasOne(Diagnosis::class);
     }
 
     /**
-     * Get the workforce details for the HR project.
-     * Note: Workforce uses company_id, not hr_project_id
-     */
-    public function workforce(): HasOne
-    {
-        return $this->hasOne(Workforce::class, 'company_id', 'company_id');
-    }
-
-    /**
-     * Get the current HR status for the HR project.
-     * Note: CurrentHrStatus uses company_id, not hr_project_id
-     */
-    public function currentHrStatus(): HasOne
-    {
-        return $this->hasOne(CurrentHrStatus::class, 'company_id', 'company_id');
-    }
-
-    /**
-     * Get the culture details for the HR project.
-     * Note: Culture uses company_id, not hr_project_id
-     */
-    public function culture(): HasOne
-    {
-        return $this->hasOne(Culture::class, 'company_id', 'company_id');
-    }
-
-    /**
-     * Get the confidential note for the HR project.
-     * Note: ConfidentialNote uses company_id, not hr_project_id
-     */
-    public function confidentialNote(): HasOne
-    {
-        return $this->hasOne(ConfidentialNote::class, 'company_id', 'company_id');
-    }
-
-    /**
-     * Get the CEO philosophy survey for the HR project.
+     * Get the CEO philosophy for this project.
      */
     public function ceoPhilosophy(): HasOne
     {
@@ -85,31 +51,7 @@ class HrProject extends Model
     }
 
     /**
-     * Get the organization design for the HR project.
-     */
-    public function organizationDesign(): HasOne
-    {
-        return $this->hasOne(OrganizationDesign::class);
-    }
-
-    /**
-     * Get the performance system for the HR project.
-     */
-    public function performanceSystem(): HasOne
-    {
-        return $this->hasOne(PerformanceSystem::class);
-    }
-
-    /**
-     * Get the compensation system for the HR project.
-     */
-    public function compensationSystem(): HasOne
-    {
-        return $this->hasOne(CompensationSystem::class);
-    }
-
-    /**
-     * Get the company attributes for the HR project.
+     * Get the company attributes for this project.
      */
     public function companyAttributes(): HasOne
     {
@@ -117,7 +59,7 @@ class HrProject extends Model
     }
 
     /**
-     * Get the organizational sentiment for the HR project.
+     * Get the organizational sentiment for this project.
      */
     public function organizationalSentiment(): HasOne
     {
@@ -125,27 +67,43 @@ class HrProject extends Model
     }
 
     /**
-     * Get the consultant reviews for the HR project.
+     * Get the organization design for this project.
      */
-    public function consultantReviews(): HasMany
+    public function organizationDesign(): HasOne
     {
-        return $this->hasMany(ConsultantReview::class);
+        return $this->hasOne(OrganizationDesign::class);
     }
 
     /**
-     * Get the CEO approvals for the HR project.
+     * Get the performance system for this project.
      */
-    public function ceoApprovals(): HasMany
+    public function performanceSystem(): HasOne
     {
-        return $this->hasMany(CeoApproval::class);
+        return $this->hasOne(PerformanceSystem::class);
     }
 
     /**
-     * Get the audits for the HR project.
+     * Get the compensation system for this project.
      */
-    public function audits(): HasMany
+    public function compensationSystem(): HasOne
     {
-        return $this->hasMany(HrProjectAudit::class);
+        return $this->hasOne(CompensationSystem::class);
+    }
+
+    /**
+     * Get audit logs for this project.
+     */
+    public function auditLogs()
+    {
+        return $this->hasMany(AuditLog::class);
+    }
+
+    /**
+     * Get admin comments for this project.
+     */
+    public function adminComments()
+    {
+        return $this->hasMany(AdminComment::class);
     }
 
     /**
@@ -153,96 +111,75 @@ class HrProject extends Model
      */
     public function initializeStepStatuses(): void
     {
-        if ($this->step_statuses === null || empty($this->step_statuses)) {
+        if (empty($this->step_statuses)) {
             $this->step_statuses = [
-                'diagnosis' => 'not_started',
-                'organization' => 'not_started',
-                'performance' => 'not_started',
-                'compensation' => 'not_started',
+                'diagnosis' => StepStatus::NOT_STARTED->value,
+                'job_analysis' => StepStatus::NOT_STARTED->value,
+                'performance' => StepStatus::NOT_STARTED->value,
+                'compensation' => StepStatus::NOT_STARTED->value,
+                'tree' => StepStatus::NOT_STARTED->value,
+                'conclusion' => StepStatus::NOT_STARTED->value,
             ];
             $this->save();
         }
     }
 
     /**
-     * Get the status for a specific step.
+     * Get the status of a specific step.
      */
-    public function getStepStatus(string $step): string
+    public function getStepStatus(string $step): ?StepStatus
     {
-        $this->initializeStepStatuses();
-        return $this->step_statuses[$step] ?? 'not_started';
+        $statuses = $this->step_statuses ?? [];
+        $status = $statuses[$step] ?? null;
+
+        return $status ? StepStatus::from($status) : null;
     }
 
     /**
-     * Set the status for a specific step.
+     * Set the status of a specific step.
      */
-    public function setStepStatus(string $step, string $status): void
+    public function setStepStatus(string $step, StepStatus $status): void
     {
-        $this->initializeStepStatuses();
-        
-        // Get the array, modify it, and set it back (required for JSON cast)
-        $stepStatuses = $this->step_statuses ?? [];
-        $stepStatuses[$step] = $status;
-        $this->step_statuses = $stepStatuses;
-        
+        $statuses = $this->step_statuses ?? [];
+        $statuses[$step] = $status->value;
+        $this->step_statuses = $statuses;
         $this->save();
     }
 
     /**
      * Check if a step is unlocked.
-     * A step is unlocked if:
-     * - It's the first step (diagnosis)
-     * - The previous step is 'submitted' or 'completed'
+     * A step is unlocked only if the previous step is verified (approved/locked) by CEO.
      */
     public function isStepUnlocked(string $step): bool
     {
-        $stepOrder = ['diagnosis', 'organization', 'performance', 'compensation'];
+        $stepOrder = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'tree', 'conclusion'];
         $stepIndex = array_search($step, $stepOrder);
 
-        // First step is always unlocked
-        if ($stepIndex === 0) {
-            return true;
+        if ($stepIndex === false || $stepIndex === 0) {
+            return true; // First step is always unlocked
         }
 
-        // If step not found, return false
-        if ($stepIndex === false) {
-            return false;
-        }
-
-        // Get previous step
         $previousStep = $stepOrder[$stepIndex - 1];
         $previousStatus = $this->getStepStatus($previousStep);
 
-        // Step is unlocked only if previous step is completed (CEO verified)
-        // 'submitted' means waiting for CEO verification, so it should remain locked
-        return $previousStatus === 'completed';
+        // Previous step must be approved/locked (CEO verified) to unlock next step
+        return $previousStatus && in_array($previousStatus, [StepStatus::APPROVED, StepStatus::LOCKED]);
     }
 
     /**
-     * Check if a step is verified (completed by CEO).
+     * Check if all steps are locked.
      */
-    public function isStepVerified(string $step): bool
+    public function isFullyLocked(): bool
     {
-        $status = $this->getStepStatus($step);
-        return $status === 'completed';
-    }
+        $steps = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'tree', 'conclusion'];
+        
+        foreach ($steps as $step) {
+            $status = $this->getStepStatus($step);
+            if (!$status || $status !== StepStatus::LOCKED) {
+                return false;
+            }
+        }
 
-    /**
-     * Mark a step as verified (completed by CEO).
-     */
-    public function markStepAsVerified(string $step): void
-    {
-        $this->setStepStatus($step, 'completed');
-    }
-
-    /**
-     * Get the CEO user for this project's company.
-     */
-    public function getCeoUser()
-    {
-        return $this->company
-            ->users()
-            ->wherePivot('role', 'ceo')
-            ->first();
+        return true;
     }
 }

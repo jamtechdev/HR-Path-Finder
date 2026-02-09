@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -58,15 +57,6 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    /**
-     * Get the companies that the user belongs to.
-     */
-    public function companies(): BelongsToMany
-    {
-        return $this->belongsToMany(Company::class, 'company_users')
-            ->withPivot('role')
-            ->withTimestamps();
-    }
 
     /**
      * Send the email verification notification.
@@ -76,5 +66,83 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendEmailVerificationNotification()
     {
         $this->notify(new VerifyEmailNotification);
+    }
+
+    /**
+     * Get all companies associated with this user.
+     */
+    public function companies()
+    {
+        return $this->belongsToMany(Company::class, 'company_users')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get companies where user is HR Manager.
+     */
+    public function hrManagedCompanies()
+    {
+        return $this->companies()->wherePivot('role', 'hr_manager');
+    }
+
+    /**
+     * Get companies where user is CEO.
+     */
+    public function ceoCompanies()
+    {
+        return $this->companies()->wherePivot('role', 'ceo');
+    }
+
+    /**
+     * Get companies where user is Consultant.
+     */
+    public function consultantCompanies()
+    {
+        return $this->companies()->wherePivot('role', 'consultant');
+    }
+
+    /**
+     * Get HR projects for companies this user is associated with.
+     */
+    public function hrProjects()
+    {
+        return HrProject::whereHas('company', function ($query) {
+            $query->whereHas('users', function ($q) {
+                $q->where('users.id', $this->id);
+            });
+        });
+    }
+
+    /**
+     * Get CEO philosophies created by this user.
+     */
+    public function ceoPhilosophies()
+    {
+        return $this->hasMany(CeoPhilosophy::class);
+    }
+
+    /**
+     * Get audit logs created by this user.
+     */
+    public function auditLogs()
+    {
+        return $this->hasMany(AuditLog::class);
+    }
+
+    /**
+     * Get consultant comments created by this user.
+     */
+    public function adminComments()
+    {
+        return $this->hasMany(AdminComment::class);
+    }
+
+    /**
+     * Get company invitations sent by this user.
+     */
+    public function sentInvitations()
+    {
+        return $this->hasMany(CompanyInvitation::class, 'inviter_id');
     }
 }

@@ -1,134 +1,288 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ClipboardCheck, Building2, Target, Wallet, FileText, UserPlus } from 'lucide-react';
+import { SidebarGroup, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
+import { CheckCircle2, Lock, Target, DollarSign, Building2, FileText, LayoutGrid, TrendingUp, Award, User } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface HRManagerSidebarProps {
     isCollapsed?: boolean;
 }
 
+interface StepConfig {
+    id: string;
+    step: number;
+    title: string;
+    desc: string;
+    icon: React.ComponentType<{ className?: string }>;
+    route: string;
+}
+
+// Updated step names as per user request - CEO step removed from HR side
+const MAIN_STEPS: StepConfig[] = [
+    {
+        id: 'diagnosis',
+        step: 1,
+        title: 'Diagnosis (Company info.)',
+        desc: 'Input company information, business profile, workforce details, and organizational culture.',
+        icon: CheckCircle2,
+        route: '/hr-manager/diagnosis',
+    },
+    {
+        id: 'job_analysis',
+        step: 2,
+        title: 'Job Analysis',
+        desc: 'Define job roles, responsibilities, competencies, and organizational mapping.',
+        icon: Building2,
+        route: '/hr-manager/job-analysis',
+    },
+    {
+        id: 'performance',
+        step: 3,
+        title: 'Performance.Man.',
+        desc: 'Design evaluation units, performance management methods, and assessment structures.',
+        icon: Target,
+        route: '/hr-manager/performance-system',
+    },
+    {
+        id: 'compensation',
+        step: 4,
+        title: 'C&B',
+        desc: 'Define compensation structure, differentiation methods, and incentive components.',
+        icon: DollarSign,
+        route: '/hr-manager/compensation-system',
+    },
+    {
+        id: 'tree',
+        step: 5,
+        title: 'TREE',
+        desc: 'Talent Review, Evaluation, and Enhancement system.',
+        icon: TrendingUp,
+        route: '/hr-manager/tree',
+    },
+    {
+        id: 'conclusion',
+        step: 6,
+        title: 'Conclusion (report)',
+        desc: 'Final review, approval, and system implementation summary.',
+        icon: Award,
+        route: '/hr-manager/conclusion',
+    },
+];
+
 export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSidebarProps) {
-    const { url } = usePage();
+    const { url, props } = usePage();
     const currentPath = url.split('?')[0];
+    
+    // Get step statuses and project ID from page props
+    const stepStatuses = (props as any).stepStatuses || (props as any).mainStepStatuses || {};
+    const projectId = (props as any).projectId || (props as any).project?.id;
 
     const isActive = (path: string) => {
         if (path === '/') {
             return currentPath === '/';
         }
-        // Special handling for dashboard - check both /dashboard and /hr-manager/dashboard
         if (path === '/dashboard') {
             return currentPath === '/dashboard' || currentPath === '/hr-manager/dashboard' || currentPath.startsWith('/hr-manager/dashboard/');
         }
         return currentPath === path || currentPath.startsWith(`${path}/`);
     };
 
+    const getStepState = (stepId: string): 'current' | 'locked' | 'completed' => {
+        const status = stepStatuses[stepId];
+        const stepIndex = MAIN_STEPS.findIndex(s => s.id === stepId);
+        const isCurrentlyActive = isStepActive({ id: stepId, route: '', step: 0, title: '', desc: '', icon: CheckCircle2 });
+        
+        // If step is completed (submitted/approved/locked), it's completed and enabled
+        if (status && ['submitted', 'approved', 'locked', 'completed'].includes(status)) {
+            return 'completed';
+        }
+        
+        // If this step is currently active (user is on this page), it's current
+        if (isCurrentlyActive) {
+            return 'current';
+        }
+        
+        // Check if this is the first step and it's not started yet
+        if (stepIndex === 0 && (!status || status === 'not_started')) {
+            return 'current';
+        }
+        
+        // If status is in_progress and it's not the current active page, check if it's the current step
+        // For now, only completed and current steps are enabled, rest are locked
+        if (status === 'in_progress' && !isCurrentlyActive) {
+            // Check if this is the next step to work on (all previous steps are completed)
+            let allPreviousCompleted = true;
+            for (let i = 0; i < stepIndex; i++) {
+                const prevStep = MAIN_STEPS[i];
+                const prevStatus = stepStatuses[prevStep.id];
+                if (!prevStatus || !['submitted', 'approved', 'locked', 'completed'].includes(prevStatus)) {
+                    allPreviousCompleted = false;
+                    break;
+                }
+            }
+            if (allPreviousCompleted) {
+                return 'current';
+            }
+        }
+        
+        // All other steps are locked (only completed and current steps are enabled)
+        return 'locked';
+    };
+
+    const isStepActive = (step: StepConfig): boolean => {
+        return currentPath.startsWith(step.route);
+    };
+
+    const getStepRoute = (step: StepConfig): string => {
+        if (projectId) {
+            if (step.id === 'diagnosis') {
+                return `${step.route}/${projectId}/overview`;
+            }
+            if (step.id === 'job_analysis') {
+                return `${step.route}/${projectId}/intro`;
+            }
+            if (step.id === 'performance') {
+                return `${step.route}/${projectId}/overview`;
+            }
+            if (step.id === 'compensation') {
+                return `${step.route}/${projectId}/overview`;
+            }
+            if (step.id === 'tree') {
+                return `${step.route}/${projectId}/overview`;
+            }
+            if (step.id === 'conclusion') {
+                return `${step.route}/${projectId}`;
+            }
+            return `${step.route}/${projectId}`;
+        }
+        return step.route;
+    };
+
     return (
         <div className="flex flex-col h-full w-full">
-            <div className={`flex items-center h-16 px-4 border-b border-sidebar-border gap-3 ${isCollapsed ? 'justify-center' : ''}`}>
-                <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-bold text-sm">HR</span>
+            {/* Header - Match dashboard style */}
+            <div className={cn(
+                "flex items-center border-b border-sidebar-border/30 gap-3 transition-all duration-200",
+                isCollapsed ? "h-16 px-4 justify-center" : "h-20 px-6"
+            )}>
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center flex-shrink-0 shadow-lg transition-all duration-200">
+                    <span className="text-white font-bold text-base">HR</span>
                 </div>
                 {!isCollapsed && (
-                    <div className="flex flex-col">
-                        <span className="font-display font-semibold text-sidebar-foreground text-sm">HR Path-Finder</span>
-                        <span className="text-[10px] text-sidebar-foreground/60">by BetterCompany</span>
+                    <div className="flex flex-col gap-1">
+                        <span className="font-semibold text-sidebar-foreground text-lg leading-none">HR Path-Finder</span>
+                        <span className="text-xs text-sidebar-foreground/60 leading-none">by BetterCompany</span>
                     </div>
                 )}
             </div>
             
-            <nav className="flex-1 py-4 px-2 overflow-y-auto">
-                    <div className="space-y-1">
-                        <Link
-                            href="/hr-manager/dashboard"
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                isActive('/dashboard')
-                                    ? 'bg-sidebar-accent text-sidebar-primary'
-                                    : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                            }`}
-                        >
-                            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <rect width="7" height="9" x="3" y="3" rx="1"/>
-                                <rect width="7" height="5" x="14" y="3" rx="1"/>
-                                <rect width="7" height="9" x="14" y="12" rx="1"/>
-                                <rect width="7" height="5" x="3" y="16" rx="1"/>
-                            </svg>
-                            {!isCollapsed && <span className="flex-1 text-left truncate">Dashboard</span>}
-                        </Link>
-                        
-                        <Link
-                            href="/hr-manager/diagnosis/overview"
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                isActive('/diagnosis')
-                                    ? 'bg-sidebar-accent text-sidebar-primary'
-                                    : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                            }`}
-                        >
-                            <ClipboardCheck className="w-5 h-5 flex-shrink-0" />
-                            {!isCollapsed && <span className="flex-1 text-left truncate">Diagnosis</span>}
-                        </Link>
-                        
-                        <button disabled className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-sidebar-foreground/30 cursor-not-allowed">
-                            <Building2 className="w-5 h-5 flex-shrink-0" />
-                            {!isCollapsed && <span className="flex-1 text-left truncate">Organization</span>}
-                            <div className="w-2 h-2 rounded-full bg-sidebar-foreground/20"></div>
-                        </button>
-                        
-                        <button disabled className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-sidebar-foreground/30 cursor-not-allowed">
-                            <Target className="w-5 h-5 flex-shrink-0" />
-                            {!isCollapsed && <span className="flex-1 text-left truncate">Performance</span>}
-                            <div className="w-2 h-2 rounded-full bg-sidebar-foreground/20"></div>
-                        </button>
-                        
-                        <button disabled className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-sidebar-foreground/30 cursor-not-allowed">
-                            <Wallet className="w-5 h-5 flex-shrink-0" />
-                            {!isCollapsed && <span className="flex-1 text-left truncate">Compensation</span>}
-                            <div className="w-2 h-2 rounded-full bg-sidebar-foreground/20"></div>
-                        </button>
-                        
-                        <Link
-                            href="/hr-manager/hr-system-output"
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                isActive('/hr-system-output')
-                                    ? 'bg-sidebar-accent text-sidebar-primary'
-                                    : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                            }`}
-                        >
-                            <FileText className="w-5 h-5 flex-shrink-0" />
-                            {!isCollapsed && <span className="flex-1 text-left truncate">HR System Output</span>}
-                        </Link>
-                    </div>
-                    
-                    {/* CEO Management Section */}
-                    <div className="mt-4 pt-4 border-t border-sidebar-border">
-                        {!isCollapsed && (
-                            <div className="px-3 mb-2">
-                                <span className="text-xs font-semibold text-sidebar-foreground/60 uppercase tracking-wider">Management</span>
-                            </div>
-                        )}
-                        <div className="space-y-1">
-                            <Link
-                                href="/hr-manager/ceos"
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                    isActive('/ceos')
-                                        ? 'bg-sidebar-accent text-sidebar-primary'
-                                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                                }`}
+            {/* Navigation - Match dashboard style */}
+            <nav className="flex-1 overflow-y-auto">
+                <SidebarGroup className={cn("transition-all duration-200", isCollapsed ? "px-3 py-6" : "px-6 py-8")}>
+                    <SidebarMenu className={cn("transition-all duration-200", isCollapsed ? "space-y-2" : "space-y-2")}>
+                        {/* Dashboard Menu Item */}
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={isActive('/dashboard')}
+                                className={cn(
+                                    "transition-all duration-200 rounded-lg",
+                                    isCollapsed ? "px-3 py-3 justify-center w-full" : "px-4 py-3 gap-3"
+                                )}
                             >
-                                <UserPlus className="w-5 h-5 flex-shrink-0" />
-                                {!isCollapsed && <span className="flex-1 text-left truncate">CEO Management</span>}
-                            </Link>
-                            
-                            <Link
-                                href="/hr-manager/companies"
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                    isActive('/companies')
-                                        ? 'bg-sidebar-accent text-sidebar-primary'
-                                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                                }`}
-                            >
-                                <Building2 className="w-5 h-5 flex-shrink-0" />
-                                {!isCollapsed && <span className="flex-1 text-left truncate">Companies</span>}
-                            </Link>
-                        </div>
-                    </div>
+                                <Link href="/hr-manager/dashboard" className="flex items-center w-full">
+                                    <LayoutGrid className={cn("flex-shrink-0 transition-all duration-200", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
+                                    {!isCollapsed && <span className="font-medium">Dashboard</span>}
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        
+                        {/* Workflow Steps */}
+                        {MAIN_STEPS.map((step) => {
+                            const state = getStepState(step.id);
+                            const status = stepStatuses[step.id] || 'not_started';
+                            const isCompleted = state === 'completed';
+                            const isLocked = state === 'locked';
+                            const isStepActiveState = isStepActive(step);
+                            const StepIcon = step.icon;
+
+                            return (
+                                <SidebarMenuItem key={step.id}>
+                                    {isLocked ? (
+                                        <SidebarMenuButton
+                                            disabled
+                                            className={cn(
+                                                "transition-all duration-200 rounded-lg opacity-50 cursor-not-allowed",
+                                                isCollapsed ? "px-3 py-3 justify-center w-full" : "px-4 py-3 gap-3"
+                                            )}
+                                        >
+                                            <div className={cn("flex items-center w-full", isCollapsed ? "justify-center" : "gap-3")}>
+                                                <div className={cn(
+                                                    "rounded-full border-2 border-sidebar-foreground/20 flex items-center justify-center flex-shrink-0 transition-all duration-200",
+                                                    isCollapsed ? "w-7 h-7" : "w-6 h-6"
+                                                )}>
+                                                    <Lock className={cn(
+                                                        "text-sidebar-foreground/30 transition-all duration-200",
+                                                        isCollapsed ? "w-4 h-4" : "w-3.5 h-3.5"
+                                                    )} />
+                                                </div>
+                                                {!isCollapsed && (
+                                                    <span className="text-sm font-medium text-sidebar-foreground/40">
+                                                        Step {step.step}: {step.title}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </SidebarMenuButton>
+                                    ) : (
+                                        <SidebarMenuButton
+                                            asChild
+                                            isActive={isStepActiveState}
+                                            className={cn(
+                                                "transition-all duration-200 rounded-lg w-full",
+                                                isCollapsed ? "px-3 py-3 justify-center" : "px-4 py-3 gap-3"
+                                            )}
+                                        >
+                                            <Link href={getStepRoute(step)} className="flex items-center w-full">
+                                                {/* Status Indicator - Green dot/circle for completed, icon for others */}
+                                                {isCompleted ? (
+                                                    <div className={cn(
+                                                        "rounded-full bg-success/20 border-2 border-success flex items-center justify-center flex-shrink-0 transition-all duration-200",
+                                                        isCollapsed ? "w-7 h-7" : "w-6 h-6"
+                                                    )}>
+                                                        <CheckCircle2 className={cn(
+                                                            "text-success transition-all duration-200",
+                                                            isCollapsed ? "w-4 h-4" : "w-3.5 h-3.5"
+                                                        )} />
+                                                    </div>
+                                                ) : (
+                                                    <div className={cn(
+                                                        "rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200",
+                                                        isCollapsed ? "w-7 h-7" : "w-6 h-6",
+                                                        isStepActiveState 
+                                                            ? "bg-sidebar-primary/20 border-sidebar-primary" 
+                                                            : "bg-transparent border-sidebar-foreground/20"
+                                                    )}>
+                                                        <StepIcon className={cn(
+                                                            "transition-all duration-200",
+                                                            isCollapsed ? "w-4 h-4" : "w-3.5 h-3.5",
+                                                            isStepActiveState ? "text-sidebar-primary" : "text-sidebar-foreground/60"
+                                                        )} />
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Step Text */}
+                                                {!isCollapsed && (
+                                                    <span className="text-sm font-medium text-sidebar-foreground flex-1 text-left">
+                                                        Step {step.step}: {step.title}
+                                                    </span>
+                                                )}
+                                            </Link>
+                                        </SidebarMenuButton>
+                                    )}
+                                </SidebarMenuItem>
+                            );
+                        })}
+                    </SidebarMenu>
+                </SidebarGroup>
             </nav>
         </div>
     );

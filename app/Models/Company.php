@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Company extends Model
 {
@@ -15,35 +14,17 @@ class Company extends Model
 
     protected $fillable = [
         'name',
-        'brand_name',
-        'foundation_date',
-        'hq_location',
-        'industry',
-        'industry_sub_category',
-        'secondary_industries',
         'registration_number',
+        'hq_location',
         'public_listing_status',
-        'size',
-        'growth_stage',
+        'is_public',
         'logo_path',
-        'image_path',
-        'latitude',
-        'longitude',
         'created_by',
-        'diagnosis_status',
-        'organization_status',
-        'performance_status',
-        'compensation_status',
-        'ceo_survey_status',
-        'overall_status',
     ];
 
     protected $casts = [
-        'foundation_date' => 'date',
-        'secondary_industries' => 'array',
-        'public_listing_status' => 'boolean',
-        'latitude' => 'decimal:8',
-        'longitude' => 'decimal:8',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
@@ -55,7 +36,7 @@ class Company extends Model
     }
 
     /**
-     * Get the users that belong to the company.
+     * Get all users associated with this company.
      */
     public function users(): BelongsToMany
     {
@@ -65,127 +46,7 @@ class Company extends Model
     }
 
     /**
-     * Get the invitations for the company.
-     */
-    public function invitations(): HasMany
-    {
-        return $this->hasMany(CompanyInvitation::class);
-    }
-
-    /**
-     * Get the business profile for the company.
-     */
-    public function businessProfile(): HasOne
-    {
-        return $this->hasOne(BusinessProfile::class);
-    }
-
-    /**
-     * Get the workforce details for the company.
-     */
-    public function workforce(): HasOne
-    {
-        return $this->hasOne(Workforce::class);
-    }
-
-    /**
-     * Get the current HR status for the company.
-     */
-    public function currentHrStatus(): HasOne
-    {
-        return $this->hasOne(CurrentHrStatus::class);
-    }
-
-    /**
-     * Get the culture details for the company.
-     */
-    public function culture(): HasOne
-    {
-        return $this->hasOne(Culture::class);
-    }
-
-    /**
-     * Get the confidential notes for the company.
-     */
-    public function confidentialNote(): HasOne
-    {
-        return $this->hasOne(ConfidentialNote::class);
-    }
-
-    /**
-     * Get the organization design for the company.
-     */
-    public function organizationDesign(): HasOne
-    {
-        return $this->hasOne(OrganizationDesign::class);
-    }
-
-    /**
-     * Get the performance system for the company.
-     */
-    public function performanceSystem(): HasOne
-    {
-        return $this->hasOne(PerformanceSystem::class);
-    }
-
-    /**
-     * Get the compensation system for the company.
-     */
-    public function compensationSystem(): HasOne
-    {
-        return $this->hasOne(CompensationSystem::class);
-    }
-
-    /**
-     * Get the CEO philosophy survey for the company.
-     */
-    public function ceoPhilosophy(): HasOne
-    {
-        return $this->hasOne(CeoPhilosophy::class);
-    }
-
-    /**
-     * Check if diagnosis is completed.
-     */
-    public function isDiagnosisCompleted(): bool
-    {
-        return $this->diagnosis_status === 'completed';
-    }
-
-    /**
-     * Check if organization is completed.
-     */
-    public function isOrganizationCompleted(): bool
-    {
-        return $this->organization_status === 'completed';
-    }
-
-    /**
-     * Check if performance is completed.
-     */
-    public function isPerformanceCompleted(): bool
-    {
-        return $this->performance_status === 'completed';
-    }
-
-    /**
-     * Check if compensation is completed.
-     */
-    public function isCompensationCompleted(): bool
-    {
-        return $this->compensation_status === 'completed';
-    }
-
-    /**
-     * Check if CEO survey is completed.
-     */
-    public function isCeoSurveyCompleted(): bool
-    {
-        return $this->ceo_survey_status === 'completed';
-    }
-
-    /**
-     * Get the HR projects for the company.
+     * Get all HR projects for this company.
      */
     public function hrProjects(): HasMany
     {
@@ -193,34 +54,50 @@ class Company extends Model
     }
 
     /**
-     * Get the executives for the company.
+     * Get the active HR project for this company.
      */
-    public function executives(): HasMany
+    public function activeHrProject(): ?HrProject
     {
-        return $this->hasMany(Executive::class);
+        return $this->hrProjects()->where('status', 'active')->first();
     }
 
     /**
-     * Get the job grades for the company.
+     * Get the active HR project relationship (for eager loading).
      */
-    public function jobGrades(): HasMany
+    public function activeHrProjectRelation()
     {
-        return $this->hasMany(JobGrade::class);
+        return $this->hasOne(HrProject::class, 'company_id')->where('status', 'active');
     }
 
     /**
-     * Get the organizational charts for the company.
+     * Get all company invitations.
      */
-    public function organizationalCharts(): HasMany
+    public function invitations(): HasMany
     {
-        return $this->hasMany(OrganizationalChart::class);
+        return $this->hasMany(CompanyInvitation::class);
     }
 
     /**
-     * Get the HR issues for the company.
+     * Get HR managers for this company.
      */
-    public function hrIssues(): HasMany
+    public function hrManagers(): BelongsToMany
     {
-        return $this->hasMany(HrIssue::class);
+        return $this->users()->wherePivot('role', 'hr_manager');
+    }
+
+    /**
+     * Get CEOs for this company.
+     */
+    public function ceos(): BelongsToMany
+    {
+        return $this->users()->wherePivot('role', 'ceo');
+    }
+
+    /**
+     * Get consultants for this company.
+     */
+    public function consultants(): BelongsToMany
+    {
+        return $this->users()->wherePivot('role', 'consultant');
     }
 }

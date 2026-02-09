@@ -1,345 +1,205 @@
-import React, { useState, useEffect } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
-import { ArrowRight, ArrowLeft, Building2, Briefcase, Users, Settings, MessageSquare, FileText, Check, Plus, X, BriefcaseBusiness, Upload, Network, AlertTriangle, UserCog } from 'lucide-react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useEffect, useState } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import FormLayout from '@/components/Diagnosis/FormLayout';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import DiagnosisHeader from '@/components/Diagnosis/DiagnosisHeader';
-import DiagnosisProgressBar from '@/components/Diagnosis/DiagnosisProgressBar';
-import DiagnosisTabs, { TabId } from '@/components/Diagnosis/DiagnosisTabs';
-import { diagnosisTabs } from '@/config/diagnosisTabs';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, X } from 'lucide-react';
 
-interface Company {
+interface Diagnosis {
     id: number;
-    name: string;
+    job_grade_names?: string[];
+    promotion_years?: Record<string, number | null>;
+}
+
+interface Props {
+    project: {
+        id: number;
+        company: {
+            name: string;
+        };
+    };
+    company: {
+        name: string;
+    };
+    diagnosis?: Diagnosis;
+    activeTab: string;
+    diagnosisStatus: string;
+    stepStatuses: Record<string, string>;
+    projectId?: number;
 }
 
 interface JobGrade {
-    id?: number;
-    grade_name: string;
-    grade_order?: number | null;
-    promotion_rules?: string | null;
-    promotion_to_grade?: string | null;
+    id: string;
+    name: string;
+    promotion_years: number | null;
+    no_promotion_period: boolean;
 }
 
-interface Project {
-    id: number;
-    status: string;
-    job_grades?: JobGrade[];
-    executives?: { id?: number } | null;
-}
+const DEFAULT_GRADES = ['Associate', 'Assistant Manager', 'Manager', 'Senior Manager', 'General Manager'];
 
-interface PageProps {
-    company?: Company | null;
-    project?: Project | null;
-}
-
-const commonJobGrades = ['Associate', 'Assistant Manager', 'Manager', 'Senior Manager', 'Director', 'Senior Director', 'VP', 'SVP', 'EVP'];
-
-export default function JobGrades({ company, project }: PageProps) {
-    const basePath = '/hr-manager/diagnosis';
-    
-    // Load from localStorage or use project data
-    const getStoredData = (key: string, defaultValue: any) => {
-        if (typeof window === 'undefined') return defaultValue;
-        try {
-            const stored = localStorage.getItem(`diagnosis_form_${key}`);
-            if (stored) {
-                return JSON.parse(stored);
-            }
-        } catch (e) {
-            console.error('Error loading from localStorage:', e);
+export default function JobGrades({
+    project,
+    company,
+    diagnosis,
+    activeTab,
+    diagnosisStatus,
+    stepStatuses,
+    projectId,
+}: Props) {
+    const [grades, setGrades] = useState<JobGrade[]>(() => {
+        if (diagnosis?.job_grade_names && diagnosis?.promotion_years) {
+            return diagnosis.job_grade_names.map((name, index) => {
+                const promotionYears = diagnosis.promotion_years?.[name];
+                return {
+                    id: `grade-${index}`,
+                    name,
+                    promotion_years: promotionYears ?? null,
+                    no_promotion_period: promotionYears === null,
+                };
+            });
         }
-        return defaultValue;
-    };
-
-    // Save to localStorage
-    const saveToLocalStorage = (key: string, data: any) => {
-        if (typeof window === 'undefined') return;
-        try {
-            localStorage.setItem(`diagnosis_form_${key}`, JSON.stringify(data));
-        } catch (e) {
-            console.error('Error saving to localStorage:', e);
-        }
-    };
-
-    // Get stored job grades data
-    const storedJobGrades = getStoredData('job-grades', []);
-    const existingJobGrades = project?.job_grades || storedJobGrades;
-    
-    const [jobGrades, setJobGrades] = useState<JobGrade[]>(
-        existingJobGrades.length > 0
-            ? existingJobGrades
-            : [{ grade_name: '', grade_order: null, promotion_rules: '', promotion_to_grade: '' }]
-    );
-
-    const form = useForm({
-        job_grades: jobGrades,
+        // Initialize with default grades
+        return DEFAULT_GRADES.map((name, index) => ({
+            id: `grade-${index}`,
+            name,
+            promotion_years: index + 3, // Default: 3, 4, 4, 4, null
+            no_promotion_period: false,
+        }));
     });
 
-    // Save to localStorage whenever jobGrades change
+    const { data, setData, post, processing, errors } = useForm({
+        job_grade_names: [] as string[],
+        promotion_years: {} as Record<string, number | null>,
+    });
+
+    // Update form data when grades change
     useEffect(() => {
-        const timer = setTimeout(() => {
-            const validGrades = jobGrades.filter(g => g.grade_name.trim() !== '');
-            if (validGrades.length > 0) {
-                saveToLocalStorage('job-grades', validGrades);
+        const names = grades.map((g) => g.name).filter(Boolean);
+        const years: Record<string, number | null> = {};
+        grades.forEach((g) => {
+            if (g.name) {
+                years[g.name] = g.no_promotion_period ? null : (g.promotion_years || null);
             }
-        }, 500); // Debounce saves
-        return () => clearTimeout(timer);
-    }, [jobGrades]);
+        });
+        setData('job_grade_names', names);
+        setData('promotion_years', years);
+    }, [grades]);
 
-    const addJobGrade = () => {
-        const nextOrder = jobGrades.length > 0 
-            ? Math.max(...jobGrades.map(g => g.grade_order || 0)) + 1 
-            : 1;
-        const newJobGrades = [...jobGrades, { grade_name: '', grade_order: nextOrder, promotion_rules: '', promotion_to_grade: '' }];
-        setJobGrades(newJobGrades);
-        form.setData('job_grades', newJobGrades);
+    // Removed auto-save - only save on review and submit
+
+    const addGrade = () => {
+        setGrades([...grades, { id: `grade-${Date.now()}`, name: '', promotion_years: 0, no_promotion_period: false }]);
     };
 
-    const removeJobGrade = (index: number) => {
-        const newJobGrades = jobGrades.filter((_, i) => i !== index);
-        setJobGrades(newJobGrades);
-        form.setData('job_grades', newJobGrades);
+    const removeGrade = (id: string) => {
+        setGrades(grades.filter((g) => g.id !== id));
     };
 
-    const updateJobGrade = (index: number, field: keyof JobGrade, value: any) => {
-        const updated = [...jobGrades];
-        updated[index] = { ...updated[index], [field]: value };
-        setJobGrades(updated);
-        form.setData('job_grades', updated);
-    };
-
-    const selectCommonGrade = (index: number, gradeName: string) => {
-        updateJobGrade(index, 'grade_name', gradeName);
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        // Validate job grades
-        const validGrades = jobGrades.filter(g => g.grade_name.trim() !== '');
-        if (validGrades.length === 0) {
-            alert('Please add at least one job grade.');
-            return;
-        }
-
-        // Save to localStorage
-        saveToLocalStorage('job-grades', validGrades);
-        
-        // Navigate to next step
-        router.visit(`${basePath}/organizational-charts`);
-    };
-
-    // Calculate step completion status from localStorage
-    const checkStepComplete = (key: string): boolean => {
-        if (typeof window === 'undefined') return false;
-        try {
-            const stored = localStorage.getItem(`diagnosis_form_${key}`);
-            if (!stored || stored === '{}' || stored === 'null') return false;
-            const data = JSON.parse(stored);
-            if (Array.isArray(data)) {
-                return data.length > 0 && data.some((item: any) => Object.values(item).some(v => v !== null && v !== ''));
+    const updateGrade = (id: string, updates: Partial<JobGrade>) => {
+        setGrades(grades.map((g) => {
+            if (g.id === id) {
+                const updated = { ...g, ...updates };
+                // If "no promotion period" is checked, set promotion_years to null
+                if (updated.no_promotion_period) {
+                    updated.promotion_years = null;
+                }
+                return updated;
             }
-            return Object.keys(data).length > 0 && Object.values(data).some(v => v !== null && v !== '' && (Array.isArray(v) ? v.length > 0 : true));
-        } catch {
-            return false;
-        }
+            return g;
+        }));
     };
-
-    const stepStatus = {
-        'company-info': checkStepComplete('company'),
-        'business-profile': checkStepComplete('business-profile'),
-        'workforce': checkStepComplete('workforce'),
-        'executives': checkStepComplete('executives'),
-        'job-grades': jobGrades.length > 0 && jobGrades.some(g => g.grade_name.trim() !== ''),
-        'organizational-charts': checkStepComplete('organizational-charts'),
-        'organizational-structure': checkStepComplete('organizational-structure'),
-        'hr-issues': checkStepComplete('hr-issues'),
-        'current-hr': checkStepComplete('current-hr'),
-        'culture': checkStepComplete('culture'),
-        'confidential': checkStepComplete('confidential'),
-        'review': false,
-    };
-
-    const stepOrder = ['company-info', 'business-profile', 'workforce', 'executives', 'job-grades', 'organizational-charts', 'organizational-structure', 'hr-issues', 'current-hr', 'culture', 'confidential', 'review'] as const;
-    const completedSteps = Object.values(stepStatus).filter(Boolean).length;
-    const totalSteps = 12;
-
-    const status: 'not_started' | 'in_progress' | 'submitted' = 'not_started';
-
-    // Use shared tabs configuration
-    const tabs = diagnosisTabs;
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto">
-                    <Head title="Job Grades - Diagnosis" />
-
-                    <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6">
-                        <DiagnosisHeader
-                            title="Step 1: Diagnosis"
-                            description="Input company information and organizational context"
-                            status={status}
-                            backHref={`${basePath}/executives`}
-                        />
-
-                        <DiagnosisProgressBar
-                            stepName="Job Grade System"
-                            completedSteps={completedSteps}
-                            totalSteps={totalSteps}
-                            currentStep={6}
-                        />
-
-                        <DiagnosisTabs
-                            tabs={tabs}
-                            activeTab="job-grades"
-                            stepStatus={stepStatus}
-                            stepOrder={stepOrder}
-                            projectId={null}
-                        />
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-2xl">Task 6: Job Grade System</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="text-lg font-semibold">Grade Names</h3>
-                                        <Button type="button" onClick={addJobGrade} variant="outline" size="sm">
-                                            <Plus className="w-4 h-4 mr-2" />
-                                            Add Grade
-                                        </Button>
-                                    </div>
-
-                                    {jobGrades.map((grade, index) => (
-                                        <div key={index} className="border rounded-lg p-4 space-y-4">
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex-1 space-y-4">
-                                                    <div className="space-y-2">
-                                                        <Label>Grade Name *</Label>
-                                                        <div className="flex gap-2">
-                                                            <Input
-                                                                value={grade.grade_name}
-                                                                onChange={(e) => updateJobGrade(index, 'grade_name', e.target.value)}
-                                                                placeholder="e.g., Associate, Assistant Manager, Manager"
-                                                                required
-                                                            />
-                                                            {jobGrades.length > 1 && (
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    onClick={() => removeJobGrade(index)}
-                                                                >
-                                                                    <X className="w-4 h-4" />
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {commonJobGrades.map((gradeName) => (
-                                                                <button
-                                                                    type="button"
-                                                                    key={gradeName}
-                                                                    onClick={() => selectCommonGrade(index, gradeName)}
-                                                                    className={`text-xs px-2 py-1 rounded border transition-colors ${
-                                                                        grade.grade_name === gradeName
-                                                                            ? 'bg-primary text-primary-foreground border-primary'
-                                                                            : 'hover:bg-accent'
-                                                                    }`}
-                                                                >
-                                                                    {gradeName}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid md:grid-cols-2 gap-4">
-                                                        <div className="space-y-2">
-                                                            <Label>Grade Order</Label>
-                                                            <Input
-                                                                type="number"
-                                                                min="1"
-                                                                value={grade.grade_order || ''}
-                                                                onChange={(e) => {
-                                                                    const value = e.target.value ? parseInt(e.target.value) : null;
-                                                                    const updated = [...jobGrades];
-                                                                    updated[index] = { ...updated[index], grade_order: value };
-                                                                    setJobGrades(updated);
-                                                                    form.setData('job_grades', updated);
-                                                                }}
-                                                                placeholder="Order/level (optional)"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label>Promotion To Grade</Label>
-                                                            <Select
-                                                                value={grade.promotion_to_grade ? grade.promotion_to_grade : 'none'}
-                                                                onValueChange={(value) => updateJobGrade(index, 'promotion_to_grade', value === 'none' ? '' : value)}
-                                                            >
-                                                                <SelectTrigger>
-                                                                    <SelectValue placeholder="Select next grade" />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    <SelectItem value="none">None</SelectItem>
-                                                                    {jobGrades
-                                                                        .filter((g, i) => i !== index && g.grade_name.trim() !== '')
-                                                                        .map((g, idx) => (
-                                                                            <SelectItem key={idx} value={g.grade_name}>
-                                                                                {g.grade_name}
-                                                                            </SelectItem>
-                                                                        ))}
-                                                                </SelectContent>
-                                                            </Select>
-                                                        </div>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label>Promotion Rules</Label>
-                                                        <Textarea
-                                                            value={grade.promotion_rules || ''}
-                                                            onChange={(e) => updateJobGrade(index, 'promotion_rules', e.target.value)}
-                                                            placeholder="Describe promotion rules for this grade (optional)"
-                                                            rows={3}
-                                                        />
-                                                    </div>
-                                                </div>
+        <>
+            <Head title={`Job Grade System - ${company?.name || project?.company?.name || 'Company'}`} />
+            <FormLayout
+                title="Job Grade System"
+                project={project}
+                diagnosis={diagnosis}
+                activeTab={activeTab}
+                diagnosisStatus={diagnosisStatus}
+                stepStatuses={stepStatuses}
+                projectId={projectId}
+                backRoute="leaders"
+                nextRoute="organizational-charts"
+                formData={{
+                    job_grade_names: grades.map(g => g.name),
+                    promotion_years: grades.reduce((acc, grade) => {
+                        acc[grade.name] = grade.no_promotion_period ? null : grade.promotion_years;
+                        return acc;
+                    }, {} as Record<string, number | null>),
+                }}
+                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
+            >
+                <Card>
+                    <CardContent className="p-6 space-y-6">
+                        <div className="space-y-4">
+                            <Label className="text-sm font-semibold">Grade Names and Promotion Duration</Label>
+                            <div className="space-y-3">
+                                {grades.map((grade) => (
+                                    <div key={grade.id} className="flex items-center gap-3 p-3 border rounded-md">
+                                        <Input
+                                            placeholder="Grade name"
+                                            value={grade.name}
+                                            onChange={(e) => updateGrade(grade.id, { name: e.target.value })}
+                                            className="flex-1"
+                                        />
+                                        <div className="flex items-center gap-2">
+                                            <Input
+                                                type="number"
+                                                placeholder="Years"
+                                                value={grade.no_promotion_period ? '' : (grade.promotion_years || '')}
+                                                onChange={(e) => {
+                                                    const value = parseInt(e.target.value) || 0;
+                                                    updateGrade(grade.id, { promotion_years: value, no_promotion_period: false });
+                                                }}
+                                                min="0"
+                                                disabled={grade.no_promotion_period}
+                                                className="w-24"
+                                            />
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox
+                                                    id={`no-promotion-${grade.id}`}
+                                                    checked={grade.no_promotion_period}
+                                                    onCheckedChange={(checked) => {
+                                                        updateGrade(grade.id, { no_promotion_period: checked as boolean });
+                                                    }}
+                                                />
+                                                <Label
+                                                    htmlFor={`no-promotion-${grade.id}`}
+                                                    className="text-xs font-normal cursor-pointer whitespace-nowrap"
+                                                >
+                                                    No fixed period
+                                                </Label>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
-
-                                <div className="flex justify-between pt-4">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => router.visit(`${basePath}/executives`)}
-                                    >
-                                        <ArrowLeft className="w-4 h-4 mr-2" />
-                                        Back
-                                    </Button>
-                                    <Button type="submit" disabled={form.processing}>
-                                        {form.processing ? 'Saving...' : 'Next'}
-                                        <ArrowRight className="w-4 h-4 ml-2" />
-                                    </Button>
-                                </div>
-                            </form>
-                        </CardContent>
-                    </Card>
-                    </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => removeGrade(grade.id)}
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={addGrade}
+                                className="w-full"
+                            >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Add Grade
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </FormLayout>
+        </>
     );
 }

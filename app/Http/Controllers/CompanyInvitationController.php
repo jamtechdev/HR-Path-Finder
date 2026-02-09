@@ -6,341 +6,114 @@ use App\Models\Company;
 use App\Models\CompanyInvitation;
 use App\Models\User;
 use App\Notifications\CompanyInvitationNotification;
+use App\Services\CompanyWorkspaceService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 
 class CompanyInvitationController extends Controller
 {
     /**
-     * Send an invitation to join a company workspace.
+     * Send CEO invitation.
      */
-    public function store(Request $request, Company $company)
+    public function inviteCeo(Request $request, Company $company)
     {
-        $this->authorize('update', $company);
-
-        $validated = $request->validate([
-            'email' => 'required|email|max:255',
-            'role' => 'nullable|string|in:ceo',
+        $request->validate([
+            'email' => ['required', 'email', 'max:255'],
         ]);
 
-        $email = $validated['email'];
-        $role = $validated['role'] ?? 'ceo';
-
-        // Check if user is already a member of this company
-        $existingUser = User::where('email', $email)->first();
-        if ($existingUser && $company->users()->where('users.id', $existingUser->id)->exists()) {
-            return back()->withErrors(['email' => 'This user is already a member of this company.']);
+        // Check if user already exists
+        $existingUser = User::where('email', $request->email)->first();
+        
+        if ($existingUser && $company->users->contains($existingUser)) {
+            return back()->withErrors(['email' => 'This user is already a member of the company.']);
         }
 
-        // Check SMTP configuration before sending invitation
-        if (!\App\Services\SmtpConfigurationService::isConfigured()) {
-            return back()->withErrors(['email' => 'SMTP is not configured. Please configure email settings before sending invitations.']);
-        }
-
-        // Check if there's a pending invitation for this email and company
-        $existingInvitation = CompanyInvitation::where('company_id', $company->id)
-            ->where('email', $email)
-            ->whereNull('accepted_at')
-            ->whereNull('rejected_at')
-            ->where(function ($query) {
-                $query->whereNull('expires_at')
-                    ->orWhere('expires_at', '>', now());
-            })
-            ->first();
-
-        if ($existingInvitation) {
-            return back()->withErrors(['email' => 'An invitation has already been sent to this email address.']);
-        }
-
-        // Create invitation (don't create user yet - will be created when CEO accepts)
+        // Create invitation
         $invitation = CompanyInvitation::create([
             'company_id' => $company->id,
-            'invited_by' => Auth::id(),
-            'email' => $email,
-            'role' => $role,
-            'token' => CompanyInvitation::generateToken(),
-            'expires_at' => now()->addDays(7), // Invitation expires in 7 days
+            'email' => $request->email,
+            'role' => 'ceo',
+            'inviter_id' => $request->user()->id,
         ]);
 
-        // Send invitation email (without password - will be sent when CEO accepts)
-        \Illuminate\Support\Facades\Notification::route('mail', $email)
+        // Send invitation email
+        Notification::route('mail', $request->email)
             ->notify(new CompanyInvitationNotification($invitation));
 
-        return back()->with('success', 'Invitation sent successfully to ' . $email . '. CEO will receive login credentials when they accept the invitation.');
+        return back()->with('success', 'CEO invitation sent successfully.');
     }
 
     /**
-     * Accept an invitation.
+     * Accept invitation.
      */
     public function accept(Request $request, string $token)
     {
-        // #region agent log
-        \Log::info('Accepting invitation', [
-            'token' => $token,
-        ]);
-        // #endregion
+        $invitation = CompanyInvitation::where('token', $token)->firstOrFail();
 
-        // Find invitation by token (don't filter by accepted_at yet - we'll check it separately)
-        $invitation = CompanyInvitation::where('token', $token)
-            ->whereNull('rejected_at')
-            ->with('company')
-            ->first();
-
-        if (!$invitation) {
-            // #region agent log
-            \Log::warning('Invitation not found', [
-                'token' => $token,
-            ]);
-            // #endregion
-            return Inertia::render('invitations/accept', [
-                'error' => 'Invitation not found or has been rejected.',
-            ]);
+        if ($invitation->isAccepted()) {
+            return redirect()->route('login')->with('error', 'This invitation has already been accepted.');
         }
 
-        // Check if invitation is already accepted
-        if ($invitation->accepted_at) {
-            // #region agent log
-            \Log::info('Invitation already accepted, showing credentials', [
-                'invitation_id' => $invitation->id,
+        if ($invitation->isExpired()) {
+            return redirect()->route('login')->with('error', 'This invitation has expired.');
+        }
+
+        // Check if user exists
+        $user = User::where('email', $invitation->email)->first();
+
+        if (!$user) {
+            // Create new user
+            $temporaryPassword = Str::random(12);
+            $user = User::create([
+                'name' => explode('@', $invitation->email)[0],
                 'email' => $invitation->email,
+                'password' => Hash::make($temporaryPassword),
+                'email_verified_at' => now(), // Auto-verify for invited users
             ]);
-            // #endregion
-            // Show credentials if already accepted
-            return Inertia::render('invitations/accept', [
-                'invitation' => $invitation,
-                'isAuthenticated' => false,
-                'token' => $token,
-                'password' => $invitation->temporary_password,
-                'message' => 'Your CEO account has been created! Login credentials have been sent to your email.',
-            ]);
-        }
 
-        if ($invitation->isRejected()) {
-            // #region agent log
-            \Log::warning('Invitation has been rejected', [
-                'invitation_id' => $invitation->id,
-            ]);
-            // #endregion
-            return Inertia::render('invitations/accept', [
-                'error' => 'This invitation has been rejected.',
-            ]);
-        }
+            // Assign CEO role
+            $user->assignRole('ceo');
 
-        if (!$invitation->isValid()) {
-            // #region agent log
-            \Log::warning('Invitation is not valid (expired)', [
-                'invitation_id' => $invitation->id,
-                'expires_at' => $invitation->expires_at,
-            ]);
-            // #endregion
-            return Inertia::render('invitations/accept', [
-                'error' => 'This invitation has expired.',
-            ]);
-        }
-
-        // #region agent log
-        \Log::info('Showing invitation acceptance page', [
-            'invitation_id' => $invitation->id,
-            'email' => $invitation->email,
-            'company_id' => $invitation->company_id,
-        ]);
-        // #endregion
-
-        // Show invitation page (don't create account yet - wait for accept button click)
-        return Inertia::render('invitations/accept', [
-            'invitation' => $invitation,
-            'isAuthenticated' => Auth::check(),
-            'token' => $token,
-        ]);
-    }
-
-    /**
-     * Show reject invitation confirmation page.
-     */
-    public function showReject(Request $request, string $token)
-    {
-        $invitation = CompanyInvitation::where('token', $token)
-            ->whereNull('accepted_at')
-            ->whereNull('rejected_at')
-            ->with('company')
-            ->first();
-
-        if (!$invitation) {
-            return Inertia::render('invitations/accept', [
-                'error' => 'Invitation not found, already accepted, or has been rejected.',
-            ]);
-        }
-
-        if (!$invitation->isValid()) {
-            return Inertia::render('invitations/accept', [
-                'error' => 'This invitation has expired.',
-            ]);
-        }
-
-        return Inertia::render('invitations/reject', [
-            'invitation' => $invitation,
-            'token' => $token,
-        ]);
-    }
-
-    /**
-     * Reject an invitation.
-     */
-    public function reject(Request $request, string $token)
-    {
-        $invitation = CompanyInvitation::where('token', $token)
-            ->whereNull('accepted_at')
-            ->whereNull('rejected_at')
-            ->with('company')
-            ->first();
-
-        if (!$invitation) {
-            return redirect()->route('home')
-                ->withErrors(['error' => 'Invitation not found, already accepted, or has been rejected.']);
-        }
-
-        if (!$invitation->isValid()) {
-            return redirect()->route('home')
-                ->withErrors(['error' => 'This invitation has expired.']);
-        }
-
-        // Mark invitation as rejected
-        $invitation->update([
-            'rejected_at' => now(),
-        ]);
-
-        return redirect()->route('home')
-            ->with('success', 'Invitation has been rejected.');
-    }
-
-    /**
-     * Process the invitation acceptance (POST request).
-     */
-    public function processAccept(Request $request, string $token)
-    {
-        $invitation = CompanyInvitation::where('token', $token)
-            ->whereNull('accepted_at')
-            ->whereNull('rejected_at')
-            ->with('company')
-            ->first();
-
-        if (!$invitation) {
-            return redirect()->route('invitations.accept', ['token' => $token])
-                ->withErrors(['error' => 'Invitation not found, already accepted, or has been rejected.']);
-        }
-
-        if ($invitation->isRejected()) {
-            return redirect()->route('invitations.accept', ['token' => $token])
-                ->withErrors(['error' => 'This invitation has been rejected.']);
-        }
-
-        if (!$invitation->isValid()) {
-            return redirect()->route('invitations.accept', ['token' => $token])
-                ->withErrors(['error' => 'This invitation has expired.']);
-        }
-        
-        // Check SMTP configuration before processing
-        if (!\App\Services\SmtpConfigurationService::isConfigured()) {
-            return redirect()->route('invitations.accept', ['token' => $token])
-                ->withErrors(['error' => 'Email services are not configured. Please contact the administrator.']);
-        }
-
-        // Check if company exists
-        if (!$invitation->company) {
-            return redirect()->route('invitations.accept', ['token' => $token])
-                ->withErrors(['error' => 'Company account does not exist. Please contact the HR Manager.']);
-        }
-
-        // Check if user already exists
-        $existingUser = User::where('email', $invitation->email)->first();
-        
-        // Generate secure password for CEO
-        $temporaryPassword = \Illuminate\Support\Str::random(12);
-        
-        DB::transaction(function () use ($invitation, $temporaryPassword, $existingUser) {
-            // Create CEO user account if doesn't exist
-            if (!$existingUser) {
-                $ceoUser = User::create([
-                    'name' => explode('@', $invitation->email)[0], // Use email prefix as default name
-                    'email' => $invitation->email,
-                    'password' => Hash::make($temporaryPassword),
-                    'email_verified_at' => now(), // Auto-verify email when accepting invitation
-                ]);
-
-                // Assign CEO role
-                $ceoUser->assignRole('ceo');
-                
-                // Attach CEO to company
-                $invitation->company->users()->attach($ceoUser->id, ['role' => 'ceo']);
-            } else {
-                // If user exists, attach to company and assign role
-                $invitation->company->users()->syncWithoutDetaching([
-                    $existingUser->id => ['role' => 'ceo'],
-                ]);
-                if (!$existingUser->hasRole('ceo')) {
-                    $existingUser->assignRole('ceo');
-                }
-                // Reset password for existing user
-                $existingUser->update(['password' => Hash::make($temporaryPassword)]);
+            // Store temporary password in invitation
+            $invitation->temporary_password = $temporaryPassword;
+        } else {
+            // User exists, assign CEO role if not already assigned
+            if (!$user->hasRole('ceo')) {
+                $user->assignRole('ceo');
             }
-
-            // Update invitation with password and mark as accepted
-            $invitation->update([
-                'temporary_password' => $temporaryPassword,
-                'accepted_at' => now(),
-            ]);
-        });
-
-        // Send email with login credentials
-        $ceoUser = User::where('email', $invitation->email)->first();
-        try {
-        $ceoUser->notify(new CompanyInvitationNotification($invitation->fresh()));
-        } catch (\Exception $e) {
-            \Log::error('Failed to send CEO welcome email: ' . $e->getMessage());
-            // Continue even if email fails - credentials are shown on page
         }
 
-        // Redirect back to accept page with credentials
-        return redirect()->route('invitations.accept', ['token' => $token])
-            ->with('password', $temporaryPassword)
-            ->with('message', 'Your CEO account has been created! Login credentials have been sent to your email.');
+        // Associate user with company
+        $invitation->company->users()->syncWithoutDetaching([
+            $user->id => ['role' => $invitation->role],
+        ]);
+
+        // Mark invitation as accepted
+        $invitation->update(['accepted_at' => now()]);
+
+        // Send credentials email
+        Notification::route('mail', $invitation->email)
+            ->notify(new CompanyInvitationNotification($invitation));
+
+        return redirect()->route('login')
+            ->with('success', 'Invitation accepted. Please check your email for login credentials.');
     }
 
     /**
-     * Redirect CEO to appropriate page after login/acceptance.
+     * Reject invitation.
      */
-    protected function redirectCeo(Company $company)
+    public function reject(string $token)
     {
-        $hrProject = $company->hrProjects()->latest()->first();
-        
-        if ($hrProject) {
-            // Redirect CEO to review company info first, then they can complete the survey
-            return redirect()->route('companies.show', $company->id)
-                ->with('success', 'Welcome! You have successfully joined ' . $company->name . ' as CEO. Please review the company information and complete the Management Philosophy Survey.');
-        }
-        
-        return redirect()->route('dashboard.ceo')
-            ->with('success', 'You have successfully joined ' . $company->name . ' as CEO.');
-    }
+        $invitation = CompanyInvitation::where('token', $token)->firstOrFail();
 
-    /**
-     * Cancel/delete an invitation.
-     */
-    public function destroy(Company $company, CompanyInvitation $invitation)
-    {
-        $this->authorize('update', $company);
-
-        // Only the inviter or company creator can cancel
-        if ($invitation->invited_by !== Auth::id() && $company->created_by !== Auth::id()) {
-            abort(403);
+        if ($invitation->isAccepted()) {
+            return redirect()->route('login')->with('error', 'This invitation has already been accepted.');
         }
 
         $invitation->delete();
 
-        return back()->with('success', 'Invitation cancelled.');
+        return redirect()->route('login')->with('success', 'Invitation rejected.');
     }
 }

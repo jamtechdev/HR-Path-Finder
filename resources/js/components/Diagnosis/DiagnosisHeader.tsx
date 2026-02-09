@@ -17,14 +17,14 @@ export default function DiagnosisHeader({
 }: DiagnosisHeaderProps) {
     const statusLabel = status === 'not_started' ? 'Not Started' : 
                        status === 'in_progress' ? 'In Progress' : 
-                       status === 'submitted' ? 'Completed' : 
-                       'Submitted';
+                       status === 'submitted' ? 'Submitted' : 
+                       'Not Started';
     
     const statusClasses = status === 'not_started' 
         ? 'bg-muted text-muted-foreground'
         : status === 'in_progress'
-        ? 'bg-success/10 text-success' // Green badge for in_progress
-        : 'bg-success/10 text-success';
+        ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 border-yellow-500/20' // Yellow badge for in_progress
+        : 'bg-success/10 text-success border-success/20'; // Green badge for submitted
 
     return (
         <div className="flex items-start justify-between gap-4">

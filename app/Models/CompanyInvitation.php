@@ -2,68 +2,35 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
 class CompanyInvitation extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'company_id',
-        'invited_by',
         'email',
         'role',
         'token',
-        'temporary_password',
+        'inviter_id',
         'accepted_at',
-        'rejected_at',
+        'temporary_password',
         'expires_at',
     ];
 
     protected $casts = [
         'accepted_at' => 'datetime',
-        'rejected_at' => 'datetime',
         'expires_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
-     * Generate a unique invitation token.
-     */
-    public static function generateToken(): string
-    {
-        return Str::random(64);
-    }
-
-    /**
-     * Check if the invitation is still valid.
-     */
-    public function isValid(): bool
-    {
-        if ($this->accepted_at !== null) {
-            return false;
-        }
-
-        if ($this->rejected_at !== null) {
-            return false;
-        }
-
-        if ($this->expires_at && $this->expires_at->isPast()) {
-            return false;
-        }
-
-        return true;
-    }
-    
-    /**
-     * Check if the invitation has been rejected.
-     */
-    public function isRejected(): bool
-    {
-        return $this->rejected_at !== null;
-    }
-
-    /**
-     * Get the company that the invitation is for.
+     * Get the company.
      */
     public function company(): BelongsTo
     {
@@ -75,6 +42,48 @@ class CompanyInvitation extends Model
      */
     public function inviter(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'invited_by');
+        return $this->belongsTo(User::class, 'inviter_id');
+    }
+
+    /**
+     * Check if the invitation is expired.
+     */
+    public function isExpired(): bool
+    {
+        return $this->expires_at && $this->expires_at->isPast();
+    }
+
+    /**
+     * Check if the invitation has been accepted.
+     */
+    public function isAccepted(): bool
+    {
+        return $this->accepted_at !== null;
+    }
+
+    /**
+     * Generate a unique token for the invitation.
+     */
+    public static function generateToken(): string
+    {
+        return Str::random(64);
+    }
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function ($invitation) {
+            if (!$invitation->token) {
+                $invitation->token = static::generateToken();
+            }
+            
+            if (!$invitation->expires_at) {
+                $invitation->expires_at = now()->addDays(7);
+            }
+        });
     }
 }

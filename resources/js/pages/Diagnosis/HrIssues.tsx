@@ -1,311 +1,160 @@
-import React, { useState, useEffect } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
-import { ArrowRight, ArrowLeft, Building2, Briefcase, Users, Settings, MessageSquare, FileText, Check, Plus, X, AlertTriangle, BriefcaseBusiness, Upload, Network, UserCog } from 'lucide-react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import React, { useEffect, useState } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import FormLayout from '@/components/Diagnosis/FormLayout';
+import MultiSelectQuestion from '@/components/Forms/MultiSelectQuestion';
+import TextQuestion from '@/components/Forms/TextQuestion';
+import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import DiagnosisHeader from '@/components/Diagnosis/DiagnosisHeader';
-import DiagnosisProgressBar from '@/components/Diagnosis/DiagnosisProgressBar';
-import DiagnosisTabs, { TabId } from '@/components/Diagnosis/DiagnosisTabs';
-import { diagnosisTabs } from '@/config/diagnosisTabs';
 
-interface Company {
+interface Diagnosis {
     id: number;
-    name: string;
+    hr_issues?: string[];
+    custom_hr_issues?: string;
 }
 
 interface HrIssue {
-    id?: number;
-    issue_type: string;
-    is_custom?: boolean;
-    description?: string | null;
-}
-
-interface Project {
     id: number;
-    status: string;
-    hr_issues?: HrIssue[];
-    organizational_structure?: { id?: number } | null;
+    category: string;
+    name: string;
 }
 
-interface PageProps {
-    company?: Company | null;
-    project?: Project | null;
+interface Props {
+    project: {
+        id: number;
+        company: {
+            name: string;
+        };
+    };
+    company: {
+        name: string;
+    };
+    diagnosis?: Diagnosis;
+    activeTab: string;
+    diagnosisStatus: string;
+    stepStatuses: Record<string, string>;
+    projectId?: number;
+    hrIssues?: HrIssue[];
 }
 
-const commonHrIssues = ['Recruitment', 'Retention', 'Evaluation', 'Leadership', 'Upskilling', 'Compensation', 'Work-Life Balance', 'Diversity & Inclusion'];
+const ISSUE_CATEGORIES = [
+    'recruitment_retention',
+    'organization',
+    'culture_leadership',
+    'evaluation_compensation',
+    'upskilling',
+    'others',
+];
 
-export default function HrIssues({ company, project }: PageProps) {
-    const basePath = '/hr-manager/diagnosis';
-    
-    // Load from localStorage or use project data
-    const getStoredData = (key: string, defaultValue: any) => {
-        if (typeof window === 'undefined') return defaultValue;
-        try {
-            const stored = localStorage.getItem(`diagnosis_form_${key}`);
-            if (stored) {
-                return JSON.parse(stored);
-            }
-        } catch (e) {
-            console.error('Error loading from localStorage:', e);
-        }
-        return defaultValue;
-    };
+const CATEGORY_LABELS: Record<string, string> = {
+    recruitment_retention: 'Recruitment / Retention',
+    organization: 'Organization',
+    culture_leadership: 'Culture / Leadership',
+    evaluation_compensation: 'Evaluation / Compensation',
+    upskilling: 'Upskilling',
+    others: 'Others',
+};
 
-    // Save to localStorage
-    const saveToLocalStorage = (key: string, data: any) => {
-        if (typeof window === 'undefined') return;
-        try {
-            localStorage.setItem(`diagnosis_form_${key}`, JSON.stringify(data));
-        } catch (e) {
-            console.error('Error saving to localStorage:', e);
-        }
-    };
-
-    // Get stored HR issues data
-    const storedIssues = getStoredData('hr-issues', []);
-    const existingIssues = Array.isArray(project?.hr_issues) ? project.hr_issues : (Array.isArray(storedIssues) ? storedIssues : []);
-    
-    const [hrIssues, setHrIssues] = useState<HrIssue[]>(
-        existingIssues.length > 0
-            ? existingIssues
-            : [{ issue_type: '', is_custom: false, description: '' }]
+export default function HrIssues({
+    project,
+    company,
+    diagnosis,
+    activeTab,
+    diagnosisStatus,
+    stepStatuses,
+    projectId,
+    hrIssues = [],
+}: Props) {
+    const [selectedIssues, setSelectedIssues] = useState<string[]>(
+        diagnosis?.hr_issues || []
     );
 
-    const form = useForm({
-        hr_issues: hrIssues,
+    const { data, setData, post, processing, errors } = useForm({
+        hr_issues: [] as string[],
+        custom_hr_issues: diagnosis?.custom_hr_issues || '',
     });
 
-    // Save to localStorage whenever hrIssues change
+    // Update form data when selections change
     useEffect(() => {
-        const timer = setTimeout(() => {
-            const validIssues = hrIssues.filter(i => i.issue_type.trim() !== '');
-            if (validIssues.length > 0) {
-                saveToLocalStorage('hr-issues', validIssues);
-            }
-        }, 500); // Debounce saves
-        return () => clearTimeout(timer);
-    }, [hrIssues]);
+        setData('hr_issues', selectedIssues);
+    }, [selectedIssues]);
 
-    const addHrIssue = () => {
-        const newIssues = [...hrIssues, { issue_type: '', is_custom: false, description: '' }];
-        setHrIssues(newIssues);
-        form.setData('hr_issues', newIssues);
-    };
+    // Removed auto-save - only save on review and submit
 
-    const removeHrIssue = (index: number) => {
-        const newIssues = hrIssues.filter((_, i) => i !== index);
-        setHrIssues(newIssues);
-        form.setData('hr_issues', newIssues);
-    };
-
-    const updateHrIssue = (index: number, field: keyof HrIssue, value: any) => {
-        const updated = [...hrIssues];
-        updated[index] = { ...updated[index], [field]: value };
-        setHrIssues(updated);
-        form.setData('hr_issues', updated);
-    };
-
-    const selectCommonIssue = (index: number, issueType: string) => {
-        const updated = [...hrIssues];
-        updated[index] = { ...updated[index], issue_type: issueType, is_custom: false };
-        setHrIssues(updated);
-        form.setData('hr_issues', updated);
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        // Validate HR issues
-        const validIssues = hrIssues.filter(i => i.issue_type.trim() !== '');
-        if (validIssues.length === 0) {
-            alert('Please add at least one HR/Org issue.');
-            return;
-        }
-
-        // Save to localStorage
-        saveToLocalStorage('hr-issues', validIssues);
-        
-        // Navigate to next step
-        router.visit(`${basePath}/current-hr`);
-    };
-
-    // Calculate step completion status from localStorage
-    const checkStepComplete = (key: string): boolean => {
-        if (typeof window === 'undefined') return false;
-        try {
-            const stored = localStorage.getItem(`diagnosis_form_${key}`);
-            if (!stored || stored === '{}' || stored === 'null') return false;
-            const data = JSON.parse(stored);
-            if (Array.isArray(data)) {
-                return data.length > 0 && data.some((item: any) => Object.values(item).some(v => v !== null && v !== ''));
-            }
-            return Object.keys(data).length > 0 && Object.values(data).some(v => v !== null && v !== '' && (Array.isArray(v) ? v.length > 0 : true));
-        } catch {
-            return false;
-        }
-    };
-
-    const stepStatus = {
-        'company-info': checkStepComplete('company'),
-        'business-profile': checkStepComplete('business-profile'),
-        'workforce': checkStepComplete('workforce'),
-        'executives': checkStepComplete('executives'),
-        'job-grades': checkStepComplete('job-grades'),
-        'organizational-charts': checkStepComplete('organizational-charts'),
-        'organizational-structure': checkStepComplete('organizational-structure'),
-        'hr-issues': hrIssues.length > 0 && hrIssues.some(i => i.issue_type.trim() !== ''),
-        'current-hr': checkStepComplete('current-hr'),
-        'culture': checkStepComplete('culture'),
-        'confidential': checkStepComplete('confidential'),
-        'review': false,
-    };
-
-    const stepOrder = ['company-info', 'business-profile', 'workforce', 'executives', 'job-grades', 'organizational-charts', 'organizational-structure', 'hr-issues', 'current-hr', 'culture', 'confidential', 'review'] as const;
-    const completedSteps = Object.values(stepStatus).filter(Boolean).length;
-    const totalSteps = 12;
-
-    const status: 'not_started' | 'in_progress' | 'submitted' = 'not_started';
-
-    // Use shared tabs configuration
-    const tabs = diagnosisTabs;
+    // Group issues by category
+    const issuesByCategory = ISSUE_CATEGORIES.reduce((acc, category) => {
+        acc[category] = hrIssues.filter(issue => issue.category === category);
+        return acc;
+    }, {} as Record<string, HrIssue[]>);
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto">
-                    <Head title="HR Issues - Diagnosis" />
+        <>
+            <Head title={`Key HR/Organizational Issues - ${company?.name || project?.company?.name || 'Company'}`} />
+            <FormLayout
+                title="Key HR/Organizational Issues"
+                project={project}
+                diagnosis={diagnosis}
+                activeTab={activeTab}
+                diagnosisStatus={diagnosisStatus}
+                stepStatuses={stepStatuses}
+                projectId={projectId}
+                backRoute="job-structure"
+                nextRoute="review"
+                formData={data}
+                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
+            >
+                <Card>
+                    <CardContent className="p-6 space-y-6">
+                        <div className="bg-muted/50 p-4 rounded-lg mb-4">
+                            <p className="text-sm text-muted-foreground">
+                                Select all issues that apply to your organization. You can add additional items if needed.
+                            </p>
+                        </div>
 
-                    <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6">
-                        <DiagnosisHeader
-                            title="Step 1: Diagnosis"
-                            description="Input company information and organizational context"
-                            status={status}
-                            backHref={`${basePath}/organizational-structure`}
-                        />
+                        {/* Issues by Category */}
+                        {ISSUE_CATEGORIES.map((category) => {
+                            const categoryIssues = issuesByCategory[category] || [];
+                            if (categoryIssues.length === 0) return null;
 
-                        <DiagnosisProgressBar
-                            stepName="Key HR/Org Issues"
-                            completedSteps={completedSteps}
-                            totalSteps={totalSteps}
-                            currentStep={9}
-                        />
-
-                        <DiagnosisTabs
-                            tabs={tabs}
-                            activeTab="hr-issues"
-                            stepStatus={stepStatus}
-                            stepOrder={stepOrder}
-                            projectId={null}
-                        />
-
-                        <Card>
-                            <CardContent>
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="text-lg font-semibold">Select Key Issues</h3>
-                                        <Button type="button" onClick={addHrIssue} variant="outline" size="sm">
-                                            <Plus className="w-4 h-4 mr-2" />
-                                            Add Issue
-                                        </Button>
-                                    </div>
-
-                                    {hrIssues.map((issue, index) => (
-                                        <div key={index} className="border rounded-lg p-4 space-y-4">
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex-1 space-y-4">
-                                                    <div className="space-y-2">
-                                                        <Label>Issue Type *</Label>
-                                                        <div className="flex gap-2">
-                                                            <Input
-                                                                value={issue.issue_type || ''}
-                                                                onChange={(e) => {
-                                                                    const updated = [...hrIssues];
-                                                                    updated[index] = { ...updated[index], issue_type: e.target.value, is_custom: true };
-                                                                    setHrIssues(updated);
-                                                                    form.setData('hr_issues', updated);
-                                                                }}
-                                                                placeholder="e.g., Recruitment, Retention, Evaluation"
-                                                                required
-                                                            />
-                                                            {hrIssues.length > 1 && (
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    onClick={() => removeHrIssue(index)}
-                                                                >
-                                                                    <X className="w-4 h-4" />
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {commonHrIssues.map((issueType) => (
-                                                                <button
-                                                                    type="button"
-                                                                    key={issueType}
-                                                                    onClick={() => selectCommonIssue(index, issueType)}
-                                                                    className={`text-xs px-2 py-1 rounded border transition-colors ${
-                                                                        issue.issue_type === issueType
-                                                                            ? 'bg-primary text-primary-foreground border-primary'
-                                                                            : 'hover:bg-accent'
-                                                                    }`}
-                                                                >
-                                                                    {issueType}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label>Additional Description (Optional)</Label>
-                                                        <Textarea
-                                                            value={issue.description || ''}
-                                                            onChange={(e) => {
-                                                                const updated = [...hrIssues];
-                                                                updated[index] = { ...updated[index], description: e.target.value };
-                                                                setHrIssues(updated);
-                                                                form.setData('hr_issues', updated);
-                                                            }}
-                                                            placeholder="Add more details about this issue (optional)"
-                                                            rows={3}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                            return (
+                                <div key={category} className="space-y-3">
+                                    <Label className="text-sm font-semibold">
+                                        {CATEGORY_LABELS[category]}
+                                    </Label>
+                                    <MultiSelectQuestion
+                                        question=""
+                                        value={selectedIssues.filter(issueId => 
+                                            categoryIssues.some(issue => issue.id.toString() === issueId)
+                                        )}
+                                        onChange={(selected) => {
+                                            const otherCategoryIssues = selectedIssues.filter(issueId =>
+                                                !categoryIssues.some(issue => issue.id.toString() === issueId)
+                                            );
+                                            setSelectedIssues([...otherCategoryIssues, ...selected]);
+                                        }}
+                                        options={categoryIssues.map(issue => ({
+                                            value: issue.id.toString(),
+                                            label: issue.name,
+                                        }))}
+                                        columns={1}
+                                    />
                                 </div>
+                            );
+                        })}
 
-                                <div className="flex justify-between pt-4">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => router.visit(`${basePath}/organizational-structure`)}
-                                    >
-                                        <ArrowLeft className="w-4 h-4 mr-2" />
-                                        Back
-                                    </Button>
-                                    <Button type="submit" disabled={form.processing}>
-                                        {form.processing ? 'Saving...' : 'Next'}
-                                        <ArrowRight className="w-4 h-4 ml-2" />
-                                    </Button>
-                                </div>
-                            </form>
-                        </CardContent>
-                    </Card>
-                    </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+                        {/* Custom HR Issues */}
+                        <div className="space-y-2">
+                            <TextQuestion
+                                question="Additional Issues (Optional)"
+                                value={data.custom_hr_issues}
+                                onChange={(value) => setData('custom_hr_issues', value)}
+                                type="textarea"
+                                placeholder="Add any additional HR or organizational issues not listed above"
+                                rows={4}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+            </FormLayout>
+        </>
     );
 }

@@ -10,24 +10,34 @@ class CeoPhilosophy extends Model
 {
     use HasFactory;
 
-    protected $table = 'ceo_philosophy_surveys';
-
     protected $fillable = [
         'hr_project_id',
         'user_id',
-        'responses',
+        'survey_responses',
+        'management_philosophy_responses',
+        'vision_mission_responses',
+        'growth_stage',
+        'leadership_responses',
+        'general_responses',
+        'organizational_issues',
+        'concerns',
         'main_trait',
-        'sub_trait',
-        'completed_at',
+        'secondary_trait',
     ];
 
     protected $casts = [
-        'responses' => 'array',
-        'completed_at' => 'datetime',
+        'survey_responses' => 'array',
+        'management_philosophy_responses' => 'array',
+        'vision_mission_responses' => 'array',
+        'leadership_responses' => 'array',
+        'general_responses' => 'array',
+        'organizational_issues' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
-     * Get the HR project that owns the CEO philosophy.
+     * Get the HR project.
      */
     public function hrProject(): BelongsTo
     {

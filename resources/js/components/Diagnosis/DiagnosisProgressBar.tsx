@@ -1,40 +1,126 @@
-import { Card, CardContent } from '@/components/ui/card';
+import React from 'react';
+import { Check, Circle } from 'lucide-react';
+import { diagnosisTabs } from '@/config/diagnosisTabs';
+import { TabId } from './DiagnosisTabs';
 
 interface DiagnosisProgressBarProps {
-    stepName: string;
-    completedSteps: number;
-    totalSteps: number;
-    currentStep?: number; // Current step number (1-based)
-    isCompleted?: boolean; // Whether all steps are completed
+    activeTab: TabId;
+    stepStatuses: Record<string, string | boolean>;
+    diagnosisStatus?: 'not_started' | 'in_progress' | 'submitted';
+    projectId?: number | null;
 }
 
-export default function DiagnosisProgressBar({ 
-    stepName, 
-    completedSteps, 
-    totalSteps,
-    currentStep,
-    isCompleted = false
+export default function DiagnosisProgressBar({
+    activeTab,
+    stepStatuses,
+    diagnosisStatus = 'not_started',
+    projectId
 }: DiagnosisProgressBarProps) {
-    const progressPercent = Math.min(100, Math.round((completedSteps / totalSteps) * 100));
-    // Show current step number if provided, otherwise show completed steps
-    const stepDisplay = currentStep ? `${currentStep} of ${totalSteps}` : `${completedSteps} of ${totalSteps}`;
-
+    // Filter out overview tab for progress calculation
+    const steps = diagnosisTabs.filter(tab => tab.id !== 'overview');
+    const totalSteps = steps.length;
+    
+    // Calculate completed steps
+    const completedSteps = steps.filter(step => {
+        // Review tab is completed when diagnosis is submitted
+        if (step.id === 'review') {
+            return diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
+        }
+        const status = stepStatuses[step.id];
+        return status && (
+            status === true || 
+            status === 'in_progress' || 
+            status === 'submitted' || 
+            status === 'approved' || 
+            status === 'locked'
+        );
+    }).length;
+    
+    const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
+    
+    // Get current step index
+    const currentStepIndex = steps.findIndex(step => step.id === activeTab);
+    const currentStepNumber = currentStepIndex >= 0 ? currentStepIndex + 1 : 0;
+    
     return (
-        <Card>
-            <CardContent className="p-6 py-4">
-                <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium">{stepName}</span>
-                    <span className={`text-sm ${isCompleted ? 'text-success font-semibold' : 'text-muted-foreground'}`}>
-                        {stepDisplay}
+        <div className="w-full space-y-4">
+            {/* Progress Bar */}
+            <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-foreground">
+                        Diagnosis Progress
+                    </span>
+                    <span className="text-muted-foreground">
+                        {completedSteps} of {totalSteps} steps completed
                     </span>
                 </div>
-                <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
-                    <div
-                        className={`h-full transition-all duration-300 ${isCompleted ? 'bg-success' : 'bg-primary'}`}
-                        style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
+                <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                    <div 
+                        className="h-full bg-primary transition-all duration-500 ease-out rounded-full"
+                        style={{ width: `${progressPercentage}%` }}
                     />
                 </div>
-            </CardContent>
-        </Card>
+            </div>
+            
+            {/* Step Indicators */}
+            <div className="flex items-center justify-between gap-2 overflow-x-auto pb-2">
+                {steps.map((step, index) => {
+                    // Review tab is completed when diagnosis is submitted
+                    let isCompleted = false;
+                    if (step.id === 'review') {
+                        isCompleted = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
+                    } else {
+                        const status = stepStatuses[step.id];
+                        isCompleted = status && (
+                            status === true || 
+                            status === 'in_progress' || 
+                            status === 'submitted' || 
+                            status === 'approved' || 
+                            status === 'locked'
+                        );
+                    }
+                    const isActive = step.id === activeTab;
+                    const isPast = index < currentStepIndex;
+                    
+                    return (
+                        <div
+                            key={step.id}
+                            className={`flex flex-col items-center gap-1 min-w-[60px] ${
+                                isActive ? 'scale-110' : ''
+                            } transition-transform`}
+                        >
+                            <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                                    isCompleted
+                                        ? 'bg-primary border-primary text-primary-foreground'
+                                        : isActive
+                                        ? 'bg-primary/10 border-primary text-primary'
+                                        : isPast
+                                        ? 'bg-muted border-muted-foreground/30 text-muted-foreground'
+                                        : 'bg-background border-muted-foreground/30 text-muted-foreground'
+                                }`}
+                            >
+                                {isCompleted ? (
+                                    <Check className="w-4 h-4" />
+                                ) : (
+                                    <span className="text-xs font-semibold">{index + 1}</span>
+                                )}
+                            </div>
+                            <span
+                                className={`text-xs text-center max-w-[60px] truncate ${
+                                    isActive
+                                        ? 'font-semibold text-primary'
+                                        : isCompleted
+                                        ? 'text-foreground'
+                                        : 'text-muted-foreground'
+                                }`}
+                            >
+                                {step.name}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
     );
 }

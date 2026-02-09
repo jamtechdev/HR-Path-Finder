@@ -12,15 +12,16 @@ class OrganizationalSentiment extends Model
 
     protected $fillable = [
         'hr_project_id',
-        'openness_to_change',
-        'trust_level',
-        'evaluation_acceptance',
         'reward_sensitivity',
-        'conflict_perception',
+    ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
-     * Get the HR project that owns the organizational sentiment.
+     * Get the HR project.
      */
     public function hrProject(): BelongsTo
     {

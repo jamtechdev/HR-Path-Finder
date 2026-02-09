@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\StepStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,19 +13,20 @@ class PerformanceSystem extends Model
 
     protected $fillable = [
         'hr_project_id',
-        'performance_unit',
+        'status',
+        'evaluation_unit',
         'performance_method',
-        'evaluation_structure_quantitative',
-        'evaluation_structure_relative',
-        'submitted_at',
+        'evaluation_logic',
     ];
 
     protected $casts = [
-        'submitted_at' => 'datetime',
+        'status' => StepStatus::class,
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
-     * Get the HR project that owns the performance system.
+     * Get the HR project.
      */
     public function hrProject(): BelongsTo
     {

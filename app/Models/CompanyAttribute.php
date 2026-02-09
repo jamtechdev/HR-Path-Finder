@@ -12,12 +12,18 @@ class CompanyAttribute extends Model
 
     protected $fillable = [
         'hr_project_id',
+        'growth_stage',
         'job_standardization_level',
         'performance_measurability',
     ];
 
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     /**
-     * Get the HR project that owns the company attributes.
+     * Get the HR project.
      */
     public function hrProject(): BelongsTo
     {

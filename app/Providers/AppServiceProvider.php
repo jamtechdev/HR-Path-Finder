@@ -5,6 +5,7 @@ namespace App\Providers;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -23,6 +24,11 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(\App\Services\ValidationService::class);
+        $this->app->singleton(\App\Services\CompanyWorkspaceService::class);
+        $this->app->singleton(\App\Services\WorkflowStateService::class);
+        $this->app->singleton(\App\Services\AuditLogService::class);
+        $this->app->singleton(\App\Services\StepTransitionService::class);
+        $this->app->singleton(\App\Services\DiagnosisSnapshotService::class);
     }
 
     /**
@@ -31,6 +37,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->registerPolicies();
+    }
+
+    protected function registerPolicies(): void
+    {
+        Gate::policy(\App\Models\HrProject::class, \App\Policies\HrProjectPolicy::class);
+        Gate::policy(\App\Models\Diagnosis::class, \App\Policies\DiagnosisPolicy::class);
     }
 
     protected function configureDefaults(): void

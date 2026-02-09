@@ -68,10 +68,17 @@ class RolePermissionSeeder extends Seeder
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(
-                ['name' => $permission, 'guard_name' => 'web'],
                 ['name' => $permission, 'guard_name' => 'web']
             );
         }
+
+        // Get all permissions for admin role
+        $allPermissions = Permission::all()->pluck('name')->toArray();
+
+        // Create Admin role
+        $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        // Admin has all permissions
+        $adminRole->syncPermissions($allPermissions);
 
         // Create HR Manager role
         $hrManagerRole = Role::firstOrCreate(['name' => 'hr_manager', 'guard_name' => 'web']);
@@ -115,7 +122,18 @@ class RolePermissionSeeder extends Seeder
             'view hr system dashboard',
         ]);
 
-        // Create only HR Manager User
+        // Create Admin User
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@demo.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('password123'),
+                'email_verified_at' => now(),
+            ]
+        );
+        $admin->syncRoles(['admin']);
+
+        // Create HR Manager User
         $hrManager = User::firstOrCreate(
             ['email' => 'hr@demo.com'],
             [
@@ -124,10 +142,30 @@ class RolePermissionSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-        // Assign only hr_manager role
         $hrManager->syncRoles(['hr_manager']);
 
-        $this->command->info('HR Manager seeded successfully!');
+        // Create CEO User
+        $ceo = User::firstOrCreate(
+            ['email' => 'ceo@demo.com'],
+            [
+                'name' => 'CEO',
+                'password' => Hash::make('password123'),
+                'email_verified_at' => now(),
+            ]
+        );
+        $ceo->syncRoles(['ceo']);
+
+        $this->command->info('Roles and users seeded successfully!');
+        $this->command->info('Admin: admin@demo.com / password123');
         $this->command->info('HR Manager: hr@demo.com / password123');
+        $this->command->info('CEO: ceo@demo.com / password123');
+        $this->command->info('');
+        $this->command->info('=== Demo Users Created ===');
+        $this->command->info('Admin: admin@demo.com / password123');
+        $this->command->info('HR Manager: hr@demo.com / password123');
+        $this->command->info('CEO: ceo@demo.com / password123');
+        $this->command->info('Consultant: consultant@demo.com / password123');
+        $this->command->info('');
+        $this->command->info('Note: All users are email verified and ready to use.');
     }
 }

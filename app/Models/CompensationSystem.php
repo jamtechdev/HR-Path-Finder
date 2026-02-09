@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\StepStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,19 +13,21 @@ class CompensationSystem extends Model
 
     protected $fillable = [
         'hr_project_id',
+        'status',
         'compensation_structure',
-        'differentiation_method',
-        'incentive_components',
-        'submitted_at',
+        'incentive_types',
+        'differentiation_logic',
     ];
 
     protected $casts = [
-        'incentive_components' => 'array',
-        'submitted_at' => 'datetime',
+        'status' => StepStatus::class,
+        'incentive_types' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
-     * Get the HR project that owns the compensation system.
+     * Get the HR project.
      */
     public function hrProject(): BelongsTo
     {

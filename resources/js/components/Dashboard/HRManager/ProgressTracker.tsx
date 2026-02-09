@@ -58,7 +58,7 @@ export default function ProgressTracker({ stepCards, stepStatuses, getStepState 
                                                     : 'text-muted-foreground'
                                             }`}
                                         >
-                                            {step.step === 1 ? step.step + ' ' + step.title : step.title}
+                                            {step.title}
                                         </p>
                                     </div>
                                 </div>

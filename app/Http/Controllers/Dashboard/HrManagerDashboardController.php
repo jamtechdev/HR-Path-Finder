@@ -3,174 +3,111 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Models\Company;
-use App\Models\HrProject;
-use App\Services\SmtpConfigurationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class HrManagerDashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request): Response
     {
-        $user = auth()->user();
+        $user = $request->user();
         
-        // Get companies where user is HR Manager
-        $companies = $user->companies()
-            ->wherePivot('role', 'hr_manager')
-            ->with(['businessProfile', 'workforce', 'currentHrStatus', 'culture', 'confidentialNote'])
-            ->get();
-        
-        // Get the latest/active company (most recently updated)
-        $currentCompany = $companies->sortByDesc('updated_at')->first();
-
-        // Get HR Project for current company
-        $hrProject = null;
-        if ($currentCompany) {
-            $hrProject = HrProject::where('company_id', $currentCompany->id)
-                ->latest()
-                ->first();
-        }
-
-        // Prepare step statuses from HR Project or company status fields
-        if ($hrProject) {
-            $hrProject->initializeStepStatuses();
-            $diagnosisStatus = $hrProject->getStepStatus('diagnosis');
-            
-            // If diagnosis is completed on company but not updated on project, sync it
-            if ($currentCompany && $currentCompany->diagnosis_status === 'completed' && $diagnosisStatus !== 'submitted') {
-                $hrProject->setStepStatus('diagnosis', 'submitted');
-                $diagnosisStatus = 'submitted';
-            }
-            
-            $stepStatuses = [
-                'diagnosis' => $diagnosisStatus,
-                'organization' => $hrProject->getStepStatus('organization'),
-                'performance' => $hrProject->getStepStatus('performance'),
-                'compensation' => $hrProject->getStepStatus('compensation'),
-            ];
-            $verifiedSteps = [
-                'diagnosis' => $hrProject->isStepVerified('diagnosis'),
-                'organization' => $hrProject->isStepVerified('organization'),
-                'performance' => $hrProject->isStepVerified('performance'),
-                'compensation' => $hrProject->isStepVerified('compensation'),
-            ];
-        } else {
-            // Use company's diagnosis_status field, but map 'completed' to 'submitted' for consistency
-            $diagnosisStatus = $currentCompany?->diagnosis_status ?? 'not_started';
-            // Map 'completed' to 'submitted' for dashboard display consistency
-            if ($diagnosisStatus === 'completed') {
-                $diagnosisStatus = 'submitted';
-            }
-            
-            $stepStatuses = [
-                'diagnosis' => $diagnosisStatus,
-                'organization' => $currentCompany?->organization_status ?? 'not_started',
-                'performance' => $currentCompany?->performance_status ?? 'not_started',
-                'compensation' => $currentCompany?->compensation_status ?? 'not_started',
-            ];
-            $verifiedSteps = [
-                'diagnosis' => $currentCompany?->diagnosis_status === 'completed',
-                'organization' => false,
-                'performance' => false,
-                'compensation' => false,
-            ];
+        // Ensure user is authenticated
+        if (!$user) {
+            return redirect()->route('login');
         }
         
-        // Count submitted/completed steps
-        $progressCount = collect($stepStatuses)->filter(fn($status) => 
-            in_array($status, ['submitted', 'completed'])
-        )->count();
+        // Ensure user has hr_manager role
+        if (!$user->hasRole('hr_manager')) {
+            abort(403, 'You do not have permission to access this page.');
+        }
         
-        // Determine current step number based on step statuses
-        $stepOrder = ['diagnosis' => 1, 'organization' => 2, 'performance' => 3, 'compensation' => 4];
+        // Get active project for this HR manager
+        $activeProject = \App\Models\HrProject::whereHas('company', function ($query) use ($user) {
+            $query->whereHas('users', function ($q) use ($user) {
+                $q->where('users.id', $user->id)
+                  ->where('company_users.role', 'hr_manager');
+            });
+        })
+        ->where('status', 'active')
+        ->with(['company.users' => function ($query) {
+            $query->wherePivot('role', 'ceo');
+        }])
+        ->first();
+
+        // Calculate progress based on all 6 steps from sidebar (CEO step removed from HR side)
+        $stepStatuses = $activeProject?->step_statuses ?? [];
+        $completedSteps = 0;
         $currentStepNumber = 1;
+        $currentStepKey = null;
         
-        foreach ($stepOrder as $step => $number) {
-            if (!in_array($stepStatuses[$step], ['submitted', 'completed'])) {
-                $currentStepNumber = $number;
-                break;
+        // All 6 steps matching sidebar: Diagnosis, Job Analysis, Performance, Compensation, TREE, Conclusion
+        $mainSteps = [
+            'diagnosis' => 'diagnosis',
+            'job_analysis' => 'job_analysis',
+            'performance' => 'performance',
+            'compensation' => 'compensation',
+            'tree' => 'tree',
+            'conclusion' => 'conclusion'
+        ];
+        
+        foreach ($mainSteps as $key => $step) {
+            $status = $stepStatuses[$step] ?? 'not_started';
+            if (in_array($status, ['submitted', 'approved', 'locked', 'completed'])) {
+                $completedSteps++;
+            } else {
+                if ($currentStepKey === null) {
+                    $currentStepKey = $step;
+                    $currentStepNumber = $completedSteps + 1;
+                }
             }
         }
-        
-        // If all steps are completed, set to last step
-        if ($progressCount === 4) {
-            $currentStepNumber = 4;
+
+        // Check CEO Philosophy status
+        $ceoPhilosophyStatus = 'not_started';
+        if ($activeProject && $activeProject->ceoPhilosophy) {
+            $ceoPhilosophyStatus = 'completed';
+        } elseif ($activeProject && $activeProject->diagnosis && $activeProject->diagnosis->status === 'submitted') {
+            $ceoPhilosophyStatus = 'in_progress';
         }
 
-        // Get companies by status for stats
-        $inProgress = $companies->filter(fn($c) => in_array($c->overall_status, ['in_progress']));
-        $completed = $companies->filter(fn($c) => $c->overall_status === 'completed');
-        $notStarted = $companies->filter(fn($c) => $c->overall_status === 'not_started');
+        // Determine current step status
+        $currentStepStatus = $currentStepKey ? ($stepStatuses[$currentStepKey] ?? 'not_started') : 'not_started';
 
-        // Check SMTP configuration
-        $smtpConfigured = SmtpConfigurationService::isConfigured();
+        // Get company info for CEO invitation
+        $company = $activeProject?->company;
+        $hasCeo = $company ? $company->users()->wherePivot('role', 'ceo')->exists() : false;
 
         return Inertia::render('Dashboard/HRManager/Index', [
-            'companies' => $companies->map(fn($c) => [
-                'id' => $c->id,
-                'name' => $c->name,
-                'brand_name' => $c->brand_name,
-                'industry' => $c->industry,
-                'diagnosis_status' => $c->diagnosis_status,
-                'organization_status' => $c->organization_status,
-                'performance_status' => $c->performance_status,
-                'compensation_status' => $c->compensation_status,
-                'overall_status' => $c->overall_status,
-                'updated_at' => $c->updated_at,
-            ]),
-            'currentCompany' => $currentCompany ? [
-                'id' => $currentCompany->id,
-                'name' => $currentCompany->name,
-                'diagnosis_status' => $currentCompany->diagnosis_status,
-                'organization_status' => $currentCompany->organization_status,
-                'performance_status' => $currentCompany->performance_status,
-                'compensation_status' => $currentCompany->compensation_status,
-                'overall_status' => $currentCompany->overall_status,
+            'user' => [
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
+            'activeProject' => $activeProject ? [
+                'id' => $activeProject->id,
+                'company' => [
+                    'id' => $activeProject->company->id,
+                    'name' => $activeProject->company->name,
+                ],
+                'status' => $activeProject->status->value,
+                'step_statuses' => $stepStatuses,
             ] : null,
-            'project' => $hrProject ? [
-                'id' => $hrProject->id,
-                'step_statuses' => $stepStatuses,
-            ] : ($currentCompany ? [
-                'id' => $currentCompany->id,
-                'step_statuses' => $stepStatuses,
-            ] : null),
+            'company' => $company ? [
+                'id' => $company->id,
+                'name' => $company->name,
+                'hasCeo' => $hasCeo,
+            ] : null,
+            'progress' => [
+                'completed' => $completedSteps,
+                'total' => 6, // 6 steps: Diagnosis, Job Analysis, Performance, Compensation, TREE, Conclusion
+                'currentStepNumber' => $currentStepNumber,
+                'currentStepKey' => $currentStepKey,
+                'currentStepStatus' => $currentStepStatus,
+            ],
+            'ceoPhilosophyStatus' => $ceoPhilosophyStatus,
             'stepStatuses' => $stepStatuses,
-            'verifiedSteps' => $verifiedSteps,
-            'progressCount' => $progressCount,
-            'currentStepNumber' => $currentStepNumber,
-            'smtpConfigured' => $smtpConfigured,
-            'stats' => [
-                'total_companies' => $companies->count(),
-                'in_progress' => $inProgress->count(),
-                'completed' => $completed->count(),
-                'not_started' => $notStarted->count(),
-            ]
-        ]);
-    }
-
-    public function projects()
-    {
-        $user = auth()->user();
-        $companies = $user->companies()
-            ->wherePivot('role', 'hr_manager')
-            ->latest()
-            ->paginate(10);
-
-        return Inertia::render('Dashboard/HRManager/Projects', [
-            'companies' => $companies->map(fn($c) => [
-                'id' => $c->id,
-                'name' => $c->name,
-                'brand_name' => $c->brand_name,
-                'industry' => $c->industry,
-                'diagnosis_status' => $c->diagnosis_status,
-                'organization_status' => $c->organization_status,
-                'performance_status' => $c->performance_status,
-                'compensation_status' => $c->compensation_status,
-                'overall_status' => $c->overall_status,
-                'created_at' => $c->created_at,
-                'updated_at' => $c->updated_at,
-            ])
+            'projectId' => $activeProject?->id,
         ]);
     }
 }
