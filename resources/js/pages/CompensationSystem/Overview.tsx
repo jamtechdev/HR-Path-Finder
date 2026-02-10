@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head } from '@inertiajs/react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -6,6 +6,22 @@ import AppHeader from '@/components/Header/AppHeader';
 import WorkflowStepsSidebar from '@/components/Sidebar/WorkflowStepsSidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle2, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+
+interface ConsultantRecommendation {
+    id: number;
+    recommended_option: string;
+    rationale: string;
+    created_at: string;
+}
+
+interface AlgorithmRecommendation {
+    score: number;
+    reasons: string[];
+    recommended: boolean;
+}
 
 interface Props {
     project: {
@@ -15,12 +31,30 @@ interface Props {
         };
     };
     compensationSystem?: any;
+    consultantRecommendation?: ConsultantRecommendation;
+    algorithmRecommendations?: Record<string, AlgorithmRecommendation>;
     stepStatuses: Record<string, string>;
     activeTab: string;
     projectId: number;
 }
 
-export default function CompensationSystemOverview({ project, compensationSystem, stepStatuses, activeTab, projectId }: Props) {
+const COMPENSATION_OPTIONS = [
+    { value: 'fixed', label: 'Fixed Compensation' },
+    { value: 'mixed', label: 'Mixed Compensation' },
+    { value: 'performance_based', label: 'Performance-Based Compensation' },
+];
+
+export default function CompensationSystemOverview({ 
+    project, 
+    compensationSystem, 
+    consultantRecommendation,
+    algorithmRecommendations,
+    stepStatuses, 
+    activeTab, 
+    projectId 
+}: Props) {
+    const [isRationaleOpen, setIsRationaleOpen] = useState(true);
+
     return (
         <SidebarProvider defaultOpen={true}>
             <Sidebar collapsible="icon" variant="sidebar">
@@ -39,6 +73,48 @@ export default function CompensationSystemOverview({ project, compensationSystem
                             </p>
                         </div>
 
+                        {/* Consultant Recommendation */}
+                        {consultantRecommendation && (
+                            <Card className="mb-6 border-2 border-primary/20 bg-primary/5">
+                                <CardContent className="p-6">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                            <CheckCircle2 className="w-6 h-6 text-primary" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <h3 className="text-lg font-bold">Consultant Recommendation</h3>
+                                                <Badge variant="default" className="bg-primary">
+                                                    {COMPENSATION_OPTIONS.find(c => c.value === consultantRecommendation.recommended_option)?.label || consultantRecommendation.recommended_option.replace('_', ' ')}
+                                                </Badge>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground mb-3">
+                                                Your consultant has prepared a recommendation based on your performance system selection and company context.
+                                            </p>
+                                            <Collapsible open={isRationaleOpen} onOpenChange={setIsRationaleOpen}>
+                                                <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80">
+                                                    <MessageSquare className="w-4 h-4" />
+                                                    View Consultant's Rationale
+                                                    {isRationaleOpen ? (
+                                                        <ChevronUp className="w-4 h-4" />
+                                                    ) : (
+                                                        <ChevronDown className="w-4 h-4" />
+                                                    )}
+                                                </CollapsibleTrigger>
+                                                <CollapsibleContent className="mt-3">
+                                                    <div className="p-4 bg-background border rounded-lg">
+                                                        <p className="text-sm whitespace-pre-line leading-relaxed">
+                                                            {consultantRecommendation.rationale}
+                                                        </p>
+                                                    </div>
+                                                </CollapsibleContent>
+                                            </Collapsible>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
                         <Tabs value={activeTab} className="space-y-4">
                             <TabsList>
                                 <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -56,6 +132,14 @@ export default function CompensationSystemOverview({ project, compensationSystem
                                         <p className="text-muted-foreground">
                                             This section allows you to design your compensation and benefits system.
                                         </p>
+                                        {consultantRecommendation && (
+                                            <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                                                <p className="text-sm font-medium mb-1">Recommended Structure:</p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {COMPENSATION_OPTIONS.find(c => c.value === consultantRecommendation.recommended_option)?.label}
+                                                </p>
+                                            </div>
+                                        )}
                                     </CardContent>
                                 </Card>
                             </TabsContent>

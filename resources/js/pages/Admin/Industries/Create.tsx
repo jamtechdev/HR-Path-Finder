@@ -30,7 +30,7 @@ export default function IndustriesCreate() {
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
                 <main className="flex-1 overflow-auto">
-                    <Head title="Create Industry Category" />
+                    <Head title="Create Industry" />
                     <div className="p-6 md:p-8 max-w-3xl mx-auto">
                         <div className="mb-6">
                             <Link href="/admin/industries">
@@ -39,20 +39,20 @@ export default function IndustriesCreate() {
                                     Back to Industries
                                 </Button>
                             </Link>
-                            <h1 className="text-3xl font-bold mb-2">Create Industry Category</h1>
+                            <h1 className="text-3xl font-bold mb-2">Create Industry</h1>
                             <p className="text-muted-foreground">
-                                Add a new industry category
+                                Add a new industry
                             </p>
                         </div>
 
                         <Card>
                             <CardHeader>
-                                <CardTitle>Category Details</CardTitle>
+                                <CardTitle>Industry Details</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <form onSubmit={handleSubmit} className="space-y-4">
                                     <div>
-                                        <Label htmlFor="name">Category Name *</Label>
+                                        <Label htmlFor="name">Industry Name *</Label>
                                         <Input
                                             id="name"
                                             value={data.name}
@@ -85,7 +85,7 @@ export default function IndustriesCreate() {
 
                                     <div className="flex items-center gap-3 pt-4">
                                         <Button type="submit" disabled={processing}>
-                                            {processing ? 'Creating...' : 'Create Category'}
+                                            {processing ? 'Creating...' : 'Create Industry'}
                                         </Button>
                                         <Link href="/admin/industries">
                                             <Button type="button" variant="outline">

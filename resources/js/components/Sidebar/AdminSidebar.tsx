@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Settings, LayoutGrid, FolderOpen, HelpCircle, FileText, Building2, AlertCircle, Database, Layers } from 'lucide-react';
+import { Settings, LayoutGrid, FolderOpen, HelpCircle, FileText, Building2, AlertCircle, Database, Layers, Target, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AdminSidebarProps {
@@ -155,6 +155,20 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                     <Database className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
                                     {!isCollapsed && <span className="flex-1 text-left truncate">All Projects</span>}
                                 </Link>
+                                
+                                {!isCollapsed && (
+                                    <div className="px-4 mt-4 mb-2">
+                                        <span className="text-xs font-semibold text-sidebar-foreground/60 uppercase tracking-wider">
+                                            Recommendations
+                                        </span>
+                                    </div>
+                                )}
+                                
+                                <div className={cn("text-xs text-sidebar-foreground/50 px-4 mb-2", isCollapsed && "hidden")}>
+                                    <p className="text-xs text-sidebar-foreground/50 italic">
+                                        Access via project review or dashboard
+                                    </p>
+                                </div>
                             </>
                         )}
                         

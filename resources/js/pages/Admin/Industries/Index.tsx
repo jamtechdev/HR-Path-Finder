@@ -27,7 +27,7 @@ interface Props {
 
 export default function IndustriesIndex({ categories }: Props) {
     const handleDelete = (categoryId: number) => {
-        if (confirm('Are you sure you want to delete this industry category? This will also delete all subcategories.')) {
+            if (confirm('Are you sure you want to delete this industry? This will also delete all sub industries.')) {
             router.delete(`/admin/industries/${categoryId}`, {
                 preserveScroll: true,
             });
@@ -48,13 +48,13 @@ export default function IndustriesIndex({ categories }: Props) {
                             <div>
                                 <h1 className="text-3xl font-bold mb-2">Industries Management</h1>
                                 <p className="text-muted-foreground">
-                                    Manage industry categories and subcategories
+                                    Manage industries and sub industries
                                 </p>
                             </div>
                             <Link href="/admin/industries/create">
                                 <Button>
                                     <Plus className="w-4 h-4 mr-2" />
-                                    Add Category
+                                    Add Industry
                                 </Button>
                             </Link>
                         </div>
@@ -89,7 +89,7 @@ export default function IndustriesIndex({ categories }: Props) {
                                         {category.subCategories && category.subCategories.length > 0 ? (
                                             <div className="space-y-2">
                                                 <p className="text-sm font-medium text-muted-foreground mb-2">
-                                                    Subcategories:
+                                                    Sub Industries:
                                                 </p>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                                                     {category.subCategories.map((subCategory) => (
@@ -107,7 +107,7 @@ export default function IndustriesIndex({ categories }: Props) {
                                             </div>
                                         ) : (
                                             <p className="text-sm text-muted-foreground">
-                                                No subcategories yet. Edit to add subcategories.
+                                                No sub industries yet. Edit to add sub industries.
                                             </p>
                                         )}
                                     </CardContent>
@@ -117,7 +117,7 @@ export default function IndustriesIndex({ categories }: Props) {
                                 <Card>
                                     <CardContent className="p-12 text-center">
                                         <p className="text-muted-foreground">
-                                            No industry categories found. Create one to get started.
+                                            No industries found. Create one to get started.
                                         </p>
                                     </CardContent>
                                 </Card>

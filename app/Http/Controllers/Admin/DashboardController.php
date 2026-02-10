@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminComment;
 use App\Models\HrProject;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -39,6 +40,37 @@ class DashboardController extends Controller
         // Get recent projects
         $recentProjects = $projects->sortByDesc('created_at')->take(5)->values();
 
+        // Get projects needing recommendations
+        $projectsNeedingPerformanceRecommendation = $projects->filter(function ($project) {
+            $stepStatuses = $project->step_statuses ?? [];
+            $jobAnalysisStatus = $stepStatuses['job_analysis'] ?? 'not_started';
+            
+            // Step 3 is confirmed but no performance recommendation exists
+            if (in_array($jobAnalysisStatus, ['submitted', 'approved', 'locked'])) {
+                $hasRecommendation = AdminComment::where('hr_project_id', $project->id)
+                    ->where('is_recommendation', true)
+                    ->where('recommendation_type', 'performance')
+                    ->exists();
+                return !$hasRecommendation;
+            }
+            return false;
+        })->values();
+
+        $projectsNeedingCompensationRecommendation = $projects->filter(function ($project) {
+            $stepStatuses = $project->step_statuses ?? [];
+            $performanceStatus = $stepStatuses['performance'] ?? 'not_started';
+            
+            // Step 4 is completed but no compensation recommendation exists
+            if (in_array($performanceStatus, ['submitted', 'approved', 'locked'])) {
+                $hasRecommendation = AdminComment::where('hr_project_id', $project->id)
+                    ->where('is_recommendation', true)
+                    ->where('recommendation_type', 'compensation')
+                    ->exists();
+                return !$hasRecommendation;
+            }
+            return false;
+        })->values();
+
         return Inertia::render('Dashboard/Admin/Index', [
             'projects' => $projects,
             'stats' => [
@@ -50,6 +82,8 @@ class DashboardController extends Controller
                 'pending_ceo_survey' => $pendingCeoSurvey,
             ],
             'recentProjects' => $recentProjects,
+            'projectsNeedingPerformanceRecommendation' => $projectsNeedingPerformanceRecommendation,
+            'projectsNeedingCompensationRecommendation' => $projectsNeedingCompensationRecommendation,
         ]);
     }
 }

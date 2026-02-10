@@ -50,29 +50,29 @@ export default function SubcategoriesEdit({ subCategory, categories }: Props) {
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
                 <main className="flex-1 overflow-auto">
-                    <Head title={`Edit Subcategory - ${subCategory?.name || 'Subcategory'}`} />
+                    <Head title={`Edit Sub Industry - ${subCategory?.name || 'Sub Industry'}`} />
                     <div className="p-6 md:p-8 max-w-3xl mx-auto">
                         <div className="mb-6">
                             <Link href="/admin/subcategories">
                                 <Button variant="ghost" className="mb-4">
                                     <ArrowLeft className="w-4 h-4 mr-2" />
-                                    Back to Subcategories
+                                    Back to Sub Industries
                                 </Button>
                             </Link>
-                            <h1 className="text-3xl font-bold mb-2">Edit Subcategory</h1>
+                            <h1 className="text-3xl font-bold mb-2">Edit Sub Industry</h1>
                             <p className="text-muted-foreground">
-                                Update subcategory details
+                                Update sub industry details
                             </p>
                         </div>
 
                         <Card>
                             <CardHeader>
-                                <CardTitle>Subcategory Details</CardTitle>
+                                <CardTitle>Sub Industry Details</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <form onSubmit={handleSubmit} className="space-y-4">
                                     <div>
-                                        <Label htmlFor="industry_category_id">Category *</Label>
+                                        <Label htmlFor="industry_category_id">Industry *</Label>
                                         <Select
                                             value={data.industry_category_id}
                                             onValueChange={(value) => setData('industry_category_id', value)}
@@ -94,7 +94,7 @@ export default function SubcategoriesEdit({ subCategory, categories }: Props) {
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="name">Subcategory Name *</Label>
+                                        <Label htmlFor="name">Sub Industry Name *</Label>
                                         <Input
                                             id="name"
                                             value={data.name}
@@ -122,7 +122,7 @@ export default function SubcategoriesEdit({ subCategory, categories }: Props) {
 
                                     <div className="flex items-center gap-3 pt-4">
                                         <Button type="submit" disabled={processing}>
-                                            {processing ? 'Updating...' : 'Update Subcategory'}
+                                            {processing ? 'Updating...' : 'Update Sub Industry'}
                                         </Button>
                                         <Link href="/admin/subcategories">
                                             <Button type="button" variant="outline">

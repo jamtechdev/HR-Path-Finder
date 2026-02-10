@@ -3,13 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Enums\StepStatus;
+use App\Models\AdminComment;
 use App\Models\HrProject;
 use App\Models\PerformanceSystem;
+use App\Services\RecommendationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class PerformanceSystemController extends Controller
 {
+    public function __construct(
+        protected RecommendationService $recommendationService
+    ) {
+    }
+
     /**
      * Show performance system step.
      */
@@ -27,6 +34,15 @@ class PerformanceSystemController extends Controller
         $hrProject->load(['diagnosis', 'organizationDesign', 'performanceSystem', 'company']);
         $performanceSystem = $hrProject->performanceSystem;
 
+        // Load consultant recommendation
+        $consultantRecommendation = AdminComment::where('hr_project_id', $hrProject->id)
+            ->where('is_recommendation', true)
+            ->where('recommendation_type', 'performance')
+            ->first();
+
+        // Get algorithm-based recommendations
+        $algorithmRecommendations = $this->recommendationService->getRecommendedPerformanceMethod($hrProject);
+
         $stepStatuses = $hrProject->step_statuses ?? [];
         $mainStepStatuses = [
             'diagnosis' => $stepStatuses['diagnosis'] ?? 'not_started',
@@ -37,18 +53,12 @@ class PerformanceSystemController extends Controller
             'conclusion' => $stepStatuses['conclusion'] ?? 'not_started',
         ];
 
-        $componentMap = [
-            'overview' => 'PerformanceSystem/Overview',
-            'evaluation-units' => 'PerformanceSystem/EvaluationUnits',
-            'performance-methods' => 'PerformanceSystem/PerformanceMethods',
-            'assessment-structure' => 'PerformanceSystem/AssessmentStructure',
-        ];
-
-        $component = $componentMap[$tab] ?? 'PerformanceSystem/Overview';
-
-        return Inertia::render($component, [
+        // Use Index component which handles all tabs internally
+        return Inertia::render('PerformanceSystem/Index', [
             'project' => $hrProject,
             'performanceSystem' => $performanceSystem,
+            'consultantRecommendation' => $consultantRecommendation,
+            'algorithmRecommendations' => $algorithmRecommendations,
             'stepStatuses' => $mainStepStatuses,
             'activeTab' => $tab,
             'projectId' => $hrProject->id,

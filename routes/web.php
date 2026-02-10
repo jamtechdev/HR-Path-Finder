@@ -244,6 +244,16 @@ Route::middleware(['auth'])->group(function () {
             'update' => 'intro-texts.update',
             'destroy' => 'intro-texts.destroy',
         ]);
+        
+        // Consultant Recommendations (Step 3.5 & 4.5)
+        Route::get('recommendations/performance/{hrProject}', [\App\Http\Controllers\Admin\ConsultantRecommendationController::class, 'showPerformanceRecommendation'])
+            ->name('recommendations.performance');
+        Route::post('recommendations/performance/{hrProject}', [\App\Http\Controllers\Admin\ConsultantRecommendationController::class, 'storePerformanceRecommendation'])
+            ->name('recommendations.performance.store');
+        Route::get('recommendations/compensation/{hrProject}', [\App\Http\Controllers\Admin\ConsultantRecommendationController::class, 'showCompensationRecommendation'])
+            ->name('recommendations.compensation');
+        Route::post('recommendations/compensation/{hrProject}', [\App\Http\Controllers\Admin\ConsultantRecommendationController::class, 'storeCompensationRecommendation'])
+            ->name('recommendations.compensation.store');
     });
     
     // ========== HR System Overview (Shared) ==========

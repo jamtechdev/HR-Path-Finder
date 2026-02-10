@@ -10,7 +10,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, DollarSign, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, DollarSign, CheckCircle2, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface PerformanceSystem {
     performance_method?: string;
@@ -24,6 +25,19 @@ interface CompensationSystem {
     incentive_types?: string[];
 }
 
+interface ConsultantRecommendation {
+    id: number;
+    recommended_option: string;
+    rationale: string;
+    created_at: string;
+}
+
+interface AlgorithmRecommendation {
+    score: number;
+    reasons: string[];
+    recommended: boolean;
+}
+
 interface Props {
     project: {
         id: number;
@@ -33,6 +47,9 @@ interface Props {
         performanceSystem?: PerformanceSystem;
     };
     compensationSystem?: CompensationSystem;
+    consultantRecommendation?: ConsultantRecommendation;
+    algorithmRecommendations?: Record<string, AlgorithmRecommendation>;
+    activeTab?: string;
 }
 
 const TABS = [
@@ -43,7 +60,11 @@ const TABS = [
     { id: 'review', label: 'Review & Submit' },
 ];
 
-const STRUCTURE_OPTIONS = ['Base Only', 'Mixed', 'Variable Heavy'];
+const STRUCTURE_OPTIONS = [
+    { value: 'fixed', label: 'Fixed Compensation' },
+    { value: 'mixed', label: 'Mixed Compensation' },
+    { value: 'performance_based', label: 'Performance-Based Compensation' },
+];
 const DIFFERENTIATION_OPTIONS = [
     { value: 'merit', label: 'Merit Increase', desc: 'Salary increases based on performance ratings and achievements' },
     { value: 'incentives', label: 'Incentives', desc: 'Bonus payments tied to specific goals or results' },
@@ -56,9 +77,16 @@ const INCENTIVE_OPTIONS = [
     { value: 'long-term', label: 'Long-Term Incentives', desc: 'Stock options, RSUs, or deferred compensation' },
 ];
 
-export default function CompensationSystemIndex({ project, compensationSystem }: Props) {
-    const [activeTab, setActiveTab] = useState('overview');
+export default function CompensationSystemIndex({ 
+    project, 
+    compensationSystem,
+    consultantRecommendation,
+    algorithmRecommendations,
+    activeTab: initialTab = 'overview'
+}: Props) {
+    const [activeTab, setActiveTab] = useState(initialTab);
     const [completedTabs, setCompletedTabs] = useState<string[]>([]);
+    const [isRationaleOpen, setIsRationaleOpen] = useState(true);
 
     const { data, setData, post, processing } = useForm({
         compensation_structure: compensationSystem?.compensation_structure || '',
@@ -108,6 +136,48 @@ export default function CompensationSystemIndex({ project, compensationSystem }:
                             <p className="text-muted-foreground mt-1">Design your compensation and rewards framework.</p>
                         </div>
 
+                        {/* Consultant Recommendation */}
+                        {consultantRecommendation && (
+                            <Card className="mb-6 border-2 border-primary/20 bg-primary/5">
+                                <CardContent className="p-6">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                            <CheckCircle2 className="w-6 h-6 text-primary" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <h3 className="text-lg font-bold">Consultant Recommendation</h3>
+                                                <Badge variant="default" className="bg-primary">
+                                                    {STRUCTURE_OPTIONS.find(s => s.value === consultantRecommendation.recommended_option)?.label || consultantRecommendation.recommended_option.replace('_', ' ')}
+                                                </Badge>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground mb-3">
+                                                Your consultant has prepared a recommendation based on your performance system selection and company context.
+                                            </p>
+                                            <Collapsible open={isRationaleOpen} onOpenChange={setIsRationaleOpen}>
+                                                <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80">
+                                                    <MessageSquare className="w-4 h-4" />
+                                                    View Consultant's Rationale
+                                                    {isRationaleOpen ? (
+                                                        <ChevronUp className="w-4 h-4" />
+                                                    ) : (
+                                                        <ChevronDown className="w-4 h-4" />
+                                                    )}
+                                                </CollapsibleTrigger>
+                                                <CollapsibleContent className="mt-3">
+                                                    <div className="p-4 bg-background border rounded-lg">
+                                                        <p className="text-sm whitespace-pre-line leading-relaxed">
+                                                            {consultantRecommendation.rationale}
+                                                        </p>
+                                                    </div>
+                                                </CollapsibleContent>
+                                            </Collapsible>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
                         {project.performanceSystem && (
                             <Card className="mb-6 bg-muted/50">
                                 <CardContent className="p-4">
@@ -143,13 +213,38 @@ export default function CompensationSystemIndex({ project, compensationSystem }:
                                 {activeTab === 'structure' && (
                                     <div className="space-y-4">
                                         <h3 className="text-lg font-semibold mb-4">Compensation Structure</h3>
-                                        <RadioGroup value={data.compensation_structure} onValueChange={(v) => setData('compensation_structure', v)} className="grid grid-cols-3 gap-4">
-                                            {STRUCTURE_OPTIONS.map(opt => (
-                                                <div key={opt} className="flex items-center space-x-2 p-4 border rounded-lg">
-                                                    <RadioGroupItem value={opt.toLowerCase().replace(/\s+/g, '-')} id={opt} />
-                                                    <Label htmlFor={opt} className="cursor-pointer flex-1">{opt}</Label>
-                                                </div>
-                                            ))}
+                                        <RadioGroup value={data.compensation_structure} onValueChange={(v) => setData('compensation_structure', v)} className="space-y-3">
+                                            {STRUCTURE_OPTIONS.map(opt => {
+                                                const isConsultantRecommended = consultantRecommendation?.recommended_option === opt.value;
+                                                const isAlgorithmRecommended = algorithmRecommendations?.[opt.value]?.recommended;
+                                                return (
+                                                    <div key={opt.value} className={`relative ${isConsultantRecommended ? 'ring-2 ring-primary' : ''}`}>
+                                                        <label className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 ${isConsultantRecommended ? 'bg-primary/5 border-primary/30' : ''}`}>
+                                                            <RadioGroupItem value={opt.value} id={opt.value} />
+                                                            <div className="flex-1">
+                                                                <div className="flex items-center justify-between mb-1">
+                                                                    <span className="font-semibold">{opt.label}</span>
+                                                                    <div className="flex items-center gap-2">
+                                                                        {isConsultantRecommended && (
+                                                                            <Badge variant="default" className="bg-primary">
+                                                                                Consultant Recommended
+                                                                            </Badge>
+                                                                        )}
+                                                                        {!isConsultantRecommended && isAlgorithmRecommended && (
+                                                                            <Badge variant="outline">Algorithm Recommended</Badge>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                                {isConsultantRecommended && (
+                                                                    <p className="text-xs text-primary mt-1 font-medium">
+                                                                        ✓ This is your consultant's recommended option
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        </label>
+                                                    </div>
+                                                );
+                                            })}
                                         </RadioGroup>
                                     </div>
                                 )}

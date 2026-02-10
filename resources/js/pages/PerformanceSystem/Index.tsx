@@ -10,7 +10,8 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Target, Settings } from 'lucide-react';
+import { ArrowLeft, Target, Settings, CheckCircle2, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface PerformanceSystem {
     id?: number;
@@ -18,6 +19,19 @@ interface PerformanceSystem {
     performance_method?: string;
     evaluation_type?: string;
     evaluation_scale?: string;
+}
+
+interface ConsultantRecommendation {
+    id: number;
+    recommended_option: string;
+    rationale: string;
+    created_at: string;
+}
+
+interface AlgorithmRecommendation {
+    score: number;
+    reasons: string[];
+    recommended: boolean;
 }
 
 interface Props {
@@ -32,9 +46,12 @@ interface Props {
         };
     };
     performanceSystem?: PerformanceSystem;
+    consultantRecommendation?: ConsultantRecommendation;
+    algorithmRecommendations?: Record<string, AlgorithmRecommendation>;
     recommendations?: {
         performance_method?: string;
     };
+    activeTab?: string;
 }
 
 const TABS = [
@@ -55,9 +72,17 @@ const METHOD_OPTIONS = [
 const TYPE_OPTIONS = ['Quantitative', 'Qualitative', 'Hybrid'];
 const SCALE_OPTIONS = ['Relative', 'Absolute', 'Hybrid'];
 
-export default function PerformanceSystemIndex({ project, performanceSystem, recommendations }: Props) {
-    const [activeTab, setActiveTab] = useState('overview');
+export default function PerformanceSystemIndex({ 
+    project, 
+    performanceSystem, 
+    consultantRecommendation,
+    algorithmRecommendations,
+    recommendations,
+    activeTab: initialTab = 'overview'
+}: Props) {
+    const [activeTab, setActiveTab] = useState(initialTab);
     const [completedTabs, setCompletedTabs] = useState<string[]>([]);
+    const [isRationaleOpen, setIsRationaleOpen] = useState(true);
 
     const { data, setData, post, processing } = useForm({
         evaluation_unit: performanceSystem?.evaluation_unit || '',
@@ -102,6 +127,48 @@ export default function PerformanceSystemIndex({ project, performanceSystem, rec
                             </div>
                             <p className="text-muted-foreground mt-1">Design your performance evaluation framework</p>
                         </div>
+
+                        {/* Consultant Recommendation */}
+                        {consultantRecommendation && (
+                            <Card className="mb-6 border-2 border-primary/20 bg-primary/5">
+                                <CardContent className="p-6">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                            <CheckCircle2 className="w-6 h-6 text-primary" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <h3 className="text-lg font-bold">Consultant Recommendation</h3>
+                                                <Badge variant="default" className="bg-primary">
+                                                    {METHOD_OPTIONS.find(m => m.value === consultantRecommendation.recommended_option)?.label || consultantRecommendation.recommended_option.toUpperCase()}
+                                                </Badge>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground mb-3">
+                                                Your consultant has prepared a recommendation based on your company's context, CEO philosophy, and job definitions.
+                                            </p>
+                                            <Collapsible open={isRationaleOpen} onOpenChange={setIsRationaleOpen}>
+                                                <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80">
+                                                    <MessageSquare className="w-4 h-4" />
+                                                    View Consultant's Rationale
+                                                    {isRationaleOpen ? (
+                                                        <ChevronUp className="w-4 h-4" />
+                                                    ) : (
+                                                        <ChevronDown className="w-4 h-4" />
+                                                    )}
+                                                </CollapsibleTrigger>
+                                                <CollapsibleContent className="mt-3">
+                                                    <div className="p-4 bg-background border rounded-lg">
+                                                        <p className="text-sm whitespace-pre-line leading-relaxed">
+                                                            {consultantRecommendation.rationale}
+                                                        </p>
+                                                    </div>
+                                                </CollapsibleContent>
+                                            </Collapsible>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
 
                         {project.organizationDesign && (
                             <Card className="mb-6 bg-muted/50">
@@ -155,17 +222,36 @@ export default function PerformanceSystemIndex({ project, performanceSystem, rec
                                         <p className="text-sm text-muted-foreground mb-4">Select the performance management methodology for your organization.</p>
                                         <RadioGroup value={data.performance_method} onValueChange={(v) => setData('performance_method', v)} className="grid grid-cols-2 gap-4">
                                             {METHOD_OPTIONS.map(opt => {
-                                                const isRecommended = recommendations?.performance_method === opt.value;
+                                                const isConsultantRecommended = consultantRecommendation?.recommended_option === opt.value;
+                                                const isAlgorithmRecommended = algorithmRecommendations?.[opt.value]?.recommended;
+                                                const isRecommended = recommendations?.performance_method === opt.value || isConsultantRecommended || isAlgorithmRecommended;
                                                 return (
-                                                    <div key={opt.value} className="relative">
-                                                        <label className="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50">
+                                                    <div key={opt.value} className={`relative ${isConsultantRecommended ? 'ring-2 ring-primary' : ''}`}>
+                                                        <label className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 ${isConsultantRecommended ? 'bg-primary/5 border-primary/30' : ''}`}>
                                                             <RadioGroupItem value={opt.value} id={opt.value} />
                                                             <div className="flex-1">
                                                                 <div className="flex items-center justify-between mb-1">
                                                                     <span className="font-semibold">{opt.label}</span>
-                                                                    {isRecommended && <RecommendationBadge />}
+                                                                    <div className="flex items-center gap-2">
+                                                                        {isConsultantRecommended && (
+                                                                            <Badge variant="default" className="bg-primary">
+                                                                                Consultant Recommended
+                                                                            </Badge>
+                                                                        )}
+                                                                        {!isConsultantRecommended && isAlgorithmRecommended && (
+                                                                            <Badge variant="outline">Algorithm Recommended</Badge>
+                                                                        )}
+                                                                        {isRecommended && !isConsultantRecommended && !isAlgorithmRecommended && (
+                                                                            <RecommendationBadge />
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                                 <p className="text-sm text-muted-foreground">{opt.desc}</p>
+                                                                {isConsultantRecommended && (
+                                                                    <p className="text-xs text-primary mt-1 font-medium">
+                                                                        ✓ This is your consultant's recommended option
+                                                                    </p>
+                                                                )}
                                                             </div>
                                                         </label>
                                                     </div>

@@ -19,7 +19,10 @@ import {
     TrendingUp,
     ArrowRight,
     Eye,
-    UserPlus
+    UserPlus,
+    Target,
+    DollarSign,
+    AlertCircle
 } from 'lucide-react';
 
 interface Project {
@@ -42,9 +45,17 @@ interface Props {
         pending_ceo_survey: number;
     };
     recentProjects: Project[];
+    projectsNeedingPerformanceRecommendation?: Project[];
+    projectsNeedingCompensationRecommendation?: Project[];
 }
 
-export default function AdminDashboard({ projects, stats, recentProjects }: Props) {
+export default function AdminDashboard({ 
+    projects, 
+    stats, 
+    recentProjects,
+    projectsNeedingPerformanceRecommendation = [],
+    projectsNeedingCompensationRecommendation = []
+}: Props) {
     const [showCreateCeoDialog, setShowCreateCeoDialog] = useState(false);
     
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -215,7 +226,7 @@ export default function AdminDashboard({ projects, stats, recentProjects }: Prop
                         </div>
 
                         {/* Action Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                             <Card>
                                 <CardHeader>
                                     <div className="flex items-center justify-between">
@@ -262,6 +273,101 @@ export default function AdminDashboard({ projects, stats, recentProjects }: Prop
                                 </CardContent>
                             </Card>
                         </div>
+
+                        {/* Projects Needing Recommendations */}
+                        {(projectsNeedingPerformanceRecommendation.length > 0 || projectsNeedingCompensationRecommendation.length > 0) && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                {projectsNeedingPerformanceRecommendation.length > 0 && (
+                                    <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20">
+                                        <CardHeader>
+                                            <div className="flex items-center justify-between">
+                                                <CardTitle className="flex items-center gap-2">
+                                                    <Target className="w-5 h-5 text-amber-600" />
+                                                    Performance Recommendations Needed
+                                                </CardTitle>
+                                                <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                                                    {projectsNeedingPerformanceRecommendation.length}
+                                                </Badge>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <p className="text-sm text-muted-foreground mb-4">
+                                                Projects where Step 3 (Job Analysis) is confirmed but performance recommendation is not yet prepared.
+                                            </p>
+                                            <div className="space-y-2 mb-4 max-h-48 overflow-y-auto">
+                                                {projectsNeedingPerformanceRecommendation.map((project) => (
+                                                    <Link
+                                                        key={project.id}
+                                                        href={`/admin/recommendations/performance/${project.id}`}
+                                                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-background transition-colors"
+                                                    >
+                                                        <div className="flex-1">
+                                                            <p className="font-medium text-sm">
+                                                                {project.company?.name || `Project #${project.id}`}
+                                                            </p>
+                                                        </div>
+                                                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                            {projectsNeedingPerformanceRecommendation.length > 3 && (
+                                                <Link href="/admin/dashboard">
+                                                    <Button variant="outline" className="w-full" size="sm">
+                                                        View All
+                                                        <ArrowRight className="w-4 h-4 ml-2" />
+                                                    </Button>
+                                                </Link>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                )}
+
+                                {projectsNeedingCompensationRecommendation.length > 0 && (
+                                    <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20">
+                                        <CardHeader>
+                                            <div className="flex items-center justify-between">
+                                                <CardTitle className="flex items-center gap-2">
+                                                    <DollarSign className="w-5 h-5 text-amber-600" />
+                                                    Compensation Recommendations Needed
+                                                </CardTitle>
+                                                <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                                                    {projectsNeedingCompensationRecommendation.length}
+                                                </Badge>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <p className="text-sm text-muted-foreground mb-4">
+                                                Projects where Step 4 (Performance) is completed but compensation recommendation is not yet prepared.
+                                            </p>
+                                            <div className="space-y-2 mb-4 max-h-48 overflow-y-auto">
+                                                {projectsNeedingCompensationRecommendation.map((project) => (
+                                                    <Link
+                                                        key={project.id}
+                                                        href={`/admin/recommendations/compensation/${project.id}`}
+                                                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-background transition-colors"
+                                                    >
+                                                        <div className="flex-1">
+                                                            <p className="font-medium text-sm">
+                                                                {project.company?.name || `Project #${project.id}`}
+                                                            </p>
+                                                        </div>
+                                                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                            {projectsNeedingCompensationRecommendation.length > 3 && (
+                                                <Link href="/admin/dashboard">
+                                                    <Button variant="outline" className="w-full" size="sm">
+                                                        View All
+                                                        <ArrowRight className="w-4 h-4 ml-2" />
+                                                    </Button>
+                                                </Link>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </div>
+                        )}
 
                         {/* Recent Projects */}
                         <Card>

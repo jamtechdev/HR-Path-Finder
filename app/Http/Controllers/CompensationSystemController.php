@@ -3,13 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Enums\StepStatus;
+use App\Models\AdminComment;
 use App\Models\HrProject;
 use App\Models\CompensationSystem;
+use App\Services\RecommendationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class CompensationSystemController extends Controller
 {
+    public function __construct(
+        protected RecommendationService $recommendationService
+    ) {
+    }
+
     /**
      * Show compensation system step.
      */
@@ -24,8 +31,17 @@ class CompensationSystemController extends Controller
             return back()->withErrors(['error' => 'Compensation System step is not yet unlocked.']);
         }
 
-        $hrProject->load(['diagnosis', 'organizationDesign', 'performanceSystem', 'compensationSystem']);
+        $hrProject->load(['diagnosis', 'organizationDesign', 'performanceSystem', 'compensationSystem', 'organizationalSentiment']);
         $compensationSystem = $hrProject->compensationSystem;
+
+        // Load consultant recommendation
+        $consultantRecommendation = AdminComment::where('hr_project_id', $hrProject->id)
+            ->where('is_recommendation', true)
+            ->where('recommendation_type', 'compensation')
+            ->first();
+
+        // Get algorithm-based recommendations
+        $algorithmRecommendations = $this->recommendationService->getRecommendedCompensationStructure($hrProject);
 
         $stepStatuses = $hrProject->step_statuses ?? [];
         $mainStepStatuses = [
@@ -37,18 +53,12 @@ class CompensationSystemController extends Controller
             'conclusion' => $stepStatuses['conclusion'] ?? 'not_started',
         ];
 
-        $componentMap = [
-            'overview' => 'CompensationSystem/Overview',
-            'compensation-structure' => 'CompensationSystem/CompensationStructure',
-            'differentiation' => 'CompensationSystem/Differentiation',
-            'incentives' => 'CompensationSystem/Incentives',
-        ];
-
-        $component = $componentMap[$tab] ?? 'CompensationSystem/Overview';
-
-        return Inertia::render($component, [
+        // Use Index component which handles all tabs internally
+        return Inertia::render('CompensationSystem/Index', [
             'project' => $hrProject,
             'compensationSystem' => $compensationSystem,
+            'consultantRecommendation' => $consultantRecommendation,
+            'algorithmRecommendations' => $algorithmRecommendations,
             'stepStatuses' => $mainStepStatuses,
             'activeTab' => $tab,
             'projectId' => $hrProject->id,

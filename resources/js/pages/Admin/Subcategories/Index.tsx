@@ -30,7 +30,7 @@ interface Props {
 
 export default function SubcategoriesIndex({ subCategories, categories, currentCategory }: Props) {
     const handleDelete = (subCategoryId: number) => {
-        if (confirm('Are you sure you want to delete this subcategory?')) {
+        if (confirm('Are you sure you want to delete this sub industry?')) {
             router.delete(`/admin/subcategories/${subCategoryId}`, {
                 preserveScroll: true,
             });
@@ -45,19 +45,19 @@ export default function SubcategoriesIndex({ subCategories, categories, currentC
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
                 <main className="flex-1 overflow-auto">
-                    <Head title="Subcategories Management" />
+                    <Head title="Sub Industries Management" />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
-                                <h1 className="text-3xl font-bold mb-2">Subcategories Management</h1>
+                                <h1 className="text-3xl font-bold mb-2">Sub Industries Management</h1>
                                 <p className="text-muted-foreground">
-                                    Manage industry subcategories
+                                    Manage sub industries
                                 </p>
                             </div>
                             <Link href="/admin/subcategories/create">
                                 <Button>
                                     <Plus className="w-4 h-4 mr-2" />
-                                    Add Subcategory
+                                    Add Sub Industry
                                 </Button>
                             </Link>
                         </div>
@@ -65,7 +65,7 @@ export default function SubcategoriesIndex({ subCategories, categories, currentC
                         <Card className="mb-6">
                             <CardHeader>
                                 <div className="flex items-center justify-between">
-                                    <CardTitle>Filter by Category</CardTitle>
+                                    <CardTitle>Filter by Industry</CardTitle>
                                     <Select
                                         value={currentCategory?.toString() || 'all'}
                                         onValueChange={(value) => {
@@ -79,7 +79,7 @@ export default function SubcategoriesIndex({ subCategories, categories, currentC
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="all">All Categories</SelectItem>
+                                            <SelectItem value="all">All Industries</SelectItem>
                                             {categories.map((category) => (
                                                 <SelectItem key={category.id} value={category.id.toString()}>
                                                     {category.name}
@@ -93,7 +93,7 @@ export default function SubcategoriesIndex({ subCategories, categories, currentC
 
                         <Card>
                             <CardHeader>
-                                <CardTitle>Subcategories</CardTitle>
+                                <CardTitle>Sub Industries</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-2">
@@ -106,7 +106,7 @@ export default function SubcategoriesIndex({ subCategories, categories, currentC
                                                 <div className="flex items-center gap-3 mb-1">
                                                     <p className="font-medium">{subCategory.name}</p>
                                                     <Badge variant="outline">
-                                                        {subCategory.industryCategory?.name || 'Unknown Category'}
+                                                        {subCategory.industryCategory?.name || 'Unknown Industry'}
                                                     </Badge>
                                                     <Badge variant="secondary">Order: {subCategory.order}</Badge>
                                                 </div>
@@ -129,7 +129,7 @@ export default function SubcategoriesIndex({ subCategories, categories, currentC
                                     ))}
                                     {(!subCategories || subCategories.length === 0) && (
                                         <p className="text-center text-muted-foreground py-8">
-                                            No subcategories found.
+                                            No sub industries found.
                                         </p>
                                     )}
                                 </div>

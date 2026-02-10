@@ -84,7 +84,7 @@ export default function IndustriesEdit({ category }: Props) {
     };
 
     const handleDeleteSubCategory = (subCategoryId: number) => {
-        if (confirm('Are you sure you want to delete this subcategory?')) {
+        if (confirm('Are you sure you want to delete this sub industry?')) {
             router.delete(`/admin/industries/subcategories/${subCategoryId}`, {
                 preserveScroll: true,
             });
@@ -99,7 +99,7 @@ export default function IndustriesEdit({ category }: Props) {
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
                 <main className="flex-1 overflow-auto">
-                    <Head title={`Edit Industry - ${category?.name || 'Category'}`} />
+                    <Head title={`Edit Industry - ${category?.name || 'Industry'}`} />
                     <div className="p-6 md:p-8 max-w-4xl mx-auto">
                         <div className="mb-6">
                             <Link href="/admin/industries">
@@ -108,9 +108,9 @@ export default function IndustriesEdit({ category }: Props) {
                                     Back to Industries
                                 </Button>
                             </Link>
-                            <h1 className="text-3xl font-bold mb-2">Edit Industry Category</h1>
+                            <h1 className="text-3xl font-bold mb-2">Edit Industry</h1>
                             <p className="text-muted-foreground">
-                                Update category details and manage subcategories
+                                Update industry details and manage sub industries
                             </p>
                         </div>
 
@@ -118,12 +118,12 @@ export default function IndustriesEdit({ category }: Props) {
                             {/* Edit Category */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Category Details</CardTitle>
+                                    <CardTitle>Industry Details</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <form onSubmit={handleSubmit} className="space-y-4">
                                         <div>
-                                            <Label htmlFor="name">Category Name *</Label>
+                                            <Label htmlFor="name">Industry Name *</Label>
                                             <Input
                                                 id="name"
                                                 value={data.name}
@@ -151,7 +151,7 @@ export default function IndustriesEdit({ category }: Props) {
 
                                         <div className="flex items-center gap-3 pt-4">
                                             <Button type="submit" disabled={processing}>
-                                                {processing ? 'Updating...' : 'Update Category'}
+                                                {processing ? 'Updating...' : 'Update Industry'}
                                             </Button>
                                         </div>
                                     </form>
@@ -162,13 +162,13 @@ export default function IndustriesEdit({ category }: Props) {
                             <Card>
                                 <CardHeader>
                                     <div className="flex items-center justify-between">
-                                        <CardTitle>Subcategories</CardTitle>
+                                        <CardTitle>Sub Industries</CardTitle>
                                         <Button
                                             onClick={() => setShowAddSubCategory(!showAddSubCategory)}
                                             size="sm"
                                         >
                                             <Plus className="w-4 h-4 mr-2" />
-                                            Add Subcategory
+                                            Add Sub Industry
                                         </Button>
                                     </div>
                                 </CardHeader>
@@ -176,7 +176,7 @@ export default function IndustriesEdit({ category }: Props) {
                                     {showAddSubCategory && (
                                         <form onSubmit={handleAddSubCategory} className="p-4 border rounded-lg space-y-3">
                                             <div>
-                                                <Label htmlFor="sub_name">Subcategory Name *</Label>
+                                                <Label htmlFor="sub_name">Sub Industry Name *</Label>
                                                 <Input
                                                     id="sub_name"
                                                     value={subCategoryForm.data.name}
@@ -284,7 +284,7 @@ export default function IndustriesEdit({ category }: Props) {
                                         ))}
                                         {(!category.subCategories || category.subCategories.length === 0) && !showAddSubCategory && (
                                             <p className="text-sm text-muted-foreground text-center py-4">
-                                                No subcategories yet. Click "Add Subcategory" to create one.
+                                                No sub industries yet. Click "Add Sub Industry" to create one.
                                             </p>
                                         )}
                                     </div>
