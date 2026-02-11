@@ -85,6 +85,9 @@ Route::middleware(['auth'])->group(function () {
         // Job Analysis View
         Route::get('job-analysis/{hrProject}/intro', [\App\Http\Controllers\JobAnalysisController::class, 'ceoIntro'])->name('job-analysis.intro');
         
+        // TREE access for CEO
+        Route::get('tree/{hrProject}/{tab?}', [\App\Http\Controllers\TreeController::class, 'index'])->name('tree.index');
+        
         // Final Review
         Route::get('final-review/{hrProject}', [\App\Http\Controllers\FinalReviewController::class, 'index'])->name('final-review.index');
         Route::post('final-review/{hrProject}/approve', [\App\Http\Controllers\FinalReviewController::class, 'approve'])->name('final-review.approve');
@@ -245,7 +248,7 @@ Route::middleware(['auth'])->group(function () {
             'destroy' => 'intro-texts.destroy',
         ]);
         
-        // Consultant Recommendations (Step 3.5 & 4.5)
+        // Consultant Recommendations (Step 3.5, 4.5 & 5)
         Route::get('recommendations/performance/{hrProject}', [\App\Http\Controllers\Admin\ConsultantRecommendationController::class, 'showPerformanceRecommendation'])
             ->name('recommendations.performance');
         Route::post('recommendations/performance/{hrProject}', [\App\Http\Controllers\Admin\ConsultantRecommendationController::class, 'storePerformanceRecommendation'])
@@ -254,6 +257,13 @@ Route::middleware(['auth'])->group(function () {
             ->name('recommendations.compensation');
         Route::post('recommendations/compensation/{hrProject}', [\App\Http\Controllers\Admin\ConsultantRecommendationController::class, 'storeCompensationRecommendation'])
             ->name('recommendations.compensation.store');
+        Route::get('recommendations/tree/{hrProject}', [\App\Http\Controllers\Admin\ConsultantRecommendationController::class, 'showTreeRecommendation'])
+            ->name('recommendations.tree');
+        Route::post('recommendations/tree/{hrProject}', [\App\Http\Controllers\Admin\ConsultantRecommendationController::class, 'storeTreeRecommendation'])
+            ->name('recommendations.tree.store');
+        
+        // TREE access for admin
+        Route::get('tree/{hrProject}/{tab?}', [\App\Http\Controllers\TreeController::class, 'index'])->name('tree.index');
     });
     
     // ========== HR System Overview (Shared) ==========

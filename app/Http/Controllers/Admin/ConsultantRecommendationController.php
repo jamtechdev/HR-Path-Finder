@@ -183,4 +183,84 @@ class ConsultantRecommendationController extends Controller
         return redirect()->route('admin.recommendations.compensation', $hrProject)
             ->with('success', 'Compensation recommendation saved successfully.');
     }
+
+    /**
+     * Show TREE recommendation preparation form.
+     */
+    public function showTreeRecommendation(Request $request, HrProject $hrProject): Response
+    {
+        if (!$request->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        // Check if Job Analysis is completed
+        $stepStatuses = $hrProject->step_statuses ?? [];
+        $jobAnalysisStatus = $stepStatuses['job_analysis'] ?? 'not_started';
+        
+        if (!in_array($jobAnalysisStatus, ['submitted', 'approved', 'locked'])) {
+            return redirect()->route('admin.dashboard')
+                ->withErrors(['error' => 'Job Analysis must be completed before preparing TREE recommendations.']);
+        }
+
+        // Load project data
+        $hrProject->load([
+            'company',
+            'diagnosis',
+            'ceoPhilosophy',
+            'organizationDesign',
+            'performanceSystem',
+            'compensationSystem',
+        ]);
+
+        // Load finalized job definitions
+        $jobDefinitions = JobDefinition::where('hr_project_id', $hrProject->id)
+            ->where('is_finalized', true)
+            ->with('jobKeyword')
+            ->get();
+
+        // Get existing recommendation
+        $existingRecommendation = AdminComment::where('hr_project_id', $hrProject->id)
+            ->where('step', 'tree')
+            ->where('is_recommendation', true)
+            ->first();
+
+        return Inertia::render('Admin/Recommendations/TreeRecommendation', [
+            'project' => $hrProject,
+            'jobDefinitions' => $jobDefinitions,
+            'existingRecommendation' => $existingRecommendation,
+        ]);
+    }
+
+    /**
+     * Store TREE recommendation.
+     */
+    public function storeTreeRecommendation(Request $request, HrProject $hrProject)
+    {
+        if (!$request->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'comment' => ['required', 'string', 'max:5000'],
+        ]);
+
+        // Delete existing recommendation for TREE step if any
+        AdminComment::where('hr_project_id', $hrProject->id)
+            ->where('step', 'tree')
+            ->where('is_recommendation', true)
+            ->delete();
+
+        // Create new recommendation
+        AdminComment::create([
+            'hr_project_id' => $hrProject->id,
+            'user_id' => $request->user()->id,
+            'step' => 'tree',
+            'recommendation_type' => 'tree',
+            'comment' => $validated['comment'],
+            'is_recommendation' => true,
+        ]);
+
+        return redirect()->route('admin.recommendations.tree', $hrProject)
+            ->with('success', 'TREE recommendation saved successfully.');
+    }
 }

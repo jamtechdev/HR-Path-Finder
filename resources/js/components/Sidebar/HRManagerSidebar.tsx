@@ -91,7 +91,13 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
         const stepIndex = MAIN_STEPS.findIndex(s => s.id === stepId);
         const isCurrentlyActive = isStepActive({ id: stepId, route: '', step: 0, title: '', desc: '', icon: CheckCircle2 });
         
-        // If step is completed (submitted/approved/locked), it's completed and enabled
+        // Check CEO Philosophy status from props
+        const ceoPhilosophyStatus = (props as any).ceoPhilosophyStatus || 'not_started';
+        const diagnosisStatus = stepStatuses['diagnosis'];
+        const isDiagnosisSubmitted = diagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(diagnosisStatus);
+        const isCeoSurveyCompleted = ceoPhilosophyStatus === 'completed';
+        
+        // If step is actually completed (submitted/approved/locked), it's completed
         if (status && ['submitted', 'approved', 'locked', 'completed'].includes(status)) {
             return 'completed';
         }
@@ -107,8 +113,8 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
         }
         
         // If status is in_progress and it's not the current active page, check if it's the current step
-        // For now, only completed and current steps are enabled, rest are locked
-        if (status === 'in_progress' && !isCurrentlyActive) {
+        // Only unlock if CEO survey is completed
+        if (isCeoSurveyCompleted && status === 'in_progress' && !isCurrentlyActive) {
             // Check if this is the next step to work on (all previous steps are completed)
             let allPreviousCompleted = true;
             for (let i = 0; i < stepIndex; i++) {
@@ -126,6 +132,23 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
         
         // All other steps are locked (only completed and current steps are enabled)
         return 'locked';
+    };
+    
+    // Check if step should actually be locked
+    const isStepActuallyLocked = (stepId: string): boolean => {
+        const diagnosisStatus = stepStatuses['diagnosis'];
+        const isDiagnosisSubmitted = diagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(diagnosisStatus);
+        const ceoPhilosophyStatus = (props as any).ceoPhilosophyStatus || 'not_started';
+        const isCeoSurveyCompleted = ceoPhilosophyStatus === 'completed';
+        
+        // If diagnosis is submitted but CEO survey not done, all steps except diagnosis are locked
+        if (isDiagnosisSubmitted && !isCeoSurveyCompleted && stepId !== 'diagnosis') {
+            return true;
+        }
+        
+        // Otherwise use normal lock logic
+        const state = getStepState(stepId);
+        return state === 'locked';
     };
 
     const isStepActive = (step: StepConfig): boolean => {
@@ -201,17 +224,17 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                             const state = getStepState(step.id);
                             const status = stepStatuses[step.id] || 'not_started';
                             const isCompleted = state === 'completed';
-                            const isLocked = state === 'locked';
+                            const isActuallyLocked = isStepActuallyLocked(step.id);
                             const isStepActiveState = isStepActive(step);
                             const StepIcon = step.icon;
 
                             return (
                                 <SidebarMenuItem key={step.id}>
-                                    {isLocked ? (
+                                    {isActuallyLocked ? (
                                         <SidebarMenuButton
                                             disabled
                                             className={cn(
-                                                "transition-all duration-200 rounded-lg opacity-50 cursor-not-allowed",
+                                                "transition-all duration-200 rounded-lg cursor-not-allowed opacity-50",
                                                 isCollapsed ? "px-3 py-3 justify-center w-full" : "px-4 py-3 gap-3"
                                             )}
                                         >
