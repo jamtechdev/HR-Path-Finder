@@ -22,7 +22,7 @@ class CompanyController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('companies.create');
+        return Inertia::render('Companies/Create');
     }
 
     /**
