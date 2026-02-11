@@ -25,15 +25,38 @@ export default function CreateCompany() {
 
     const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] || null;
-        setData('logo', file);
         
         if (file) {
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                alert('Please upload a valid image file (JPG, PNG, GIF, or WebP).');
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+                return;
+            }
+            
+            // Validate file size (5MB max)
+            const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+            if (file.size > maxSize) {
+                alert('File size must be less than 5MB. Please choose a smaller image.');
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+                return;
+            }
+            
+            setData('logo', file);
+            
+            // Create preview
             const reader = new FileReader();
             reader.onloadend = () => {
                 setLogoPreview(reader.result as string);
             };
             reader.readAsDataURL(file);
         } else {
+            setData('logo', null);
             setLogoPreview(null);
         }
     };
@@ -53,6 +76,12 @@ export default function CreateCompany() {
             onSuccess: () => {
                 // Reset preview on success
                 setLogoPreview(null);
+            },
+            onError: (errors) => {
+                // Handle 413 error specifically
+                if (errors.logo && errors.logo.includes('too large')) {
+                    alert('File size is too large. Please upload an image smaller than 5MB.');
+                }
             },
         });
     };
@@ -238,7 +267,7 @@ export default function CreateCompany() {
                                                                 Click to upload logo
                                                             </p>
                                                             <p className="text-xs text-muted-foreground mt-1">
-                                                                PNG, JPG, or GIF (max 5MB)
+                                                                PNG, JPG, GIF, or WebP (max 5MB)
                                                             </p>
                                                         </div>
                                                     </div>

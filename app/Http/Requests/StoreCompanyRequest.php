@@ -26,7 +26,19 @@ class StoreCompanyRequest extends FormRequest
             'registration_number' => ['nullable', 'string', 'max:255'],
             'hq_location' => ['nullable', 'string', 'max:255'],
             'public_listing_status' => ['required', 'in:public,private,not_applicable'],
-            'logo' => ['nullable', 'image', 'max:2048'],
+            'logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:5120'], // 5MB max
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'logo.image' => 'The logo must be an image file.',
+            'logo.mimes' => 'The logo must be a file of type: jpeg, jpg, png, gif, or webp.',
+            'logo.max' => 'The logo may not be greater than 5MB.',
         ];
     }
 }
