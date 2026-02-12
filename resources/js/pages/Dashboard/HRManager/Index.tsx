@@ -490,6 +490,14 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                         const isCompleted = state === 'completed';
                                         const isCurrent = state === 'current';
                                         
+                                        // Determine button label - "View" for completed diagnosis, "Review" for other completed steps
+                                        const getButtonLabel = () => {
+                                            if (isCompleted) {
+                                                return step.id === 'diagnosis' ? 'View' : 'Review';
+                                            }
+                                            return 'Continue';
+                                        };
+                                        
                                         return (
                                             <Card 
                                                 key={step.id}
@@ -498,39 +506,41 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                     isActuallyLocked
                                                         ? "opacity-60 border-muted/50 bg-muted/20" 
                                                         : isCurrent
-                                                        ? "border-primary/50 shadow-lg ring-2 ring-primary/10"
+                                                        ? "border-green-500/50 shadow-xl ring-2 ring-green-500/20 bg-green-50/30 dark:bg-green-950/10"
                                                         : isCompleted
-                                                        ? "border-green-500/30 shadow-md hover:shadow-lg"
+                                                        ? "border-green-200/50 shadow-sm hover:shadow-md"
                                                         : "hover:shadow-lg border-border"
                                                 )}
                                             >
                                                 {isCurrent && (
-                                                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary/80 to-primary/60"></div>
+                                                    <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-green-500 via-green-500 to-green-500"></div>
                                                 )}
-                                                {isCompleted && (
-                                                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 via-green-500/80 to-green-500/60"></div>
+                                                {isCompleted && !isCurrent && (
+                                                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-green-200 via-green-200/80 to-green-200"></div>
                                                 )}
                                                 <CardContent className="p-6">
                                                     <div className="flex items-start gap-5">
                                                         {/* Icon */}
                                                         <div className={cn(
                                                             "w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200",
-                                                            isCompleted
-                                                                ? "bg-green-500/10 text-green-600 border-2 border-green-500/20"
-                                                                : isCurrent
-                                                                ? "bg-primary text-primary-foreground shadow-lg scale-105"
+                                                            isCurrent
+                                                                ? "bg-green-500 text-white border-2 border-green-600 shadow-lg scale-105"
+                                                                : isCompleted
+                                                                ? "bg-green-100/50 text-green-500 border-2 border-green-200/50"
                                                                 : isActuallyLocked
                                                                 ? "bg-muted/60 text-muted-foreground/60"
                                                                 : "bg-muted/40 text-muted-foreground"
                                                         )}>
-                                                            {isCompleted ? (
-                                                                <CheckCircle2 className="w-7 h-7 text-green-600" />
+                                                            {isCurrent ? (
+                                                                <CheckCircle2 className="w-7 h-7 text-white" />
+                                                            ) : isCompleted ? (
+                                                                <CheckCircle2 className="w-7 h-7 text-green-500" />
                                                             ) : isActuallyLocked ? (
                                                                 <Lock className="w-7 h-7" />
                                                             ) : (
                                                                 <step.icon className={cn(
                                                                     "w-7 h-7",
-                                                                    isCurrent && "text-primary-foreground"
+                                                                    isCurrent && "text-white"
                                                                 )} />
                                                             )}
                                                         </div>
@@ -542,20 +552,26 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                                     variant="outline" 
                                                                     className={cn(
                                                                         "text-xs",
-                                                                        isCompleted && "border-green-500/30 text-green-600 bg-green-500/10",
-                                                                        isCurrent && "border-primary/30 text-primary bg-primary/10",
+                                                                        isCurrent && "border-green-500/40 text-green-700 bg-green-100 dark:bg-green-900/30",
+                                                                        isCompleted && !isCurrent && "border-green-200 text-green-600 bg-green-50",
                                                                         isActuallyLocked && "border-muted text-muted-foreground"
                                                                     )}
                                                                 >
                                                                     Step {step.step}
                                                                 </Badge>
-                                                                {isCompleted && (
-                                                                    <Badge className="bg-green-500/10 text-green-600 border-green-500/30">
+                                                                {isCurrent && (
+                                                                    <Badge className="bg-green-500 text-white border-green-600 shadow-md">
+                                                                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                                                                        Current Step
+                                                                    </Badge>
+                                                                )}
+                                                                {isCompleted && !isCurrent && (
+                                                                    <Badge className="bg-green-50 text-green-600 border-green-200">
                                                                         <CheckCircle2 className="w-3 h-3 mr-1" />
                                                                         Completed
                                                                     </Badge>
                                                                 )}
-                                                                {isCurrent && !isCompleted && (
+                                                                {!isCurrent && !isCompleted && !isActuallyLocked && (
                                                                     <Badge className="bg-primary/10 text-primary border-primary/30">
                                                                         <Clock className="w-3 h-3 mr-1" />
                                                                         In Progress
@@ -568,19 +584,25 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                                     </Badge>
                                                                 )}
                                                             </div>
-                                                            <h3 className="font-bold text-xl mb-2 text-foreground">{step.title}</h3>
+                                                            <h3 className={cn(
+                                                                "font-bold text-xl mb-2",
+                                                                isCurrent ? "text-green-700 dark:text-green-400" : "text-foreground"
+                                                            )}>
+                                                                {step.title}
+                                                            </h3>
                                                             <p className="text-sm text-muted-foreground leading-relaxed mb-4">{step.desc}</p>
                                                             
                                                             {!isActuallyLocked && (
                                                                 <Link href={route}>
                                                                     <Button 
-                                                                        variant={isCompleted ? "outline" : "default"}
+                                                                        variant={isCurrent ? "default" : isCompleted ? "outline" : "default"}
                                                                         className={cn(
                                                                             "gap-2",
-                                                                            isCompleted && "border-green-500/30 text-green-600 hover:bg-green-500/10"
+                                                                            isCurrent && "bg-green-500 hover:bg-green-600 text-white shadow-md",
+                                                                            isCompleted && !isCurrent && "border-green-300 text-green-600 hover:bg-green-50"
                                                                         )}
                                                                     >
-                                                                        {isCompleted ? 'Review' : 'Continue'}
+                                                                        {getButtonLabel()}
                                                                         <ArrowRight className="w-4 h-4" />
                                                                     </Button>
                                                                 </Link>
