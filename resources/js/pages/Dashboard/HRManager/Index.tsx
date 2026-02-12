@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
-import { TrendingUp, Users, Calendar, CheckCircle2, Target, DollarSign, Building2, UserPlus, Mail, X, Award, Sparkles, Clock, ArrowRight, Lock } from 'lucide-react';
+import { TrendingUp, Users, Calendar, CheckCircle2, Target, DollarSign, Building2, UserPlus, Mail, X, Award, Sparkles, Clock, ArrowRight, Lock, Copy, Eye, EyeOff } from 'lucide-react';
 import ProgressTracker from '@/components/Dashboard/HRManager/ProgressTracker';
 import StepCard from '@/components/Dashboard/HRManager/StepCard';
 import type { StepKey, StepStatus } from '@/types/workflow';
@@ -100,21 +101,60 @@ const STEP_CONFIG = [
 export default function HrManagerDashboard({ user, activeProject, company, progress, ceoPhilosophyStatus }: Props) {
     const stepStatuses = activeProject?.step_statuses ?? {};
     const [showInviteDialog, setShowInviteDialog] = useState(false);
+    const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showCustomPassword, setShowCustomPassword] = useState(false);
+    const [ceoCredentials, setCeoCredentials] = useState<{name: string; email: string; password: string} | null>(null);
+    
+    const { flash } = usePage().props as any;
+    const [createImmediately, setCreateImmediately] = useState(false);
+    const [useCustomPassword, setUseCustomPassword] = useState(false);
     
     const { data, setData, post, processing, errors, reset } = useForm({
+        name: '',
         email: '',
+        password: '',
+        hr_project_id: activeProject?.id || null,
+        create_immediately: false,
     });
+
+    // Check for CEO credentials in flash message
+    useEffect(() => {
+        if (flash?.ceo_password && flash?.ceo_email && flash?.ceo_name) {
+            setCeoCredentials({
+                name: flash.ceo_name,
+                email: flash.ceo_email,
+                password: flash.ceo_password,
+            });
+            setShowPasswordDialog(true);
+        }
+    }, [flash]);
 
     const handleInviteCeo = (e: React.FormEvent) => {
         e.preventDefault();
         if (company) {
+            // Update hr_project_id before submitting
+            setData('hr_project_id', activeProject?.id || null);
+            setData('create_immediately', createImmediately);
+            // Only send password if using custom password
+            if (!useCustomPassword) {
+                setData('password', '');
+            }
             post(`/companies/${company.id}/invite-ceo`, {
                 onSuccess: () => {
                     reset();
+                    setCreateImmediately(false);
+                    setUseCustomPassword(false);
+                    setShowCustomPassword(false);
                     setShowInviteDialog(false);
                 },
             });
         }
+    };
+
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        // You could add a toast notification here
     };
     
     // Determine step states with proper unlock logic
@@ -130,9 +170,20 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
         const isDiagnosisSubmitted = diagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(diagnosisStatus);
         const isCeoSurveyCompleted = ceoPhilosophyStatus === 'completed';
         
-        // If step is actually completed (submitted/approved/locked), it's completed
-        if (status && ['submitted', 'approved', 'locked', 'completed'].includes(status)) {
+        // Only mark as completed if step is approved/locked/completed (CEO has verified)
+        // Submitted steps should not show as completed - they're waiting for CEO verification
+        if (status && ['approved', 'locked', 'completed'].includes(status)) {
             return 'completed';
+        }
+        
+        // If step is submitted (waiting for CEO), it's still in progress, not completed
+        if (status === 'submitted') {
+            // For diagnosis, submitted is considered done only after CEO survey
+            if (stepKey === 'diagnosis') {
+                return isCeoSurveyCompleted ? 'completed' : 'current';
+            }
+            // For other steps, submitted means waiting for CEO - show as current/in-progress
+            return 'current';
         }
         
         // Check if this is the current step (in progress or not started)
@@ -150,7 +201,8 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
             for (let i = 0; i < stepIndex; i++) {
                 const prevStep = STEP_CONFIG[i];
                 const prevStatus = stepStatuses[prevStep.id] as StepStatus | undefined;
-                if (!prevStatus || !['submitted', 'approved', 'locked', 'completed'].includes(prevStatus)) {
+                // Previous step must be approved/locked/completed (CEO verified), not just submitted
+                if (!prevStatus || !['approved', 'locked', 'completed'].includes(prevStatus)) {
                     allPreviousCompleted = false;
                     break;
                 }
@@ -242,7 +294,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="space-y-8">
                             {/* Welcome Section */}
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between flex-wrap gap-4">
                                 <div>
                                     <h1 className="text-4xl font-bold text-foreground mb-2">Welcome back, {user.name}</h1>
                                     <p className="text-muted-foreground text-lg">
@@ -251,13 +303,252 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                             : 'Start building your company\'s HR system.'}
                                     </p>
                                 </div>
-                                {activeProject && (
-                                    <Badge variant="outline" className="text-sm px-4 py-2">
-                                        <Sparkles className="w-4 h-4 mr-2" />
-                                        Active Project
-                                    </Badge>
-                                )}
+                                <div className="flex items-center gap-3">
+                                    {activeProject && (
+                                        <Badge variant="outline" className="text-sm px-4 py-2">
+                                            <Sparkles className="w-4 h-4 mr-2" />
+                                            Active Project
+                                        </Badge>
+                                    )}
+                                    {company && !company.hasCeo && (
+                                        <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+                                            <DialogTrigger asChild>
+                                                <Button className="bg-green-600 hover:bg-green-700 text-white shadow-md">
+                                                    <UserPlus className="w-4 h-4 mr-2" />
+                                                    Invite CEO for Project
+                                                </Button>
+                                            </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogHeader>
+                                                        <DialogTitle>Create & Invite CEO for HR Project</DialogTitle>
+                                                        <DialogDescription>
+                                                            {activeProject 
+                                                                ? `Create a CEO account or invite a CEO to join ${company.name} and complete the Management Philosophy Survey for this HR project.`
+                                                                : `Create a CEO account or invite a CEO to join ${company.name}. Once you create a project, the CEO will be assigned to it.`}
+                                                        </DialogDescription>
+                                                    </DialogHeader>
+                                                    <form onSubmit={handleInviteCeo} className="space-y-4">
+                                                        <div className="flex items-center space-x-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                                            <Checkbox
+                                                                id="create-immediately"
+                                                                checked={createImmediately}
+                                                                onCheckedChange={(checked) => {
+                                                                    setCreateImmediately(checked === true);
+                                                                    if (!checked) {
+                                                                        setData('name', '');
+                                                                    }
+                                                                }}
+                                                            />
+                                                            <Label htmlFor="create-immediately" className="text-sm font-medium cursor-pointer">
+                                                                Create CEO account immediately (will send welcome email with credentials)
+                                                            </Label>
+                                                        </div>
+
+                                                        {createImmediately && (
+                                                            <>
+                                                                <div>
+                                                                    <Label htmlFor="ceo-name">CEO Name *</Label>
+                                                                    <Input
+                                                                        id="ceo-name"
+                                                                        type="text"
+                                                                        value={data.name}
+                                                                        onChange={(e) => setData('name', e.target.value)}
+                                                                        placeholder="John Doe"
+                                                                        required={createImmediately}
+                                                                        className={errors.name ? 'border-red-500' : ''}
+                                                                    />
+                                                                    {errors.name && (
+                                                                        <p className="text-sm text-destructive mt-1">{errors.name}</p>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex items-center space-x-2 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                                                                    <Checkbox
+                                                                        id="use-custom-password"
+                                                                        checked={useCustomPassword}
+                                                                        onCheckedChange={(checked) => {
+                                                                            setUseCustomPassword(checked === true);
+                                                                            if (!checked) {
+                                                                                setData('password', '');
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                    <Label htmlFor="use-custom-password" className="text-sm font-medium cursor-pointer">
+                                                                        Set custom password (leave unchecked to auto-generate)
+                                                                    </Label>
+                                                                </div>
+                                                                {useCustomPassword && (
+                                                                    <div>
+                                                                        <Label htmlFor="ceo-password">Password *</Label>
+                                                                        <div className="relative">
+                                                                            <Input
+                                                                                id="ceo-password"
+                                                                                type={showCustomPassword ? "text" : "password"}
+                                                                                value={data.password}
+                                                                                onChange={(e) => setData('password', e.target.value)}
+                                                                                placeholder="Minimum 8 characters"
+                                                                                required={useCustomPassword}
+                                                                                minLength={8}
+                                                                                className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
+                                                                            />
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="ghost"
+                                                                                size="sm"
+                                                                                onClick={() => setShowCustomPassword(!showCustomPassword)}
+                                                                                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                                                                            >
+                                                                                {showCustomPassword ? (
+                                                                                    <EyeOff className="w-4 h-4 text-muted-foreground" />
+                                                                                ) : (
+                                                                                    <Eye className="w-4 h-4 text-muted-foreground" />
+                                                                                )}
+                                                                            </Button>
+                                                                        </div>
+                                                                        {errors.password && (
+                                                                            <p className="text-sm text-destructive mt-1">{errors.password}</p>
+                                                                        )}
+                                                                        <p className="text-xs text-muted-foreground mt-1">
+                                                                            Password must be at least 8 characters long.
+                                                                        </p>
+                                                                    </div>
+                                                                )}
+                                                            </>
+                                                        )}
+
+                                                        <div>
+                                                            <Label htmlFor="ceo-email">CEO Email Address *</Label>
+                                                            <Input
+                                                                id="ceo-email"
+                                                                type="email"
+                                                                value={data.email}
+                                                                onChange={(e) => setData('email', e.target.value)}
+                                                                placeholder="ceo@example.com"
+                                                                required
+                                                                className={errors.email ? 'border-red-500' : ''}
+                                                            />
+                                                            {errors.email && (
+                                                                <p className="text-sm text-destructive mt-1">{errors.email}</p>
+                                                            )}
+                                                            {activeProject && (
+                                                                <p className="text-xs text-muted-foreground mt-2">
+                                                                    {createImmediately 
+                                                                        ? `CEO account will be created and linked to the active HR project for ${company.name}.`
+                                                                        : `This invitation will be linked to the active HR project for ${company.name}.`}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex justify-end gap-2">
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                onClick={() => {
+                                                                    setShowInviteDialog(false);
+                                                                    reset();
+                                                                    setCreateImmediately(false);
+                                                                    setUseCustomPassword(false);
+                                                                    setShowCustomPassword(false);
+                                                                }}
+                                                            >
+                                                                Cancel
+                                                            </Button>
+                                                            <Button type="submit" disabled={processing} className="bg-green-600 hover:bg-green-700">
+                                                                {processing 
+                                                                    ? (createImmediately ? 'Creating...' : 'Sending...') 
+                                                                    : (createImmediately ? 'Create & Assign CEO' : 'Send Invitation')}
+                                                            </Button>
+                                                        </div>
+                                                    </form>
+                                                </DialogContent>
+                                        </Dialog>
+                                    )}
+                                </div>
                             </div>
+
+                            {/* Password Display Dialog */}
+                            {ceoCredentials && (
+                                <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+                                    <DialogContent className="max-w-md">
+                                        <DialogHeader>
+                                            <DialogTitle className="flex items-center gap-2">
+                                                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                                CEO Account Created Successfully
+                                            </DialogTitle>
+                                            <DialogDescription>
+                                                The CEO account has been created and assigned to {company?.name}. Please save these credentials securely.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="space-y-4 py-4">
+                                            <div className="p-4 bg-muted rounded-lg space-y-3">
+                                                <div>
+                                                    <Label className="text-xs text-muted-foreground uppercase">Name</Label>
+                                                    <p className="text-sm font-medium mt-1">{ceoCredentials.name}</p>
+                                                </div>
+                                                <div>
+                                                    <Label className="text-xs text-muted-foreground uppercase">Email</Label>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <p className="text-sm font-medium flex-1">{ceoCredentials.email}</p>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => copyToClipboard(ceoCredentials.email)}
+                                                            className="h-7 px-2"
+                                                        >
+                                                            <Copy className="w-3 h-3" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <Label className="text-xs text-muted-foreground uppercase">Password</Label>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <div className="flex-1 flex items-center gap-2 p-2 bg-background border rounded-md">
+                                                            <Input
+                                                                type={showPassword ? "text" : "password"}
+                                                                value={ceoCredentials.password}
+                                                                readOnly
+                                                                className="border-0 p-0 h-auto font-mono text-sm bg-transparent"
+                                                            />
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => setShowPassword(!showPassword)}
+                                                                className="h-6 w-6 p-0"
+                                                            >
+                                                                {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                                                            </Button>
+                                                        </div>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => copyToClipboard(ceoCredentials.password)}
+                                                            className="h-7 px-2"
+                                                        >
+                                                            <Copy className="w-3 h-3" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                                                <p className="text-xs text-amber-800 dark:text-amber-200">
+                                                    <strong>Important:</strong> A welcome email with these credentials has been sent to the CEO. 
+                                                    Please ensure they receive this information securely.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-end">
+                                            <Button
+                                                onClick={() => {
+                                                    setShowPasswordDialog(false);
+                                                    setCeoCredentials(null);
+                                                    setShowPassword(false);
+                                                }}
+                                                className="bg-green-600 hover:bg-green-700"
+                                            >
+                                                Done
+                                            </Button>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                            )}
 
                             {/* Summary Cards - Enhanced UI */}
                             {activeProject && (
@@ -295,54 +586,11 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                 <div className="w-14 h-14 rounded-xl bg-green-500/20 flex items-center justify-center shadow-md">
                                                     <Users className="w-7 h-7 text-green-600 dark:text-green-400" />
                                                 </div>
-                                                {company && !company.hasCeo && (
-                                                    <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
-                                                        <DialogTrigger asChild>
-                                                            <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-green-500/30 hover:bg-green-500/10">
-                                                                <UserPlus className="w-4 h-4 text-green-600" />
-                                                            </Button>
-                                                        </DialogTrigger>
-                                                        <DialogContent>
-                                                            <DialogHeader>
-                                                                <DialogTitle>Invite CEO</DialogTitle>
-                                                                <DialogDescription>
-                                                                    Invite a CEO to join {company.name} and complete the survey.
-                                                                </DialogDescription>
-                                                            </DialogHeader>
-                                                            <form onSubmit={handleInviteCeo} className="space-y-4">
-                                                                <div>
-                                                                    <Label htmlFor="ceo-email">CEO Email Address</Label>
-                                                                    <Input
-                                                                        id="ceo-email"
-                                                                        type="email"
-                                                                        value={data.email}
-                                                                        onChange={(e) => setData('email', e.target.value)}
-                                                                        placeholder="ceo@example.com"
-                                                                        required
-                                                                        className={errors.email ? 'border-red-500' : ''}
-                                                                    />
-                                                                    {errors.email && (
-                                                                        <p className="text-sm text-destructive mt-1">{errors.email}</p>
-                                                                    )}
-                                                                </div>
-                                                                <div className="flex justify-end gap-2">
-                                                                    <Button
-                                                                        type="button"
-                                                                        variant="outline"
-                                                                        onClick={() => {
-                                                                            setShowInviteDialog(false);
-                                                                            reset();
-                                                                        }}
-                                                                    >
-                                                                        Cancel
-                                                                    </Button>
-                                                                    <Button type="submit" disabled={processing}>
-                                                                        {processing ? 'Sending...' : 'Send Invitation'}
-                                                                    </Button>
-                                                                </div>
-                                                            </form>
-                                                        </DialogContent>
-                                                    </Dialog>
+                                                {company && company.hasCeo && (
+                                                    <Badge variant="outline" className="border-green-500/30 text-green-600">
+                                                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                                                        CEO Assigned
+                                                    </Badge>
                                                 )}
                                             </div>
                                             <div>

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import React, { useEffect } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
@@ -7,8 +7,10 @@ import DiagnosisHeader from '@/components/Diagnosis/DiagnosisHeader';
 import DiagnosisTabs from '@/components/Diagnosis/DiagnosisTabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, ArrowRight } from 'lucide-react';
+import { FileText, ArrowRight, AlertCircle } from 'lucide-react';
 import { diagnosisTabs } from '@/config/diagnosisTabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 
 interface Diagnosis {
     id: number;
@@ -59,14 +61,81 @@ export default function DiagnosisOverview({
 
     // Calculate progress - filter out overview tab
     const displayTabs = diagnosisTabs.filter(tab => tab.id !== 'overview');
+    
+    // Validation function (same as in DiagnosisTabs)
+    const validateStepCompletion = (tabId: string, diagnosis: any): boolean => {
+        if (!diagnosis) return false;
+
+        switch (tabId) {
+            case 'company-info':
+                return !!(diagnosis.industry_category && diagnosis.industry_category.trim() !== '');
+            case 'workforce':
+                return !!(diagnosis.present_headcount && diagnosis.present_headcount > 0);
+            case 'organizational-charts':
+                if (diagnosis.organizational_charts) {
+                    if (Array.isArray(diagnosis.organizational_charts)) {
+                        return diagnosis.organizational_charts.length > 0;
+                    }
+                    return Object.keys(diagnosis.organizational_charts).length > 0;
+                }
+                return false;
+            case 'organizational-structure':
+                const structure = diagnosis.org_structure_types || diagnosis.organizational_structure;
+                if (structure) {
+                    if (Array.isArray(structure)) {
+                        return structure.length > 0;
+                    }
+                    return Object.keys(structure).length > 0;
+                }
+                return false;
+            case 'job-structure':
+                return !!((diagnosis.job_categories && diagnosis.job_categories.length > 0) ||
+                         (diagnosis.job_functions && diagnosis.job_functions.length > 0));
+            case 'hr-issues':
+                return !!(diagnosis.hr_issues && 
+                         (Array.isArray(diagnosis.hr_issues) ? diagnosis.hr_issues.length > 0 : false)) ||
+                       !!(diagnosis.custom_hr_issues && diagnosis.custom_hr_issues.trim() !== '');
+            case 'review':
+                return diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
+            default:
+                return false;
+        }
+    };
+    
     const completedCount = displayTabs.filter(tab => {
         // Review tab is completed when diagnosis is submitted
         if (tab.id === 'review') {
             return diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
         }
+        
         const status = stepStatuses[tab.id];
-        return status && ['submitted', 'approved', 'locked', 'completed', 'in_progress'].includes(status);
+        const isStatusCompleted = status && (
+            status === true || 
+            status === 'completed' ||
+            status === 'submitted' || 
+            status === 'approved' || 
+            status === 'locked'
+        );
+        
+        // Check if step has required fields filled
+        return isStatusCompleted || validateStepCompletion(tab.id, diagnosis);
     }).length;
+    
+    // Find first incomplete tab
+    const firstIncompleteTab = displayTabs.find(tab => {
+        if (tab.id === 'review') {
+            return !(diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked');
+        }
+        const status = stepStatuses[tab.id];
+        const isStatusCompleted = status && (
+            status === true || 
+            status === 'completed' ||
+            status === 'submitted' || 
+            status === 'approved' || 
+            status === 'locked'
+        );
+        return !(isStatusCompleted || validateStepCompletion(tab.id, diagnosis));
+    });
 
     // Get status for header
     const getStatusForHeader = (): 'not_started' | 'in_progress' | 'submitted' => {
@@ -85,6 +154,18 @@ export default function DiagnosisOverview({
         }
         return '/hr-manager/diagnosis';
     };
+    
+    // Get route for incomplete tab
+    const getIncompleteTabRoute = () => {
+        if (!firstIncompleteTab) return null;
+        if (projectId) {
+            return `/hr-manager/diagnosis/${projectId}/${firstIncompleteTab.id}`;
+        }
+        return `/hr-manager/diagnosis/${firstIncompleteTab.id}`;
+    };
+    
+    // Check if all tabs are completed
+    const allTabsCompleted = completedCount === displayTabs.length;
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -110,14 +191,50 @@ export default function DiagnosisOverview({
                         <div className="mb-6">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-sm font-medium text-gray-700">Overview</span>
-                                <span className="text-sm text-gray-600">{completedCount} of {displayTabs.length}</span>
+                                <span className={cn(
+                                    "text-sm font-semibold",
+                                    allTabsCompleted ? "text-green-600" : "text-gray-600"
+                                )}>
+                                    {completedCount} of {displayTabs.length}
+                                </span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-1">
                                 <div 
-                                    className="bg-primary h-1 rounded-full transition-all duration-300"
+                                    className={cn(
+                                        "h-1 rounded-full transition-all duration-300",
+                                        allTabsCompleted ? "bg-green-500" : "bg-primary"
+                                    )}
                                     style={{ width: `${(completedCount / displayTabs.length) * 100}%` }}
                                 />
                             </div>
+                            
+                            {/* Show incomplete tab message */}
+                            {!allTabsCompleted && firstIncompleteTab && (
+                                <Alert className="mt-4 border-orange-200 bg-orange-50">
+                                    <AlertCircle className="h-4 w-4 text-orange-600" />
+                                    <AlertDescription className="text-sm text-orange-800">
+                                        <span className="font-medium">Incomplete:</span> "{firstIncompleteTab.name}" tab needs to be completed. 
+                                        {getIncompleteTabRoute() && (
+                                            <Link 
+                                                href={getIncompleteTabRoute()!}
+                                                className="ml-2 underline font-semibold hover:text-orange-900"
+                                            >
+                                                Go to {firstIncompleteTab.name} →
+                                            </Link>
+                                        )}
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+                            
+                            {/* All completed message */}
+                            {allTabsCompleted && (
+                                <Alert className="mt-4 border-green-200 bg-green-50">
+                                    <FileText className="h-4 w-4 text-green-600" />
+                                    <AlertDescription className="text-sm text-green-800">
+                                        <span className="font-medium">All steps completed!</span> Please proceed to Review & Submit.
+                                    </AlertDescription>
+                                </Alert>
+                            )}
                         </div>
 
                         {/* Tabs Navigation - Match reference */}

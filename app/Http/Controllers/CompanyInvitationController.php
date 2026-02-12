@@ -15,12 +15,16 @@ use Illuminate\Support\Str;
 class CompanyInvitationController extends Controller
 {
     /**
-     * Send CEO invitation.
+     * Send CEO invitation or create CEO directly.
      */
     public function inviteCeo(Request $request, Company $company)
     {
         $request->validate([
+            'name' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
+            'password' => ['nullable', 'string', 'min:8'],
+            'hr_project_id' => ['nullable', 'exists:hr_projects,id'],
+            'create_immediately' => ['nullable', 'boolean'],
         ]);
 
         // Check if user already exists
@@ -30,9 +34,78 @@ class CompanyInvitationController extends Controller
             return back()->withErrors(['email' => 'This user is already a member of the company.']);
         }
 
+        // If create_immediately is true, create the CEO user directly
+        if ($request->boolean('create_immediately')) {
+            if ($existingUser) {
+                return back()->withErrors(['email' => 'A user with this email already exists. Please use the invite option instead.']);
+            }
+
+            // Validate name is required when creating immediately
+            if (!$request->name) {
+                return back()->withErrors(['name' => 'Name is required when creating CEO account.']);
+            }
+
+            // Use custom password if provided, otherwise generate one
+            $temporaryPassword = $request->password ?: Str::random(12);
+
+            // Create CEO user
+            $ceo = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($temporaryPassword),
+                'email_verified_at' => now(),
+            ]);
+
+            // Assign CEO role
+            $ceo->assignRole('ceo');
+
+            // Associate user with company
+            $company->users()->syncWithoutDetaching([
+                $ceo->id => ['role' => 'ceo'],
+            ]);
+
+            // Create invitation record for tracking (marked as accepted)
+            $invitation = \App\Models\CompanyInvitation::create([
+                'company_id' => $company->id,
+                'hr_project_id' => $request->hr_project_id,
+                'email' => $request->email,
+                'role' => 'ceo',
+                'inviter_id' => $request->user()->id,
+                'accepted_at' => now(),
+                'temporary_password' => $temporaryPassword,
+            ]);
+
+            // Send welcome email with credentials
+            Notification::route('mail', $request->email)
+                ->notify(new CompanyInvitationNotification($invitation));
+
+            return back()->with([
+                'success' => 'CEO account created and assigned to company successfully. Welcome email sent with login credentials.',
+                'ceo_password' => $temporaryPassword,
+                'ceo_email' => $request->email,
+                'ceo_name' => $request->name,
+            ]);
+        }
+
+        // Otherwise, send invitation (existing flow)
+        // Check if there's already a pending invitation for this email and company
+        $existingInvitation = \App\Models\CompanyInvitation::where('company_id', $company->id)
+            ->where('email', $request->email)
+            ->whereNull('accepted_at')
+            ->where(function($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->first();
+
+        if ($existingInvitation) {
+            return back()->withErrors(['email' => 'An invitation has already been sent to this email.']);
+        }
+
         // Create invitation
-        $invitation = CompanyInvitation::create([
+        $invitation = \App\Models\CompanyInvitation::create([
             'company_id' => $company->id,
+            'hr_project_id' => $request->hr_project_id,
             'email' => $request->email,
             'role' => 'ceo',
             'inviter_id' => $request->user()->id,
@@ -62,6 +135,7 @@ class CompanyInvitationController extends Controller
 
         // Check if user exists
         $user = User::where('email', $invitation->email)->first();
+        $isNewUser = !$user;
 
         if (!$user) {
             // Create new user
@@ -93,12 +167,17 @@ class CompanyInvitationController extends Controller
         // Mark invitation as accepted
         $invitation->update(['accepted_at' => now()]);
 
-        // Send credentials email
+        // Send welcome email (credentials for new users, welcome message for existing users)
         Notification::route('mail', $invitation->email)
             ->notify(new CompanyInvitationNotification($invitation));
 
-        return redirect()->route('login')
-            ->with('success', 'Invitation accepted. Please check your email for login credentials.');
+        if ($isNewUser) {
+            return redirect()->route('login')
+                ->with('success', 'Invitation accepted. Please check your email for login credentials.');
+        } else {
+            return redirect()->route('login')
+                ->with('success', 'Invitation accepted. Please check your email for welcome message.');
+        }
     }
 
     /**

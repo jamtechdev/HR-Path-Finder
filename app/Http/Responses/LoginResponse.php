@@ -39,24 +39,22 @@ class LoginResponse implements LoginResponseContract
             if ($company) {
                 $hrProject = $company->hrProjects()->latest()->first();
                 
-                // If there's a project, show CEO the diagnosis workspace (same as HR manager sees)
+                // If there's a project, check what CEO needs to do
                 if ($hrProject) {
                     $hrProject->initializeStepStatuses();
                     $ceoPhilosophy = $hrProject->ceoPhilosophy;
                     $diagnosisStatus = $hrProject->getStepStatus('diagnosis');
                     
                     // If diagnosis is submitted but CEO hasn't completed survey, redirect to survey
-                    if ($diagnosisStatus === 'submitted' && (!$ceoPhilosophy || !$ceoPhilosophy->completed_at)) {
-                        return redirect()->route('ceo.hr-projects.ceo-philosophy.show', $hrProject->id)
+                    if ($diagnosisStatus && $diagnosisStatus->value === 'submitted' && (!$ceoPhilosophy || !$ceoPhilosophy->completed_at)) {
+                        return redirect()->route('ceo.philosophy.survey', $hrProject->id)
                             ->with('success', 'Welcome! Please complete the Management Philosophy Survey to verify Step 1: Diagnosis.');
                     }
                     
-                    // If survey completed OR diagnosis not yet submitted, show diagnosis workspace
-                    // CEO can review diagnosis and see the same workspace as HR manager
-                    return redirect()->route('hr-manager.diagnosis.tab.with-project', [
-                        'projectId' => $hrProject->id,
-                        'tab' => 'overview'
-                    ])->with('success', 'Welcome! You can review the diagnosis for ' . $company->name . '.');
+                    // If survey completed OR diagnosis not yet submitted, redirect to CEO dashboard
+                    // CEO dashboard will show them what they need to do
+                    return redirect()->route('ceo.dashboard')
+                        ->with('success', 'Welcome! You can review and manage the HR project for ' . $company->name . '.');
                 } else {
                     // No project yet, but CEO is attached - show company page
                     return redirect()->route('companies.show', $company->id)

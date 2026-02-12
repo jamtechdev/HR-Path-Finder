@@ -2,6 +2,7 @@ import React from 'react';
 import { Check, Circle } from 'lucide-react';
 import { diagnosisTabs } from '@/config/diagnosisTabs';
 import { TabId } from './DiagnosisTabs';
+import { cn } from '@/lib/utils';
 
 interface DiagnosisProgressBarProps {
     activeTab: TabId;
@@ -20,20 +21,26 @@ export default function DiagnosisProgressBar({
     const steps = diagnosisTabs.filter(tab => tab.id !== 'overview');
     const totalSteps = steps.length;
     
-    // Calculate completed steps
+    // Calculate completed steps - use proper validation
     const completedSteps = steps.filter(step => {
         // Review tab is completed when diagnosis is submitted
         if (step.id === 'review') {
             return diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
         }
+        
         const status = stepStatuses[step.id];
-        return status && (
+        const isStatusCompleted = status && (
             status === true || 
-            status === 'in_progress' || 
+            status === 'completed' ||
             status === 'submitted' || 
             status === 'approved' || 
             status === 'locked'
         );
+        
+        // For in_progress, we need to check if data actually exists
+        // This will be handled by the validation function in DiagnosisTabs
+        // For now, only count as completed if status is truly completed
+        return isStatusCompleted;
     }).length;
     
     const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
@@ -56,7 +63,10 @@ export default function DiagnosisProgressBar({
                 </div>
                 <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
                     <div 
-                        className="h-full bg-primary transition-all duration-500 ease-out rounded-full"
+                        className={cn(
+                            "h-full transition-all duration-500 ease-out rounded-full",
+                            completedSteps === totalSteps ? "bg-green-500" : "bg-primary"
+                        )}
                         style={{ width: `${progressPercentage}%` }}
                     />
                 </div>
@@ -73,7 +83,7 @@ export default function DiagnosisProgressBar({
                         const status = stepStatuses[step.id];
                         isCompleted = status && (
                             status === true || 
-                            status === 'in_progress' || 
+                            status === 'completed' ||
                             status === 'submitted' || 
                             status === 'approved' || 
                             status === 'locked'
@@ -81,6 +91,7 @@ export default function DiagnosisProgressBar({
                     }
                     const isActive = step.id === activeTab;
                     const isPast = index < currentStepIndex;
+                    const allCompleted = completedSteps === totalSteps;
                     
                     return (
                         <div
@@ -91,10 +102,12 @@ export default function DiagnosisProgressBar({
                         >
                             <div
                                 className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
-                                    isCompleted
-                                        ? 'bg-primary border-primary text-primary-foreground'
+                                    isCompleted && allCompleted
+                                        ? 'bg-green-500 border-green-600 text-white shadow-md'
+                                        : isCompleted
+                                        ? 'bg-green-100 border-green-300 text-green-600'
                                         : isActive
-                                        ? 'bg-primary/10 border-primary text-primary'
+                                        ? 'bg-primary border-primary text-primary-foreground'
                                         : isPast
                                         ? 'bg-muted border-muted-foreground/30 text-muted-foreground'
                                         : 'bg-background border-muted-foreground/30 text-muted-foreground'
@@ -110,6 +123,8 @@ export default function DiagnosisProgressBar({
                                 className={`text-xs text-center max-w-[60px] truncate ${
                                     isActive
                                         ? 'font-semibold text-primary'
+                                        : isCompleted && allCompleted
+                                        ? 'font-semibold text-green-700'
                                         : isCompleted
                                         ? 'text-foreground'
                                         : 'text-muted-foreground'

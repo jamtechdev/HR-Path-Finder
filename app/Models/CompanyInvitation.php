@@ -13,6 +13,7 @@ class CompanyInvitation extends Model
 
     protected $fillable = [
         'company_id',
+        'hr_project_id',
         'email',
         'role',
         'token',
@@ -35,6 +36,14 @@ class CompanyInvitation extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * Get the HR project.
+     */
+    public function hrProject(): BelongsTo
+    {
+        return $this->belongsTo(HrProject::class);
     }
 
     /**

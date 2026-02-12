@@ -103,6 +103,8 @@ class PerformanceSystemController extends Controller
 
         $hrProject->setStepStatus('performance', StepStatus::SUBMITTED);
 
-        return back()->with('success', 'Performance system submitted successfully.');
+        // Redirect to HR Manager dashboard after successful submission
+        return redirect()->route('hr-manager.dashboard')
+            ->with('success', 'Performance system submitted successfully.');
     }
 }

@@ -61,6 +61,9 @@ class HandleInertiaRequests extends Middleware
                 'message' => $request->session()->get('message'),
                 'nextStep' => $request->session()->get('nextStep'),
                 'nextStepRoute' => $request->session()->get('nextStepRoute'),
+                'ceo_password' => $request->session()->get('ceo_password'),
+                'ceo_email' => $request->session()->get('ceo_email'),
+                'ceo_name' => $request->session()->get('ceo_name'),
             ],
         ];
         

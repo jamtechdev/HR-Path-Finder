@@ -18,7 +18,7 @@ interface DiagnosisTabsProps {
     stepStatus: Record<string, string | boolean>;
     stepOrder: readonly string[];
     projectId?: number | null;
-    diagnosisStatus?: 'not_started' | 'in_progress' | 'submitted';
+    diagnosisStatus?: 'not_started' | 'in_progress' | 'submitted' | 'approved' | 'locked';
     diagnosis?: {
         industry_category?: string;
         [key: string]: any;
@@ -148,6 +148,11 @@ export default function DiagnosisTabs({
             return validateStepCompletion('company-info', diagnosis);
         }
         
+        // Review tab is completed when diagnosis is submitted
+        if (tabId === 'review') {
+            return diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
+        }
+        
         const status = stepStatus[tabId];
         const isStatusCompleted = status && (
             status === true || 
@@ -160,6 +165,9 @@ export default function DiagnosisTabs({
         // Also check if the step has required fields filled
         return isStatusCompleted || validateStepCompletion(tabId, diagnosis);
     };
+    
+    // Check if all tabs are completed
+    const allTabsCompleted = tabs.filter(tab => tab.id !== 'overview').every(tab => isTabCompleted(tab.id));
 
     const isTabEnabled = (tabId: TabId, tabIndex: number): boolean => {
         // Overview is always enabled
@@ -244,6 +252,8 @@ export default function DiagnosisTabs({
                             "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all cursor-pointer",
                             isActive
                                 ? "bg-primary text-primary-foreground shadow-md"
+                                : allTabsCompleted && tab.id !== 'overview'
+                                ? "bg-green-500 text-white hover:bg-green-600 shadow-sm"
                                 : completed
                                 ? "bg-green-100 text-green-700 hover:bg-green-200"
                                 : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -251,7 +261,9 @@ export default function DiagnosisTabs({
                     >
                         <TabIcon className={cn(
                             "w-4 h-4 flex-shrink-0",
-                            completed && !isActive && "text-green-600"
+                            isActive && "text-primary-foreground",
+                            allTabsCompleted && tab.id !== 'overview' && !isActive && "text-white",
+                            completed && !isActive && !allTabsCompleted && "text-green-600"
                         )} />
                         <span className="hidden sm:inline">{tab.name}</span>
                     </Link>
