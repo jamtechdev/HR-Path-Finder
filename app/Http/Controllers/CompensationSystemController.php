@@ -49,8 +49,7 @@ class CompensationSystemController extends Controller
             'job_analysis' => $stepStatuses['job_analysis'] ?? 'not_started',
             'performance' => $stepStatuses['performance'] ?? 'not_started',
             'compensation' => $stepStatuses['compensation'] ?? 'not_started',
-            'tree' => $stepStatuses['tree'] ?? 'not_started',
-            'conclusion' => $stepStatuses['conclusion'] ?? 'not_started',
+            'hr_policy_os' => $stepStatuses['hr_policy_os'] ?? 'not_started',
         ];
 
         // Use Index component which handles all tabs internally

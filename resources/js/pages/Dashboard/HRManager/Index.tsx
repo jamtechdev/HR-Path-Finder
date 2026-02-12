@@ -52,7 +52,7 @@ interface Props {
     ceoPhilosophyStatus: 'not_started' | 'in_progress' | 'completed';
 }
 
-// All 6 steps matching sidebar: Diagnosis, Job Analysis, Performance, Compensation, TREE, Conclusion
+// All 5 steps matching sidebar: Diagnosis, Job Analysis, Performance, Compensation, HR Policy OS
 const STEP_CONFIG = [
     {
         id: 'diagnosis' as StepKey,
@@ -83,17 +83,10 @@ const STEP_CONFIG = [
         icon: DollarSign,
     },
     {
-        id: 'tree' as StepKey,
+        id: 'hr_policy_os' as StepKey,
         step: 5,
-        title: 'TREE',
-        desc: 'Talent Review, Evaluation, and Enhancement system.',
-        icon: TrendingUp,
-    },
-    {
-        id: 'conclusion' as StepKey,
-        step: 6,
-        title: 'Conclusion',
-        desc: 'Final review, approval, and system implementation summary.',
+        title: 'HR Policy OS',
+        desc: 'HR Policy Manual, System Handbook, Implementation Roadmap, and Analytics Blueprint.',
         icon: Award,
     },
 ];

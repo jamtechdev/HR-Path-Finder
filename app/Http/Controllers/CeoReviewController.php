@@ -223,7 +223,7 @@ class CeoReviewController extends Controller
         }
 
         $request->validate([
-            'step' => ['required', 'in:diagnosis,job_analysis,performance,compensation,tree,conclusion'],
+            'step' => ['required', 'in:diagnosis,job_analysis,performance,compensation,hr_policy_os'],
         ]);
 
         $step = $request->step;
@@ -254,7 +254,7 @@ class CeoReviewController extends Controller
         }
 
         $request->validate([
-            'step' => ['required', 'in:diagnosis,job_analysis,performance,compensation,tree,conclusion'],
+            'step' => ['required', 'in:diagnosis,job_analysis,performance,compensation,hr_policy_os'],
         ]);
 
         $step = $request->step;

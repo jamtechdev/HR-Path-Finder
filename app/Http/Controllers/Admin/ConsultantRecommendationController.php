@@ -263,4 +263,78 @@ class ConsultantRecommendationController extends Controller
         return redirect()->route('admin.recommendations.tree', $hrProject)
             ->with('success', 'TREE recommendation saved successfully.');
     }
+
+    /**
+     * Show HR Policy OS recommendation preparation form (Step 5).
+     */
+    public function showHrPolicyOsRecommendation(Request $request, HrProject $hrProject): Response
+    {
+        if (!$request->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        // Check if Step 4 is completed
+        $stepStatuses = $hrProject->step_statuses ?? [];
+        $compensationStatus = $stepStatuses['compensation'] ?? 'not_started';
+        
+        if (!in_array($compensationStatus, ['submitted', 'approved', 'locked'])) {
+            return redirect()->route('admin.dashboard')
+                ->withErrors(['error' => 'Compensation System (Step 4) must be completed before preparing HR Policy OS recommendations.']);
+        }
+
+        // Load project data
+        $hrProject->load([
+            'company',
+            'diagnosis',
+            'ceoPhilosophy',
+            'organizationDesign',
+            'performanceSystem',
+            'compensationSystem',
+            'hrPolicyOs',
+        ]);
+
+        // Get existing recommendation
+        $existingRecommendation = AdminComment::where('hr_project_id', $hrProject->id)
+            ->where('step', 'hr_policy_os')
+            ->where('is_recommendation', true)
+            ->first();
+
+        return Inertia::render('Admin/Recommendations/HrPolicyOsRecommendation', [
+            'project' => $hrProject,
+            'existingRecommendation' => $existingRecommendation,
+        ]);
+    }
+
+    /**
+     * Store HR Policy OS recommendation.
+     */
+    public function storeHrPolicyOsRecommendation(Request $request, HrProject $hrProject)
+    {
+        if (!$request->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'comment' => ['required', 'string', 'max:5000'],
+        ]);
+
+        // Delete existing recommendation for HR Policy OS step if any
+        AdminComment::where('hr_project_id', $hrProject->id)
+            ->where('step', 'hr_policy_os')
+            ->where('is_recommendation', true)
+            ->delete();
+
+        // Create new recommendation
+        AdminComment::create([
+            'hr_project_id' => $hrProject->id,
+            'user_id' => $request->user()->id,
+            'step' => 'hr_policy_os',
+            'recommendation_type' => 'hr_policy_os',
+            'comment' => $validated['comment'],
+            'is_recommendation' => true,
+        ]);
+
+        return redirect()->route('admin.recommendations.hr-policy-os', $hrProject)
+            ->with('success', 'HR Policy OS recommendation saved successfully.');
+    }
 }

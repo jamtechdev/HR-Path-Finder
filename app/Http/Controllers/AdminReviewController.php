@@ -23,6 +23,7 @@ class AdminReviewController extends Controller
             'organizationDesign',
             'performanceSystem',
             'compensationSystem',
+            'hrPolicyOs',
             'adminComments',
             'company',
         ]);
@@ -43,7 +44,7 @@ class AdminReviewController extends Controller
         }
 
         $request->validate([
-            'step' => ['required', 'in:diagnosis,organization,performance,compensation'],
+            'step' => ['required', 'in:diagnosis,organization,performance,compensation,hr_policy_os'],
             'comment' => ['required', 'string', 'max:5000'],
         ]);
 

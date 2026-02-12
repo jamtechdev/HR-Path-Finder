@@ -36,20 +36,19 @@ class HrManagerDashboardController extends Controller
         }])
         ->first();
 
-        // Calculate progress based on all 6 steps from sidebar (CEO step removed from HR side)
+        // Calculate progress based on all 5 steps from sidebar
         $stepStatuses = $activeProject?->step_statuses ?? [];
         $completedSteps = 0;
         $currentStepNumber = 1;
         $currentStepKey = null;
         
-        // All 6 steps matching sidebar: Diagnosis, Job Analysis, Performance, Compensation, TREE, Conclusion
+        // All 5 steps matching sidebar: Diagnosis, Job Analysis, Performance, Compensation, HR Policy OS
         $mainSteps = [
             'diagnosis' => 'diagnosis',
             'job_analysis' => 'job_analysis',
             'performance' => 'performance',
             'compensation' => 'compensation',
-            'tree' => 'tree',
-            'conclusion' => 'conclusion'
+            'hr_policy_os' => 'hr_policy_os'
         ];
         
         foreach ($mainSteps as $key => $step) {
@@ -100,7 +99,7 @@ class HrManagerDashboardController extends Controller
             ] : null,
             'progress' => [
                 'completed' => $completedSteps,
-                'total' => 6, // 6 steps: Diagnosis, Job Analysis, Performance, Compensation, TREE, Conclusion
+                'total' => 5, // 5 steps: Diagnosis, Job Analysis, Performance, Compensation, HR Policy OS
                 'currentStepNumber' => $currentStepNumber,
                 'currentStepKey' => $currentStepKey,
                 'currentStepStatus' => $currentStepStatus,

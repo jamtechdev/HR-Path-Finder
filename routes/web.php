@@ -85,8 +85,9 @@ Route::middleware(['auth'])->group(function () {
         // Job Analysis View
         Route::get('job-analysis/{hrProject}/intro', [\App\Http\Controllers\JobAnalysisController::class, 'ceoIntro'])->name('job-analysis.intro');
         
-        // TREE access for CEO
-        Route::get('tree/{hrProject}/{tab?}', [\App\Http\Controllers\TreeController::class, 'index'])->name('tree.index');
+        // HR Policy OS Review (Step 5)
+        Route::get('hr-policy-os/{hrProject}', [\App\Http\Controllers\HrPolicyOsController::class, 'ceoReview'])->name('hr-policy-os.review');
+        Route::post('hr-policy-os/{hrProject}/approve', [\App\Http\Controllers\HrPolicyOsController::class, 'approve'])->name('hr-policy-os.approve');
         
         // Final Review
         Route::get('final-review/{hrProject}', [\App\Http\Controllers\FinalReviewController::class, 'index'])->name('final-review.index');
@@ -141,14 +142,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('compensation-system/{hrProject}', [\App\Http\Controllers\CompensationSystemController::class, 'store'])->name('compensation-system.store');
         Route::post('compensation-system/{hrProject}/submit', [\App\Http\Controllers\CompensationSystemController::class, 'submit'])->name('compensation-system.submit');
         
-        // TREE
-        Route::get('tree/{hrProject}/{tab?}', [\App\Http\Controllers\TreeController::class, 'index'])->name('tree.index');
-        Route::post('tree/{hrProject}', [\App\Http\Controllers\TreeController::class, 'store'])->name('tree.store');
-        Route::post('tree/{hrProject}/submit', [\App\Http\Controllers\TreeController::class, 'submit'])->name('tree.submit');
-        
-        // Conclusion
-        Route::get('conclusion/{hrProject}', [\App\Http\Controllers\ConclusionController::class, 'index'])->name('conclusion.index');
-        Route::post('conclusion/{hrProject}/finalize', [\App\Http\Controllers\ConclusionController::class, 'finalize'])->name('conclusion.finalize');
+        // HR Policy OS (Step 5)
+        Route::get('hr-policy-os/{hrProject}', [\App\Http\Controllers\HrPolicyOsController::class, 'index'])->name('hr-policy-os.index');
+        Route::post('hr-policy-os/{hrProject}', [\App\Http\Controllers\HrPolicyOsController::class, 'store'])->name('hr-policy-os.store');
+        Route::post('hr-policy-os/{hrProject}/submit', [\App\Http\Controllers\HrPolicyOsController::class, 'submit'])->name('hr-policy-os.submit');
     });
     
     // ========== Admin Routes ==========
@@ -257,13 +254,17 @@ Route::middleware(['auth'])->group(function () {
             ->name('recommendations.compensation');
         Route::post('recommendations/compensation/{hrProject}', [\App\Http\Controllers\Admin\ConsultantRecommendationController::class, 'storeCompensationRecommendation'])
             ->name('recommendations.compensation.store');
-        Route::get('recommendations/tree/{hrProject}', [\App\Http\Controllers\Admin\ConsultantRecommendationController::class, 'showTreeRecommendation'])
-            ->name('recommendations.tree');
-        Route::post('recommendations/tree/{hrProject}', [\App\Http\Controllers\Admin\ConsultantRecommendationController::class, 'storeTreeRecommendation'])
-            ->name('recommendations.tree.store');
         
-        // TREE access for admin
-        Route::get('tree/{hrProject}/{tab?}', [\App\Http\Controllers\TreeController::class, 'index'])->name('tree.index');
+        // HR Policy OS Recommendation (Step 5)
+        Route::get('recommendations/hr-policy-os/{hrProject}', [\App\Http\Controllers\Admin\ConsultantRecommendationController::class, 'showHrPolicyOsRecommendation'])
+            ->name('recommendations.hr-policy-os');
+        Route::post('recommendations/hr-policy-os/{hrProject}', [\App\Http\Controllers\Admin\ConsultantRecommendationController::class, 'storeHrPolicyOsRecommendation'])
+            ->name('recommendations.hr-policy-os.store');
+        
+        // Tree Management (Admin Only)
+        Route::get('tree/{hrProject}/{tab?}', [\App\Http\Controllers\Admin\TreeManagementController::class, 'index'])->name('tree.index');
+        Route::post('tree/{hrProject}', [\App\Http\Controllers\Admin\TreeManagementController::class, 'store'])->name('tree.store');
+        Route::post('tree/{hrProject}/update', [\App\Http\Controllers\Admin\TreeManagementController::class, 'update'])->name('tree.update');
     });
     
     // ========== HR System Overview (Shared) ==========

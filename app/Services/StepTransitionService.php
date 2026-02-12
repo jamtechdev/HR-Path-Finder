@@ -108,11 +108,11 @@ class StepTransitionService
                     $model->update(['status' => $status]);
                 }
                 break;
-            case 'tree':
-                // TREE step might not have a separate model, handled via step_statuses
-                break;
-            case 'conclusion':
-                // Conclusion step might not have a separate model, handled via step_statuses
+            case 'hr_policy_os':
+                $model = $project->hrPolicyOs;
+                if ($model) {
+                    $model->update(['status' => $status]);
+                }
                 break;
         }
     }
@@ -122,7 +122,7 @@ class StepTransitionService
      */
     public function lockAllSteps(HrProject $project): void
     {
-        $steps = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'tree', 'conclusion'];
+        $steps = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'hr_policy_os'];
         
         foreach ($steps as $step) {
             $currentStatus = $project->getStepStatus($step);

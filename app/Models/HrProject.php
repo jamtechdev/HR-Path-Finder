@@ -91,6 +91,14 @@ class HrProject extends Model
     }
 
     /**
+     * Get the HR Policy OS for this project.
+     */
+    public function hrPolicyOs(): HasOne
+    {
+        return $this->hasOne(HrPolicyOs::class);
+    }
+
+    /**
      * Get audit logs for this project.
      */
     public function auditLogs()
@@ -117,8 +125,7 @@ class HrProject extends Model
                 'job_analysis' => StepStatus::NOT_STARTED->value,
                 'performance' => StepStatus::NOT_STARTED->value,
                 'compensation' => StepStatus::NOT_STARTED->value,
-                'tree' => StepStatus::NOT_STARTED->value,
-                'conclusion' => StepStatus::NOT_STARTED->value,
+                'hr_policy_os' => StepStatus::NOT_STARTED->value,
             ];
             $this->save();
         }
@@ -152,7 +159,7 @@ class HrProject extends Model
      */
     public function isStepUnlocked(string $step): bool
     {
-        $stepOrder = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'tree', 'conclusion'];
+        $stepOrder = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'hr_policy_os'];
         $stepIndex = array_search($step, $stepOrder);
 
         if ($stepIndex === false || $stepIndex === 0) {
@@ -171,7 +178,7 @@ class HrProject extends Model
      */
     public function isFullyLocked(): bool
     {
-        $steps = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'tree', 'conclusion'];
+        $steps = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'hr_policy_os'];
         
         foreach ($steps as $step) {
             $status = $this->getStepStatus($step);

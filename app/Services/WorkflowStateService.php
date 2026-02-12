@@ -13,7 +13,7 @@ class WorkflowStateService
      */
     public function unlockNextStep(HrProject $project, string $completedStep): void
     {
-        $stepOrder = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'tree', 'conclusion'];
+        $stepOrder = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'hr_policy_os'];
         $stepIndex = array_search($completedStep, $stepOrder);
 
         if ($stepIndex === false || $stepIndex === count($stepOrder) - 1) {
@@ -44,7 +44,7 @@ class WorkflowStateService
      */
     public function getWorkflowState(HrProject $project): array
     {
-        $steps = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'tree', 'conclusion'];
+        $steps = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'hr_policy_os'];
         $state = [];
 
         foreach ($steps as $step) {

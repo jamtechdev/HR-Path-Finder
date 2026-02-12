@@ -59,20 +59,12 @@ const MAIN_STEPS: StepConfig[] = [
         route: '/hr-manager/compensation-system',
     },
     {
-        id: 'tree',
+        id: 'hr_policy_os',
         step: 5,
-        title: 'TREE',
-        desc: 'Talent Review, Evaluation, and Enhancement system.',
-        icon: TrendingUp,
-        route: '/hr-manager/tree',
-    },
-    {
-        id: 'conclusion',
-        step: 6,
-        title: 'Conclusion',
-        desc: 'Final review, approval, and system implementation summary.',
+        title: 'HR Policy OS',
+        desc: 'HR Policy Manual, System Handbook, Implementation Roadmap, and Analytics Blueprint.',
         icon: Award,
-        route: '/hr-manager/conclusion',
+        route: '/hr-manager/hr-policy-os',
     },
 ];
 

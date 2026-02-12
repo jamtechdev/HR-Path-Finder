@@ -52,6 +52,11 @@ class RolePermissionSeeder extends Seeder
             'update compensation system',
             'submit compensation system',
             
+            // HR Policy OS permissions
+            'view hr policy os',
+            'update hr policy os',
+            'submit hr policy os',
+            
             // Consultant Review permissions
             'view consultant review',
             'create consultant review',
@@ -101,6 +106,9 @@ class RolePermissionSeeder extends Seeder
             'view compensation system',
             'update compensation system',
             'submit compensation system',
+            'view hr policy os',
+            'update hr policy os',
+            'submit hr policy os',
             'view hr system dashboard',
         ]);
 
@@ -116,6 +124,7 @@ class RolePermissionSeeder extends Seeder
             'view organization design',
             'view performance system',
             'view compensation system',
+            'view hr policy os',
             'view ceo approval',
             'approve hr system',
             'request changes',

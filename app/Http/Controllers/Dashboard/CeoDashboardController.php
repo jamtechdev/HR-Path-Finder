@@ -51,8 +51,8 @@ class CeoDashboardController extends Controller
         $projectsWithProgress = $projects->map(function ($project) {
             $stepStatuses = $project->step_statuses ?? [];
             
-            // Calculate HR progress (all 7 steps)
-            $hrSteps = ['diagnosis', 'job_analysis', 'ceo_diagnosis', 'performance', 'compensation', 'tree', 'conclusion'];
+            // Calculate HR progress (all 5 steps)
+            $hrSteps = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'hr_policy_os'];
             $hrCompleted = 0;
             $hrInProgress = 0;
             $hrSubmitted = 0;
@@ -101,7 +101,7 @@ class CeoDashboardController extends Controller
                     'completed' => $hrCompleted,
                     'in_progress' => $hrInProgress,
                     'submitted' => $hrSubmitted,
-                    'total' => 7,
+                    'total' => 5,
                 ],
                 'ceo_progress' => [
                     ...$ceoProgress,
