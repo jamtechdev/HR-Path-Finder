@@ -93,7 +93,7 @@ export default function JobMatrixCard({
                 </div>
             </CardHeader>
 
-            <CardContent className="p-6 space-y-6">
+            <CardContent className="px-6">
                 {/* Job Purpose */}
                 {job.job_description && (
                     <div>

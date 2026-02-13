@@ -38,7 +38,7 @@ export default function ProgressTracker({ stepCards, stepStatuses, getStepState 
                                         className={cn(
                                             "w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 flex items-center justify-center transition-all duration-300",
                                             isCurrent
-                                                ? 'bg-green-500 text-white border-green-600 shadow-lg scale-110'
+                                                ? 'bg-green-800 text-white border-green-800 shadow-lg scale-110'
                                                 : isComplete
                                                 ? 'bg-green-100/50 text-green-500 border-green-200'
                                                 : 'bg-muted text-muted-foreground border-border'
@@ -72,7 +72,7 @@ export default function ProgressTracker({ stepCards, stepStatuses, getStepState 
                                 {index < stepCards.length - 1 && (
                                     <div className={cn(
                                         "flex-1 h-0.5 mx-3 transition-colors duration-300 hidden md:block",
-                                        isCurrent || isComplete ? 'bg-green-500' : 'bg-border',
+                                        isCurrent || isComplete ? 'bg-green-800' : 'bg-border',
                                         isCurrent && 'h-1'
                                     )}></div>
                                 )}

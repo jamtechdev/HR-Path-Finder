@@ -74,7 +74,7 @@ export default function Leaders({
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
                 <Card>
-                    <CardContent className="p-6 space-y-6">
+                    <CardContent className="px-6">
                         <div className="bg-muted/50 p-4 rounded-lg">
                             <p className="text-sm text-muted-foreground">
                                 <strong>Note:</strong> Leaders are defined as employees above Team Leader level. This excludes executives.
@@ -82,7 +82,7 @@ export default function Leaders({
                         </div>
 
                         {/* Total Leaders */}
-                        <div className="space-y-2">
+                        <div className="flex flex-col gap-3 mb-3">
                             <Label htmlFor="leadership_count">Total Leaders (Above Team Leader)</Label>
                             <Input
                                 id="leadership_count"
@@ -96,7 +96,7 @@ export default function Leaders({
 
                         {/* Leaders Ratio (Auto-calculated) */}
                         {leadershipPercentage !== null && (
-                            <div className="space-y-2">
+                            <div className="flex flex-col gap-3 mb-3">
                                 <Label>Leaders Ratio (Auto-calculated)</Label>
                                 <div className="p-3 bg-muted rounded-md">
                                     <p className="text-lg font-semibold">{leadershipPercentage}%</p>

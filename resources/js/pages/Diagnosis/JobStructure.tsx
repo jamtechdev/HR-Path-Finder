@@ -95,7 +95,7 @@ export default function JobStructure({
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
                 <Card>
-                    <CardContent className="p-6 space-y-6">
+                    <CardContent className="px-6">
                         {/* Job Categories */}
                         <div className="space-y-3">
                             <Label className="text-sm font-semibold">Job Category</Label>

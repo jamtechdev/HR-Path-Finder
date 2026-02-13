@@ -135,7 +135,7 @@ export default function JobGrades({
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
                 <Card>
-                    <CardContent className="p-6 space-y-6">
+                    <CardContent className="px-6">
                         <div className="space-y-4">
                             <Label className="text-sm font-semibold">Grade Names and Promotion Duration</Label>
                             <div className="space-y-3">

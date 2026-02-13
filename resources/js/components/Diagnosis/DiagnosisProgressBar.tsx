@@ -103,7 +103,7 @@ export default function DiagnosisProgressBar({
                             <div
                                 className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
                                     isCompleted && allCompleted
-                                        ? 'bg-green-500 border-green-600 text-white shadow-md'
+                                        ? 'bg-green-500 border-green-800 text-white shadow-md'
                                         : isCompleted
                                         ? 'bg-green-100 border-green-300 text-green-600'
                                         : isActive

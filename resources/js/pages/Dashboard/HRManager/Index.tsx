@@ -306,7 +306,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                     {company && !company.hasCeo && (
                                         <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
                                             <DialogTrigger asChild>
-                                                <Button className="bg-green-600 hover:bg-green-700 text-white shadow-md">
+                                                <Button className="bg-green-800 hover:bg-green-700 text-white shadow-md">
                                                     <UserPlus className="w-4 h-4 mr-2" />
                                                     Invite CEO for Project
                                                 </Button>
@@ -747,14 +747,14 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                     isActuallyLocked
                                                         ? "opacity-60 border-muted/50 bg-muted/20" 
                                                         : isCurrent
-                                                        ? "border-green-500/50 shadow-xl ring-2 ring-green-500/20 bg-green-50/30 dark:bg-green-950/10"
+                                                        ? "border-green-800/50 shadow-xl ring-2 ring-green-800/20 bg-green-50/30 dark:bg-green-950/10"
                                                         : isCompleted
                                                         ? "border-green-200/50 shadow-sm hover:shadow-md"
                                                         : "hover:shadow-lg border-border"
                                                 )}
                                             >
                                                 {isCurrent && (
-                                                    <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-green-500 via-green-500 to-green-500"></div>
+                                                    <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-green-800 via-green-800 to-green-800"></div>
                                                 )}
                                                 {isCompleted && !isCurrent && (
                                                     <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-green-200 via-green-200/80 to-green-200"></div>
@@ -765,7 +765,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                         <div className={cn(
                                                             "w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200",
                                                             isCurrent
-                                                                ? "bg-green-500 text-white border-2 border-green-600 shadow-lg scale-105"
+                                                                ? "bg-green-800 text-white border-2 border-green-800 shadow-lg scale-105"
                                                                 : isCompleted
                                                                 ? "bg-green-100/50 text-green-500 border-2 border-green-200/50"
                                                                 : isActuallyLocked
@@ -794,14 +794,14 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                                     className={cn(
                                                                         "text-xs",
                                                                         isCurrent && "border-green-500/40 text-green-700 bg-green-100 dark:bg-green-900/30",
-                                                                        isCompleted && !isCurrent && "border-green-200 text-green-600 bg-green-50",
+                                                                        isCompleted && !isCurrent && "border-green-800 text-green-600 bg-green-50",
                                                                         isActuallyLocked && "border-muted text-muted-foreground"
                                                                     )}
                                                                 >
                                                                     Step {step.step}
                                                                 </Badge>
                                                                 {isCurrent && (
-                                                                    <Badge className="bg-green-500 text-white border-green-600 shadow-md">
+                                                                    <Badge className="bg-green-800 text-white border-green-800 shadow-md">
                                                                         <CheckCircle2 className="w-3 h-3 mr-1" />
                                                                         Current Step
                                                                     </Badge>
@@ -839,7 +839,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                                         variant={isCurrent ? "default" : isCompleted ? "outline" : "default"}
                                                                         className={cn(
                                                                             "gap-2",
-                                                                            isCurrent && "bg-green-500 hover:bg-green-600 text-white shadow-md",
+                                                                            isCurrent && "bg-green-800 hover:bg-green-600 text-white shadow-md",
                                                                             isCompleted && !isCurrent && "border-green-300 text-green-600 hover:bg-green-50"
                                                                         )}
                                                                     >

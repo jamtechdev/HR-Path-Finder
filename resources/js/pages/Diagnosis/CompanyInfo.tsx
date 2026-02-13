@@ -186,7 +186,7 @@ export default function CompanyInfo({
                             {/* Left Column */}
                             <div className="space-y-6">
                                 {/* Company Name */}
-                                <div className="space-y-2">
+                                <div className="flex flex-col gap-3">
                                     <Label htmlFor="company_name" className="text-sm font-medium text-foreground">
                                         Company Name <span className="text-destructive">*</span>
                                     </Label>
@@ -207,7 +207,7 @@ export default function CompanyInfo({
                                 </div>
 
                                 {/* Foundation Date */}
-                                <div className="space-y-2">
+                                <div className="flex flex-col gap-3">
                                     <Label htmlFor="foundation_date" className="text-sm font-medium text-foreground">
                                         Foundation Date <span className="text-destructive">*</span>
                                     </Label>
@@ -231,7 +231,7 @@ export default function CompanyInfo({
                                 </div>
 
                                 {/* Primary Industry */}
-                                <div className="space-y-2">
+                                <div className="flex flex-col gap-3">
                                     <Label htmlFor="industry_category" className="text-sm font-medium text-foreground">
                                         Primary Industry <span className="text-destructive">*</span>
                                     </Label>
@@ -274,7 +274,7 @@ export default function CompanyInfo({
                                     const subCategories = selectedCategory?.subCategories || [];
                                     
                                     return subCategories.length > 0 ? (
-                                        <div className="space-y-2">
+                                        <div className="flex flex-col gap-3">
                                             <Label htmlFor="industry_subcategory" className="text-sm font-medium text-foreground">
                                                 Sub Industry Category <span className="text-destructive">*</span>
                                             </Label>
@@ -328,7 +328,7 @@ export default function CompanyInfo({
                             {/* Right Column */}
                             <div className="space-y-6">
                                 {/* Registration Number */}
-                                <div className="space-y-2">
+                                <div className="flex flex-col gap-3">
                                     <Label htmlFor="registration_number" className="text-sm font-medium text-foreground">
                                         Registration Number <span className="text-destructive">*</span>
                                     </Label>
@@ -361,7 +361,7 @@ export default function CompanyInfo({
                                 </div>
 
                                 {/* Brand Name */}
-                                <div className="space-y-2">
+                                <div className="flex flex-col gap-3">
                                     <Label htmlFor="brand_name" className="text-sm font-medium text-foreground">
                                         Brand Name
                                     </Label>
@@ -375,7 +375,7 @@ export default function CompanyInfo({
                                 </div>
 
                                 {/* HQ Location */}
-                                <div className="space-y-2">
+                                <div className="flex flex-col gap-3">
                                     <Label htmlFor="hq_location" className="text-sm font-medium text-foreground">
                                         HQ Location <span className="text-destructive">*</span>
                                     </Label>
@@ -417,7 +417,7 @@ export default function CompanyInfo({
                                 </div>
 
                                 {/* Public Listing Status */}
-                                <div className="space-y-2">
+                                <div className="flex flex-col gap-3">
                                     <Label className="text-sm font-medium text-foreground">
                                         Public Listing Status <span className="text-destructive">*</span>
                                     </Label>
@@ -441,7 +441,7 @@ export default function CompanyInfo({
                                 </div>
 
                                 {/* Secondary Industries */}
-                                <div className="space-y-2">
+                                <div className="flex flex-col gap-3">
                                     <Label className="text-sm font-medium text-foreground">
                                         Secondary Industries
                                     </Label>
@@ -481,83 +481,82 @@ export default function CompanyInfo({
                         </div>
 
                         {/* Company Logo Upload Section */}
-                        <div className="space-y-2">
+                          <div className="flex flex-col gap-3">
                             <Label className="text-sm font-medium text-foreground">
                                 Company Logo
                             </Label>
                             <div
                                 onClick={() => fileInputRef.current?.click()}
                                 onDragOver={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
+                                e.preventDefault();
+                                e.stopPropagation();
                                 }}
                                 onDrop={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    const files = e.dataTransfer.files;
-                                    if (files.length > 0) {
-                                        handleFileChange(files[0]);
-                                    }
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const files = e.dataTransfer.files;
+                                if (files.length > 0) {
+                                    handleFileChange(files[0]);
+                                }
                                 }}
                                 className={cn(
-                                    "border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-all duration-200",
-                                    "hover:border-primary/50 hover:bg-muted/30",
-                                    logoPreview ? "border-primary/30 bg-muted/20" : "border-border bg-muted/10"
+                                "border-2 border-dashed rounded-lg  text-center cursor-pointer transition-all duration-200",
+                                "hover:border-primary/50 hover:bg-muted/30",
+                                logoPreview ? "border-primary/30 bg-muted/20" : "border-border bg-muted/10 p-12"
                                 )}
                             >
                                 <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/png,image/jpeg,image/jpg"
-                                    onChange={(e) => {
-                                        if (e.target.files && e.target.files[0]) {
-                                            handleFileChange(e.target.files[0]);
-                                        }
-                                    }}
-                                    className="hidden"
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/png,image/jpeg,image/jpg"
+                                onChange={(e) => {
+                                    if (e.target.files && e.target.files[0]) {
+                                    handleFileChange(e.target.files[0]);
+                                    }
+                                }}
+                                className="hidden"
                                 />
                                 {logoPreview ? (
-                                    <div className="space-y-4">
-                                        <div className="flex justify-center">
-                                            <img
-                                                src={logoPreview}
-                                                alt="Company logo"
-                                                className="max-h-32 max-w-32 object-contain rounded-lg"
-                                            />
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setLogoPreview(null);
-                                                setData('logo', null);
-                                                if (fileInputRef.current) {
-                                                    fileInputRef.current.value = '';
-                                                }
-                                            }}
-                                            className="text-sm text-destructive hover:underline inline-flex items-center gap-1"
-                                        >
-                                            <X className="w-4 h-4" />
-                                            Remove logo
-                                        </button>
+                                <div className="relative">
+                                    <div className="flex justify-center">
+                                    <img
+                                        src={logoPreview}
+                                        alt="Company logo"
+                                        className="w-full max-h-[184px] object-cover rounded-lg"
+                                    />
                                     </div>
+                                    <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setLogoPreview(null);
+                                        setData('logo', null);
+                                        if (fileInputRef.current) {
+                                        fileInputRef.current.value = '';
+                                        }
+                                    }}
+                                    className="absolute top-2 right-2 text-sm text-destructive hover:underline inline-flex items-center gap-1"
+                                    >
+                                    <X className="w-4 h-4" />
+                                    </button>
+                                </div>
                                 ) : (
-                                    <div className="space-y-3">
-                                        <div className="flex justify-center">
-                                            <Upload className="w-8 h-8 text-muted-foreground" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-foreground mb-1">
-                                                Click to upload or drag and drop
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                                PNG, JPG up to 2MB
-                                            </p>
-                                        </div>
+                                <div className="space-y-3">
+                                    <div className="flex justify-center">
+                                    <Upload className="w-8 h-8 text-muted-foreground" />
                                     </div>
+                                    <div>
+                                    <p className="text-sm font-medium text-foreground mb-1">
+                                        Click to upload or drag and drop
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        PNG, JPG up to 2MB
+                                    </p>
+                                    </div>
+                                </div>
                                 )}
                             </div>
-                        </div>
+                            </div>
                     </CardContent>
                 </Card>
             </FormLayout>

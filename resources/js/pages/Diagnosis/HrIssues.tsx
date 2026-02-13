@@ -103,7 +103,7 @@ export default function HrIssues({
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
                 <Card>
-                    <CardContent className="p-6 space-y-6">
+                    <CardContent className="px-6">
                         <div className="bg-muted/50 p-4 rounded-lg mb-4">
                             <p className="text-sm text-muted-foreground">
                                 Select all issues that apply to your organization. You can add additional items if needed.

@@ -99,9 +99,9 @@ export default function Workforce({
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
                 <Card>
-                    <CardContent className="p-6 space-y-6">
+                    <CardContent className="px-6">
                         {/* Current Workforce Size */}
-                        <div className="space-y-2">
+                        <div className="flex flex-col gap-3 mb-3">
                             <Label htmlFor="present_headcount">
                                 Current Workforce Size (Active employees) <span className="text-destructive">*</span>
                             </Label>
@@ -122,11 +122,11 @@ export default function Workforce({
 
                         {/* Workforce Forecast */}
                         <div className="space-y-4">
-                            <Label className="text-sm font-semibold">
+                            <Label className="text-sm font-semibold block">
                                 Workforce Forecast <span className="text-destructive">*</span>
                             </Label>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="space-y-2">
+                                <div className="flex flex-col gap-3 mb-3">
                                     <Label htmlFor="expected_headcount_1y">After 1 year (expected)</Label>
                                     <Input
                                         id="expected_headcount_1y"
@@ -138,7 +138,7 @@ export default function Workforce({
                                         required
                                     />
                                 </div>
-                                <div className="space-y-2">
+                                <div className="flex flex-col gap-3 mb-3">
                                     <Label htmlFor="expected_headcount_2y">After 2 years (expected)</Label>
                                     <Input
                                         id="expected_headcount_2y"
@@ -150,7 +150,7 @@ export default function Workforce({
                                         required
                                     />
                                 </div>
-                                <div className="space-y-2">
+                                <div className="flex flex-col gap-3 mb-3">
                                     <Label htmlFor="expected_headcount_3y">After 3 years (expected)</Label>
                                     <Input
                                         id="expected_headcount_3y"
@@ -167,11 +167,11 @@ export default function Workforce({
 
                         {/* Average Tenure */}
                         <div className="space-y-4">
-                            <Label className="text-sm font-semibold">
+                            <Label className="text-sm font-semibold block">
                                 Average Tenure (years) <span className="text-destructive">*</span>
                             </Label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
+                                <div className="flex flex-col gap-3 mb-3">
                                     <Label htmlFor="average_tenure_active">Active Employees</Label>
                                     <Input
                                         id="average_tenure_active"
@@ -184,7 +184,7 @@ export default function Workforce({
                                         required
                                     />
                                 </div>
-                                <div className="space-y-2">
+                                <div className="flex flex-col gap-3 mb-3">
                                     <Label htmlFor="average_tenure_leavers">Leavers</Label>
                                     <Input
                                         id="average_tenure_leavers"
@@ -201,7 +201,7 @@ export default function Workforce({
                         </div>
 
                         {/* Average Age */}
-                        <div className="space-y-2">
+                        <div className="flex flex-col gap-3 mb-3">
                             <Label htmlFor="average_age">
                                 Average Age of Active Employees (years) <span className="text-destructive">*</span>
                             </Label>
@@ -233,11 +233,11 @@ export default function Workforce({
 
                         {/* Gender Composition */}
                         <div className="space-y-4">
-                            <Label className="text-sm font-semibold">
+                            <Label className="text-sm font-semibold block">
                                 Gender Composition <span className="text-destructive">*</span>
                             </Label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
+                                <div className="flex flex-col gap-3 mb-3">
                                     <Label htmlFor="gender_male">Male (count)</Label>
                                     <Input
                                         id="gender_male"
@@ -252,7 +252,7 @@ export default function Workforce({
                                         <p className="text-xs text-muted-foreground">Male: {malePercentage}%</p>
                                     )}
                                 </div>
-                                <div className="space-y-2">
+                                <div className="flex flex-col gap-3 mb-3">
                                     <Label htmlFor="gender_female">Female (count)</Label>
                                     <Input
                                         id="gender_female"

@@ -183,7 +183,7 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                                             variant="outline"
                                             size="sm"
                                             disabled={isVerifying}
-                                            className="w-full border-green-600 text-green-700 hover:bg-green-100 dark:text-green-300 dark:hover:bg-green-900/30"
+                                            className="w-full border-green-800 text-green-700 hover:bg-green-100 dark:text-green-300 dark:hover:bg-green-900/30"
                                         >
                                             {isVerifying ? (
                                                 <>

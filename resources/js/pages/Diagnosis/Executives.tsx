@@ -159,9 +159,9 @@ export default function Executives({
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
                 <Card>
-                    <CardContent className="p-6 space-y-6">
+                    <CardContent className="px-6">
                         {/* Total Executives */}
-                        <div className="space-y-2">
+                        <div className="flex flex-col gap-3 mb-3">
                             <Label htmlFor="total_executives">Total Executives</Label>
                             <Input
                                 id="total_executives"
@@ -174,7 +174,7 @@ export default function Executives({
                         </div>
 
                         {/* Executive Positions - Default Options */}
-                        <div className="space-y-3">
+                        <div className="flex flex-col gap-3 mb-3">
                             <Label>Executive Positions</Label>
                             <MultiSelectQuestion
                                 question="Select default positions"
@@ -186,7 +186,7 @@ export default function Executives({
                         </div>
 
                         {/* Custom Positions */}
-                        <div className="space-y-3">
+                        <div className="flex flex-col gap-3 mb-3">
                             <div className="flex items-center justify-between">
                                 <Label>Other Positions</Label>
                                 <Button
@@ -199,7 +199,7 @@ export default function Executives({
                                     Add Custom Position
                                 </Button>
                             </div>
-                            <div className="space-y-2">
+                            <div className="flex flex-col gap-3 mb-3">
                                 {positions
                                     .filter(pos => !DEFAULT_POSITIONS.includes(pos.role))
                                     .map((position) => (
@@ -237,9 +237,9 @@ export default function Executives({
                         </div>
 
                         {/* Positions with Counts */}
-                        <div className="space-y-3">
+                        <div className="flex flex-col gap-3 mb-3">
                             <Label>Position Counts</Label>
-                            <div className="space-y-2">
+                            <div className="flex flex-col gap-3 mb-3">
                                 {positions
                                     .filter(pos => pos.role)
                                     .map((position) => (

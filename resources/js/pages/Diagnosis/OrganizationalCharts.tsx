@@ -176,7 +176,7 @@ export default function OrganizationalCharts({
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
                 <Card>
-                    <CardContent className="p-6 space-y-6">
+                    <CardContent className="px-6">
                         <div className="bg-muted/50 p-4 rounded-lg mb-4">
                             <p className="text-sm text-muted-foreground">
                                 Upload organizational charts for the specified years. Allowed formats: JPG, PNG, PDF
@@ -234,7 +234,7 @@ export default function OrganizationalCharts({
                                             <div className="border rounded-lg p-4 bg-muted/30">
                                                 <div className="flex items-center justify-between mb-3">
                                                     <span className="text-sm font-medium text-muted-foreground">Current Uploaded File</span>
-                                                    <a 
+                                                    {/* <a 
                                                         href={existingImageUrl} 
                                                         target="_blank" 
                                                         rel="noopener noreferrer"
@@ -242,7 +242,7 @@ export default function OrganizationalCharts({
                                                         title="View in new tab"
                                                     >
                                                         <Eye className="w-4 h-4" />
-                                                    </a>
+                                                    </a> */}
                                                 </div>
                                                 
                                                 {isImage ? (
@@ -250,7 +250,7 @@ export default function OrganizationalCharts({
                                                         <img 
                                                             src={existingImageUrl}
                                                             alt={`Organizational Chart ${year}`}
-                                                            className="w-full h-auto rounded object-contain max-h-64 border bg-white cursor-pointer hover:opacity-90 transition-opacity"
+                                                            className="w-full h-auto rounded object-cover max-h-64 border bg-white cursor-pointer hover:opacity-90 transition-opacity"
                                                             onClick={() => window.open(existingImageUrl, '_blank')}
                                                         />
                                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors rounded flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
@@ -307,9 +307,9 @@ export default function OrganizationalCharts({
                                                         }
                                                     }}
                                                     className={cn(
-                                                        "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-200",
+                                                        "border-2 border-dashed rounded-lg  text-center cursor-pointer transition-all duration-200",
                                                         "hover:border-primary/50 hover:bg-muted/30",
-                                                        (hasNewFile || filePreviews[year]) ? "border-primary/30 bg-muted/20" : "border-border bg-muted/10"
+                                                        (hasNewFile || filePreviews[year]) ? "border-primary/30 bg-muted/20" : "border-border bg-muted/10 p-8"
                                                     )}
                                                 >
                                                     <input
@@ -320,17 +320,17 @@ export default function OrganizationalCharts({
                                                         className="hidden"
                                                     />
                                                     {hasNewFile && filePreviews[year] ? (
-                                                        <div className="space-y-3">
+                                                        <div className="relative">
                                                             <div className="flex justify-center">
                                                                 <img
                                                                     src={filePreviews[year]}
                                                                     alt={`Organizational Chart ${year} Preview`}
-                                                                    className="max-h-48 max-w-full object-contain rounded-lg border bg-white"
+                                                                    className="max-h-48 w-full object-cover rounded-lg border bg-white"
                                                                 />
                                                             </div>
                                                             {chartFiles[year]?.[0] && (
                                                                 <div className="space-y-2">
-                                                                    <p className="text-xs text-muted-foreground">
+                                                                    <p className="text-xs text-muted-foreground hidden">
                                                                         {chartFiles[year][0].name} ({(chartFiles[year][0].size / 1024 / 1024).toFixed(2)} MB)
                                                                     </p>
                                                                     <button
@@ -342,10 +342,10 @@ export default function OrganizationalCharts({
                                                                                 fileInputRefs.current[year].value = '';
                                                                             }
                                                                         }}
-                                                                        className="text-sm text-destructive hover:underline inline-flex items-center gap-1"
+                                                                        className="absolute top-2 right-2 text-sm text-destructive hover:underline inline-flex items-center gap-1"
                                                                     >
                                                                         <X className="w-4 h-4" />
-                                                                        Remove file
+                                                                        
                                                                     </button>
                                                                 </div>
                                                             )}
@@ -359,7 +359,7 @@ export default function OrganizationalCharts({
                                                                 <p className="text-sm font-medium text-foreground mb-1">
                                                                     PDF File Selected
                                                                 </p>
-                                                                <p className="text-xs text-muted-foreground">
+                                                                <p className="text-xs text-muted-foreground hidden">
                                                                     {chartFiles[year][0].name} ({(chartFiles[year][0].size / 1024 / 1024).toFixed(2)} MB)
                                                                 </p>
                                                             </div>

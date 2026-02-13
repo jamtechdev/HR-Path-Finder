@@ -104,7 +104,7 @@ export default function OrganizationalStructure({
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
                 <Card>
-                    <CardContent className="p-6 space-y-6">
+                    <CardContent className="px-6">
                         <div className="space-y-4">
                             <Label className="text-sm font-semibold">
                                 Organizational Structure (Multiple Selection) <span className="text-destructive">*</span>
