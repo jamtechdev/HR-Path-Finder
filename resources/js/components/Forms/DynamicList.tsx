@@ -51,13 +51,14 @@ export default function DynamicList({
                             value={item || ''}
                             onChange={(e) => updateItem(index, e.target.value)}
                             placeholder={placeholder}
-                            className="flex-1"
+                             className="h-11 rounded-lg border-border bg-card shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:border-primary/40"
                         />
                         <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             onClick={() => removeItem(index)}
+                            className="bg-accent rounded-md p-5 text-accent-foreground hover:bg-transprent"
                         >
                             <X className="w-4 h-4" />
                         </Button>
@@ -67,7 +68,7 @@ export default function DynamicList({
                     type="button"
                     variant="outline"
                     onClick={addItem}
-                    className="w-full"
+                    className="w-full px-4 py-2 mt-3 w-full h-11 rounded-lg border-dashed border-2  text-muted-foreground"
                 >
                     <Plus className="w-4 h-4 mr-2" />
                     {addLabel}

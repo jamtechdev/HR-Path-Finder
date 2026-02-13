@@ -85,7 +85,7 @@ export default function CeoDashboard({ projects, pendingReviews, stats, needsAtt
 
                         {/* Statistics Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                            <Card>
+                            <Card className="border-t-6 border-t-blue-500">
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between">
                                         <div>
@@ -99,7 +99,7 @@ export default function CeoDashboard({ projects, pendingReviews, stats, needsAtt
                                 </CardContent>
                             </Card>
 
-                            <Card>
+                            <Card className="border-t-6 border-t-orange-500">
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between">
                                         <div>
@@ -113,7 +113,7 @@ export default function CeoDashboard({ projects, pendingReviews, stats, needsAtt
                                 </CardContent>
                             </Card>
 
-                            <Card>
+                            <Card className="border-t-6 border-t-yellow-500">
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between">
                                         <div>
@@ -127,7 +127,7 @@ export default function CeoDashboard({ projects, pendingReviews, stats, needsAtt
                                 </CardContent>
                             </Card>
 
-                            <Card>
+                            <Card className="border-t-6 border-t-green-500">
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between">
                                         <div>

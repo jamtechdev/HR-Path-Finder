@@ -98,19 +98,20 @@ export default function JobStructure({
                     <CardContent className="px-6">
                         {/* Job Categories */}
                         <div className="space-y-3">
-                            <Label className="text-sm font-semibold">Job Category</Label>
+                            <Label className="text-base font-semibold text-foreground block">Job Category</Label>
                             <DynamicList
                                 label=""
                                 items={jobCategories}
                                 onChange={setJobCategories}
                                 placeholder="Enter job category (e.g., Management, Support)"
                                 addLabel="Add Job Category"
+                               
                             />
                         </div>
 
                         {/* Job Functions */}
-                        <div className="space-y-3">
-                            <Label className="text-sm font-semibold">Job Function</Label>
+                        <div className="space-y-3 mt-3">
+                            <Label className="text-base font-semibold text-foreground">Job Function</Label>
                             <MultiSelectQuestion
                                 question="Select job functions"
                                 value={jobFunctions.filter(f => DEFAULT_JOB_FUNCTIONS.includes(f))}
@@ -141,8 +142,9 @@ export default function JobStructure({
                                     type="button"
                                     variant="outline"
                                     onClick={addCustomJobFunction}
+                                    className="bg-accent text-accent-foreground "
                                 >
-                                    <Plus className="w-4 h-4 mr-2" />
+                                    <Plus className="w-4 h-4 " />
                                     Add
                                 </Button>
                             </div>
@@ -150,7 +152,7 @@ export default function JobStructure({
                             {/* Display selected custom functions */}
                             {jobFunctions.filter(f => !DEFAULT_JOB_FUNCTIONS.includes(f)).length > 0 && (
                                 <div className="mt-3 space-y-2">
-                                    <Label className="text-xs text-muted-foreground">Custom Job Functions:</Label>
+                                    <Label className="text-sm text-muted-foreground mb-3">Custom Job Functions:</Label>
                                     <div className="flex flex-wrap gap-2">
                                         {jobFunctions
                                             .filter(f => !DEFAULT_JOB_FUNCTIONS.includes(f))

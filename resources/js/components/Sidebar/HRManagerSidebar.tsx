@@ -195,7 +195,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
             
             {/* Navigation - Match dashboard style */}
             <nav className="flex-1 overflow-y-auto">
-                <SidebarGroup className={cn("transition-all duration-200", isCollapsed ? "px-3 py-6" : "px-6 py-8")}>
+                <SidebarGroup className={cn("transition-all duration-200", isCollapsed ? "px-3 py-6" : "px-3 py-8")}>
                     <SidebarMenu className={cn("transition-all duration-200", isCollapsed ? "space-y-2" : "space-y-2")}>
                         {/* Dashboard Menu Item */}
                         <SidebarMenuItem>
@@ -204,7 +204,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                                 isActive={isActive('/dashboard')}
                                 className={cn(
                                     "transition-all duration-200 rounded-lg",
-                                    isCollapsed ? "px-3 py-3 justify-center w-full" : "px-4 py-3 gap-3"
+                                    isCollapsed ? "px-3 py-3 justify-center w-full" : "px-4 py-6 gap-3"
                                 )}
                             >
                                 <Link href="/hr-manager/dashboard" className="flex items-center w-full">
@@ -247,7 +247,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                                             disabled
                                             className={cn(
                                                 "transition-all duration-200 rounded-lg cursor-not-allowed opacity-50",
-                                                isCollapsed ? "px-3 py-3 justify-center w-full" : "px-4 py-3 gap-3"
+                                                isCollapsed ? "px-3 py-3 justify-center w-full" : "px-4 py-6 gap-3"
                                             )}
                                         >
                                             <div className={cn("flex items-center w-full", isCollapsed ? "justify-center" : "gap-3")}>
@@ -273,7 +273,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                                             isActive={isStepActiveState}
                                             className={cn(
                                                 "transition-all duration-200 rounded-lg w-full",
-                                                isCollapsed ? "px-3 py-3 justify-center" : "px-4 py-3 gap-3"
+                                                isCollapsed ? "px-3 py-3 justify-center" : "px-4 py-6 gap-3"
                                             )}
                                         >
                                             <Link href={getStepRoute(step)} className="flex items-center w-full">
