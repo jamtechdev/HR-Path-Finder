@@ -18,6 +18,51 @@ class CompanyController extends Controller
     }
 
     /**
+     * Display a listing of companies for HR Manager.
+     */
+    public function index(Request $request): Response
+    {
+        $user = $request->user();
+        
+        // Only HR Managers can view their companies list
+        if (!$user->hasRole('hr_manager')) {
+            abort(403);
+        }
+        
+        // Get all companies where this HR Manager is a member
+        $companies = Company::whereHas('users', function ($query) use ($user) {
+            $query->where('users.id', $user->id)
+                  ->where('company_users.role', 'hr_manager');
+        })
+        ->with([
+            'users' => function ($query) {
+                $query->wherePivot('role', 'ceo');
+            },
+            'hrProjects' => function ($query) {
+                $query->where('status', 'active');
+            }
+        ])
+        ->get()
+        ->map(function ($company) {
+            return [
+                'id' => $company->id,
+                'name' => $company->name,
+                'registration_number' => $company->registration_number,
+                'hq_location' => $company->hq_location,
+                'public_listing_status' => $company->public_listing_status,
+                'hasCeo' => $company->users->where('pivot.role', 'ceo')->isNotEmpty(),
+                'ceo' => $company->users->where('pivot.role', 'ceo')->first(),
+                'activeProject' => $company->hrProjects->first(),
+                'created_at' => $company->created_at,
+            ];
+        });
+        
+        return Inertia::render('Companies/Index', [
+            'companies' => $companies,
+        ]);
+    }
+
+    /**
      * Show the form for creating a new company.
      */
     public function create(): Response

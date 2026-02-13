@@ -46,6 +46,7 @@ Route::middleware(['auth'])->group(function () {
     
     // ========== Company Management ==========
     Route::middleware('role:hr_manager')->group(function () {
+        Route::get('companies', [\App\Http\Controllers\CompanyController::class, 'index'])->name('companies.index');
         Route::get('companies/create', [\App\Http\Controllers\CompanyController::class, 'create'])->name('companies.create');
         Route::post('companies', [\App\Http\Controllers\CompanyController::class, 'store'])->name('companies.store');
     });

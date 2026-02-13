@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { SidebarGroup, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { CheckCircle2, Lock, Target, DollarSign, Building2, FileText, LayoutGrid, TrendingUp, Award, User } from 'lucide-react';
+import { CheckCircle2, Lock, Target, DollarSign, Building2, FileText, LayoutGrid, TrendingUp, Award, User, Briefcase } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface HRManagerSidebarProps {
@@ -74,6 +74,9 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
         }
         if (path === '/dashboard') {
             return currentPath === '/dashboard' || currentPath === '/hr-manager/dashboard' || currentPath.startsWith('/hr-manager/dashboard/');
+        }
+        if (path === '/companies') {
+            return currentPath === '/companies' || currentPath.startsWith('/companies/');
         }
         return currentPath === path || currentPath.startsWith(`${path}/`);
     };
@@ -207,6 +210,23 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                                 <Link href="/hr-manager/dashboard" className="flex items-center w-full">
                                     <LayoutGrid className={cn("flex-shrink-0 transition-all duration-200", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
                                     {!isCollapsed && <span className="font-medium">Dashboard</span>}
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+
+                        {/* Companies Menu Item */}
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={isActive('/companies')}
+                                className={cn(
+                                    "transition-all duration-200 rounded-lg",
+                                    isCollapsed ? "px-3 py-3 justify-center w-full" : "px-4 py-3 gap-3"
+                                )}
+                            >
+                                <Link href="/companies" className="flex items-center w-full">
+                                    <Briefcase className={cn("flex-shrink-0 transition-all duration-200", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
+                                    {!isCollapsed && <span className="font-medium">Companies</span>}
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
