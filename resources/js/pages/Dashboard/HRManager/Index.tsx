@@ -296,7 +296,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                             : 'Start building your company\'s HR system.'}
                                     </p>
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3 flex-wrap">
                                     {activeProject && (
                                         <Badge variant="outline" className="text-sm px-4 py-2">
                                             <Sparkles className="w-4 h-4 mr-2" />

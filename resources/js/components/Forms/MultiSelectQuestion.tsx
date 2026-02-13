@@ -35,7 +35,7 @@ export default function MultiSelectQuestion({
 
     return (
         <div className="space-y-3">
-            <Label className="text-sm font-medium">
+            <Label className="text-sm text-muted-foreground">
                 {question}
                 {required && <span className="text-red-500 ml-1">*</span>}
             </Label>
@@ -44,7 +44,7 @@ export default function MultiSelectQuestion({
                 columns === 1 ? "grid-cols-1" : columns === 2 ? "grid-cols-2" : "grid-cols-3"
             )}>
                 {normalizedOptions.map((option) => (
-                    <div key={option.value} className="flex items-center space-x-2">
+                    <div key={option.value} className="flex items-center space-x-2 p-2">
                         <Checkbox
                             id={`option-${option.value}`}
                             checked={value.includes(option.value)}

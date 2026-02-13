@@ -109,12 +109,12 @@ export default function OrganizationalStructure({
                             <Label className="text-sm font-semibold">
                                 Organizational Structure (Multiple Selection) <span className="text-destructive">*</span>
                             </Label>
-                            
+
                             <div className="space-y-3">
                                 {STRUCTURE_TYPES.map((type) => (
-                                    <div key={type.value} className="flex items-start gap-3 p-3 border rounded-md hover:bg-muted/50">
+                                    <div key={type.value} className="flex items-start gap-4 p-4 border rounded-lg shadow-sm hover:bg-muted/50 transition duration-300 ease-in-out">
                                         <div className="flex-1">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-3">
                                                 <input
                                                     type="checkbox"
                                                     id={`structure-${type.value}`}
@@ -126,25 +126,28 @@ export default function OrganizationalStructure({
                                                             setSelectedTypes(selectedTypes.filter(t => t !== type.value));
                                                         }
                                                     }}
-                                                    className="w-4 h-4"
+                                                    className="w-5 h-5 rounded-sm border-gray-400 cursor-pointer transition duration-200"
                                                 />
-                                                <Label htmlFor={`structure-${type.value}`} className="font-medium cursor-pointer">
+                                                <Label htmlFor={`structure-${type.value}`} className="font-medium text-lg text-primary-dark cursor-pointer">
                                                     {type.label}
                                                 </Label>
+
                                                 <TooltipProvider>
                                                     <Tooltip>
                                                         <TooltipTrigger>
-                                                            <Info className="w-4 h-4 text-muted-foreground" />
+                                                            <Info className="w-5 h-5 text-muted-foreground hover:text-primary transition duration-200" />
                                                         </TooltipTrigger>
-                                                        <TooltipContent className="max-w-sm">
-                                                            <p className="text-sm">{type.description}</p>
+                                                        <TooltipContent className="max-w-sm p-3 bg-gray-800 text-white text-sm rounded-md shadow-lg">
+                                                            <p>{type.description}</p>
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
                                             </div>
-                                            <p className="text-xs text-muted-foreground mt-1 ml-6">{type.description}</p>
+
+                                            <p className="text-sm text-muted-foreground mt-2 ml-8 leading-tight">{type.description}</p>
                                         </div>
                                     </div>
+
                                 ))}
                             </div>
                         </div>

@@ -69,7 +69,7 @@ export default function AppHeader() {
                                     </span>
                                 </div>
                                 <div className="hidden md:block text-left">
-                                    <p className="text-sm font-medium hover:text-black">{user?.name || 'User'}</p>
+                                    <p className="text-sm font-medium text-black">{user?.name || 'User'}</p>
                                     <p className="text-xs text-muted-foreground">{user?.email || ''}</p>
                                 </div>
                                 <ChevronDown className="h-4 w-4 text-muted-foreground hidden md:block" />
