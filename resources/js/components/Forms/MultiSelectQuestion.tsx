@@ -44,7 +44,7 @@ export default function MultiSelectQuestion({
                 columns === 1 ? "grid-cols-1" : columns === 2 ? "grid-cols-2" : "grid-cols-3"
             )}>
                 {normalizedOptions.map((option) => (
-                    <div key={option.value} className="flex items-center space-x-2 p-2">
+                    <div key={option.value} className="flex items-center gap-3 cursor-pointer rounded-lg border px-4 py-3 transition-colors border-border bg-card hover:bg-muted/50">
                         <Checkbox
                             id={`option-${option.value}`}
                             checked={value.includes(option.value)}

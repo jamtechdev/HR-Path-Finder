@@ -4,7 +4,7 @@ import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Edit, Building2, Briefcase, Users, UserCog, UserCheck, FileText, Image as ImageIcon, Download, Eye, Layers } from 'lucide-react';
+import { CheckCircle2,AlertCircle, Edit, Building2, Network, Users, UserCog, UserCheck, FileText, Image as ImageIcon, Download, Eye, Layers , TrendingUp , Clock } from 'lucide-react';
 
 interface Diagnosis {
     id: number;
@@ -166,19 +166,28 @@ export default function Review({
             >
                 <div className="space-y-6">
                     {/* Company Information */}
-                    <Card>
-                        <CardHeader>
+                    <Card className="overflow-hidden border-slate-200 shadow-sm py-0">
+                         <CardHeader className="bg-slate-900 py-3 text-white">
                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <Building2 className="w-5 h-5 text-primary" />
-                                    <CardTitle>Company Information</CardTitle>
+                            <div className="flex items-center gap-3">
+                                <div className="rounded-lg bg-white/10 p-2">
+                                <Building2 className="h-5 w-5 text-blue-400" />
                                 </div>
-                                <Link href={getEditUrl('company-info')}>
-                                    <Button variant="ghost" size="sm">
-                                        <Edit className="w-4 h-4 mr-2" />
-                                        Edit
-                                    </Button>
-                                </Link>
+                                <div>
+                                <CardTitle className="text-lg font-bold tracking-tight">Company Information</CardTitle>
+                                <p className="text-xs text-slate-400">Corporate identity and registration details</p>
+                                </div>
+                            </div>
+                            <Link href={getEditUrl('company-info')}>
+                                <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                className="gap-2 rounded-full bg-blue-600 font-semibold text-white hover:bg-blue-500 border-none transition-all"
+                                >
+                                <Edit className="w-3.5 h-3.5" />
+                                <span>Edit</span>
+                                </Button>
+                            </Link>
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -226,118 +235,128 @@ export default function Review({
                             })()}
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Company Name:</span>
-                                    <span className="font-medium">{company.name}</span>
+                                <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Company Name:</span>
+                                    <span className="text-sm font-medium text-slate-700  text-blue-600">{company.name}</span>
                                 </div>
                                 {company.registration_number && (
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Registration Number:</span>
-                                        <span className="font-medium">{company.registration_number}</span>
+                                    <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Registration Number:</span>
+                                        <span className="text-sm font-medium text-slate-700  text-blue-600">{company.registration_number}</span>
                                     </div>
                                 )}
                                 {company.brand_name && (
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Brand Name:</span>
-                                        <span className="font-medium">{company.brand_name}</span>
+                                    <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Brand Name:</span>
+                                        <span className="text-sm font-medium text-slate-700  text-blue-600">{company.brand_name}</span>
                                     </div>
                                 )}
                                 {company.foundation_date && (
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Foundation Date:</span>
-                                        <span className="font-medium">{company.foundation_date}</span>
+                                    <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Foundation Date:</span>
+                                        <span className="text-sm font-medium text-slate-700  text-blue-600">{company.foundation_date}</span>
                                     </div>
                                 )}
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">HQ Location:</span>
-                                    <span className="font-medium">{formatValue(company.hq_location)}</span>
+                                <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">HQ Location:</span>
+                                    <span className="text-sm font-medium text-slate-700  text-blue-600">{formatValue(company.hq_location)}</span>
                                 </div>
                                 {(company.is_public !== undefined || company.public_listing_status) && (
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Public Listing Status:</span>
-                                        <span className="font-medium">
+                                    <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Public Listing Status:</span>
+                                        <span className="text-sm font-medium text-slate-700  text-blue-600">
                                             {company.public_listing_status 
                                                 ? company.public_listing_status.charAt(0).toUpperCase() + company.public_listing_status.slice(1)
                                                 : company.is_public ? 'Yes' : 'No'}
                                         </span>
                                     </div>
                                 )}
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Primary Industry:</span>
-                                    <span className="font-medium">{formatValue(diagnosis?.industry_category)}</span>
+                                <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Primary Industry:</span>
+                                    <span className="text-sm font-medium text-slate-700  text-blue-600">{formatValue(diagnosis?.industry_category)}</span>
                                 </div>
                                 {diagnosis?.industry_subcategory && (
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Industry Subcategory:</span>
-                                        <span className="font-medium">{formatValue(diagnosis.industry_subcategory)}</span>
+                                    <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Industry Subcategory:</span>
+                                        <span className="text-sm font-medium text-slate-700  text-blue-600">{formatValue(diagnosis.industry_subcategory)}</span>
                                     </div>
                                 )}
                                 {diagnosis?.industry_other && (
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Other Industry:</span>
-                                        <span className="font-medium">{formatValue(diagnosis.industry_other)}</span>
+                                    <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Other Industry:</span>
+                                        <span className="text-sm font-medium text-slate-700  text-blue-600">{formatValue(diagnosis.industry_other)}</span>
                                     </div>
                                 )}
                             </div>
                         </CardContent>
+                
                     </Card>
 
                     {/* Workforce */}
-                    <Card>
-                        <CardHeader>
+                    <Card className="overflow-hidden border-slate-200 shadow-sm  py-0">
+                        <CardHeader className="bg-slate-900 py-3 text-white">
                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <Users className="w-5 h-5 text-primary" />
-                                    <CardTitle>Workforce</CardTitle>
+                            <div className="flex items-center gap-3">
+                                <div className="rounded-lg bg-white/10 p-2">
+                                <Users className="h-5 w-5 text-emerald-400" />
                                 </div>
-                                <Link href={getEditUrl('workforce')}>
-                                    <Button variant="ghost" size="sm">
-                                        <Edit className="w-4 h-4 mr-2" />
-                                        Edit
-                                    </Button>
-                                </Link>
+                                <div>
+                                <CardTitle className="text-lg font-bold tracking-tight">Workforce Metrics</CardTitle>
+                                <p className="text-xs text-slate-400">Headcount, demographics, and tenure</p>
+                                </div>
+                            </div>
+                            <Link href={getEditUrl('workforce')}>
+                                <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                className="gap-2 rounded-full bg-emerald-600 font-semibold text-white hover:bg-emerald-500 border-none transition-all"
+                                >
+                                <Edit className="w-3.5 h-3.5" />
+                                <span>Edit</span>
+                                </Button>
+                            </Link>
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Current Headcount:</span>
-                                    <span className="font-medium">{formatNumber(diagnosis?.present_headcount)}</span>
+                                <div className="bg-white p-4 flex flex-col gap-1">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Current Headcount:</span>
+                                    <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis?.present_headcount)}</span>
                                 </div>
                                 {diagnosis?.expected_headcount_1y && (
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Expected (1 Year):</span>
-                                        <span className="font-medium">{formatNumber(diagnosis.expected_headcount_1y)}</span>
+                                    <div className="bg-white p-4 flex flex-col gap-1">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Expected (1 Year):</span>
+                                        <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.expected_headcount_1y)}</span>
                                     </div>
                                 )}
                                 {diagnosis?.expected_headcount_2y && (
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Expected (2 Years):</span>
-                                        <span className="font-medium">{formatNumber(diagnosis.expected_headcount_2y)}</span>
+                                    <div className="bg-white p-4 flex flex-col gap-1">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Expected (2 Years):</span>
+                                        <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.expected_headcount_2y)}</span>
                                     </div>
                                 )}
                                 {diagnosis?.expected_headcount_3y && (
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Expected (3 Years):</span>
-                                        <span className="font-medium">{formatNumber(diagnosis.expected_headcount_3y)}</span>
+                                    <div className="bg-white p-4 flex flex-col gap-1">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Expected (3 Years):</span>
+                                        <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.expected_headcount_3y)}</span>
                                     </div>
                                 )}
                                 {diagnosis?.average_age && (
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Average Age:</span>
-                                        <span className="font-medium">{formatNumber(diagnosis.average_age)} years</span>
+                                    <div className="bg-white p-4 flex flex-col gap-1">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Average Age:</span>
+                                        <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.average_age)} years</span>
                                     </div>
                                 )}
                                 {diagnosis?.average_tenure_active && (
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Avg Tenure (Active):</span>
-                                        <span className="font-medium">{formatNumber(diagnosis.average_tenure_active)} years</span>
+                                    <div className="bg-white p-4 flex flex-col gap-1">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Avg Tenure (Active):</span>
+                                        <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.average_tenure_active)} years</span>
                                     </div>
                                 )}
                                 {diagnosis?.average_tenure_leavers && (
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Avg Tenure (Leavers):</span>
-                                        <span className="font-medium">{formatNumber(diagnosis.average_tenure_leavers)} years</span>
+                                    <div className="bg-white p-4 flex flex-col gap-1">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Avg Tenure (Leavers):</span>
+                                        <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.average_tenure_leavers)} years</span>
                                     </div>
                                 )}
                             </div>
@@ -345,30 +364,30 @@ export default function Review({
                             {/* Gender Distribution */}
                             {(diagnosis?.gender_male || diagnosis?.gender_female || diagnosis?.gender_other) && (
                                 <div className="mt-4 pt-4 border-t">
-                                    <h4 className="font-medium mb-3">Gender Distribution</h4>
+                                    <h4 className="text-lg font-semibold text-slate-700 mb-3">Gender Distribution</h4>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         {diagnosis.gender_male && (
-                                            <div className="flex justify-between">
-                                                <span className="text-muted-foreground">Male:</span>
-                                                <span className="font-medium">{formatNumber(diagnosis.gender_male)}</span>
+                                            <div className="bg-white p-4 flex flex-col gap-1">
+                                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Male:</span>
+                                                <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.gender_male)}</span>
                                             </div>
                                         )}
                                         {diagnosis.gender_female && (
-                                            <div className="flex justify-between">
-                                                <span className="text-muted-foreground">Female:</span>
-                                                <span className="font-medium">{formatNumber(diagnosis.gender_female)}</span>
+                                            <div className="bg-white p-4 flex flex-col gap-1">
+                                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Female:</span>
+                                                <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.gender_female)}</span>
                                             </div>
                                         )}
                                         {diagnosis.gender_other && (
-                                            <div className="flex justify-between">
-                                                <span className="text-muted-foreground">Other:</span>
-                                                <span className="font-medium">{formatNumber(diagnosis.gender_other)}</span>
+                                            <div className="bg-white p-4 flex flex-col gap-1">
+                                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Other:</span>
+                                                <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.gender_other)}</span>
                                             </div>
                                         )}
                                         {diagnosis.gender_ratio && (
-                                            <div className="flex justify-between col-span-full">
-                                                <span className="text-muted-foreground">Gender Ratio (Male %):</span>
-                                                <span className="font-medium">{formatPercentage(diagnosis.gender_ratio)}</span>
+                                            <div className="bg-white p-4 flex flex-col gap-1 col-span-full">
+                                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Gender Ratio (Male %):</span>
+                                                <span className="text-lg font-semibold text-slate-700">{formatPercentage(diagnosis.gender_ratio)}</span>
                                             </div>
                                         )}
                                     </div>
@@ -379,26 +398,35 @@ export default function Review({
 
                     {/* Executives */}
                     {diagnosis?.total_executives && (
-                        <Card>
-                            <CardHeader>
+                        <Card className="overflow-hidden border-slate-200 shadow-sm  py-0">
+                             <CardHeader className="bg-slate-900 py-3 text-white">
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <UserCog className="w-5 h-5 text-primary" />
-                                        <CardTitle>Executives</CardTitle>
+                                <div className="flex items-center gap-3">
+                                    <div className="rounded-lg bg-white/10 p-2">
+                                    <UserCog className="h-5 w-5 text-indigo-400" />
                                     </div>
-                                    <Link href={getEditUrl('executives')}>
-                                        <Button variant="ghost" size="sm">
-                                            <Edit className="w-4 h-4 mr-2" />
-                                            Edit
-                                        </Button>
-                                    </Link>
+                                    <div>
+                                    <CardTitle className="text-lg font-bold tracking-tight">Executives</CardTitle>
+                                    <p className="text-xs text-slate-400">Leadership structure and composition</p>
+                                    </div>
+                                </div>
+                                <Link href={getEditUrl('executives')}>
+                                    <Button 
+                                    variant="secondary" 
+                                    size="sm" 
+                                    className="gap-2 rounded-full bg-indigo-600 font-semibold text-white hover:bg-indigo-500 border-none transition-all"
+                                    >
+                                    <Edit className="w-3.5 h-3.5" />
+                                    <span>Edit</span>
+                                    </Button>
+                                </Link>
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-2">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Total Executives:</span>
-                                        <span className="font-medium">{formatNumber(diagnosis.total_executives)}</span>
+                                    <div className="bg-white p-4 flex flex-col gap-1">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Total Executives:</span>
+                                        <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.total_executives)}</span>
                                     </div>
                                 </div>
                                 
@@ -422,31 +450,40 @@ export default function Review({
 
                     {/* Leaders */}
                     {diagnosis?.leadership_count && (
-                        <Card>
-                            <CardHeader>
+                        <Card className="overflow-hidden border-slate-200 shadow-sm  py-0">
+                            <CardHeader className="bg-slate-900 py-3 text-white">
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <UserCheck className="w-5 h-5 text-primary" />
-                                        <CardTitle>Leaders</CardTitle>
+                                <div className="flex items-center gap-3">
+                                    <div className="rounded-lg bg-white/10 p-2">
+                                    <UserCheck className="h-5 w-5 text-rose-400" />
                                     </div>
-                                    <Link href={getEditUrl('leaders')}>
-                                        <Button variant="ghost" size="sm">
-                                            <Edit className="w-4 h-4 mr-2" />
-                                            Edit
-                                        </Button>
-                                    </Link>
+                                    <div>
+                                    <CardTitle className="text-lg font-bold tracking-tight">Management Layer</CardTitle>
+                                    <p className="text-xs text-slate-400">Department heads and team leads</p>
+                                    </div>
+                                </div>
+                                <Link href={getEditUrl('leaders')}>
+                                    <Button 
+                                    variant="secondary" 
+                                    size="sm" 
+                                    className="gap-2 rounded-full bg-rose-600 font-semibold text-white hover:bg-rose-500 border-none transition-all"
+                                    >
+                                    <Edit className="w-3.5 h-3.5" />
+                                    <span>Edit</span>
+                                    </Button>
+                                </Link>
                                 </div>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Leadership Count:</span>
-                                        <span className="font-medium">{formatNumber(diagnosis.leadership_count)}</span>
+                                    <div className="bg-white p-4 flex flex-col gap-1">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Leadership Count:</span>
+                                        <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.leadership_count)}</span>
                                     </div>
                                     {diagnosis.leadership_percentage && (
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Leadership Percentage:</span>
-                                            <span className="font-medium">{formatPercentage(diagnosis.leadership_percentage)}</span>
+                                        <div className="bg-white p-4 flex flex-col gap-1">
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Leadership Percentage:</span>
+                                            <span className="text-lg font-semibold text-slate-700">{formatPercentage(diagnosis.leadership_percentage)}</span>
                                         </div>
                                     )}
                                 </div>
@@ -456,16 +493,28 @@ export default function Review({
 
                     {/* Job Grades */}
                     {diagnosis?.job_grade_names && Array.isArray(diagnosis.job_grade_names) && diagnosis.job_grade_names.length > 0 && (
-                        <Card>
-                            <CardHeader>
+                        <Card className="overflow-hidden border-slate-200 shadow-sm  py-0">
+                            <CardHeader className="bg-slate-900 py-3 text-white">
                                 <div className="flex items-center justify-between">
-                                    <CardTitle>Job Grades</CardTitle>
-                                    <Link href={getEditUrl('job-grades')}>
-                                        <Button variant="ghost" size="sm">
-                                            <Edit className="w-4 h-4 mr-2" />
-                                            Edit
-                                        </Button>
-                                    </Link>
+                                <div className="flex items-center gap-3">
+                                    <div className="rounded-lg bg-white/10 p-2">
+                                    <TrendingUp className="h-5 w-5 text-amber-400" />
+                                    </div>
+                                    <div>
+                                    <CardTitle className="text-lg font-bold tracking-tight">Job Grades</CardTitle>
+                                    <p className="text-xs text-slate-400">Career leveling and promotion cycles</p>
+                                    </div>
+                                </div>
+                                <Link href={getEditUrl('job-grades')}>
+                                    <Button 
+                                    variant="secondary" 
+                                    size="sm" 
+                                    className="gap-2 rounded-full bg-amber-600 font-semibold text-white hover:bg-amber-500 border-none transition-all"
+                                    >
+                                    <Edit className="w-3.5 h-3.5" />
+                                    <span>Edit</span>
+                                    </Button>
+                                </Link>
                                 </div>
                             </CardHeader>
                             <CardContent>
@@ -476,12 +525,15 @@ export default function Review({
                                             : null;
                                         
                                         return (
-                                            <div key={index} className="flex items-center justify-between p-2 border rounded">
-                                                <Badge variant="secondary">{grade}</Badge>
+                                            <div key={index} className="flex items-center justify-between p-2  rounded">
+                                                <Badge variant="secondary" className="text-sm font-bold text-slate-700">{grade}</Badge>
                                                 {promotionYears !== null && promotionYears !== undefined && (
-                                                    <span className="text-sm text-muted-foreground">
-                                                        Promotion: {promotionYears} years
-                                                    </span>
+                                                    <div className="flex items-center gap-2 self-end sm:self-auto bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 shadow-sm transition-all group-hover:bg-white group-hover:border-amber-200">
+                                                        <Clock className="w-3.5 h-3.5 text-amber-500" />
+                                                        <span className="text-xs font-semibold text-slate-600">
+                                                        {promotionYears} <span className="font-normal text-slate-400 text-[10px] uppercase ml-1 text-nowrap">Avg. Years to Promote</span>
+                                                        </span>
+                                                    </div>
                                                 )}
                                             </div>
                                         );
@@ -492,19 +544,28 @@ export default function Review({
                     )}
 
                     {/* Organizational Charts - Always show this section */}
-                    <Card>
-                        <CardHeader>
+                    <Card className="overflow-hidden border-slate-200 shadow-sm  py-0">
+                         <CardHeader className="bg-slate-900 py-3 text-white">
                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <ImageIcon className="w-5 h-5 text-primary" />
-                                    <CardTitle>Organizational Charts</CardTitle>
+                            <div className="flex items-center gap-3">
+                                <div className="rounded-lg bg-white/10 p-2">
+                                <ImageIcon className="h-5 w-5 text-sky-400" />
                                 </div>
-                                <Link href={getEditUrl('organizational-charts')}>
-                                    <Button variant="ghost" size="sm">
-                                        <Edit className="w-4 h-4 mr-2" />
-                                        Edit
-                                    </Button>
-                                </Link>
+                                <div>
+                                <CardTitle className="text-lg font-bold tracking-tight">Organizational Charts</CardTitle>
+                                <p className="text-xs text-slate-400">Historical structural documentation</p>
+                                </div>
+                            </div>
+                            <Link href={getEditUrl('organizational-charts')}>
+                                <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                className="gap-2 rounded-full bg-sky-600 font-semibold text-white hover:bg-sky-500 border-none transition-all"
+                                >
+                                <Edit className="w-3.5 h-3.5" />
+                                <span>Update</span>
+                                </Button>
+                            </Link>
                             </div>
                         </CardHeader>
                         <CardContent>
@@ -602,15 +663,15 @@ export default function Review({
                                             const hasFile = !!chartPath;
                                             
                                             return (
-                                                <div key={year} className="flex items-center justify-between p-3 border rounded-lg">
-                                                    <div className="flex items-center gap-4">
+                                                <div key={year} className="flex items-center justify-between p-4 bg-white border rounded-xl shadow-sm hover:shadow-md transition">
+                                                    <div className="flex items-center flex-row-reverse gap-4">
                                                         <span className="text-sm font-medium text-foreground min-w-[80px]">{year}:</span>
                                                         {hasFile && isImage ? (
-                                                            <div className="flex items-center gap-2">
+                                                            <div className="w-24 h-24 rounded-lg overflow-hidden border bg-gray-100">
                                                                 <img 
                                                                     src={imageUrl}
                                                                     alt={`Organizational Chart ${year}`}
-                                                                    className="w-20 h-20 object-contain border rounded-lg p-2 bg-muted"
+                                                                    className="w-full h-full object-cover"
                                                                     onError={(e) => {
                                                                         const target = e.target as HTMLImageElement;
                                                                         target.style.display = 'none';
@@ -668,22 +729,34 @@ export default function Review({
 
                     {/* Organizational Structure */}
                     {diagnosis?.org_structure_types && Array.isArray(diagnosis.org_structure_types) && diagnosis.org_structure_types.length > 0 && (
-                        <Card>
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle>Organizational Structure</CardTitle>
-                                    <Link href={getEditUrl('organizational-structure')}>
-                                        <Button variant="ghost" size="sm">
-                                            <Edit className="w-4 h-4 mr-2" />
-                                            Edit
-                                        </Button>
-                                    </Link>
+                       <Card className="overflow-hidden border-slate-200 shadow-sm  py-0">
+                        <CardHeader className="bg-slate-900 py-3 text-white">
+                            <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="rounded-lg bg-white/10 p-2">
+                                <Network className="h-5 w-5 text-emerald-400" />
                                 </div>
-                            </CardHeader>
+                                <div>
+                                <CardTitle className="text-lg font-bold tracking-tight">Org Structure</CardTitle>
+                                <p className="text-xs text-slate-400">Framework and reporting logic</p>
+                                </div>
+                            </div>
+                            <Link href={getEditUrl('organizational-structure')}>
+                                <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                className="gap-2 rounded-full bg-emerald-600 font-semibold text-white hover:bg-emerald-500 border-none transition-all"
+                                >
+                                <Edit className="w-3.5 h-3.5" />
+                                <span>Edit</span>
+                                </Button>
+                            </Link>
+                            </div>
+                        </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="flex flex-wrap gap-2 mb-4">
                                     {diagnosis.org_structure_types.map((type, index) => (
-                                        <Badge key={index} variant="outline">{type}</Badge>
+                                        <Badge key={index} variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-100 px-3 py-1 rounded-md text-xs font-semibold">{type}</Badge>
                                     ))}
                                 </div>
                                 
@@ -705,62 +778,84 @@ export default function Review({
                     {/* Job Structure */}
                     {((diagnosis?.job_categories && Array.isArray(diagnosis.job_categories) && diagnosis.job_categories.length > 0) ||
                       (diagnosis?.job_functions && Array.isArray(diagnosis.job_functions) && diagnosis.job_functions.length > 0)) && (
-                        <Card>
-                            <CardHeader>
+                        <Card className="overflow-hidden border-slate-200 shadow-sm  py-0">
+                            <CardHeader className="bg-slate-900 py-3 text-white">
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Layers className="w-5 h-5 text-primary" />
-                                        <CardTitle>Job Structure</CardTitle>
+                                <div className="flex items-center gap-3">
+                                    <div className="rounded-lg bg-white/10 p-2">
+                                    <Layers className="h-5 w-5 text-violet-400" />
                                     </div>
-                                    <Link href={getEditUrl('job-structure')}>
-                                        <Button variant="ghost" size="sm">
-                                            <Edit className="w-4 h-4 mr-2" />
-                                            Edit
-                                        </Button>
-                                    </Link>
+                                    <div>
+                                    <CardTitle className="text-lg font-bold tracking-tight">Job Structure</CardTitle>
+                                    <p className="text-xs text-slate-400">Taxonomy of roles and departments</p>
+                                    </div>
+                                </div>
+                                <Link href={getEditUrl('job-structure')}>
+                                    <Button 
+                                    variant="secondary" 
+                                    size="sm" 
+                                    className="gap-2 rounded-full bg-violet-600 font-semibold text-white hover:bg-violet-500 border-none transition-all"
+                                    >
+                                    <Edit className="w-3.5 h-3.5" />
+                                    <span>Edit</span>
+                                    </Button>
+                                </Link>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-4">
+                            <CardContent className="space-y-4 p-4">
                                 {diagnosis.job_categories && Array.isArray(diagnosis.job_categories) && diagnosis.job_categories.length > 0 && (
                                     <div>
-                                        <h4 className="font-medium mb-2 text-sm text-muted-foreground">Job Categories</h4>
+                                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 py-2">Job Categories</h4>
                                         <div className="flex flex-wrap gap-2">
                                             {diagnosis.job_categories.map((category, index) => (
-                                                <Badge key={index} variant="secondary">{category}</Badge>
+                                                <Badge key={index} variant="secondary" className="bg-violet-50 text-violet-700 border-violet-100 px-3 py-1 rounded-md text-xs font-semibold">{category}</Badge>
                                             ))}
                                         </div>
                                     </div>
                                 )}
                                 {diagnosis.job_functions && Array.isArray(diagnosis.job_functions) && diagnosis.job_functions.length > 0 && (
                                     <div>
-                                        <h4 className="font-medium mb-2 text-sm text-muted-foreground">Job Functions</h4>
+                                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 py-2">Job Functions</h4>
                                         <div className="flex flex-wrap gap-2">
                                             {diagnosis.job_functions.map((func, index) => (
-                                                <Badge key={index} variant="outline">{func}</Badge>
+                                                <Badge key={index} variant="outline" className="bg-violet-50 text-violet-700 border-violet-100 px-3 py-1 rounded-md text-xs font-semibold">{func}</Badge>
                                             ))}
                                         </div>
                                     </div>
                                 )}
                             </CardContent>
+                            
                         </Card>
                     )}
 
                     {/* HR Issues */}
                     {((diagnosis?.hr_issues && Array.isArray(diagnosis.hr_issues) && diagnosis.hr_issues.length > 0) ||
                       diagnosis?.custom_hr_issues) && (
-                        <Card>
-                            <CardHeader>
+                        <Card className="overflow-hidden border-red-100 shadow-sm transition-all hover:shadow-md">
+                            <CardHeader className="bg-slate-900 py-3 text-white">
                                 <div className="flex items-center justify-between">
-                                    <CardTitle>HR Issues</CardTitle>
-                                    <Link href={getEditUrl('hr-issues')}>
-                                        <Button variant="ghost" size="sm">
-                                            <Edit className="w-4 h-4 mr-2" />
-                                            Edit
-                                        </Button>
-                                    </Link>
+                                <div className="flex items-center gap-3">
+                                    <div className="rounded-lg bg-red-500/20 p-2">
+                                    <AlertCircle className="h-5 w-5 text-red-400" />
+                                    </div>
+                                    <div>
+                                    <CardTitle className="text-lg font-bold tracking-tight text-white">HR Pain Points</CardTitle>
+                                    <p className="text-xs text-slate-400">Critical areas requiring intervention</p>
+                                    </div>
+                                </div>
+                                <Link href={getEditUrl('hr-issues')}>
+                                    <Button 
+                                    variant="secondary" 
+                                    size="sm" 
+                                    className="gap-2 rounded-full bg-red-600 font-semibold text-white hover:bg-red-500 border-none transition-all"
+                                    >
+                                    <Edit className="w-3.5 h-3.5" />
+                                    <span>Edit</span>
+                                    </Button>
+                                </Link>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-4">
+                            <CardContent className="space-y-4 pb-5">
                                 {diagnosis.hr_issues && Array.isArray(diagnosis.hr_issues) && diagnosis.hr_issues.length > 0 && (
                                     <div>
                                         <h4 className="font-medium mb-2 text-sm text-muted-foreground">Selected HR Issues</h4>
