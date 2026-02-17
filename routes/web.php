@@ -90,6 +90,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('hr-policy-os/{hrProject}', [\App\Http\Controllers\HrPolicyOsController::class, 'ceoReview'])->name('hr-policy-os.review');
         Route::post('hr-policy-os/{hrProject}/approve', [\App\Http\Controllers\HrPolicyOsController::class, 'approve'])->name('hr-policy-os.approve');
         
+        // CEO KPI Review (Performance Step 4-2)
+        Route::get('kpi-review/{hrProject}', [\App\Http\Controllers\CeoKpiReviewController::class, 'index'])->name('kpi-review.index');
+        Route::post('kpi-review/{hrProject}', [\App\Http\Controllers\CeoKpiReviewController::class, 'store'])->name('kpi-review.store');
+        
         // Final Review
         Route::get('final-review/{hrProject}', [\App\Http\Controllers\FinalReviewController::class, 'index'])->name('final-review.index');
         Route::post('final-review/{hrProject}/approve', [\App\Http\Controllers\FinalReviewController::class, 'approve'])->name('final-review.approve');
@@ -137,6 +141,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('performance-system/{hrProject}/{tab?}', [\App\Http\Controllers\PerformanceSystemController::class, 'index'])->name('performance-system.index');
         Route::post('performance-system/{hrProject}', [\App\Http\Controllers\PerformanceSystemController::class, 'store'])->name('performance-system.store');
         Route::post('performance-system/{hrProject}/submit', [\App\Http\Controllers\PerformanceSystemController::class, 'submit'])->name('performance-system.submit');
+        Route::post('performance-system/{hrProject}/send-review-request', [\App\Http\Controllers\KpiReviewController::class, 'sendReviewRequest'])->name('performance-system.send-review-request');
         
         // Compensation System
         Route::get('compensation-system/{hrProject}/{tab?}', [\App\Http\Controllers\CompensationSystemController::class, 'index'])->name('compensation-system.index');
@@ -236,6 +241,18 @@ Route::middleware(['auth'])->group(function () {
             'destroy' => 'job-templates.destroy',
         ]);
         
+        // Performance Snapshot Questions
+        Route::resource('performance-snapshot', \App\Http\Controllers\Admin\PerformanceSnapshotQuestionController::class)->names([
+            'index' => 'performance-snapshot.index',
+            'create' => 'performance-snapshot.create',
+            'store' => 'performance-snapshot.store',
+            'show' => 'performance-snapshot.show',
+            'edit' => 'performance-snapshot.edit',
+            'update' => 'performance-snapshot.update',
+            'destroy' => 'performance-snapshot.destroy',
+        ]);
+        Route::post('performance-snapshot/reorder', [\App\Http\Controllers\Admin\PerformanceSnapshotQuestionController::class, 'reorder'])->name('performance-snapshot.reorder');
+        
         // Intro Texts Management
         Route::resource('intro-texts', \App\Http\Controllers\Admin\IntroTextController::class)->names([
             'index' => 'intro-texts.index',
@@ -270,6 +287,10 @@ Route::middleware(['auth'])->group(function () {
     
     // ========== HR System Overview (Shared) ==========
     Route::get('hr-system/{hrProject}', [\App\Http\Controllers\HrSystemOverviewController::class, 'index'])->name('hr-system.overview');
+    
+    // ========== KPI Review Magic Link (No Authentication Required) ==========
+    Route::get('kpi-review/token/{token}', [\App\Http\Controllers\KpiReviewController::class, 'show'])->name('kpi-review.token');
+    Route::post('kpi-review/token/{token}', [\App\Http\Controllers\KpiReviewController::class, 'store'])->name('kpi-review.token.store');
 });
 
 require __DIR__.'/settings.php';

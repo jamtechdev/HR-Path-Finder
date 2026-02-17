@@ -101,6 +101,20 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                 </Link>
                                 
                                 <Link
+                                    href="/admin/performance-snapshot"
+                                    className={cn(
+                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                                        isActive('/admin/performance-snapshot')
+                                            ? "bg-sidebar-accent text-sidebar-primary"
+                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                                        isCollapsed && "justify-center px-3"
+                                    )}
+                                >
+                                    <Target className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
+                                    {!isCollapsed && <span className="flex-1 text-left truncate">Performance Snapshot</span>}
+                                </Link>
+                                
+                                <Link
                                     href="/admin/hr-issues"
                                     className={cn(
                                         "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class HrProject extends Model
 {
@@ -112,6 +113,46 @@ class HrProject extends Model
     public function adminComments()
     {
         return $this->hasMany(AdminComment::class);
+    }
+
+    /**
+     * Get performance snapshot responses for this project.
+     */
+    public function performanceSnapshotResponses(): HasMany
+    {
+        return $this->hasMany(PerformanceSnapshotResponse::class);
+    }
+
+    /**
+     * Get organizational KPIs for this project.
+     */
+    public function organizationalKpis(): HasMany
+    {
+        return $this->hasMany(OrganizationalKpi::class);
+    }
+
+    /**
+     * Get KPI review tokens for this project.
+     */
+    public function kpiReviewTokens(): HasMany
+    {
+        return $this->hasMany(KpiReviewToken::class);
+    }
+
+    /**
+     * Get evaluation model assignments for this project.
+     */
+    public function evaluationModelAssignments(): HasMany
+    {
+        return $this->hasMany(EvaluationModelAssignment::class);
+    }
+
+    /**
+     * Get evaluation structure for this project.
+     */
+    public function evaluationStructure(): HasOne
+    {
+        return $this->hasOne(EvaluationStructure::class);
     }
 
     /**
