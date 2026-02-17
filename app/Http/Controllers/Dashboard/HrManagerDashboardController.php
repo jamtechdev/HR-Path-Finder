@@ -66,7 +66,12 @@ class HrManagerDashboardController extends Controller
         // Check CEO Philosophy status
         $ceoPhilosophyStatus = 'not_started';
         if ($activeProject && $activeProject->ceoPhilosophy) {
-            $ceoPhilosophyStatus = 'completed';
+            // Check if survey is completed (has completed_at timestamp)
+            if ($activeProject->ceoPhilosophy->completed_at) {
+                $ceoPhilosophyStatus = 'completed';
+            } elseif ($activeProject->diagnosis && $activeProject->diagnosis->status === 'submitted') {
+                $ceoPhilosophyStatus = 'in_progress';
+            }
         } elseif ($activeProject && $activeProject->diagnosis && $activeProject->diagnosis->status === 'submitted') {
             $ceoPhilosophyStatus = 'in_progress';
         }

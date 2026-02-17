@@ -92,9 +92,22 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
         const isDiagnosisSubmitted = diagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(diagnosisStatus);
         const isCeoSurveyCompleted = ceoPhilosophyStatus === 'completed';
         
-        // If step is actually completed (submitted/approved/locked), it's completed
-        if (status && ['submitted', 'approved', 'locked', 'completed'].includes(status)) {
-            return 'completed';
+        // For diagnosis step: completed only if submitted AND CEO survey is done
+        if (stepId === 'diagnosis') {
+            if (isDiagnosisSubmitted && isCeoSurveyCompleted) {
+                return 'completed';
+            }
+            if (isDiagnosisSubmitted && !isCeoSurveyCompleted) {
+                return 'current'; // Waiting for CEO survey
+            }
+            if (status && ['approved', 'locked', 'completed'].includes(status)) {
+                return 'completed';
+            }
+        } else {
+            // For other steps: completed if approved/locked/completed
+            if (status && ['approved', 'locked', 'completed'].includes(status)) {
+                return 'completed';
+            }
         }
         
         // If this step is currently active (user is on this page), it's current
@@ -107,25 +120,47 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
             return 'current';
         }
         
-        // If status is in_progress and it's not the current active page, check if it's the current step
-        // Only unlock if CEO survey is completed
-        if (isCeoSurveyCompleted && status === 'in_progress' && !isCurrentlyActive) {
-            // Check if this is the next step to work on (all previous steps are completed)
+        // Check if previous steps are completed to unlock this step
+        // Only unlock if CEO survey is completed (for step 2+)
+        if (stepIndex > 0) {
+            if (!isCeoSurveyCompleted) {
+                return 'locked'; // Step 2+ locked until CEO survey
+            }
+            
+            // Check if all previous steps are completed
             let allPreviousCompleted = true;
             for (let i = 0; i < stepIndex; i++) {
                 const prevStep = MAIN_STEPS[i];
                 const prevStatus = stepStatuses[prevStep.id];
-                if (!prevStatus || !['submitted', 'approved', 'locked', 'completed'].includes(prevStatus)) {
-                    allPreviousCompleted = false;
-                    break;
+                
+                // For diagnosis, need both submitted and CEO survey done
+                if (prevStep.id === 'diagnosis') {
+                    const prevDiagnosisStatus = stepStatuses['diagnosis'];
+                    const prevIsSubmitted = prevDiagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(prevDiagnosisStatus);
+                    if (!prevIsSubmitted || !isCeoSurveyCompleted) {
+                        allPreviousCompleted = false;
+                        break;
+                    }
+                } else {
+                    // For other steps, must be approved/locked/completed
+                    if (!prevStatus || !['approved', 'locked', 'completed'].includes(prevStatus)) {
+                        allPreviousCompleted = false;
+                        break;
+                    }
                 }
             }
+            
+            // If all previous completed and this step is in_progress or not_started, it's current
             if (allPreviousCompleted) {
-                return 'current';
+                if (!status || status === 'not_started' || status === 'in_progress') {
+                    return 'current';
+                }
+            } else {
+                return 'locked';
             }
         }
         
-        // All other steps are locked (only completed and current steps are enabled)
+        // All other steps are locked
         return 'locked';
     };
     
@@ -261,9 +296,14 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                                                     )} />
                                                 </div>
                                                 {!isCollapsed && (
-                                                    <span className="text-sm font-medium text-sidebar-foreground/40">
-                                                        Step {step.step}: {step.title}
-                                                    </span>
+                                                    <div className="flex-1 text-left">
+                                                        <span className="text-sm font-medium text-sidebar-foreground/40 block">
+                                                            Step {step.step}: {step.title}
+                                                        </span>
+                                                        <span className="text-xs text-sidebar-foreground/30 mt-0.5 block">
+                                                            Locked
+                                                        </span>
+                                                    </div>
                                                 )}
                                             </div>
                                         </SidebarMenuButton>
@@ -306,9 +346,16 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                                                 
                                                 {/* Step Text */}
                                                 {!isCollapsed && (
-                                                    <span className="text-sm font-medium text-sidebar-foreground flex-1 text-left">
-                                                        Step {step.step}: {step.title}
-                                                    </span>
+                                                    <div className="flex-1 text-left">
+                                                        <span className="text-sm font-medium text-sidebar-foreground block">
+                                                            Step {step.step}: {step.title}
+                                                        </span>
+                                                        {isCompleted && (
+                                                            <span className="text-xs text-success font-medium mt-0.5 block">
+                                                                Completed
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </Link>
                                         </SidebarMenuButton>

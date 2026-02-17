@@ -163,46 +163,71 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
         const isDiagnosisSubmitted = diagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(diagnosisStatus);
         const isCeoSurveyCompleted = ceoPhilosophyStatus === 'completed';
         
-        // Only mark as completed if step is approved/locked/completed (CEO has verified)
-        // Submitted steps should not show as completed - they're waiting for CEO verification
-        if (status && ['approved', 'locked', 'completed'].includes(status)) {
-            return 'completed';
+        // For diagnosis step: completed only if submitted AND CEO survey is done
+        if (stepKey === 'diagnosis') {
+            if (isDiagnosisSubmitted && isCeoSurveyCompleted) {
+                return 'completed';
+            }
+            if (isDiagnosisSubmitted && !isCeoSurveyCompleted) {
+                return 'current'; // Waiting for CEO survey
+            }
+            if (status && ['approved', 'locked', 'completed'].includes(status)) {
+                return 'completed';
+            }
+        } else {
+            // For other steps: completed if approved/locked/completed
+            if (status && ['approved', 'locked', 'completed'].includes(status)) {
+                return 'completed';
+            }
         }
         
-        // If step is submitted (waiting for CEO), it's still in progress, not completed
-        if (status === 'submitted') {
-            // For diagnosis, submitted is considered done only after CEO survey
-            if (stepKey === 'diagnosis') {
-                return isCeoSurveyCompleted ? 'completed' : 'current';
-            }
-            // For other steps, submitted means waiting for CEO - show as current/in-progress
+        // If this step is currently active (user is on this page), it's current
+        if (progress.currentStepKey === stepKey) {
             return 'current';
         }
         
-        // Check if this is the current step (in progress or not started)
-        // But only if CEO survey is completed OR diagnosis is not yet submitted
-        if (!isDiagnosisSubmitted || isCeoSurveyCompleted) {
-            if (progress.currentStepKey === stepKey) {
-                return 'current';
-            }
+        // Check if this is the first step and it's not started yet
+        if (stepIndex === 0 && (!status || status === 'not_started')) {
+            return 'current';
         }
         
         // Check if previous steps are completed to unlock this step
-        // Only unlock if CEO survey is completed
-        if (isCeoSurveyCompleted && stepIndex > 0) {
+        // Only unlock if CEO survey is completed (for step 2+)
+        if (stepIndex > 0) {
+            if (!isCeoSurveyCompleted) {
+                return 'locked'; // Step 2+ locked until CEO survey
+            }
+            
+            // Check if all previous steps are completed
             let allPreviousCompleted = true;
             for (let i = 0; i < stepIndex; i++) {
                 const prevStep = STEP_CONFIG[i];
                 const prevStatus = stepStatuses[prevStep.id] as StepStatus | undefined;
-                // Previous step must be approved/locked/completed (CEO verified), not just submitted
-                if (!prevStatus || !['approved', 'locked', 'completed'].includes(prevStatus)) {
-                    allPreviousCompleted = false;
-                    break;
+                
+                // For diagnosis, need both submitted and CEO survey done
+                if (prevStep.id === 'diagnosis') {
+                    const prevDiagnosisStatus = stepStatuses['diagnosis'] as StepStatus | undefined;
+                    const prevIsSubmitted = prevDiagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(prevDiagnosisStatus);
+                    if (!prevIsSubmitted || !isCeoSurveyCompleted) {
+                        allPreviousCompleted = false;
+                        break;
+                    }
+                } else {
+                    // For other steps, must be approved/locked/completed
+                    if (!prevStatus || !['approved', 'locked', 'completed'].includes(prevStatus)) {
+                        allPreviousCompleted = false;
+                        break;
+                    }
                 }
             }
-            // If all previous steps are completed and this step is not started, it's current
-            if (allPreviousCompleted && (!status || status === 'not_started')) {
-                return 'current';
+            
+            // If all previous completed and this step is in_progress or not_started, it's current
+            if (allPreviousCompleted) {
+                if (!status || status === 'not_started' || status === 'in_progress') {
+                    return 'current';
+                }
+            } else {
+                return 'locked';
             }
         }
         
