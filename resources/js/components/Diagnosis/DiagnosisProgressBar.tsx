@@ -49,23 +49,35 @@ export default function DiagnosisProgressBar({
     const currentStepIndex = steps.findIndex(step => step.id === activeTab);
     const currentStepNumber = currentStepIndex >= 0 ? currentStepIndex + 1 : 0;
     
+    const allCompleted = completedSteps === totalSteps;
+    
     return (
-        <div className="w-full space-y-4">
+        <div className={cn(
+            "w-full space-y-4 p-4 rounded-lg transition-all duration-300",
+            allCompleted ? "bg-green-50 dark:bg-green-950/20 border-2 border-green-200 dark:border-green-800" : ""
+        )}>
             {/* Progress Bar */}
             <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-foreground">
+                    <span className={cn(
+                        "font-medium flex items-center gap-2",
+                        allCompleted ? "text-green-700 dark:text-green-400" : "text-foreground"
+                    )}>
+                        {allCompleted && <Check className="w-4 h-4 text-green-600 dark:text-green-400" />}
                         Diagnosis Progress
                     </span>
-                    <span className="text-muted-foreground">
-                        {completedSteps} of {totalSteps} steps completed
+                    <span className={cn(
+                        "font-semibold",
+                        allCompleted ? "text-green-700 dark:text-green-400" : "text-muted-foreground"
+                    )}>
+                        {completedSteps} / {totalSteps}
                     </span>
                 </div>
                 <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
                     <div 
                         className={cn(
                             "h-full transition-all duration-500 ease-out rounded-full",
-                            completedSteps === totalSteps ? "bg-green-500" : "bg-primary"
+                            allCompleted ? "bg-green-500" : "bg-primary"
                         )}
                         style={{ width: `${progressPercentage}%` }}
                     />

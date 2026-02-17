@@ -23,6 +23,7 @@ class CeoPhilosophy extends Model
         'concerns',
         'main_trait',
         'secondary_trait',
+        'completed_at',
     ];
 
     protected $casts = [
@@ -34,6 +35,7 @@ class CeoPhilosophy extends Model
         'organizational_issues' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     /**

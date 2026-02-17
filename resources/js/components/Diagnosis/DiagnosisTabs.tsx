@@ -249,16 +249,19 @@ export default function DiagnosisTabs({
                         href={tabRoute}
                         onClick={(e) => handleTabClick(e, tab.id, tabRoute, index)}
                         className={cn(
-                            "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all cursor-pointer",
+                            "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all cursor-pointer relative",
                             isActive
                                 ? "bg-primary text-primary-foreground shadow-md"
                                 : allTabsCompleted && tab.id !== 'overview'
-                                ? "bg-green-500 text-white hover:bg-green-600 shadow-sm"
+                                ? "bg-green-500 text-white hover:bg-green-600 shadow-sm border-2 border-green-600"
                                 : completed
                                 ? "bg-green-100 text-green-700 hover:bg-green-200"
                                 : "bg-muted text-muted-foreground hover:bg-muted/80"
                         )}
                     >
+                        {allTabsCompleted && tab.id !== 'overview' && !isActive && (
+                            <Check className="w-4 h-4 flex-shrink-0 text-white absolute -top-1 -right-1 bg-green-600 rounded-full p-0.5" />
+                        )}
                         <TabIcon className={cn(
                             "w-4 h-4 flex-shrink-0",
                             isActive && "text-primary-foreground",

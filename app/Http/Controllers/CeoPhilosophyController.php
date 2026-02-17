@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StepStatus;
 use App\Models\CeoPhilosophy;
 use App\Models\DiagnosisQuestion;
 use App\Models\HrProject;
@@ -109,7 +110,7 @@ class CeoPhilosophyController extends Controller
             'concerns' => ['required', 'string'],
         ]);
 
-        CeoPhilosophy::updateOrCreate(
+        $ceoPhilosophy = CeoPhilosophy::updateOrCreate(
             [
                 'hr_project_id' => $hrProject->id,
                 'user_id' => $request->user()->id,
@@ -122,10 +123,17 @@ class CeoPhilosophyController extends Controller
                 'general_responses' => $validated['general'],
                 'organizational_issues' => $validated['organizational_issues'] ?? [],
                 'concerns' => $validated['concerns'],
+                'completed_at' => now(),
             ]
         );
 
+        // Mark diagnosis step as completed after CEO survey is done
+        $diagnosisStatus = $hrProject->getStepStatus('diagnosis');
+        if ($diagnosisStatus && $diagnosisStatus->value === 'submitted') {
+            $hrProject->setStepStatus('diagnosis', StepStatus::APPROVED);
+        }
+
         return redirect()->route('ceo.dashboard')
-            ->with('success', 'Management Philosophy Survey completed successfully.');
+            ->with('success', 'Management Philosophy Survey completed successfully. Step 1: Diagnosis is now complete.');
     }
 }

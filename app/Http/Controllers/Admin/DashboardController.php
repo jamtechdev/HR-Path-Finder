@@ -86,4 +86,21 @@ class DashboardController extends Controller
             'projectsNeedingCompensationRecommendation' => $projectsNeedingCompensationRecommendation,
         ]);
     }
+
+    /**
+     * Show project tree view (Admin only).
+     */
+    public function projectTree(Request $request): Response
+    {
+        // Get all projects with their relationships
+        $projects = HrProject::with([
+            'company',
+            'diagnosis',
+            'ceoPhilosophy',
+        ])->get();
+
+        return Inertia::render('Admin/ProjectTree', [
+            'projects' => $projects,
+        ]);
+    }
 }

@@ -101,6 +101,12 @@ export default function AdminDashboard({
                                     Overview of all HR projects and system statistics
                                 </p>
                             </div>
+                            <Link href="/admin/project-tree">
+                                <Button variant="outline">
+                                    <Eye className="w-4 h-4 mr-2" />
+                                    View Project Tree
+                                </Button>
+                            </Link>
                             <Dialog open={showCreateCeoDialog} onOpenChange={setShowCreateCeoDialog}>
                                 <DialogTrigger asChild>
                                     <Button>
