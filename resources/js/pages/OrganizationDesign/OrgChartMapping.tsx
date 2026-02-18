@@ -178,7 +178,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                         {organizationalCharts && Object.keys(organizationalCharts).length > 0 ? (
                                             <div className="space-y-2">
                                                 {Object.entries(organizationalCharts).map(([year, path]) => (
-                                                    <div key={year} className="p-2 border rounded">
+                                                    <div key={year} className="p-2 border rounded flex items-center justify-start gap-2">
                                                         <p className="text-sm font-medium">{year}</p>
                                                         <img src={`/storage/${path}`} alt={`Org chart ${year}`} className="mt-2 max-w-full" />
                                                     </div>

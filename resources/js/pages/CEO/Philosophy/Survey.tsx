@@ -144,9 +144,9 @@ Please note the following:
 For the most meaningful outcome, please answer honestly and instinctively, based on what you consider most important right now, rather than what may appear ideal or socially desirable.`;
 
                 return (
-                    <Card className="border-2 shadow-xl overflow-hidden">
+                    <Card className="border-2 shadow-xl overflow-hidden p-0">
                         <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-1">
-                            <CardHeader className="pb-4">
+                            <CardHeader className="py-4">
                                 <div className="flex items-center gap-3">
                                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                                         <CheckCircle2 className="w-6 h-6 text-primary" />
@@ -160,16 +160,16 @@ For the most meaningful outcome, please answer honestly and instinctively, based
                                 </div>
                             </CardHeader>
                         </div>
-                        <CardContent className="p-8 space-y-8">
+                        <CardContent className="space-y-8">
                             <div className="prose prose-lg max-w-none">
                                 <div className="whitespace-pre-line text-base leading-relaxed text-foreground space-y-4">
-                                    <p className="text-lg font-medium text-foreground mb-4">
+                                    <p className="text-base font-medium text-foreground mb-4">
                                         {introText?.content || defaultIntroContent}
                                     </p>
                                 </div>
                             </div>
                             
-                            <div className="border-t pt-6">
+                            <div className="border-t py-6">
                                 <div className="flex items-start space-x-4 p-6 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border border-primary/20 hover:border-primary/40 transition-all">
                                     <div className="flex-shrink-0 mt-1">
                                         <Checkbox
@@ -198,7 +198,7 @@ For the most meaningful outcome, please answer honestly and instinctively, based
                     <Card className="border-2 shadow-lg">
                         <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
                             <CardTitle className="text-2xl">Management Philosophy</CardTitle>
-                            <CardDescription className="text-base mt-2">
+                            <CardDescription className="text-base my-2">
                                 Please rate each statement on a scale of 1-7, where 1 = Strongly Disagree and 7 = Strongly Agree
                             </CardDescription>
                         </CardHeader>
@@ -228,7 +228,7 @@ For the most meaningful outcome, please answer honestly and instinctively, based
                     <Card className="border-2 shadow-lg">
                         <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
                             <CardTitle className="text-2xl">Vision/Mission/Ideal Talent Type</CardTitle>
-                            <CardDescription className="text-base mt-2">
+                            <CardDescription className="text-base my-2">
                                 This section clarifies the future direction of your company and the type of talent needed to achieve that vision.
                             </CardDescription>
                         </CardHeader>
@@ -423,7 +423,7 @@ For the most meaningful outcome, please answer honestly and instinctively, based
                                             const issueIdStr = issue.id.toString();
                                             const isSelected = (data.organizational_issues || []).some((id: string | number) => id.toString() === issueIdStr);
                                             return (
-                                                <div key={issue.id} className="flex items-center space-x-2">
+                                                <div key={issue.id} className="flex items-center space-x-2 p-4 border rounded-lg">
                                                     <Checkbox
                                                         id={`issue-${issue.id}`}
                                                         checked={isSelected}
@@ -450,7 +450,7 @@ For the most meaningful outcome, please answer honestly and instinctively, based
                     <Card className="border-2 shadow-lg">
                         <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
                             <CardTitle className="text-2xl">CEO's Concerns</CardTitle>
-                            <CardDescription className="text-base mt-2">
+                            <CardDescription className="text-base">
                                 This section captures the key concerns and priorities you currently have as CEO, providing direct input for defining practical focus areas and next steps.
                             </CardDescription>
                         </CardHeader>

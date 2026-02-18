@@ -347,7 +347,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                                                 {/* Step Text */}
                                                 {!isCollapsed && (
                                                     <div className="flex-1 text-left">
-                                                        <span className="text-sm font-medium text-sidebar-foreground block">
+                                                        <span className="text-xs font-medium text-sidebar-foreground block">
                                                             Step {step.step}: {step.title}
                                                         </span>
                                                         {isCompleted && (
