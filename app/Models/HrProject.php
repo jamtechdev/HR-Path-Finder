@@ -156,6 +156,62 @@ class HrProject extends Model
     }
 
     /**
+     * Get compensation snapshot responses for this project.
+     */
+    public function compensationSnapshotResponses(): HasMany
+    {
+        return $this->hasMany(CompensationSnapshotResponse::class);
+    }
+
+    /**
+     * Get base salary framework for this project.
+     */
+    public function baseSalaryFramework(): HasOne
+    {
+        return $this->hasOne(BaseSalaryFramework::class);
+    }
+
+    /**
+     * Get pay bands for this project.
+     */
+    public function payBands(): HasMany
+    {
+        return $this->hasMany(PayBand::class)->orderBy('order');
+    }
+
+    /**
+     * Get salary tables for this project.
+     */
+    public function salaryTables(): HasMany
+    {
+        return $this->hasMany(SalaryTable::class)->orderBy('order');
+    }
+
+    /**
+     * Get pay band operation criteria for this project.
+     */
+    public function payBandOperationCriteria(): HasOne
+    {
+        return $this->hasOne(PayBandOperationCriteria::class);
+    }
+
+    /**
+     * Get bonus pool configuration for this project.
+     */
+    public function bonusPoolConfiguration(): HasOne
+    {
+        return $this->hasOne(BonusPoolConfiguration::class);
+    }
+
+    /**
+     * Get benefits configuration for this project.
+     */
+    public function benefitsConfiguration(): HasOne
+    {
+        return $this->hasOne(BenefitsConfiguration::class);
+    }
+
+    /**
      * Initialize step statuses if not already set.
      */
     public function initializeStepStatuses(): void

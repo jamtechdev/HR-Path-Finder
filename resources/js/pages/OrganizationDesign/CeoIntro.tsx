@@ -1,8 +1,6 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
+import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Shield, Lock, CheckCircle2 } from 'lucide-react';
 
@@ -30,13 +28,7 @@ There are no right or wrong answers to any of the questions. Your responses will
 All inputs are confidential and will not be shared with other employees.`;
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto bg-gradient-to-br from-background via-muted/20 to-background">
+        <AppLayout>
                     <Head title={`Job Analysis - ${project?.company?.name || 'Organization Design'}`} />
                     
                     {/* Header Section - Image and Content First */}
@@ -109,8 +101,6 @@ All inputs are confidential and will not be shared with other employees.`;
                             </CardContent>
                         </Card>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AppLayout>
     );
 }

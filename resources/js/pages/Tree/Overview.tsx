@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
-import WorkflowStepsSidebar from '@/components/Sidebar/WorkflowStepsSidebar';
+import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -110,15 +107,12 @@ export default function TreeOverview({
     };
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-                <WorkflowStepsSidebar stepStatuses={stepStatuses} projectId={projectId} />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto">
-                    <Head title={`TREE - ${project.company.name}`} />
+        <AppLayout 
+            showWorkflowSteps={true}
+            stepStatuses={stepStatuses}
+            projectId={projectId}
+        >
+            <Head title={`TREE - ${project.company.name}`} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
                             <div className="flex items-center justify-between mb-2">
@@ -329,8 +323,6 @@ export default function TreeOverview({
                             </TabsContent>
                         </Tabs>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AppLayout>
     );
 }

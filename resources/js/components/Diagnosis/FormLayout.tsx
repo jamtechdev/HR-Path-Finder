@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Link, router } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
+import AppLayout from '@/layouts/AppLayout';
 import DiagnosisHeader from '@/components/Diagnosis/DiagnosisHeader';
 import DiagnosisTabs from '@/components/Diagnosis/DiagnosisTabs';
 import { diagnosisTabs } from '@/config/diagnosisTabs';
@@ -257,14 +255,8 @@ export default function FormLayout({
     }).length;
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto bg-background">
-                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+        <AppLayout>
+            <div className="p-6 md:p-8 max-w-7xl mx-auto bg-background">
                         {/* Header - Same as Overview */}
                         <div className="mb-6">
                             <DiagnosisHeader
@@ -358,8 +350,6 @@ export default function FormLayout({
                             </div>
                         )}
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AppLayout>
     );
 }

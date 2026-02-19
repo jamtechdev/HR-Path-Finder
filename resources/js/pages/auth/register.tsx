@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { login } from '@/routes';
+import { login, home } from '@/routes';
 import { store } from '@/routes/register';
-import { Head, useForm } from '@inertiajs/react';
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
 import React from 'react';
 
 type Props = {
@@ -37,15 +37,15 @@ export default function Register({ status }: Props) {
             {/* Left Side - Promotional Section */}
             <div className="hidden lg:flex lg:w-1/2 lg:flex-shrink-0 flex-col justify-between p-12 text-white relative z-10">
                 <div className="animate-in fade-in slide-in-from-left-4 duration-700">
-                    <div className="flex items-center gap-3 mb-8">
-                        <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20 cursor-pointer">
+                    <Link href={home()} className="flex items-center gap-3 mb-8 cursor-pointer">
+                        <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20">
                             HR
                         </div>
                         <div>
                             <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
                             <p className="text-white/70 text-sm">by BetterCompany</p>
                         </div>
-                    </div>
+                    </Link>
                 </div>
                 
                 <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-1000 delay-200">
@@ -98,13 +98,23 @@ export default function Register({ status }: Props) {
 
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex items-center gap-3 justify-center mb-8 animate-in fade-in slide-in-from-top-4">
-                        <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg cursor-pointer text-white">
-                            HR
-                        </div>
-                        <div>
-                            <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
-                            <p className="text-muted-foreground text-sm">by BetterCompany</p>
-                        </div>
+                        <Link href={home()} className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-xl bg-[#0a1629] flex items-center justify-center shadow-lg cursor-pointer text-white">
+                                HR
+                            </div>
+                            <div>
+                                <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
+                                <p className="text-muted-foreground text-sm">by BetterCompany</p>
+                            </div>
+                        </Link>
+                    </div>
+
+                    {/* Back to Home Link */}
+                    <div className="mb-4">
+                        <Link href={home()} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                            <ArrowLeft className="w-4 h-4" />
+                            Back to home
+                        </Link>
                     </div>
 
                     <div className="bg-card border border-border rounded-2xl shadow-xl p-8 space-y-6">
@@ -235,7 +245,7 @@ export default function Register({ status }: Props) {
 
                                         <Button
                                             type="submit"
-                                            className="w-full h-11 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
+                                            className="w-full h-11 bg-[#0a1629] hover:bg-[#0d1b35] text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
                                             tabIndex={5}
                                             disabled={processing || isSubmitting}
                                             data-test="register-user-button"
@@ -262,7 +272,7 @@ export default function Register({ status }: Props) {
                                     Already have an account?{' '}
                                     <TextLink 
                                         href={login()} 
-                                        className="text-primary font-semibold hover:text-primary/80 transition-all duration-200 hover:underline cursor-pointer inline-flex items-center gap-1"
+                                        className="text-[#0a1629] font-semibold hover:text-[#0d1b35] transition-all duration-200 hover:underline cursor-pointer inline-flex items-center gap-1"
                                     >
                                         Sign in
                                         <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-1" />

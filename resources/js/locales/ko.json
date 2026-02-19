@@ -1,0 +1,67 @@
+{
+  "common": {
+    "save": "저장",
+    "cancel": "취소",
+    "delete": "삭제",
+    "edit": "수정",
+    "create": "생성",
+    "update": "업데이트",
+    "submit": "제출",
+    "back": "뒤로",
+    "next": "다음",
+    "previous": "이전",
+    "search": "검색",
+    "filter": "필터",
+    "loading": "로딩 중...",
+    "no_data": "데이터가 없습니다",
+    "success": "성공",
+    "error": "오류",
+    "warning": "경고",
+    "confirm": "확인"
+  },
+  "navigation": {
+    "dashboard": "대시보드",
+    "projects": "프로젝트",
+    "companies": "회사",
+    "settings": "설정",
+    "logout": "로그아웃",
+    "profile": "프로필"
+  },
+  "auth": {
+    "login": "로그인",
+    "register": "회원가입",
+    "email": "이메일",
+    "password": "비밀번호",
+    "forgot_password": "비밀번호 찾기",
+    "remember_me": "로그인 상태 유지",
+    "login_success": "로그인 성공",
+    "login_failed": "로그인 실패"
+  },
+  "dashboard": {
+    "welcome": "환영합니다",
+    "overview": "개요",
+    "recent_activity": "최근 활동",
+    "statistics": "통계"
+  },
+  "steps": {
+    "diagnosis": "진단",
+    "job_analysis": "직무 분석",
+    "performance": "성과 관리",
+    "compensation": "보상 체계",
+    "hr_policy_os": "HR 정책 OS"
+  },
+  "buttons": {
+    "continue": "계속하기",
+    "view": "보기",
+    "review": "검토",
+    "submit_and_lock": "제출 및 잠금",
+    "start_design": "설계 시작",
+    "save_changes": "변경사항 저장"
+  },
+  "messages": {
+    "save_success": "저장되었습니다",
+    "save_failed": "저장에 실패했습니다",
+    "delete_confirm": "정말 삭제하시겠습니까?",
+    "unsaved_changes": "저장되지 않은 변경사항이 있습니다"
+  }
+}

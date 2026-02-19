@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
+import AppLayout from '@/layouts/AppLayout';
 import DiagnosisHeader from '@/components/Diagnosis/DiagnosisHeader';
 import DiagnosisTabs from '@/components/Diagnosis/DiagnosisTabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -168,15 +166,13 @@ export default function DiagnosisOverview({
     const allTabsCompleted = completedCount === displayTabs.length;
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto bg-background">
-                    <Head title={`Step 1: Diagnosis - ${company?.name || project?.company?.name || 'Company'}`} />
-                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+        <AppLayout 
+            showWorkflowSteps={true}
+            stepStatuses={stepStatuses}
+            projectId={projectId}
+        >
+            <Head title={`Step 1: Diagnosis - ${company?.name || project?.company?.name || 'Company'}`} />
+            <div className="p-6 md:p-8 max-w-7xl mx-auto bg-background">
                         {/* Header - Match reference */}
                         <div className="mb-6">
                             <DiagnosisHeader
@@ -299,8 +295,6 @@ export default function DiagnosisOverview({
                             </CardContent>
                         </Card>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AppLayout>
     );
 }

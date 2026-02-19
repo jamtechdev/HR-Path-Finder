@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { login } from '@/routes';
-import { Head, useForm, router } from '@inertiajs/react';
-import { ArrowRight, Shield, RotateCcw, Mail } from 'lucide-react';
+import { login, home } from '@/routes';
+import { Head, Link, useForm, router } from '@inertiajs/react';
+import { ArrowRight, Shield, RotateCcw, Mail, ArrowLeft } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
 interface PageProps {
@@ -80,7 +80,7 @@ export default function VerifyOtp({ email, status }: PageProps) {
             {/* Left Side - Promotional Section */}
             <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 text-white">
                 <div>
-                    <div className="flex items-center gap-3">
+                    <Link href={home()} className="flex items-center gap-3 cursor-pointer">
                         <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
                             <span className="text-white font-bold">HR</span>
                         </div>
@@ -88,7 +88,7 @@ export default function VerifyOtp({ email, status }: PageProps) {
                             <h1 className="font-display text-xl font-bold">HR Path-Finder</h1>
                             <p className="text-white/60 text-sm">by BetterCompany</p>
                         </div>
-                    </div>
+                    </Link>
                 </div>
                 <div className="space-y-6">
                     <h2 className="font-display text-4xl font-bold leading-tight">
@@ -116,13 +116,23 @@ export default function VerifyOtp({ email, status }: PageProps) {
 
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex items-center gap-3 justify-center mb-8">
-                        <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                            <span className="text-white font-bold">HR</span>
-                        </div>
-                        <div>
-                            <h1 className="font-display text-xl font-bold">HR Path-Finder</h1>
-                            <p className="text-muted-foreground text-sm">by BetterCompany</p>
-                        </div>
+                        <Link href={home()} className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-[#0a1629] flex items-center justify-center">
+                                <span className="text-white font-bold">HR</span>
+                            </div>
+                            <div>
+                                <h1 className="font-display text-xl font-bold">HR Path-Finder</h1>
+                                <p className="text-muted-foreground text-sm">by BetterCompany</p>
+                            </div>
+                        </Link>
+                    </div>
+
+                    {/* Back to Home Link */}
+                    <div className="mb-4">
+                        <Link href={home()} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                            <ArrowLeft className="w-4 h-4" />
+                            Back to home
+                        </Link>
                     </div>
 
                     {/* Header */}
@@ -157,7 +167,7 @@ export default function VerifyOtp({ email, status }: PageProps) {
                                         onChange={(e) => handleOtpChange(index, e.target.value)}
                                         onKeyDown={(e) => handleKeyDown(index, e)}
                                         onPaste={handlePaste}
-                                        className="h-14 w-14 text-center text-2xl font-bold border-2 focus:border-primary"
+                                        className="h-14 w-14 text-center text-2xl font-bold border-2 focus:border-[#0a1629]"
                                         autoFocus={index === 0}
                                     />
                                 ))}
@@ -168,7 +178,7 @@ export default function VerifyOtp({ email, status }: PageProps) {
 
                         <Button
                             type="submit"
-                            className="w-full h-10 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                            className="w-full h-10 bg-[#0a1629] hover:bg-[#0d1b35] text-white font-medium"
                             disabled={form.processing || otpDigits.join('').length !== 6}
                         >
                             {form.processing ? (
@@ -202,7 +212,7 @@ export default function VerifyOtp({ email, status }: PageProps) {
                             <button
                                 type="button"
                                 onClick={handleResend}
-                                className="text-primary font-medium hover:underline"
+                                className="text-[#0a1629] font-medium hover:underline"
                             >
                                 resend OTP
                             </button>

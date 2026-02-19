@@ -172,15 +172,9 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
     };
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto">
-                    <Head title={`Job List Selection - ${project?.company?.name || 'Job Analysis'}`} />
-                    <div className="p-6 md:p-8 max-w-6xl mx-auto">
+        <AppLayout>
+            <Head title={`Job List Selection - ${project?.company?.name || 'Job Analysis'}`} />
+            <div className="p-6 md:p-8 max-w-6xl mx-auto">
                         <div className="mb-6">
                             <h1 className="text-3xl font-bold mb-2">Job List Selection</h1>
                             <p className="text-muted-foreground">
@@ -381,8 +375,6 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
                             </Button>
                         </div>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AppLayout>
     );
 }

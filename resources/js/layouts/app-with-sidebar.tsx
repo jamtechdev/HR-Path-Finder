@@ -1,24 +1,26 @@
 import { ReactNode } from 'react';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import AppLayout from './AppLayout';
 
 interface AppWithSidebarLayoutProps {
     children: ReactNode;
+    showWorkflowSteps?: boolean;
+    stepStatuses?: Record<string, string>;
+    projectId?: number;
 }
 
-export default function AppWithSidebarLayout({ children }: AppWithSidebarLayoutProps) {
+export default function AppWithSidebarLayout({ 
+    children,
+    showWorkflowSteps = false,
+    stepStatuses = {},
+    projectId
+}: AppWithSidebarLayoutProps) {
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto">
-                    {children}
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        <AppLayout
+            showWorkflowSteps={showWorkflowSteps}
+            stepStatuses={stepStatuses}
+            projectId={projectId}
+        >
+            {children}
+        </AppLayout>
     );
 }

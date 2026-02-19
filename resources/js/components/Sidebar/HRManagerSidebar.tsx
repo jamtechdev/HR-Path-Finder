@@ -115,6 +115,11 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
             return 'current';
         }
         
+        // If step is submitted by HR, it's accessible (not locked) but not completed until CEO approves
+        if (status === 'submitted') {
+            return 'current'; // Allow HR to view their submitted work
+        }
+        
         // Check if this is the first step and it's not started yet
         if (stepIndex === 0 && (!status || status === 'not_started')) {
             return 'current';
@@ -127,7 +132,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                 return 'locked'; // Step 2+ locked until CEO survey
             }
             
-            // Check if all previous steps are completed
+            // Check if all previous steps are approved/completed to unlock this step
             let allPreviousCompleted = true;
             for (let i = 0; i < stepIndex; i++) {
                 const prevStep = MAIN_STEPS[i];
@@ -142,7 +147,8 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                         break;
                     }
                 } else {
-                    // For other steps, must be approved/locked/completed
+                    // For other steps (including performance), must be APPROVED by CEO to unlock next step
+                    // Step 4 (compensation) requires Step 3 (performance) to be approved
                     if (!prevStatus || !['approved', 'locked', 'completed'].includes(prevStatus)) {
                         allPreviousCompleted = false;
                         break;
@@ -150,7 +156,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                 }
             }
             
-            // If all previous completed and this step is in_progress or not_started, it's current
+            // If all previous approved/completed and this step is in_progress or not_started, it's current
             if (allPreviousCompleted) {
                 if (!status || status === 'not_started' || status === 'in_progress') {
                     return 'current';
@@ -164,8 +170,14 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
         return 'locked';
     };
     
-    // Check if step should actually be locked
+    // Check if step should actually be locked - match dashboard logic exactly
     const isStepActuallyLocked = (stepId: string): boolean => {
+        // If step is submitted or completed, it should NOT be locked (accessible for review/view)
+        const status = stepStatuses[stepId];
+        if (status && ['submitted', 'approved', 'locked', 'completed'].includes(status)) {
+            return false; // Submitted/completed steps are accessible for HR to view
+        }
+        
         const diagnosisStatus = stepStatuses['diagnosis'];
         const isDiagnosisSubmitted = diagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(diagnosisStatus);
         const ceoPhilosophyStatus = (props as any).ceoPhilosophyStatus || 'not_started';
@@ -176,7 +188,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
             return true;
         }
         
-        // Otherwise use normal lock logic
+        // Otherwise use normal lock logic from getStepState
         const state = getStepState(stepId);
         return state === 'locked';
     };
@@ -310,24 +322,24 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                                     ) : (
                                         <SidebarMenuButton
                                             asChild
-                                            isActive={isStepActiveState}
+                                            isActive={isStepActiveState && !isCompleted}
                                             className={cn(
                                                 "transition-all duration-200 rounded-lg w-full",
-                                                isCollapsed ? "px-3 py-3 justify-center" : "px-4 py-6 gap-3"
+                                                isCollapsed ? "px-3 py-3 justify-center" : "px-4 py-6 gap-3",
+                                                isCompleted 
+                                                    ? "bg-green-600 hover:bg-green-700 text-white" 
+                                                    : isStepActiveState
+                                                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                                                        : "bg-transparent hover:bg-sidebar-accent"
                                             )}
                                         >
                                             <Link href={getStepRoute(step)} className="flex items-center w-full">
-                                                {/* Status Indicator - Green dot/circle for completed, icon for others */}
+                                                {/* Status Indicator - Green background for completed, icon for others */}
                                                 {isCompleted ? (
-                                                    <div className={cn(
-                                                        "rounded-full bg-success/20 border-2 border-success flex items-center justify-center flex-shrink-0 transition-all duration-200",
-                                                        isCollapsed ? "w-7 h-7" : "w-6 h-6"
-                                                    )}>
-                                                        <CheckCircle2 className={cn(
-                                                            "text-success transition-all duration-200",
-                                                            isCollapsed ? "w-4 h-4" : "w-3.5 h-3.5"
-                                                        )} />
-                                                    </div>
+                                                    <CheckCircle2 className={cn(
+                                                        "text-white transition-all duration-200 flex-shrink-0",
+                                                        isCollapsed ? "w-5 h-5" : "w-5 h-5"
+                                                    )} />
                                                 ) : (
                                                     <div className={cn(
                                                         "rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200",
@@ -347,14 +359,12 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                                                 {/* Step Text */}
                                                 {!isCollapsed && (
                                                     <div className="flex-1 text-left">
-                                                        <span className="text-sm font-medium text-sidebar-foreground block">
+                                                        <span className={cn(
+                                                            "text-sm font-medium block",
+                                                            isCompleted ? "text-white" : "text-sidebar-foreground"
+                                                        )}>
                                                             Step {step.step}: {step.title}
                                                         </span>
-                                                        {isCompleted && (
-                                                            <span className="text-xs text-success font-medium mt-0.5 block">
-                                                                Completed
-                                                            </span>
-                                                        )}
                                                     </div>
                                                 )}
                                             </Link>

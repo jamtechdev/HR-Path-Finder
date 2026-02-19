@@ -4,8 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/password/confirm';
-import { Form, Head } from '@inertiajs/react';
-import { Lock, ArrowRight } from 'lucide-react';
+import { home } from '@/routes';
+import { Form, Head, Link } from '@inertiajs/react';
+import { Lock, ArrowRight, ArrowLeft } from 'lucide-react';
 
 export default function ConfirmPassword() {
     return (
@@ -13,7 +14,7 @@ export default function ConfirmPassword() {
             {/* Left Side - Promotional Section */}
             <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 text-white">
                 <div>
-                    <div className="flex items-center gap-3">
+                    <Link href={home()} className="flex items-center gap-3 cursor-pointer">
                         <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
                             <span className="text-white font-bold">HR</span>
                         </div>
@@ -21,7 +22,7 @@ export default function ConfirmPassword() {
                             <h1 className="font-display text-xl font-bold">HR Path-Finder</h1>
                             <p className="text-white/60 text-sm">by BetterCompany</p>
                         </div>
-                    </div>
+                    </Link>
                 </div>
                 <div className="space-y-6">
                     <h2 className="font-display text-4xl font-bold leading-tight">
@@ -49,13 +50,23 @@ export default function ConfirmPassword() {
 
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex items-center gap-3 justify-center mb-8">
-                        <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                            <span className="text-white font-bold">HR</span>
-                        </div>
-                        <div>
-                            <h1 className="font-display text-xl font-bold">HR Path-Finder</h1>
-                            <p className="text-muted-foreground text-sm">by BetterCompany</p>
-                        </div>
+                        <Link href={home()} className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-[#0a1629] flex items-center justify-center">
+                                <span className="text-white font-bold">HR</span>
+                            </div>
+                            <div>
+                                <h1 className="font-display text-xl font-bold">HR Path-Finder</h1>
+                                <p className="text-muted-foreground text-sm">by BetterCompany</p>
+                            </div>
+                        </Link>
+                    </div>
+
+                    {/* Back to Home Link */}
+                    <div className="mb-4">
+                        <Link href={home()} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                            <ArrowLeft className="w-4 h-4" />
+                            Back to home
+                        </Link>
                     </div>
 
                     {/* Header */}
@@ -85,7 +96,7 @@ export default function ConfirmPassword() {
 
                             <Button
                                     type="submit"
-                                    className="w-full h-10 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                                    className="w-full h-10 bg-[#0a1629] hover:bg-[#0d1b35] text-white font-medium"
                                 disabled={processing}
                                 data-test="confirm-password-button"
                             >

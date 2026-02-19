@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
+import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -151,15 +149,9 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
     };
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto">
-                    <Head title={`Org Chart Mapping - ${project?.company?.name || 'Job Analysis'}`} />
-                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+        <AppLayout>
+            <Head title={`Org Chart Mapping - ${project?.company?.name || 'Job Analysis'}`} />
+            <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
                             <h1 className="text-3xl font-bold mb-2">Organization Chart Mapping</h1>
                             <p className="text-muted-foreground">
@@ -393,8 +385,6 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                             </Button>
                         </div>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AppLayout>
     );
 }

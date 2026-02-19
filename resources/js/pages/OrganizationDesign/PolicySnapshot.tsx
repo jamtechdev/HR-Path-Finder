@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
+import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -73,15 +71,9 @@ export default function PolicySnapshot({ project, questions }: Props) {
     };
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto">
-                    <Head title={`Policy Snapshot - ${project?.company?.name || 'Job Analysis'}`} />
-                    <div className="p-6 md:p-8 max-w-5xl mx-auto">
+        <AppLayout>
+            <Head title={`Policy Snapshot - ${project?.company?.name || 'Job Analysis'}`} />
+            <div className="p-6 md:p-8 max-w-5xl mx-auto">
                         <div className="mb-8 text-center">
                             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
                                 <FileText className="w-8 h-8 text-primary" />
@@ -191,8 +183,6 @@ export default function PolicySnapshot({ project, questions }: Props) {
                             </Button>
                         </div>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AppLayout>
     );
 }

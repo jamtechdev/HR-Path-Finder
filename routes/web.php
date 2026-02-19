@@ -1,14 +1,41 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
-Route::get('/', function () {
+Route::get('/', function (Request $request) {
+    // Load landing page sections from database for both languages
+    $sections = [
+        'ko' => [],
+        'en' => [],
+    ];
+    try {
+        if (Schema::hasTable('landing_page_sections')) {
+            $sections['ko'] = \App\Models\LandingPageSection::getActiveSections('ko');
+            $sections['en'] = \App\Models\LandingPageSection::getActiveSections('en');
+        }
+    } catch (\Exception $e) {
+        // Table might not exist yet
+        $sections = [
+            'ko' => [],
+            'en' => [],
+        ];
+    }
+
+    return Inertia::render('Landing/Index', [
+        'canRegister' => Features::enabled(Features::registration()),
+        'sections' => $sections,
+    ]);
+})->name('home');
+
+Route::get('/login', function () {
     return Inertia::render('auth/login', [
         'canRegister' => Features::enabled(Features::registration()),
     ]);
-})->name('home');
+})->name('login');
 
 // Manual email verification (only when SMTP not configured, development only)
 Route::post('email/verify-manual', [\App\Http\Controllers\EmailVerificationController::class, 'manualVerify'])
@@ -74,6 +101,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('review/diagnosis/{hrProject}', [\App\Http\Controllers\CeoReviewController::class, 'reviewDiagnosis'])->name('review.diagnosis');
         Route::post('review/diagnosis/{hrProject}/update', [\App\Http\Controllers\CeoReviewController::class, 'updateDiagnosis'])->name('review.diagnosis.update');
         Route::post('review/diagnosis/{hrProject}/confirm', [\App\Http\Controllers\CeoReviewController::class, 'confirmDiagnosis'])->name('review.diagnosis.confirm');
+        
+        // Compensation Review
+        Route::get('review/compensation/{hrProject}', [\App\Http\Controllers\CeoReviewController::class, 'reviewCompensation'])->name('review.compensation');
         
         // Step Verification
         Route::post('verify/step/{hrProject}', [\App\Http\Controllers\CeoReviewController::class, 'verifyStep'])->name('verify.step');
@@ -253,6 +283,40 @@ Route::middleware(['auth'])->group(function () {
             'destroy' => 'performance-snapshot.destroy',
         ]);
         Route::post('performance-snapshot/reorder', [\App\Http\Controllers\Admin\PerformanceSnapshotQuestionController::class, 'reorder'])->name('performance-snapshot.reorder');
+        
+        // Compensation Snapshot Questions Management
+        Route::resource('compensation-snapshot', \App\Http\Controllers\Admin\CompensationSnapshotQuestionController::class)->names([
+            'index' => 'compensation-snapshot.index',
+            'create' => 'compensation-snapshot.create',
+            'store' => 'compensation-snapshot.store',
+            'show' => 'compensation-snapshot.show',
+            'edit' => 'compensation-snapshot.edit',
+            'update' => 'compensation-snapshot.update',
+            'destroy' => 'compensation-snapshot.destroy',
+        ]);
+        Route::post('compensation-snapshot/reorder', [\App\Http\Controllers\Admin\CompensationSnapshotQuestionController::class, 'reorder'])->name('compensation-snapshot.reorder');
+        
+        // Translations Management
+        Route::resource('translations', \App\Http\Controllers\Admin\TranslationController::class)->names([
+            'index' => 'translations.index',
+            'create' => 'translations.create',
+            'store' => 'translations.store',
+            'edit' => 'translations.edit',
+            'update' => 'translations.update',
+            'destroy' => 'translations.destroy',
+        ]);
+        Route::post('translations/bulk-import', [\App\Http\Controllers\Admin\TranslationController::class, 'bulkImport'])->name('translations.bulk-import');
+        
+        // Landing Page Management
+        Route::resource('landing-page', \App\Http\Controllers\Admin\LandingPageController::class)->names([
+            'index' => 'landing-page.index',
+            'create' => 'landing-page.create',
+            'store' => 'landing-page.store',
+            'edit' => 'landing-page.edit',
+            'update' => 'landing-page.update',
+            'destroy' => 'landing-page.destroy',
+        ]);
+        Route::post('landing-page/bulk-update', [\App\Http\Controllers\Admin\LandingPageController::class, 'bulkUpdate'])->name('landing-page.bulk-update');
         
         // Intro Texts Management
         Route::resource('intro-texts', \App\Http\Controllers\Admin\IntroTextController::class)->names([

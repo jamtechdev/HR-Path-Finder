@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
+import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -48,15 +46,9 @@ There are no right or wrong answers to any of the questions. Your responses will
 All inputs are confidential and will not be shared with other employees.`;
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto bg-gradient-to-br from-background via-muted/20 to-background">
-                    <Head title={`Job Analysis - ${project?.company?.name || 'Organization Design'}`} />
-                    <div className="p-6 md:p-8 max-w-5xl mx-auto">
+        <AppLayout>
+            <Head title={`Job Analysis - ${project?.company?.name || 'Organization Design'}`} />
+            <div className="p-6 md:p-8 max-w-5xl mx-auto bg-gradient-to-br from-background via-muted/20 to-background">
                         {/* Header Section */}
                         <div className="mb-8 text-center">
                             <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-4">
@@ -171,8 +163,6 @@ All inputs are confidential and will not be shared with other employees.`;
                             </div>
                         )}
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AppLayout>
     );
 }

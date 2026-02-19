@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
+import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -108,15 +106,9 @@ export default function CompaniesIndex({ companies }: Props) {
     };
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto">
-                    <Head title="Companies - HR Manager" />
-                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+        <AppLayout>
+            <Head title="Companies - HR Manager" />
+            <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
                                 <h1 className="text-3xl font-bold">My Companies</h1>
@@ -440,8 +432,6 @@ export default function CompaniesIndex({ companies }: Props) {
                             </Dialog>
                         )}
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AppLayout>
     );
 }

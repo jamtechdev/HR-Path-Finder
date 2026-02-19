@@ -1,0 +1,67 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "update": "Update",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "loading": "Loading...",
+    "no_data": "No data available",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "confirm": "Confirm"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "companies": "Companies",
+    "settings": "Settings",
+    "logout": "Logout",
+    "profile": "Profile"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "forgot_password": "Forgot Password",
+    "remember_me": "Remember Me",
+    "login_success": "Login successful",
+    "login_failed": "Login failed"
+  },
+  "dashboard": {
+    "welcome": "Welcome",
+    "overview": "Overview",
+    "recent_activity": "Recent Activity",
+    "statistics": "Statistics"
+  },
+  "steps": {
+    "diagnosis": "Diagnosis",
+    "job_analysis": "Job Analysis",
+    "performance": "Performance",
+    "compensation": "Compensation",
+    "hr_policy_os": "HR Policy OS"
+  },
+  "buttons": {
+    "continue": "Continue",
+    "view": "View",
+    "review": "Review",
+    "submit_and_lock": "Submit & Lock",
+    "start_design": "Start Design",
+    "save_changes": "Save Changes"
+  },
+  "messages": {
+    "save_success": "Saved successfully",
+    "save_failed": "Failed to save",
+    "delete_confirm": "Are you sure you want to delete?",
+    "unsaved_changes": "You have unsaved changes"
+  }
+}

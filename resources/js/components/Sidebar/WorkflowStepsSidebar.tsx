@@ -29,7 +29,7 @@ const MAIN_STEPS: StepConfig[] = [
     {
         id: 'diagnosis',
         step: 1,
-        title: 'Diagnosis',
+        title: 'Diagnosis (Company info.)',
         desc: 'Input company information, business profile, workforce details, and organizational culture.',
         icon: FileText,
         route: '/hr-manager/diagnosis',
@@ -45,9 +45,9 @@ const MAIN_STEPS: StepConfig[] = [
     {
         id: 'performance',
         step: 3,
-        title: 'Performance',
+        title: 'Performance.Man.',
         desc: 'Design evaluation units, performance management methods, and assessment structures.',
-        icon: Settings,
+        icon: Target,
         route: '/hr-manager/performance-system',
     },
     {

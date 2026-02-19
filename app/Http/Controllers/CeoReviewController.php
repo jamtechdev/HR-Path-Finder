@@ -262,4 +262,36 @@ class CeoReviewController extends Controller
 
         return back()->with('success', "Step {$step} reopened for revision.");
     }
+
+    /**
+     * Show compensation review page.
+     */
+    public function reviewCompensation(Request $request, HrProject $hrProject)
+    {
+        if (!$request->user()->hasRole('ceo')) {
+            abort(403);
+        }
+
+        // Check if CEO is associated with the company
+        if (!$hrProject->company->users->contains($request->user())) {
+            abort(403);
+        }
+
+        $hrProject->load(['compensationSystem', 'company']);
+
+        $stepStatuses = $hrProject->step_statuses ?? [];
+        $mainStepStatuses = [
+            'diagnosis' => $stepStatuses['diagnosis'] ?? 'not_started',
+            'job_analysis' => $stepStatuses['job_analysis'] ?? 'not_started',
+            'performance' => $stepStatuses['performance'] ?? 'not_started',
+            'compensation' => $stepStatuses['compensation'] ?? 'not_started',
+            'hr_policy_os' => $stepStatuses['hr_policy_os'] ?? 'not_started',
+        ];
+
+        return \Inertia\Inertia::render('CEO/Review/Compensation', [
+            'project' => $hrProject,
+            'compensationSystem' => $hrProject->compensationSystem,
+            'stepStatuses' => $mainStepStatuses,
+        ]);
+    }
 }

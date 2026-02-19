@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { Head } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
-import WorkflowStepsSidebar from '@/components/Sidebar/WorkflowStepsSidebar';
+import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -56,16 +53,9 @@ export default function CompensationSystemOverview({
     const [isRationaleOpen, setIsRationaleOpen] = useState(true);
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-                <WorkflowStepsSidebar stepStatuses={stepStatuses} projectId={projectId} />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto">
-                    <Head title={`Compensation System - ${project.company.name}`} />
-                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+        <AppLayout stepStatuses={stepStatuses} projectId={projectId}>
+            <Head title={`Compensation System - ${project.company.name}`} />
+            <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
                             <h1 className="text-3xl font-bold mb-2">Compensation & Benefits (C&B)</h1>
                             <p className="text-muted-foreground">
@@ -145,8 +135,6 @@ export default function CompensationSystemOverview({
                             </TabsContent>
                         </Tabs>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AppLayout>
     );
 }

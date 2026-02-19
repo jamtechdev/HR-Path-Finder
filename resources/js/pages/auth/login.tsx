@@ -5,9 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { request } from '@/routes/password';
-import { register } from '@/routes';
-import { Form, Head, useForm } from '@inertiajs/react';
-import { ArrowRight, Sparkles, CheckCircle2, Shield, Zap } from 'lucide-react';
+import { register, home } from '@/routes';
+import { Form, Head, Link, useForm } from '@inertiajs/react';
+import { ArrowRight, Sparkles, CheckCircle2, Shield, Zap, ArrowLeft } from 'lucide-react';
 
 type Props = {
     status?: string;
@@ -38,7 +38,7 @@ export default function Login({
             {/* Left Side - Promotional Section */}
             <div className="hidden lg:flex lg:w-1/2 lg:flex-shrink-0 flex-col justify-between p-12 text-white relative z-10">
                 <div className="animate-in fade-in slide-in-from-left-4 duration-700">
-                    <div className="flex items-center gap-3 mb-8">
+                    <Link href={home()} className="flex items-center gap-3 mb-8 cursor-pointer">
                         <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20">
                             HR
                         </div>
@@ -46,7 +46,7 @@ export default function Login({
                             <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
                             <p className="text-white/70 text-sm">by BetterCompany</p>
                         </div>
-                    </div>
+                    </Link>
                 </div>
                 
                 <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-1000 delay-200">
@@ -100,13 +100,23 @@ export default function Login({
 
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex items-center gap-3 justify-center mb-8 animate-in fade-in slide-in-from-top-4">
-                        <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg cursor-pointer text-white">
-                            HR
-                        </div>
-                        <div>
-                            <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
-                            <p className="text-muted-foreground text-sm">by BetterCompany</p>
-                        </div>
+                        <Link href={home()} className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-xl bg-[#0a1629] flex items-center justify-center shadow-lg cursor-pointer text-white">
+                                HR
+                            </div>
+                            <div>
+                                <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
+                                <p className="text-muted-foreground text-sm">by BetterCompany</p>
+                            </div>
+                        </Link>
+                    </div>
+
+                    {/* Back to Home Link */}
+                    <div className="mb-4">
+                        <Link href={home()} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                            <ArrowLeft className="w-4 h-4" />
+                            Back to home
+                        </Link>
                     </div>
 
                     {/* Login Card */}
@@ -166,7 +176,7 @@ export default function Login({
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
-                                            className="text-sm text-primary hover:text-primary/80 font-medium transition-all duration-200 hover:underline cursor-pointer"
+                                            className="text-sm text-[#0a1629] hover:text-[#0d1b35] font-medium transition-all duration-200 hover:underline cursor-pointer"
                                             tabIndex={5}
                                         >
                                             Forgot password?
@@ -189,7 +199,7 @@ export default function Login({
 
                             <Button
                                 type="submit"
-                                className="w-full h-11 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
+                                className="w-full h-11 bg-[#0a1629] hover:bg-[#0d1b35] text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
                                 tabIndex={3}
                                 disabled={form.processing}
                                 data-test="login-button"
@@ -214,7 +224,7 @@ export default function Login({
                                     Don't have an account?{' '}
                                     <TextLink
                                         href={register()}
-                                        className="text-primary font-semibold hover:text-primary/80 transition-all duration-200 hover:underline cursor-pointer inline-flex items-center gap-1"
+                                        className="text-[#0a1629] font-semibold hover:text-[#0d1b35] transition-all duration-200 hover:underline cursor-pointer inline-flex items-center gap-1"
                                         tabIndex={4}
                                     >
                                         Create account

@@ -128,7 +128,9 @@ class PerformanceSystemController extends Controller
 
         $hrProject->setStepStatus('performance', StepStatus::IN_PROGRESS);
 
-        return back()->with('success', 'Performance system data saved successfully.');
+        $tab = $request->input('tab', 'overview');
+        return redirect()->route('hr-manager.performance-system.index', [$hrProject, $tab])
+            ->with('success', 'Performance system data saved successfully.');
     }
 
     /**
@@ -162,7 +164,9 @@ class PerformanceSystemController extends Controller
 
         $hrProject->setStepStatus('performance', StepStatus::IN_PROGRESS);
 
-        return back()->with('success', 'Performance snapshot saved successfully.');
+        $tab = $request->input('tab', 'snapshot');
+        return redirect()->route('hr-manager.performance-system.index', [$hrProject, $tab])
+            ->with('success', 'Performance snapshot saved successfully.');
     }
 
     /**
@@ -208,7 +212,9 @@ class PerformanceSystemController extends Controller
 
         $hrProject->setStepStatus('performance', StepStatus::IN_PROGRESS);
 
-        return back()->with('success', 'KPI review saved successfully.');
+        $tab = $request->input('tab', 'kpi-review');
+        return redirect()->route('hr-manager.performance-system.index', [$hrProject, $tab])
+            ->with('success', 'KPI review saved successfully.');
     }
 
     /**
@@ -237,7 +243,9 @@ class PerformanceSystemController extends Controller
 
         $hrProject->setStepStatus('performance', StepStatus::IN_PROGRESS);
 
-        return back()->with('success', 'Evaluation model assignments saved successfully.');
+        $tab = $request->input('tab', 'model-assignment');
+        return redirect()->route('hr-manager.performance-system.index', [$hrProject, $tab])
+            ->with('success', 'Evaluation model assignments saved successfully.');
     }
 
     /**
@@ -273,7 +281,9 @@ class PerformanceSystemController extends Controller
 
         $hrProject->setStepStatus('performance', StepStatus::IN_PROGRESS);
 
-        return back()->with('success', 'Evaluation structure saved successfully.');
+        $tab = $request->input('tab', 'evaluation-structure');
+        return redirect()->route('hr-manager.performance-system.index', [$hrProject, $tab])
+            ->with('success', 'Evaluation structure saved successfully.');
     }
 
     /**

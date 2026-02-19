@@ -24,7 +24,7 @@ const STEP_ROUTES: Record<string, (projectId: number) => string> = {
     diagnosis: (id) => `/ceo/review/diagnosis/${id}`,
     job_analysis: (id) => `/ceo/job-analysis/${id}/intro`,
     performance: (id) => `/hr-manager/performance-system/${id}/overview`,
-    compensation: (id) => `/hr-manager/compensation-system/${id}/overview`,
+    compensation: (id) => `/ceo/review/compensation/${id}`,
     tree: (id) => `/hr-manager/tree/${id}/overview`,
     conclusion: (id) => `/hr-manager/conclusion/${id}`,
 };

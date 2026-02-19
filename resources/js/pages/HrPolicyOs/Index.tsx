@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
+import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -117,13 +115,13 @@ export default function HrPolicyOsIndex({
     const canSubmit = hrPolicyOsStatus === 'in_progress' || hrPolicyOsStatus === 'not_started';
 
     return (
-        <SidebarProvider defaultOpen={true}>
+        <AppLayout 
+            showWorkflowSteps={true}
+            stepStatuses={stepStatuses}
+            projectId={projectId}
+        >
             <Head title="HR Policy OS & Implementation Blueprint" />
-            <div className="flex h-screen w-full">
-                <RoleBasedSidebar />
-                <SidebarInset className="flex-1 overflow-auto">
-                    <AppHeader />
-                    <div className="px-6">
+            <div className="px-6">
                         {/* Header */}
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
@@ -620,8 +618,6 @@ export default function HrPolicyOsIndex({
                             </div>
                         </form>
                     </div>
-                </SidebarInset>
-            </div>
-        </SidebarProvider>
+        </AppLayout>
     );
 }

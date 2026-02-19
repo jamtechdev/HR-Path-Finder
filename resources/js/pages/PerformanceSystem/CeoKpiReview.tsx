@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
+import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,12 +15,17 @@ interface OrganizationalKpi {
     kpi_name: string;
     purpose?: string;
     category?: string;
+    linked_job_id?: number;
     linked_csf?: string;
     formula?: string;
     measurement_method?: string;
     weight?: number;
     status: string;
     revision_comment?: string;
+    linked_job?: {
+        id: number;
+        job_name: string;
+    };
 }
 
 interface Props {
@@ -47,7 +50,8 @@ export default function CeoKpiReview({ project, kpisByOrganization, organization
 
     const handleApprove = () => {
         post(`/ceo/kpi-review/${project.id}`, {
-            data: { action: 'approve' },
+            action: 'approve',
+        }, {
             onSuccess: () => {
                 // Redirect handled by controller
             },
@@ -68,10 +72,8 @@ export default function CeoKpiReview({ project, kpisByOrganization, organization
         }
 
         post(`/ceo/kpi-review/${project.id}`, {
-            data: {
-                action: 'request_revision',
-                revision_requests: requests,
-            },
+            action: 'request_revision',
+            revision_requests: requests,
         });
     };
 
@@ -89,14 +91,8 @@ export default function CeoKpiReview({ project, kpisByOrganization, organization
     };
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto">
-                    <Head title={`CEO KPI Review - ${project?.company?.name || 'KPI Review'}`} />
+        <AppLayout>
+            <Head title={`CEO KPI Review - ${project?.company?.name || 'KPI Review'}`} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
                             <Link href="/ceo/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
@@ -137,19 +133,29 @@ export default function CeoKpiReview({ project, kpisByOrganization, organization
                                             <Table>
                                                 <TableHeader>
                                                     <TableRow>
-                                                        <TableHead>KPI Name</TableHead>
+                                                        <TableHead>No.</TableHead>
+                                                        <TableHead>Name</TableHead>
+                                                        <TableHead>Category</TableHead>
                                                         <TableHead>Purpose</TableHead>
+                                                        <TableHead>Linked Job</TableHead>
                                                         <TableHead>Linked CSF</TableHead>
+                                                        <TableHead>Formula</TableHead>
+                                                        <TableHead>Measurement Method</TableHead>
                                                         <TableHead>Weight</TableHead>
                                                         <TableHead>Status</TableHead>
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
-                                                    {orgKpis.map((kpi) => (
+                                                    {orgKpis.map((kpi, idx) => (
                                                         <TableRow key={kpi.id}>
+                                                            <TableCell>{idx + 1}</TableCell>
                                                             <TableCell className="font-medium">{kpi.kpi_name}</TableCell>
+                                                            <TableCell>{kpi.category || '-'}</TableCell>
                                                             <TableCell>{kpi.purpose || '-'}</TableCell>
+                                                            <TableCell>{kpi.linked_job?.job_name || '-'}</TableCell>
                                                             <TableCell>{kpi.linked_csf || '-'}</TableCell>
+                                                            <TableCell>{kpi.formula || '-'}</TableCell>
+                                                            <TableCell>{kpi.measurement_method || '-'}</TableCell>
                                                             <TableCell>{kpi.weight ? `${kpi.weight}%` : '-'}</TableCell>
                                                             <TableCell>{getStatusBadge(kpi.status)}</TableCell>
                                                         </TableRow>
@@ -194,8 +200,6 @@ export default function CeoKpiReview({ project, kpisByOrganization, organization
                             </Button>
                         </div>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AppLayout>
     );
 }

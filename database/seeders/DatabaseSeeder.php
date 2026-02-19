@@ -24,6 +24,9 @@ class DatabaseSeeder extends Seeder
         // Seed policy snapshot questions
         $this->call(PolicySnapshotQuestionSeeder::class);
         
+        // Seed performance snapshot questions
+        $this->call(PerformanceSnapshotQuestionSeeder::class);
+        
         // Seed HR issues
         $this->call(HrIssueSeeder::class);
         
@@ -38,6 +41,9 @@ class DatabaseSeeder extends Seeder
         
         // Seed job definition templates (must run after JobKeywordSeeder)
         $this->call(JobDefinitionTemplateSeeder::class);
+        
+        // Seed landing page sections
+        $this->call(LandingPageSectionSeeder::class);
 
         // Seed sample HR project if needed
         // $this->call(HrProjectSeeder::class);

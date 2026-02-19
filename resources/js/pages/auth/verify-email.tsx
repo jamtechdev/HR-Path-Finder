@@ -2,9 +2,9 @@ import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { logout } from '@/routes';
-import { Head, router, useForm } from '@inertiajs/react';
-import { Mail, ArrowRight, AlertCircle, Settings, CheckCircle } from 'lucide-react';
+import { logout, home } from '@/routes';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Mail, ArrowRight, AlertCircle, Settings, CheckCircle, ArrowLeft } from 'lucide-react';
 import React from 'react';
 
 export default function VerifyEmail({ status, smtpConfigured = true }: { status?: string; smtpConfigured?: boolean }) {
@@ -37,7 +37,7 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
             {/* Left Side - Promotional Section */}
             <div className="hidden lg:flex lg:w-1/2 lg:flex-shrink-0 flex-col justify-between p-12 text-white relative z-10">
                 <div className="animate-in fade-in slide-in-from-left-4 duration-700">
-                    <div className="flex items-center gap-3 mb-8">
+                    <Link href={home()} className="flex items-center gap-3 mb-8 cursor-pointer">
                         <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20">
                             <span className="text-white font-bold text-lg">HR</span>
                         </div>
@@ -45,7 +45,7 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                             <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
                             <p className="text-white/70 text-sm">by BetterCompany</p>
                         </div>
-                    </div>
+                    </Link>
                 </div>
                 
                 <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-1000 delay-200">
@@ -102,13 +102,23 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
 
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex items-center gap-3 justify-center mb-8 animate-in fade-in slide-in-from-top-4">
-                        <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg cursor-pointer text-white">
-                            <span className="text-white font-bold">HR</span>
-                        </div>
-                        <div>
-                            <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
-                            <p className="text-muted-foreground text-sm">by BetterCompany</p>
-                        </div>
+                        <Link href={home()} className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-xl bg-[#0a1629] flex items-center justify-center shadow-lg cursor-pointer text-white">
+                                <span className="text-white font-bold">HR</span>
+                            </div>
+                            <div>
+                                <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
+                                <p className="text-muted-foreground text-sm">by BetterCompany</p>
+                            </div>
+                        </Link>
+                    </div>
+
+                    {/* Back to Home Link */}
+                    <div className="mb-4">
+                        <Link href={home()} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                            <ArrowLeft className="w-4 h-4" />
+                            Back to home
+                        </Link>
                     </div>
 
                     {/* Verification Card */}
@@ -214,7 +224,7 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                         >
                             <Button
                                 type="submit"
-                                className="w-full h-11 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+                                className="w-full h-11 bg-[#0a1629] hover:bg-[#0d1b35] text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
                                 disabled={form.processing}
                             >
                                 {form.processing ? (
@@ -233,7 +243,7 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                             <div className="pt-4 border-t border-border">
                                 <TextLink
                                     href={logout()}
-                                    className="block text-center text-sm text-muted-foreground hover:text-primary transition-colors"
+                                    className="block text-center text-sm text-muted-foreground hover:text-[#0a1629] transition-colors"
                                 >
                                     Log out and use a different account
                                 </TextLink>

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
+import AppLayout from '@/layouts/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -186,19 +184,24 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
             return 'current';
         }
         
+        // If step is submitted by HR, it's accessible (not locked) but not completed until CEO approves
+        if (status === 'submitted') {
+            return 'current'; // Allow HR to view their submitted work
+        }
+        
         // Check if this is the first step and it's not started yet
         if (stepIndex === 0 && (!status || status === 'not_started')) {
             return 'current';
         }
         
-        // Check if previous steps are completed to unlock this step
+        // Check if previous steps are approved/completed to unlock this step
         // Only unlock if CEO survey is completed (for step 2+)
         if (stepIndex > 0) {
             if (!isCeoSurveyCompleted) {
                 return 'locked'; // Step 2+ locked until CEO survey
             }
             
-            // Check if all previous steps are completed
+            // Check if all previous steps are approved/completed to unlock this step
             let allPreviousCompleted = true;
             for (let i = 0; i < stepIndex; i++) {
                 const prevStep = STEP_CONFIG[i];
@@ -213,7 +216,8 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                         break;
                     }
                 } else {
-                    // For other steps, must be approved/locked/completed
+                    // For other steps (including performance), must be APPROVED by CEO to unlock next step
+                    // Step 4 (compensation) requires Step 3 (performance) to be approved
                     if (!prevStatus || !['approved', 'locked', 'completed'].includes(prevStatus)) {
                         allPreviousCompleted = false;
                         break;
@@ -221,7 +225,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                 }
             }
             
-            // If all previous completed and this step is in_progress or not_started, it's current
+            // If all previous approved/completed and this step is in_progress or not_started, it's current
             if (allPreviousCompleted) {
                 if (!status || status === 'not_started' || status === 'in_progress') {
                     return 'current';
@@ -239,6 +243,12 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
     const isStepActuallyLocked = (stepKey: StepKey): boolean => {
         if (!activeProject) {
             return stepKey !== 'diagnosis';
+        }
+        
+        // If step is submitted or completed, it should NOT be locked (accessible for review/view)
+        const status = stepStatuses[stepKey] as StepStatus | undefined;
+        if (status && ['submitted', 'approved', 'locked', 'completed'].includes(status)) {
+            return false; // Submitted/completed steps are accessible for HR to view
         }
         
         const diagnosisStatus = stepStatuses['diagnosis'] as StepStatus | undefined;
@@ -301,14 +311,8 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
     };
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto bg-muted/30">
-                    <Head title="HR Manager Dashboard" />
+        <AppLayout>
+            <Head title="HR Manager Dashboard" />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="space-y-8">
                             {/* Welcome Section */}
@@ -756,12 +760,12 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                         const isCompleted = state === 'completed';
                                         const isCurrent = state === 'current';
                                         
-                                        // Determine button label - "View" for completed diagnosis, "Review" for other completed steps
+                                        // Determine button label - "View" for submitted/completed steps, "Continue" for current
                                         const getButtonLabel = () => {
-                                            if (isCompleted) {
-                                                return step.id === 'diagnosis' ? 'View' : 'Review';
+                                            if (status === 'submitted' || isCompleted) {
+                                                return step.id === 'diagnosis' ? 'View →' : 'Review →';
                                             }
-                                            return 'Continue';
+                                            return 'Continue →';
                                         };
                                         
                                         return (
@@ -799,7 +803,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                         )}>
                                                             {isCurrent ? (
                                                                 <CheckCircle2 className="w-7 h-7 text-white" />
-                                                            ) : isCompleted ? (
+                                                            ) : isCompleted || status === 'submitted' ? (
                                                                 <CheckCircle2 className="w-7 h-7 text-green-500" />
                                                             ) : isActuallyLocked ? (
                                                                 <Lock className="w-7 h-7" />
@@ -837,7 +841,13 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                                         Completed
                                                                     </Badge>
                                                                 )}
-                                                                {!isCurrent && !isCompleted && !isActuallyLocked && (
+                                                                {status === 'submitted' && !isCurrent && !isCompleted && (
+                                                                    <Badge className="bg-blue-50 text-blue-600 border-blue-200">
+                                                                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                                                                        Submitted
+                                                                    </Badge>
+                                                                )}
+                                                                {!isCurrent && !isCompleted && status !== 'submitted' && !isActuallyLocked && (
                                                                     <Badge className="bg-primary/10 text-primary border-primary/30">
                                                                         <Clock className="w-3 h-3 mr-1" />
                                                                         In Progress
@@ -916,8 +926,6 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                             )}
                         </div>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AppLayout>
     );
 }

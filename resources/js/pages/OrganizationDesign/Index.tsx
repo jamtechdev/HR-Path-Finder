@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
+import AppLayout from '@/layouts/AppLayout';
 import TabNavigation from '@/components/DesignSteps/TabNavigation';
 import RecommendationBadge from '@/components/DesignSteps/RecommendationBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,6 +36,8 @@ interface Props {
     recommendations?: {
         structure_type?: string;
     };
+    stepStatuses?: Record<string, string>;
+    projectId?: number;
 }
 
 const TABS = [
@@ -112,13 +112,11 @@ export default function OrganizationDesignIndex({ project, organizationDesign, r
     };
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-auto">
+        <AppLayout 
+            showWorkflowSteps={true}
+            stepStatuses={stepStatuses}
+            projectId={project.id}
+        >
                     <Head title={`Organization Design - ${project?.company?.name || 'Organization Design'}`} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         {/* Header */}
@@ -324,8 +322,6 @@ export default function OrganizationDesignIndex({ project, organizationDesign, r
                             )}
                         </div>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AppLayout>
     );
 }
