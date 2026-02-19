@@ -63,7 +63,7 @@ All inputs are confidential and will not be shared with other employees.`;
                         </div>
 
                         {/* Main Card */}
-                        <Card className="border-2 shadow-xl overflow-hidden">
+                        <Card className="border-2 shadow-xl overflow-hidden py-0">
                             <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-background p-8 border-b">
                                 <div className="flex items-center gap-3">
                                     <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">

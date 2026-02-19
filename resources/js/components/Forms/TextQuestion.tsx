@@ -26,7 +26,7 @@ export default function TextQuestion({
 }: TextQuestionProps) {
     return (
         <div className="space-y-2">
-            <Label className="text-sm font-medium">
+            <Label className="text-sm font-medium block">
                 {question}
                 {required && <span className="text-red-500 ml-1">*</span>}
             </Label>

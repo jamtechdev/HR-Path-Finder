@@ -468,7 +468,7 @@ export default function PerformanceSystemIndex({
 
                         <TabNavigation tabs={TABS} activeTab={activeTab} completedTabs={completedTabs} onTabChange={handleTabChange} />
 
-                        <Card>
+                        <Card className="p-0">
                             <CardContent className="p-6">
                                 {activeTab === 'overview' && (
                                     <div className="text-center py-12">

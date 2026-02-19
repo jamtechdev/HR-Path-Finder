@@ -875,7 +875,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                                         className={cn(
                                                                             "gap-2",
                                                                             isCurrent && "bg-green-800 hover:bg-green-600 text-white shadow-md",
-                                                                            isCompleted && !isCurrent && "border-green-300 text-green-600 hover:bg-green-50"
+                                                                            isCompleted && !isCurrent && "border-green-300 text-green-600 hover:text-green-600 hover:bg-green-50"
                                                                         )}
                                                                     >
                                                                         {getButtonLabel()}

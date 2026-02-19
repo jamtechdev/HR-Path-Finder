@@ -25,7 +25,7 @@ export default function LikertScale({
 
     return (
         <div className="space-y-3">
-            <Label className="text-sm font-medium">
+            <Label className="text-sm font-medium block">
                 {question}
                 {required && <span className="text-red-500 ml-1">*</span>}
             </Label>

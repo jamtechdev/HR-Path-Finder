@@ -86,7 +86,7 @@ export default function PolicySnapshot({ project, questions }: Props) {
                             </p>
                         </div>
 
-                        <Card className="border-2 shadow-lg">
+                        <Card className="border-2 shadow-lg py-0">
                             <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-background p-6 border-b">
                                 <CardTitle className="text-2xl font-bold">Policy Snapshot Questions</CardTitle>
                                 <CardDescription className="text-base mt-2">
