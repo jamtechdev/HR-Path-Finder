@@ -7,27 +7,10 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function (Request $request) {
-    // Load landing page sections from database for both languages
-    $sections = [
-        'ko' => [],
-        'en' => [],
-    ];
-    try {
-        if (Schema::hasTable('landing_page_sections')) {
-            $sections['ko'] = \App\Models\LandingPageSection::getActiveSections('ko');
-            $sections['en'] = \App\Models\LandingPageSection::getActiveSections('en');
-        }
-    } catch (\Exception $e) {
-        // Table might not exist yet
-        $sections = [
-            'ko' => [],
-            'en' => [],
-        ];
-    }
-
+    // Landing page now uses JSON translations via i18n
+    // No need to pass sections from database
     return Inertia::render('Landing/Index', [
         'canRegister' => Features::enabled(Features::registration()),
-        'sections' => $sections,
     ]);
 })->name('home');
 
@@ -296,27 +279,17 @@ Route::middleware(['auth'])->group(function () {
         ]);
         Route::post('compensation-snapshot/reorder', [\App\Http\Controllers\Admin\CompensationSnapshotQuestionController::class, 'reorder'])->name('compensation-snapshot.reorder');
         
-        // Translations Management
-        Route::resource('translations', \App\Http\Controllers\Admin\TranslationController::class)->names([
-            'index' => 'translations.index',
-            'create' => 'translations.create',
-            'store' => 'translations.store',
-            'edit' => 'translations.edit',
-            'update' => 'translations.update',
-            'destroy' => 'translations.destroy',
-        ]);
-        Route::post('translations/bulk-import', [\App\Http\Controllers\Admin\TranslationController::class, 'bulkImport'])->name('translations.bulk-import');
+        // Translations Management (JSON-based)
+        Route::get('translations', [\App\Http\Controllers\Admin\TranslationController::class, 'index'])->name('translations.index');
+        Route::get('translations/edit', [\App\Http\Controllers\Admin\TranslationController::class, 'edit'])->name('translations.edit');
+        Route::put('translations', [\App\Http\Controllers\Admin\TranslationController::class, 'update'])->name('translations.update');
+        Route::post('translations', [\App\Http\Controllers\Admin\TranslationController::class, 'store'])->name('translations.store');
+        Route::post('translations/update-key', [\App\Http\Controllers\Admin\TranslationController::class, 'updateKey'])->name('translations.update-key');
+        Route::delete('translations', [\App\Http\Controllers\Admin\TranslationController::class, 'destroy'])->name('translations.destroy');
         
-        // Landing Page Management
-        Route::resource('landing-page', \App\Http\Controllers\Admin\LandingPageController::class)->names([
-            'index' => 'landing-page.index',
-            'create' => 'landing-page.create',
-            'store' => 'landing-page.store',
-            'edit' => 'landing-page.edit',
-            'update' => 'landing-page.update',
-            'destroy' => 'landing-page.destroy',
-        ]);
-        Route::post('landing-page/bulk-update', [\App\Http\Controllers\Admin\LandingPageController::class, 'bulkUpdate'])->name('landing-page.bulk-update');
+        // Landing Page Management (JSON-based, edit only)
+        Route::get('landing-page', [\App\Http\Controllers\Admin\LandingPageController::class, 'index'])->name('landing-page.index');
+        Route::put('landing-page', [\App\Http\Controllers\Admin\LandingPageController::class, 'update'])->name('landing-page.update');
         
         // Intro Texts Management
         Route::resource('intro-texts', \App\Http\Controllers\Admin\IntroTextController::class)->names([

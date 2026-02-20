@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Settings, LayoutGrid, FolderOpen, HelpCircle, FileText, Building2, AlertCircle, Database, Layers, Target, DollarSign } from 'lucide-react';
+import { Settings, LayoutGrid, FolderOpen, HelpCircle, FileText, Building2, AlertCircle, Database, Layers, Target, DollarSign, Languages, ChevronRight, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 interface AdminSidebarProps {
     isCollapsed?: boolean;
@@ -16,6 +17,7 @@ interface Project {
 export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps) {
     const { url, props } = usePage();
     const currentPath = url.split('?')[0];
+    const [translationsOpen, setTranslationsOpen] = useState(currentPath.startsWith('/admin/translations'));
     
     // Get user roles to determine if admin
     const user = (props as any).auth?.user;
@@ -24,6 +26,20 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
     // Get projects from shared props or page-specific props
     const projects = (props as any).projects || [];
     const currentProjectId = (props as any).project?.id || (props as any).hrProject?.id;
+
+    const translationPages = [
+        { key: 'all', label: 'All Translations', path: '/admin/translations?page=all' },
+        { key: 'landing-page', label: 'Landing Page (Edit)', path: '/admin/landing-page' },
+        { key: 'landing', label: 'Landing Page (JSON)', path: '/admin/translations?page=landing' },
+        { key: 'auth', label: 'Authentication', path: '/admin/translations?page=auth' },
+        { key: 'auth.login', label: 'Login Page', path: '/admin/translations?page=auth.login' },
+        { key: 'auth.register', label: 'Register Page', path: '/admin/translations?page=auth.register' },
+        { key: 'dashboard', label: 'Dashboard', path: '/admin/translations?page=dashboard' },
+        { key: 'common', label: 'Common', path: '/admin/translations?page=common' },
+        { key: 'navigation', label: 'Navigation', path: '/admin/translations?page=navigation' },
+        { key: 'buttons', label: 'Buttons', path: '/admin/translations?page=buttons' },
+        { key: 'messages', label: 'Messages', path: '/admin/translations?page=messages' },
+    ];
 
     const isActive = (path: string) => {
         if (path === '/') {
@@ -169,6 +185,57 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                     <Database className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
                                     {!isCollapsed && <span className="flex-1 text-left truncate">All Projects</span>}
                                 </Link>
+                                
+                                {/* Translations Menu */}
+                                <div className={cn("mt-2", isCollapsed && "hidden")}>
+                                    <button
+                                        onClick={() => !isCollapsed && setTranslationsOpen(!translationsOpen)}
+                                        className={cn(
+                                            "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                                            (isActive('/admin/translations') || isActive('/admin/landing-page'))
+                                                ? "bg-sidebar-accent text-sidebar-primary"
+                                                : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                                        )}
+                                    >
+                                        <Languages className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
+                                        {!isCollapsed && (
+                                            <>
+                                                <span className="flex-1 text-left truncate">Translations</span>
+                                                {translationsOpen ? (
+                                                    <ChevronDown className="w-4 h-4" />
+                                                ) : (
+                                                    <ChevronRight className="w-4 h-4" />
+                                                )}
+                                            </>
+                                        )}
+                                    </button>
+                                    
+                                    {!isCollapsed && translationsOpen && (
+                                        <div className="ml-4 mt-1 space-y-1 border-l border-sidebar-border/30 pl-4">
+                                            {translationPages.map((page) => {
+                                                const isActive = page.key === 'landing-page' 
+                                                    ? currentPath === '/admin/landing-page'
+                                                    : currentPath === page.path.split('?')[0] && (page.key === 'all' || url.includes(`page=${page.key}`));
+                                                
+                                                return (
+                                                    <Link
+                                                        key={page.key}
+                                                        href={page.path}
+                                                        className={cn(
+                                                            "w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs transition-all duration-200",
+                                                            isActive
+                                                                ? "bg-sidebar-accent/50 text-sidebar-primary font-medium"
+                                                                : "text-sidebar-foreground/60 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground"
+                                                        )}
+                                                    >
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50"></span>
+                                                        <span className="truncate">{page.label}</span>
+                                                    </Link>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
                                 
                                 {!isCollapsed && (
                                     <div className="px-4 mt-4 mb-2">

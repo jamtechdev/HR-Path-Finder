@@ -43,24 +43,6 @@ class HandleInertiaRequests extends Middleware
             $request->session()->start();
         }
         
-        // Get translations from database for both languages (with fallback to empty array if table doesn't exist yet)
-        $dbTranslations = [
-            'ko' => [],
-            'en' => [],
-        ];
-        try {
-            if (\Schema::hasTable('translations')) {
-                $dbTranslations['ko'] = \App\Models\Translation::getNestedTranslations('ko', 'translation');
-                $dbTranslations['en'] = \App\Models\Translation::getNestedTranslations('en', 'translation');
-            }
-        } catch (\Exception $e) {
-            // Table might not exist yet during migration
-            $dbTranslations = [
-                'ko' => [],
-                'en' => [],
-            ];
-        }
-
         $shared = [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -84,7 +66,7 @@ class HandleInertiaRequests extends Middleware
                 'ceo_email' => $request->session()->get('ceo_email'),
                 'ceo_name' => $request->session()->get('ceo_name'),
             ],
-            'translations' => $dbTranslations, // Share database translations
+            // Translations are now loaded directly from JSON files in the frontend
         ];
         
         // Add projects to shared data for roles that need them in sidebar

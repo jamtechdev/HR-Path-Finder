@@ -17,7 +17,7 @@ class LandingPageSectionSeeder extends Seeder
             [
                 'section_key' => 'hero_badge_text',
                 'section_type' => 'text',
-                'content' => '컨설팅급 HR 설계 플랫폼',
+                'content' => '20~300인 기업 특화 HR제도 설계 플랫폼',
                 'locale' => 'ko',
                 'order' => 1,
                 'is_active' => true,
@@ -33,7 +33,7 @@ class LandingPageSectionSeeder extends Seeder
             [
                 'section_key' => 'hero_title',
                 'section_type' => 'text',
-                'content' => '정밀한 HR 시스템을 설계하세요',
+                'content' => 'HR컨설팅의 설계 프로세스를 온라인에서 직접 진행하세요',
                 'locale' => 'ko',
                 'order' => 2,
                 'is_active' => true,
@@ -41,7 +41,7 @@ class LandingPageSectionSeeder extends Seeder
             [
                 'section_key' => 'hero_description',
                 'section_type' => 'textarea',
-                'content' => '중소기업의 HR 프레임워크 구축 방식을 혁신합니다. 단계별 가이드 접근 방식으로 전문 컨설팅 업무를 현대적인 SaaS 플랫폼 안에서 재현합니다.',
+                'content' => '복잡한 HR제도 설계를 단계별 가이드로 따라가며 직접 완성할 수 있습니다. 설계 과정에는 전문 HR컨설팅의 기준과 로직이 반영되어 있으며 고객사의 설계안에 대해 전문 컨설턴트가 종합 리포트를 제공합니다.',
                 'locale' => 'ko',
                 'order' => 3,
                 'is_active' => true,
@@ -49,7 +49,7 @@ class LandingPageSectionSeeder extends Seeder
             [
                 'section_key' => 'hero_cta_primary',
                 'section_type' => 'text',
-                'content' => '무료 체험 시작하기',
+                'content' => 'HR설계 시작하기',
                 'locale' => 'ko',
                 'order' => 4,
                 'is_active' => true,
@@ -65,7 +65,7 @@ class LandingPageSectionSeeder extends Seeder
             [
                 'section_key' => 'hero_trust_text',
                 'section_type' => 'text',
-                'content' => '100개 이상의 기업이 HR Copilot을 신뢰합니다',
+                'content' => '',
                 'locale' => 'ko',
                 'order' => 6,
                 'is_active' => true,
@@ -75,7 +75,7 @@ class LandingPageSectionSeeder extends Seeder
             [
                 'section_key' => 'everything_title',
                 'section_type' => 'text',
-                'content' => '완전한 HR 시스템 구축에 필요한 모든 것',
+                'content' => '성과와 조직 안정을 이끄는 HR체계의 핵심 영역',
                 'locale' => 'ko',
                 'order' => 10,
                 'is_active' => true,
@@ -83,7 +83,7 @@ class LandingPageSectionSeeder extends Seeder
             [
                 'section_key' => 'everything_description',
                 'section_type' => 'textarea',
-                'content' => '우리 플랫폼은 컨설팅급 로직과 규칙 기반 권장사항으로 각 단계를 안내합니다.',
+                'content' => 'Pathfinder는 경영철학 진단, 직무분석, 성과체계, 보상체계의 단계별 설계로 조직 운영 기준을 명확히 정의합니다.',
                 'locale' => 'ko',
                 'order' => 11,
                 'is_active' => true,
@@ -93,20 +93,20 @@ class LandingPageSectionSeeder extends Seeder
                 'section_type' => 'json',
                 'content' => json_encode([
                     [
-                        'title' => '조직 설계',
-                        'description' => '기능별, 팀 기반, 사업부별 또는 매트릭스 조직으로 회사를 구조화합니다.',
+                        'title' => '조직속성 (경영철학)',
+                        'description' => '우리 회사의 운영 원칙과 조직 방향을 정의합니다.',
                     ],
                     [
-                        'title' => '성과 관리 시스템',
-                        'description' => 'KPI, MBO, OKR 또는 BSC 기반 성과 평가 프레임워크를 설계합니다.',
+                        'title' => '직무분석',
+                        'description' => '각 직무의 역할과 책임, 성과요인을 설정합니다.',
                     ],
                     [
-                        'title' => '보상 체계',
-                        'description' => '성과, 인센티브 및 역할 기반 차별화를 통해 경쟁력 있는 급여 구조를 구축합니다.',
+                        'title' => '성과관리체계',
+                        'description' => '성과평가의 기준과 운영 방식을 정의합니다.',
                     ],
                     [
-                        'title' => 'CEO 철학',
-                        'description' => '구조화된 경영 철학 설문을 통해 리더십 스타일과 HR 시스템을 정렬합니다.',
+                        'title' => '보상체계',
+                        'description' => '조직 특성에 기반한 보상 기준을 설정합니다.',
                     ],
                 ], JSON_UNESCAPED_UNICODE),
                 'locale' => 'ko',
@@ -118,7 +118,7 @@ class LandingPageSectionSeeder extends Seeder
             [
                 'section_key' => 'why_title',
                 'section_type' => 'text',
-                'content' => 'HR Path-Finder를 선택해야 하는 이유는?',
+                'content' => 'HR Pathfinder가 제공하는 핵심 가치는?',
                 'locale' => 'ko',
                 'order' => 20,
                 'is_active' => true,
@@ -126,7 +126,7 @@ class LandingPageSectionSeeder extends Seeder
             [
                 'section_key' => 'why_description',
                 'section_type' => 'textarea',
-                'content' => '전문 HR 컨설팅의 구조화된 접근 방식을 재현하여 전담 HR 기획팀이 없는 회사도 접근할 수 있도록 합니다.',
+                'content' => '전문 HR컨설팅의 설계방식을 기반으로 HR전담 조직이 없는 회사도 체계적인 정책 설계를 진행할 수 있습니다.',
                 'locale' => 'ko',
                 'order' => 21,
                 'is_active' => true,
@@ -135,12 +135,12 @@ class LandingPageSectionSeeder extends Seeder
                 'section_key' => 'why_items',
                 'section_type' => 'json',
                 'content' => json_encode([
-                    '순차적이고 컨설팅급 워크플로우',
-                    '규칙 기반 권장사항 (AI 추측 없음)',
-                    'CEO와 HR 매니저 협업',
-                    '모든 결정에 대한 완전한 감사 추적',
-                    '전문 HR 시스템 대시보드',
-                    '내보내기 준비된 보고서 및 정책',
+                    '업종과 조직규모, 경영철학을 고려한 맞춤형 설계',
+                    '전문 컨설턴트의 맞춤형 검토, 리포트 제공',
+                    '컨설턴트 기준에 따른 규칙 기반 설계 (AI추측 없음)',
+                    '타겟 경쟁사와의 보상 수준 비교',
+                    '설계된 전체 구조를 한 눈에 볼 수 있는 대시보드',
+                    '운영지원 및 정기 조직진단 (옵션)',
                 ], JSON_UNESCAPED_UNICODE),
                 'locale' => 'ko',
                 'order' => 22,
@@ -154,19 +154,19 @@ class LandingPageSectionSeeder extends Seeder
                 'content' => json_encode([
                     [
                         'title' => '역할 기반 접근',
-                        'description' => 'CEO, HR 매니저, 컨설턴트는 각각 특정 권한과 뷰를 가집니다.',
+                        'description' => 'CEO와 HR담당자가 각자의 역할에 맞게 설계를 진행할 수 있습니다.',
                     ],
                     [
-                        'title' => '시각적 대시보드',
-                        'description' => '전문적인 시각화로 전체 HR 시스템을 한눈에 볼 수 있습니다.',
+                        'title' => 'HR구조를 한눈에 확인',
+                        'description' => '초안 설계 직후 직무,평가체계,보상구조를 하나의 화면에서 확인할 수 있습니다.',
                     ],
                     [
                         'title' => '논리적 검증',
-                        'description' => '시스템이 호환되지 않는 선택을 차단하여 일관된 HR 설계를 보장합니다.',
+                        'description' => '설계 과정의 충돌과 불일치를 방지하고 마지막 단계에서 전문 컨설턴트가 전체 구조를 검토, 제안을 드립니다.',
                     ],
                     [
-                        'title' => '협업 워크플로우',
-                        'description' => 'CEO와 HR 매니저가 명확한 인수인계와 승인으로 함께 작업합니다.',
+                        'title' => 'CEO와 HR 협업 기반 설계',
+                        'description' => '명확한 승인 구조를 기반으로 공동설계를 진행, 경영진과 인사부서의 생각을 연결합니다.',
                     ],
                 ], JSON_UNESCAPED_UNICODE),
                 'locale' => 'ko',
@@ -178,7 +178,7 @@ class LandingPageSectionSeeder extends Seeder
             [
                 'section_key' => 'header_logo_text',
                 'section_type' => 'text',
-                'content' => 'HR Copilot',
+                'content' => 'HR Pathfinder',
                 'locale' => 'ko',
                 'order' => 50,
                 'is_active' => true,
@@ -186,7 +186,7 @@ class LandingPageSectionSeeder extends Seeder
             [
                 'section_key' => 'header_company_text',
                 'section_type' => 'text',
-                'content' => 'by BetterCompany',
+                'content' => 'powered by bettercompany',
                 'locale' => 'ko',
                 'order' => 51,
                 'is_active' => true,

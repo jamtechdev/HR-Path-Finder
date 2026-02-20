@@ -35,7 +35,128 @@
     "forgot_password": "비밀번호 찾기",
     "remember_me": "로그인 상태 유지",
     "login_success": "로그인 성공",
-    "login_failed": "로그인 실패"
+    "login_failed": "로그인 실패",
+    "login": {
+      "title": "다시 오신 것을 환영합니다",
+      "subtitle": "HR 시스템 설계를 계속하려면 로그인하세요",
+      "email_label": "이메일",
+      "email_placeholder": "you@company.com",
+      "password_label": "비밀번호",
+      "forgot_password": "비밀번호를 잊으셨나요?",
+      "sign_in": "로그인",
+      "signing_in": "로그인 중...",
+      "back_to_home": "홈으로 돌아가기",
+      "no_account": "계정이 없으신가요?",
+      "create_account": "계정 만들기",
+      "promo_title": "컨설팅급 정밀도로 HR 시스템을 설계하세요",
+      "promo_subtitle": "단계별 가이드 접근 방식으로 HR 전략을 변화시키세요. 조직 구조, 성과 시스템 및 보상 프레임워크를 구축하세요.",
+      "feature_fast": "빠르고 직관적인 워크플로우",
+      "feature_security": "엔터프라이즈급 보안",
+      "feature_collaboration": "실시간 협업",
+      "trusted": "100개 이상의 회사가 신뢰",
+      "consulting_grade": "컨설팅급 로직"
+    },
+    "register": {
+      "title": "HR 관리자 계정 만들기",
+      "subtitle": "HR 시스템 설계를 시작하려면 등록하세요",
+      "name_label": "전체 이름",
+      "name_placeholder": "홍길동",
+      "email_label": "이메일 주소",
+      "email_placeholder": "you@company.com",
+      "password_label": "비밀번호",
+      "password_placeholder": "••••••••",
+      "password_confirm_label": "비밀번호 확인",
+      "password_confirm_placeholder": "••••••••",
+      "create_account": "계정 만들기",
+      "creating_account": "계정 생성 중...",
+      "back_to_home": "홈으로 돌아가기",
+      "have_account": "이미 계정이 있으신가요?",
+      "sign_in": "로그인",
+      "promo_title": "HR Path-Finder에 가입하세요",
+      "promo_subtitle": "미래를 설계하세요",
+      "promo_description": "단계별 가이드 접근 방식으로 HR 전략을 변화시키세요. 컨설팅급 정밀도로 조직 구조, 성과 시스템 및 보상 프레임워크를 구축하세요.",
+      "feature_guided": "단계별 가이드 프로세스",
+      "feature_consulting": "컨설팅급 로직 및 방법론",
+      "feature_approval": "실시간 협업 및 승인",
+      "trusted": "100개 이상의 회사가 신뢰",
+      "enterprise_security": "엔터프라이즈급 보안"
+    }
+  },
+  "landing": {
+    "hero": {
+      "badge": "20~300인 기업 특화 HR제도 설계 플랫폼",
+      "title_highlight": "HR 시스템",
+      "title": "HR컨설팅의 설계 프로세스를 온라인에서 직접 진행하세요",
+      "description": "복잡한 HR제도 설계를 단계별 가이드로 따라가며 직접 완성할 수 있습니다. 설계 과정에는 전문 HR컨설팅의 기준과 로직이 반영되어 있으며 고객사의 설계안에 대해 전문 컨설턴트가 종합 리포트를 제공합니다.",
+      "cta_primary": "HR설계 시작하기",
+      "cta_secondary": "데모 보기"
+    },
+    "everything": {
+      "title": "성과와 조직 안정을 이끄는 HR체계의 핵심 영역",
+      "description": "Pathfinder는 경영철학 진단, 직무분석, 성과체계, 보상체계의 단계별 설계로 조직 운영 기준을 명확히 정의합니다.",
+      "cards": {
+        "organization": {
+          "title": "조직속성 (경영철학)",
+          "description": "우리 회사의 운영 원칙과 조직 방향을 정의합니다."
+        },
+        "job_analysis": {
+          "title": "직무분석",
+          "description": "각 직무의 역할과 책임, 성과요인을 설정합니다."
+        },
+        "performance": {
+          "title": "성과관리체계",
+          "description": "성과평가의 기준과 운영 방식을 정의합니다."
+        },
+        "compensation": {
+          "title": "보상체계",
+          "description": "조직 특성에 기반한 보상 기준을 설정합니다."
+        }
+      }
+    },
+    "why": {
+      "title": "HR Pathfinder가 제공하는 핵심 가치는?",
+      "description": "전문 HR컨설팅의 설계방식을 기반으로 HR전담 조직이 없는 회사도 체계적인 정책 설계를 진행할 수 있습니다.",
+      "items": [
+        "업종과 조직규모, 경영철학을 고려한 맞춤형 설계",
+        "전문 컨설턴트의 맞춤형 검토, 리포트 제공",
+        "컨설턴트 기준에 따른 규칙 기반 설계 (AI추측 없음)",
+        "타겟 경쟁사와의 보상 수준 비교",
+        "설계된 전체 구조를 한 눈에 볼 수 있는 대시보드",
+        "운영지원 및 정기 조직진단 (옵션)"
+      ]
+    },
+    "features": {
+      "role_based": {
+        "title": "역할 기반 접근",
+        "description": "CEO와 HR담당자가 각자의 역할에 맞게 설계를 진행할 수 있습니다."
+      },
+      "visual": {
+        "title": "HR구조를 한눈에 확인",
+        "description": "초안 설계 직후 직무,평가체계,보상구조를 하나의 화면에서 확인할 수 있습니다."
+      },
+      "validation": {
+        "title": "논리적 검증",
+        "description": "설계 과정의 충돌과 불일치를 방지하고 마지막 단계에서 전문 컨설턴트가 전체 구조를 검토, 제안을 드립니다."
+      },
+      "collaboration": {
+        "title": "CEO와 HR 협업 기반 설계",
+        "description": "명확한 승인 구조를 기반으로 공동설계를 진행, 경영진과 인사부서의 생각을 연결합니다."
+      }
+    },
+    "cta": {
+      "title": "우리 회사의 HR시스템을 설계할 준비가 되셨나요?",
+      "description": "HR-Pathfinder의 기능은 점진적으로 계속 확장됩니다. 인연이 된 고객사의 성공적인 비즈니스를 위해 지속적인 지원을 아끼지 않겠습니다.",
+      "button": "HR Pathfinder 시작하기"
+    },
+    "header": {
+      "logo": "HR Pathfinder",
+      "company": "powered by bettercompany",
+      "sign_in": "로그인",
+      "get_started": "시작하기"
+    },
+    "footer": {
+      "copyright": "© 2026 Everthere.inc All rights reserved."
+    }
   },
   "dashboard": {
     "welcome": "환영합니다",

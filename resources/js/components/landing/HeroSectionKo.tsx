@@ -81,7 +81,7 @@ export function HeroSectionKo({
                             </Button>
                         </div>
                         
-                        {trustText && (
+                        {trustText && trustText.trim() && (
                             <div className="flex items-center gap-6">
                                 <div className="flex -space-x-2">
                                     {['A', 'B', 'C', 'D'].map((letter, i) => (

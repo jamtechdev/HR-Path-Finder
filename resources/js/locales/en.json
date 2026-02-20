@@ -35,7 +35,128 @@
     "forgot_password": "Forgot Password",
     "remember_me": "Remember Me",
     "login_success": "Login successful",
-    "login_failed": "Login failed"
+    "login_failed": "Login failed",
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to continue your HR system design",
+      "email_label": "Email",
+      "email_placeholder": "you@company.com",
+      "password_label": "Password",
+      "forgot_password": "Forgot password?",
+      "sign_in": "Sign in",
+      "signing_in": "Signing in...",
+      "back_to_home": "Back to home",
+      "no_account": "Don't have an account?",
+      "create_account": "Create account",
+      "promo_title": "Design your HR system with consulting-grade precision.",
+      "promo_subtitle": "Transform your HR strategy with our step-by-step guided approach. Build organization structures, performance systems, and compensation frameworks.",
+      "feature_fast": "Fast & intuitive workflow",
+      "feature_security": "Enterprise-grade security",
+      "feature_collaboration": "Real-time collaboration",
+      "trusted": "Trusted by 100+ companies",
+      "consulting_grade": "Consulting-grade logic"
+    },
+    "register": {
+      "title": "Create HR Manager Account",
+      "subtitle": "Register to start designing your HR system",
+      "name_label": "Full Name",
+      "name_placeholder": "John Doe",
+      "email_label": "Email address",
+      "email_placeholder": "you@company.com",
+      "password_label": "Password",
+      "password_placeholder": "••••••••",
+      "password_confirm_label": "Confirm Password",
+      "password_confirm_placeholder": "••••••••",
+      "create_account": "Create account",
+      "creating_account": "Creating account...",
+      "back_to_home": "Back to home",
+      "have_account": "Already have an account?",
+      "sign_in": "Sign in",
+      "promo_title": "Join HR Path-Finder",
+      "promo_subtitle": "Design Your Future",
+      "promo_description": "Transform your HR strategy with our step-by-step guided approach. Build organization structures, performance systems, and compensation frameworks with consulting-grade precision.",
+      "feature_guided": "Step-by-step guided process",
+      "feature_consulting": "Consulting-grade logic & methodology",
+      "feature_approval": "Real-time collaboration & approval",
+      "trusted": "Trusted by 100+ companies",
+      "enterprise_security": "Enterprise-grade security"
+    }
+  },
+  "landing": {
+    "hero": {
+      "badge": "Consulting-Grade HR Design Platform",
+      "title_highlight": "HR System",
+      "title": "Design Your Precise HR System",
+      "description": "We revolutionize how SMEs build HR frameworks. Our step-by-step guided approach recreates professional consulting work within a modern SaaS platform.",
+      "cta_primary": "Start Free Trial",
+      "cta_secondary": "View Demo"
+    },
+    "everything": {
+      "title": "Everything You Need to Build a Complete HR System",
+      "description": "Our platform guides you through each step with consulting-grade logic and rule-based recommendations.",
+      "cards": {
+        "organization": {
+          "title": "Organization Design",
+          "description": "Structure your company with functional, team-based, divisional, or matrix organizations."
+        },
+        "job_analysis": {
+          "title": "Job Analysis",
+          "description": "Analyze and define roles, responsibilities, and performance factors for each position."
+        },
+        "performance": {
+          "title": "Performance Management System",
+          "description": "Design KPI, MBO, OKR, or BSC-based performance evaluation frameworks."
+        },
+        "compensation": {
+          "title": "Compensation System",
+          "description": "Build competitive pay structures through merit, incentives, and role-based differentiation."
+        }
+      }
+    },
+    "why": {
+      "title": "Why Choose HR Path-Finder?",
+      "description": "We replicate the structured approach of professional HR consulting, making it accessible to companies without dedicated HR planning teams.",
+      "items": [
+        "Sequential, consulting-grade workflow",
+        "Rule-based recommendations (no AI guesswork)",
+        "CEO and HR Manager collaboration",
+        "Complete audit trail for all decisions",
+        "Professional HR system dashboard",
+        "Export-ready reports and policies"
+      ]
+    },
+    "features": {
+      "role_based": {
+        "title": "Role-Based Access",
+        "description": "CEO, HR Manager, and Consultant each have specific permissions and views."
+      },
+      "visual": {
+        "title": "Visual Dashboard",
+        "description": "View your entire HR system at a glance with professional visualizations."
+      },
+      "validation": {
+        "title": "Logical Validation",
+        "description": "The system blocks incompatible choices to ensure consistent HR design."
+      },
+      "collaboration": {
+        "title": "Collaborative Workflow",
+        "description": "CEO and HR Manager work together with clear handoffs and approvals."
+      }
+    },
+    "cta": {
+      "title": "Ready to Design Your HR System?",
+      "description": "Start your free trial today and experience scalable consulting-grade HR design from prototype to full implementation.",
+      "button": "Get Started Free"
+    },
+    "header": {
+      "logo": "HR Copilot",
+      "company": "by BetterCompany",
+      "sign_in": "Sign In",
+      "get_started": "Get Started"
+    },
+    "footer": {
+      "copyright": "© 2025 BetterCompany. All rights reserved."
+    }
   },
   "dashboard": {
     "welcome": "Welcome",

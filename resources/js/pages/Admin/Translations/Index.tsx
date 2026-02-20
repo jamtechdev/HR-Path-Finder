@@ -8,48 +8,31 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Search, Download, Upload } from 'lucide-react';
-
-interface Translation {
-    id: number;
-    locale: string;
-    namespace: string;
-    key: string;
-    value: string;
-    is_active: boolean;
-}
+import { Edit, Trash2, Search, Languages, FileText } from 'lucide-react';
 
 interface Props {
-    translations: {
-        data: Translation[];
-        current_page: number;
-        last_page: number;
-        per_page: number;
-        total: number;
-    };
+    translations: Record<string, string>;
     locales: Record<string, string>;
-    namespaces: Record<string, string>;
+    pages: Record<string, string>;
     currentLocale: string;
-    currentNamespace: string;
+    currentPage: string;
     search: string;
 }
 
 export default function TranslationsIndex({ 
-    translations, 
+    translations,
     locales, 
-    namespaces, 
+    pages, 
     currentLocale, 
-    currentNamespace,
+    currentPage,
     search: initialSearch 
 }: Props) {
     const [search, setSearch] = useState(initialSearch);
-    const [locale, setLocale] = useState(currentLocale);
-    const [namespace, setNamespace] = useState(currentNamespace);
 
-    const handleFilterChange = (newLocale: string, newNamespace: string) => {
+    const handleFilterChange = (newLocale: string, newPage: string) => {
         router.get('/admin/translations', {
             locale: newLocale,
-            namespace: newNamespace,
+            page: newPage,
             search: search,
         }, {
             preserveState: true,
@@ -59,8 +42,8 @@ export default function TranslationsIndex({
 
     const handleSearch = () => {
         router.get('/admin/translations', {
-            locale: locale,
-            namespace: namespace,
+            locale: currentLocale,
+            page: currentPage,
             search: search,
         }, {
             preserveState: true,
@@ -68,18 +51,28 @@ export default function TranslationsIndex({
         });
     };
 
-    const handleDelete = (translationId: number) => {
+    const handleDelete = (key: string) => {
         if (confirm('Are you sure you want to delete this translation?')) {
-            router.delete(`/admin/translations/${translationId}`, {
+            router.delete('/admin/translations', {
+                data: {
+                    locale: currentLocale,
+                    key: key,
+                },
                 preserveScroll: true,
             });
         }
     };
 
-    const handleBulkImport = () => {
-        // This will open a modal or page for bulk import
-        router.visit('/admin/translations/bulk-import');
+    const handleEdit = (key: string, value: string) => {
+        router.visit(`/admin/translations/edit?locale=${currentLocale}&page=${currentPage}&key=${encodeURIComponent(key)}`);
     };
+
+    // Filter translations by search
+    const filteredTranslations = Object.entries(translations).filter(([key, value]) => {
+        if (!search) return true;
+        const searchLower = search.toLowerCase();
+        return key.toLowerCase().includes(searchLower) || value.toLowerCase().includes(searchLower);
+    });
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -95,21 +88,15 @@ export default function TranslationsIndex({
                             <div>
                                 <h1 className="text-3xl font-bold mb-2">Translations Management</h1>
                                 <p className="text-muted-foreground">
-                                    Manage UI translations for Korean and English
+                                    Manage UI translations stored in JSON files (Korean and English)
                                 </p>
                             </div>
-                            <div className="flex gap-2">
-                                <Button variant="outline" onClick={handleBulkImport}>
-                                    <Upload className="w-4 h-4 mr-2" />
-                                    Bulk Import
+                            <Link href={`/admin/translations/edit?locale=${currentLocale}&page=${currentPage}`}>
+                                <Button>
+                                    <FileText className="w-4 h-4 mr-2" />
+                                    Edit Page Translations
                                 </Button>
-                                <Link href="/admin/translations/create">
-                                    <Button>
-                                        <Plus className="w-4 h-4 mr-2" />
-                                        Add Translation
-                                    </Button>
-                                </Link>
-                            </div>
+                            </Link>
                         </div>
 
                         <Card className="mb-6">
@@ -117,12 +104,11 @@ export default function TranslationsIndex({
                                 <CardTitle>Filters</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
                                         <label className="text-sm font-medium mb-2 block">Language</label>
-                                        <Select value={locale} onValueChange={(v) => {
-                                            setLocale(v);
-                                            handleFilterChange(v, namespace);
+                                        <Select value={currentLocale} onValueChange={(v) => {
+                                            handleFilterChange(v, currentPage);
                                         }}>
                                             <SelectTrigger>
                                                 <SelectValue />
@@ -130,23 +116,25 @@ export default function TranslationsIndex({
                                             <SelectContent>
                                                 {Object.entries(locales).map(([key, label]) => (
                                                     <SelectItem key={key} value={key}>
-                                                        {label}
+                                                        <div className="flex items-center gap-2">
+                                                            <Languages className="w-4 h-4" />
+                                                            {label}
+                                                        </div>
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium mb-2 block">Namespace</label>
-                                        <Select value={namespace} onValueChange={(v) => {
-                                            setNamespace(v);
-                                            handleFilterChange(locale, v);
+                                        <label className="text-sm font-medium mb-2 block">Page/Section</label>
+                                        <Select value={currentPage} onValueChange={(v) => {
+                                            handleFilterChange(currentLocale, v);
                                         }}>
                                             <SelectTrigger>
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Object.entries(namespaces).map(([key, label]) => (
+                                                {Object.entries(pages).map(([key, label]) => (
                                                     <SelectItem key={key} value={key}>
                                                         {label}
                                                     </SelectItem>
@@ -154,7 +142,7 @@ export default function TranslationsIndex({
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                    <div className="md:col-span-2">
+                                    <div>
                                         <label className="text-sm font-medium mb-2 block">Search</label>
                                         <div className="flex gap-2">
                                             <Input
@@ -180,89 +168,52 @@ export default function TranslationsIndex({
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <CardTitle>
-                                        Translations ({translations.total})
+                                        Translations ({filteredTranslations.length})
                                     </CardTitle>
                                     <Badge variant="outline">
-                                        {locales[currentLocale]} - {namespaces[currentNamespace]}
+                                        {locales[currentLocale]} - {pages[currentPage]}
                                     </Badge>
                                 </div>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-2">
-                                    {translations.data.map((translation) => (
+                                    {filteredTranslations.map(([key, value]) => (
                                         <div
-                                            key={translation.id}
+                                            key={key}
                                             className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50"
                                         >
-                                            <div className="flex-1">
+                                            <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 mb-2">
                                                     <Badge variant="outline" className="font-mono text-xs">
-                                                        {translation.key}
+                                                        {key}
                                                     </Badge>
-                                                    {!translation.is_active && (
-                                                        <Badge variant="destructive">Inactive</Badge>
-                                                    )}
                                                 </div>
-                                                <p className="text-sm">{translation.value}</p>
+                                                <p className="text-sm break-words">{value}</p>
                                             </div>
-                                            <div className="flex items-center gap-2 ml-4">
-                                                <Link href={`/admin/translations/${translation.id}/edit`}>
-                                                    <Button variant="ghost" size="sm">
-                                                        <Edit className="w-4 h-4" />
-                                                    </Button>
-                                                </Link>
+                                            <div className="flex items-center gap-2 ml-4 flex-shrink-0">
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    onClick={() => handleDelete(translation.id)}
+                                                    onClick={() => handleEdit(key, value)}
+                                                >
+                                                    <Edit className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleDelete(key)}
                                                 >
                                                     <Trash2 className="w-4 h-4 text-destructive" />
                                                 </Button>
                                             </div>
                                         </div>
                                     ))}
-                                    {translations.data.length === 0 && (
+                                    {filteredTranslations.length === 0 && (
                                         <div className="text-center py-12 text-muted-foreground">
-                                            {search ? 'No translations found matching your search.' : 'No translations found. Create your first translation!'}
+                                            {search ? 'No translations found matching your search.' : 'No translations found for this page.'}
                                         </div>
                                     )}
                                 </div>
-
-                                {translations.last_page > 1 && (
-                                    <div className="mt-6 flex items-center justify-between">
-                                        <p className="text-sm text-muted-foreground">
-                                            Showing {((translations.current_page - 1) * translations.per_page) + 1} to {Math.min(translations.current_page * translations.per_page, translations.total)} of {translations.total} translations
-                                        </p>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                disabled={translations.current_page === 1}
-                                                onClick={() => router.get('/admin/translations', {
-                                                    locale,
-                                                    namespace,
-                                                    search,
-                                                    page: translations.current_page - 1,
-                                                })}
-                                            >
-                                                Previous
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                disabled={translations.current_page === translations.last_page}
-                                                onClick={() => router.get('/admin/translations', {
-                                                    locale,
-                                                    namespace,
-                                                    search,
-                                                    page: translations.current_page + 1,
-                                                })}
-                                            >
-                                                Next
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
                             </CardContent>
                         </Card>
                     </div>

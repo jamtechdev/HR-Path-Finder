@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
@@ -7,81 +7,105 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Search, Eye } from 'lucide-react';
-
-interface LandingPageSection {
-    id: number;
-    section_key: string;
-    section_type: string;
-    content: string;
-    locale: string;
-    order: number;
-    is_active: boolean;
-    metadata?: any;
-}
+import { Save, Eye, Languages } from 'lucide-react';
 
 interface Props {
-    sections: {
-        data: LandingPageSection[];
-        current_page: number;
-        last_page: number;
-        per_page: number;
-        total: number;
-    };
+    translations: Record<string, any>;
     locales: Record<string, string>;
     currentLocale: string;
-    search: string;
-    predefinedSections: Record<string, string>;
 }
 
 export default function LandingPageIndex({ 
-    sections, 
+    translations,
     locales, 
-    currentLocale, 
-    search: initialSearch,
-    predefinedSections
+    currentLocale
 }: Props) {
-    const [search, setSearch] = useState(initialSearch);
+    const [editedTranslations, setEditedTranslations] = useState<Record<string, any>>({});
     const [locale, setLocale] = useState(currentLocale);
 
-    const handleFilterChange = (newLocale: string) => {
-        router.get('/admin/landing-page', {
-            locale: newLocale,
-            search: search,
-        }, {
-            preserveState: true,
-            preserveScroll: true,
+    useEffect(() => {
+        setEditedTranslations({});
+    }, [translations, locale]);
+
+    const handleValueChange = (key: string, value: any) => {
+        setEditedTranslations(prev => {
+            const newState = { ...prev };
+            const keys = key.split('.');
+            let current = newState;
+            
+            for (let i = 0; i < keys.length - 1; i++) {
+                if (!current[keys[i]]) {
+                    current[keys[i]] = {};
+                }
+                current = current[keys[i]];
+            }
+            
+            current[keys[keys.length - 1]] = value;
+            return newState;
         });
     };
 
-    const handleSearch = () => {
-        router.get('/admin/landing-page', {
-            locale: locale,
-            search: search,
-        }, {
-            preserveState: true,
-            preserveScroll: true,
-        });
-    };
-
-    const handleDelete = (sectionId: number) => {
-        if (confirm('Are you sure you want to delete this section?')) {
-            router.delete(`/admin/landing-page/${sectionId}`, {
-                preserveScroll: true,
-            });
+    const getNestedValue = (obj: any, path: string): any => {
+        const keys = path.split('.');
+        let current = obj;
+        for (const key of keys) {
+            if (current && typeof current === 'object' && key in current) {
+                current = current[key];
+            } else {
+                return '';
+            }
         }
+        return current;
     };
 
-    const getSectionTypeBadge = (type: string) => {
-        const colors: Record<string, string> = {
-            text: 'bg-blue-100 text-blue-800',
-            textarea: 'bg-green-100 text-green-800',
-            html: 'bg-purple-100 text-purple-800',
-            json: 'bg-orange-100 text-orange-800',
-        };
-        return colors[type] || 'bg-gray-100 text-gray-800';
+    const flattenTranslations = (obj: any, prefix = ''): Array<{ key: string; value: any; isObject: boolean }> => {
+        const result: Array<{ key: string; value: any; isObject: boolean }> = [];
+        
+        for (const key in obj) {
+            const fullKey = prefix ? `${prefix}.${key}` : key;
+            if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+                result.push({ key: fullKey, value: obj[key], isObject: true });
+                result.push(...flattenTranslations(obj[key], fullKey));
+            } else {
+                result.push({ key: fullKey, value: obj[key], isObject: false });
+            }
+        }
+        
+        return result;
     };
+
+    const handleSave = () => {
+        // Merge edited translations with original
+        const merged = JSON.parse(JSON.stringify(translations));
+        
+        const mergeObject = (target: any, source: any) => {
+            for (const key in source) {
+                if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                    if (!target[key]) target[key] = {};
+                    mergeObject(target[key], source[key]);
+                } else {
+                    target[key] = source[key];
+                }
+            }
+        };
+        
+        mergeObject(merged, editedTranslations);
+
+        router.put('/admin/landing-page', {
+            locale: locale,
+            translations: merged,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setEditedTranslations({});
+            },
+        });
+    };
+
+    const flatItems = flattenTranslations(translations).filter(item => !item.isObject);
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -91,176 +115,244 @@ export default function LandingPageIndex({
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
                 <main className="flex-1 overflow-auto">
-                    <Head title="Landing Page Management" />
+                    <Head title="Landing Page Translations" />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
-                                <h1 className="text-3xl font-bold mb-2">Landing Page Management</h1>
+                                <h1 className="text-3xl font-bold mb-2">Landing Page Translations</h1>
                                 <p className="text-muted-foreground">
-                                    Manage all sections of the landing page (Hero, Features, Process, Benefits, CTA)
+                                    Edit landing page content stored in JSON files (Korean and English)
                                 </p>
                             </div>
                             <div className="flex gap-2">
-                                <Link href="/" target="_blank">
+                                <a href="/" target="_blank" rel="noopener noreferrer">
                                     <Button variant="outline">
                                         <Eye className="w-4 h-4 mr-2" />
                                         Preview Landing Page
                                     </Button>
-                                </Link>
-                                <Link href="/admin/landing-page/create">
-                                    <Button>
-                                        <Plus className="w-4 h-4 mr-2" />
-                                        Add Section
-                                    </Button>
-                                </Link>
+                                </a>
+                                <Button 
+                                    onClick={handleSave} 
+                                    disabled={Object.keys(editedTranslations).length === 0}
+                                >
+                                    <Save className="w-4 h-4 mr-2" />
+                                    Save Changes
+                                </Button>
                             </div>
                         </div>
 
                         <Card className="mb-6">
                             <CardHeader>
-                                <CardTitle>Filters</CardTitle>
+                                <CardTitle>Language Selection</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="text-sm font-medium mb-2 block">Language</label>
-                                        <Select value={locale} onValueChange={(v) => {
+                                <div className="flex items-center gap-4">
+                                    <Label>Language</Label>
+                                    <Select 
+                                        value={locale} 
+                                        onValueChange={(v) => {
                                             setLocale(v);
-                                            handleFilterChange(v);
-                                        }}>
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {Object.entries(locales).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
+                                            router.get('/admin/landing-page', { locale: v }, {
+                                                preserveState: true,
+                                                preserveScroll: true,
+                                            });
+                                        }}
+                                    >
+                                        <SelectTrigger className="w-48">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Object.entries(locales).map(([key, label]) => (
+                                                <SelectItem key={key} value={key}>
+                                                    <div className="flex items-center gap-2">
+                                                        <Languages className="w-4 h-4" />
                                                         {label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <label className="text-sm font-medium mb-2 block">Search</label>
-                                        <div className="flex gap-2">
-                                            <Input
-                                                placeholder="Search by section key or content..."
-                                                value={search}
-                                                onChange={(e) => setSearch(e.target.value)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') {
-                                                        handleSearch();
-                                                    }
-                                                }}
-                                            />
-                                            <Button onClick={handleSearch}>
-                                                <Search className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Badge variant="outline">
+                                        {flatItems.length} translations
+                                    </Badge>
                                 </div>
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle>
-                                        Landing Page Sections ({sections.total})
-                                    </CardTitle>
-                                    <Badge variant="outline">
-                                        {locales[currentLocale]}
-                                    </Badge>
-                                </div>
+                                <CardTitle>Landing Page Sections</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="space-y-2">
-                                    {sections.data.map((section) => (
-                                        <div
-                                            key={section.id}
-                                            className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50"
-                                        >
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <Badge variant="outline" className="font-mono text-xs">
-                                                        {section.section_key}
-                                                    </Badge>
-                                                    <Badge className={getSectionTypeBadge(section.section_type)}>
-                                                        {section.section_type}
-                                                    </Badge>
-                                                    {!section.is_active && (
-                                                        <Badge variant="destructive">Inactive</Badge>
-                                                    )}
-                                                    {predefinedSections[section.section_key] && (
-                                                        <Badge variant="secondary" className="text-xs">
-                                                            {predefinedSections[section.section_key]}
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                                <p className="text-sm text-muted-foreground mb-1">
-                                                    {section.content.length > 150 
-                                                        ? section.content.substring(0, 150) + '...' 
-                                                        : section.content}
-                                                </p>
-                                                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
-                                                    <span>Order: {section.order}</span>
-                                                    <span>Locale: {section.locale}</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2 ml-4">
-                                                <Link href={`/admin/landing-page/${section.id}/edit`}>
-                                                    <Button variant="ghost" size="sm">
-                                                        <Edit className="w-4 h-4" />
-                                                    </Button>
-                                                </Link>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(section.id)}
-                                                >
-                                                    <Trash2 className="w-4 h-4 text-destructive" />
-                                                </Button>
-                                            </div>
+                                <div className="space-y-6">
+                                    {/* Hero Section */}
+                                    <div className="border-l-4 border-primary pl-4">
+                                        <h3 className="text-lg font-semibold mb-4">Hero Section</h3>
+                                        <div className="space-y-4">
+                                            {['hero.badge', 'hero.title_highlight', 'hero.title', 'hero.description', 'hero.cta_primary', 'hero.cta_secondary'].map((key) => {
+                                                const currentValue = getNestedValue(translations, key);
+                                                const editedValue = getNestedValue(editedTranslations, key);
+                                                const displayValue = editedValue !== undefined ? editedValue : currentValue;
+                                                
+                                                return (
+                                                    <div key={key} className="space-y-2">
+                                                        <Label className="text-sm font-mono text-muted-foreground">
+                                                            {key}
+                                                        </Label>
+                                                        {key.includes('description') ? (
+                                                            <Textarea
+                                                                value={displayValue || ''}
+                                                                onChange={(e) => handleValueChange(key, e.target.value)}
+                                                                rows={3}
+                                                                className="font-mono text-sm"
+                                                            />
+                                                        ) : (
+                                                            <Input
+                                                                value={displayValue || ''}
+                                                                onChange={(e) => handleValueChange(key, e.target.value)}
+                                                                className="font-mono text-sm"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
-                                    ))}
-                                    {sections.data.length === 0 && (
-                                        <div className="text-center py-12 text-muted-foreground">
-                                            {search ? 'No sections found matching your search.' : 'No sections found. Create your first landing page section!'}
+                                    </div>
+
+                                    {/* Everything Section */}
+                                    <div className="border-l-4 border-green-500 pl-4">
+                                        <h3 className="text-lg font-semibold mb-4">Everything Section</h3>
+                                        <div className="space-y-4">
+                                            {['everything.title', 'everything.description'].map((key) => {
+                                                const currentValue = getNestedValue(translations, key);
+                                                const editedValue = getNestedValue(editedTranslations, key);
+                                                const displayValue = editedValue !== undefined ? editedValue : currentValue;
+                                                
+                                                return (
+                                                    <div key={key} className="space-y-2">
+                                                        <Label className="text-sm font-mono text-muted-foreground">
+                                                            {key}
+                                                        </Label>
+                                                        {key.includes('description') ? (
+                                                            <Textarea
+                                                                value={displayValue || ''}
+                                                                onChange={(e) => handleValueChange(key, e.target.value)}
+                                                                rows={3}
+                                                                className="font-mono text-sm"
+                                                            />
+                                                        ) : (
+                                                            <Input
+                                                                value={displayValue || ''}
+                                                                onChange={(e) => handleValueChange(key, e.target.value)}
+                                                                className="font-mono text-sm"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
-                                    )}
+                                    </div>
+
+                                    {/* Why Section */}
+                                    <div className="border-l-4 border-blue-500 pl-4">
+                                        <h3 className="text-lg font-semibold mb-4">Why Section</h3>
+                                        <div className="space-y-4">
+                                            {['why.title', 'why.description'].map((key) => {
+                                                const currentValue = getNestedValue(translations, key);
+                                                const editedValue = getNestedValue(editedTranslations, key);
+                                                const displayValue = editedValue !== undefined ? editedValue : currentValue;
+                                                
+                                                return (
+                                                    <div key={key} className="space-y-2">
+                                                        <Label className="text-sm font-mono text-muted-foreground">
+                                                            {key}
+                                                        </Label>
+                                                        {key.includes('description') ? (
+                                                            <Textarea
+                                                                value={displayValue || ''}
+                                                                onChange={(e) => handleValueChange(key, e.target.value)}
+                                                                rows={3}
+                                                                className="font-mono text-sm"
+                                                            />
+                                                        ) : (
+                                                            <Input
+                                                                value={displayValue || ''}
+                                                                onChange={(e) => handleValueChange(key, e.target.value)}
+                                                                className="font-mono text-sm"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* CTA Section */}
+                                    <div className="border-l-4 border-purple-500 pl-4">
+                                        <h3 className="text-lg font-semibold mb-4">CTA Section</h3>
+                                        <div className="space-y-4">
+                                            {['cta.title', 'cta.description', 'cta.button'].map((key) => {
+                                                const currentValue = getNestedValue(translations, key);
+                                                const editedValue = getNestedValue(editedTranslations, key);
+                                                const displayValue = editedValue !== undefined ? editedValue : currentValue;
+                                                
+                                                return (
+                                                    <div key={key} className="space-y-2">
+                                                        <Label className="text-sm font-mono text-muted-foreground">
+                                                            {key}
+                                                        </Label>
+                                                        {key.includes('description') ? (
+                                                            <Textarea
+                                                                value={displayValue || ''}
+                                                                onChange={(e) => handleValueChange(key, e.target.value)}
+                                                                rows={3}
+                                                                className="font-mono text-sm"
+                                                            />
+                                                        ) : (
+                                                            <Input
+                                                                value={displayValue || ''}
+                                                                onChange={(e) => handleValueChange(key, e.target.value)}
+                                                                className="font-mono text-sm"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Header & Footer */}
+                                    <div className="border-l-4 border-gray-500 pl-4">
+                                        <h3 className="text-lg font-semibold mb-4">Header & Footer</h3>
+                                        <div className="space-y-4">
+                                            {['header.logo', 'header.company', 'header.sign_in', 'header.get_started', 'footer.copyright'].map((key) => {
+                                                const currentValue = getNestedValue(translations, key);
+                                                const editedValue = getNestedValue(editedTranslations, key);
+                                                const displayValue = editedValue !== undefined ? editedValue : currentValue;
+                                                
+                                                return (
+                                                    <div key={key} className="space-y-2">
+                                                        <Label className="text-sm font-mono text-muted-foreground">
+                                                            {key}
+                                                        </Label>
+                                                        <Input
+                                                            value={displayValue || ''}
+                                                            onChange={(e) => handleValueChange(key, e.target.value)}
+                                                            className="font-mono text-sm"
+                                                        />
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
                                 </div>
 
-                                {sections.last_page > 1 && (
-                                    <div className="mt-6 flex items-center justify-between">
-                                        <p className="text-sm text-muted-foreground">
-                                            Showing {((sections.current_page - 1) * sections.per_page) + 1} to {Math.min(sections.current_page * sections.per_page, sections.total)} of {sections.total} sections
-                                        </p>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                disabled={sections.current_page === 1}
-                                                onClick={() => router.get('/admin/landing-page', {
-                                                    locale,
-                                                    search,
-                                                    page: sections.current_page - 1,
-                                                })}
-                                            >
-                                                Previous
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                disabled={sections.current_page === sections.last_page}
-                                                onClick={() => router.get('/admin/landing-page', {
-                                                    locale,
-                                                    search,
-                                                    page: sections.current_page + 1,
-                                                })}
-                                            >
-                                                Next
-                                            </Button>
-                                        </div>
+                                {Object.keys(editedTranslations).length > 0 && (
+                                    <div className="mt-6 flex justify-end">
+                                        <Button onClick={handleSave}>
+                                            <Save className="w-4 h-4 mr-2" />
+                                            Save {Object.keys(editedTranslations).length} Changes
+                                        </Button>
                                     </div>
                                 )}
                             </CardContent>

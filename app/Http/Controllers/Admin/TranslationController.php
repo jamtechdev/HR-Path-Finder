@@ -3,208 +3,205 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Translation;
+use App\Services\TranslationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class TranslationController extends Controller
 {
+    protected TranslationService $translationService;
+
+    public function __construct(TranslationService $translationService)
+    {
+        $this->translationService = $translationService;
+    }
+
     /**
-     * Display a listing of translations.
+     * Display a listing of translations by page
      */
     public function index(Request $request): Response
     {
         $locale = $request->get('locale', 'ko');
-        $namespace = $request->get('namespace', 'translation');
+        $page = $request->get('page', 'all');
         $search = $request->get('search', '');
 
-        $query = Translation::where('locale', $locale)
-            ->where('namespace', $namespace);
+        $translations = $this->translationService->getFlatTranslations($locale, $page);
 
+        // Filter by search
         if ($search) {
-            $query->where(function($q) use ($search) {
-                $q->where('key', 'like', "%{$search}%")
-                  ->orWhere('value', 'like', "%{$search}%");
-            });
+            $translations = array_filter($translations, function ($value, $key) use ($search) {
+                return stripos($key, $search) !== false || stripos($value, $search) !== false;
+            }, ARRAY_FILTER_USE_BOTH);
         }
-
-        $translations = $query->orderBy('key')->paginate(50);
 
         return Inertia::render('Admin/Translations/Index', [
             'translations' => $translations,
-            'locales' => ['ko' => 'Korean', 'en' => 'English'],
-            'namespaces' => ['translation' => 'Main Translations'],
+            'locales' => $this->translationService->getLocales(),
+            'pages' => $this->translationService->getPages(),
             'currentLocale' => $locale,
-            'currentNamespace' => $namespace,
+            'currentPage' => $page,
             'search' => $search,
         ]);
     }
 
     /**
-     * Show the form for creating a new translation.
+     * Show the form for editing translations for a specific page
      */
-    public function create(): Response
+    public function edit(Request $request): Response
     {
-        return Inertia::render('Admin/Translations/Create', [
-            'locales' => ['ko' => 'Korean', 'en' => 'English'],
-            'namespaces' => ['translation' => 'Main Translations'],
+        $locale = $request->get('locale', 'ko');
+        $page = $request->get('page', 'all');
+
+        $translations = $this->translationService->getPageTranslations($locale, $page);
+
+        return Inertia::render('Admin/Translations/Edit', [
+            'translations' => $translations,
+            'locales' => $this->translationService->getLocales(),
+            'pages' => $this->translationService->getPages(),
+            'currentLocale' => $locale,
+            'currentPage' => $page,
         ]);
     }
 
     /**
-     * Store a newly created translation.
+     * Update translations for a page
+     */
+    public function update(Request $request)
+    {
+        $validated = $request->validate([
+            'locale' => ['required', 'string', 'in:ko,en'],
+            'page' => ['required', 'string'],
+            'translations' => ['required', 'array'],
+        ]);
+
+        $locale = $validated['locale'];
+        $page = $validated['page'];
+        $translations = $validated['translations'];
+
+        // Get all translations
+        $allTranslations = $this->translationService->getTranslations($locale);
+
+        // Update the specific page section
+        if ($page === 'all') {
+            // Merge with existing translations
+            $allTranslations = array_merge_recursive($allTranslations, $translations);
+            // Remove duplicates and keep the new values
+            $allTranslations = $this->arrayMergeRecursiveDistinct($allTranslations, $translations);
+        } else {
+            // Handle nested pages like 'auth.login'
+            $keys = explode('.', $page);
+            $current = &$allTranslations;
+            
+            foreach ($keys as $key) {
+                if (!isset($current[$key])) {
+                    $current[$key] = [];
+                }
+                $current = &$current[$key];
+            }
+            
+            $current = array_merge($current, $translations);
+        }
+
+        $success = $this->translationService->saveTranslations($locale, $allTranslations);
+
+        if ($success) {
+            return redirect()->route('admin.translations.index', [
+                'locale' => $locale,
+                'page' => $page,
+            ])->with('success', 'Translations updated successfully.');
+        }
+
+        return back()->withErrors(['error' => 'Failed to update translations.']);
+    }
+
+    /**
+     * Update a single translation key
+     */
+    public function updateKey(Request $request)
+    {
+        $validated = $request->validate([
+            'locale' => ['required', 'string', 'in:ko,en'],
+            'key' => ['required', 'string'],
+            'value' => ['required', 'string'],
+        ]);
+
+        $success = $this->translationService->updateTranslation(
+            $validated['locale'],
+            $validated['key'],
+            $validated['value']
+        );
+
+        if ($success) {
+            return response()->json(['success' => true, 'message' => 'Translation updated successfully.']);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Failed to update translation.'], 422);
+    }
+
+    /**
+     * Delete a translation key
+     */
+    public function destroy(Request $request)
+    {
+        $validated = $request->validate([
+            'locale' => ['required', 'string', 'in:ko,en'],
+            'key' => ['required', 'string'],
+        ]);
+
+        $success = $this->translationService->deleteTranslation(
+            $validated['locale'],
+            $validated['key']
+        );
+
+        if ($success) {
+            return redirect()->back()->with('success', 'Translation deleted successfully.');
+        }
+
+        return back()->withErrors(['error' => 'Failed to delete translation.']);
+    }
+
+    /**
+     * Add a new translation key
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'locale' => ['required', 'string', 'in:ko,en'],
-            'namespace' => ['required', 'string'],
-            'key' => ['required', 'string', 'max:255'],
+            'key' => ['required', 'string'],
             'value' => ['required', 'string'],
-            'is_active' => ['nullable', 'boolean'],
+            'page' => ['nullable', 'string'],
         ]);
 
-        $validated['is_active'] = $validated['is_active'] ?? true;
-
-        Translation::updateOrCreate(
-            [
-                'locale' => $validated['locale'],
-                'namespace' => $validated['namespace'],
-                'key' => $validated['key'],
-            ],
-            $validated
+        $success = $this->translationService->addTranslation(
+            $validated['locale'],
+            $validated['key'],
+            $validated['value'],
+            $validated['page'] ?? null
         );
 
-        return redirect()->route('admin.translations.index', [
-            'locale' => $validated['locale'],
-            'namespace' => $validated['namespace'],
-        ])->with('success', 'Translation created successfully.');
-    }
-
-    /**
-     * Show the form for editing a translation.
-     */
-    public function edit(Translation $translation): Response
-    {
-        return Inertia::render('Admin/Translations/Edit', [
-            'translation' => $translation,
-            'locales' => ['ko' => 'Korean', 'en' => 'English'],
-            'namespaces' => ['translation' => 'Main Translations'],
-        ]);
-    }
-
-    /**
-     * Update the specified translation.
-     */
-    public function update(Request $request, Translation $translation)
-    {
-        $validated = $request->validate([
-            'locale' => ['required', 'string', 'in:ko,en'],
-            'namespace' => ['required', 'string'],
-            'key' => ['required', 'string', 'max:255'],
-            'value' => ['required', 'string'],
-            'is_active' => ['nullable', 'boolean'],
-        ]);
-
-        // If key changed, check for uniqueness
-        if ($validated['key'] !== $translation->key || 
-            $validated['locale'] !== $translation->locale || 
-            $validated['namespace'] !== $translation->namespace) {
-            
-            $exists = Translation::where('locale', $validated['locale'])
-                ->where('namespace', $validated['namespace'])
-                ->where('key', $validated['key'])
-                ->where('id', '!=', $translation->id)
-                ->exists();
-
-            if ($exists) {
-                return back()->withErrors(['key' => 'This translation key already exists for this locale and namespace.']);
-            }
+        if ($success) {
+            return redirect()->back()->with('success', 'Translation added successfully.');
         }
 
-        $translation->update($validated);
-
-        return redirect()->route('admin.translations.index', [
-            'locale' => $validated['locale'],
-            'namespace' => $validated['namespace'],
-        ])->with('success', 'Translation updated successfully.');
+        return back()->withErrors(['error' => 'Failed to add translation.']);
     }
 
     /**
-     * Remove the specified translation.
+     * Merge arrays recursively, keeping the second array's values
      */
-    public function destroy(Translation $translation)
+    protected function arrayMergeRecursiveDistinct(array $array1, array $array2): array
     {
-        $translation->delete();
+        $merged = $array1;
 
-        return redirect()->route('admin.translations.index', [
-            'locale' => $translation->locale,
-            'namespace' => $translation->namespace,
-        ])->with('success', 'Translation deleted successfully.');
-    }
-
-    /**
-     * Bulk import translations from JSON structure.
-     */
-    public function bulkImport(Request $request)
-    {
-        $validated = $request->validate([
-            'locale' => ['required', 'string', 'in:ko,en'],
-            'namespace' => ['required', 'string'],
-            'translations' => ['required', 'array'],
-        ]);
-
-        $imported = 0;
-        foreach ($validated['translations'] as $key => $value) {
-            if (is_array($value)) {
-                // Handle nested structure
-                $this->importNested($validated['locale'], $validated['namespace'], $key, $value);
-                $imported++;
+        foreach ($array2 as $key => &$value) {
+            if (is_array($value) && isset($merged[$key]) && is_array($merged[$key])) {
+                $merged[$key] = $this->arrayMergeRecursiveDistinct($merged[$key], $value);
             } else {
-                Translation::updateOrCreate(
-                    [
-                        'locale' => $validated['locale'],
-                        'namespace' => $validated['namespace'],
-                        'key' => $key,
-                    ],
-                    [
-                        'value' => $value,
-                        'is_active' => true,
-                    ]
-                );
-                $imported++;
+                $merged[$key] = $value;
             }
         }
 
-        return redirect()->route('admin.translations.index', [
-            'locale' => $validated['locale'],
-            'namespace' => $validated['namespace'],
-        ])->with('success', "{$imported} translations imported successfully.");
-    }
-
-    /**
-     * Import nested translation structure.
-     */
-    private function importNested(string $locale, string $namespace, string $prefix, array $data): void
-    {
-        foreach ($data as $key => $value) {
-            $fullKey = $prefix . '.' . $key;
-            if (is_array($value)) {
-                $this->importNested($locale, $namespace, $fullKey, $value);
-            } else {
-                Translation::updateOrCreate(
-                    [
-                        'locale' => $locale,
-                        'namespace' => $namespace,
-                        'key' => $fullKey,
-                    ],
-                    [
-                        'value' => $value,
-                        'is_active' => true,
-                    ]
-                );
-            }
-        }
+        return $merged;
     }
 }

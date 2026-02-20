@@ -9,12 +9,14 @@ import { store } from '@/routes/register';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
     status?: string;
 };
 
 export default function Register({ status }: Props) {
+    const { t } = useTranslation();
     const form = useForm({
         name: '',
         email: '',
@@ -51,11 +53,11 @@ export default function Register({ status }: Props) {
                 <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-1000 delay-200">
                     <div>
                         <h2 className="font-display text-5xl font-bold leading-tight mb-4">
-                            Join HR Path-Finder<br />
-                            <span className="text-success drop-shadow-lg">Design Your Future</span>
+                            {t('auth.register.promo_title')}<br />
+                            <span className="text-success drop-shadow-lg">{t('auth.register.promo_subtitle')}</span>
                         </h2>
                         <p className="text-white/80 text-lg max-w-md leading-relaxed">
-                            Transform your HR strategy with our step-by-step guided approach. Build organization structures, performance systems, and compensation frameworks with consulting-grade precision.
+                            {t('auth.register.promo_description')}
                         </p>
                     </div>
                     
@@ -64,19 +66,19 @@ export default function Register({ status }: Props) {
                             <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
                                 <CheckCircle2 className="w-5 h-5 text-success" />
                             </div>
-                            <span className="text-sm">Step-by-step guided process</span>
+                            <span className="text-sm">{t('auth.register.feature_guided')}</span>
                         </div>
                         <div className="flex items-center gap-3 text-white/90">
                             <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
                                 <CheckCircle2 className="w-5 h-5 text-success" />
                             </div>
-                            <span className="text-sm">Consulting-grade logic & methodology</span>
+                            <span className="text-sm">{t('auth.register.feature_consulting')}</span>
                         </div>
                         <div className="flex items-center gap-3 text-white/90">
                             <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
                                 <CheckCircle2 className="w-5 h-5 text-success" />
                             </div>
-                            <span className="text-sm">Real-time collaboration & approval</span>
+                            <span className="text-sm">{t('auth.register.feature_approval')}</span>
                         </div>
                     </div>
                 </div>
@@ -84,10 +86,10 @@ export default function Register({ status }: Props) {
                 <div className="flex items-center gap-8 text-white/60 text-sm animate-in fade-in slide-in-from-left-4 duration-1000 delay-500">
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-success animate-pulse"></div>
-                        <span>Trusted by 100+ companies</span>
+                        <span>{t('auth.register.trusted')}</span>
                     </div>
                     <span>•</span>
-                    <span>Enterprise-grade security</span>
+                    <span>{t('auth.register.enterprise_security')}</span>
                 </div>
             </div>
 
@@ -113,17 +115,17 @@ export default function Register({ status }: Props) {
                     <div className="mb-4">
                         <Link href={home()} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                             <ArrowLeft className="w-4 h-4" />
-                            Back to home
+                            {t('auth.register.back_to_home')}
                         </Link>
                     </div>
 
                     <div className="bg-card border border-border rounded-2xl shadow-xl p-8 space-y-6">
                             <div className="text-center lg:text-left animate-in fade-in slide-in-from-bottom-4">
                                 <h2 className="text-3xl font-display font-bold">
-                                    Create HR Manager Account
+                                    {t('auth.register.title')}
                                 </h2>
                                 <p className="text-muted-foreground mt-2 text-sm">
-                                    Register to start designing your HR system
+                                    {t('auth.register.subtitle')}
                                 </p>
                             </div>
 
@@ -168,7 +170,7 @@ export default function Register({ status }: Props) {
                                     <>
                                         <div className="space-y-2">
                                             <Label htmlFor="name" className="text-sm font-medium leading-none cursor-pointer">
-                                                Full Name
+                                                {t('auth.register.name_label')}
                                             </Label>
                                             <Input
                                                 id="name"
@@ -180,7 +182,7 @@ export default function Register({ status }: Props) {
                                                 autoFocus
                                                 tabIndex={1}
                                                 autoComplete="name"
-                                                placeholder="John Doe"
+                                                placeholder={t('auth.register.name_placeholder')}
                                                 className="h-11 w-full transition-all duration-200 focus:ring-2 focus:ring-primary/20 cursor-text"
                                             />
                                             <InputError message={errors.name} />
@@ -188,7 +190,7 @@ export default function Register({ status }: Props) {
 
                                         <div className="space-y-2">
                                             <Label htmlFor="email" className="text-sm font-medium leading-none cursor-pointer">
-                                                Email address
+                                                {t('auth.register.email_label')}
                                             </Label>
                                             <Input
                                                 id="email"
@@ -199,7 +201,7 @@ export default function Register({ status }: Props) {
                                                 required
                                                 tabIndex={2}
                                                 autoComplete="email"
-                                                placeholder="you@company.com"
+                                                placeholder={t('auth.register.email_placeholder')}
                                                 className="h-11 w-full transition-all duration-200 focus:ring-2 focus:ring-primary/20 cursor-text"
                                             />
                                             <InputError message={errors.email} />
@@ -207,7 +209,7 @@ export default function Register({ status }: Props) {
 
                                         <div className="space-y-2">
                                             <Label htmlFor="password" className="text-sm font-medium leading-none cursor-pointer">
-                                                Password
+                                                {t('auth.register.password_label')}
                                             </Label>
                                             <Input
                                                 id="password"
@@ -218,7 +220,7 @@ export default function Register({ status }: Props) {
                                                 required
                                                 tabIndex={3}
                                                 autoComplete="new-password"
-                                                placeholder="••••••••"
+                                                placeholder={t('auth.register.password_placeholder')}
                                                 className="h-11 w-full transition-all duration-200 focus:ring-2 focus:ring-primary/20 cursor-text"
                                             />
                                             <InputError message={errors.password} />
@@ -226,7 +228,7 @@ export default function Register({ status }: Props) {
 
                                         <div className="space-y-2">
                                             <Label htmlFor="password_confirmation" className="text-sm font-medium leading-none cursor-pointer">
-                                                Confirm Password
+                                                {t('auth.register.password_confirm_label')}
                                             </Label>
                                             <Input
                                                 id="password_confirmation"
@@ -237,7 +239,7 @@ export default function Register({ status }: Props) {
                                                 required
                                                 tabIndex={4}
                                                 autoComplete="new-password"
-                                                placeholder="••••••••"
+                                                placeholder={t('auth.register.password_confirm_placeholder')}
                                                 className="h-11 w-full transition-all duration-200 focus:ring-2 focus:ring-primary/20 cursor-text"
                                             />
                                             <InputError message={errors.password_confirmation} />
@@ -253,11 +255,11 @@ export default function Register({ status }: Props) {
                                             {processing ? (
                                                 <>
                                                     <Spinner className="mr-2" />
-                                                    Creating account...
+                                                    {t('auth.register.creating_account')}
                                                 </>
                                             ) : (
                                                 <>
-                                                    Create account
+                                                    {t('auth.register.create_account')}
                                                     <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                                                 </>
                                             )}
@@ -269,12 +271,12 @@ export default function Register({ status }: Props) {
 
                             <div className="pt-4 border-t border-border">
                                 <p className="text-center text-sm text-muted-foreground">
-                                    Already have an account?{' '}
+                                    {t('auth.register.have_account')}{' '}
                                     <TextLink 
                                         href={login()} 
                                         className="text-[#0a1629] font-semibold hover:text-[#0d1b35] transition-all duration-200 hover:underline cursor-pointer inline-flex items-center gap-1"
                                     >
-                                        Sign in
+                                        {t('auth.register.sign_in')}
                                         <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-1" />
                                     </TextLink>
                                 </p>

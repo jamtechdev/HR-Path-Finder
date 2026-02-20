@@ -8,6 +8,7 @@ import { request } from '@/routes/password';
 import { register, home } from '@/routes';
 import { Form, Head, Link, useForm } from '@inertiajs/react';
 import { ArrowRight, Sparkles, CheckCircle2, Shield, Zap, ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
     status?: string;
@@ -20,6 +21,7 @@ export default function Login({
     canResetPassword,
     canRegister,
 }: Props) {
+    const { t } = useTranslation();
     const form = useForm({
         email: '',
         password: '',
@@ -50,46 +52,44 @@ export default function Login({
                 </div>
                 
                 <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-1000 delay-200">
-                    <div>
-                        <h2 className="font-display text-5xl font-bold leading-tight mb-4">
-                            Design your HR system<br />
-                            with <span className="text-success drop-shadow-lg">consulting-grade</span><br />
-                            precision.
-                        </h2>
-                        <p className="text-white/80 text-lg max-w-md leading-relaxed">
-                            Transform your HR strategy with our step-by-step guided approach. Build organization structures, performance systems, and compensation frameworks.
-                        </p>
-                    </div>
-                    
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-3 text-white/90">
-                            <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
-                                <Zap className="w-5 h-5 text-success" />
-                            </div>
-                            <span className="text-sm">Fast & intuitive workflow</span>
+                        <div>
+                            <h2 className="font-display text-5xl font-bold leading-tight mb-4">
+                                {t('auth.login.promo_title')}
+                            </h2>
+                            <p className="text-white/80 text-lg max-w-md leading-relaxed">
+                                {t('auth.login.promo_subtitle')}
+                            </p>
                         </div>
-                        <div className="flex items-center gap-3 text-white/90">
-                            <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
-                                <Shield className="w-5 h-5 text-success" />
+                        
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-3 text-white/90">
+                                <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
+                                    <Zap className="w-5 h-5 text-success" />
+                                </div>
+                                <span className="text-sm">{t('auth.login.feature_fast')}</span>
                             </div>
-                            <span className="text-sm">Enterprise-grade security</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-white/90">
-                            <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
-                                <CheckCircle2 className="w-5 h-5 text-success" />
+                            <div className="flex items-center gap-3 text-white/90">
+                                <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
+                                    <Shield className="w-5 h-5 text-success" />
+                                </div>
+                                <span className="text-sm">{t('auth.login.feature_security')}</span>
                             </div>
-                            <span className="text-sm">Real-time collaboration</span>
+                            <div className="flex items-center gap-3 text-white/90">
+                                <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
+                                    <CheckCircle2 className="w-5 h-5 text-success" />
+                                </div>
+                                <span className="text-sm">{t('auth.login.feature_collaboration')}</span>
+                            </div>
                         </div>
-                    </div>
                 </div>
                 
                 <div className="flex items-center gap-8 text-white/60 text-sm animate-in fade-in slide-in-from-left-4 duration-1000 delay-500">
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-success animate-pulse"></div>
-                        <span>Trusted by 100+ companies</span>
+                        <span>{t('auth.login.trusted')}</span>
                     </div>
                     <span>•</span>
-                    <span>Consulting-grade logic</span>
+                    <span>{t('auth.login.consulting_grade')}</span>
                 </div>
             </div>
 
@@ -115,7 +115,7 @@ export default function Login({
                     <div className="mb-4">
                         <Link href={home()} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                             <ArrowLeft className="w-4 h-4" />
-                            Back to home
+                            {t('auth.login.back_to_home')}
                         </Link>
                     </div>
 
@@ -124,9 +124,9 @@ export default function Login({
                         {/* Header */}
                         <div className="text-center lg:text-left">
                             <h2 className="text-3xl font-display font-bold">
-                                Welcome back
+                                {t('auth.login.title')}
                             </h2>
-                            <p className="text-muted-foreground mt-2 text-sm">Sign in to continue your HR system design</p>
+                            <p className="text-muted-foreground mt-2 text-sm">{t('auth.login.subtitle')}</p>
                         </div>
 
                         {/* Status Message */}
@@ -151,7 +151,7 @@ export default function Login({
                         >
                             <div className="space-y-2">
                                 <Label htmlFor="email" className="text-sm font-medium leading-none cursor-pointer">
-                                    Email
+                                    {t('auth.login.email_label')}
                                 </Label>
                                 <Input
                                     id="email"
@@ -162,7 +162,7 @@ export default function Login({
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="email"
-                                    placeholder="you@company.com"
+                                    placeholder={t('auth.login.email_placeholder')}
                                     className="h-11 w-full transition-all duration-200 focus:ring-2 focus:ring-primary/20 cursor-text"
                                 />
                                 <InputError message={form.errors.email} />
@@ -171,7 +171,7 @@ export default function Login({
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
                                     <Label htmlFor="password" className="text-sm font-medium leading-none cursor-pointer">
-                                        Password
+                                        {t('auth.login.password_label')}
                                     </Label>
                                     {canResetPassword && (
                                         <TextLink
@@ -179,7 +179,7 @@ export default function Login({
                                             className="text-sm text-[#0a1629] hover:text-[#0d1b35] font-medium transition-all duration-200 hover:underline cursor-pointer"
                                             tabIndex={5}
                                         >
-                                            Forgot password?
+                                            {t('auth.login.forgot_password')}
                                         </TextLink>
                                     )}
                                 </div>
@@ -207,11 +207,11 @@ export default function Login({
                                 {form.processing ? (
                                     <>
                                         <Spinner className="mr-2" />
-                                        Signing in...
+                                        {t('auth.login.signing_in')}
                                     </>
                                 ) : (
                                     <>
-                                        Sign in
+                                        {t('auth.login.sign_in')}
                                         <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                                     </>
                                 )}
@@ -221,13 +221,13 @@ export default function Login({
                         {canRegister && (
                             <div className="pt-4 border-t border-border">
                                 <p className="text-center text-sm text-muted-foreground">
-                                    Don't have an account?{' '}
+                                    {t('auth.login.no_account')}{' '}
                                     <TextLink
                                         href={register()}
                                         className="text-[#0a1629] font-semibold hover:text-[#0d1b35] transition-all duration-200 hover:underline cursor-pointer inline-flex items-center gap-1"
                                         tabIndex={4}
                                     >
-                                        Create account
+                                        {t('auth.login.create_account')}
                                         <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-1" />
                                     </TextLink>
                                 </p>

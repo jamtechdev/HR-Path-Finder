@@ -19,14 +19,10 @@ interface LandingPageSection {
 
 interface Props {
     canRegister?: boolean;
-    sections?: {
-        ko?: Record<string, LandingPageSection>;
-        en?: Record<string, LandingPageSection>;
-    } | Record<string, LandingPageSection>; // Support both old and new format
 }
 
-export default function LandingPage({ canRegister = true, sections = {} }: Props) {
-    const { i18n } = useTranslation();
+export default function LandingPage({ canRegister = true }: Props) {
+    const { t, i18n } = useTranslation();
     const [currentLang, setCurrentLang] = useState(i18n.language || 'ko');
 
     // Listen for language changes
@@ -48,117 +44,108 @@ export default function LandingPage({ canRegister = true, sections = {} }: Props
         };
     }, [i18n]);
 
-    // Memoize sections based on current language - this will recalculate when language changes
-    const currentSections = useMemo(() => {
-        // Check if sections is in new format (object with ko/en keys)
-        if (sections && typeof sections === 'object' && ('ko' in sections || 'en' in sections)) {
-            const langSections = sections[currentLang as 'ko' | 'en'] || sections['ko'] || {};
-            return langSections as Record<string, LandingPageSection>;
-        }
-        // Old format: single object (assumed to be Korean)
-        return sections as Record<string, LandingPageSection>;
-    }, [sections, currentLang]);
-
-    // Helper function to get section content with fallback
-    const getSection = (key: string, fallback: string): string => {
-        return currentSections[key]?.content || fallback;
+    // Helper function to get translation with fallback
+    const getTranslation = (key: string, fallback: string): string => {
+        const translation = t(`landing.${key}`, { defaultValue: fallback });
+        return translation || fallback;
     };
 
-    // Helper function to parse JSON sections
-    const getJsonSection = (key: string, fallback: any[]): any[] => {
-        if (currentSections[key]?.content) {
-            try {
-                return JSON.parse(currentSections[key].content);
-            } catch (e) {
-                return fallback;
-            }
-        }
-        return fallback;
-    };
 
     // Default "Everything you need" section cards (4 cards)
     const defaultEverythingCards = [
         {
-            icon: Building2,
-            title: 'Organization Design',
-            description: 'Structure your company with functional, team-based, divisional, or matrix organizations.',
+            icon: UserCog,
+            title: '조직속성 경영철학',
+            description: '우리 회사의 운영 원칙과 조직 방향을 정의합니다.',
         },
         {
             icon: Target,
-            title: 'Performance System',
-            description: 'Design KPI, MBO, OKR, or BSC-based performance evaluation frameworks.',
+            title: '직무분석',
+            description: '각 직무의 역할과 책임, 성과요인을 설정합니다.',
+        },
+        {
+            icon: BarChart3,
+            title: '성과관리체계',
+            description: '성과평가의 기준과 운영 방식을 정의합니다.',
         },
         {
             icon: Coins,
-            title: 'Compensation System',
-            description: 'Build competitive pay structures with merit, incentives, and role-based differentiation.',
-        },
-        {
-            icon: UserCog,
-            title: 'CEO Philosophy',
-            description: 'Align HR systems with leadership style through structured management philosophy surveys.',
+            title: '보상체계',
+            description: '조직 특성에 기반한 보상 기준을 설정합니다.',
         },
     ];
 
     // Default "Why HR Path-Finder?" checkmark items
     const defaultWhyItems = [
-        'Sequential, consulting-grade workflow',
-        'Rule-based recommendations (no AI guesswork)',
-        'CEO and HR Manager collaboration',
-        'Complete audit trail for all decisions',
-        'Professional HR system dashboard',
-        'Export-ready reports and policies',
+        '업종과 조직규모, 경영철학을 고려한 맞춤형 설계',
+        '전문 컨설턴트의 맞춤형 검토, 리포트 제공',
+        '컨설턴트 기준에 따른 규칙 기반 설계 (AI추측 없음)',
+        '타겟 경쟁사와의 보상 수준 비교',
+        '설계된 전체 구조를 한 눈에 볼 수 있는 대시보드',
+        '운영지원 및 정기 조직진단 (옵션)',
     ];
 
     // Default feature cards (4 cards)
     const defaultFeatureCards = [
         {
-            icon: Shield,
-            title: 'Role-Based Access',
-            description: 'CEO, HR Manager, and Consultant each have specific permissions and views.',
+            icon: Users,
+            title: '역할 기반 접근',
+            description: 'CEO와 HR담당자가 각자의 역할에 맞게 설계를 진행할 수 있습니다.',
         },
         {
             icon: BarChart3,
-            title: 'Visual Dashboard',
-            description: 'See your entire HR system at a glance with professional visualizations.',
+            title: 'HR구조를 한눈에 확인',
+            description: '초안 설계 직후 직무,평가체계,보상구조를 하나의 화면에서 확인할 수 있습니다.',
         },
         {
-            icon: Target,
-            title: 'Logical Validation',
-            description: 'System blocks incompatible selections ensuring consistent HR design.',
+            icon: Shield,
+            title: '논리적 검증',
+            description: '설계 과정의 충돌과 불일치를 방지하고 마지막 단계에서 전문 컨설턴트가 전체 구조를 검토, 제안을 드립니다.',
         },
         {
-            icon: Users,
-            title: 'Collaborative Flow',
-            description: 'CEO and HR Manager work together with clear handoffs and approvals.',
+            icon: TrendingUp,
+            title: 'CEO와 HR 협업 기반 설계',
+            description: '명확한 승인 구조를 기반으로 공동설계를 진행, 경영진과 인사부서의 생각을 연결합니다.',
         },
     ];
 
-    // Get "Everything you need" cards from database or use default
-    const everythingCardsData = getJsonSection('everything_cards', defaultEverythingCards);
-    const everythingCards = everythingCardsData.map((f: any, idx: number) => ({
-        icon: [Building2, Target, Coins, UserCog][idx] || Building2,
-        title: f.title || defaultEverythingCards[idx]?.title || '',
-        description: f.description || defaultEverythingCards[idx]?.description || '',
-    }));
+    // Get "Everything you need" cards from translations
+    const everythingCardsObj = t('landing.everything.cards', { returnObjects: true });
+    let everythingCards = defaultEverythingCards;
+    if (everythingCardsObj && typeof everythingCardsObj === 'object') {
+        const cardsArray = Object.values(everythingCardsObj);
+        if (Array.isArray(cardsArray) && cardsArray.length > 0) {
+            everythingCards = cardsArray.map((f: any, idx: number) => ({
+                icon: [UserCog, Target, BarChart3, Coins][idx] || UserCog,
+                title: f.title || defaultEverythingCards[idx]?.title || '',
+                description: f.description || defaultEverythingCards[idx]?.description || '',
+            }));
+        }
+    }
 
-    // Get "Why" items from database or use default
-    const whyItemsData = getJsonSection('why_items', defaultWhyItems);
-    const whyItems = whyItemsData.length > 0 ? whyItemsData : defaultWhyItems;
+    // Get "Why" items from translations
+    const whyItemsData = t('landing.why.items', { returnObjects: true });
+    const whyItems = Array.isArray(whyItemsData) && whyItemsData.length > 0 ? whyItemsData : defaultWhyItems;
 
-    // Get feature cards from database or use default
-    const featureCardsData = getJsonSection('feature_cards', defaultFeatureCards);
-    const featureCards = featureCardsData.map((f: any, idx: number) => ({
-        icon: [Shield, BarChart3, Target, Users][idx] || Shield,
-        title: f.title || defaultFeatureCards[idx]?.title || '',
-        description: f.description || defaultFeatureCards[idx]?.description || '',
-    }));
+    // Get feature cards from translations
+    const featuresObj = t('landing.features', { returnObjects: true });
+    let featureCards = defaultFeatureCards;
+    if (featuresObj && typeof featuresObj === 'object') {
+        const featuresArray = Object.values(featuresObj);
+        if (Array.isArray(featuresArray) && featuresArray.length > 0) {
+            featureCards = featuresArray.map((f: any, idx: number) => ({
+                icon: [Users, BarChart3, Shield, TrendingUp][idx] || Users,
+                title: f.title || defaultFeatureCards[idx]?.title || '',
+                description: f.description || defaultFeatureCards[idx]?.description || '',
+            }));
+        }
+    }
 
 
     return (
         <>
             <TranslationLoader />
-            <Head title={getSection('page_title', currentLang === 'en' ? 'HR Copilot - Professional-Grade HR System Design Platform' : 'HR Copilot - 전문가급 HR 시스템 설계 플랫폼')} />
+            <Head title={currentLang === 'en' ? 'HR Pathfinder - Professional-Grade HR System Design Platform' : 'HR Pathfinder - 20~300인 기업 특화 HR제도 설계 플랫폼'} />
             <div className="min-h-screen bg-background" key={currentLang}>
                 {/* Header Navigation */}
                 <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
@@ -169,18 +156,18 @@ export default function LandingPage({ canRegister = true, sections = {} }: Props
                                     HR
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-lg font-bold text-gray-900">{getSection('header_logo_text', 'HR Copilot')}</span>
-                                    <span className="text-xs text-gray-600">{getSection('header_company_text', 'by BetterCompany')}</span>
+                                    <span className="text-lg font-bold text-gray-900">{getTranslation('header.logo', 'HR Pathfinder')}</span>
+                                    <span className="text-xs text-gray-600">{getTranslation('header.company', 'powered by bettercompany')}</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
                                 <LanguageToggle />
                                 <Link href={login()} className="text-sm font-medium text-gray-700 hover:text-[#0a1629]">
-                                    {getSection('header_sign_in', '로그인')}
+                                    {getTranslation('header.sign_in', '로그인')}
                                 </Link>
                                 <Button asChild className="bg-[#0a1629] hover:bg-[#0d1b35] text-white font-medium px-4 py-2 rounded-lg text-sm h-auto shadow-sm">
                                     <Link href={canRegister ? register() : login()}>
-                                        {getSection('header_get_started', '시작하기')}
+                                        {getTranslation('header.get_started', '시작하기')}
                                         <ArrowRight className="ml-2 w-4 h-4" />
                                     </Link>
                                 </Button>
@@ -193,24 +180,35 @@ export default function LandingPage({ canRegister = true, sections = {} }: Props
                 <section className="border-b bg-gradient-to-b from-background to-muted/20">
                     <HeroSectionKo 
                         canRegister={canRegister}
-                        badge={getSection('hero_badge_text', '컨설팅급 HR 설계 플랫폼')}
-                        title={getSection('hero_title', '정밀한 HR 시스템을 설계하세요.')}
-                        description={getSection('hero_description', '중소기업의 HR 프레임워크 구축 방식을 혁신합니다. 단계별 가이드 접근 방식으로 전문 컨설팅 업무를 현대적인 SaaS 플랫폼 안에서 재현합니다.')}
-                        primaryButton={getSection('hero_cta_primary', '무료 체험 시작하기')}
-                        secondaryButton={getSection('hero_cta_secondary', '데모 보기')}
-                        trustText={getSection('hero_trust_text', '100개 이상의 기업이 HR Copilot을 신뢰합니다')}
-                        overviewTitle={getSection('overview_title', 'HR 시스템 개요')}
-                        overviewProgress={getSection('overview_progress', '4/4 완료')}
-                        overviewSteps={getJsonSection('overview_steps', [
-                            { id: 1, name: '진단', completed: true },
-                            { id: 2, name: '조직 설계', completed: true },
-                            { id: 3, name: '성과 관리', completed: true },
-                            { id: 4, name: '보상 체계', completed: true },
-                        ])}
-                        alignmentLabel={getSection('alignment_label', 'CEO 정렬도')}
-                        alignmentScore={getSection('alignment_score', '높음')}
-                        alignmentDescription={getSection('alignment_description', 'HR 시스템 설계가 CEO의 경영 철학과 잘 일치합니다')}
+                        badge={getTranslation('hero.badge', '20~300인 기업 특화 HR제도 설계 플랫폼')}
+                        title={getTranslation('hero.title', 'HR컨설팅의 설계 프로세스를 온라인에서 직접 진행하세요')}
+                        description={getTranslation('hero.description', '복잡한 HR제도 설계를 단계별 가이드로 따라가며 직접 완성할 수 있습니다. 설계 과정에는 전문 HR컨설팅의 기준과 로직이 반영되어 있으며 고객사의 설계안에 대해 전문 컨설턴트가 종합 리포트를 제공합니다.')}
+                        primaryButton={getTranslation('hero.cta_primary', 'HR설계 시작하기')}
+                        secondaryButton={getTranslation('hero.cta_secondary', '데모 보기')}
+                        trustText={''}
+                        overviewTitle={t('dashboard.overview', 'HR 시스템 개요')}
+                        overviewProgress={'4/4 완료'}
+                        overviewSteps={[
+                            { id: 1, name: t('steps.diagnosis', '진단'), completed: true },
+                            { id: 2, name: t('steps.job_analysis', '조직 설계'), completed: true },
+                            { id: 3, name: t('steps.performance', '성과 관리'), completed: true },
+                            { id: 4, name: t('steps.compensation', '보상 체계'), completed: true },
+                        ]}
+                        alignmentLabel={'CEO 정렬도'}
+                        alignmentScore={'높음'}
+                        alignmentDescription={'HR 시스템 설계가 CEO의 경영 철학과 잘 일치합니다'}
                     />
+                    {/* Better Company Link */}
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+                        <a 
+                            href="https://better.odw.co.kr" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-sm text-gray-600 hover:text-[#0a1629] transition-colors cursor-pointer"
+                        >
+                            <span>☞ 실무형 HR 컨설팅펌 Better Company의 설계 프레임워크를 기반으로 합니다.</span>
+                        </a>
+                    </div>
                 </section>
 
                 {/* Everything You Need Section */}
@@ -218,10 +216,10 @@ export default function LandingPage({ canRegister = true, sections = {} }: Props
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="mb-12 text-center">
                             <h2 className="mb-4 text-3xl md:text-4xl lg:text-5xl font-bold">
-                                {getSection('everything_title', 'Everything you need to build a complete HR system')}
+                                {getTranslation('everything.title', '성과와 조직 안정을 이끄는 HR체계의 핵심 영역')}
                             </h2>
                             <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-                                {getSection('everything_description', 'Our platform guides you through each step with consulting-grade logic and rule-based recommendations.')}
+                                {getTranslation('everything.description', 'Pathfinder는 경영철학 진단, 직무분석, 성과체계, 보상체계의 단계별 설계로 조직 운영 기준을 명확히 정의합니다.')}
                             </p>
                         </div>
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -242,10 +240,10 @@ export default function LandingPage({ canRegister = true, sections = {} }: Props
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="max-w-4xl mx-auto">
                             <h2 className="mb-4 text-3xl md:text-4xl font-bold text-center">
-                                {getSection('why_title', 'Why HR Path-Finder?')}
+                                {getTranslation('why.title', 'HR Pathfinder가 제공하는 핵심 가치는?')}
                             </h2>
                             <p className="mb-8 text-lg text-muted-foreground text-center">
-                                {getSection('why_description', 'We replicate the structured approach of professional HR consulting, making it accessible to companies without dedicated HR planning teams.')}
+                                {getTranslation('why.description', '전문 HR컨설팅의 설계방식을 기반으로 HR전담 조직이 없는 회사도 체계적인 정책 설계를 진행할 수 있습니다.')}
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {whyItems.map((item, idx) => (
@@ -278,9 +276,9 @@ export default function LandingPage({ canRegister = true, sections = {} }: Props
                 {/* CTA Section */}
                 <CTASectionKo 
                     canRegister={canRegister}
-                    title={getSection('cta_title', 'HR 시스템을 설계할 준비가 되셨나요?')}
-                    description={getSection('cta_description', '오늘 무료 체험을 시작하고 프로토타입부터 전체 구현까지 확장 가능한 컨설팅급 HR 설계를 경험해보세요.')}
-                    buttonText={getSection('cta_button', '무료로 시작하기')}
+                    title={getTranslation('cta.title', '우리 회사의 HR시스템을 설계할 준비가 되셨나요?')}
+                    description={getTranslation('cta.description', 'HR-Pathfinder의 기능은 점진적으로 계속 확장됩니다. 인연이 된 고객사의 성공적인 비즈니스를 위해 지속적인 지원을 아끼지 않겠습니다.')}
+                    buttonText={getTranslation('cta.button', 'HR Pathfinder 시작하기')}
                 />
 
                 {/* Footer */}
@@ -292,12 +290,12 @@ export default function LandingPage({ canRegister = true, sections = {} }: Props
                                     HR
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-lg font-bold text-gray-900">{getSection('header_logo_text', 'HR Copilot')}</span>
-                                    <span className="text-xs text-gray-600">{getSection('header_company_text', 'by BetterCompany')}</span>
+                                    <span className="text-lg font-bold text-gray-900">{getTranslation('header.logo', 'HR Pathfinder')}</span>
+                                    <span className="text-xs text-gray-600">{getTranslation('header.company', 'powered by bettercompany')}</span>
                                 </div>
                             </div>
                             <p className="text-sm text-gray-600">
-                                {getSection('footer_copyright', '© 2025 BetterCompany. All rights reserved.')}
+                                {getTranslation('footer.copyright', '© 2026 Everthere.inc All rights reserved.')}
                             </p>
                         </div>
                     </div>

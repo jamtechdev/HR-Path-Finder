@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -9,40 +9,98 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronLeft } from 'lucide-react';
-
-interface Translation {
-    id: number;
-    locale: string;
-    namespace: string;
-    key: string;
-    value: string;
-    is_active: boolean;
-}
+import { ChevronLeft, Save } from 'lucide-react';
 
 interface Props {
-    translation: Translation;
+    translations: Record<string, any>;
     locales: Record<string, string>;
-    namespaces: Record<string, string>;
+    pages: Record<string, string>;
+    currentLocale: string;
+    currentPage: string;
 }
 
-export default function TranslationsEdit({ translation, locales, namespaces }: Props) {
-    const { data, setData, post, processing, errors } = useForm({
-        locale: translation.locale,
-        namespace: translation.namespace,
-        key: translation.key,
-        value: translation.value,
-        is_active: translation.is_active,
-    });
+export default function TranslationsEdit({ translations, locales, pages, currentLocale, currentPage }: Props) {
+    const [editedTranslations, setEditedTranslations] = useState<Record<string, string>>({});
+    const [newKey, setNewKey] = useState('');
+    const [newValue, setNewValue] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        post(`/admin/translations/${translation.id}`, {
+    // Flatten nested translations for editing
+    const flattenTranslations = (obj: any, prefix = ''): Record<string, string> => {
+        const result: Record<string, string> = {};
+        for (const key in obj) {
+            const fullKey = prefix ? `${prefix}.${key}` : key;
+            if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+                Object.assign(result, flattenTranslations(obj[key], fullKey));
+            } else {
+                result[fullKey] = String(obj[key]);
+            }
+        }
+        return result;
+    };
+
+    const flatTranslations = flattenTranslations(translations);
+    const [allTranslations, setAllTranslations] = useState<Record<string, string>>(flatTranslations);
+
+    useEffect(() => {
+        setAllTranslations(flattenTranslations(translations));
+        setEditedTranslations({});
+    }, [translations]);
+
+    const handleValueChange = (key: string, value: string) => {
+        setEditedTranslations(prev => ({ ...prev, [key]: value }));
+        setAllTranslations(prev => ({ ...prev, [key]: value }));
+    };
+
+    const handleAddNew = () => {
+        if (newKey && newValue) {
+            const fullKey = currentPage === 'all' ? newKey : `${currentPage}.${newKey}`;
+            setAllTranslations(prev => ({ ...prev, [fullKey]: newValue }));
+            setEditedTranslations(prev => ({ ...prev, [fullKey]: newValue }));
+            setNewKey('');
+            setNewValue('');
+        }
+    };
+
+    const handleSave = () => {
+        // Reconstruct nested structure from flat keys
+        const nested: Record<string, any> = {};
+        
+        Object.entries(allTranslations).forEach(([key, value]) => {
+            const keys = key.split('.');
+            let current = nested;
+            
+            for (let i = 0; i < keys.length - 1; i++) {
+                if (!current[keys[i]]) {
+                    current[keys[i]] = {};
+                }
+                current = current[keys[i]];
+            }
+            
+            current[keys[keys.length - 1]] = value;
+        });
+
+        router.put('/admin/translations', {
+            locale: currentLocale,
+            page: currentPage,
+            translations: nested,
+        }, {
+            preserveScroll: true,
             onSuccess: () => {
-                router.visit('/admin/translations');
+                setEditedTranslations({});
             },
         });
+    };
+
+    const handleDelete = (key: string) => {
+        if (confirm('Are you sure you want to delete this translation key?')) {
+            router.delete('/admin/translations', {
+                data: {
+                    locale: currentLocale,
+                    key: key,
+                },
+                preserveScroll: true,
+            });
+        }
     };
 
     return (
@@ -53,8 +111,8 @@ export default function TranslationsEdit({ translation, locales, namespaces }: P
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
                 <main className="flex-1 overflow-auto">
-                    <Head title="Edit Translation" />
-                    <div className="p-6 md:p-8 max-w-4xl mx-auto">
+                    <Head title="Edit Translations" />
+                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
                             <Button
                                 variant="ghost"
@@ -64,118 +122,94 @@ export default function TranslationsEdit({ translation, locales, namespaces }: P
                                 <ChevronLeft className="w-4 h-4 mr-2" />
                                 Back to Translations
                             </Button>
-                            <h1 className="text-3xl font-bold">Edit Translation</h1>
-                        </div>
-
-                        <form onSubmit={handleSubmit}>
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Translation Details</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <Label>Language <span className="text-destructive">*</span></Label>
-                                            <Select
-                                                value={data.locale}
-                                                onValueChange={(v) => setData('locale', v)}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {Object.entries(locales).map(([key, label]) => (
-                                                        <SelectItem key={key} value={key}>
-                                                            {label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            {errors.locale && (
-                                                <p className="text-sm text-destructive mt-1">{errors.locale}</p>
-                                            )}
-                                        </div>
-
-                                        <div>
-                                            <Label>Namespace <span className="text-destructive">*</span></Label>
-                                            <Select
-                                                value={data.namespace}
-                                                onValueChange={(v) => setData('namespace', v)}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {Object.entries(namespaces).map(([key, label]) => (
-                                                        <SelectItem key={key} value={key}>
-                                                            {label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            {errors.namespace && (
-                                                <p className="text-sm text-destructive mt-1">{errors.namespace}</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <Label>Translation Key <span className="text-destructive">*</span></Label>
-                                        <Input
-                                            value={data.key}
-                                            onChange={(e) => setData('key', e.target.value)}
-                                            required
-                                        />
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            Use dot notation for nested keys (e.g., common.save, buttons.continue)
-                                        </p>
-                                        {errors.key && (
-                                            <p className="text-sm text-destructive mt-1">{errors.key}</p>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <Label>Translation Value <span className="text-destructive">*</span></Label>
-                                        <Textarea
-                                            value={data.value}
-                                            onChange={(e) => setData('value', e.target.value)}
-                                            rows={3}
-                                            required
-                                        />
-                                        {errors.value && (
-                                            <p className="text-sm text-destructive mt-1">{errors.value}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox
-                                            id="is_active"
-                                            checked={data.is_active}
-                                            onCheckedChange={(checked) => setData('is_active', checked as boolean)}
-                                        />
-                                        <Label htmlFor="is_active" className="cursor-pointer">
-                                            Active (translation will be used in the application)
-                                        </Label>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <div className="mt-6 flex justify-end gap-2">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => router.visit('/admin/translations')}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button type="submit" disabled={processing}>
-                                    Update Translation
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h1 className="text-3xl font-bold">Edit Translations</h1>
+                                    <p className="text-muted-foreground mt-1">
+                                        {locales[currentLocale]} - {pages[currentPage]}
+                                    </p>
+                                </div>
+                                <Button onClick={handleSave} disabled={Object.keys(editedTranslations).length === 0}>
+                                    <Save className="w-4 h-4 mr-2" />
+                                    Save Changes
                                 </Button>
                             </div>
-                        </form>
+                        </div>
+
+                        {/* Add New Translation */}
+                        <Card className="mb-6">
+                            <CardHeader>
+                                <CardTitle>Add New Translation</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <Label>Key</Label>
+                                        <Input
+                                            value={newKey}
+                                            onChange={(e) => setNewKey(e.target.value)}
+                                            placeholder="e.g., title, subtitle"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label>Value</Label>
+                                        <Input
+                                            value={newValue}
+                                            onChange={(e) => setNewValue(e.target.value)}
+                                            placeholder="Translation text"
+                                        />
+                                    </div>
+                                    <div className="flex items-end">
+                                        <Button onClick={handleAddNew} className="w-full">
+                                            Add Translation
+                                        </Button>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Edit Translations */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Translations ({Object.keys(allTranslations).length})</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    {Object.entries(allTranslations).map(([key, value]) => (
+                                        <div key={key} className="flex gap-4 items-start p-4 border rounded-lg">
+                                            <div className="flex-1">
+                                                <Label className="text-xs text-muted-foreground mb-1 block">
+                                                    {key}
+                                                </Label>
+                                                <Textarea
+                                                    value={value}
+                                                    onChange={(e) => handleValueChange(key, e.target.value)}
+                                                    rows={2}
+                                                    className="font-mono text-sm"
+                                                />
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleDelete(key)}
+                                                className="text-destructive"
+                                            >
+                                                Delete
+                                            </Button>
+                                        </div>
+                                    ))}
+                                    {Object.keys(allTranslations).length === 0 && (
+                                        <div className="text-center py-12 text-muted-foreground">
+                                            No translations found. Add your first translation above.
+                                        </div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </main>
             </SidebarInset>
         </SidebarProvider>
     );
 }
+
