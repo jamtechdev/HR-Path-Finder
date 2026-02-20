@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { login, register } from '@/routes';
 import { Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
-import { HRSystemOverviewKo } from './HRSystemOverviewKo';
+import { CompensationBenchmarkPreview } from './CompensationBenchmarkPreview';
 
 interface HeroSectionKoProps {
     canRegister?: boolean;
@@ -13,12 +13,13 @@ interface HeroSectionKoProps {
     primaryButton?: string;
     secondaryButton?: string;
     trustText?: string;
-    overviewTitle?: string;
-    overviewProgress?: string;
-    overviewSteps?: Array<{ id: number; name: string; completed: boolean }>;
-    alignmentLabel?: string;
-    alignmentScore?: string;
-    alignmentDescription?: string;
+    benchmarkTitle?: string;
+    benchmarks?: Array<{
+        label: string;
+        value: number;
+        isOurCompany?: boolean;
+    }>;
+    benchmarkSummary?: string;
 }
 
 export function HeroSectionKo({ 
@@ -26,20 +27,17 @@ export function HeroSectionKo({
     badge = '컨설팅급 HR 설계 플랫폼',
     title = '정밀한 HR 시스템을 설계하세요.',
     description = '중소기업의 HR 프레임워크 구축 방식을 혁신합니다. 단계별 가이드 접근 방식으로 전문 컨설팅 업무를 현대적인 SaaS 플랫폼 안에서 재현합니다.',
-    primaryButton = '무료 체험 시작하기',
+    primaryButton = 'HR설계 시작하기',
     secondaryButton = '데모 보기',
     trustText = '100개 이상의 기업이 HR Copilot을 신뢰합니다',
-    overviewTitle = 'HR 시스템 개요',
-    overviewProgress = '4/4 완료',
-    overviewSteps = [
-        { id: 1, name: '진단', completed: true },
-        { id: 2, name: '조직 설계', completed: true },
-        { id: 3, name: '성과 관리', completed: true },
-        { id: 4, name: '보상 체계', completed: true },
+    benchmarkTitle = '보상 수준 상대지수',
+    benchmarks = [
+        { label: '화장품업 전체', value: 55 },
+        { label: '타겟 경쟁사', value: 51 },
+        { label: '화장품 제조업', value: 49 },
+        { label: '우리 회사', value: 43, isOurCompany: true },
     ],
-    alignmentLabel = 'CEO 정렬도',
-    alignmentScore = '높음',
-    alignmentDescription = 'HR 시스템 설계가 CEO의 경영 철학과 잘 일치합니다',
+    benchmarkSummary = '귀사의 보상 수준은 업종 전체 대비 78% 타겟 경쟁사 대비 84% 수준입니다.',
 }: HeroSectionKoProps) {
     return (
         <div className="w-full">
@@ -98,15 +96,12 @@ export function HeroSectionKo({
                         )}
                     </div>
 
-                    {/* Right Side - HR System Overview Panel */}
+                    {/* Right Side - Compensation Benchmark Preview */}
                     <div className="lg:sticky lg:top-24">
-                        <HRSystemOverviewKo 
-                            title={overviewTitle}
-                            progressText={overviewProgress}
-                            steps={overviewSteps}
-                            alignmentLabel={alignmentLabel}
-                            alignmentScore={alignmentScore}
-                            alignmentDescription={alignmentDescription}
+                        <CompensationBenchmarkPreview 
+                            title={benchmarkTitle}
+                            benchmarks={benchmarks}
+                            summaryText={benchmarkSummary}
                         />
                     </div>
                 </div>

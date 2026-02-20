@@ -88,7 +88,7 @@
       "title_highlight": "HR System",
       "title": "Design Your Precise HR System",
       "description": "We revolutionize how SMEs build HR frameworks. Our step-by-step guided approach recreates professional consulting work within a modern SaaS platform.",
-      "cta_primary": "Start Free Trial",
+      "cta_primary": "Start HR Design",
       "cta_secondary": "View Demo"
     },
     "everything": {
@@ -156,7 +156,16 @@
     },
     "footer": {
       "copyright": "© 2025 BetterCompany. All rights reserved."
-    }
+    },
+    "benchmark": {
+      "title": "Compensation Level Relative Index",
+      "industry_overall": "Overall Industry",
+      "target_competitors": "Target Competitors",
+      "industry_segment": "Industry Segment",
+      "our_company": "Our Company",
+      "summary": "Your company's compensation level is 78% compared to the overall industry and 84% compared to target competitors."
+    },
+    "better_company": "We operate the platform together with Better Company, a practical HR consulting firm."
   },
   "dashboard": {
     "welcome": "Welcome",

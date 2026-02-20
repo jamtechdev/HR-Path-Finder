@@ -91,6 +91,15 @@
       "cta_primary": "HR설계 시작하기",
       "cta_secondary": "데모 보기"
     },
+    "benchmark": {
+      "title": "보상 수준 상대지수",
+      "industry_overall": "화장품업 전체",
+      "target_competitors": "타겟 경쟁사",
+      "industry_segment": "화장품 제조업",
+      "our_company": "우리 회사",
+      "summary": "귀사의 보상 수준은 업종 전체 대비 78% 타겟 경쟁사 대비 84% 수준입니다."
+    },
+    "better_company": "실무형 HR 컨설팅펌 Better Company와 함께 플랫폼을 운영하고 있습니다.",
     "everything": {
       "title": "성과와 조직 안정을 이끄는 HR체계의 핵심 영역",
       "description": "Pathfinder는 경영철학 진단, 직무분석, 성과체계, 보상체계의 단계별 설계로 조직 운영 기준을 명확히 정의합니다.",

@@ -44,9 +44,11 @@ export default function LandingPage({ canRegister = true }: Props) {
         };
     }, [i18n]);
 
-    // Helper function to get translation with fallback
+    // Helper function to get translation with fallback (for backward compatibility)
     const getTranslation = (key: string, fallback: string): string => {
-        const translation = t(`landing.${key}`, { defaultValue: fallback });
+        // If key already starts with 'landing.', use it as is, otherwise prepend 'landing.'
+        const fullKey = key.startsWith('landing.') ? key : `landing.${key}`;
+        const translation = t(fullKey, { defaultValue: fallback });
         return translation || fallback;
     };
 
@@ -163,11 +165,11 @@ export default function LandingPage({ canRegister = true }: Props) {
                             <div className="flex items-center gap-4">
                                 <LanguageToggle />
                                 <Link href={login()} className="text-sm font-medium text-gray-700 hover:text-[#0a1629]">
-                                    {getTranslation('header.sign_in', '로그인')}
+                                    {t('landing.header.sign_in', '로그인')}
                                 </Link>
                                 <Button asChild className="bg-[#0a1629] hover:bg-[#0d1b35] text-white font-medium px-4 py-2 rounded-lg text-sm h-auto shadow-sm">
                                     <Link href={canRegister ? register() : login()}>
-                                        {getTranslation('header.get_started', '시작하기')}
+                                        {t('landing.header.get_started', '시작하기')}
                                         <ArrowRight className="ml-2 w-4 h-4" />
                                     </Link>
                                 </Button>
@@ -180,23 +182,20 @@ export default function LandingPage({ canRegister = true }: Props) {
                 <section className="border-b bg-gradient-to-b from-background to-muted/20">
                     <HeroSectionKo 
                         canRegister={canRegister}
-                        badge={getTranslation('hero.badge', '20~300인 기업 특화 HR제도 설계 플랫폼')}
-                        title={getTranslation('hero.title', 'HR컨설팅의 설계 프로세스를 온라인에서 직접 진행하세요')}
-                        description={getTranslation('hero.description', '복잡한 HR제도 설계를 단계별 가이드로 따라가며 직접 완성할 수 있습니다. 설계 과정에는 전문 HR컨설팅의 기준과 로직이 반영되어 있으며 고객사의 설계안에 대해 전문 컨설턴트가 종합 리포트를 제공합니다.')}
-                        primaryButton={getTranslation('hero.cta_primary', 'HR설계 시작하기')}
-                        secondaryButton={getTranslation('hero.cta_secondary', '데모 보기')}
+                        badge={t('landing.hero.badge', '20~300인 기업 특화 HR제도 설계 플랫폼')}
+                        title={t('landing.hero.title', 'HR컨설팅의 설계 프로세스를 온라인에서 직접 진행하세요')}
+                        description={t('landing.hero.description', '복잡한 HR제도 설계를 단계별 가이드로 따라가며 직접 완성할 수 있습니다. 설계 과정에는 전문 HR컨설팅의 기준과 로직이 반영되어 있으며 고객사의 설계안에 대해 전문 컨설턴트가 종합 리포트를 제공합니다.')}
+                        primaryButton={t('landing.hero.cta_primary', 'HR설계 시작하기')}
+                        secondaryButton={t('landing.hero.cta_secondary', '데모 보기')}
                         trustText={''}
-                        overviewTitle={t('dashboard.overview', 'HR 시스템 개요')}
-                        overviewProgress={'4/4 완료'}
-                        overviewSteps={[
-                            { id: 1, name: t('steps.diagnosis', '진단'), completed: true },
-                            { id: 2, name: t('steps.job_analysis', '조직 설계'), completed: true },
-                            { id: 3, name: t('steps.performance', '성과 관리'), completed: true },
-                            { id: 4, name: t('steps.compensation', '보상 체계'), completed: true },
+                        benchmarkTitle={t('landing.benchmark.title', '보상 수준 상대지수')}
+                        benchmarks={[
+                            { label: t('landing.benchmark.industry_overall', '화장품업 전체'), value: 55 },
+                            { label: t('landing.benchmark.target_competitors', '타겟 경쟁사'), value: 51 },
+                            { label: t('landing.benchmark.industry_segment', '화장품 제조업'), value: 49 },
+                            { label: t('landing.benchmark.our_company', '우리 회사'), value: 43, isOurCompany: true },
                         ]}
-                        alignmentLabel={'CEO 정렬도'}
-                        alignmentScore={'높음'}
-                        alignmentDescription={'HR 시스템 설계가 CEO의 경영 철학과 잘 일치합니다'}
+                        benchmarkSummary={t('landing.benchmark.summary', '귀사의 보상 수준은 업종 전체 대비 78% 타겟 경쟁사 대비 84% 수준입니다.')}
                     />
                     {/* Better Company Link */}
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-8">
@@ -204,9 +203,9 @@ export default function LandingPage({ canRegister = true }: Props) {
                             href="https://better.odw.co.kr" 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="inline-flex items-center text-sm text-gray-600 hover:text-[#0a1629] transition-colors cursor-pointer"
+                            className="inline-flex items-center text-sm text-gray-600 hover:text-[#0a1629] transition-colors cursor-pointer underline"
                         >
-                            <span>☞ 실무형 HR 컨설팅펌 Better Company의 설계 프레임워크를 기반으로 합니다.</span>
+                            <span>☞ {t('landing.better_company', '실무형 HR 컨설팅펌 Better Company와 함께 플랫폼을 운영하고 있습니다.')}</span>
                         </a>
                     </div>
                 </section>
@@ -216,10 +215,10 @@ export default function LandingPage({ canRegister = true }: Props) {
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="mb-12 text-center">
                             <h2 className="mb-4 text-3xl md:text-4xl lg:text-5xl font-bold">
-                                {getTranslation('everything.title', '성과와 조직 안정을 이끄는 HR체계의 핵심 영역')}
+                                {t('landing.everything.title', '성과와 조직 안정을 이끄는 HR체계의 핵심 영역')}
                             </h2>
                             <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-                                {getTranslation('everything.description', 'Pathfinder는 경영철학 진단, 직무분석, 성과체계, 보상체계의 단계별 설계로 조직 운영 기준을 명확히 정의합니다.')}
+                                {t('landing.everything.description', 'Pathfinder는 경영철학 진단, 직무분석, 성과체계, 보상체계의 단계별 설계로 조직 운영 기준을 명확히 정의합니다.')}
                             </p>
                         </div>
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -240,10 +239,10 @@ export default function LandingPage({ canRegister = true }: Props) {
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="max-w-4xl mx-auto">
                             <h2 className="mb-4 text-3xl md:text-4xl font-bold text-center">
-                                {getTranslation('why.title', 'HR Pathfinder가 제공하는 핵심 가치는?')}
+                                {t('landing.why.title', 'HR Pathfinder가 제공하는 핵심 가치는?')}
                             </h2>
                             <p className="mb-8 text-lg text-muted-foreground text-center">
-                                {getTranslation('why.description', '전문 HR컨설팅의 설계방식을 기반으로 HR전담 조직이 없는 회사도 체계적인 정책 설계를 진행할 수 있습니다.')}
+                                {t('landing.why.description', '전문 HR컨설팅의 설계방식을 기반으로 HR전담 조직이 없는 회사도 체계적인 정책 설계를 진행할 수 있습니다.')}
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {whyItems.map((item, idx) => (
@@ -276,9 +275,9 @@ export default function LandingPage({ canRegister = true }: Props) {
                 {/* CTA Section */}
                 <CTASectionKo 
                     canRegister={canRegister}
-                    title={getTranslation('cta.title', '우리 회사의 HR시스템을 설계할 준비가 되셨나요?')}
-                    description={getTranslation('cta.description', 'HR-Pathfinder의 기능은 점진적으로 계속 확장됩니다. 인연이 된 고객사의 성공적인 비즈니스를 위해 지속적인 지원을 아끼지 않겠습니다.')}
-                    buttonText={getTranslation('cta.button', 'HR Pathfinder 시작하기')}
+                    title={t('landing.cta.title', '우리 회사의 HR시스템을 설계할 준비가 되셨나요?')}
+                    description={t('landing.cta.description', 'HR-Pathfinder의 기능은 점진적으로 계속 확장됩니다. 인연이 된 고객사의 성공적인 비즈니스를 위해 지속적인 지원을 아끼지 않겠습니다.')}
+                    buttonText={t('landing.cta.button', 'HR Pathfinder 시작하기')}
                 />
 
                 {/* Footer */}
@@ -290,12 +289,12 @@ export default function LandingPage({ canRegister = true }: Props) {
                                     HR
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-lg font-bold text-gray-900">{getTranslation('header.logo', 'HR Pathfinder')}</span>
-                                    <span className="text-xs text-gray-600">{getTranslation('header.company', 'powered by bettercompany')}</span>
+                                    <span className="text-lg font-bold text-gray-900">{t('landing.header.logo', 'HR Pathfinder')}</span>
+                                    <span className="text-xs text-gray-600">{t('landing.header.company', 'powered by bettercompany')}</span>
                                 </div>
                             </div>
                             <p className="text-sm text-gray-600">
-                                {getTranslation('footer.copyright', '© 2026 Everthere.inc All rights reserved.')}
+                                {t('landing.footer.copyright', '© 2026 Everthere.inc All rights reserved.')}
                             </p>
                         </div>
                     </div>

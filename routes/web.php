@@ -20,6 +20,14 @@ Route::get('/login', function () {
     ]);
 })->name('login');
 
+// Admin Login Route (separate from regular login)
+Route::get('/admin/login', function () {
+    return Inertia::render('admin/AdminLogin', [
+        'canResetPassword' => true,
+        'status' => session('status'),
+    ]);
+})->name('admin.login')->middleware('guest');
+
 // Manual email verification (only when SMTP not configured, development only)
 Route::post('email/verify-manual', [\App\Http\Controllers\EmailVerificationController::class, 'manualVerify'])
     ->middleware('auth')

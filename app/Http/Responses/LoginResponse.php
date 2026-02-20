@@ -24,6 +24,19 @@ class LoginResponse implements LoginResponseContract
         // Get user's primary role
         $role = $user->roles->first()?->name;
 
+        // Check if login came from admin login page
+        $isAdminLogin = $request->has('_admin_login') || 
+                       $request->input('_admin_login') === true ||
+                       $request->input('_admin_login') === '1' ||
+                       ($request->header('referer') && str_contains($request->header('referer'), '/admin/login'));
+        
+        // If coming from admin login, verify user is admin
+        if ($isAdminLogin && $role !== 'admin') {
+            auth()->logout();
+            return redirect()->route('admin.login')
+                ->withErrors(['email' => 'You do not have administrator privileges.']);
+        }
+
         // Check email verification for HR Manager - redirect to verification page if not verified
         if ($role === 'hr_manager' && !$user->hasVerifiedEmail()) {
             return redirect()->route('verification.notice')

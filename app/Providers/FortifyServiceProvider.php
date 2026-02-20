@@ -57,11 +57,21 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureViews(): void
     {
-        Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
-            'canResetPassword' => true, // Always enabled - using custom OTP-based password reset
-            'canRegister' => Features::enabled(Features::registration()),
-            'status' => $request->session()->get('status'),
-        ]));
+        Fortify::loginView(fn (Request $request) => {
+            // Check if this is an admin login request
+            if ($request->is('admin/login') || $request->header('referer') && str_contains($request->header('referer'), '/admin/login')) {
+                return Inertia::render('admin/AdminLogin', [
+                    'canResetPassword' => true,
+                    'status' => $request->session()->get('status'),
+                ]);
+            }
+            
+            return Inertia::render('auth/login', [
+                'canResetPassword' => true, // Always enabled - using custom OTP-based password reset
+                'canRegister' => Features::enabled(Features::registration()),
+                'status' => $request->session()->get('status'),
+            ]);
+        });
 
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [
             'email' => $request->email,
