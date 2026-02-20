@@ -42,8 +42,8 @@ class DatabaseSeeder extends Seeder
         // Seed job definition templates (must run after JobKeywordSeeder)
         $this->call(JobDefinitionTemplateSeeder::class);
         
-        // Seed landing page sections
-        $this->call(LandingPageSectionSeeder::class);
+        // Landing page sections are now managed via JSON files only
+        // No database seeding needed - translations are in resources/js/locales/{locale}.json
 
         // Seed sample HR project if needed
         // $this->call(HrProjectSeeder::class);

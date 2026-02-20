@@ -11,11 +11,7 @@ import { LanguageToggle } from '@/components/LanguageToggle';
 import TranslationLoader from '@/components/TranslationLoader';
 import { useTranslation } from 'react-i18next';
 
-interface LandingPageSection {
-    content: string;
-    type: string;
-    metadata?: any;
-}
+// LandingPageSection interface removed - translations are now JSON-only via i18n
 
 interface Props {
     canRegister?: boolean;

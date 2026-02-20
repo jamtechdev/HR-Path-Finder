@@ -8,6 +8,13 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Landing Page Translation Management Controller (JSON-based only)
+ * 
+ * This controller manages landing page translations stored in JSON files only.
+ * All translations are read from and saved to resources/js/locales/{locale}.json
+ * No database operations are performed.
+ */
 class LandingPageController extends Controller
 {
     protected TranslationService $translationService;

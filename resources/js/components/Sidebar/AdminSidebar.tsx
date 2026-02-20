@@ -29,8 +29,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
 
     const translationPages = [
         { key: 'all', label: 'All Translations', path: '/admin/translations?page=all' },
-        { key: 'landing-page', label: 'Landing Page (Edit)', path: '/admin/landing-page' },
-        { key: 'landing', label: 'Landing Page (JSON)', path: '/admin/translations?page=landing' },
+        { key: 'landing-page', label: 'Landing Page', path: '/admin/landing-page' },
         { key: 'auth', label: 'Authentication', path: '/admin/translations?page=auth' },
         { key: 'auth.login', label: 'Login Page', path: '/admin/translations?page=auth.login' },
         { key: 'auth.register', label: 'Register Page', path: '/admin/translations?page=auth.register' },

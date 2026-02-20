@@ -4,13 +4,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { home } from '@/routes';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { ArrowRight, Shield, Lock, Settings, ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 type Props = {
     status?: string;
     canResetPassword: boolean;
+    errors?: {
+        email?: string;
+        password?: string;
+        [key: string]: string | undefined;
+    };
 };
 
 export default function AdminLogin({
@@ -18,6 +23,7 @@ export default function AdminLogin({
     canResetPassword,
 }: Props) {
     const { t } = useTranslation();
+    const { errors } = usePage().props as { errors: Props['errors'] };
     const form = useForm({
         email: '',
         password: '',
@@ -77,17 +83,29 @@ export default function AdminLogin({
                         </div>
                     )}
 
+                    {/* Error Message */}
+                    {errors?.email && (
+                        <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-center text-sm font-medium text-red-400">
+                            {errors.email}
+                        </div>
+                    )}
+
                     {/* Login Form */}
                     <form
                         onSubmit={(e) => {
                             e.preventDefault();
-                            form.transform((data) => ({
-                                ...data,
+                            router.post('/login', {
+                                email: form.data.email,
+                                password: form.data.password,
+                                remember: form.data.remember,
                                 _admin_login: true, // Flag to indicate admin login
-                            })).post('/login', {
+                            }, {
                                 preserveScroll: true,
                                 onSuccess: () => {
                                     form.reset('password');
+                                },
+                                onError: () => {
+                                    // Errors will be handled by Inertia
                                 },
                             });
                         }}
@@ -106,9 +124,15 @@ export default function AdminLogin({
                                 autoFocus
                                 autoComplete="email"
                                 placeholder={t('auth.login.email_placeholder', 'admin@example.com')}
-                                className="h-12 w-full bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                                className={`h-12 w-full bg-slate-700/50 text-white placeholder:text-slate-400 focus:ring-blue-500/20 ${
+                                    errors?.email 
+                                        ? 'border-red-500 focus:border-red-500' 
+                                        : 'border-slate-600 focus:border-blue-500'
+                                }`}
                             />
-                            <InputError message={form.errors.email} />
+                            {errors?.email && (
+                                <p className="text-sm text-red-400 mt-1">{errors.email}</p>
+                            )}
                         </div>
 
                         <div className="space-y-2">
@@ -133,9 +157,15 @@ export default function AdminLogin({
                                 required
                                 autoComplete="current-password"
                                 placeholder="••••••••"
-                                className="h-12 w-full bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
+                                className={`h-12 w-full bg-slate-700/50 text-white placeholder:text-slate-400 focus:ring-blue-500/20 ${
+                                    errors?.password 
+                                        ? 'border-red-500 focus:border-red-500' 
+                                        : 'border-slate-600 focus:border-blue-500'
+                                }`}
                             />
-                            <InputError message={form.errors.password} />
+                            {errors?.password && (
+                                <p className="text-sm text-red-400 mt-1">{errors.password}</p>
+                            )}
                         </div>
 
                         <div className="flex items-center">

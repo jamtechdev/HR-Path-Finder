@@ -28,6 +28,7 @@ class LoginResponse implements LoginResponseContract
         $isAdminLogin = $request->has('_admin_login') || 
                        $request->input('_admin_login') === true ||
                        $request->input('_admin_login') === '1' ||
+                       $request->input('_admin_login') === 'true' ||
                        ($request->header('referer') && str_contains($request->header('referer'), '/admin/login'));
         
         // If coming from admin login, verify user is admin
@@ -35,6 +36,12 @@ class LoginResponse implements LoginResponseContract
             auth()->logout();
             return redirect()->route('admin.login')
                 ->withErrors(['email' => 'You do not have administrator privileges.']);
+        }
+        
+        // If admin login successful, ensure redirect to admin dashboard
+        if ($isAdminLogin && $role === 'admin') {
+            return redirect()->route('admin.dashboard')
+                ->with('success', 'Welcome to the admin dashboard!');
         }
 
         // Check email verification for HR Manager - redirect to verification page if not verified

@@ -5,6 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @deprecated This model is deprecated.
+ * Landing page translations are now managed via JSON files only.
+ * Use App\Services\TranslationService and resources/js/locales/{locale}.json
+ * This model is kept for backward compatibility but should not be used.
+ */
 class LandingPageSection extends Model
 {
     use HasFactory;

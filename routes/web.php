@@ -22,7 +22,7 @@ Route::get('/login', function () {
 
 // Admin Login Route (separate from regular login)
 Route::get('/admin/login', function () {
-    return Inertia::render('admin/AdminLogin', [
+    return Inertia::render('Admin/AdminLogin', [
         'canResetPassword' => true,
         'status' => session('status'),
     ]);

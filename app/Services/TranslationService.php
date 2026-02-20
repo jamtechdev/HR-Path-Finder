@@ -5,6 +5,13 @@ namespace App\Services;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Translation Service (JSON-based only)
+ * 
+ * This service manages all translations using JSON files only.
+ * All translations are stored in resources/js/locales/{locale}.json
+ * No database operations are performed.
+ */
 class TranslationService
 {
     protected string $translationsPath;

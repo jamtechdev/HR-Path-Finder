@@ -5,6 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @deprecated This model is deprecated. 
+ * Translations are now managed via JSON files only.
+ * Use App\Services\TranslationService for all translation operations.
+ * This model is kept for backward compatibility but should not be used.
+ */
 class Translation extends Model
 {
     use HasFactory;
