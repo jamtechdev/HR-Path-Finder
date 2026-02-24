@@ -46,16 +46,16 @@ export function HeroSectionKo({
                     {/* Left Side - Hero Content */}
                     <div className="text-left">
                         {badge && (
-                            <div className="inline-flex items-center gap-2 rounded-full border border-[#10b981]/20 bg-[#10b981]/10 px-4 py-1.5 text-sm font-medium text-[#10b981] mb-6">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-[#10b981]/20 bg-[#10b981]/10 px-4 py-1.5 text-sm font-medium text-[#10b981] mb-6 dark:border-[#10b981]/30 dark:bg-[#10b981]/15">
                                 {badge}
                             </div>
                         )}
                         
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight dark:text-white">
                             {title.includes('HR 시스템') ? (
                                 <>
                                     {title.split('HR 시스템')[0]}
-                                    <span className="text-[#0a1629]">HR 시스템</span>
+                                    <span className="text-[#0a1629] dark:text-white">HR 시스템</span>
                                     {title.split('HR 시스템')[1]}
                                 </>
                             ) : (
@@ -63,7 +63,7 @@ export function HeroSectionKo({
                             )}
                         </h1>
                         
-                        <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
+                        <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed dark:text-gray-400">
                             {description}
                         </p>
                         
@@ -74,7 +74,7 @@ export function HeroSectionKo({
                                     <ArrowRight className="ml-2 w-4 h-4" />
                                 </Link>
                             </Button>
-                            <Button asChild variant="outline" className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 font-medium px-6 py-3 rounded-lg text-base h-auto">
+                            <Button asChild variant="outline" className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 font-medium px-6 py-3 rounded-lg text-base h-auto dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white dark:border-gray-600">
                                 <Link href="#demo">{secondaryButton}</Link>
                             </Button>
                         </div>
@@ -85,13 +85,13 @@ export function HeroSectionKo({
                                     {['A', 'B', 'C', 'D'].map((letter, i) => (
                                         <div
                                             key={i}
-                                            className="flex size-12 items-center justify-center rounded-full border-2 border-white bg-muted text-sm font-semibold shadow-sm"
+                                            className="flex size-12 items-center justify-center rounded-full border-2 border-white dark:border-gray-800 bg-muted text-sm font-semibold shadow-sm"
                                         >
                                             {letter}
                                         </div>
                                     ))}
                                 </div>
-                                <p className="text-sm text-gray-600">{trustText}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{trustText}</p>
                             </div>
                         )}
                     </div>

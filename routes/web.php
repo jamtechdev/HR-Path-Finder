@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function (Request $request) {
+  
     // Landing page now uses JSON translations via i18n
     // No need to pass sections from database
     return Inertia::render('Landing/Index', [

@@ -25,9 +25,9 @@ export function CompensationBenchmarkPreview({
     const maxValue = Math.max(...benchmarks.map(b => b.value));
 
     return (
-        <Card className="bg-white border border-gray-200 rounded-lg shadow-lg">
+        <Card className="bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-900 dark:border-gray-700">
             <CardHeader className="pb-4 px-6 pt-6">
-                <CardTitle className="text-gray-900 text-lg font-semibold">{title}</CardTitle>
+                <CardTitle className="text-gray-900 text-lg font-semibold dark:text-white">{title}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 px-6 pb-6">
                 <div className="space-y-3">
@@ -36,24 +36,24 @@ export function CompensationBenchmarkPreview({
                         return (
                             <div key={index} className="space-y-1.5">
                                 <div className="flex items-center justify-between">
-                                    <span className={`text-sm font-medium ${benchmark.isOurCompany ? 'text-[#0a1629]' : 'text-gray-700'}`}>
+                                    <span className={`text-sm font-medium ${benchmark.isOurCompany ? 'text-[#0a1629] dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
                                         {benchmark.label}
                                     </span>
-                                    <span className={`text-sm font-semibold ${benchmark.isOurCompany ? 'text-[#0a1629]' : 'text-gray-600'}`}>
+                                    <span className={`text-sm font-semibold ${benchmark.isOurCompany ? 'text-[#0a1629] dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
                                         {benchmark.value}
                                     </span>
                                 </div>
-                                <div className="relative h-6 w-full bg-gray-100 rounded-full overflow-hidden">
+                                <div className="relative h-6 w-full bg-gray-100 rounded-full overflow-hidden dark:bg-gray-800">
                                     <div
                                         className={`h-full rounded-full transition-all duration-500 ${
                                             benchmark.isOurCompany
                                                 ? 'bg-[#0a1629]'
-                                                : 'bg-gray-300'
+                                                : 'bg-gray-300 dark:bg-gray-600'
                                         }`}
                                         style={{ width: `${percentage}%` }}
                                     />
                                     {benchmark.isOurCompany && (
-                                        <div className="absolute inset-0 border-2 border-[#0a1629] rounded-full" />
+                                        <div className="absolute inset-0 border-2 border-[#0a1629] rounded-full dark:border-white" />
                                     )}
                                 </div>
                             </div>
@@ -62,8 +62,8 @@ export function CompensationBenchmarkPreview({
                 </div>
 
                 {summaryText && (
-                    <div className="mt-6 pt-4 border-t border-gray-200">
-                        <p className="text-sm text-gray-600 leading-relaxed">
+                    <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <p className="text-sm text-gray-600 leading-relaxed dark:text-gray-400">
                             {summaryText}
                         </p>
                     </div>

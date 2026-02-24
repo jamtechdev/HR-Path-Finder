@@ -40,19 +40,19 @@ export function LanguageToggle() {
                 <Button
                     variant="ghost"
                     size="sm"
-                    className="gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    className="gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800"
                 >
                     <Globe className="w-4 h-4" />
                     <span className="hidden sm:inline">{currentLanguage.flag} {currentLanguage.name}</span>
                     <span className="sm:hidden">{currentLanguage.flag}</span>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuContent align="end" className="w-40 dark:bg-gray-900 dark:border-gray-700">
                 {languages.map((lang) => (
                     <DropdownMenuItem
                         key={lang.code}
                         onClick={() => changeLanguage(lang.code)}
-                        className={`cursor-pointer ${currentLang === lang.code ? 'bg-gray-100 font-semibold' : ''}`}
+                        className={`cursor-pointer dark:text-gray-300 ${currentLang === lang.code ? 'bg-gray-100 dark:bg-gray-800 font-semibold' : 'dark:hover:bg-gray-800'}`}
                     >
                         <span className="mr-2">{lang.flag}</span>
                         {lang.name}

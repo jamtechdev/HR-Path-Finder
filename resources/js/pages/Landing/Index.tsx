@@ -146,7 +146,7 @@ export default function LandingPage({ canRegister = true }: Props) {
             <Head title={currentLang === 'en' ? 'HR Pathfinder - Professional-Grade HR System Design Platform' : 'HR Pathfinder - 20~300인 기업 특화 HR제도 설계 플랫폼'} />
             <div className="min-h-screen bg-background" key={currentLang}>
                 {/* Header Navigation */}
-                <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+                <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 dark:border-gray-800 dark:bg-gray-950/95">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex h-16 items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -154,13 +154,13 @@ export default function LandingPage({ canRegister = true }: Props) {
                                     HR
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-lg font-bold text-gray-900">{getTranslation('header.logo', 'HR Pathfinder')}</span>
-                                    <span className="text-xs text-gray-600">{getTranslation('header.company', 'powered by bettercompany')}</span>
+                                    <span className="text-lg font-bold text-gray-900 dark:text-white">{getTranslation('header.logo', 'HR Pathfinder')}</span>
+                                    <span className="text-xs text-gray-600 dark:text-gray-400">{getTranslation('header.company', 'powered by bettercompany')}</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
                                 <LanguageToggle />
-                                <Link href={login()} className="text-sm font-medium text-gray-700 hover:text-[#0a1629]">
+                                <Link href={login()} className="text-sm font-medium text-gray-700 hover:text-[#0a1629] dark:text-gray-300 dark:hover:text-white">
                                     {t('landing.header.sign_in', '로그인')}
                                 </Link>
                                 <Button asChild className="bg-[#0a1629] hover:bg-[#0d1b35] text-white font-medium px-4 py-2 rounded-lg text-sm h-auto shadow-sm">
@@ -175,7 +175,7 @@ export default function LandingPage({ canRegister = true }: Props) {
                 </header>
 
                 {/* Hero Section */}
-                <section className="border-b bg-gradient-to-b from-background to-muted/20">
+                <section className="border-b bg-gradient-to-b from-background to-muted/20 dark:from-background dark:to-muted/40">
                     <HeroSectionKo 
                         canRegister={canRegister}
                         badge={t('landing.hero.badge', '20~300인 기업 특화 HR제도 설계 플랫폼')}
@@ -199,7 +199,7 @@ export default function LandingPage({ canRegister = true }: Props) {
                             href="https://better.odw.co.kr" 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="inline-flex items-center text-sm text-gray-600 hover:text-[#0a1629] transition-colors cursor-pointer underline"
+                            className="inline-flex items-center text-sm text-gray-600 hover:text-[#0a1629] dark:text-gray-400 dark:hover:text-white transition-colors cursor-pointer underline"
                         >
                             <span>☞ {t('landing.better_company', '실무형 HR 컨설팅펌 Better Company와 함께 플랫폼을 운영하고 있습니다.')}</span>
                         </a>
@@ -207,13 +207,13 @@ export default function LandingPage({ canRegister = true }: Props) {
                 </section>
 
                 {/* Everything You Need Section */}
-                <section className="border-b py-20">
+                <section className="border-b py-20 dark:border-gray-800">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="mb-12 text-center">
-                            <h2 className="mb-4 text-3xl md:text-4xl lg:text-5xl font-bold">
+                            <h2 className="mb-4 text-3xl md:text-4xl lg:text-5xl font-bold dark:text-white">
                                 {t('landing.everything.title', '성과와 조직 안정을 이끄는 HR체계의 핵심 영역')}
                             </h2>
-                            <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+                            <p className="mx-auto max-w-2xl text-lg text-muted-foreground dark:text-gray-400">
                                 {t('landing.everything.description', 'Pathfinder는 경영철학 진단, 직무분석, 성과체계, 보상체계의 단계별 설계로 조직 운영 기준을 명확히 정의합니다.')}
                             </p>
                         </div>
@@ -231,20 +231,20 @@ export default function LandingPage({ canRegister = true }: Props) {
                 </section>
 
                 {/* Why HR Path-Finder Section */}
-                <section className="border-b bg-muted/30 py-20">
+                <section className="border-b bg-muted/30 py-20 dark:border-gray-800 dark:bg-muted/10">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="max-w-4xl mx-auto">
-                            <h2 className="mb-4 text-3xl md:text-4xl font-bold text-center">
+                            <h2 className="mb-4 text-3xl md:text-4xl font-bold text-center dark:text-white">
                                 {t('landing.why.title', 'HR Pathfinder가 제공하는 핵심 가치는?')}
                             </h2>
-                            <p className="mb-8 text-lg text-muted-foreground text-center">
+                            <p className="mb-8 text-lg text-muted-foreground text-center dark:text-gray-400">
                                 {t('landing.why.description', '전문 HR컨설팅의 설계방식을 기반으로 HR전담 조직이 없는 회사도 체계적인 정책 설계를 진행할 수 있습니다.')}
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {whyItems.map((item, idx) => (
                                     <div key={idx} className="flex items-start gap-3">
                                         <CheckCircle2 className="mt-0.5 size-5 flex-shrink-0 text-brand-green" />
-                                        <span className="text-base">{item}</span>
+                                        <span className="text-base dark:text-gray-300">{item}</span>
                                     </div>
                                 ))}
                             </div>
@@ -253,7 +253,7 @@ export default function LandingPage({ canRegister = true }: Props) {
                 </section>
 
                 {/* Feature Cards Section */}
-                <section className="border-b py-20">
+                <section className="border-b py-20 dark:border-gray-800">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             {featureCards.map((card, idx) => (
@@ -277,7 +277,7 @@ export default function LandingPage({ canRegister = true }: Props) {
                 />
 
                 {/* Footer */}
-                <footer className="border-t bg-background py-12">
+                <footer className="border-t bg-background py-12 dark:border-gray-800 dark:bg-gray-950">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex flex-col md:flex-row items-center justify-between">
                             <div className="flex items-center gap-2 mb-4 md:mb-0">
@@ -285,11 +285,11 @@ export default function LandingPage({ canRegister = true }: Props) {
                                     HR
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-lg font-bold text-gray-900">{t('landing.header.logo', 'HR Pathfinder')}</span>
-                                    <span className="text-xs text-gray-600">{t('landing.header.company', 'powered by bettercompany')}</span>
+                                    <span className="text-lg font-bold text-gray-900 dark:text-white">{t('landing.header.logo', 'HR Pathfinder')}</span>
+                                    <span className="text-xs text-gray-600 dark:text-gray-400">{t('landing.header.company', 'powered by bettercompany')}</span>
                                 </div>
                             </div>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
                                 {t('landing.footer.copyright', '© 2026 Everthere.inc All rights reserved.')}
                             </p>
                         </div>
