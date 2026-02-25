@@ -37,14 +37,21 @@ class CompanyInvitationNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        // #region agent log
+        // Enhanced logging for email debugging
         \Log::info('CompanyInvitationNotification::toMail called', [
             'invitation_id' => $this->invitation->id,
             'email' => $this->invitation->email,
             'accepted_at' => $this->invitation->accepted_at,
             'has_temp_password' => !empty($this->invitation->temporary_password),
+            'company_id' => $this->invitation->company_id,
+            'company_name' => $this->invitation->company->name ?? 'N/A',
+            'mailer' => config('mail.default'),
+            'mail_host' => config('mail.mailers.smtp.host'),
+            'mail_port' => config('mail.mailers.smtp.port'),
+            'mail_username' => config('mail.mailers.smtp.username') ? 'SET' : 'NOT SET',
+            'mail_password' => config('mail.mailers.smtp.password') ? 'SET' : 'NOT SET',
+            'timestamp' => now()->toIso8601String(),
         ]);
-        // #endregion
         
         $company = $this->invitation->company;
         $inviter = $this->invitation->inviter;

@@ -48,6 +48,11 @@ interface Props {
     } | null;
     progress: Progress;
     ceoPhilosophyStatus: 'not_started' | 'in_progress' | 'completed';
+    pendingCeoRequest?: {
+        id: number;
+        status: string;
+        requested_at: string;
+    } | null;
 }
 
 // All 5 steps matching sidebar: Diagnosis, Job Analysis, Performance, Compensation, HR Policy OS
@@ -89,26 +94,24 @@ const STEP_CONFIG = [
     },
 ];
 
-export default function HrManagerDashboard({ user, activeProject, company, progress, ceoPhilosophyStatus }: Props) {
+export default function HrManagerDashboard({ user, activeProject, company, progress, ceoPhilosophyStatus, pendingCeoRequest }: Props) {
     const stepStatuses = activeProject?.step_statuses ?? {};
     const [showInviteDialog, setShowInviteDialog] = useState(false);
     const [showPasswordDialog, setShowPasswordDialog] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [showCustomPassword, setShowCustomPassword] = useState(false);
     const [ceoCredentials, setCeoCredentials] = useState<{name: string; email: string; password: string} | null>(null);
     
     const { flash } = usePage().props as any;
-    const [createImmediately, setCreateImmediately] = useState(false);
-    const [useCustomPassword, setUseCustomPassword] = useState(false);
     const [assignHrManagerRole, setAssignHrManagerRole] = useState(false);
     
     const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
         email: '',
-        password: '',
         hr_project_id: activeProject?.id || null,
-        create_immediately: false,
         assign_hr_manager_role: false,
+    });
+
+    const ceoRequestForm = useForm({
+        company_id: company?.id || null,
     });
 
     // Check for CEO credentials in flash message
@@ -128,18 +131,10 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
         if (company) {
             // Update hr_project_id before submitting
             setData('hr_project_id', activeProject?.id || null);
-            setData('create_immediately', createImmediately);
             setData('assign_hr_manager_role', assignHrManagerRole);
-            // Only send password if using custom password
-            if (!useCustomPassword) {
-                setData('password', '');
-            }
             post(`/companies/${company.id}/invite-ceo`, {
                 onSuccess: () => {
                     reset();
-                    setCreateImmediately(false);
-                    setUseCustomPassword(false);
-                    setShowCustomPassword(false);
                     setAssignHrManagerRole(false);
                     setShowInviteDialog(false);
                 },
@@ -336,111 +331,40 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                             Active Project
                                         </Badge>
                                     )}
-                                    {company && !company.hasCeo && (
-                                        <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
-                                            <DialogTrigger asChild>
-                                                <Button className="bg-green-800 hover:bg-green-700 text-white shadow-md">
-                                                    <UserPlus className="w-4 h-4 mr-2" />
-                                                    Invite CEO for Project
-                                                </Button>
-                                            </DialogTrigger>
+                                    {company && !company.hasCeo && !pendingCeoRequest && (
+                                        <>
+                                            <Button 
+                                                onClick={() => {
+                                                    ceoRequestForm.setData('company_id', company.id);
+                                                    ceoRequestForm.post('/ceo-role-requests', {
+                                                        onSuccess: () => {
+                                                            // Request submitted
+                                                        },
+                                                    });
+                                                }}
+                                                disabled={ceoRequestForm.processing}
+                                                className="bg-blue-800 hover:bg-blue-700 text-white shadow-md mr-2"
+                                            >
+                                                <UserPlus className="w-4 h-4 mr-2" />
+                                                {ceoRequestForm.processing ? 'Requesting...' : 'Request to Become CEO'}
+                                            </Button>
+                                            <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+                                                <DialogTrigger asChild>
+                                                    <Button className="bg-green-800 hover:bg-green-700 text-white shadow-md">
+                                                        <UserPlus className="w-4 h-4 mr-2" />
+                                                        Invite CEO for Project
+                                                    </Button>
+                                                </DialogTrigger>
                                                 <DialogContent>
                                                     <DialogHeader>
-                                                        <DialogTitle>Create & Invite CEO for HR Project</DialogTitle>
-                                                        <DialogDescription>
-                                                            {activeProject 
-                                                                ? `Create a CEO account or invite a CEO to join ${company.name} and complete the Management Philosophy Survey for this HR project.`
-                                                                : `Create a CEO account or invite a CEO to join ${company.name}. Once you create a project, the CEO will be assigned to it.`}
-                                                        </DialogDescription>
+                                                    <DialogTitle>Invite CEO for HR Project</DialogTitle>
+                                                    <DialogDescription>
+                                                        {activeProject 
+                                                            ? `Invite a CEO to join ${company.name} and complete the Management Philosophy Survey for this HR project.`
+                                                            : `Invite a CEO to join ${company.name}. Once you create a project, the CEO will be assigned to it.`}
+                                                    </DialogDescription>
                                                     </DialogHeader>
                                                     <form onSubmit={handleInviteCeo} className="space-y-4">
-                                                        <div className="flex items-center space-x-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                                                            <Checkbox
-                                                                id="create-immediately"
-                                                                checked={createImmediately}
-                                                                onCheckedChange={(checked) => {
-                                                                    setCreateImmediately(checked === true);
-                                                                    if (!checked) {
-                                                                        setData('name', '');
-                                                                    }
-                                                                }}
-                                                            />
-                                                            <Label htmlFor="create-immediately" className="text-sm font-medium cursor-pointer">
-                                                                Create CEO account immediately (will send welcome email with credentials)
-                                                            </Label>
-                                                        </div>
-
-                                                        {createImmediately && (
-                                                            <>
-                                                                <div>
-                                                                    <Label htmlFor="ceo-name">CEO Name *</Label>
-                                                                    <Input
-                                                                        id="ceo-name"
-                                                                        type="text"
-                                                                        value={data.name}
-                                                                        onChange={(e) => setData('name', e.target.value)}
-                                                                        placeholder="John Doe"
-                                                                        required={createImmediately}
-                                                                        className={errors.name ? 'border-red-500' : ''}
-                                                                    />
-                                                                    {errors.name && (
-                                                                        <p className="text-sm text-destructive mt-1">{errors.name}</p>
-                                                                    )}
-                                                                </div>
-                                                                <div className="flex items-center space-x-2 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                                                                    <Checkbox
-                                                                        id="use-custom-password"
-                                                                        checked={useCustomPassword}
-                                                                        onCheckedChange={(checked) => {
-                                                                            setUseCustomPassword(checked === true);
-                                                                            if (!checked) {
-                                                                                setData('password', '');
-                                                                            }
-                                                                        }}
-                                                                    />
-                                                                    <Label htmlFor="use-custom-password" className="text-sm font-medium cursor-pointer">
-                                                                        Set custom password (leave unchecked to auto-generate)
-                                                                    </Label>
-                                                                </div>
-                                                                {useCustomPassword && (
-                                                                    <div>
-                                                                        <Label htmlFor="ceo-password">Password *</Label>
-                                                                        <div className="relative">
-                                                                            <Input
-                                                                                id="ceo-password"
-                                                                                type={showCustomPassword ? "text" : "password"}
-                                                                                value={data.password}
-                                                                                onChange={(e) => setData('password', e.target.value)}
-                                                                                placeholder="Minimum 8 characters"
-                                                                                required={useCustomPassword}
-                                                                                minLength={8}
-                                                                                className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
-                                                                            />
-                                                                            <Button
-                                                                                type="button"
-                                                                                variant="ghost"
-                                                                                size="sm"
-                                                                                onClick={() => setShowCustomPassword(!showCustomPassword)}
-                                                                                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                                                                            >
-                                                                                {showCustomPassword ? (
-                                                                                    <EyeOff className="w-4 h-4 text-muted-foreground" />
-                                                                                ) : (
-                                                                                    <Eye className="w-4 h-4 text-muted-foreground" />
-                                                                                )}
-                                                                            </Button>
-                                                                        </div>
-                                                                        {errors.password && (
-                                                                            <p className="text-sm text-destructive mt-1">{errors.password}</p>
-                                                                        )}
-                                                                        <p className="text-xs text-muted-foreground mt-1">
-                                                                            Password must be at least 8 characters long.
-                                                                        </p>
-                                                                    </div>
-                                                                )}
-                                                            </>
-                                                        )}
-
                                                         <div className="flex items-center space-x-2 p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
                                                             <Checkbox
                                                                 id="assign-hr-manager-role"
@@ -471,9 +395,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                             )}
                                                             {activeProject && (
                                                                 <p className="text-xs text-muted-foreground mt-2">
-                                                                    {createImmediately 
-                                                                        ? `CEO account will be created and linked to the active HR project for ${company.name}.`
-                                                                        : `This invitation will be linked to the active HR project for ${company.name}.`}
+                                                                    This invitation will be linked to the active HR project for {company.name}.
                                                                 </p>
                                                             )}
                                                         </div>
@@ -484,23 +406,27 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                                 onClick={() => {
                                                                     setShowInviteDialog(false);
                                                                     reset();
-                                                                    setCreateImmediately(false);
-                                                                    setUseCustomPassword(false);
-                                                                    setShowCustomPassword(false);
                                                                     setAssignHrManagerRole(false);
                                                                 }}
                                                             >
                                                                 Cancel
                                                             </Button>
                                                             <Button type="submit" disabled={processing} className="bg-green-600 hover:bg-green-700">
-                                                                {processing 
-                                                                    ? (createImmediately ? 'Creating...' : 'Sending...') 
-                                                                    : (createImmediately ? 'Create & Assign CEO' : 'Send Invitation')}
+                                                                {processing ? 'Sending...' : 'Send Invitation'}
                                                             </Button>
                                                         </div>
                                                     </form>
                                                 </DialogContent>
-                                        </Dialog>
+                                            </Dialog>
+                                        </>
+                                    )}
+                                    {pendingCeoRequest && (
+                                        <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                            <p className="text-sm text-blue-800 dark:text-blue-200">
+                                                <strong>CEO Role Request Pending</strong><br />
+                                                Your request to become CEO for {company?.name} is under review by the administrator.
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
                             </div>

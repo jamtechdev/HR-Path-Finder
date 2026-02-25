@@ -71,6 +71,21 @@ class DashboardController extends Controller
             return false;
         })->values();
 
+        // Get pending CEO role requests
+        $pendingCeoRequests = \App\Models\CeoRoleRequest::where('status', 'pending')
+            ->with(['user', 'company'])
+            ->orderBy('requested_at', 'desc')
+            ->get()
+            ->map(function ($request) {
+                return [
+                    'id' => $request->id,
+                    'user_name' => $request->user->name,
+                    'user_email' => $request->user->email,
+                    'company_name' => $request->company->name,
+                    'requested_at' => $request->requested_at->format('Y-m-d H:i:s'),
+                ];
+            });
+
         return Inertia::render('Dashboard/Admin/Index', [
             'projects' => $projects,
             'stats' => [
@@ -84,6 +99,7 @@ class DashboardController extends Controller
             'recentProjects' => $recentProjects,
             'projectsNeedingPerformanceRecommendation' => $projectsNeedingPerformanceRecommendation,
             'projectsNeedingCompensationRecommendation' => $projectsNeedingCompensationRecommendation,
+            'pendingCeoRequests' => $pendingCeoRequests,
         ]);
     }
 

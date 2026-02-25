@@ -16,33 +16,9 @@ Route::get('/', function (Request $request) {
     ]);
 })->name('home');
 
-Route::get('/login', function (Request $request) {
-    // Check if user is already logged in and has pending CEO invitations
-    $pendingInvitations = [];
-    if (Auth::check()) {
-        $user = Auth::user();
-        $pendingInvitations = \App\Models\CompanyInvitation::where('email', $user->email)
-            ->whereNull('accepted_at')
-            ->where(function($query) {
-                $query->whereNull('expires_at')
-                    ->orWhere('expires_at', '>', now());
-            })
-            ->with(['company', 'inviter'])
-            ->get()
-            ->map(function ($invitation) {
-                return [
-                    'id' => $invitation->id,
-                    'company_id' => $invitation->company_id,
-                    'company_name' => $invitation->company->name,
-                    'inviter_name' => $invitation->inviter->name,
-                    'token' => $invitation->token,
-                ];
-            });
-    }
-    
+Route::get('/login', function () {
     return Inertia::render('auth/login', [
         'canRegister' => Features::enabled(Features::registration()),
-        'pendingCeoInvitations' => $pendingInvitations,
     ]);
 })->name('login');
 
@@ -105,8 +81,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('invitations/accept/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'accept'])->name('invitations.accept');
     Route::get('invitations/reject/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'reject'])->name('invitations.reject');
     
-    // CEO Role Assignment
-    Route::post('ceo-role/assign', [\App\Http\Controllers\CeoRoleAssignmentController::class, 'assignRoles'])->name('ceo-role.assign');
+    // ========== CEO Role Requests ==========
+    Route::middleware('role:hr_manager')->group(function () {
+        Route::post('ceo-role-requests', [\App\Http\Controllers\CeoRoleRequestController::class, 'store'])->name('ceo-role-requests.store');
+    });
     
     // ========== HR Projects ==========
     Route::get('hr-projects', [\App\Http\Controllers\HrProjectController::class, 'index'])->name('hr-projects.index');
@@ -208,6 +186,11 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
         Route::get('project-tree', [\App\Http\Controllers\Admin\DashboardController::class, 'projectTree'])->name('project-tree');
+        
+        // CEO Role Requests Management
+        Route::get('ceo-role-requests', [\App\Http\Controllers\Admin\CeoRoleRequestController::class, 'index'])->name('ceo-role-requests.index');
+        Route::post('ceo-role-requests/{ceoRoleRequest}/approve', [\App\Http\Controllers\Admin\CeoRoleRequestController::class, 'approve'])->name('ceo-role-requests.approve');
+        Route::post('ceo-role-requests/{ceoRoleRequest}/reject', [\App\Http\Controllers\Admin\CeoRoleRequestController::class, 'reject'])->name('ceo-role-requests.reject');
         
         // Review
         Route::get('review/{hrProject}', [\App\Http\Controllers\AdminReviewController::class, 'index'])->name('review.index');

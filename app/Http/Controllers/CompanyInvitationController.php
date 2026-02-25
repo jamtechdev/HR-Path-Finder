@@ -21,11 +21,8 @@ class CompanyInvitationController extends Controller
     public function inviteCeo(Request $request, Company $company)
     {
         $request->validate([
-            'name' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
-            'password' => ['nullable', 'string', 'min:8'],
             'hr_project_id' => ['nullable', 'exists:hr_projects,id'],
-            'create_immediately' => ['nullable', 'boolean'],
             'assign_hr_manager_role' => ['nullable', 'boolean'], // New parameter for dual role
         ]);
 
@@ -82,8 +79,32 @@ class CompanyInvitationController extends Controller
                 ]);
 
                 // Send welcome email (since they're already a member, just notify of role addition)
-                Notification::route('mail', $request->email)
-                    ->notify(new CompanyInvitationNotification($invitation));
+                try {
+                    \Log::info('Sending Company Invitation Notification (Role Update)', [
+                        'invitation_id' => $invitation->id,
+                        'email' => $request->email,
+                        'company_id' => $company->id,
+                        'company_name' => $company->name,
+                        'mailer' => config('mail.default'),
+                        'mail_host' => config('mail.mailers.smtp.host'),
+                        'timestamp' => now()->toIso8601String(),
+                    ]);
+
+                    Notification::route('mail', $request->email)
+                        ->notify(new CompanyInvitationNotification($invitation));
+
+                    \Log::info('Company Invitation Notification sent successfully (Role Update)', [
+                        'invitation_id' => $invitation->id,
+                        'email' => $request->email,
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send Company Invitation Notification (Role Update)', [
+                        'invitation_id' => $invitation->id,
+                        'email' => $request->email,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
+                }
 
                 $rolesAdded = implode(' and ', $updates);
                 return back()->with('success', "User has been successfully assigned {$rolesAdded} role(s) for this company. Notification email sent.");
@@ -126,81 +147,37 @@ class CompanyInvitationController extends Controller
             ]);
 
             // Send invitation email (not welcome message)
-            Notification::route('mail', $request->email)
-                ->notify(new CompanyInvitationNotification($invitation));
+            try {
+                \Log::info('Sending CEO Invitation Email', [
+                    'invitation_id' => $invitation->id,
+                    'email' => $request->email,
+                    'company_id' => $company->id,
+                    'company_name' => $company->name,
+                    'mailer' => config('mail.default'),
+                    'mail_host' => config('mail.mailers.smtp.host'),
+                    'timestamp' => now()->toIso8601String(),
+                ]);
+
+                Notification::route('mail', $request->email)
+                    ->notify(new CompanyInvitationNotification($invitation));
+
+                \Log::info('CEO Invitation Email sent successfully', [
+                    'invitation_id' => $invitation->id,
+                    'email' => $request->email,
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send CEO Invitation Email', [
+                    'invitation_id' => $invitation->id,
+                    'email' => $request->email,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
 
             return back()->with('success', 'CEO invitation sent successfully. The user will receive an invitation email and can accept or reject it.');
         }
 
-        // If create_immediately is true, create the CEO user directly
-        if ($request->boolean('create_immediately')) {
-            if ($existingUser) {
-                return back()->withErrors(['email' => 'A user with this email already exists. Please use the invite option instead.']);
-            }
-
-            // Validate name is required when creating immediately
-            if (!$request->name) {
-                return back()->withErrors(['name' => 'Name is required when creating CEO account.']);
-            }
-
-            // Use custom password if provided, otherwise generate one
-            $temporaryPassword = $request->password ?: Str::random(12);
-
-            // Create CEO user
-            $ceo = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($temporaryPassword),
-                'email_verified_at' => now(),
-            ]);
-
-            // Assign CEO role
-            $ceo->assignRole('ceo');
-
-            // If dual role is requested, also assign HR Manager role
-            if ($request->boolean('assign_hr_manager_role')) {
-                $ceo->assignRole('hr_manager');
-            }
-
-            // Associate user with company as CEO
-            $company->users()->syncWithoutDetaching([
-                $ceo->id => ['role' => 'ceo'],
-            ]);
-
-            // If dual role, also associate as HR Manager
-            if ($request->boolean('assign_hr_manager_role')) {
-                $company->users()->syncWithoutDetaching([
-                    $ceo->id => ['role' => 'hr_manager'],
-                ]);
-            }
-
-            // Create invitation record (not accepted yet - they need to accept first)
-            $invitation = \App\Models\CompanyInvitation::create([
-                'company_id' => $company->id,
-                'hr_project_id' => $request->hr_project_id,
-                'email' => $request->email,
-                'role' => 'ceo',
-                'inviter_id' => $request->user()->id,
-                'temporary_password' => $temporaryPassword,
-            ]);
-
-            // Send invitation email (not welcome message - they need to accept first)
-            Notification::route('mail', $request->email)
-                ->notify(new CompanyInvitationNotification($invitation));
-
-            $roleMessage = $request->boolean('assign_hr_manager_role') 
-                ? 'CEO with HR Manager role' 
-                : 'CEO';
-
-            return back()->with([
-                'success' => "{$roleMessage} account created and assigned to company successfully. Welcome email sent with login credentials.",
-                'ceo_password' => $temporaryPassword,
-                'ceo_email' => $request->email,
-                'ceo_name' => $request->name,
-            ]);
-        }
-
-        // Otherwise, send invitation (existing flow)
+        // Send invitation (HR can only invite, not create accounts directly)
         // Check if there's already a pending invitation for this email and company
         $existingInvitation = \App\Models\CompanyInvitation::where('company_id', $company->id)
             ->where('email', $request->email)
@@ -228,8 +205,32 @@ class CompanyInvitationController extends Controller
         // For now, we'll add a note field or handle it during acceptance
 
         // Send invitation email
-        Notification::route('mail', $request->email)
-            ->notify(new CompanyInvitationNotification($invitation));
+        try {
+            \Log::info('Sending CEO Invitation Email (Standard Flow)', [
+                'invitation_id' => $invitation->id,
+                'email' => $request->email,
+                'company_id' => $company->id,
+                'company_name' => $company->name,
+                'mailer' => config('mail.default'),
+                'mail_host' => config('mail.mailers.smtp.host'),
+                'timestamp' => now()->toIso8601String(),
+            ]);
+
+            Notification::route('mail', $request->email)
+                ->notify(new CompanyInvitationNotification($invitation));
+
+            \Log::info('CEO Invitation Email sent successfully (Standard Flow)', [
+                'invitation_id' => $invitation->id,
+                'email' => $request->email,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send CEO Invitation Email (Standard Flow)', [
+                'invitation_id' => $invitation->id,
+                'email' => $request->email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
 
         return back()->with('success', 'CEO invitation sent successfully.');
     }
@@ -284,8 +285,33 @@ class CompanyInvitationController extends Controller
         $invitation->update(['accepted_at' => now()]);
 
         // Send welcome email after acceptance (credentials for new users, welcome message for existing users)
-        Notification::route('mail', $invitation->email)
-            ->notify(new CompanyInvitationNotification($invitation));
+        try {
+            \Log::info('Sending Welcome Email (After Invitation Acceptance)', [
+                'invitation_id' => $invitation->id,
+                'email' => $invitation->email,
+                'is_new_user' => $isNewUser,
+                'has_temp_password' => !empty($invitation->temporary_password),
+                'company_id' => $invitation->company_id,
+                'mailer' => config('mail.default'),
+                'mail_host' => config('mail.mailers.smtp.host'),
+                'timestamp' => now()->toIso8601String(),
+            ]);
+
+            Notification::route('mail', $invitation->email)
+                ->notify(new CompanyInvitationNotification($invitation));
+
+            \Log::info('Welcome Email sent successfully (After Invitation Acceptance)', [
+                'invitation_id' => $invitation->id,
+                'email' => $invitation->email,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send Welcome Email (After Invitation Acceptance)', [
+                'invitation_id' => $invitation->id,
+                'email' => $invitation->email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
 
         if ($isNewUser) {
             return redirect()->route('login')
@@ -309,8 +335,32 @@ class CompanyInvitationController extends Controller
 
         // Send rejection notification to HR manager (inviter)
         if ($invitation->inviter) {
-            Notification::route('mail', $invitation->inviter->email)
-                ->notify(new InvitationRejectedNotification($invitation));
+            try {
+                \Log::info('Sending Invitation Rejection Notification to HR Manager', [
+                    'invitation_id' => $invitation->id,
+                    'hr_manager_email' => $invitation->inviter->email,
+                    'ceo_email' => $invitation->email,
+                    'company_id' => $invitation->company_id,
+                    'mailer' => config('mail.default'),
+                    'mail_host' => config('mail.mailers.smtp.host'),
+                    'timestamp' => now()->toIso8601String(),
+                ]);
+
+                Notification::route('mail', $invitation->inviter->email)
+                    ->notify(new InvitationRejectedNotification($invitation));
+
+                \Log::info('Invitation Rejection Notification sent successfully', [
+                    'invitation_id' => $invitation->id,
+                    'hr_manager_email' => $invitation->inviter->email,
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send Invitation Rejection Notification', [
+                    'invitation_id' => $invitation->id,
+                    'hr_manager_email' => $invitation->inviter->email,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
         }
 
         $invitation->delete();

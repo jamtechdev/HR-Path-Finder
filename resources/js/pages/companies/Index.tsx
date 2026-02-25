@@ -42,16 +42,11 @@ export default function CompaniesIndex({ companies }: Props) {
     const [ceoCredentials, setCeoCredentials] = useState<{name: string; email: string; password: string} | null>(null);
     
     const { flash } = usePage().props as any;
-    const [createImmediately, setCreateImmediately] = useState(false);
-    const [useCustomPassword, setUseCustomPassword] = useState(false);
     const [assignHrManagerRole, setAssignHrManagerRole] = useState(false);
     
     const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
         email: '',
-        password: '',
         hr_project_id: null as number | null,
-        create_immediately: false,
         assign_hr_manager_role: false,
     });
 
@@ -78,21 +73,12 @@ export default function CompaniesIndex({ companies }: Props) {
         e.preventDefault();
         if (selectedCompany) {
             setData('hr_project_id', selectedCompany.activeProject?.id || null);
-            setData('create_immediately', createImmediately);
             setData('assign_hr_manager_role', assignHrManagerRole);
-            if (!useCustomPassword) {
-                setData('password', '');
-            }
             post(`/companies/${selectedCompany.id}/invite-ceo`, {
                 onSuccess: () => {
                     reset();
-                    setCreateImmediately(false);
-                    setUseCustomPassword(false);
-                    setShowCustomPassword(false);
                     setAssignHrManagerRole(false);
-                    if (!flash?.ceo_password) {
-                        setShowInviteDialog(false);
-                    }
+                    setShowInviteDialog(false);
                 },
             });
         }
@@ -224,93 +210,6 @@ export default function CompaniesIndex({ companies }: Props) {
                                         </DialogDescription>
                                     </DialogHeader>
                                     <form onSubmit={handleInviteCeo} className="space-y-4">
-                                        <div className="flex items-center space-x-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                                            <Checkbox
-                                                id="create-immediately"
-                                                checked={createImmediately}
-                                                onCheckedChange={(checked) => {
-                                                    setCreateImmediately(checked === true);
-                                                    if (!checked) {
-                                                        setData('name', '');
-                                                    }
-                                                }}
-                                            />
-                                            <Label htmlFor="create-immediately" className="text-sm font-medium cursor-pointer">
-                                                Create CEO account immediately (will send welcome email with credentials)
-                                            </Label>
-                                        </div>
-
-                                        {createImmediately && (
-                                            <>
-                                                <div>
-                                                    <Label htmlFor="ceo-name">CEO Name *</Label>
-                                                    <Input
-                                                        id="ceo-name"
-                                                        type="text"
-                                                        value={data.name}
-                                                        onChange={(e) => setData('name', e.target.value)}
-                                                        placeholder="John Doe"
-                                                        required={createImmediately}
-                                                        className={errors.name ? 'border-red-500' : ''}
-                                                    />
-                                                    {errors.name && (
-                                                        <p className="text-sm text-destructive mt-1">{errors.name}</p>
-                                                    )}
-                                                </div>
-                                                <div className="flex items-center space-x-2 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                                                    <Checkbox
-                                                        id="use-custom-password"
-                                                        checked={useCustomPassword}
-                                                        onCheckedChange={(checked) => {
-                                                            setUseCustomPassword(checked === true);
-                                                            if (!checked) {
-                                                                setData('password', '');
-                                                            }
-                                                        }}
-                                                    />
-                                                    <Label htmlFor="use-custom-password" className="text-sm font-medium cursor-pointer">
-                                                        Set custom password (leave unchecked to auto-generate)
-                                                    </Label>
-                                                </div>
-                                                {useCustomPassword && (
-                                                    <div>
-                                                        <Label htmlFor="ceo-password">Password *</Label>
-                                                        <div className="relative">
-                                                            <Input
-                                                                id="ceo-password"
-                                                                type={showCustomPassword ? "text" : "password"}
-                                                                value={data.password}
-                                                                onChange={(e) => setData('password', e.target.value)}
-                                                                placeholder="Minimum 8 characters"
-                                                                required={useCustomPassword}
-                                                                minLength={8}
-                                                                className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
-                                                            />
-                                                            <Button
-                                                                type="button"
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => setShowCustomPassword(!showCustomPassword)}
-                                                                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                                                            >
-                                                                {showCustomPassword ? (
-                                                                    <EyeOff className="w-4 h-4 text-muted-foreground" />
-                                                                ) : (
-                                                                    <Eye className="w-4 h-4 text-muted-foreground" />
-                                                                )}
-                                                            </Button>
-                                                        </div>
-                                                        {errors.password && (
-                                                            <p className="text-sm text-destructive mt-1">{errors.password}</p>
-                                                        )}
-                                                        <p className="text-xs text-muted-foreground mt-1">
-                                                            Password must be at least 8 characters long.
-                                                        </p>
-                                                    </div>
-                                                )}
-                                            </>
-                                        )}
-
                                         <div>
                                             <Label htmlFor="ceo-email">CEO Email Address *</Label>
                                             <Input
@@ -327,9 +226,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                             )}
                                             {selectedCompany.activeProject && (
                                                 <p className="text-xs text-muted-foreground mt-2">
-                                                    {createImmediately 
-                                                        ? `CEO account will be created and linked to the active HR project for ${selectedCompany.name}.`
-                                                        : `This invitation will be linked to the active HR project for ${selectedCompany.name}.`}
+                                                    This invitation will be linked to the active HR project for {selectedCompany.name}.
                                                 </p>
                                             )}
                                         </div>
@@ -353,9 +250,6 @@ export default function CompaniesIndex({ companies }: Props) {
                                                 onClick={() => {
                                                     setShowInviteDialog(false);
                                                     reset();
-                                                    setCreateImmediately(false);
-                                                    setUseCustomPassword(false);
-                                                    setShowCustomPassword(false);
                                                     setAssignHrManagerRole(false);
                                                     setSelectedCompany(null);
                                                 }}
@@ -363,9 +257,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                                 Cancel
                                             </Button>
                                             <Button type="submit" disabled={processing} className="bg-green-600 hover:bg-green-700">
-                                                {processing 
-                                                    ? (createImmediately ? 'Creating...' : 'Sending...') 
-                                                    : (createImmediately ? 'Create & Assign CEO' : 'Send Invitation')}
+                                                {processing ? 'Sending...' : 'Send Invitation'}
                                             </Button>
                                         </div>
                                     </form>

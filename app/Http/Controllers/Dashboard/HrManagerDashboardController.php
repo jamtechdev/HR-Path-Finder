@@ -83,6 +83,15 @@ class HrManagerDashboardController extends Controller
         $company = $activeProject?->company;
         $hasCeo = $company ? $company->users()->wherePivot('role', 'ceo')->exists() : false;
 
+        // Get pending CEO role request for this user and company
+        $pendingCeoRequest = null;
+        if ($company) {
+            $pendingCeoRequest = \App\Models\CeoRoleRequest::where('user_id', $user->id)
+                ->where('company_id', $company->id)
+                ->where('status', 'pending')
+                ->first();
+        }
+
         return Inertia::render('Dashboard/HRManager/Index', [
             'user' => [
                 'name' => $user->name,
@@ -112,6 +121,11 @@ class HrManagerDashboardController extends Controller
             'ceoPhilosophyStatus' => $ceoPhilosophyStatus,
             'stepStatuses' => $stepStatuses,
             'projectId' => $activeProject?->id,
+            'pendingCeoRequest' => $pendingCeoRequest ? [
+                'id' => $pendingCeoRequest->id,
+                'status' => $pendingCeoRequest->status,
+                'requested_at' => $pendingCeoRequest->requested_at->format('Y-m-d H:i:s'),
+            ] : null,
         ]);
     }
 }

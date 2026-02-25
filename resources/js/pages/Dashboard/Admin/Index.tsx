@@ -47,6 +47,13 @@ interface Props {
     recentProjects: Project[];
     projectsNeedingPerformanceRecommendation?: Project[];
     projectsNeedingCompensationRecommendation?: Project[];
+    pendingCeoRequests?: Array<{
+        id: number;
+        user_name: string;
+        user_email: string;
+        company_name: string;
+        requested_at: string;
+    }>;
 }
 
 export default function AdminDashboard({ 
@@ -54,7 +61,8 @@ export default function AdminDashboard({
     stats, 
     recentProjects,
     projectsNeedingPerformanceRecommendation = [],
-    projectsNeedingCompensationRecommendation = []
+    projectsNeedingCompensationRecommendation = [],
+    pendingCeoRequests = []
 }: Props) {
     const [showCreateCeoDialog, setShowCreateCeoDialog] = useState(false);
     
@@ -230,6 +238,52 @@ export default function AdminDashboard({
                                 </CardContent>
                             </Card>
                         </div>
+
+                        {/* Pending CEO Role Requests */}
+                        {pendingCeoRequests && pendingCeoRequests.length > 0 && (
+                            <Card className="mb-8 border-orange-200 dark:border-orange-800">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <AlertCircle className="w-5 h-5 text-orange-600" />
+                                        Pending CEO Role Requests ({pendingCeoRequests.length})
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-3">
+                                        {pendingCeoRequests.map((request) => (
+                                            <div key={request.id} className="p-4 border rounded-lg bg-orange-50 dark:bg-orange-950/20">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="font-medium">{request.user_name}</p>
+                                                        <p className="text-sm text-muted-foreground">{request.user_email}</p>
+                                                        <p className="text-sm text-muted-foreground mt-1">
+                                                            Company: <strong>{request.company_name}</strong>
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground mt-1">
+                                                            Requested: {new Date(request.requested_at).toLocaleString()}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <Link href={`/admin/ceo-role-requests`}>
+                                                            <Button variant="outline" size="sm">
+                                                                Review Request
+                                                            </Button>
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-4">
+                                        <Link href="/admin/ceo-role-requests">
+                                            <Button variant="outline" className="w-full">
+                                                View All CEO Role Requests
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
 
                         {/* Action Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

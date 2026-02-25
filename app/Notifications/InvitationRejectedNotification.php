@@ -36,6 +36,16 @@ class InvitationRejectedNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
+        \Log::info('InvitationRejectedNotification::toMail called', [
+            'invitation_id' => $this->invitation->id,
+            'hr_manager_email' => $notifiable->email,
+            'ceo_email' => $this->invitation->email,
+            'company_id' => $this->invitation->company_id,
+            'mailer' => config('mail.default'),
+            'mail_host' => config('mail.mailers.smtp.host'),
+            'timestamp' => now()->toIso8601String(),
+        ]);
+
         $company = $this->invitation->company;
         $inviter = $this->invitation->inviter;
         
