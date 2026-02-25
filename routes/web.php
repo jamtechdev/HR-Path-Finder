@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
@@ -15,9 +16,33 @@ Route::get('/', function (Request $request) {
     ]);
 })->name('home');
 
-Route::get('/login', function () {
+Route::get('/login', function (Request $request) {
+    // Check if user is already logged in and has pending CEO invitations
+    $pendingInvitations = [];
+    if (Auth::check()) {
+        $user = Auth::user();
+        $pendingInvitations = \App\Models\CompanyInvitation::where('email', $user->email)
+            ->whereNull('accepted_at')
+            ->where(function($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->with(['company', 'inviter'])
+            ->get()
+            ->map(function ($invitation) {
+                return [
+                    'id' => $invitation->id,
+                    'company_id' => $invitation->company_id,
+                    'company_name' => $invitation->company->name,
+                    'inviter_name' => $invitation->inviter->name,
+                    'token' => $invitation->token,
+                ];
+            });
+    }
+    
     return Inertia::render('auth/login', [
         'canRegister' => Features::enabled(Features::registration()),
+        'pendingCeoInvitations' => $pendingInvitations,
     ]);
 })->name('login');
 
@@ -79,6 +104,9 @@ Route::middleware(['auth'])->group(function () {
     
     Route::get('invitations/accept/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'accept'])->name('invitations.accept');
     Route::get('invitations/reject/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'reject'])->name('invitations.reject');
+    
+    // CEO Role Assignment
+    Route::post('ceo-role/assign', [\App\Http\Controllers\CeoRoleAssignmentController::class, 'assignRoles'])->name('ceo-role.assign');
     
     // ========== HR Projects ==========
     Route::get('hr-projects', [\App\Http\Controllers\HrProjectController::class, 'index'])->name('hr-projects.index');

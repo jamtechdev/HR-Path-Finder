@@ -1,31 +1,51 @@
+import React from 'react';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { Checkbox } from '@/components/ui/checkbox';
 import { request } from '@/routes/password';
 import { register, home } from '@/routes';
-import { Form, Head, Link, useForm } from '@inertiajs/react';
-import { ArrowRight, Sparkles, CheckCircle2, Shield, Zap, ArrowLeft } from 'lucide-react';
+import { Form, Head, Link, useForm, useForm as useInertiaForm } from '@inertiajs/react';
+import { ArrowRight, Sparkles, CheckCircle2, Shield, Zap, ArrowLeft, UserPlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+
+type PendingInvitation = {
+    id: number;
+    company_id: number;
+    company_name: string;
+    inviter_name: string;
+    token: string;
+};
 
 type Props = {
     status?: string;
     canResetPassword: boolean;
     canRegister: boolean;
+    pendingCeoInvitations?: PendingInvitation[];
 };
 
 export default function Login({
     status,
     canResetPassword,
     canRegister,
+    pendingCeoInvitations = [],
 }: Props) {
     const { t } = useTranslation();
     const form = useForm({
         email: '',
         password: '',
         remember: false,
+    });
+
+    const [selectedCompanyId, setSelectedCompanyId] = React.useState<number | null>(null);
+    const [assignHrManagerRole, setAssignHrManagerRole] = React.useState(false);
+    
+    const ceoRoleForm = useInertiaForm({
+        company_id: null as number | null,
+        assign_hr_manager_role: false,
     });
 
     return (
@@ -144,6 +164,18 @@ export default function Login({
                                     preserveScroll: true,
                                     onSuccess: () => {
                                         form.reset('password');
+                                        
+                                        // If CEO role assignment is selected, assign roles after login
+                                        if (selectedCompanyId) {
+                                            ceoRoleForm.setData('company_id', selectedCompanyId);
+                                            ceoRoleForm.setData('assign_hr_manager_role', assignHrManagerRole);
+                                            ceoRoleForm.post('/ceo-role/assign', {
+                                                preserveScroll: true,
+                                                onSuccess: () => {
+                                                    // Redirect will be handled by LoginResponse
+                                                },
+                                            });
+                                        }
                                     },
                                 });
                             }}
@@ -196,6 +228,51 @@ export default function Login({
                                 />
                                 <InputError message={form.errors.password} />
                             </div>
+
+                            {/* CEO Role Assignment Checkbox - Show if user has pending invitations */}
+                            {pendingCeoInvitations && pendingCeoInvitations.length > 0 && (
+                                <div className="space-y-3 p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                                    <div className="flex items-start space-x-2">
+                                        <Checkbox
+                                            id="assign-ceo-role"
+                                            checked={selectedCompanyId !== null}
+                                            onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                    setSelectedCompanyId(pendingCeoInvitations[0].company_id);
+                                                } else {
+                                                    setSelectedCompanyId(null);
+                                                    setAssignHrManagerRole(false);
+                                                }
+                                            }}
+                                        />
+                                        <div className="flex-1 space-y-2">
+                                            <Label htmlFor="assign-ceo-role" className="text-sm font-medium cursor-pointer flex items-center gap-2">
+                                                <UserPlus className="w-4 h-4" />
+                                                Become CEO for {pendingCeoInvitations[0].company_name}
+                                            </Label>
+                                            <p className="text-xs text-muted-foreground">
+                                                You have been invited as CEO. Check this box to assign CEO role and access CEO dashboard.
+                                            </p>
+                                            {selectedCompanyId && (
+                                                <div className="mt-2 space-y-2">
+                                                    <div className="flex items-center space-x-2">
+                                                        <Checkbox
+                                                            id="assign-hr-manager-role"
+                                                            checked={assignHrManagerRole}
+                                                            onCheckedChange={(checked) => {
+                                                                setAssignHrManagerRole(checked === true);
+                                                            }}
+                                                        />
+                                                        <Label htmlFor="assign-hr-manager-role" className="text-sm font-medium cursor-pointer">
+                                                            Also assign HR Manager role (dual role)
+                                                        </Label>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             <Button
                                 type="submit"

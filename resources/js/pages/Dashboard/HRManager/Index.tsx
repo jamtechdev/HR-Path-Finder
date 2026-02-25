@@ -100,6 +100,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
     const { flash } = usePage().props as any;
     const [createImmediately, setCreateImmediately] = useState(false);
     const [useCustomPassword, setUseCustomPassword] = useState(false);
+    const [assignHrManagerRole, setAssignHrManagerRole] = useState(false);
     
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
@@ -107,6 +108,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
         password: '',
         hr_project_id: activeProject?.id || null,
         create_immediately: false,
+        assign_hr_manager_role: false,
     });
 
     // Check for CEO credentials in flash message
@@ -127,6 +129,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
             // Update hr_project_id before submitting
             setData('hr_project_id', activeProject?.id || null);
             setData('create_immediately', createImmediately);
+            setData('assign_hr_manager_role', assignHrManagerRole);
             // Only send password if using custom password
             if (!useCustomPassword) {
                 setData('password', '');
@@ -137,6 +140,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                     setCreateImmediately(false);
                     setUseCustomPassword(false);
                     setShowCustomPassword(false);
+                    setAssignHrManagerRole(false);
                     setShowInviteDialog(false);
                 },
             });
@@ -437,6 +441,20 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                             </>
                                                         )}
 
+                                                        <div className="flex items-center space-x-2 p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                                                            <Checkbox
+                                                                id="assign-hr-manager-role"
+                                                                checked={assignHrManagerRole}
+                                                                onCheckedChange={(checked) => {
+                                                                    setAssignHrManagerRole(checked === true);
+                                                                    setData('assign_hr_manager_role', checked === true);
+                                                                }}
+                                                            />
+                                                            <Label htmlFor="assign-hr-manager-role" className="text-sm font-medium cursor-pointer">
+                                                                Also assign HR Manager role (for CEOs who will manage HR functions)
+                                                            </Label>
+                                                        </div>
+
                                                         <div>
                                                             <Label htmlFor="ceo-email">CEO Email Address *</Label>
                                                             <Input
@@ -469,6 +487,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                                     setCreateImmediately(false);
                                                                     setUseCustomPassword(false);
                                                                     setShowCustomPassword(false);
+                                                                    setAssignHrManagerRole(false);
                                                                 }}
                                                             >
                                                                 Cancel

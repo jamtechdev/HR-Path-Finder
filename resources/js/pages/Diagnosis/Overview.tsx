@@ -118,22 +118,6 @@ export default function DiagnosisOverview({
         // Check if step has required fields filled
         return isStatusCompleted || validateStepCompletion(tab.id, diagnosis);
     }).length;
-    
-    // Find first incomplete tab
-    const firstIncompleteTab = displayTabs.find(tab => {
-        if (tab.id === 'review') {
-            return !(diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked');
-        }
-        const status = stepStatuses[tab.id];
-        const isStatusCompleted = status && (
-            status === true || 
-            status === 'completed' ||
-            status === 'submitted' || 
-            status === 'approved' || 
-            status === 'locked'
-        );
-        return !(isStatusCompleted || validateStepCompletion(tab.id, diagnosis));
-    });
 
     // Get status for header
     const getStatusForHeader = (): 'not_started' | 'in_progress' | 'submitted' => {
@@ -151,15 +135,6 @@ export default function DiagnosisOverview({
             return `/hr-manager/diagnosis/${projectId}`;
         }
         return '/hr-manager/diagnosis';
-    };
-    
-    // Get route for incomplete tab
-    const getIncompleteTabRoute = () => {
-        if (!firstIncompleteTab) return null;
-        if (projectId) {
-            return `/hr-manager/diagnosis/${projectId}/${firstIncompleteTab.id}`;
-        }
-        return `/hr-manager/diagnosis/${firstIncompleteTab.id}`;
     };
     
     // Check if all tabs are completed
@@ -203,24 +178,6 @@ export default function DiagnosisOverview({
                                     style={{ width: `${(completedCount / displayTabs.length) * 100}%` }}
                                 />
                             </div>
-                            
-                            {/* Show incomplete tab message */}
-                            {!allTabsCompleted && firstIncompleteTab && (
-                                <Alert className="mt-4 border-orange-200 bg-orange-50">
-                                    <AlertCircle className="h-4 w-4 text-orange-600" />
-                                    <AlertDescription className="text-sm text-orange-800">
-                                        <span className="font-medium">Incomplete:</span> "{firstIncompleteTab.name}" tab needs to be completed. 
-                                        {getIncompleteTabRoute() && (
-                                            <Link 
-                                                href={getIncompleteTabRoute()!}
-                                                className="ml-2 underline font-semibold hover:text-orange-900"
-                                            >
-                                                Go to {firstIncompleteTab.name} →
-                                            </Link>
-                                        )}
-                                    </AlertDescription>
-                                </Alert>
-                            )}
                             
                             {/* All completed message */}
                             {allTabsCompleted && (

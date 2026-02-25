@@ -57,46 +57,65 @@ class CompanyInvitationNotification extends Notification implements ShouldQueue
             // New user - send credentials email
             if ($this->invitation->temporary_password) {
                 $mail = (new MailMessage)
-                    ->subject('Welcome to ' . $company->name . ' - Your CEO Account Credentials')
-                    ->greeting('Welcome!')
-                    ->line($inviter->name . ' has created your CEO account for **' . $company->name . '** on HR Path-Finder.')
-                    ->line('**Your Login Credentials:**')
+                    ->subject('🎉 Welcome to ' . $company->name . ' - Your CEO Account is Ready!')
+                    ->greeting('Welcome to HR Path-Finder!')
+                    ->line('Congratulations! Your CEO account for **' . $company->name . '** has been successfully created.')
+                    ->line($inviter->name . ' has set up your account and you are now ready to begin your journey with HR Path-Finder.')
+                    ->line('**🔐 Your Login Credentials:**')
                     ->line('**Email:** ' . $this->invitation->email)
-                    ->line('**Password:** ' . $this->invitation->temporary_password)
-                    ->line('**Important:** Please change your password after your first login for security.');
+                    ->line('**Temporary Password:** ' . $this->invitation->temporary_password)
+                    ->line('**⚠️ Security Notice:** Please change your password immediately after your first login for security purposes.');
                 
                 if ($project) {
-                    $mail->line('**Project Assignment:**')
-                        ->line('You have been assigned to the HR project for **' . $company->name . '**.');
+                    $mail->line('**📋 Project Assignment:**')
+                        ->line('You have been assigned to the HR transformation project for **' . $company->name . '**.')
+                        ->line('This project will help shape the future of your organization\'s human resources strategy.');
                 }
                 
-                $mail->line('**What you can do:**')
-                    ->line('• Review and modify company information')
-                    ->line('• Complete the Management Philosophy Survey')
-                    ->line('• Collaborate on the HR project with the HR Manager')
-                    ->line('• Review and approve HR strategy steps')
-                    ->action('Login to Your Account', $loginUrl)
-                    ->line('We recommend changing your password after your first login.')
-                    ->line('If you did not expect this invitation, please contact ' . $inviter->name . ' immediately.');
+                $mail->line('**🚀 What you can do now:**')
+                    ->line('✅ Review and modify company information')
+                    ->line('✅ Complete the Management Philosophy Survey (required for project progression)')
+                    ->line('✅ Collaborate on the HR project with the HR Manager')
+                    ->line('✅ Review and approve HR strategy steps')
+                    ->line('✅ Provide strategic input on performance and compensation systems')
+                    ->line('✅ Access comprehensive HR analytics and insights')
+                    ->action('🔑 Login to Your Account', $loginUrl)
+                    ->line('**📝 Next Steps:**')
+                    ->line('1. Login using the credentials above')
+                    ->line('2. Change your password immediately')
+                    ->line('3. Complete the Management Philosophy Survey')
+                    ->line('4. Start collaborating with your HR Manager')
+                    ->line('If you have any questions or did not expect this invitation, please contact ' . $inviter->name . ' immediately.')
+                    ->salutation('Best regards,<br>The HR Path-Finder Team');
             } else {
                 // Existing user - send welcome email
                 $mail = (new MailMessage)
-                    ->subject('Welcome to ' . $company->name . ' - CEO Project Assignment')
-                    ->greeting('Welcome back!')
-                    ->line($inviter->name . ' has assigned you as CEO for **' . $company->name . '** on HR Path-Finder.');
+                    ->subject('🎉 Welcome! You\'re Now CEO of ' . $company->name)
+                    ->greeting('Welcome back to HR Path-Finder!')
+                    ->line('Great news! **' . $inviter->name . '** has assigned you as **CEO** for **' . $company->name . '**.')
+                    ->line('Your invitation has been accepted and you are now ready to lead the HR transformation journey.');
                 
                 if ($project) {
-                    $mail->line('**Project Assignment:**')
-                        ->line('You have been assigned to the HR project for **' . $company->name . '**.')
-                        ->line('Please complete the Management Philosophy Survey to proceed with the project.');
+                    $mail->line('**📋 Project Assignment:**')
+                        ->line('You have been assigned to the HR transformation project for **' . $company->name . '**.')
+                        ->line('This comprehensive project will help establish a strategic HR framework for your organization.')
+                        ->line('**Your first task:** Please complete the Management Philosophy Survey to proceed with the project.');
                 }
                 
-                $mail->line('**What you need to do:**')
-                    ->line('• Complete the Management Philosophy Survey')
-                    ->line('• Review and verify HR strategy steps')
-                    ->line('• Collaborate with the HR Manager on the project')
-                    ->action('Login to Your Account', $loginUrl)
-                    ->line('If you did not expect this invitation, please contact ' . $inviter->name . ' immediately.');
+                $mail->line('**🎯 What you need to do:**')
+                    ->line('✅ Complete the Management Philosophy Survey (if not already done)')
+                    ->line('✅ Review and verify HR strategy steps')
+                    ->line('✅ Collaborate with the HR Manager on the project')
+                    ->line('✅ Provide strategic direction and approvals')
+                    ->line('✅ Review performance and compensation system recommendations')
+                    ->action('🔑 Login to Your Account', $loginUrl)
+                    ->line('**💡 Tips for Success:**')
+                    ->line('• Take your time with the Management Philosophy Survey - it shapes the entire project')
+                    ->line('• Review each step carefully before approval')
+                    ->line('• Communicate regularly with your HR Manager')
+                    ->line('• Use the dashboard to track project progress')
+                    ->line('If you have any questions or did not expect this invitation, please contact ' . $inviter->name . ' immediately.')
+                    ->salutation('Best regards,<br>The HR Path-Finder Team');
             }
             
             return $mail;
@@ -111,40 +130,55 @@ class CompanyInvitationNotification extends Notification implements ShouldQueue
             
             $mail = (new MailMessage)
                 ->subject('🎯 CEO Invitation: Join ' . $company->name . ' on HR Path-Finder')
-                ->greeting('Hello!')
-                ->line('**' . $inviter->name . '** has invited you to join **' . $company->name . '** as **CEO** on HR Path-Finder.');
+                ->greeting('Dear Future CEO,')
+                ->line('We are excited to inform you that **' . $inviter->name . '** has invited you to join **' . $company->name . '** as **Chief Executive Officer (CEO)** on HR Path-Finder.')
+                ->line('This is an important opportunity to lead and shape the human resources strategy for your organization.');
             
             if ($project) {
-                $mail->line('**Project Assignment:**')
-                    ->line('You have been invited to participate in the HR project for **' . $company->name . '**.')
-                    ->line('As the CEO, you will play a crucial role in shaping the HR strategy and organizational design for your company.');
+                $mail->line('**📋 Project Assignment:**')
+                    ->line('You have been invited to participate in a comprehensive HR transformation project for **' . $company->name . '**.')
+                    ->line('As the CEO, your leadership and strategic vision will be essential in:')
+                    ->line('• Defining the company\'s management philosophy')
+                    ->line('• Shaping organizational design and structure')
+                    ->line('• Establishing performance and compensation systems')
+                    ->line('• Creating a strategic HR framework that aligns with your business goals');
             } else {
-                $mail->line('As the CEO, you will play a crucial role in shaping the HR strategy and organizational design for your company.');
+                $mail->line('**Your Role as CEO:**')
+                    ->line('As the CEO, you will play a crucial role in:')
+                    ->line('• Defining the company\'s management philosophy and values')
+                    ->line('• Shaping HR strategy and organizational design')
+                    ->line('• Reviewing and approving key HR initiatives')
+                    ->line('• Providing strategic direction for the organization');
             }
             
-            $mail->line('**What you will be able to do:**')
+            $mail->line('**✨ What you will be able to do:**')
                 ->line('✅ Review and modify company information')
                 ->line('✅ Complete the Management Philosophy Survey')
-                ->line('✅ Collaborate on the HR project with the HR Manager')
+                ->line('✅ Collaborate on HR projects with the HR Manager')
                 ->line('✅ Review and approve HR strategy steps')
                 ->line('✅ Provide strategic input on performance and compensation systems')
+                ->line('✅ Access comprehensive HR analytics and insights')
                 ->action('🎉 Accept Invitation', $acceptUrl)
-                ->line('**Important Details:**')
-                ->line('• **Expires:** ' . $expiresAt);
+                ->line('**⏰ Important Details:**')
+                ->line('• **Invitation Expires:** ' . $expiresAt)
+                ->line('• **Invited By:** ' . $inviter->name);
             
             // Check if user already exists
             $existingUser = User::where('email', $this->invitation->email)->first();
             if ($existingUser) {
-                $mail->line('• After accepting, you will receive a welcome email with project details')
-                    ->line('• You can use your existing account credentials to login');
+                $mail->line('• **Your Account:** You already have an account - you can use your existing credentials to login')
+                    ->line('• **After Acceptance:** You will receive a welcome email with detailed project information and next steps');
             } else {
-                $mail->line('• After accepting, you will receive your login credentials via email')
-                    ->line('• Your email will be automatically verified upon acceptance');
+                $mail->line('• **New Account:** After accepting, you will receive your login credentials via email')
+                    ->line('• **Email Verification:** Your email will be automatically verified upon acceptance')
+                    ->line('• **Security:** Please change your password after your first login');
             }
             
-            $mail->line('**Not interested?**')
-                ->line('If you do not wish to accept this invitation, you can [reject it here](' . $rejectUrl . ').')
+            $mail->line('**❓ Not interested?**')
+                ->line('If you are unable to accept this invitation or do not wish to participate, you can [reject the invitation here](' . $rejectUrl . ').')
+                ->line('The HR manager will be notified of your decision.')
                 ->line('If you did not expect this invitation, you can safely ignore this email or reject it using the link above.')
+                ->line('**Questions?** If you have any questions about this invitation, please contact ' . $inviter->name . ' directly.')
                 ->salutation('Best regards,<br>The HR Path-Finder Team');
         }
 
