@@ -10,6 +10,8 @@ class PayBandOperationCriteria extends Model
 {
     use HasFactory;
 
+    protected $table = 'pay_band_operation_criteria';
+
     protected $fillable = [
         'hr_project_id',
         'outlier_handling',

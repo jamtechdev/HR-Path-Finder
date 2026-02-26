@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Target, Settings, CheckCircle2, MessageSquare, ChevronDown, ChevronUp, Plus, Trash2, Edit, Send, AlertCircle, ExternalLink, Copy, Clock, Mail, User } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Target, Settings, CheckCircle2, MessageSquare, ChevronDown, ChevronUp, Plus, Trash2, Edit, Send, AlertCircle, ExternalLink, Copy, Clock, Mail, User } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -66,6 +66,7 @@ interface OrganizationalKpi {
     weight?: number;
     is_active: boolean;
     status: string;
+    revision_comment?: string;
     linked_job?: {
         id: number;
         job_name: string;
@@ -75,6 +76,7 @@ interface OrganizationalKpi {
 interface JobDefinition {
     id: number;
     job_name: string;
+    csfs?: Array<{ name: string; [key: string]: any }>;
     job_keyword?: {
         id: number;
         keyword: string;
@@ -141,6 +143,19 @@ interface Props {
     snapshotQuestions?: PerformanceSnapshotQuestion[];
     jobDefinitions?: JobDefinition[];
     orgChartMappings?: OrgChartMapping[];
+    kpiReviewTokens?: Record<string, Array<{
+        id: number;
+        token: string;
+        email: string;
+        name?: string;
+        organization_name: string;
+        created_at: string;
+        expires_at?: string;
+        uses_count: number;
+        max_uses: number;
+        is_valid: boolean;
+        review_link: string;
+    }>>;
     stepStatuses?: Record<string, string>;
     projectId?: number;
 }
@@ -235,18 +250,19 @@ export default function PerformanceSystemIndex({
 
     // Auto-save evaluation unit and performance method - smooth auto-save
     useEffect(() => {
+        if (activeTab !== 'overview') return;
+        
         const timer = setTimeout(() => {
             if (data.evaluation_unit || data.performance_method || data.evaluation_type || data.evaluation_scale) {
-                post(`/hr-manager/performance-system/${project.id}`, {
-                    data: {
-                        tab: 'overview',
-                        evaluation_units: data.evaluation_unit ? [data.evaluation_unit] : [],
-                        performance_methods: data.performance_method ? [data.performance_method] : [],
-                        assessment_structure: {
-                            type: data.evaluation_type,
-                            scale: data.evaluation_scale,
-                        }
-                    },
+                router.post(`/hr-manager/performance-system/${project.id}`, {
+                    tab: 'overview',
+                    evaluation_units: data.evaluation_unit ? [data.evaluation_unit] : [],
+                    performance_methods: data.performance_method ? [data.performance_method] : [],
+                    assessment_structure: {
+                        type: data.evaluation_type,
+                        scale: data.evaluation_scale,
+                    }
+                }, {
                     preserveScroll: true,
                     preserveState: true,
                     only: ['project', 'performanceSystem'],
@@ -254,7 +270,7 @@ export default function PerformanceSystemIndex({
             }
         }, 1500);
         return () => clearTimeout(timer);
-    }, [data.evaluation_unit, data.performance_method, data.evaluation_type, data.evaluation_scale]);
+    }, [data.evaluation_unit, data.performance_method, data.evaluation_type, data.evaluation_scale, activeTab]);
 
     // Auto-save snapshot responses - smooth auto-save
     useEffect(() => {
@@ -267,8 +283,10 @@ export default function PerformanceSystemIndex({
                     response: snapshotResponses[q.id] || [],
                     text_response: null,
                 }));
-                post(`/hr-manager/performance-system/${project.id}`, {
-                    data: { tab: 'snapshot', responses },
+                router.post(`/hr-manager/performance-system/${project.id}`, {
+                    tab: 'snapshot',
+                    responses,
+                }, {
                     preserveScroll: true,
                     preserveState: true,
                     only: ['project'],
@@ -288,8 +306,10 @@ export default function PerformanceSystemIndex({
                     job_definition_id: parseInt(jobId),
                     evaluation_model: model,
                 }));
-                post(`/hr-manager/performance-system/${project.id}`, {
-                    data: { tab: 'model-assignment', assignments },
+                router.post(`/hr-manager/performance-system/${project.id}`, {
+                    tab: 'model-assignment',
+                    assignments,
+                }, {
                     preserveScroll: true,
                     preserveState: true,
                     only: ['project'],
@@ -305,8 +325,10 @@ export default function PerformanceSystemIndex({
         
         const timer = setTimeout(() => {
             if (Object.keys(evalStructure).length > 0) {
-                post(`/hr-manager/performance-system/${project.id}`, {
-                    data: { tab: 'evaluation-structure', ...evalStructure },
+                router.post(`/hr-manager/performance-system/${project.id}`, {
+                    tab: 'evaluation-structure',
+                    ...evalStructure,
+                }, {
                     preserveScroll: true,
                     preserveState: true,
                     only: ['project'],
@@ -329,8 +351,23 @@ export default function PerformanceSystemIndex({
         
         const timer = setTimeout(() => {
             if (kpis.length > 0) {
-                post(`/hr-manager/performance-system/${project.id}`, {
-                    data: { tab: 'kpi-review', kpis },
+                router.post(`/hr-manager/performance-system/${project.id}`, {
+                    tab: 'kpi-review',
+                    kpis: kpis.map(kpi => ({
+                        id: kpi.id,
+                        organization_name: kpi.organization_name,
+                        kpi_name: kpi.kpi_name,
+                        purpose: kpi.purpose,
+                        category: kpi.category,
+                        linked_job_id: kpi.linked_job_id,
+                        linked_csf: kpi.linked_csf,
+                        formula: kpi.formula,
+                        measurement_method: kpi.measurement_method,
+                        weight: kpi.weight,
+                        is_active: kpi.is_active,
+                        status: kpi.status,
+                    })),
+                }, {
                     preserveScroll: true,
                     preserveState: true,
                     only: ['project'],
@@ -353,15 +390,32 @@ export default function PerformanceSystemIndex({
             text_response: null,
         }));
 
-        post(`/hr-manager/performance-system/${project.id}`, {
-            data: { tab: 'snapshot', responses },
+        router.post(`/hr-manager/performance-system/${project.id}`, {
+            tab: 'snapshot',
+            responses,
+        }, {
             preserveScroll: true,
         });
     };
 
     const handleKpiSave = () => {
-        post(`/hr-manager/performance-system/${project.id}`, {
-            data: { tab: 'kpi-review', kpis },
+        router.post(`/hr-manager/performance-system/${project.id}`, {
+            tab: 'kpi-review',
+            kpis: kpis.map(kpi => ({
+                id: kpi.id,
+                organization_name: kpi.organization_name,
+                kpi_name: kpi.kpi_name,
+                purpose: kpi.purpose,
+                category: kpi.category,
+                linked_job_id: kpi.linked_job_id,
+                linked_csf: kpi.linked_csf,
+                formula: kpi.formula,
+                measurement_method: kpi.measurement_method,
+                weight: kpi.weight,
+                is_active: kpi.is_active,
+                status: kpi.status,
+            })),
+        }, {
             preserveScroll: true,
             preserveState: true,
         });
@@ -373,16 +427,20 @@ export default function PerformanceSystemIndex({
             evaluation_model: model,
         }));
 
-        post(`/hr-manager/performance-system/${project.id}`, {
-            data: { tab: 'model-assignment', assignments },
+        router.post(`/hr-manager/performance-system/${project.id}`, {
+            tab: 'model-assignment',
+            assignments,
+        }, {
             preserveScroll: true,
             preserveState: true,
         });
     };
 
     const handleEvaluationStructureSave = () => {
-        post(`/hr-manager/performance-system/${project.id}`, {
-            data: { tab: 'evaluation-structure', ...evalStructure },
+        router.post(`/hr-manager/performance-system/${project.id}`, {
+            tab: 'evaluation-structure',
+            ...evalStructure,
+        }, {
             preserveScroll: true,
             preserveState: true,
         });
@@ -472,13 +530,158 @@ export default function PerformanceSystemIndex({
                         <Card className="p-0">
                             <CardContent className="p-6">
                                 {activeTab === 'overview' && (
-                                    <div className="text-center py-12">
-                                        <Target className="w-16 h-16 mx-auto mb-4 text-primary" />
-                                        <h2 className="text-2xl font-bold mb-2">Performance System Design</h2>
-                                        <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                                            Design your performance evaluation framework including evaluation units, management methods (KPI/MBO/OKR/BSC), and assessment structures.
-                                        </p>
-                                        <Button onClick={() => handleTabChange('snapshot')} size="lg">Start Design →</Button>
+                                    <div className="space-y-8">
+                                        {/* Header Section */}
+                                        <div className="text-center mb-8">
+                                            <div className="w-16 h-16 rounded-xl bg-primary flex items-center justify-center shadow-md mx-auto mb-4">
+                                                <Target className="w-8 h-8 text-white" />
+                                            </div>
+                                            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                                                Performance System Design
+                                            </h2>
+                                            <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                                                Design your performance evaluation framework including evaluation units, management methods (KPI/MBO/OKR/BSC), and assessment structures.
+                                            </p>
+                                        </div>
+
+                                        {/* Form Fields */}
+                                        <div className="space-y-8">
+                                            {/* Evaluation Unit */}
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <Label className="text-lg font-semibold mb-2 block">Evaluation Unit *</Label>
+                                                    <p className="text-sm text-muted-foreground mb-4">Select the unit of evaluation for your performance system.</p>
+                                                </div>
+                                                <RadioGroup 
+                                                    value={data.evaluation_unit} 
+                                                    onValueChange={(v) => setData('evaluation_unit', v)} 
+                                                    className="grid grid-cols-2 gap-4"
+                                                >
+                                                    {UNIT_OPTIONS.map(opt => (
+                                                        <div key={opt} className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                                                            <RadioGroupItem value={opt.toLowerCase()} id={`unit-${opt}`} />
+                                                            <Label htmlFor={`unit-${opt}`} className="cursor-pointer flex-1 font-medium">{opt}</Label>
+                                                        </div>
+                                                    ))}
+                                                </RadioGroup>
+                                            </div>
+
+                                            {/* Performance Method */}
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <Label className="text-lg font-semibold mb-2 block">Performance Management Method *</Label>
+                                                    <p className="text-sm text-muted-foreground mb-4">Select the performance management methodology for your organization.</p>
+                                                </div>
+                                                <RadioGroup 
+                                                    value={data.performance_method} 
+                                                    onValueChange={(v) => setData('performance_method', v)} 
+                                                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                                                >
+                                                    {METHOD_OPTIONS.map(opt => {
+                                                        const isConsultantRecommended = consultantRecommendation?.recommended_option === opt.value;
+                                                        const isAlgorithmRecommended = algorithmRecommendations?.[opt.value]?.recommended;
+                                                        return (
+                                                            <div key={opt.value} className={`relative ${isConsultantRecommended ? 'ring-2 ring-primary' : ''}`}>
+                                                                <label className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors ${isConsultantRecommended ? 'bg-primary/5 border-primary/30' : ''}`}>
+                                                                    <RadioGroupItem value={opt.value} id={`method-${opt.value}`} />
+                                                                    <div className="flex-1">
+                                                                        <div className="flex items-center justify-between mb-1">
+                                                                            <span className="font-semibold">{opt.label}</span>
+                                                                            <div className="flex items-center gap-2">
+                                                                                {isConsultantRecommended && (
+                                                                                    <Badge variant="default" className="bg-primary text-xs">
+                                                                                        Consultant Recommended
+                                                                                    </Badge>
+                                                                                )}
+                                                                                {!isConsultantRecommended && isAlgorithmRecommended && (
+                                                                                    <Badge variant="outline" className="text-xs">Algorithm Recommended</Badge>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                        <p className="text-sm text-muted-foreground">{opt.desc}</p>
+                                                                        {isConsultantRecommended && (
+                                                                            <p className="text-xs text-primary mt-1 font-medium">
+                                                                                ✓ This is your consultant's recommended option
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+                                                                </label>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </RadioGroup>
+                                            </div>
+
+                                            {/* Evaluation Type */}
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <Label className="text-lg font-semibold mb-2 block">Evaluation Type</Label>
+                                                    <p className="text-sm text-muted-foreground mb-4">Select the type of evaluation approach.</p>
+                                                </div>
+                                                <RadioGroup 
+                                                    value={data.evaluation_type} 
+                                                    onValueChange={(v) => setData('evaluation_type', v)} 
+                                                    className="grid grid-cols-3 gap-4"
+                                                >
+                                                    {TYPE_OPTIONS.map(opt => (
+                                                        <div key={opt} className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                                                            <RadioGroupItem value={opt.toLowerCase()} id={`type-${opt}`} />
+                                                            <Label htmlFor={`type-${opt}`} className="cursor-pointer flex-1 font-medium">{opt}</Label>
+                                                        </div>
+                                                    ))}
+                                                </RadioGroup>
+                                            </div>
+
+                                            {/* Evaluation Scale */}
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <Label className="text-lg font-semibold mb-2 block">Evaluation Scale</Label>
+                                                    <p className="text-sm text-muted-foreground mb-4">Select the scale for performance evaluation.</p>
+                                                </div>
+                                                <RadioGroup 
+                                                    value={data.evaluation_scale} 
+                                                    onValueChange={(v) => setData('evaluation_scale', v)} 
+                                                    className="grid grid-cols-3 gap-4"
+                                                >
+                                                    {SCALE_OPTIONS.map(opt => (
+                                                        <div key={opt} className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                                                            <RadioGroupItem value={opt.toLowerCase()} id={`scale-${opt}`} />
+                                                            <Label htmlFor={`scale-${opt}`} className="cursor-pointer flex-1 font-medium">{opt}</Label>
+                                                        </div>
+                                                    ))}
+                                                </RadioGroup>
+                                            </div>
+                                        </div>
+
+                                        {/* Validation Messages */}
+                                        {(!data.evaluation_unit || !data.performance_method) && (
+                                            <Card className="border-yellow-200 bg-yellow-50">
+                                                <CardContent className="p-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <AlertCircle className="w-5 h-5 text-yellow-600" />
+                                                        <div>
+                                                            <p className="font-medium text-yellow-800 mb-1">Required Fields Missing</p>
+                                                            <p className="text-sm text-yellow-700">
+                                                                Please fill in all required fields (marked with *) before proceeding to the next step.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        )}
+
+                                        {/* Next Button */}
+                                        <div className="flex justify-end pt-4 border-t">
+                                            <Button 
+                                                onClick={() => handleTabChange('snapshot')} 
+                                                size="lg"
+                                                disabled={!data.evaluation_unit || !data.performance_method}
+                                                className="px-8"
+                                            >
+                                                Continue to Snapshot
+                                                <ArrowRight className="ml-2 w-5 h-5" />
+                                            </Button>
+                                        </div>
                                     </div>
                                 )}
 
@@ -730,7 +933,7 @@ export default function PerformanceSystemIndex({
                                                 }} disabled={!selectedOrg}>
                                                     <Plus className="w-4 h-4 mr-2" /> Add KPI
                                                 </Button>
-                                                <Button variant="outline" onClick={() => setSelectedOrg(null)}>
+                                                <Button variant="outline" onClick={() => setSelectedOrg('')}>
                                                     Show All
                                                 </Button>
                                             </div>
@@ -915,35 +1118,143 @@ export default function PerformanceSystemIndex({
                                         <Card>
                                             <CardContent className="p-6">
                                                 <h4 className="font-semibold mb-4">Leader Review Status</h4>
-                                                <div className="space-y-3">
-                                                    {Array.from(new Set(kpis.map(k => k.organization_name))).map((orgName) => {
+                                                <div className="space-y-4">
+                                                    {Array.from(new Set(kpis.map(k => k.organization_name).filter(Boolean))).map((orgName) => {
                                                         const orgKpis = kpis.filter(k => k.organization_name === orgName);
                                                         const orgMapping = orgChartMappings.find(m => m.org_unit_name === orgName);
-                                                        const allApproved = orgKpis.every(k => k.status === 'approved');
+                                                        const reviewTokens = kpiReviewTokens[orgName] || [];
+                                                        
+                                                        // Determine status
+                                                        const allApproved = orgKpis.length > 0 && orgKpis.every(k => k.status === 'approved');
                                                         const hasRevisionRequest = orgKpis.some(k => k.status === 'revision_requested');
-                                                        const status = allApproved ? 'approved' : hasRevisionRequest ? 'revision_requested' : 'not_reviewed';
+                                                        const hasProposed = orgKpis.some(k => k.status === 'proposed');
+                                                        const hasDraft = orgKpis.some(k => !k.status || k.status === 'draft');
+                                                        
+                                                        let status = 'not_reviewed';
+                                                        let statusLabel = 'Not Reviewed';
+                                                        let statusVariant: 'default' | 'destructive' | 'secondary' | 'outline' = 'secondary';
+                                                        
+                                                        if (allApproved) {
+                                                            status = 'approved';
+                                                            statusLabel = 'Approved';
+                                                            statusVariant = 'default';
+                                                        } else if (hasRevisionRequest) {
+                                                            status = 'revision_requested';
+                                                            statusLabel = 'Revision Requested';
+                                                            statusVariant = 'destructive';
+                                                        } else if (hasProposed) {
+                                                            status = 'under_review';
+                                                            statusLabel = 'Under Review';
+                                                            statusVariant = 'outline';
+                                                        } else if (hasDraft) {
+                                                            status = 'draft';
+                                                            statusLabel = 'Draft';
+                                                            statusVariant = 'secondary';
+                                                        }
+                                                        
+                                                        const totalKpis = orgKpis.length;
+                                                        const activeKpis = orgKpis.filter(k => k.is_active).length;
+                                                        
                                                         return (
-                                                            <div key={orgName} className="flex items-center justify-between p-4 border rounded-lg">
-                                                                <div className="flex-1">
+                                                            <div key={orgName} className="border rounded-lg p-4 space-y-3">
+                                                                <div className="flex items-center justify-between">
                                                                     <div className="flex items-center gap-3">
-                                                                        <span className="font-medium">{orgName}</span>
-                                                                        <Badge variant={
-                                                                            status === 'approved' ? 'default' :
-                                                                            status === 'revision_requested' ? 'destructive' : 'secondary'
-                                                                        }>
-                                                                            {status === 'approved' ? 'Approved' :
-                                                                             status === 'revision_requested' ? 'Revision Requested' : 'Not Reviewed'}
+                                                                        <span className="font-semibold text-lg">{orgName}</span>
+                                                                        <Badge variant={statusVariant}>
+                                                                            {statusLabel}
                                                                         </Badge>
                                                                     </div>
-                                                                    {hasRevisionRequest && orgKpis.some(k => k.revision_comment) && (
-                                                                        <p className="text-sm text-muted-foreground mt-2">
-                                                                            {orgKpis.find(k => k.revision_comment)?.revision_comment}
-                                                                        </p>
-                                                                    )}
+                                                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                                        <span>{activeKpis} of {totalKpis} KPIs Active</span>
+                                                                    </div>
                                                                 </div>
+                                                                
+                                                                {/* Review Tokens Section */}
+                                                                {reviewTokens.length > 0 && (
+                                                                    <div className="mt-3 pt-3 border-t">
+                                                                        <div className="text-sm font-medium mb-2">Review Links Sent:</div>
+                                                                        <div className="space-y-2">
+                                                                            {reviewTokens.map((token) => (
+                                                                                <div key={token.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
+                                                                                    <div className="flex items-center gap-2 flex-1">
+                                                                                        <Mail className="w-4 h-4 text-muted-foreground" />
+                                                                                        <div className="flex-1 min-w-0">
+                                                                                            <div className="flex items-center gap-2">
+                                                                                                {token.name && (
+                                                                                                    <span className="font-medium text-sm">{token.name}</span>
+                                                                                                )}
+                                                                                                <span className="text-xs text-muted-foreground">{token.email}</span>
+                                                                                            </div>
+                                                                                            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                                                                                                <span className="flex items-center gap-1">
+                                                                                                    <Clock className="w-3 h-3" />
+                                                                                                    Sent: {new Date(token.created_at).toLocaleDateString()}
+                                                                                                </span>
+                                                                                                {token.expires_at && (
+                                                                                                    <span className="flex items-center gap-1">
+                                                                                                        Expires: {new Date(token.expires_at).toLocaleDateString()}
+                                                                                                    </span>
+                                                                                                )}
+                                                                                                <span className="flex items-center gap-1">
+                                                                                                    Used: {token.uses_count}/{token.max_uses}
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <Badge variant={token.is_valid ? 'default' : 'secondary'} className="text-xs">
+                                                                                            {token.is_valid ? 'Active' : 'Expired'}
+                                                                                        </Badge>
+                                                                                        <Button
+                                                                                            variant="ghost"
+                                                                                            size="sm"
+                                                                                            onClick={() => {
+                                                                                                navigator.clipboard.writeText(token.review_link);
+                                                                                                alert('Review link copied to clipboard!');
+                                                                                            }}
+                                                                                            className="h-8 w-8 p-0"
+                                                                                        >
+                                                                                            <Copy className="w-4 h-4" />
+                                                                                        </Button>
+                                                                                        <Button
+                                                                                            variant="ghost"
+                                                                                            size="sm"
+                                                                                            onClick={() => window.open(token.review_link, '_blank')}
+                                                                                            className="h-8 w-8 p-0"
+                                                                                        >
+                                                                                            <ExternalLink className="w-4 h-4" />
+                                                                                        </Button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                                
+                                                                {/* Revision Comments */}
+                                                                {hasRevisionRequest && orgKpis.some(k => k.revision_comment) && (
+                                                                    <div className="mt-2 p-2 bg-destructive/10 border border-destructive/20 rounded-md">
+                                                                        <p className="text-sm text-destructive">
+                                                                            <strong>Revision Comment:</strong> {orgKpis.find(k => k.revision_comment)?.revision_comment}
+                                                                        </p>
+                                                                    </div>
+                                                                )}
+                                                                
+                                                                {/* KPI Summary */}
+                                                                {orgKpis.length > 0 && (
+                                                                    <div className="mt-2 text-xs text-muted-foreground">
+                                                                        KPIs: {orgKpis.map(k => k.kpi_name).filter(Boolean).join(', ') || 'No KPIs named yet'}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         );
                                                     })}
+                                                    
+                                                    {Array.from(new Set(kpis.map(k => k.organization_name).filter(Boolean))).length === 0 && (
+                                                        <div className="text-center py-8 text-muted-foreground">
+                                                            <p>No organizations with KPIs yet. Add KPIs to see review status.</p>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </CardContent>
                                         </Card>
@@ -1269,9 +1580,22 @@ export default function PerformanceSystemIndex({
                                                         <Label>Rating Distribution (%)</Label>
                                                         <Input
                                                             type="text"
-                                                            value={evalStructure.org_rating_distribution || ''}
-                                                            onChange={(e) => setEvalStructure({ ...evalStructure, org_rating_distribution: e.target.value })}
-                                                            placeholder="e.g., 30% 40% 30%"
+                                                            value={typeof evalStructure.org_rating_distribution === 'object' && evalStructure.org_rating_distribution
+                                                                ? Object.entries(evalStructure.org_rating_distribution).map(([k, v]) => `${k}: ${v}%`).join(', ')
+                                                                : ''}
+                                                            onChange={(e) => {
+                                                                // Parse the input and convert to object format
+                                                                const parts = e.target.value.split(',').map(p => p.trim());
+                                                                const distribution: Record<string, number> = {};
+                                                                parts.forEach(part => {
+                                                                    const match = part.match(/(\w+):\s*(\d+)%/);
+                                                                    if (match) {
+                                                                        distribution[match[1]] = parseInt(match[2]);
+                                                                    }
+                                                                });
+                                                                setEvalStructure({ ...evalStructure, org_rating_distribution: Object.keys(distribution).length > 0 ? distribution : undefined });
+                                                            }}
+                                                            placeholder="e.g., A: 30%, B: 40%, C: 30%"
                                                         />
                                                     </div>
                                                     <div>
@@ -1290,10 +1614,43 @@ export default function PerformanceSystemIndex({
                                                         </Select>
                                                     </div>
                                                     <div>
-                                                        <Label>Use of Evaluation Results</Label>
+                                                        <Label>Use of Evaluation Results (Multi Choice)</Label>
+                                                        <div className="space-y-2 mt-2">
+                                                            {['salary_adjustment', 'bonus_allocation', 'promotion', 'position_assignment', 'training_selection', 'differentiated_benefits', 'other'].map(use => (
+                                                                <div key={use} className="flex items-center space-x-2">
+                                                                    <Checkbox
+                                                                        id={`org-use-result-${use}`}
+                                                                        checked={(evalStructure.org_use_of_results || []).includes(use)}
+                                                                        onCheckedChange={(checked) => {
+                                                                            const current = evalStructure.org_use_of_results || [];
+                                                                            setEvalStructure({
+                                                                                ...evalStructure,
+                                                                                org_use_of_results: checked
+                                                                                    ? [...current, use]
+                                                                                    : current.filter(u => u !== use)
+                                                                            });
+                                                                        }}
+                                                                    />
+                                                                    <Label htmlFor={`org-use-result-${use}`} className="cursor-pointer text-sm">
+                                                                        {use === 'salary_adjustment' ? 'Salary adjustment' :
+                                                                         use === 'bonus_allocation' ? 'Bonus allocation' :
+                                                                         use === 'promotion' ? 'Promotion' :
+                                                                         use === 'position_assignment' ? 'Position assignment' :
+                                                                         use === 'training_selection' ? 'Training selection' :
+                                                                         use === 'differentiated_benefits' ? 'Differentiated benefits' :
+                                                                         'Other (text)'}
+                                                                    </Label>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <Label>Evaluation Group</Label>
                                                         <Select
-                                                            value={evalStructure.org_use_of_results || ''}
-                                                            onValueChange={(v) => setEvalStructure({ ...evalStructure, org_use_of_results: v })}
+                                                            value={Array.isArray(evalStructure.org_evaluation_group) 
+                                                                ? (evalStructure.org_evaluation_group as string[])[0] || ''
+                                                                : (evalStructure.org_evaluation_group || '')}
+                                                            onValueChange={(v) => setEvalStructure({ ...evalStructure, org_evaluation_group: v })}
                                                         >
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder="Select One" />
@@ -1437,9 +1794,22 @@ export default function PerformanceSystemIndex({
                                                         <Label>Rating Distribution (%)</Label>
                                                         <Input
                                                             type="text"
-                                                            value={evalStructure.individual_rating_distribution || ''}
-                                                            onChange={(e) => setEvalStructure({ ...evalStructure, individual_rating_distribution: e.target.value })}
-                                                            placeholder="e.g., 10% 15% 60% 10% 5%"
+                                                            value={typeof evalStructure.individual_rating_distribution === 'object' && evalStructure.individual_rating_distribution
+                                                                ? Object.entries(evalStructure.individual_rating_distribution).map(([k, v]) => `${k}: ${v}%`).join(', ')
+                                                                : ''}
+                                                            onChange={(e) => {
+                                                                // Parse the input and convert to object format
+                                                                const parts = e.target.value.split(',').map(p => p.trim());
+                                                                const distribution: Record<string, number> = {};
+                                                                parts.forEach(part => {
+                                                                    const match = part.match(/(\w+):\s*(\d+)%/);
+                                                                    if (match) {
+                                                                        distribution[match[1]] = parseInt(match[2]);
+                                                                    }
+                                                                });
+                                                                setEvalStructure({ ...evalStructure, individual_rating_distribution: Object.keys(distribution).length > 0 ? distribution : undefined });
+                                                            }}
+                                                            placeholder="e.g., S: 10%, A: 15%, B: 60%, C: 10%, D: 5%"
                                                         />
                                                     </div>
                                                     <div>
@@ -1504,8 +1874,8 @@ export default function PerformanceSystemIndex({
                                                     <div className="col-span-2">
                                                         <Label>Organization Leader Evaluation</Label>
                                                         <Select
-                                                            value={evalStructure.org_leader_evaluation || ''}
-                                                            onValueChange={(v) => setEvalStructure({ ...evalStructure, org_leader_evaluation: v })}
+                                                            value={evalStructure.organization_leader_evaluation || ''}
+                                                            onValueChange={(v) => setEvalStructure({ ...evalStructure, organization_leader_evaluation: v })}
                                                         >
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder="Select One" />

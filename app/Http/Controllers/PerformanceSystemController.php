@@ -146,9 +146,33 @@ class PerformanceSystemController extends Controller
             'assessment_structure' => ['nullable', 'array'],
         ]);
 
+        // Extract single values from arrays
+        $data = [
+            'status' => StepStatus::IN_PROGRESS,
+        ];
+
+        if (!empty($validated['evaluation_units']) && is_array($validated['evaluation_units'])) {
+            $data['evaluation_unit'] = $validated['evaluation_units'][0] ?? null;
+        }
+
+        if (!empty($validated['performance_methods']) && is_array($validated['performance_methods'])) {
+            $data['performance_method'] = $validated['performance_methods'][0] ?? null;
+        }
+
+        // Handle assessment_structure if provided
+        if (!empty($validated['assessment_structure']) && is_array($validated['assessment_structure'])) {
+            // Map assessment_structure.type to evaluation_logic if needed
+            // For now, we'll store it as evaluation_logic if type is provided
+            if (isset($validated['assessment_structure']['type'])) {
+                $type = $validated['assessment_structure']['type'];
+                // Map: quantitative -> quantitative, qualitative -> qualitative, hybrid -> mixed
+                $data['evaluation_logic'] = $type === 'hybrid' ? 'mixed' : $type;
+            }
+        }
+
         $performanceSystem = PerformanceSystem::updateOrCreate(
             ['hr_project_id' => $hrProject->id],
-            array_merge($validated, ['status' => StepStatus::IN_PROGRESS])
+            $data
         );
 
         $hrProject->setStepStatus('performance', StepStatus::IN_PROGRESS);
