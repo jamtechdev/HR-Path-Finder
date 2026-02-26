@@ -42,12 +42,9 @@ export default function CompaniesIndex({ companies }: Props) {
     const [ceoCredentials, setCeoCredentials] = useState<{name: string; email: string; password: string} | null>(null);
     
     const { flash } = usePage().props as any;
-    const [assignHrManagerRole, setAssignHrManagerRole] = useState(false);
-    
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         hr_project_id: null as number | null,
-        assign_hr_manager_role: false,
     });
 
     // Check for CEO credentials in flash message
@@ -73,11 +70,9 @@ export default function CompaniesIndex({ companies }: Props) {
         e.preventDefault();
         if (selectedCompany) {
             setData('hr_project_id', selectedCompany.activeProject?.id || null);
-            setData('assign_hr_manager_role', assignHrManagerRole);
             post(`/companies/${selectedCompany.id}/invite-ceo`, {
                 onSuccess: () => {
                     reset();
-                    setAssignHrManagerRole(false);
                     setShowInviteDialog(false);
                 },
             });
@@ -230,19 +225,6 @@ export default function CompaniesIndex({ companies }: Props) {
                                                 </p>
                                             )}
                                         </div>
-                                        <div className="flex items-center space-x-2 p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                                            <Checkbox
-                                                id="assign-hr-manager-role"
-                                                checked={assignHrManagerRole}
-                                                onCheckedChange={(checked) => {
-                                                    setAssignHrManagerRole(checked === true);
-                                                    setData('assign_hr_manager_role', checked === true);
-                                                }}
-                                            />
-                                            <Label htmlFor="assign-hr-manager-role" className="text-sm font-medium cursor-pointer">
-                                                Also assign HR Manager role (for CEOs who will manage HR functions)
-                                            </Label>
-                                        </div>
                                         <div className="flex justify-end gap-2">
                                             <Button
                                                 type="button"
@@ -250,7 +232,6 @@ export default function CompaniesIndex({ companies }: Props) {
                                                 onClick={() => {
                                                     setShowInviteDialog(false);
                                                     reset();
-                                                    setAssignHrManagerRole(false);
                                                     setSelectedCompany(null);
                                                 }}
                                             >

@@ -14,7 +14,18 @@ class CeoDashboardController extends Controller
     {
         $user = $request->user();
         
-        // Get projects where user is CEO
+        // Ensure user is authenticated
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
+        // Ensure user has CEO role - only CEO role can access this dashboard
+        // Even if user has both HR Manager and CEO roles, they should only see CEO content here
+        if (!$user->hasRole('ceo')) {
+            abort(403, 'You do not have permission to access this page. CEO role is required.');
+        }
+        
+        // Get projects where user is CEO (only filter by CEO role, not HR Manager role)
         $projects = HrProject::whereHas('company', function ($query) use ($user) {
             $query->whereHas('users', function ($q) use ($user) {
                 $q->where('users.id', $user->id)

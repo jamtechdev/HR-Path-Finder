@@ -23,7 +23,6 @@ class CompanyInvitationController extends Controller
         $request->validate([
             'email' => ['required', 'email', 'max:255'],
             'hr_project_id' => ['nullable', 'exists:hr_projects,id'],
-            'assign_hr_manager_role' => ['nullable', 'boolean'], // New parameter for dual role
         ]);
 
         // Check if user already exists
@@ -53,19 +52,6 @@ class CompanyInvitationController extends Controller
                 ]);
             }
 
-            // Check if they need HR Manager role (if requested)
-            if ($request->boolean('assign_hr_manager_role')) {
-                if (!$existingUser->hasRole('hr_manager')) {
-                    $existingUser->assignRole('hr_manager');
-                }
-                if (!in_array('hr_manager', $existingCompanyRoles)) {
-                    $needsUpdate = true;
-                    $updates[] = 'HR Manager';
-                    $company->users()->syncWithoutDetaching([
-                        $existingUser->id => ['role' => 'hr_manager'],
-                    ]);
-                }
-            }
 
             if ($needsUpdate) {
                 // Create invitation record for tracking (marked as accepted since user is already member)
@@ -109,13 +95,9 @@ class CompanyInvitationController extends Controller
                 $rolesAdded = implode(' and ', $updates);
                 return back()->with('success', "User has been successfully assigned {$rolesAdded} role(s) for this company. Notification email sent.");
             } else {
-                // User already has all requested roles
-                $hasCeo = in_array('ceo', $existingCompanyRoles);
-                $hasHrManager = in_array('hr_manager', $existingCompanyRoles);
-                $requestedHrManager = $request->boolean('assign_hr_manager_role');
-                
-                if ($hasCeo && (!$requestedHrManager || $hasHrManager)) {
-                    return back()->withErrors(['email' => 'This user already has the requested role(s) for this company.']);
+                // User already has CEO role
+                if (in_array('ceo', $existingCompanyRoles)) {
+                    return back()->withErrors(['email' => 'This user already has CEO role for this company.']);
                 }
             }
         }

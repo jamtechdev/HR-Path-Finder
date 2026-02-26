@@ -40,20 +40,16 @@ export default function ShowCompany({ company }: Props) {
     const hasCeo = company.users?.some((u) => u.pivot.role === 'ceo') || false;
     
     const [showInviteForm, setShowInviteForm] = useState(false);
-    const [assignHrManagerRole, setAssignHrManagerRole] = useState(false);
     
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
-        assign_hr_manager_role: false,
     });
 
     const handleInviteCeo = (e: React.FormEvent) => {
         e.preventDefault();
-        setData('assign_hr_manager_role', assignHrManagerRole);
         post(`/companies/${company.id}/invite-ceo`, {
             onSuccess: () => {
                 reset();
-                setAssignHrManagerRole(false);
                 setShowInviteForm(false);
             },
         });
@@ -126,19 +122,6 @@ export default function ShowCompany({ company }: Props) {
                                                         <p className="text-sm text-red-600 mt-1">{errors.email}</p>
                                                     )}
                                                 </div>
-                                                <div className="flex items-center space-x-2 p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                                                    <Checkbox
-                                                        id="assign-hr-manager-role"
-                                                        checked={assignHrManagerRole}
-                                                        onCheckedChange={(checked) => {
-                                                            setAssignHrManagerRole(checked === true);
-                                                            setData('assign_hr_manager_role', checked === true);
-                                                        }}
-                                                    />
-                                                    <Label htmlFor="assign-hr-manager-role" className="text-sm font-medium cursor-pointer">
-                                                        Also assign HR Manager role (for CEOs who will manage HR functions)
-                                                    </Label>
-                                                </div>
                                                 <div className="flex gap-2">
                                                     <Button type="submit" disabled={processing} size="sm">
                                                         <Mail className="w-4 h-4 mr-2" />
@@ -150,7 +133,6 @@ export default function ShowCompany({ company }: Props) {
                                                         size="sm"
                                                         onClick={() => {
                                                             setShowInviteForm(false);
-                                                            setAssignHrManagerRole(false);
                                                             reset();
                                                         }}
                                                     >

@@ -10,6 +10,8 @@ class CeoRoleRequest extends Model
 {
     use HasFactory;
 
+    protected $table = 'ceo_role_requests';
+
     protected $fillable = [
         'user_id',
         'company_id',

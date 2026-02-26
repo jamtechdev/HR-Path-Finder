@@ -102,12 +102,9 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
     const [ceoCredentials, setCeoCredentials] = useState<{name: string; email: string; password: string} | null>(null);
     
     const { flash } = usePage().props as any;
-    const [assignHrManagerRole, setAssignHrManagerRole] = useState(false);
-    
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         hr_project_id: activeProject?.id || null,
-        assign_hr_manager_role: false,
     });
 
     const ceoRequestForm = useForm({
@@ -131,11 +128,9 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
         if (company) {
             // Update hr_project_id before submitting
             setData('hr_project_id', activeProject?.id || null);
-            setData('assign_hr_manager_role', assignHrManagerRole);
             post(`/companies/${company.id}/invite-ceo`, {
                 onSuccess: () => {
                     reset();
-                    setAssignHrManagerRole(false);
                     setShowInviteDialog(false);
                 },
             });
@@ -365,20 +360,6 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                     </DialogDescription>
                                                     </DialogHeader>
                                                     <form onSubmit={handleInviteCeo} className="space-y-4">
-                                                        <div className="flex items-center space-x-2 p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                                                            <Checkbox
-                                                                id="assign-hr-manager-role"
-                                                                checked={assignHrManagerRole}
-                                                                onCheckedChange={(checked) => {
-                                                                    setAssignHrManagerRole(checked === true);
-                                                                    setData('assign_hr_manager_role', checked === true);
-                                                                }}
-                                                            />
-                                                            <Label htmlFor="assign-hr-manager-role" className="text-sm font-medium cursor-pointer">
-                                                                Also assign HR Manager role (for CEOs who will manage HR functions)
-                                                            </Label>
-                                                        </div>
-
                                                         <div>
                                                             <Label htmlFor="ceo-email">CEO Email Address *</Label>
                                                             <Input
@@ -406,7 +387,6 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                                 onClick={() => {
                                                                     setShowInviteDialog(false);
                                                                     reset();
-                                                                    setAssignHrManagerRole(false);
                                                                 }}
                                                             >
                                                                 Cancel
