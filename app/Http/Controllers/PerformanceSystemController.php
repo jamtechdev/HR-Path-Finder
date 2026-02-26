@@ -65,6 +65,30 @@ class PerformanceSystemController extends Controller
         // Load org chart mappings for KPI review
         $orgChartMappings = OrgChartMapping::where('hr_project_id', $hrProject->id)->get();
 
+        // Load KPI review tokens for review status
+        $kpiReviewTokens = \App\Models\KpiReviewToken::where('hr_project_id', $hrProject->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('organization_name')
+            ->map(function ($tokens) {
+                return $tokens->map(function ($token) {
+                    return [
+                        'id' => $token->id,
+                        'token' => $token->token,
+                        'email' => $token->email,
+                        'name' => $token->name,
+                        'organization_name' => $token->organization_name,
+                        'created_at' => $token->created_at,
+                        'expires_at' => $token->expires_at,
+                        'uses_count' => $token->uses_count,
+                        'max_uses' => $token->max_uses,
+                        'is_valid' => $token->isValid(),
+                        'review_link' => route('kpi-review.token', ['token' => $token->token]),
+                    ];
+                });
+            })
+            ->toArray();
+
         // Load consultant recommendation
         $consultantRecommendation = AdminComment::where('hr_project_id', $hrProject->id)
             ->where('is_recommendation', true)
@@ -95,6 +119,7 @@ class PerformanceSystemController extends Controller
             'snapshotQuestions' => $snapshotQuestions,
             'jobDefinitions' => $jobDefinitions,
             'orgChartMappings' => $orgChartMappings,
+            'kpiReviewTokens' => $kpiReviewTokens,
         ]);
     }
 

@@ -17,12 +17,21 @@ class RoleBasedDashboard
         }
 
         // Role-wise dashboard redirects
-        // Only 3 roles: admin, hr_manager, ceo
-        if ($user->hasRole('ceo')) {
+        // Check if user has switched role (HR switched to CEO)
+        $activeRole = $request->session()->get('active_role');
+        
+        if ($activeRole === 'ceo' && $user->hasRole('ceo')) {
+            // User switched from HR to CEO, show CEO dashboard
             if ($request->route()->getName() === 'dashboard') {
                 return redirect()->route('ceo.dashboard');
             }
-        } elseif ($user->hasRole('hr_manager')) {
+        } elseif ($user->hasRole('ceo') && !$user->hasRole('hr_manager')) {
+            // Pure CEO (not HR), show CEO dashboard
+            if ($request->route()->getName() === 'dashboard') {
+                return redirect()->route('ceo.dashboard');
+            }
+        } elseif ($user->hasRole('hr_manager') && $activeRole !== 'ceo') {
+            // HR Manager (not switched), show HR dashboard
             if ($request->route()->getName() === 'dashboard') {
                 return redirect()->route('hr-manager.dashboard');
             }

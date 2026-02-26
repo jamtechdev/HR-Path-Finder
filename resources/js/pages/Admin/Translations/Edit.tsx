@@ -108,9 +108,9 @@ export default function TranslationsEdit({ translations, locales, pages, current
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
+            <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
-                <main className="flex-1 overflow-auto">
+                <main className="flex-1 overflow-auto bg-background">
                     <Head title="Edit Translations" />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">

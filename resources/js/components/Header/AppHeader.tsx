@@ -1,10 +1,11 @@
-import { Link, router, usePage } from '@inertiajs/react';
+import { Link, router, usePage, useForm } from '@inertiajs/react';
 import {
     Settings,
     User,
     LogOut,
     ChevronDown,
     Bell,
+    Repeat,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,8 +19,10 @@ import {
 import { SidebarTrigger } from '@/components/ui/sidebar';
 
 export default function AppHeader() {
-    const { auth } = usePage<any>().props;
+    const { auth, activeRole, canSwitchToHr } = usePage<any>().props;
     const user = auth?.user;
+    
+    const switchForm = useForm({});
     
     const getInitials = (name: string) => {
         return name
@@ -32,6 +35,14 @@ export default function AppHeader() {
     
     const handleLogout = () => {
         router.post('/logout');
+    };
+    
+    const handleSwitchToHr = () => {
+        switchForm.post('/role/switch-to-hr', {
+            onSuccess: () => {
+                // Will redirect to HR dashboard
+            },
+        });
     };
 
     return (
@@ -69,7 +80,7 @@ export default function AppHeader() {
                                     </span>
                                 </div>
                                 <div className="hidden md:block text-left">
-                                    <p className="text-sm font-medium text-black">{user?.name || 'User'}</p>
+                                    <p className="text-sm font-medium text-foreground">{user?.name || 'User'}</p>
                                     <p className="text-xs text-muted-foreground">{user?.email || ''}</p>
                                 </div>
                                 <ChevronDown className="h-4 w-4 text-muted-foreground hidden md:block" />
@@ -77,39 +88,46 @@ export default function AppHeader() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent 
                             align="end" 
-                            className="w-56 bg-primary text-white border-primary/20 shadow-lg [&>*]:text-white"
+                            className="w-56"
                         >
-                            <DropdownMenuLabel className="text-white">
+                            <DropdownMenuLabel>
                                 <div className="flex flex-col space-y-1">
-                                    <p className="text-sm font-medium text-white">{user?.name || 'User'}</p>
-                                    <p className="text-xs text-white/80">{user?.email || ''}</p>
+                                    <p className="text-sm font-medium">{user?.name || 'User'}</p>
+                                    <p className="text-xs text-muted-foreground">{user?.email || ''}</p>
                                 </div>
                             </DropdownMenuLabel>
-                            <DropdownMenuSeparator className="bg-white/20" />
-                            <DropdownMenuItem 
-                                asChild 
-                                className="text-white focus:bg-primary/80 focus:text-white data-[highlighted]:bg-primary/80 data-[highlighted]:text-white [&_svg]:text-white"
-                            >
-                                <Link href="/settings/index" className="flex items-center cursor-pointer text-white">
-                                    <Settings className="mr-2 h-4 w-4 text-white" />
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                                <Link href="/settings/index" className="flex items-center cursor-pointer">
+                                    <Settings className="mr-2 h-4 w-4" />
                                     Settings
                                 </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
-                                asChild 
-                                className="text-white focus:bg-primary/80 focus:text-white data-[highlighted]:bg-primary/80 data-[highlighted]:text-white [&_svg]:text-white"
-                            >
-                                <Link href="/settings/profile" className="flex items-center cursor-pointer text-white">
-                                    <User className="mr-2 h-4 w-4 text-white" />
+                            <DropdownMenuItem asChild>
+                                <Link href="/settings/profile" className="flex items-center cursor-pointer">
+                                    <User className="mr-2 h-4 w-4" />
                                     Profile
                                 </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator className="bg-white/20" />
+                            {canSwitchToHr && (
+                                <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem 
+                                        onClick={handleSwitchToHr}
+                                        disabled={switchForm.processing}
+                                        className="cursor-pointer"
+                                    >
+                                        <Repeat className="mr-2 h-4 w-4" />
+                                        {switchForm.processing ? 'Switching...' : 'Switch to HR Manager'}
+                                    </DropdownMenuItem>
+                                </>
+                            )}
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem 
                                 onClick={handleLogout} 
-                                className="text-white focus:bg-primary/80 focus:text-white data-[highlighted]:bg-primary/80 data-[highlighted]:text-white cursor-pointer [&_svg]:text-white"
+                                className="cursor-pointer"
                             >
-                                <LogOut className="mr-2 h-4 w-4 text-white" />
+                                <LogOut className="mr-2 h-4 w-4" />
                                 Logout
                             </DropdownMenuItem>
                         </DropdownMenuContent>

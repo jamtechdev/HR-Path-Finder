@@ -66,9 +66,9 @@ export default function TreeRecommendationPage({
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
+            <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
-                <main className="flex-1 overflow-auto">
+                <main className="flex-1 overflow-auto bg-background">
                     <Head title={`TREE Recommendations - ${project.company.name}`} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
@@ -80,7 +80,7 @@ export default function TreeRecommendationPage({
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 Back to TREE Overview
                             </Button>
-                            <h1 className="text-3xl font-bold mb-2">TREE Recommendations</h1>
+                            <h1 className="text-3xl font-bold mb-2 text-foreground">TREE Recommendations</h1>
                             <p className="text-muted-foreground">
                                 Review job matrix cards and provide recommendations for the HR team.
                             </p>

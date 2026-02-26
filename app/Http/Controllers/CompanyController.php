@@ -40,18 +40,56 @@ class CompanyController extends Controller
             },
             'hrProjects' => function ($query) {
                 $query->where('status', 'active');
+            },
+            'invitations' => function ($query) {
+                $query->where('role', 'ceo')
+                      ->withTrashed()
+                      ->with(['inviter', 'hrProject'])
+                      ->orderBy('created_at', 'desc');
             }
         ])
         ->get()
         ->map(function ($company) {
+            $ceoUsers = $company->users->where('pivot.role', 'ceo');
+            $invitations = $company->invitations->map(function ($invitation) {
+                $status = 'pending';
+                if ($invitation->accepted_at) {
+                    $status = 'accepted';
+                } elseif ($invitation->trashed()) {
+                    $status = 'rejected';
+                }
+                
+                return [
+                    'id' => $invitation->id,
+                    'email' => $invitation->email,
+                    'status' => $status,
+                    'invited_by' => $invitation->inviter ? [
+                        'id' => $invitation->inviter->id,
+                        'name' => $invitation->inviter->name,
+                    ] : null,
+                    'invited_at' => $invitation->created_at,
+                    'accepted_at' => $invitation->accepted_at,
+                    'rejected_at' => $invitation->trashed() ? $invitation->deleted_at : null,
+                    'expires_at' => $invitation->expires_at,
+                ];
+            });
+            
             return [
                 'id' => $company->id,
                 'name' => $company->name,
                 'registration_number' => $company->registration_number,
                 'hq_location' => $company->hq_location,
                 'public_listing_status' => $company->public_listing_status,
-                'hasCeo' => $company->users->where('pivot.role', 'ceo')->isNotEmpty(),
-                'ceo' => $company->users->where('pivot.role', 'ceo')->first(),
+                'hasCeo' => $ceoUsers->isNotEmpty(),
+                'ceos' => $ceoUsers->map(function ($ceo) {
+                    return [
+                        'id' => $ceo->id,
+                        'name' => $ceo->name,
+                        'email' => $ceo->email,
+                        'status' => 'active',
+                    ];
+                })->values(),
+                'invitations' => $invitations,
                 'activeProject' => $company->hrProjects->first(),
                 'created_at' => $company->created_at,
             ];

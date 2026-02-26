@@ -1,8 +1,10 @@
 import React from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, Shield, Lock, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { FileText, Shield, Lock, CheckCircle2, ArrowRight } from 'lucide-react';
 
 interface IntroText {
     title?: string;
@@ -18,9 +20,10 @@ interface Props {
     };
     introText?: IntroText;
     introCompleted?: boolean;
+    surveyDone?: boolean;
 }
 
-export default function CeoJobAnalysisIntro({ project, introText, introCompleted = false }: Props) {
+export default function CeoJobAnalysisIntro({ project, introText, introCompleted = false, surveyDone = false }: Props) {
     const defaultContent = `This stage is not intended to redesign or change your current organizational structure. Its purpose is to organize and clarify the job standards and role expectations as they are currently operated within your company.
 
 There are no right or wrong answers to any of the questions. Your responses will be used solely as baseline inputs for the subsequent design of the performance management and compensation systems.
@@ -55,8 +58,17 @@ All inputs are confidential and will not be shared with other employees.`;
 
                     {/* Content Section */}
                     <div className="max-w-5xl mx-auto px-6 md:px-8 py-8 md:py-12">
-                        <Card className="border-2 shadow-lg overflow-hidden">
+                        <Card className={`border-2 shadow-lg overflow-hidden ${surveyDone ? 'border-green-500' : ''}`}>
                             <CardContent className="p-8 md:p-10 space-y-8">
+                                {/* Survey Done Badge */}
+                                {surveyDone && (
+                                    <div className="mb-4">
+                                        <Badge className="bg-green-500 text-white border-green-600 px-4 py-2 text-sm font-semibold">
+                                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                                            Survey Done
+                                        </Badge>
+                                    </div>
+                                )}
                                 {/* Content Section */}
                                 <div className="prose prose-lg max-w-none">
                                     <div className="whitespace-pre-line text-base leading-relaxed text-foreground space-y-4">
@@ -91,11 +103,35 @@ All inputs are confidential and will not be shared with other employees.`;
 
                                 {/* Status Indicator */}
                                 {introCompleted && (
-                                    <div className="mt-6 p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg flex items-center gap-3">
-                                        <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
-                                        <p className="text-sm text-green-800 dark:text-green-200">
-                                            The Job Analysis process has been started by the HR Manager.
-                                        </p>
+                                    <div className="mt-6 space-y-4">
+                                        <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg flex items-center gap-3">
+                                            <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                            <p className="text-sm text-green-800 dark:text-green-200">
+                                                The Job Analysis process has been started by the HR Manager.
+                                            </p>
+                                        </div>
+                                        
+                                        {/* Navigation to Review Pages */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <Button
+                                                onClick={() => router.visit(`/ceo/review/job-analysis/${project.id}/job-list`)}
+                                                className="w-full"
+                                                variant="outline"
+                                            >
+                                                <FileText className="w-4 h-4 mr-2" />
+                                                View Job List Selection
+                                                <ArrowRight className="w-4 h-4 ml-2" />
+                                            </Button>
+                                            <Button
+                                                onClick={() => router.visit(`/ceo/review/job-analysis/${project.id}/job-definitions`)}
+                                                className="w-full"
+                                                variant="outline"
+                                            >
+                                                <FileText className="w-4 h-4 mr-2" />
+                                                View Job Definitions
+                                                <ArrowRight className="w-4 h-4 ml-2" />
+                                            </Button>
+                                        </div>
                                     </div>
                                 )}
                             </CardContent>

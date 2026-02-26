@@ -69,11 +69,19 @@ class HandleInertiaRequests extends Middleware
             // Translations are now loaded directly from JSON files in the frontend
         ];
         
+        // Add active role to shared data (for role switching)
+        if ($user) {
+            $shared['activeRole'] = $request->session()->get('active_role');
+            $shared['canSwitchToHr'] = $user->hasRole('hr_manager') && $request->session()->get('active_role') === 'ceo';
+        }
+        
         // Add projects to shared data for roles that need them in sidebar
         if ($user) {
             $projects = [];
             
-            if ($user->hasRole('ceo')) {
+            // If user switched to CEO, show only CEO projects
+            $activeRole = $request->session()->get('active_role');
+            if ($user->hasRole('ceo') && ($activeRole === 'ceo' || !$user->hasRole('hr_manager'))) {
                 $projects = \App\Models\HrProject::whereHas('company', function ($query) use ($user) {
                     $query->whereHas('users', function ($q) use ($user) {
                         $q->where('users.id', $user->id)

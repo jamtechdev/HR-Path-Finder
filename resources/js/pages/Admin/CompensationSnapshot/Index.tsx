@@ -48,14 +48,14 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
+            <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
-                <main className="flex-1 overflow-auto">
+                <main className="flex-1 overflow-auto bg-background">
                     <Head title="Compensation Snapshot Questions Management" />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
-                                <h1 className="text-3xl font-bold mb-2">Compensation Snapshot Questions</h1>
+                                <h1 className="text-3xl font-bold mb-2 text-foreground">Compensation Snapshot Questions</h1>
                                 <p className="text-muted-foreground">
                                     Manage all questions for the Strategic Compensation Snapshot (Stage 4-1)
                                 </p>

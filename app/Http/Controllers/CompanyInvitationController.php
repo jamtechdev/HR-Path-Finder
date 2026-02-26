@@ -16,7 +16,7 @@ use Illuminate\Support\Str;
 class CompanyInvitationController extends Controller
 {
     /**
-     * Send CEO invitation or create CEO directly.
+     * Send CEO invitation.
      */
     public function inviteCeo(Request $request, Company $company)
     {
@@ -25,142 +25,23 @@ class CompanyInvitationController extends Controller
             'hr_project_id' => ['nullable', 'exists:hr_projects,id'],
         ]);
 
-        // Check if user already exists
+        // Check if user is already a member of the company with CEO role
         $existingUser = User::where('email', $request->email)->first();
-        
-        // Check if user is already a member of the company and what roles they have
-        $isCompanyMember = $existingUser && $company->users->contains($existingUser);
-        $existingCompanyRoles = [];
-        if ($isCompanyMember) {
-            $existingCompanyRoles = $company->users()
-                ->where('users.id', $existingUser->id)
-                ->pluck('company_users.role')
-                ->toArray();
-        }
-
-        // If user already exists and is a member, handle role updates
-        if ($isCompanyMember) {
-            $needsUpdate = false;
-            $updates = [];
-
-            // Check if they need CEO role
-            if (!in_array('ceo', $existingCompanyRoles)) {
-                $needsUpdate = true;
-                $updates[] = 'CEO';
-                $company->users()->syncWithoutDetaching([
-                    $existingUser->id => ['role' => 'ceo'],
-                ]);
-            }
-
-
-            if ($needsUpdate) {
-                // Create invitation record for tracking (marked as accepted since user is already member)
-                $invitation = \App\Models\CompanyInvitation::create([
-                    'company_id' => $company->id,
-                    'hr_project_id' => $request->hr_project_id,
-                    'email' => $request->email,
-                    'role' => 'ceo',
-                    'inviter_id' => $request->user()->id,
-                    'accepted_at' => now(),
-                ]);
-
-                // Send welcome email (since they're already a member, just notify of role addition)
-                try {
-                    \Log::info('Sending Company Invitation Notification (Role Update)', [
-                        'invitation_id' => $invitation->id,
-                        'email' => $request->email,
-                        'company_id' => $company->id,
-                        'company_name' => $company->name,
-                        'mailer' => config('mail.default'),
-                        'mail_host' => config('mail.mailers.smtp.host'),
-                        'timestamp' => now()->toIso8601String(),
-                    ]);
-
-                    Notification::route('mail', $request->email)
-                        ->notify(new CompanyInvitationNotification($invitation));
-
-                    \Log::info('Company Invitation Notification sent successfully (Role Update)', [
-                        'invitation_id' => $invitation->id,
-                        'email' => $request->email,
-                    ]);
-                } catch (\Exception $e) {
-                    \Log::error('Failed to send Company Invitation Notification (Role Update)', [
-                        'invitation_id' => $invitation->id,
-                        'email' => $request->email,
-                        'error' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString(),
-                    ]);
-                }
-
-                $rolesAdded = implode(' and ', $updates);
-                return back()->with('success', "User has been successfully assigned {$rolesAdded} role(s) for this company. Notification email sent.");
-            } else {
-                // User already has CEO role
+        if ($existingUser) {
+            $isCompanyMember = $company->users->contains($existingUser);
+            if ($isCompanyMember) {
+                $existingCompanyRoles = $company->users()
+                    ->where('users.id', $existingUser->id)
+                    ->pluck('company_users.role')
+                    ->toArray();
+                
                 if (in_array('ceo', $existingCompanyRoles)) {
                     return back()->withErrors(['email' => 'This user already has CEO role for this company.']);
                 }
             }
         }
 
-        // If user already exists and has CEO role (but not yet a company member), send invitation
-        // Don't auto-associate - let them accept the invitation first
-        if ($existingUser && $existingUser->hasRole('ceo') && !$isCompanyMember) {
-            // Check if there's already a pending invitation
-            $existingInvitation = \App\Models\CompanyInvitation::where('company_id', $company->id)
-                ->where('email', $request->email)
-                ->whereNull('accepted_at')
-                ->where(function($query) {
-                    $query->whereNull('expires_at')
-                        ->orWhere('expires_at', '>', now());
-                })
-                ->first();
-
-            if ($existingInvitation) {
-                return back()->withErrors(['email' => 'An invitation has already been sent to this email.']);
-            }
-
-            // Create invitation (not accepted yet - they need to accept)
-            $invitation = \App\Models\CompanyInvitation::create([
-                'company_id' => $company->id,
-                'hr_project_id' => $request->hr_project_id,
-                'email' => $request->email,
-                'role' => 'ceo',
-                'inviter_id' => $request->user()->id,
-            ]);
-
-            // Send invitation email (not welcome message)
-            try {
-                \Log::info('Sending CEO Invitation Email', [
-                    'invitation_id' => $invitation->id,
-                    'email' => $request->email,
-                    'company_id' => $company->id,
-                    'company_name' => $company->name,
-                    'mailer' => config('mail.default'),
-                    'mail_host' => config('mail.mailers.smtp.host'),
-                    'timestamp' => now()->toIso8601String(),
-                ]);
-
-                Notification::route('mail', $request->email)
-                    ->notify(new CompanyInvitationNotification($invitation));
-
-                \Log::info('CEO Invitation Email sent successfully', [
-                    'invitation_id' => $invitation->id,
-                    'email' => $request->email,
-                ]);
-            } catch (\Exception $e) {
-                \Log::error('Failed to send CEO Invitation Email', [
-                    'invitation_id' => $invitation->id,
-                    'email' => $request->email,
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
-            }
-
-            return back()->with('success', 'CEO invitation sent successfully. The user will receive an invitation email and can accept or reject it.');
-        }
-
-        // Send invitation (HR can only invite, not create accounts directly)
-        // Check if there's already a pending invitation for this email and company
+        // Check if there's already a pending invitation
         $existingInvitation = \App\Models\CompanyInvitation::where('company_id', $company->id)
             ->where('email', $request->email)
             ->whereNull('accepted_at')
@@ -174,7 +55,7 @@ class CompanyInvitationController extends Controller
             return back()->withErrors(['email' => 'An invitation has already been sent to this email.']);
         }
 
-        // Create invitation
+        // Create invitation (not accepted yet - they need to accept)
         $invitation = \App\Models\CompanyInvitation::create([
             'company_id' => $company->id,
             'hr_project_id' => $request->hr_project_id,
@@ -183,12 +64,9 @@ class CompanyInvitationController extends Controller
             'inviter_id' => $request->user()->id,
         ]);
 
-        // Store dual role preference in invitation (we'll handle this in accept method)
-        // For now, we'll add a note field or handle it during acceptance
-
-        // Send invitation email
+        // Send invitation email (not welcome message)
         try {
-            \Log::info('Sending CEO Invitation Email (Standard Flow)', [
+            \Log::info('Sending CEO Invitation Email', [
                 'invitation_id' => $invitation->id,
                 'email' => $request->email,
                 'company_id' => $company->id,
@@ -201,12 +79,12 @@ class CompanyInvitationController extends Controller
             Notification::route('mail', $request->email)
                 ->notify(new CompanyInvitationNotification($invitation));
 
-            \Log::info('CEO Invitation Email sent successfully (Standard Flow)', [
+            \Log::info('CEO Invitation Email sent successfully', [
                 'invitation_id' => $invitation->id,
                 'email' => $request->email,
             ]);
         } catch (\Exception $e) {
-            \Log::error('Failed to send CEO Invitation Email (Standard Flow)', [
+            \Log::error('Failed to send CEO Invitation Email', [
                 'invitation_id' => $invitation->id,
                 'email' => $request->email,
                 'error' => $e->getMessage(),
@@ -214,7 +92,7 @@ class CompanyInvitationController extends Controller
             ]);
         }
 
-        return back()->with('success', 'CEO invitation sent successfully.');
+        return back()->with('success', 'CEO invitation sent successfully. The user will receive an invitation email and can accept or reject it.');
     }
 
     /**
@@ -263,8 +141,12 @@ class CompanyInvitationController extends Controller
             $user->id => ['role' => $invitation->role],
         ]);
 
-        // Mark invitation as accepted
-        $invitation->update(['accepted_at' => now()]);
+        // Mark invitation as accepted (include temporary_password if it was set)
+        $updateData = ['accepted_at' => now()];
+        if (!empty($invitation->temporary_password)) {
+            $updateData['temporary_password'] = $invitation->temporary_password;
+        }
+        $invitation->update($updateData);
 
         // Send welcome email after acceptance (credentials for new users, welcome message for existing users)
         try {

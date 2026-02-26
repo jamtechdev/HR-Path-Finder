@@ -69,10 +69,15 @@ class JobAnalysisController extends Controller
         $jobAnalysisStatus = $stepStatuses['job_analysis'] ?? 'not_started';
         $introCompleted = in_array($jobAnalysisStatus, ['in_progress', 'submitted', 'approved', 'locked']);
 
+        // Check if CEO philosophy survey is completed
+        $hrProject->load('ceoPhilosophy');
+        $surveyDone = $hrProject->ceoPhilosophy && $hrProject->ceoPhilosophy->completed_at !== null;
+
         return Inertia::render('OrganizationDesign/CeoIntro', [
             'project' => $hrProject,
             'introText' => $introText,
             'introCompleted' => $introCompleted,
+            'surveyDone' => $surveyDone,
         ]);
     }
 

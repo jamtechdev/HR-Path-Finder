@@ -322,11 +322,11 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                                     ) : (
                                         <SidebarMenuButton
                                             asChild
-                                            isActive={isStepActiveState && !isCompleted}
+                                            isActive={isStepActiveState}
                                             className={cn(
                                                 "transition-all duration-200 rounded-lg w-full",
                                                 isCollapsed ? "px-3 py-3 justify-center" : "px-4 py-6 gap-3",
-                                                isCompleted 
+                                                isCompleted && !isStepActiveState
                                                     ? "bg-green-600 hover:bg-green-700 text-white" 
                                                     : isStepActiveState
                                                         ? "bg-sidebar-primary text-sidebar-primary-foreground"
@@ -335,7 +335,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                                         >
                                             <Link href={getStepRoute(step)} className="flex items-center w-full">
                                                 {/* Status Indicator - Green background for completed, icon for others */}
-                                                {isCompleted ? (
+                                                {isCompleted && !isStepActiveState ? (
                                                     <CheckCircle2 className={cn(
                                                         "text-white transition-all duration-200 flex-shrink-0",
                                                         isCollapsed ? "w-5 h-5" : "w-5 h-5"
@@ -348,11 +348,25 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                                                             ? "bg-sidebar-primary/20 border-sidebar-primary" 
                                                             : "bg-transparent border-sidebar-foreground/20"
                                                     )}>
-                                                        <StepIcon className={cn(
-                                                            "transition-all duration-200",
-                                                            isCollapsed ? "w-4 h-4" : "w-3.5 h-3.5",
-                                                            isStepActiveState ? "text-sidebar-primary" : "text-sidebar-foreground/60"
-                                                        )} />
+                                                        {isStepActiveState ? (
+                                                            <StepIcon className={cn(
+                                                                "transition-all duration-200",
+                                                                isCollapsed ? "w-4 h-4" : "w-3.5 h-3.5",
+                                                                "text-sidebar-primary"
+                                                            )} />
+                                                        ) : isCompleted ? (
+                                                            <CheckCircle2 className={cn(
+                                                                "transition-all duration-200",
+                                                                isCollapsed ? "w-4 h-4" : "w-3.5 h-3.5",
+                                                                "text-green-600"
+                                                            )} />
+                                                        ) : (
+                                                            <StepIcon className={cn(
+                                                                "transition-all duration-200",
+                                                                isCollapsed ? "w-4 h-4" : "w-3.5 h-3.5",
+                                                                "text-sidebar-foreground/60"
+                                                            )} />
+                                                        )}
                                                     </div>
                                                 )}
                                                 
@@ -361,7 +375,11 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                                                     <div className="flex-1 text-left">
                                                         <span className={cn(
                                                             "text-sm font-medium block",
-                                                            isCompleted ? "text-white" : "text-sidebar-foreground"
+                                                            isStepActiveState 
+                                                                ? "text-sidebar-primary-foreground" 
+                                                                : isCompleted 
+                                                                    ? "text-white" 
+                                                                    : "text-sidebar-foreground"
                                                         )}>
                                                             Step {step.step}: {step.title}
                                                         </span>

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
+import { Head, useForm, router } from '@inertiajs/react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Save } from 'lucide-react';
 
 interface OrganizationalKpi {
@@ -33,15 +34,39 @@ interface Props {
         };
     };
     organizationName: string;
+    allOrganizations?: string[];
     kpis: OrganizationalKpi[];
     reviewerName?: string;
     reviewerEmail?: string;
 }
 
-export default function KpiReviewToken({ token, project, organizationName, kpis: initialKpis, reviewerName, reviewerEmail }: Props) {
+export default function KpiReviewToken({ token, project, organizationName: defaultOrganizationName, allOrganizations = [], kpis: initialKpis, reviewerName, reviewerEmail }: Props) {
+    const [selectedOrganization, setSelectedOrganization] = useState<string>(defaultOrganizationName);
     const [kpis, setKpis] = useState<OrganizationalKpi[]>(initialKpis);
+    const [loading, setLoading] = useState(false);
+
+    // Load KPIs when organization changes
+    useEffect(() => {
+        if (selectedOrganization && selectedOrganization !== defaultOrganizationName) {
+            setLoading(true);
+            fetch(`/kpi-review/token/${token}/organization/${encodeURIComponent(selectedOrganization)}`)
+                .then(res => res.json())
+                .then(data => {
+                    setKpis(data.kpis || []);
+                    setLoading(false);
+                })
+                .catch(err => {
+                    console.error('Error loading KPIs:', err);
+                    setLoading(false);
+                });
+        } else if (selectedOrganization === defaultOrganizationName) {
+            // Reset to initial KPIs if default organization is selected
+            setKpis(initialKpis);
+        }
+    }, [selectedOrganization, token, defaultOrganizationName]);
 
     const { data, setData, post, processing } = useForm({
+        organization_name: selectedOrganization,
         kpis: kpis.map(kpi => ({
             id: kpi.id,
             kpi_name: kpi.kpi_name,
@@ -56,6 +81,23 @@ export default function KpiReviewToken({ token, project, organizationName, kpis:
         })),
     });
 
+    // Update form data when KPIs or organization changes
+    useEffect(() => {
+        setData('organization_name', selectedOrganization);
+        setData('kpis', kpis.map(kpi => ({
+            id: kpi.id,
+            kpi_name: kpi.kpi_name,
+            purpose: kpi.purpose || '',
+            category: kpi.category || '',
+            linked_job_id: kpi.linked_job_id || null,
+            linked_csf: kpi.linked_csf || '',
+            formula: kpi.formula || '',
+            measurement_method: kpi.measurement_method || '',
+            weight: kpi.weight || null,
+            is_active: kpi.is_active ?? true,
+        })));
+    }, [kpis, selectedOrganization, setData]);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post(`/kpi-review/token/${token}`, {
@@ -68,7 +110,7 @@ export default function KpiReviewToken({ token, project, organizationName, kpis:
     const addKpi = () => {
         const newKpi: OrganizationalKpi = {
             id: 0,
-            organization_name: organizationName,
+            organization_name: selectedOrganization,
             kpi_name: '',
             is_active: true,
             status: 'draft',
@@ -117,12 +159,32 @@ export default function KpiReviewToken({ token, project, organizationName, kpis:
 
     return (
         <div className="min-h-screen bg-background">
-            <Head title={`KPI Review - ${organizationName}`} />
+            <Head title={`KPI Review - ${selectedOrganization}`} />
             <div className="container mx-auto py-8 px-4 max-w-6xl">
                 <div className="mb-6">
                     <h1 className="text-3xl font-bold mb-2">Organization Manager KPI Review</h1>
+                    
+                    {/* Organization Selector */}
+                    {allOrganizations.length > 0 && (
+                        <div className="mb-4">
+                            <Label className="mb-2 block">Select Organization</Label>
+                            <Select value={selectedOrganization} onValueChange={setSelectedOrganization}>
+                                <SelectTrigger className="w-full max-w-md">
+                                    <SelectValue placeholder="Select organization" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {allOrganizations.map((org) => (
+                                        <SelectItem key={org} value={org}>
+                                            {org}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                    
                     <p className="text-muted-foreground">
-                        Organization: <strong>{organizationName}</strong>
+                        Organization: <strong>{selectedOrganization}</strong>
                     </p>
                     {reviewerName && (
                         <p className="text-sm text-muted-foreground mt-1">
@@ -146,9 +208,25 @@ export default function KpiReviewToken({ token, project, organizationName, kpis:
                     </CardContent>
                 </Card>
 
-                <form onSubmit={handleSubmit}>
-                    <div className="space-y-4 mb-6">
-                        {kpis.map((kpi, index) => (
+                {loading ? (
+                    <Card>
+                        <CardContent className="p-6 text-center">
+                            <p className="text-muted-foreground">Loading KPIs...</p>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <form onSubmit={handleSubmit}>
+                        <div className="space-y-4 mb-6">
+                            {kpis.length === 0 ? (
+                                <Card>
+                                    <CardContent className="p-6 text-center">
+                                        <p className="text-muted-foreground">
+                                            No KPIs defined yet for <strong>{selectedOrganization}</strong>.
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            ) : (
+                                kpis.map((kpi, index) => (
                             <Card key={index}>
                                 <CardContent className="p-6 space-y-4">
                                     <div className="flex justify-between items-start">
@@ -219,22 +297,25 @@ export default function KpiReviewToken({ token, project, organizationName, kpis:
                                     </div>
                                 </CardContent>
                             </Card>
-                        ))}
-                    </div>
+                        ))
+                            )}
+                        </div>
 
-                    <div className="flex gap-4">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={addKpi}
-                        >
-                            <Plus className="w-4 h-4 mr-2" /> Add KPI
-                        </Button>
-                        <Button type="submit" disabled={processing} className="flex-1">
-                            <Save className="w-4 h-4 mr-2" /> Submit Review
-                        </Button>
-                    </div>
-                </form>
+                        <div className="flex gap-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={addKpi}
+                                disabled={loading}
+                            >
+                                <Plus className="w-4 h-4 mr-2" /> Add KPI
+                            </Button>
+                            <Button type="submit" disabled={processing || loading} className="flex-1">
+                                <Save className="w-4 h-4 mr-2" /> Submit Review
+                            </Button>
+                        </div>
+                    </form>
+                )}
             </div>
         </div>
     );

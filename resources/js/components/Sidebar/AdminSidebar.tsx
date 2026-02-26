@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Settings, LayoutGrid, FolderOpen, HelpCircle, FileText, Building2, AlertCircle, Database, Layers, Target, DollarSign, Languages, ChevronRight, ChevronDown } from 'lucide-react';
+import { Settings, LayoutGrid, FolderOpen, HelpCircle, FileText, Building2, AlertCircle, Database, Layers, Target, DollarSign, Languages, ChevronRight, ChevronDown, Users, Eye, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
@@ -86,6 +86,34 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                     <LayoutGrid className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
                                     {!isCollapsed && <span className="flex-1 text-left truncate">Dashboard</span>}
                                 </Link>
+
+                                <Link
+                                    href="/admin/ceo"
+                                    className={cn(
+                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                                        isActive('/admin/ceo')
+                                            ? "bg-sidebar-accent text-sidebar-primary"
+                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                                        isCollapsed && "justify-center px-3"
+                                    )}
+                                >
+                                    <Users className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
+                                    {!isCollapsed && <span className="flex-1 text-left truncate">CEO Management</span>}
+                                </Link>
+
+                                <Link
+                                    href="/admin/project-tree"
+                                    className={cn(
+                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                                        isActive('/admin/project-tree')
+                                            ? "bg-sidebar-accent text-sidebar-primary"
+                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                                        isCollapsed && "justify-center px-3"
+                                    )}
+                                >
+                                    <Eye className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
+                                    {!isCollapsed && <span className="flex-1 text-left truncate">Project Tree</span>}
+                                </Link>
                                 
                                 <Link
                                     href="/admin/questions/ceo"
@@ -171,20 +199,6 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                     {!isCollapsed && <span className="flex-1 text-left truncate">Subcategories</span>}
                                 </Link>
                                 
-                                <Link
-                                    href="/hr-projects"
-                                    className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                        isActive('/hr-projects')
-                                            ? "bg-sidebar-accent text-sidebar-primary"
-                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                        isCollapsed && "justify-center px-3"
-                                    )}
-                                >
-                                    <Database className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                    {!isCollapsed && <span className="flex-1 text-left truncate">All Projects</span>}
-                                </Link>
-                                
                                 {/* Translations Menu */}
                                 <div className={cn("mt-2", isCollapsed && "hidden")}>
                                     <button
@@ -253,7 +267,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                         )}
                         
                         {/* Projects Section - Admin can see all projects */}
-                        {isAdmin && projects.length > 0 && (
+                        {isAdmin && (
                             <div className={cn("mt-6", isCollapsed && "mt-4")}>
                                 {!isCollapsed && (
                                     <div className="px-4 mb-2">
@@ -262,33 +276,19 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                         </span>
                                     </div>
                                 )}
-                                <div className="space-y-1">
-                                    {projects.map((project: Project) => {
-                                        const projectActive = currentProjectId === project.id;
-                                        const projectPath = `/admin/review/${project.id}`;
-                                        
-                                        return (
-                                            <Link
-                                                key={project.id}
-                                                href={projectPath}
-                                                className={cn(
-                                                    "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all duration-200",
-                                                    projectActive
-                                                        ? "bg-sidebar-accent text-sidebar-primary"
-                                                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                                    isCollapsed && "justify-center px-3"
-                                                )}
-                                            >
-                                                <FolderOpen className={cn("flex-shrink-0", isCollapsed ? "w-5 h-5" : "w-4 h-4")} />
-                                                {!isCollapsed && (
-                                                    <span className="flex-1 text-left truncate text-xs">
-                                                        {project.company?.name || `Project #${project.id}`}
-                                                    </span>
-                                                )}
-                                            </Link>
-                                        );
-                                    })}
-                                </div>
+                                <Link
+                                    href="/hr-projects"
+                                    className={cn(
+                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                                        isActive('/hr-projects')
+                                            ? "bg-sidebar-accent text-sidebar-primary"
+                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                                        isCollapsed && "justify-center px-3"
+                                    )}
+                                >
+                                    <Database className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
+                                    {!isCollapsed && <span className="flex-1 text-left truncate">All Projects</span>}
+                                </Link>
                             </div>
                         )}
                         

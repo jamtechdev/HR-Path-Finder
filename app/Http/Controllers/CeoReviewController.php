@@ -103,6 +103,8 @@ class CeoReviewController extends Controller
             'industry_category' => ['nullable', 'string', 'max:255'],
             'industry_subcategory' => ['nullable', 'string', 'max:255'],
             'industry_other' => ['nullable', 'string', 'max:255'],
+            'secondary_industries' => ['nullable', 'array'],
+            'secondary_industries.*' => ['string'],
             'present_headcount' => ['nullable', 'integer', 'min:0'],
             'expected_headcount_1y' => ['nullable', 'integer', 'min:0'],
             'expected_headcount_2y' => ['nullable', 'integer', 'min:0'],
@@ -179,6 +181,11 @@ class CeoReviewController extends Controller
             // Update diagnosis
             $diagnosis->update($data);
         });
+
+        // Reload relationships to ensure fresh data
+        $hrProject->load(['diagnosis', 'company']);
+        $diagnosis->refresh();
+        $hrProject->company->refresh();
 
         return back()->with('success', 'Changes saved successfully. All modifications have been logged.');
     }
@@ -293,5 +300,104 @@ class CeoReviewController extends Controller
             'compensationSystem' => $hrProject->compensationSystem,
             'stepStatuses' => $mainStepStatuses,
         ]);
+    }
+
+    /**
+     * Show job analysis review page - job list selection.
+     */
+    public function reviewJobListSelection(Request $request, HrProject $hrProject)
+    {
+        if (!$request->user()->hasRole('ceo')) {
+            abort(403);
+        }
+
+        // Check if CEO is associated with the company
+        if (!$hrProject->company->users->contains($request->user())) {
+            abort(403);
+        }
+
+        $hrProject->load(['diagnosis', 'company']);
+        
+        $diagnosis = $hrProject->diagnosis;
+        $industry = $diagnosis->industry_category ?? null;
+        $workforce = $diagnosis->present_headcount ?? 0;
+        
+        // Determine company size range
+        $sizeRange = $this->determineSizeRange($workforce);
+
+        // Get all job keywords (suggested jobs)
+        $suggestedJobs = \App\Models\JobKeyword::where(function($query) use ($industry, $sizeRange) {
+            $query->whereNull('industry_category')
+                  ->orWhere('industry_category', $industry);
+        })
+        ->where(function($query) use ($sizeRange) {
+            $query->whereNull('company_size_range')
+                  ->orWhere('company_size_range', $sizeRange);
+        })
+        ->where('is_active', true)
+        ->orderBy('order')
+        ->get();
+
+        // Get selected jobs (both finalized and non-finalized)
+        $selectedJobs = \App\Models\JobDefinition::where('hr_project_id', $hrProject->id)
+            ->with('jobKeyword')
+            ->get();
+
+        return \Inertia\Inertia::render('CEO/Review/JobListSelection', [
+            'project' => $hrProject,
+            'suggestedJobs' => $suggestedJobs,
+            'selectedJobs' => $selectedJobs,
+            'industry' => $industry,
+            'sizeRange' => $sizeRange,
+        ]);
+    }
+
+    /**
+     * Show job analysis review page - job definitions.
+     */
+    public function reviewJobDefinitions(Request $request, HrProject $hrProject)
+    {
+        if (!$request->user()->hasRole('ceo')) {
+            abort(403);
+        }
+
+        // Check if CEO is associated with the company
+        if (!$hrProject->company->users->contains($request->user())) {
+            abort(403);
+        }
+
+        $hrProject->load(['diagnosis', 'company']);
+
+        // Get all job definitions (both finalized and non-finalized)
+        $jobDefinitions = \App\Models\JobDefinition::where('hr_project_id', $hrProject->id)
+            ->with('jobKeyword')
+            ->orderBy('job_name')
+            ->get();
+
+        $diagnosis = $hrProject->diagnosis;
+        $industry = $diagnosis->industry_category ?? null;
+        $workforce = $diagnosis->present_headcount ?? 0;
+        $sizeRange = $this->determineSizeRange($workforce);
+
+        return \Inertia\Inertia::render('CEO/Review/JobDefinitions', [
+            'project' => $hrProject,
+            'jobDefinitions' => $jobDefinitions,
+            'industry' => $industry,
+            'sizeRange' => $sizeRange,
+        ]);
+    }
+
+    /**
+     * Determine company size range based on workforce.
+     */
+    protected function determineSizeRange(int $workforce): string
+    {
+        if ($workforce < 50) {
+            return 'small';
+        } elseif ($workforce < 200) {
+            return 'medium';
+        } else {
+            return 'large';
+        }
     }
 }

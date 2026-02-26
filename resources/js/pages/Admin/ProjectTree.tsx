@@ -124,13 +124,13 @@ export default function ProjectTree({ projects }: Props) {
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
+            <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
-                <main className="flex-1 overflow-auto">
+                <main className="flex-1 overflow-auto bg-background">
                     <Head title="Admin - Project Tree View" />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-8">
-                            <h1 className="text-3xl font-bold mb-2">Project Tree View</h1>
+                            <h1 className="text-3xl font-bold mb-2 text-foreground">Project Tree View</h1>
                             <p className="text-muted-foreground">
                                 View all projects and their progress in a hierarchical tree structure
                             </p>

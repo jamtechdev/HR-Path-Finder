@@ -41,9 +41,9 @@ export default function TreeManagementOverview({
             <Head title="Tree Management - Admin" />
             <div className="flex h-screen w-full">
                 <RoleBasedSidebar />
-                <SidebarInset className="flex-1 overflow-auto">
+                <SidebarInset className="flex-1 overflow-auto bg-background">
                     <AppHeader />
-                    <div className="px-6">
+                    <div className="px-6 bg-background">
                         {/* Header */}
                         <div>
                             <h1 className="text-2xl font-bold">Tree Management</h1>

@@ -69,9 +69,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('companies', [\App\Http\Controllers\CompanyController::class, 'index'])->name('companies.index');
         Route::get('companies/create', [\App\Http\Controllers\CompanyController::class, 'create'])->name('companies.create');
         Route::post('companies', [\App\Http\Controllers\CompanyController::class, 'store'])->name('companies.store');
+        Route::get('companies/{company}', [\App\Http\Controllers\CompanyController::class, 'show'])->name('companies.show');
     });
-    
-    Route::get('companies/{company}', [\App\Http\Controllers\CompanyController::class, 'show'])->name('companies.show');
     
     // ========== Company Invitations ==========
     Route::middleware('role:hr_manager')->group(function () {
@@ -81,14 +80,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('invitations/accept/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'accept'])->name('invitations.accept');
     Route::get('invitations/reject/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'reject'])->name('invitations.reject');
     
-    // ========== CEO Role Requests ==========
+    // ========== Role Switch ==========
     Route::middleware('role:hr_manager')->group(function () {
-        Route::post('ceo-role-requests', [\App\Http\Controllers\CeoRoleRequestController::class, 'store'])->name('ceo-role-requests.store');
+        Route::post('role/switch-to-ceo', [\App\Http\Controllers\RoleSwitchController::class, 'switchToCeo'])->name('role.switch-to-ceo');
+    });
+    
+    Route::middleware('role:ceo')->group(function () {
+        Route::post('role/switch-to-hr', [\App\Http\Controllers\RoleSwitchController::class, 'switchToHr'])->name('role.switch-to-hr');
     });
     
     // ========== HR Projects ==========
-    Route::get('hr-projects', [\App\Http\Controllers\HrProjectController::class, 'index'])->name('hr-projects.index');
-    Route::get('hr-projects/{hrProject}', [\App\Http\Controllers\HrProjectController::class, 'show'])->name('hr-projects.show');
+    Route::middleware('role:hr_manager')->group(function () {
+        Route::get('hr-projects', [\App\Http\Controllers\HrProjectController::class, 'index'])->name('hr-projects.index');
+        Route::get('hr-projects/{hrProject}', [\App\Http\Controllers\HrProjectController::class, 'show'])->name('hr-projects.show');
+    });
     
     // ========== CEO Routes ==========
     Route::middleware('role:ceo')->prefix('ceo')->name('ceo.')->group(function () {
@@ -113,6 +118,8 @@ Route::middleware(['auth'])->group(function () {
         
         // Job Analysis View
         Route::get('job-analysis/{hrProject}/intro', [\App\Http\Controllers\JobAnalysisController::class, 'ceoIntro'])->name('job-analysis.intro');
+        Route::get('review/job-analysis/{hrProject}/job-list', [\App\Http\Controllers\CeoReviewController::class, 'reviewJobListSelection'])->name('review.job-analysis.job-list');
+        Route::get('review/job-analysis/{hrProject}/job-definitions', [\App\Http\Controllers\CeoReviewController::class, 'reviewJobDefinitions'])->name('review.job-analysis.job-definitions');
         
         // HR Policy OS Review (Step 5)
         Route::get('hr-policy-os/{hrProject}', [\App\Http\Controllers\HrPolicyOsController::class, 'ceoReview'])->name('hr-policy-os.review');
@@ -187,10 +194,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
         Route::get('project-tree', [\App\Http\Controllers\Admin\DashboardController::class, 'projectTree'])->name('project-tree');
         
-        // CEO Role Requests Management
-        Route::get('ceo-role-requests', [\App\Http\Controllers\Admin\CeoRoleRequestController::class, 'index'])->name('ceo-role-requests.index');
-        Route::post('ceo-role-requests/{ceoRoleRequest}/approve', [\App\Http\Controllers\Admin\CeoRoleRequestController::class, 'approve'])->name('ceo-role-requests.approve');
-        Route::post('ceo-role-requests/{ceoRoleRequest}/reject', [\App\Http\Controllers\Admin\CeoRoleRequestController::class, 'reject'])->name('ceo-role-requests.reject');
         
         // Review
         Route::get('review/{hrProject}', [\App\Http\Controllers\AdminReviewController::class, 'index'])->name('review.index');
@@ -239,6 +242,7 @@ Route::middleware(['auth'])->group(function () {
         ]);
         
         // CEO Management
+        Route::get('ceo', [\App\Http\Controllers\Admin\CeoController::class, 'index'])->name('ceo.index');
         Route::post('ceo/create', [\App\Http\Controllers\Admin\CeoController::class, 'store'])->name('ceo.create');
         // Industry Subcategories Management (Full CRUD)
         Route::resource('subcategories', \App\Http\Controllers\Admin\IndustrySubCategoryController::class)->names([
@@ -343,11 +347,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('tree/{hrProject}/update', [\App\Http\Controllers\Admin\TreeManagementController::class, 'update'])->name('tree.update');
     });
     
-    // ========== HR System Overview (Shared) ==========
-    Route::get('hr-system/{hrProject}', [\App\Http\Controllers\HrSystemOverviewController::class, 'index'])->name('hr-system.overview');
+    // ========== HR System Overview ==========
+    Route::middleware('role:hr_manager')->group(function () {
+        Route::get('hr-system/{hrProject}', [\App\Http\Controllers\HrSystemOverviewController::class, 'index'])->name('hr-system.overview');
+    });
     
     // ========== KPI Review Magic Link (No Authentication Required) ==========
     Route::get('kpi-review/token/{token}', [\App\Http\Controllers\KpiReviewController::class, 'show'])->name('kpi-review.token');
+    Route::get('kpi-review/token/{token}/organization/{organizationName}', [\App\Http\Controllers\KpiReviewController::class, 'getKpisForOrganization'])->name('kpi-review.token.organization');
     Route::post('kpi-review/token/{token}', [\App\Http\Controllers\KpiReviewController::class, 'store'])->name('kpi-review.token.store');
 });
 

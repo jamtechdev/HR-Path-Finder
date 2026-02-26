@@ -113,7 +113,6 @@ export default function CeoReviewDiagnosis({
     hrIssues = [],
 }: Props) {
     const [activeTab, setActiveTab] = useState('company-info');
-    const [selectedSecondaryIndustries, setSelectedSecondaryIndustries] = useState<string[]>([]);
     const secondaryIndustryOptions = ['Technology', 'Manufacturing', 'Healthcare', 'Finance', 'Retail', 'Consulting'];
     
     const { data, setData, post, processing, errors } = useForm({
@@ -123,7 +122,41 @@ export default function CeoReviewDiagnosis({
         is_public: company.is_public ?? false,
         brand_name: company.brand_name || '',
         foundation_date: company.foundation_date || '',
+        secondary_industries: diagnosis?.secondary_industries || [],
     });
+
+    // Initialize selected secondary industries from diagnosis data
+    const [selectedSecondaryIndustries, setSelectedSecondaryIndustries] = useState<string[]>(
+        diagnosis?.secondary_industries || []
+    );
+
+    // Update form data when diagnosis or company props change (after save/reload)
+    useEffect(() => {
+        if (diagnosis) {
+            // Update all diagnosis fields
+            Object.keys(diagnosis).forEach(key => {
+                if (key !== 'id' && key !== 'created_at' && key !== 'updated_at') {
+                    setData(key as any, diagnosis[key as keyof typeof diagnosis]);
+                }
+            });
+        }
+        
+        // Update company-related fields
+        setData('registration_number', diagnosis?.registration_number || company.registration_number || '');
+        setData('hq_location', diagnosis?.hq_location || company.hq_location || '');
+        setData('is_public', company.is_public ?? false);
+        setData('brand_name', company.brand_name || '');
+        setData('foundation_date', company.foundation_date || '');
+        setData('secondary_industries', diagnosis?.secondary_industries || []);
+        
+        // Update secondary industries state
+        setSelectedSecondaryIndustries(diagnosis?.secondary_industries || []);
+    }, [diagnosis, company]);
+
+    // Update form data when secondary industries change
+    useEffect(() => {
+        setData('secondary_industries', selectedSecondaryIndustries);
+    }, [selectedSecondaryIndustries]);
 
     // Calculate gender ratio
     useEffect(() => {
@@ -157,6 +190,24 @@ export default function CeoReviewDiagnosis({
         return [];
     });
 
+    // Update executive positions when diagnosis changes (after save/reload)
+    useEffect(() => {
+        if (diagnosis?.executive_positions) {
+            if (Array.isArray(diagnosis.executive_positions)) {
+                setExecutivePositions(diagnosis.executive_positions);
+            } else {
+                setExecutivePositions(
+                    Object.entries(diagnosis.executive_positions).map(([role, count]) => ({
+                        role,
+                        count: count as number,
+                    }))
+                );
+            }
+        } else {
+            setExecutivePositions([]);
+        }
+    }, [diagnosis]);
+
     useEffect(() => {
         setData('executive_positions', executivePositions);
     }, [executivePositions]);
@@ -165,7 +216,11 @@ export default function CeoReviewDiagnosis({
         post(`/ceo/review/diagnosis/${project.id}/update`, {
             preserveScroll: true,
             onSuccess: () => {
-                router.reload({ only: ['diagnosis', 'reviewLogs'] });
+                // Reload diagnosis, company, and reviewLogs to get updated data
+                router.reload({ 
+                    only: ['diagnosis', 'company', 'reviewLogs'],
+                    preserveState: false 
+                });
             },
         });
     };

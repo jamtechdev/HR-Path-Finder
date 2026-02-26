@@ -25,18 +25,39 @@ class KpiReviewController extends Controller
         }
 
         $hrProject = $reviewToken->hrProject;
-        $organizationName = $reviewToken->organization_name;
+        $defaultOrganizationName = $reviewToken->organization_name;
 
-        // Load KPIs for this organization
+        // Get all organizations that have KPIs
+        $allOrganizations = OrganizationalKpi::where('hr_project_id', $hrProject->id)
+            ->distinct()
+            ->pluck('organization_name')
+            ->filter()
+            ->values()
+            ->toArray();
+
+        // Also get organizations from org chart mappings
+        $orgChartOrganizations = \App\Models\OrgChartMapping::where('hr_project_id', $hrProject->id)
+            ->distinct()
+            ->pluck('org_unit_name')
+            ->filter()
+            ->values()
+            ->toArray();
+
+        // Combine and get unique organizations
+        $allOrganizations = array_unique(array_merge($allOrganizations, $orgChartOrganizations));
+        sort($allOrganizations);
+
+        // Load KPIs for the default organization (from token)
         $kpis = OrganizationalKpi::where('hr_project_id', $hrProject->id)
-            ->where('organization_name', $organizationName)
+            ->where('organization_name', $defaultOrganizationName)
             ->with('linkedJob')
             ->get();
 
         return Inertia::render('PerformanceSystem/KpiReviewToken', [
             'token' => $token,
             'project' => $hrProject,
-            'organizationName' => $organizationName,
+            'organizationName' => $defaultOrganizationName,
+            'allOrganizations' => $allOrganizations,
             'kpis' => $kpis,
             'reviewerName' => $reviewToken->name,
             'reviewerEmail' => $reviewToken->email,
@@ -56,6 +77,7 @@ class KpiReviewController extends Controller
 
         $validated = $request->validate([
             'kpis' => ['required', 'array'],
+            'organization_name' => ['required', 'string'],
             'kpis.*.id' => ['nullable', 'exists:organizational_kpis,id'],
             'kpis.*.kpi_name' => ['required', 'string'],
             'kpis.*.purpose' => ['nullable', 'string'],
@@ -69,7 +91,7 @@ class KpiReviewController extends Controller
         ]);
 
         $hrProject = $reviewToken->hrProject;
-        $organizationName = $reviewToken->organization_name;
+        $organizationName = $validated['organization_name'] ?? $reviewToken->organization_name;
 
         \DB::transaction(function () use ($hrProject, $organizationName, $validated, $reviewToken) {
             foreach ($validated['kpis'] as $kpiData) {
@@ -140,7 +162,32 @@ class KpiReviewController extends Controller
     }
 
     /**
+     * Get KPIs for a specific organization (AJAX endpoint for token review page).
+     */
+    public function getKpisForOrganization(Request $request, string $token, string $organizationName)
+    {
+        $reviewToken = KpiReviewToken::where('token', $token)->first();
+
+        if (!$reviewToken || !$reviewToken->isValid()) {
+            abort(404, 'Invalid or expired review link.');
+        }
+
+        $hrProject = $reviewToken->hrProject;
+
+        // Load KPIs for the selected organization
+        $kpis = OrganizationalKpi::where('hr_project_id', $hrProject->id)
+            ->where('organization_name', $organizationName)
+            ->with('linkedJob')
+            ->get();
+
+        return response()->json([
+            'kpis' => $kpis,
+        ]);
+    }
+
+    /**
      * Send review request email to organization leader (HR Manager action).
+     * Sends emails to all CEOs and admins for the company.
      */
     public function sendReviewRequest(Request $request, HrProject $hrProject)
     {
@@ -150,27 +197,104 @@ class KpiReviewController extends Controller
 
         $validated = $request->validate([
             'organization_name' => ['required', 'string'],
-            'email' => ['required', 'email'],
-            'name' => ['nullable', 'string'],
         ]);
 
-        // Generate token
-        $token = KpiReviewToken::generateToken();
-        $expiresAt = Carbon::now()->addDays(7);
+        $hrProject->load('company');
+        $company = $hrProject->company;
 
-        $reviewToken = KpiReviewToken::create([
-            'hr_project_id' => $hrProject->id,
-            'organization_name' => $validated['organization_name'],
-            'token' => $token,
-            'email' => $validated['email'],
-            'name' => $validated['name'] ?? null,
-            'expires_at' => $expiresAt,
-            'max_uses' => 3, // Allow 3 submissions
-        ]);
+        // Get all CEOs for this company
+        $ceos = $company->ceos()->get();
+        
+        // Get all admins (users with admin role)
+        $admins = \App\Models\User::role('admin')->get();
 
-        // TODO: Send email with magic link
-        // Mail::to($validated['email'])->send(new KpiReviewInvitation($reviewToken));
+        $emailsSent = 0;
+        $errors = [];
 
-        return back()->with('success', 'Review request email sent successfully.');
+        // Send email to all CEOs
+        foreach ($ceos as $ceo) {
+            try {
+                // Generate token for this CEO
+                $token = KpiReviewToken::generateToken();
+                $expiresAt = Carbon::now()->addDays(7);
+
+                $reviewToken = KpiReviewToken::create([
+                    'hr_project_id' => $hrProject->id,
+                    'organization_name' => $validated['organization_name'],
+                    'token' => $token,
+                    'email' => $ceo->email,
+                    'name' => $ceo->name,
+                    'expires_at' => $expiresAt,
+                    'max_uses' => 3,
+                ]);
+
+                \Log::info('Sending KPI Review Request Email to CEO', [
+                    'ceo_id' => $ceo->id,
+                    'ceo_email' => $ceo->email,
+                    'organization_name' => $validated['organization_name'],
+                    'project_id' => $hrProject->id,
+                ]);
+
+                \Illuminate\Support\Facades\Notification::route('mail', $ceo->email)
+                    ->notify(new \App\Notifications\KpiReviewRequestNotification($reviewToken, $hrProject));
+
+                $emailsSent++;
+            } catch (\Exception $e) {
+                \Log::error('Failed to send KPI Review Request Email to CEO', [
+                    'ceo_id' => $ceo->id,
+                    'ceo_email' => $ceo->email,
+                    'error' => $e->getMessage(),
+                ]);
+                $errors[] = "Failed to send email to CEO: {$ceo->email}";
+            }
+        }
+
+        // Send email to all admins
+        foreach ($admins as $admin) {
+            try {
+                // Generate token for this admin
+                $token = KpiReviewToken::generateToken();
+                $expiresAt = Carbon::now()->addDays(7);
+
+                $reviewToken = KpiReviewToken::create([
+                    'hr_project_id' => $hrProject->id,
+                    'organization_name' => $validated['organization_name'],
+                    'token' => $token,
+                    'email' => $admin->email,
+                    'name' => $admin->name,
+                    'expires_at' => $expiresAt,
+                    'max_uses' => 3,
+                ]);
+
+                \Log::info('Sending KPI Review Request Email to Admin', [
+                    'admin_id' => $admin->id,
+                    'admin_email' => $admin->email,
+                    'organization_name' => $validated['organization_name'],
+                    'project_id' => $hrProject->id,
+                ]);
+
+                \Illuminate\Support\Facades\Notification::route('mail', $admin->email)
+                    ->notify(new \App\Notifications\KpiReviewRequestNotification($reviewToken, $hrProject));
+
+                $emailsSent++;
+            } catch (\Exception $e) {
+                \Log::error('Failed to send KPI Review Request Email to Admin', [
+                    'admin_id' => $admin->id,
+                    'admin_email' => $admin->email,
+                    'error' => $e->getMessage(),
+                ]);
+                $errors[] = "Failed to send email to Admin: {$admin->email}";
+            }
+        }
+
+        if ($emailsSent > 0) {
+            $message = "Review request emails sent successfully to {$emailsSent} recipient(s).";
+            if (!empty($errors)) {
+                $message .= " Some errors occurred: " . implode(', ', $errors);
+            }
+            return back()->with('success', $message);
+        } else {
+            return back()->withErrors(['error' => 'Failed to send any emails. ' . implode(', ', $errors)]);
+        }
     }
 }

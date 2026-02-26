@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Target, Settings, CheckCircle2, MessageSquare, ChevronDown, ChevronUp, Plus, Trash2, Edit, Send, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Target, Settings, CheckCircle2, MessageSquare, ChevronDown, ChevronUp, Plus, Trash2, Edit, Send, AlertCircle, ExternalLink, Copy, Clock, Mail, User } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -174,6 +174,7 @@ export default function PerformanceSystemIndex({
     snapshotQuestions = [],
     jobDefinitions = [],
     orgChartMappings = [],
+    kpiReviewTokens = {},
     stepStatuses = {},
     projectId,
 }: Props) {
@@ -950,9 +951,25 @@ export default function PerformanceSystemIndex({
                                         {/* Action Buttons */}
                                         <div className="flex items-center justify-end">
                                             <Button onClick={() => {
-                                                // Data is auto-saved, so we can directly send the email
-                                                // TODO: Implement email sending
-                                                alert('Review request emails will be sent to organization leaders.');
+                                                const orgToSend = selectedOrg || Array.from(new Set(kpis.map(k => k.organization_name)))[0];
+                                                if (!orgToSend) {
+                                                    alert('Please select an organization first.');
+                                                    return;
+                                                }
+                                                
+                                                if (confirm(`Send review request emails to all CEOs and Admins for "${orgToSend}"?`)) {
+                                                    router.post(`/hr-manager/performance-system/${project.id}/send-review-request`, {
+                                                        organization_name: orgToSend,
+                                                    }, {
+                                                        preserveScroll: true,
+                                                        onSuccess: () => {
+                                                            // Success handled by flash message
+                                                        },
+                                                        onError: (errors) => {
+                                                            alert('Failed to send emails: ' + (errors.error || 'Unknown error'));
+                                                        }
+                                                    });
+                                                }
                                             }}>
                                                 <Send className="w-4 h-4 mr-2" />
                                                 Send Review Request Email to Organization Leader

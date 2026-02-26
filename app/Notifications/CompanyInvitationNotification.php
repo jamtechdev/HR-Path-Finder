@@ -181,11 +181,8 @@ class CompanyInvitationNotification extends Notification implements ShouldQueue
                     ->line('• **Security:** Please change your password after your first login');
             }
             
-            $mail->line('**❓ Not interested?**')
-                ->line('If you are unable to accept this invitation or do not wish to participate, you can [reject the invitation here](' . $rejectUrl . ').')
-                ->line('The HR manager will be notified of your decision.')
-                ->line('If you did not expect this invitation, you can safely ignore this email or reject it using the link above.')
-                ->line('**Questions?** If you have any questions about this invitation, please contact ' . $inviter->name . ' directly.')
+            $mail->line('**Questions?** If you have any questions about this invitation, please contact ' . $inviter->name . ' directly.')
+                ->line('If you did not expect this invitation, please contact ' . $inviter->name . ' to clarify.')
                 ->salutation('Best regards,<br>The HR Path-Finder Team');
         }
 

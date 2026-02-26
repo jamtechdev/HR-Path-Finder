@@ -99,9 +99,9 @@ export default function PerformanceRecommendation({
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
+            <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
-                <main className="flex-1 overflow-auto">
+                <main className="flex-1 overflow-auto bg-background">
                     <Head title={`Step 3.5: Performance Recommendation - ${project?.company?.name || 'Project'}`} />
                     <div className="p-6 md:p-8 max-w-5xl mx-auto">
                         <div className="mb-6">

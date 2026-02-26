@@ -20,9 +20,15 @@ class CeoDashboardController extends Controller
         }
         
         // Ensure user has CEO role - only CEO role can access this dashboard
-        // Even if user has both HR Manager and CEO roles, they should only see CEO content here
+        // Allow access if user has CEO role (even if they switched from HR)
         if (!$user->hasRole('ceo')) {
             abort(403, 'You do not have permission to access this page. CEO role is required.');
+        }
+        
+        // If user switched from HR, ensure they're viewing CEO content only
+        $activeRole = $request->session()->get('active_role');
+        if ($activeRole === 'ceo') {
+            // User switched from HR to CEO, show only CEO content
         }
         
         // Get projects where user is CEO (only filter by CEO role, not HR Manager role)

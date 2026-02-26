@@ -84,7 +84,11 @@ export default function CompanyInfo({
         return value;
     };
 
-    const [selectedSecondaryIndustries, setSelectedSecondaryIndustries] = useState<string[]>([]);
+    const [selectedSecondaryIndustries, setSelectedSecondaryIndustries] = useState<string[]>(
+        diagnosis?.secondary_industries && Array.isArray(diagnosis.secondary_industries) 
+            ? diagnosis.secondary_industries 
+            : []
+    );
     const [logoPreview, setLogoPreview] = useState<string | null>(company.logo_path || null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     
@@ -176,6 +180,7 @@ export default function CompanyInfo({
                 formData={{
                     ...data,
                     is_public: data.is_public,
+                    secondary_industries: selectedSecondaryIndustries,
                 }}
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >

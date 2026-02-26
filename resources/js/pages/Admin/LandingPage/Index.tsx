@@ -211,15 +211,15 @@ export default function LandingPageIndex({
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
+            <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
-                <main className="flex-1 overflow-auto">
+                <main className="flex-1 overflow-auto bg-background">
                     <Head title={locale === 'ko' ? '랜딩 페이지 편집' : 'Landing Page Editor'} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         {/* Header */}
                         <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <div>
-                                <h1 className="text-3xl font-bold mb-2">
+                                <h1 className="text-3xl font-bold mb-2 text-foreground">
                                     {locale === 'ko' ? '랜딩 페이지 편집' : 'Landing Page Editor'}
                                 </h1>
                                 <p className="text-muted-foreground">

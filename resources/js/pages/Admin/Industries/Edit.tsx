@@ -96,9 +96,9 @@ export default function IndustriesEdit({ category }: Props) {
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
+            <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
-                <main className="flex-1 overflow-auto">
+                <main className="flex-1 overflow-auto bg-background">
                     <Head title={`Edit Industry - ${category?.name || 'Industry'}`} />
                     <div className="p-6 md:p-8 max-w-4xl mx-auto">
                         <div className="mb-6">

@@ -59,16 +59,30 @@ class DiagnosisController extends Controller
             }
         }
 
-        // Update company's is_public field if provided
+        // Update company fields if provided
+        $companyUpdates = [];
+        
         if ($request->has('is_public')) {
-            $hrProject->company->update(['is_public' => $request->boolean('is_public')]);
+            $companyUpdates['is_public'] = $request->boolean('is_public');
         }
         
-        // Update company's registration_number if provided
         if (isset($data['registration_number'])) {
-            $hrProject->company->update(['registration_number' => $data['registration_number']]);
-            // Remove from diagnosis data as it's stored in company table
-            unset($data['registration_number']);
+            $companyUpdates['registration_number'] = $data['registration_number'];
+            unset($data['registration_number']); // Remove from diagnosis data
+        }
+        
+        if (isset($data['foundation_date'])) {
+            $companyUpdates['foundation_date'] = $data['foundation_date'];
+            unset($data['foundation_date']); // Remove from diagnosis data
+        }
+        
+        if (isset($data['brand_name'])) {
+            $companyUpdates['brand_name'] = $data['brand_name'];
+            unset($data['brand_name']); // Remove from diagnosis data
+        }
+        
+        if (!empty($companyUpdates)) {
+            $hrProject->company->update($companyUpdates);
         }
 
         if ($diagnosis) {

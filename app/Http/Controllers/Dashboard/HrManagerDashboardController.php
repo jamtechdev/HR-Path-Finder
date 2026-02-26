@@ -18,16 +18,23 @@ class HrManagerDashboardController extends Controller
             return redirect()->route('login');
         }
         
-        // Ensure user has hr_manager role
+        // Ensure user has hr_manager role and hasn't switched to CEO
+        $activeRole = $request->session()->get('active_role');
+        if ($activeRole === 'ceo') {
+            // User has switched to CEO, redirect to CEO dashboard
+            return redirect()->route('ceo.dashboard');
+        }
+        
         if (!$user->hasRole('hr_manager')) {
             abort(403, 'You do not have permission to access this page.');
         }
         
-        // Get active project for this HR manager
+        // Get active project for this HR manager (only HR role projects, not CEO)
+        // When user has both roles but hasn't switched, show only HR content
         $activeProject = \App\Models\HrProject::whereHas('company', function ($query) use ($user) {
             $query->whereHas('users', function ($q) use ($user) {
                 $q->where('users.id', $user->id)
-                  ->where('company_users.role', 'hr_manager');
+                  ->where('company_users.role', 'hr_manager'); // Only HR role projects
             });
         })
         ->where('status', 'active')
@@ -82,14 +89,11 @@ class HrManagerDashboardController extends Controller
         // Get company info for CEO invitation
         $company = $activeProject?->company;
         $hasCeo = $company ? $company->users()->wherePivot('role', 'ceo')->exists() : false;
-
-        // Get pending CEO role request for this user and company
-        $pendingCeoRequest = null;
-        if ($company) {
-            $pendingCeoRequest = \App\Models\CeoRoleRequest::where('user_id', $user->id)
-                ->where('company_id', $company->id)
-                ->where('status', 'pending')
-                ->first();
+        
+        // Check if user can switch to CEO (has CEO role for this company)
+        $canSwitchToCeo = false;
+        if ($company && $user->hasRole('ceo')) {
+            $canSwitchToCeo = $company->users()->where('users.id', $user->id)->wherePivot('role', 'ceo')->exists();
         }
 
         return Inertia::render('Dashboard/HRManager/Index', [
@@ -121,11 +125,7 @@ class HrManagerDashboardController extends Controller
             'ceoPhilosophyStatus' => $ceoPhilosophyStatus,
             'stepStatuses' => $stepStatuses,
             'projectId' => $activeProject?->id,
-            'pendingCeoRequest' => $pendingCeoRequest ? [
-                'id' => $pendingCeoRequest->id,
-                'status' => $pendingCeoRequest->status,
-                'requested_at' => $pendingCeoRequest->requested_at->format('Y-m-d H:i:s'),
-            ] : null,
+            'canSwitchToCeo' => $canSwitchToCeo,
         ]);
     }
 }

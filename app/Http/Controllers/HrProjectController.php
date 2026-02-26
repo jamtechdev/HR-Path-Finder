@@ -17,13 +17,18 @@ class HrProjectController extends Controller
     {
         $user = $request->user();
         
-        if ($user->hasRole('hr_manager')) {
+        // Check if user has switched role
+        $activeRole = $request->session()->get('active_role');
+        
+        if ($user->hasRole('hr_manager') && $activeRole !== 'ceo') {
+            // HR Manager (not switched), show only HR role projects
             $projects = HrProject::whereHas('company', function ($query) use ($user) {
                 $query->whereHas('users', function ($q) use ($user) {
-                    $q->where('users.id', $user->id);
+                    $q->where('users.id', $user->id)
+                      ->where('company_users.role', 'hr_manager');
                 });
             })->with(['company', 'diagnosis'])->get();
-        } elseif ($user->hasRole('ceo')) {
+        } elseif ($user->hasRole('ceo') && ($activeRole === 'ceo' || !$user->hasRole('hr_manager'))) {
             $projects = HrProject::whereHas('company', function ($query) use ($user) {
                 $query->whereHas('users', function ($q) use ($user) {
                     $q->where('users.id', $user->id)

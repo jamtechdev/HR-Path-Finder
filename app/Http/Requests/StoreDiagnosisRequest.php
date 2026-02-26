@@ -23,6 +23,8 @@ class StoreDiagnosisRequest extends FormRequest
     {
         return [
             'is_public' => ['nullable', 'boolean'],
+            'foundation_date' => ['nullable', 'date'],
+            'brand_name' => ['nullable', 'string', 'max:255'],
             'registration_number' => ['nullable', 'string', 'max:255', function ($attribute, $value, $fail) {
                 if ($value && !preg_match('/^(\d{3}-\d{2}-\d{5}|\d{10}|\d{3,10})$/', $value)) {
                     // Allow format: 000-00-00000, or 10 digits, or 3-10 digits
@@ -32,6 +34,8 @@ class StoreDiagnosisRequest extends FormRequest
             'industry_category' => ['nullable', 'string', 'max:255'],
             'industry_subcategory' => ['nullable', 'string', 'max:255'],
             'industry_other' => ['nullable', 'string', 'max:255'],
+            'secondary_industries' => ['nullable', 'array'],
+            'secondary_industries.*' => ['nullable', 'string', 'max:255'],
             'present_headcount' => ['nullable', 'integer', 'min:0'],
             'expected_headcount_1y' => ['nullable', 'integer', 'min:0'],
             'expected_headcount_2y' => ['nullable', 'integer', 'min:0'],
