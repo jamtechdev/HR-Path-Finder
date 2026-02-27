@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2,AlertCircle, Edit, Building2, Network, Users, UserCog, UserCheck, FileText, Image as ImageIcon, Download, Eye, Layers , TrendingUp , Clock } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { CheckCircle2,AlertCircle, Edit, Building2, Network, Users, UserCog, UserCheck, FileText, Image as ImageIcon, Download, Eye, Layers , TrendingUp , Clock, Mail, X } from 'lucide-react';
 
 interface Diagnosis {
     id: number;
@@ -39,6 +42,7 @@ interface Diagnosis {
 }
 
 interface Company {
+    id: number;
     name: string;
     hq_location?: string;
     logo_path?: string;
@@ -72,16 +76,60 @@ export default function Review({
     projectId,
 }: Props) {
     const { post, processing } = useForm({});
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [inviteEmail, setInviteEmail] = useState('');
+    const [inviteProcessing, setInviteProcessing] = useState(false);
+    const [inviteError, setInviteError] = useState('');
+    const [inviteSuccess, setInviteSuccess] = useState(false);
 
     const handleSubmit = () => {
         if (projectId) {
             post(`/hr-manager/diagnosis/${projectId}/submit`, {
                 onSuccess: () => {
-                    // Redirect to dashboard after successful submission
-                    router.visit('/hr-manager/dashboard');
+                    // Show success modal instead of redirecting
+                    setShowSuccessModal(true);
                 },
             });
         }
+    };
+
+    const handleInviteCeo = (e: React.FormEvent) => {
+        e.preventDefault();
+        setInviteError('');
+        setInviteSuccess(false);
+
+        if (!inviteEmail || !inviteEmail.includes('@')) {
+            setInviteError('Please enter a valid email address');
+            return;
+        }
+
+        setInviteProcessing(true);
+        
+        router.post(`/companies/${company.id}/invite-ceo`, {
+            email: inviteEmail,
+            hr_project_id: projectId,
+        }, {
+            onSuccess: () => {
+                setInviteSuccess(true);
+                setInviteProcessing(false);
+                setInviteError('');
+            },
+            onError: (errors) => {
+                setInviteError(errors.email || 'Failed to send invitation. Please try again.');
+                setInviteProcessing(false);
+            },
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleCloseModal = () => {
+        setShowSuccessModal(false);
+        setInviteEmail('');
+        setInviteError('');
+        setInviteSuccess(false);
+        // Redirect to dashboard after closing modal
+        router.visit('/hr-manager/dashboard');
     };
 
     const getEditUrl = (tab: string) => {
@@ -153,6 +201,105 @@ export default function Review({
     return (
         <>
             <Head title={`Review & Submit - ${company?.name || project?.company?.name || 'Company'}`} />
+            
+            {/* Success Modal with Invite CEO */}
+            <Dialog open={showSuccessModal} onOpenChange={(open) => {
+                if (!open) {
+                    handleCloseModal();
+                } else {
+                    setShowSuccessModal(true);
+                }
+            }}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <div className="flex items-center justify-center mb-4">
+                            <div className="rounded-full bg-green-100 p-3">
+                                <CheckCircle2 className="h-8 w-8 text-green-600" />
+                            </div>
+                        </div>
+                        <DialogTitle className="text-center text-2xl">Diagnosis Submitted Successfully!</DialogTitle>
+                        <DialogDescription className="text-center pt-2">
+                            Your diagnosis has been submitted for CEO review. You can now invite the CEO to join the platform.
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="py-4">
+                        {!inviteSuccess ? (
+                            <form onSubmit={handleInviteCeo} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="ceo-email">CEO Email Address</Label>
+                                    <Input
+                                        id="ceo-email"
+                                        type="email"
+                                        placeholder="ceo@company.com"
+                                        value={inviteEmail}
+                                        onChange={(e) => setInviteEmail(e.target.value)}
+                                        disabled={inviteProcessing}
+                                        required
+                                        className={inviteError ? 'border-red-500' : ''}
+                                    />
+                                    {inviteError && (
+                                        <p className="text-sm text-red-600 flex items-center gap-1">
+                                            <AlertCircle className="h-4 w-4" />
+                                            {inviteError}
+                                        </p>
+                                    )}
+                                </div>
+                                
+                                <DialogFooter className="flex-col sm:flex-row gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={handleCloseModal}
+                                        disabled={inviteProcessing}
+                                        className="w-full sm:w-auto"
+                                    >
+                                        Skip for Now
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        disabled={inviteProcessing || !inviteEmail}
+                                        className="w-full sm:w-auto"
+                                    >
+                                        {inviteProcessing ? (
+                                            <>
+                                                <span className="animate-spin mr-2">⏳</span>
+                                                Sending...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Mail className="w-4 h-4 mr-2" />
+                                                Invite CEO
+                                            </>
+                                        )}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                    <div className="flex items-center gap-2 text-green-800">
+                                        <CheckCircle2 className="h-5 w-5" />
+                                        <p className="font-medium">Invitation sent successfully!</p>
+                                    </div>
+                                    <p className="text-sm text-green-700 mt-2">
+                                        An invitation email has been sent to <strong>{inviteEmail}</strong>. The CEO will receive instructions to join the platform.
+                                    </p>
+                                </div>
+                                <DialogFooter>
+                                    <Button
+                                        onClick={handleCloseModal}
+                                        className="w-full"
+                                    >
+                                        Done
+                                    </Button>
+                                </DialogFooter>
+                            </div>
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
             <FormLayout
                 title="Review & Submit Diagnosis"
                 project={project}
