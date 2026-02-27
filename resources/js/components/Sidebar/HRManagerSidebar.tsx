@@ -65,7 +65,12 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
     const currentPath = url.split('?')[0];
     
     // Get step statuses and project ID from page props
-    const stepStatuses = (props as any).stepStatuses || (props as any).mainStepStatuses || {};
+    // Try multiple prop names to ensure we get stepStatuses
+    const stepStatuses: Record<string, string> = (props as any).stepStatuses 
+        || (props as any).mainStepStatuses 
+        || (props as any).step_statuses 
+        || (props as any).activeProject?.step_statuses
+        || {};
     const projectId = (props as any).projectId || (props as any).project?.id;
 
     const isActive = (path: string) => {
@@ -92,16 +97,14 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
         const isDiagnosisSubmitted = diagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(diagnosisStatus);
         const isCeoSurveyCompleted = ceoPhilosophyStatus === 'completed';
         
-        // For diagnosis step: completed only if submitted AND CEO survey is done
+        // For diagnosis step: completed only if approved/locked
         if (stepId === 'diagnosis') {
-            if (isDiagnosisSubmitted && isCeoSurveyCompleted) {
-                return 'completed';
-            }
-            if (isDiagnosisSubmitted && !isCeoSurveyCompleted) {
-                return 'current'; // Waiting for CEO survey
-            }
             if (status && ['approved', 'locked', 'completed'].includes(status)) {
                 return 'completed';
+            }
+            // If submitted but not approved yet, it's current (accessible for review)
+            if (status === 'submitted') {
+                return 'current';
             }
         } else {
             // For other steps: completed if approved/locked/completed
@@ -125,39 +128,38 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
             return 'current';
         }
         
-        // Check if previous steps are completed to unlock this step
+        // Check if previous steps are VERIFIED (approved/locked) to unlock this step
         // Only unlock if CEO survey is completed (for step 2+)
         if (stepIndex > 0) {
             if (!isCeoSurveyCompleted) {
                 return 'locked'; // Step 2+ locked until CEO survey
             }
             
-            // Check if all previous steps are approved/completed to unlock this step
-            let allPreviousCompleted = true;
+            // Check if all previous steps are VERIFIED (approved/locked) to unlock this step
+            let allPreviousVerified = true;
             for (let i = 0; i < stepIndex; i++) {
                 const prevStep = MAIN_STEPS[i];
                 const prevStatus = stepStatuses[prevStep.id];
                 
-                // For diagnosis, need both submitted and CEO survey done
+                // For diagnosis, need to be approved/locked (verified)
                 if (prevStep.id === 'diagnosis') {
                     const prevDiagnosisStatus = stepStatuses['diagnosis'];
-                    const prevIsSubmitted = prevDiagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(prevDiagnosisStatus);
-                    if (!prevIsSubmitted || !isCeoSurveyCompleted) {
-                        allPreviousCompleted = false;
+                    // Must be approved or locked (verified) to unlock next step
+                    if (!prevDiagnosisStatus || !['approved', 'locked', 'completed'].includes(prevDiagnosisStatus)) {
+                        allPreviousVerified = false;
                         break;
                     }
                 } else {
-                    // For other steps (including performance), must be APPROVED by CEO to unlock next step
-                    // Step 4 (compensation) requires Step 3 (performance) to be approved
+                    // For other steps, must be APPROVED/LOCKED (verified) by CEO to unlock next step
                     if (!prevStatus || !['approved', 'locked', 'completed'].includes(prevStatus)) {
-                        allPreviousCompleted = false;
+                        allPreviousVerified = false;
                         break;
                     }
                 }
             }
             
-            // If all previous approved/completed and this step is in_progress or not_started, it's current
-            if (allPreviousCompleted) {
+            // If all previous verified and this step is in_progress or not_started, it's current
+            if (allPreviousVerified) {
                 if (!status || status === 'not_started' || status === 'in_progress') {
                     return 'current';
                 }
@@ -171,26 +173,53 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
     };
     
     // Check if step should actually be locked - match dashboard logic exactly
+    // Steps are locked until previous step is VERIFIED (approved/locked)
     const isStepActuallyLocked = (stepId: string): boolean => {
-        // If step is submitted or completed, it should NOT be locked (accessible for review/view)
-        const status = stepStatuses[stepId];
-        if (status && ['submitted', 'approved', 'locked', 'completed'].includes(status)) {
-            return false; // Submitted/completed steps are accessible for HR to view
+        const status = stepStatuses[stepId] || 'not_started';
+        const stepIndex = MAIN_STEPS.findIndex(s => s.id === stepId);
+        
+        // First step (diagnosis) is never locked
+        if (stepIndex === 0) {
+            return false;
         }
         
-        const diagnosisStatus = stepStatuses['diagnosis'];
-        const isDiagnosisSubmitted = diagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(diagnosisStatus);
+        // If step is currently active, it should NOT be locked (user can be on it)
+        if (isStepActive({ id: stepId, route: '', step: 0, title: '', desc: '', icon: CheckCircle2 })) {
+            return false;
+        }
+        
+        // If step is submitted, it should NOT be locked (accessible for review/view)
+        if (status === 'submitted') {
+            return false; // Submitted steps are accessible for HR to view
+        }
+        
+        // If step is verified (approved/locked), it should NOT be locked
+        if (status && ['approved', 'locked', 'completed'].includes(status)) {
+            return false; // Verified steps are accessible
+        }
+        
         const ceoPhilosophyStatus = (props as any).ceoPhilosophyStatus || 'not_started';
         const isCeoSurveyCompleted = ceoPhilosophyStatus === 'completed';
         
-        // If diagnosis is submitted but CEO survey not done, all steps except diagnosis are locked
-        if (isDiagnosisSubmitted && !isCeoSurveyCompleted && stepId !== 'diagnosis') {
+        // If CEO survey not done, all steps except diagnosis are locked
+        if (!isCeoSurveyCompleted && stepId !== 'diagnosis') {
             return true;
         }
         
-        // Otherwise use normal lock logic from getStepState
-        const state = getStepState(stepId);
-        return state === 'locked';
+        // Check if all previous steps are VERIFIED (approved/locked) to unlock this step
+        for (let i = 0; i < stepIndex; i++) {
+            const prevStep = MAIN_STEPS[i];
+            const prevStatus = stepStatuses[prevStep.id];
+            
+            // Previous step must be VERIFIED (approved/locked) to unlock next step
+            // If previous step is not verified (undefined, not_started, in_progress, or submitted), this step is locked
+            if (!prevStatus || !['approved', 'locked', 'completed'].includes(prevStatus)) {
+                return true; // Locked because previous step is not verified
+            }
+        }
+        
+        // If all previous steps are verified, this step is unlocked
+        return false;
     };
 
     const isStepActive = (step: StepConfig): boolean => {
@@ -293,26 +322,26 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                                         <SidebarMenuButton
                                             disabled
                                             className={cn(
-                                                "transition-all duration-200 rounded-lg cursor-not-allowed opacity-50",
-                                                isCollapsed ? "px-3 py-3 justify-center w-full" : "px-4 py-6 gap-3"
+                                                "transition-all duration-200 rounded-lg cursor-not-allowed",
+                                                isCollapsed ? "px-3 py-3 justify-center w-full opacity-70" : "px-4 py-6 gap-3 opacity-65"
                                             )}
                                         >
                                             <div className={cn("flex items-center w-full", isCollapsed ? "justify-center" : "gap-3")}>
                                                 <div className={cn(
-                                                    "rounded-full border-2 border-sidebar-foreground/20 flex items-center justify-center flex-shrink-0 transition-all duration-200",
-                                                    isCollapsed ? "w-7 h-7" : "w-6 h-6"
+                                                    "rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200",
+                                                    isCollapsed ? "w-7 h-7 border-sidebar-foreground/50 bg-sidebar-background/60" : "w-6 h-6 border-sidebar-foreground/50 bg-sidebar-background/60"
                                                 )}>
                                                     <Lock className={cn(
-                                                        "text-sidebar-foreground/30 transition-all duration-200",
+                                                        "text-sidebar-foreground/60 transition-all duration-200",
                                                         isCollapsed ? "w-4 h-4" : "w-3.5 h-3.5"
                                                     )} />
                                                 </div>
                                                 {!isCollapsed && (
                                                     <div className="flex-1 text-left">
-                                                        <span className="text-sm font-medium text-sidebar-foreground/40 block">
+                                                        <span className="text-sm font-medium text-sidebar-foreground/60 block">
                                                             Step {step.step}: {step.title}
                                                         </span>
-                                                        <span className="text-xs text-sidebar-foreground/30 mt-0.5 block">
+                                                        <span className="text-xs text-sidebar-foreground/50 mt-0.5 block">
                                                             Locked
                                                         </span>
                                                     </div>

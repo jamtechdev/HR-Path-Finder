@@ -131,15 +131,66 @@ class CompanyController extends Controller
      */
     public function show(Request $request, Company $company)
     {
-        $company->load(['hrProjects', 'users']);
+        $company->load([
+            'hrProjects',
+            'users' => function ($query) {
+                $query->withPivot('role');
+            },
+            'invitations' => function ($query) {
+                $query->with(['inviter'])
+                      ->withTrashed()
+                      ->orderBy('created_at', 'desc');
+            }
+        ]);
         
         // Check authorization
         if (!$company->users->contains($request->user()) && !$request->user()->hasRole(['consultant', 'admin'])) {
             abort(403);
         }
 
+        // Format invitations data
+        $invitations = $company->invitations ? $company->invitations->map(function ($invitation) {
+            $status = 'pending';
+            if ($invitation->accepted_at) {
+                $status = 'accepted';
+            } elseif ($invitation->trashed()) {
+                $status = 'rejected';
+            }
+            
+            return [
+                'id' => $invitation->id,
+                'email' => $invitation->email,
+                'status' => $status,
+                'invited_by' => $invitation->inviter ? [
+                    'id' => $invitation->inviter->id,
+                    'name' => $invitation->inviter->name,
+                ] : null,
+                'invited_at' => $invitation->created_at,
+                'accepted_at' => $invitation->accepted_at,
+                'rejected_at' => $invitation->trashed() ? $invitation->deleted_at : null,
+                'expires_at' => $invitation->expires_at,
+            ];
+        })->values() : [];
+
         return Inertia::render('companies/show', [
-            'company' => $company,
+            'company' => [
+                'id' => $company->id,
+                'name' => $company->name,
+                'registration_number' => $company->registration_number,
+                'hq_location' => $company->hq_location,
+                'public_listing_status' => $company->public_listing_status,
+                'logo_path' => $company->logo_path,
+                'hrProjects' => $company->hrProjects,
+                'users' => $company->users ? $company->users->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'role' => $user->pivot->role ?? 'hr_manager',
+                    ];
+                })->values() : [],
+                'invitations' => $invitations,
+            ],
         ]);
     }
 }

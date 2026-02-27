@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Building2, UserPlus, Mail, Users, CheckCircle2, XCircle, Clock, ChevronDown, ChevronRight, Plus, FileText, RefreshCw } from 'lucide-react';
+import { Building2, UserPlus, Mail, Users, CheckCircle2, XCircle, Clock, ChevronDown, ChevronRight, Plus, FileText, RefreshCw, Trash2 } from 'lucide-react';
 
 interface CEO {
     id: number;
@@ -64,6 +64,7 @@ export default function CompaniesIndex({ companies }: Props) {
         hr_project_id: null as number | null,
     });
     const [resendingInvitation, setResendingInvitation] = useState<number | null>(null);
+    const [deletingInvitation, setDeletingInvitation] = useState<number | null>(null);
 
     const toggleCompany = (companyId: number) => {
         const newExpanded = new Set(expandedCompanies);
@@ -99,9 +100,26 @@ export default function CompaniesIndex({ companies }: Props) {
         post(`/invitations/${invitationId}/resend`, {
             onSuccess: () => {
                 setResendingInvitation(null);
+                router.reload();
             },
             onError: () => {
                 setResendingInvitation(null);
+            },
+        });
+    };
+
+    const handleDeleteInvitation = (invitationId: number) => {
+        if (!confirm('Are you sure you want to delete this invitation? This action cannot be undone.')) {
+            return;
+        }
+        
+        setDeletingInvitation(invitationId);
+        router.delete(`/invitations/${invitationId}`, {
+            onSuccess: () => {
+                setDeletingInvitation(null);
+            },
+            onError: () => {
+                setDeletingInvitation(null);
             },
         });
     };
@@ -303,36 +321,53 @@ export default function CompaniesIndex({ companies }: Props) {
                                                                         </TableRow>
                                                                     </TableHeader>
                                                                     <TableBody>
-                                                                        {company.invitations.map((invitation) => (
-                                                                            <TableRow key={invitation.id}>
-                                                                                <TableCell className="font-medium">{invitation.email}</TableCell>
-                                                                                <TableCell>{getStatusBadge(invitation.status)}</TableCell>
-                                                                                <TableCell>{invitation.invited_by?.name || 'N/A'}</TableCell>
-                                                                                <TableCell>{formatDate(invitation.invited_at)}</TableCell>
-                                                                                <TableCell>{formatDate(invitation.expires_at)}</TableCell>
-                                                                                <TableCell>
-                                                                                    {invitation.accepted_at 
-                                                                                        ? formatDate(invitation.accepted_at)
-                                                                                        : invitation.rejected_at 
-                                                                                            ? formatDate(invitation.rejected_at)
-                                                                                            : 'N/A'}
-                                                                                </TableCell>
-                                                                                <TableCell>
-                                                                                    {invitation.status === 'pending' && (
-                                                                                        <Button
-                                                                                            variant="outline"
-                                                                                            size="sm"
-                                                                                            onClick={() => handleResendInvitation(invitation.id)}
-                                                                                            disabled={resendingInvitation === invitation.id}
-                                                                                            className="text-xs"
-                                                                                        >
-                                                                                            <RefreshCw className={`w-3 h-3 mr-1 ${resendingInvitation === invitation.id ? 'animate-spin' : ''}`} />
-                                                                                            {resendingInvitation === invitation.id ? 'Resending...' : 'Resend'}
-                                                                                        </Button>
-                                                                                    )}
-                                                                                </TableCell>
-                                                                            </TableRow>
-                                                                        ))}
+                                                                        {company.invitations.map((invitation) => {
+                                                                            const isPending = invitation.status === 'pending';
+                                                                            return (
+                                                                                <TableRow key={invitation.id}>
+                                                                                    <TableCell className="font-medium">{invitation.email}</TableCell>
+                                                                                    <TableCell>{getStatusBadge(invitation.status)}</TableCell>
+                                                                                    <TableCell>{invitation.invited_by?.name || 'N/A'}</TableCell>
+                                                                                    <TableCell>{formatDate(invitation.invited_at)}</TableCell>
+                                                                                    <TableCell>{formatDate(invitation.expires_at)}</TableCell>
+                                                                                    <TableCell>
+                                                                                        {invitation.accepted_at 
+                                                                                            ? formatDate(invitation.accepted_at)
+                                                                                            : invitation.rejected_at 
+                                                                                                ? formatDate(invitation.rejected_at)
+                                                                                                : 'N/A'}
+                                                                                    </TableCell>
+                                                                                    <TableCell className="whitespace-nowrap">
+                                                                                        {isPending ? (
+                                                                                            <div className="flex items-center gap-2">
+                                                                                                <Button
+                                                                                                    variant="outline"
+                                                                                                    size="sm"
+                                                                                                    onClick={() => handleResendInvitation(invitation.id)}
+                                                                                                    disabled={resendingInvitation === invitation.id || deletingInvitation === invitation.id}
+                                                                                                    className="h-8 px-3 text-xs"
+                                                                                                >
+                                                                                                    <RefreshCw className={`w-3 h-3 mr-1 ${resendingInvitation === invitation.id ? 'animate-spin' : ''}`} />
+                                                                                                    {resendingInvitation === invitation.id ? 'Resending...' : 'Resend'}
+                                                                                                </Button>
+                                                                                                <Button
+                                                                                                    variant="outline"
+                                                                                                    size="sm"
+                                                                                                    onClick={() => handleDeleteInvitation(invitation.id)}
+                                                                                                    disabled={resendingInvitation === invitation.id || deletingInvitation === invitation.id}
+                                                                                                    className="h-8 px-3 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800"
+                                                                                                >
+                                                                                                    <Trash2 className={`w-3 h-3 mr-1 ${deletingInvitation === invitation.id ? 'animate-pulse' : ''}`} />
+                                                                                                    {deletingInvitation === invitation.id ? 'Deleting...' : 'Delete'}
+                                                                                                </Button>
+                                                                                            </div>
+                                                                                        ) : (
+                                                                                            <span className="text-xs text-muted-foreground">No actions</span>
+                                                                                        )}
+                                                                                    </TableCell>
+                                                                                </TableRow>
+                                                                            );
+                                                                        })}
                                                                     </TableBody>
                                                                 </Table>
                                                             </div>

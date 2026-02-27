@@ -76,6 +76,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:hr_manager')->group(function () {
         Route::post('companies/{company}/invite-ceo', [\App\Http\Controllers\CompanyInvitationController::class, 'inviteCeo'])->name('companies.invite-ceo');
         Route::post('invitations/{invitation}/resend', [\App\Http\Controllers\CompanyInvitationController::class, 'resend'])->name('invitations.resend');
+        Route::delete('invitations/{invitation}', [\App\Http\Controllers\CompanyInvitationController::class, 'destroy'])->name('invitations.destroy');
     });
     
     Route::get('invitations/accept/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'accept'])->name('invitations.accept');

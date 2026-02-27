@@ -56,19 +56,44 @@ class CompanyInvitationController extends Controller
             return back()->withErrors(['email' => 'An invitation has already been sent to this email.']);
         }
 
-        // Create invitation (not accepted yet - they need to accept)
-        $invitation = \App\Models\CompanyInvitation::create([
+        // Prepare invitation data (don't save yet - only save if email sends successfully)
+        $invitationData = [
             'company_id' => $company->id,
             'hr_project_id' => $request->hr_project_id,
             'email' => $request->email,
             'role' => 'ceo',
             'inviter_id' => $request->user()->id,
-        ]);
+        ];
 
-        // Send invitation email directly using Mail facade with blade file
+        // Send invitation email first - only save to DB if email sends successfully
         try {
+            // Create invitation in database first (with pending status)
+            $invitation = \App\Models\CompanyInvitation::create($invitationData);
+            
+            // Reload relationships for email
+            $invitation->load(['company', 'inviter', 'hrProject']);
+            
+            // Send email - if this fails, we'll delete the invitation
             $this->sendInvitationEmail($invitation, $request->email);
+            
+            \Log::info('CEO Invitation created and email sent successfully', [
+                'invitation_id' => $invitation->id,
+                'email' => $request->email,
+                'company_id' => $company->id,
+            ]);
+            
         } catch (\Exception $e) {
+            // Delete invitation if email failed
+            if (isset($invitation) && $invitation->exists) {
+                $invitation->delete();
+            }
+            
+            \Log::error('Failed to send CEO Invitation Email - invitation deleted', [
+                'email' => $request->email,
+                'company_id' => $company->id,
+                'error' => $e->getMessage(),
+            ]);
+            
             return back()->withErrors(['email' => 'Failed to send invitation email. Please check logs and try again.']);
         }
 
@@ -96,7 +121,7 @@ class CompanyInvitationController extends Controller
 
         if (!$user) {
             // Create new user
-            $temporaryPassword = Str::random(12);
+            $temporaryPassword = 'changeMe@123';
             $user = User::create([
                 'name' => explode('@', $invitation->email)[0],
                 'email' => $invitation->email,
@@ -255,16 +280,86 @@ class CompanyInvitationController extends Controller
     }
 
     /**
+     * Delete invitation.
+     */
+    public function destroy(Request $request, CompanyInvitation $invitation)
+    {
+        // Check authorization - only HR manager who created the invitation or company members can delete
+        $user = $request->user();
+        $company = $invitation->company;
+        
+        if (!$company->users->contains($user) && !$user->hasRole(['admin', 'consultant'])) {
+            abort(403, 'You are not authorized to delete this invitation.');
+        }
+
+        // Check if invitation is already accepted
+        if ($invitation->accepted_at) {
+            return back()->withErrors(['error' => 'Cannot delete an accepted invitation.']);
+        }
+
+        $email = $invitation->email;
+        $invitationId = $invitation->id;
+
+        try {
+            \Log::info('Deleting CEO Invitation', [
+                'invitation_id' => $invitationId,
+                'email' => $email,
+                'company_id' => $company->id,
+                'deleted_by' => $user->id,
+                'deleted_by_name' => $user->name,
+            ]);
+
+            $invitation->delete();
+
+            \Log::info('CEO Invitation deleted successfully', [
+                'invitation_id' => $invitationId,
+                'email' => $email,
+                'deleted_by' => $user->id,
+            ]);
+
+            return back()->with('success', 'Invitation has been deleted successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Failed to delete CEO Invitation', [
+                'invitation_id' => $invitationId,
+                'email' => $email,
+                'deleted_by' => $user->id,
+                'error' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            return back()->withErrors(['error' => 'Failed to delete invitation. Please try again.']);
+        }
+    }
+
+    /**
      * Send invitation email using Mail facade with proper blade file.
      */
     private function sendInvitationEmail(CompanyInvitation $invitation, string $email): void
     {
         try {
+            // Ensure relationships are loaded
+            if (!$invitation->relationLoaded('company')) {
+                $invitation->load('company');
+            }
+            if (!$invitation->relationLoaded('inviter')) {
+                $invitation->load('inviter');
+            }
+            if (!$invitation->relationLoaded('hrProject')) {
+                $invitation->load('hrProject');
+            }
+
+            $company = $invitation->company;
+            $inviter = $invitation->inviter;
+            $project = $invitation->hrProject;
+
             \Log::info('Sending CEO Invitation Email (Mail Facade)', [
                 'invitation_id' => $invitation->id,
                 'email' => $email,
                 'company_id' => $invitation->company_id,
-                'company_name' => $invitation->company->name,
+                'company_name' => $company->name ?? 'N/A',
                 'accepted_at' => $invitation->accepted_at,
                 'has_temp_password' => !empty($invitation->temporary_password),
                 'mailer' => config('mail.default'),
@@ -272,10 +367,6 @@ class CompanyInvitationController extends Controller
                 'mail_from_address' => config('mail.from.address'),
                 'timestamp' => now()->toIso8601String(),
             ]);
-
-            $company = $invitation->company;
-            $inviter = $invitation->inviter;
-            $project = $invitation->hrProject;
 
             // Get company logo URL
             $companyLogo = null;
@@ -349,9 +440,9 @@ class CompanyInvitationController extends Controller
             // Send email directly using Mail facade (no queue)
             $mail = new CompanyInvitationMail(
                 invitation: $invitation,
-                subject: $subject,
-                view: $view,
-                data: $data,
+                emailSubject: $subject,
+                emailView: $view,
+                emailData: $data,
             );
 
             Mail::to($email)->send($mail);

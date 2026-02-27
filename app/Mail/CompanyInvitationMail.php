@@ -9,16 +9,22 @@ use Illuminate\Mail\Mailables\Envelope;
 
 class CompanyInvitationMail extends Mailable
 {
+    public string $emailSubject;
+    public string $emailView;
+    public array $emailData;
+
     /**
      * Create a new message instance.
      */
     public function __construct(
         public CompanyInvitation $invitation,
-        public string $subject,
-        public string $view,
-        public array $data = [],
+        string $emailSubject,
+        string $emailView,
+        array $emailData = [],
     ) {
-        //
+        $this->emailSubject = $emailSubject;
+        $this->emailView = $emailView;
+        $this->emailData = $emailData;
     }
 
     /**
@@ -27,7 +33,7 @@ class CompanyInvitationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $this->subject,
+            subject: $this->emailSubject,
         );
     }
 
@@ -37,8 +43,8 @@ class CompanyInvitationMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: $this->view,
-            with: $this->data,
+            view: $this->emailView,
+            with: $this->emailData,
         );
     }
 

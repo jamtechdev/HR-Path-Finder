@@ -148,32 +148,31 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                 return 'locked'; // Step 2+ locked until CEO survey
             }
             
-            // Check if all previous steps are approved/completed to unlock this step
-            let allPreviousCompleted = true;
+            // Check if all previous steps are VERIFIED (approved/locked) to unlock this step
+            let allPreviousVerified = true;
             for (let i = 0; i < stepIndex; i++) {
                 const prevStep = STEP_CONFIG[i];
                 const prevStatus = stepStatuses[prevStep.id] as StepStatus | undefined;
                 
-                // For diagnosis, need both submitted and CEO survey done
+                // For diagnosis, must be VERIFIED (approved/locked) to unlock next step
                 if (prevStep.id === 'diagnosis') {
                     const prevDiagnosisStatus = stepStatuses['diagnosis'] as StepStatus | undefined;
-                    const prevIsSubmitted = prevDiagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(prevDiagnosisStatus);
-                    if (!prevIsSubmitted || !isCeoSurveyCompleted) {
-                        allPreviousCompleted = false;
+                    // Must be approved or locked (verified) to unlock next step
+                    if (!prevDiagnosisStatus || !['approved', 'locked', 'completed'].includes(prevDiagnosisStatus)) {
+                        allPreviousVerified = false;
                         break;
                     }
                 } else {
-                    // For other steps (including performance), must be APPROVED by CEO to unlock next step
-                    // Step 4 (compensation) requires Step 3 (performance) to be approved
+                    // For other steps, must be VERIFIED (approved/locked) by CEO to unlock next step
                     if (!prevStatus || !['approved', 'locked', 'completed'].includes(prevStatus)) {
-                        allPreviousCompleted = false;
+                        allPreviousVerified = false;
                         break;
                     }
                 }
             }
             
-            // If all previous approved/completed and this step is in_progress or not_started, it's current
-            if (allPreviousCompleted) {
+            // If all previous verified and this step is in_progress or not_started, it's current
+            if (allPreviousVerified) {
                 if (!status || status === 'not_started' || status === 'in_progress') {
                     return 'current';
                 }
@@ -187,29 +186,55 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
     };
     
     // Check if steps should be visually locked
+    // Steps are locked until previous step is VERIFIED (approved/locked)
     const isStepActuallyLocked = (stepKey: StepKey): boolean => {
         if (!activeProject) {
             return stepKey !== 'diagnosis';
         }
         
-        // If step is submitted or completed, it should NOT be locked (accessible for review/view)
         const status = stepStatuses[stepKey] as StepStatus | undefined;
-        if (status && ['submitted', 'approved', 'locked', 'completed'].includes(status)) {
-            return false; // Submitted/completed steps are accessible for HR to view
+        const stepIndex = STEP_CONFIG.findIndex(s => s.id === stepKey);
+        
+        // If step is currently active, it should NOT be locked (user can be on it)
+        if (progress.currentStepKey === stepKey) {
+            return false;
         }
         
-        const diagnosisStatus = stepStatuses['diagnosis'] as StepStatus | undefined;
-        const isDiagnosisSubmitted = diagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(diagnosisStatus);
+        // If step is submitted, it should NOT be locked (accessible for review/view)
+        if (status === 'submitted') {
+            return false; // Submitted steps are accessible for HR to view
+        }
+        
+        // If step is verified (approved/locked), it should NOT be locked
+        if (status && ['approved', 'locked', 'completed'].includes(status)) {
+            return false; // Verified steps are accessible
+        }
+        
+        // First step is never locked
+        if (stepIndex === 0) {
+            return false;
+        }
+        
         const isCeoSurveyCompleted = ceoPhilosophyStatus === 'completed';
         
-        // If diagnosis is submitted but CEO survey not done, all steps except diagnosis are locked
-        if (isDiagnosisSubmitted && !isCeoSurveyCompleted && stepKey !== 'diagnosis') {
+        // If CEO survey not done, all steps except diagnosis are locked
+        if (!isCeoSurveyCompleted && stepKey !== 'diagnosis') {
             return true;
         }
         
-        // Otherwise use normal lock logic
-        const state = getStepState(stepKey);
-        return state === 'locked';
+        // Check if all previous steps are VERIFIED (approved/locked) to unlock this step
+        for (let i = 0; i < stepIndex; i++) {
+            const prevStep = STEP_CONFIG[i];
+            const prevStatus = stepStatuses[prevStep.id] as StepStatus | undefined;
+            
+            // Previous step must be VERIFIED (approved/locked) to unlock next step
+            if (!prevStatus || !['approved', 'locked', 'completed'].includes(prevStatus)) {
+                return true; // Locked because previous step is not verified
+            }
+        }
+        
+        // If all previous steps are verified, this step is unlocked
+        return false;
     };
 
     // Get step routes - matching sidebar routes
@@ -273,12 +298,6 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-3 flex-wrap">
-                                    {activeProject && (
-                                        <Badge variant="outline" className="text-sm px-4 py-2">
-                                            <Sparkles className="w-4 h-4 mr-2" />
-                                            Active Project
-                                        </Badge>
-                                    )}
                                     {canSwitchToCeo && (
                                         <Button 
                                             onClick={() => {

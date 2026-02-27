@@ -88,7 +88,7 @@ class CeoController extends Controller
             $ceo = $existingUser;
         } else {
             // Generate temporary password
-            $temporaryPassword = Str::random(12);
+            $temporaryPassword = 'changeMe@123';
 
             // Create CEO user
             $ceo = User::create([
