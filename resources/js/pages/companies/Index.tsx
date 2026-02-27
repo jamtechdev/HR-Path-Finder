@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Building2, UserPlus, Mail, Users, CheckCircle2, XCircle, Clock, ChevronDown, ChevronRight, Plus, FileText } from 'lucide-react';
+import { Building2, UserPlus, Mail, Users, CheckCircle2, XCircle, Clock, ChevronDown, ChevronRight, Plus, FileText, RefreshCw } from 'lucide-react';
 
 interface CEO {
     id: number;
@@ -63,6 +63,7 @@ export default function CompaniesIndex({ companies }: Props) {
         email: '',
         hr_project_id: null as number | null,
     });
+    const [resendingInvitation, setResendingInvitation] = useState<number | null>(null);
 
     const toggleCompany = (companyId: number) => {
         const newExpanded = new Set(expandedCompanies);
@@ -91,6 +92,18 @@ export default function CompaniesIndex({ companies }: Props) {
                 },
             });
         }
+    };
+
+    const handleResendInvitation = (invitationId: number) => {
+        setResendingInvitation(invitationId);
+        post(`/invitations/${invitationId}/resend`, {
+            onSuccess: () => {
+                setResendingInvitation(null);
+            },
+            onError: () => {
+                setResendingInvitation(null);
+            },
+        });
     };
 
     const getStatusBadge = (status: string) => {
@@ -286,6 +299,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                                                             <TableHead>Invited At</TableHead>
                                                                             <TableHead>Expires At</TableHead>
                                                                             <TableHead>Accepted/Rejected At</TableHead>
+                                                                            <TableHead>Actions</TableHead>
                                                                         </TableRow>
                                                                     </TableHeader>
                                                                     <TableBody>
@@ -302,6 +316,20 @@ export default function CompaniesIndex({ companies }: Props) {
                                                                                         : invitation.rejected_at 
                                                                                             ? formatDate(invitation.rejected_at)
                                                                                             : 'N/A'}
+                                                                                </TableCell>
+                                                                                <TableCell>
+                                                                                    {invitation.status === 'pending' && (
+                                                                                        <Button
+                                                                                            variant="outline"
+                                                                                            size="sm"
+                                                                                            onClick={() => handleResendInvitation(invitation.id)}
+                                                                                            disabled={resendingInvitation === invitation.id}
+                                                                                            className="text-xs"
+                                                                                        >
+                                                                                            <RefreshCw className={`w-3 h-3 mr-1 ${resendingInvitation === invitation.id ? 'animate-spin' : ''}`} />
+                                                                                            {resendingInvitation === invitation.id ? 'Resending...' : 'Resend'}
+                                                                                        </Button>
+                                                                                    )}
                                                                                 </TableCell>
                                                                             </TableRow>
                                                                         ))}

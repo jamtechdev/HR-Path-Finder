@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\CompanyInvitationMail;
 use App\Models\Company;
 use App\Models\CompanyInvitation;
 use App\Models\User;
-use App\Notifications\CompanyInvitationNotification;
 use App\Notifications\InvitationRejectedNotification;
 use App\Services\CompanyWorkspaceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
@@ -64,32 +65,11 @@ class CompanyInvitationController extends Controller
             'inviter_id' => $request->user()->id,
         ]);
 
-        // Send invitation email (not welcome message)
+        // Send invitation email directly using Mail facade with blade file
         try {
-            \Log::info('Sending CEO Invitation Email', [
-                'invitation_id' => $invitation->id,
-                'email' => $request->email,
-                'company_id' => $company->id,
-                'company_name' => $company->name,
-                'mailer' => config('mail.default'),
-                'mail_host' => config('mail.mailers.smtp.host'),
-                'timestamp' => now()->toIso8601String(),
-            ]);
-
-            Notification::route('mail', $request->email)
-                ->notify(new CompanyInvitationNotification($invitation));
-
-            \Log::info('CEO Invitation Email sent successfully', [
-                'invitation_id' => $invitation->id,
-                'email' => $request->email,
-            ]);
+            $this->sendInvitationEmail($invitation, $request->email);
         } catch (\Exception $e) {
-            \Log::error('Failed to send CEO Invitation Email', [
-                'invitation_id' => $invitation->id,
-                'email' => $request->email,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            return back()->withErrors(['email' => 'Failed to send invitation email. Please check logs and try again.']);
         }
 
         return back()->with('success', 'CEO invitation sent successfully. The user will receive an invitation email and can accept or reject it.');
@@ -148,34 +128,8 @@ class CompanyInvitationController extends Controller
         }
         $invitation->update($updateData);
 
-        // Send welcome email after acceptance (credentials for new users, welcome message for existing users)
-        try {
-            \Log::info('Sending Welcome Email (After Invitation Acceptance)', [
-                'invitation_id' => $invitation->id,
-                'email' => $invitation->email,
-                'is_new_user' => $isNewUser,
-                'has_temp_password' => !empty($invitation->temporary_password),
-                'company_id' => $invitation->company_id,
-                'mailer' => config('mail.default'),
-                'mail_host' => config('mail.mailers.smtp.host'),
-                'timestamp' => now()->toIso8601String(),
-            ]);
-
-            Notification::route('mail', $invitation->email)
-                ->notify(new CompanyInvitationNotification($invitation));
-
-            \Log::info('Welcome Email sent successfully (After Invitation Acceptance)', [
-                'invitation_id' => $invitation->id,
-                'email' => $invitation->email,
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Failed to send Welcome Email (After Invitation Acceptance)', [
-                'invitation_id' => $invitation->id,
-                'email' => $invitation->email,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-        }
+        // Send welcome email after acceptance using Mail facade with blade file
+        $this->sendInvitationEmail($invitation, $invitation->email);
 
         if ($isNewUser) {
             return redirect()->route('login')
@@ -230,5 +184,196 @@ class CompanyInvitationController extends Controller
         $invitation->delete();
 
         return redirect()->route('login')->with('success', 'Invitation rejected. The HR manager has been notified.');
+    }
+
+    /**
+     * Resend invitation email.
+     */
+    public function resend(Request $request, CompanyInvitation $invitation)
+    {
+        // Check authorization - only HR manager who created the invitation or company members can resend
+        $user = $request->user();
+        $company = $invitation->company;
+        
+        if (!$company->users->contains($user) && !$user->hasRole(['admin', 'consultant'])) {
+            abort(403, 'You are not authorized to resend this invitation.');
+        }
+
+        // Check if invitation is already accepted
+        if ($invitation->accepted_at) {
+            return back()->withErrors(['error' => 'This invitation has already been accepted.']);
+        }
+
+        // Check if invitation is expired
+        if ($invitation->isExpired()) {
+            return back()->withErrors(['error' => 'This invitation has expired. Please create a new invitation.']);
+        }
+
+        // Resend invitation email directly
+        try {
+            \Log::info('Resending CEO Invitation Email', [
+                'invitation_id' => $invitation->id,
+                'email' => $invitation->email,
+                'company_id' => $company->id,
+                'company_name' => $company->name,
+                'resend_by' => $user->id,
+                'resend_by_name' => $user->name,
+                'mailer' => config('mail.default'),
+                'mail_host' => config('mail.mailers.smtp.host'),
+                'mail_port' => config('mail.mailers.smtp.port'),
+                'mail_username' => config('mail.mailers.smtp.username') ? 'SET' : 'NOT SET',
+                'mail_from_address' => config('mail.from.address'),
+                'mail_from_name' => config('mail.from.name'),
+                'timestamp' => now()->toIso8601String(),
+            ]);
+
+            // Send directly using Mail facade with blade file
+            $this->sendInvitationEmail($invitation, $invitation->email);
+
+            \Log::info('CEO Invitation Email resent successfully', [
+                'invitation_id' => $invitation->id,
+                'email' => $invitation->email,
+                'resend_by' => $user->id,
+                'sent_at' => now()->toIso8601String(),
+            ]);
+
+            return back()->with('success', 'Invitation email has been resent successfully to ' . $invitation->email . '.');
+        } catch (\Exception $e) {
+            \Log::error('Failed to resend CEO Invitation Email', [
+                'invitation_id' => $invitation->id,
+                'email' => $invitation->email,
+                'resend_by' => $user->id,
+                'error' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            return back()->withErrors(['error' => 'Failed to resend invitation email. Please check logs and try again.']);
+        }
+    }
+
+    /**
+     * Send invitation email using Mail facade with proper blade file.
+     */
+    private function sendInvitationEmail(CompanyInvitation $invitation, string $email): void
+    {
+        try {
+            \Log::info('Sending CEO Invitation Email (Mail Facade)', [
+                'invitation_id' => $invitation->id,
+                'email' => $email,
+                'company_id' => $invitation->company_id,
+                'company_name' => $invitation->company->name,
+                'accepted_at' => $invitation->accepted_at,
+                'has_temp_password' => !empty($invitation->temporary_password),
+                'mailer' => config('mail.default'),
+                'mail_host' => config('mail.mailers.smtp.host'),
+                'mail_from_address' => config('mail.from.address'),
+                'timestamp' => now()->toIso8601String(),
+            ]);
+
+            $company = $invitation->company;
+            $inviter = $invitation->inviter;
+            $project = $invitation->hrProject;
+
+            // Get company logo URL
+            $companyLogo = null;
+            if ($company->logo_path) {
+                if (str_starts_with($company->logo_path, 'http://') || str_starts_with($company->logo_path, 'https://')) {
+                    $companyLogo = $company->logo_path;
+                } elseif (str_starts_with($company->logo_path, '/storage/')) {
+                    $companyLogo = url($company->logo_path);
+                } else {
+                    $companyLogo = asset('storage/' . $company->logo_path);
+                }
+            }
+
+            // Prepare email based on invitation status
+            if ($invitation->accepted_at) {
+                // Welcome email after acceptance
+                $loginUrl = route('login');
+                
+                if ($invitation->temporary_password) {
+                    // New user - send credentials email
+                    $subject = '🎉 Welcome to ' . $company->name . ' - Your CEO Account is Ready!';
+                    $view = 'emails.ceo-invitation-welcome-new';
+                    $data = [
+                        'subject' => $subject,
+                        'companyLogo' => $companyLogo,
+                        'companyName' => $company->name,
+                        'email' => $invitation->email,
+                        'temporaryPassword' => $invitation->temporary_password,
+                        'hasProject' => (bool) $project,
+                        'loginUrl' => $loginUrl,
+                    ];
+                } else {
+                    // Existing user - send welcome email
+                    $subject = '🎉 Welcome! You\'re Now CEO of ' . $company->name;
+                    $view = 'emails.ceo-invitation-welcome-existing';
+                    $data = [
+                        'subject' => $subject,
+                        'companyLogo' => $companyLogo,
+                        'companyName' => $company->name,
+                        'inviterName' => $inviter->name,
+                        'hasProject' => (bool) $project,
+                        'loginUrl' => $loginUrl,
+                    ];
+                }
+            } else {
+                // Initial invitation email (before acceptance)
+                $acceptUrl = route('invitations.accept', ['token' => $invitation->token]);
+                $rejectUrl = route('invitations.reject', ['token' => $invitation->token]);
+                
+                $expiresAt = $invitation->expires_at 
+                    ? $invitation->expires_at->format('F j, Y \a\t g:i A') 
+                    : '7 days from now';
+                
+                $subject = '🎯 CEO Invitation: Join ' . $company->name . ' on HR Path-Finder';
+                $view = 'emails.ceo-invitation-initial';
+                $existingUser = User::where('email', $invitation->email)->first();
+                
+                $data = [
+                    'subject' => $subject,
+                    'companyLogo' => $companyLogo,
+                    'companyName' => $company->name,
+                    'inviterName' => $inviter->name,
+                    'hasProject' => (bool) $project,
+                    'expiresAt' => $expiresAt,
+                    'existingUser' => (bool) $existingUser,
+                    'acceptUrl' => $acceptUrl,
+                    'rejectUrl' => $rejectUrl,
+                ];
+            }
+
+            // Send email directly using Mail facade (no queue)
+            $mail = new CompanyInvitationMail(
+                invitation: $invitation,
+                subject: $subject,
+                view: $view,
+                data: $data,
+            );
+
+            Mail::to($email)->send($mail);
+
+            \Log::info('CEO Invitation Email sent successfully (Mail Facade)', [
+                'invitation_id' => $invitation->id,
+                'email' => $email,
+                'view' => $view,
+                'sent_at' => now()->toIso8601String(),
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send CEO Invitation Email (Mail Facade)', [
+                'invitation_id' => $invitation->id,
+                'email' => $email,
+                'error' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            throw $e;
+        }
     }
 }

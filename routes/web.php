@@ -75,6 +75,7 @@ Route::middleware(['auth'])->group(function () {
     // ========== Company Invitations ==========
     Route::middleware('role:hr_manager')->group(function () {
         Route::post('companies/{company}/invite-ceo', [\App\Http\Controllers\CompanyInvitationController::class, 'inviteCeo'])->name('companies.invite-ceo');
+        Route::post('invitations/{invitation}/resend', [\App\Http\Controllers\CompanyInvitationController::class, 'resend'])->name('invitations.resend');
     });
     
     Route::get('invitations/accept/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'accept'])->name('invitations.accept');
