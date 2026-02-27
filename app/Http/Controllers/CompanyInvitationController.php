@@ -152,9 +152,35 @@ class CompanyInvitationController extends Controller
             $updateData['temporary_password'] = $invitation->temporary_password;
         }
         $invitation->update($updateData);
+        
+        // Refresh the model to ensure all attributes are loaded
+        $invitation->refresh();
 
         // Send welcome email after acceptance using Mail facade with blade file
-        $this->sendInvitationEmail($invitation, $invitation->email);
+        try {
+            \Log::info('Sending Welcome Email after CEO Acceptance', [
+                'invitation_id' => $invitation->id,
+                'email' => $invitation->email,
+                'accepted_at' => $invitation->accepted_at,
+                'has_temp_password' => !empty($invitation->temporary_password),
+                'temporary_password' => !empty($invitation->temporary_password) ? '***' : null,
+            ]);
+            
+            $this->sendInvitationEmail($invitation, $invitation->email);
+            
+            \Log::info('Welcome Email sent successfully after CEO Acceptance', [
+                'invitation_id' => $invitation->id,
+                'email' => $invitation->email,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send Welcome Email after CEO Acceptance', [
+                'invitation_id' => $invitation->id,
+                'email' => $invitation->email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            // Don't fail the acceptance if email fails, but log it
+        }
 
         if ($isNewUser) {
             return redirect()->route('login')
@@ -381,9 +407,23 @@ class CompanyInvitationController extends Controller
             }
 
             // Prepare email based on invitation status
+            \Log::info('Checking invitation status for email type', [
+                'invitation_id' => $invitation->id,
+                'accepted_at' => $invitation->accepted_at,
+                'accepted_at_type' => gettype($invitation->accepted_at),
+                'temporary_password' => !empty($invitation->temporary_password) ? '***' : null,
+                'has_temp_password' => !empty($invitation->temporary_password),
+            ]);
+            
             if ($invitation->accepted_at) {
                 // Welcome email after acceptance
                 $loginUrl = route('login');
+                
+                \Log::info('Preparing welcome email (accepted invitation)', [
+                    'invitation_id' => $invitation->id,
+                    'has_temp_password' => !empty($invitation->temporary_password),
+                    'email_type' => !empty($invitation->temporary_password) ? 'welcome-new' : 'welcome-existing',
+                ]);
                 
                 if ($invitation->temporary_password) {
                     // New user - send credentials email
@@ -398,6 +438,12 @@ class CompanyInvitationController extends Controller
                         'hasProject' => (bool) $project,
                         'loginUrl' => $loginUrl,
                     ];
+                    
+                    \Log::info('Sending welcome email with credentials for new user', [
+                        'invitation_id' => $invitation->id,
+                        'email' => $invitation->email,
+                        'view' => $view,
+                    ]);
                 } else {
                     // Existing user - send welcome email
                     $subject = '🎉 Welcome! You\'re Now CEO of ' . $company->name;
@@ -410,6 +456,12 @@ class CompanyInvitationController extends Controller
                         'hasProject' => (bool) $project,
                         'loginUrl' => $loginUrl,
                     ];
+                    
+                    \Log::info('Sending welcome email for existing user', [
+                        'invitation_id' => $invitation->id,
+                        'email' => $invitation->email,
+                        'view' => $view,
+                    ]);
                 }
             } else {
                 // Initial invitation email (before acceptance)
