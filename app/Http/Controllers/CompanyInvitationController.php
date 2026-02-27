@@ -105,19 +105,48 @@ class CompanyInvitationController extends Controller
      */
     public function accept(Request $request, string $token)
     {
+        \Log::info('CEO Invitation Acceptance Started', [
+            'token' => substr($token, 0, 10) . '...',
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+        
         $invitation = CompanyInvitation::where('token', $token)->firstOrFail();
 
+        \Log::info('Invitation found for acceptance', [
+            'invitation_id' => $invitation->id,
+            'email' => $invitation->email,
+            'company_id' => $invitation->company_id,
+            'current_accepted_at' => $invitation->accepted_at,
+            'current_temporary_password' => !empty($invitation->temporary_password) ? '***' : null,
+        ]);
+
         if ($invitation->isAccepted()) {
+            \Log::warning('Invitation already accepted', [
+                'invitation_id' => $invitation->id,
+                'accepted_at' => $invitation->accepted_at,
+            ]);
             return redirect()->route('login')->with('error', 'This invitation has already been accepted.');
         }
 
         if ($invitation->isExpired()) {
+            \Log::warning('Invitation expired', [
+                'invitation_id' => $invitation->id,
+                'expires_at' => $invitation->expires_at,
+            ]);
             return redirect()->route('login')->with('error', 'This invitation has expired.');
         }
 
         // Check if user exists
         $user = User::where('email', $invitation->email)->first();
         $isNewUser = !$user;
+        
+        \Log::info('User check for acceptance', [
+            'invitation_id' => $invitation->id,
+            'email' => $invitation->email,
+            'is_new_user' => $isNewUser,
+            'user_id' => $user ? $user->id : null,
+        ]);
 
         if (!$user) {
             // Create new user
@@ -151,32 +180,54 @@ class CompanyInvitationController extends Controller
         if (!empty($invitation->temporary_password)) {
             $updateData['temporary_password'] = $invitation->temporary_password;
         }
+        
+        \Log::info('Updating invitation with acceptance data', [
+            'invitation_id' => $invitation->id,
+            'update_data' => [
+                'accepted_at' => $updateData['accepted_at']->toIso8601String(),
+                'has_temp_password' => isset($updateData['temporary_password']),
+            ],
+        ]);
+        
         $invitation->update($updateData);
         
-        // Refresh the model to ensure all attributes are loaded
+        // Refresh the model to ensure all attributes are loaded from database
         $invitation->refresh();
+        
+        \Log::info('Invitation refreshed after update', [
+            'invitation_id' => $invitation->id,
+            'accepted_at' => $invitation->accepted_at ? $invitation->accepted_at->toIso8601String() : null,
+            'accepted_at_type' => gettype($invitation->accepted_at),
+            'has_temp_password' => !empty($invitation->temporary_password),
+            'temporary_password_set' => isset($invitation->temporary_password),
+        ]);
 
-        // Send welcome email after acceptance using Mail facade with blade file
+        // Send welcome email AFTER acceptance - MUST complete before redirect
         try {
-            \Log::info('Sending Welcome Email after CEO Acceptance', [
+            \Log::info('=== SENDING WELCOME EMAIL AFTER CEO ACCEPTANCE ===', [
                 'invitation_id' => $invitation->id,
                 'email' => $invitation->email,
-                'accepted_at' => $invitation->accepted_at,
+                'accepted_at' => $invitation->accepted_at ? $invitation->accepted_at->toIso8601String() : null,
                 'has_temp_password' => !empty($invitation->temporary_password),
                 'temporary_password' => !empty($invitation->temporary_password) ? '***' : null,
+                'is_new_user' => $isNewUser,
             ]);
             
+            // Send email synchronously (no queue) - wait for completion
             $this->sendInvitationEmail($invitation, $invitation->email);
             
-            \Log::info('Welcome Email sent successfully after CEO Acceptance', [
+            \Log::info('=== WELCOME EMAIL SENT SUCCESSFULLY AFTER CEO ACCEPTANCE ===', [
                 'invitation_id' => $invitation->id,
                 'email' => $invitation->email,
+                'sent_at' => now()->toIso8601String(),
             ]);
         } catch (\Exception $e) {
-            \Log::error('Failed to send Welcome Email after CEO Acceptance', [
+            \Log::error('=== FAILED TO SEND WELCOME EMAIL AFTER CEO ACCEPTANCE ===', [
                 'invitation_id' => $invitation->id,
                 'email' => $invitation->email,
                 'error' => $e->getMessage(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
             // Don't fail the acceptance if email fails, but log it
@@ -409,13 +460,24 @@ class CompanyInvitationController extends Controller
             // Prepare email based on invitation status
             \Log::info('Checking invitation status for email type', [
                 'invitation_id' => $invitation->id,
-                'accepted_at' => $invitation->accepted_at,
+                'accepted_at' => $invitation->accepted_at ? $invitation->accepted_at->toIso8601String() : null,
                 'accepted_at_type' => gettype($invitation->accepted_at),
+                'accepted_at_bool' => (bool) $invitation->accepted_at,
+                'accepted_at_not_null' => !is_null($invitation->accepted_at),
                 'temporary_password' => !empty($invitation->temporary_password) ? '***' : null,
                 'has_temp_password' => !empty($invitation->temporary_password),
             ]);
             
-            if ($invitation->accepted_at) {
+            // Check if invitation is accepted - use isAccepted() method or check if accepted_at is not null
+            $isAccepted = !is_null($invitation->accepted_at);
+            
+            \Log::info('Invitation acceptance check result', [
+                'invitation_id' => $invitation->id,
+                'is_accepted' => $isAccepted,
+                'accepted_at_value' => $invitation->accepted_at,
+            ]);
+            
+            if ($isAccepted) {
                 // Welcome email after acceptance
                 $loginUrl = route('login');
                 
