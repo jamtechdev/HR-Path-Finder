@@ -95,7 +95,7 @@ class CompanyController extends Controller
             ];
         });
         
-        return Inertia::render('Companies/Index', [
+        return Inertia::render('companies/Index', [
             'companies' => $companies,
         ]);
     }
@@ -105,7 +105,7 @@ class CompanyController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Companies/Create');
+        return Inertia::render('companies/Create');
     }
 
     /**
@@ -138,7 +138,7 @@ class CompanyController extends Controller
             abort(403);
         }
 
-        return Inertia::render('Companies/Show', [
+        return Inertia::render('companies/Show', [
             'company' => $company,
         ]);
     }
