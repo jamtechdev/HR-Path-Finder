@@ -58,6 +58,11 @@ Route::post('reset-password', [\App\Http\Controllers\PasswordResetController::cl
     ->middleware('guest')
     ->name('password.update');
 
+// ========== Public Invitation Routes (No Auth Required) ==========
+// These routes must be public because CEO needs to accept/reject before having an account
+Route::get('invitations/accept/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'accept'])->name('invitations.accept');
+Route::get('invitations/reject/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'reject'])->name('invitations.reject');
+
 Route::middleware(['auth'])->group(function () {
     // Main dashboard with role-based redirect
     Route::get('dashboard', function () {
@@ -78,9 +83,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('invitations/{invitation}/resend', [\App\Http\Controllers\CompanyInvitationController::class, 'resend'])->name('invitations.resend');
         Route::delete('invitations/{invitation}', [\App\Http\Controllers\CompanyInvitationController::class, 'destroy'])->name('invitations.destroy');
     });
-    
-    Route::get('invitations/accept/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'accept'])->name('invitations.accept');
-    Route::get('invitations/reject/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'reject'])->name('invitations.reject');
     
     // ========== Role Switch ==========
     Route::middleware('role:hr_manager')->group(function () {

@@ -203,16 +203,20 @@ class CompanyInvitationController extends Controller
         ]);
 
         // Send welcome email AFTER acceptance - MUST complete before redirect
+        // Re-fetch invitation from database to ensure we have latest data
+        $invitation = CompanyInvitation::findOrFail($invitation->id);
+        
+        \Log::info('=== SENDING WELCOME EMAIL AFTER CEO ACCEPTANCE ===', [
+            'invitation_id' => $invitation->id,
+            'email' => $invitation->email,
+            'accepted_at' => $invitation->accepted_at ? $invitation->accepted_at->toIso8601String() : null,
+            'accepted_at_raw' => $invitation->getRawOriginal('accepted_at'),
+            'has_temp_password' => !empty($invitation->temporary_password),
+            'temporary_password' => !empty($invitation->temporary_password) ? '***' : null,
+            'is_new_user' => $isNewUser,
+        ]);
+        
         try {
-            \Log::info('=== SENDING WELCOME EMAIL AFTER CEO ACCEPTANCE ===', [
-                'invitation_id' => $invitation->id,
-                'email' => $invitation->email,
-                'accepted_at' => $invitation->accepted_at ? $invitation->accepted_at->toIso8601String() : null,
-                'has_temp_password' => !empty($invitation->temporary_password),
-                'temporary_password' => !empty($invitation->temporary_password) ? '***' : null,
-                'is_new_user' => $isNewUser,
-            ]);
-            
             // Send email synchronously (no queue) - wait for completion
             $this->sendInvitationEmail($invitation, $invitation->email);
             
@@ -468,13 +472,25 @@ class CompanyInvitationController extends Controller
                 'has_temp_password' => !empty($invitation->temporary_password),
             ]);
             
-            // Check if invitation is accepted - use isAccepted() method or check if accepted_at is not null
+            // Check if invitation is accepted - reload from database to be absolutely sure
+            $invitation->refresh();
             $isAccepted = !is_null($invitation->accepted_at);
+            
+            // Fallback: check database directly if model check fails
+            if (!$isAccepted) {
+                $dbCheck = \DB::table('company_invitations')
+                    ->where('id', $invitation->id)
+                    ->whereNotNull('accepted_at')
+                    ->exists();
+                $isAccepted = $dbCheck;
+            }
             
             \Log::info('Invitation acceptance check result', [
                 'invitation_id' => $invitation->id,
                 'is_accepted' => $isAccepted,
-                'accepted_at_value' => $invitation->accepted_at,
+                'accepted_at_value' => $invitation->accepted_at ? $invitation->accepted_at->toIso8601String() : null,
+                'isAccepted_method' => $invitation->isAccepted(),
+                'not_null_check' => !is_null($invitation->accepted_at),
             ]);
             
             if ($isAccepted) {
