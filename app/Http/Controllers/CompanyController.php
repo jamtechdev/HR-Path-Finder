@@ -105,7 +105,7 @@ class CompanyController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('companies/Create');
+        return Inertia::render('companies/create');
     }
 
     /**
@@ -138,7 +138,7 @@ class CompanyController extends Controller
             abort(403);
         }
 
-        return Inertia::render('companies/Show', [
+        return Inertia::render('companies/show', [
             'company' => $company,
         ]);
     }
