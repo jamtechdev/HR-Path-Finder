@@ -536,10 +536,10 @@ export default function PerformanceSystemIndex({
                                             <div className="w-16 h-16 rounded-xl bg-primary flex items-center justify-center shadow-md mx-auto mb-4">
                                                 <Target className="w-8 h-8 text-white" />
                                             </div>
-                                            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                                            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 dark:text-white">
                                                 Performance System Design
                                             </h2>
-                                            <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                                            <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed text-muted-foreground">
                                                 Design your performance evaluation framework including evaluation units, management methods (KPI/MBO/OKR/BSC), and assessment structures.
                                             </p>
                                         </div>
@@ -787,7 +787,7 @@ export default function PerformanceSystemIndex({
                                         {snapshotQuestions && snapshotQuestions.length > 0 ? (
                                             snapshotQuestions.map((question, idx) => (
                                             <div key={question.id} className="space-y-3 p-4 border rounded-lg">
-                                                <Label className="text-base font-medium">
+                                                <Label className="text-base font-medium block mb-2">
                                                     {idx + 1}. {question.question_text}
                                                 </Label>
                                                 {question.answer_type === 'select_one' && (
@@ -798,7 +798,7 @@ export default function PerformanceSystemIndex({
                                                         onValueChange={(v) => setSnapshotResponses({ ...snapshotResponses, [question.id]: v })}
                                                     >
                                                         {question.options.map((option, optIdx) => (
-                                                            <div key={optIdx} className="flex items-center space-x-2">
+                                                            <div key={optIdx} className="flex items-center space-x-3 p-3 border rounded-lg transition-colors hover:bg-muted/50 border-border">
                                                                 <RadioGroupItem value={option} id={`q${question.id}-opt${optIdx}`} />
                                                                 <Label htmlFor={`q${question.id}-opt${optIdx}`} className="cursor-pointer">{option}</Label>
                                                             </div>
@@ -815,7 +815,7 @@ export default function PerformanceSystemIndex({
                                                                 ? (snapshotResponses[question.id] as string[]).length 
                                                                 : 0;
                                                             return (
-                                                                <div key={optIdx} className="flex items-center space-x-2">
+                                                                <div key={optIdx} className="flex items-center space-x-3 p-3 border rounded-lg transition-colors hover:bg-muted/50 border-border">
                                                                     <Checkbox
                                                                         id={`q${question.id}-opt${optIdx}`}
                                                                         checked={selected}
@@ -844,7 +844,7 @@ export default function PerformanceSystemIndex({
                                                                 ? (snapshotResponses[question.id] as string[]).includes(option)
                                                                 : false;
                                                             return (
-                                                                <div key={optIdx} className="flex items-center space-x-2">
+                                                                <div key={optIdx} className="flex items-center space-x-3 p-3 border rounded-lg transition-colors hover:bg-muted/50 border-border">
                                                                     <Checkbox
                                                                         id={`q${question.id}-opt${optIdx}`}
                                                                         checked={selected}

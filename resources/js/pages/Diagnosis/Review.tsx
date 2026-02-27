@@ -382,34 +382,34 @@ export default function Review({
                             })()}
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Company Name:</span>
                                     <span className="text-sm font-medium text-slate-700  text-blue-600">{company.name}</span>
                                 </div>
                                 {company.registration_number && (
-                                    <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Registration Number:</span>
                                         <span className="text-sm font-medium text-slate-700  text-blue-600">{company.registration_number}</span>
                                     </div>
                                 )}
                                 {company.brand_name && (
-                                    <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Brand Name:</span>
                                         <span className="text-sm font-medium text-slate-700  text-blue-600">{company.brand_name}</span>
                                     </div>
                                 )}
                                 {company.foundation_date && (
-                                    <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Foundation Date:</span>
                                         <span className="text-sm font-medium text-slate-700  text-blue-600">{company.foundation_date}</span>
                                     </div>
                                 )}
-                                <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">HQ Location:</span>
                                     <span className="text-sm font-medium text-slate-700  text-blue-600">{formatValue(company.hq_location)}</span>
                                 </div>
                                 {(company.is_public !== undefined || company.public_listing_status) && (
-                                    <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Public Listing Status:</span>
                                         <span className="text-sm font-medium text-slate-700  text-blue-600">
                                             {company.public_listing_status 
@@ -418,18 +418,18 @@ export default function Review({
                                         </span>
                                     </div>
                                 )}
-                                <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Primary Industry:</span>
                                     <span className="text-sm font-medium text-slate-700  text-blue-600">{formatValue(diagnosis?.industry_category)}</span>
                                 </div>
                                 {diagnosis?.industry_subcategory && (
-                                    <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Industry Subcategory:</span>
                                         <span className="text-sm font-medium text-slate-700  text-blue-600">{formatValue(diagnosis.industry_subcategory)}</span>
                                     </div>
                                 )}
                                 {diagnosis?.industry_other && (
-                                    <div className="bg-white p-4 flex flex-col gap-1 hover:bg-slate-50/50 transition-colors">
+                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Other Industry:</span>
                                         <span className="text-sm font-medium text-slate-700  text-blue-600">{formatValue(diagnosis.industry_other)}</span>
                                     </div>
@@ -466,42 +466,42 @@ export default function Review({
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="bg-white p-4 flex flex-col gap-1">
+                                <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Current Headcount:</span>
                                     <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis?.present_headcount)}</span>
                                 </div>
                                 {diagnosis?.expected_headcount_1y && (
-                                    <div className="bg-white p-4 flex flex-col gap-1">
+                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Expected (1 Year):</span>
                                         <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.expected_headcount_1y)}</span>
                                     </div>
                                 )}
                                 {diagnosis?.expected_headcount_2y && (
-                                    <div className="bg-white p-4 flex flex-col gap-1">
+                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Expected (2 Years):</span>
                                         <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.expected_headcount_2y)}</span>
                                     </div>
                                 )}
                                 {diagnosis?.expected_headcount_3y && (
-                                    <div className="bg-white p-4 flex flex-col gap-1">
+                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Expected (3 Years):</span>
                                         <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.expected_headcount_3y)}</span>
                                     </div>
                                 )}
                                 {diagnosis?.average_age && (
-                                    <div className="bg-white p-4 flex flex-col gap-1">
+                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Average Age:</span>
                                         <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.average_age)} years</span>
                                     </div>
                                 )}
                                 {diagnosis?.average_tenure_active && (
-                                    <div className="bg-white p-4 flex flex-col gap-1">
+                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Avg Tenure (Active):</span>
                                         <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.average_tenure_active)} years</span>
                                     </div>
                                 )}
                                 {diagnosis?.average_tenure_leavers && (
-                                    <div className="bg-white p-4 flex flex-col gap-1">
+                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Avg Tenure (Leavers):</span>
                                         <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.average_tenure_leavers)} years</span>
                                     </div>
@@ -511,28 +511,28 @@ export default function Review({
                             {/* Gender Distribution */}
                             {(diagnosis?.gender_male || diagnosis?.gender_female || diagnosis?.gender_other) && (
                                 <div className="mt-4 pt-4 border-t">
-                                    <h4 className="text-lg font-semibold text-slate-700 mb-3">Gender Distribution</h4>
+                                    <h4 className="text-lg font-semibold text-slate-700 mb-3 dark:text-white">Gender Distribution</h4>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         {diagnosis.gender_male && (
-                                            <div className="bg-white p-4 flex flex-col gap-1">
+                                            <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
                                                 <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Male:</span>
                                                 <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.gender_male)}</span>
                                             </div>
                                         )}
                                         {diagnosis.gender_female && (
-                                            <div className="bg-white p-4 flex flex-col gap-1">
+                                            <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
                                                 <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Female:</span>
                                                 <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.gender_female)}</span>
                                             </div>
                                         )}
                                         {diagnosis.gender_other && (
-                                            <div className="bg-white p-4 flex flex-col gap-1">
+                                            <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
                                                 <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Other:</span>
                                                 <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.gender_other)}</span>
                                             </div>
                                         )}
                                         {diagnosis.gender_ratio && (
-                                            <div className="bg-white p-4 flex flex-col gap-1 col-span-full">
+                                            <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1 col-span-full">
                                                 <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Gender Ratio (Male %):</span>
                                                 <span className="text-lg font-semibold text-slate-700">{formatPercentage(diagnosis.gender_ratio)}</span>
                                             </div>
@@ -571,7 +571,7 @@ export default function Review({
                             </CardHeader>
                             <CardContent className="space-y-2">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="bg-white p-4 flex flex-col gap-1">
+                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Total Executives:</span>
                                         <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.total_executives)}</span>
                                     </div>
@@ -623,12 +623,12 @@ export default function Review({
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="bg-white p-4 flex flex-col gap-1">
+                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Leadership Count:</span>
                                         <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.leadership_count)}</span>
                                     </div>
                                     {diagnosis.leadership_percentage && (
-                                        <div className="bg-white p-4 flex flex-col gap-1">
+                                        <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
                                             <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Leadership Percentage:</span>
                                             <span className="text-lg font-semibold text-slate-700">{formatPercentage(diagnosis.leadership_percentage)}</span>
                                         </div>
@@ -673,9 +673,9 @@ export default function Review({
                                         
                                         return (
                                             <div key={index} className="flex items-center justify-between p-2  rounded">
-                                                <Badge variant="secondary" className="text-sm font-bold text-slate-700">{grade}</Badge>
+                                                <Badge variant="secondary" className="text-sm font-bold text-slate-700 bg-emerald-50">{grade}</Badge>
                                                 {promotionYears !== null && promotionYears !== undefined && (
-                                                    <div className="flex items-center gap-2 self-end sm:self-auto bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 shadow-sm transition-all group-hover:bg-white group-hover:border-amber-200">
+                                                    <div className="flex items-center gap-2 self-end sm:self-auto bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-100 shadow-sm transition-all group-hover:bg-white group-hover:border-amber-200">
                                                         <Clock className="w-3.5 h-3.5 text-amber-500" />
                                                         <span className="text-xs font-semibold text-slate-600">
                                                         {promotionYears} <span className="font-normal text-slate-400 text-[10px] uppercase ml-1 text-nowrap">Avg. Years to Promote</span>
@@ -810,7 +810,7 @@ export default function Review({
                                             const hasFile = !!chartPath;
                                             
                                             return (
-                                                <div key={year} className="flex items-center justify-between p-4 bg-white border rounded-xl shadow-sm hover:shadow-md transition">
+                                                <div key={year} className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm hover:shadow-md transition">
                                                     <div className="flex items-center flex-row-reverse gap-4">
                                                         <span className="text-sm font-medium text-foreground min-w-[80px]">{year}:</span>
                                                         {hasFile && isImage ? (
