@@ -214,13 +214,13 @@ export default function DiagnosisOverview({
 
                                     {/* Title */}
                                     <div>
-                                        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                                        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 dark:text-white">
                                             Company Diagnosis
                                         </h1>
                                     </div>
 
                                     {/* Description */}
-                                    <p className="text-base md:text-lg text-gray-600 max-w-lg leading-relaxed">
+                                    <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 max-w-lg leading-relaxed text-muted-foreground">
                                         In this step, you'll provide comprehensive information about your company, including basic info, industry, workforce composition, organizational structure, and HR issues. This data will serve as the foundation for designing your HR system.
                                     </p>
 
