@@ -213,6 +213,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
         Route::get('project-tree', [\App\Http\Controllers\Admin\DashboardController::class, 'projectTree'])->name('project-tree');
         
+        // HR Projects (Admin can view all projects)
+        Route::get('hr-projects', [\App\Http\Controllers\HrProjectController::class, 'index'])->name('hr-projects.index');
+        Route::get('hr-projects/{hrProject}', [\App\Http\Controllers\HrProjectController::class, 'show'])->name('hr-projects.show');
         
         // Review
         Route::get('review/{hrProject}', [\App\Http\Controllers\AdminReviewController::class, 'index'])->name('review.index');
@@ -416,6 +419,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('report/{hrProject}', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('report.index');
         Route::get('report/{hrProject}/download', [\App\Http\Controllers\Admin\ReportController::class, 'downloadFullReport'])->name('report.download');
         Route::get('report/{hrProject}/download/{step}', [\App\Http\Controllers\Admin\ReportController::class, 'downloadStepReport'])->name('report.download.step');
+        
+        // HR System Overview (Admin)
+        Route::get('hr-system/{hrProject}', [\App\Http\Controllers\HrSystemOverviewController::class, 'index'])->name('hr-system.overview');
     });
     
     // ========== HR System Overview ==========

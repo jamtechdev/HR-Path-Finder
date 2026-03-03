@@ -193,7 +193,7 @@ export default function AdminDashboard({
                                     <p className="text-sm text-muted-foreground mb-4">
                                         Projects waiting for CEO philosophy survey
                                     </p>
-                                    <Link href="/hr-projects">
+                                    <Link href="/admin/hr-projects">
                                         <Button variant="outline" className="w-full">
                                             View All Projects
                                             <ArrowRight className="w-4 h-4 ml-2" />
@@ -303,7 +303,7 @@ export default function AdminDashboard({
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <CardTitle>Recent Projects</CardTitle>
-                                    <Link href="/hr-projects">
+                                    <Link href="/admin/hr-projects">
                                         <Button variant="ghost" size="sm">
                                             View All
                                             <ArrowRight className="w-4 h-4 ml-2" />

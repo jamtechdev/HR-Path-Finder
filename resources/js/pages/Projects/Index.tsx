@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
@@ -25,6 +25,12 @@ interface Props {
 }
 
 export default function ProjectsIndex({ projects }: Props) {
+    const { url, props } = usePage();
+    const currentPath = url.split('?')[0];
+    const user = (props as any).auth?.user;
+    const isAdmin = user?.roles?.some((role: { name: string }) => role.name === 'admin') || false;
+    const projectBasePath = isAdmin ? '/admin/hr-projects' : '/hr-projects';
+
     return (
         <SidebarProvider defaultOpen={true}>
             <Sidebar collapsible="icon" variant="sidebar">
@@ -65,7 +71,7 @@ export default function ProjectsIndex({ projects }: Props) {
                                                     Diagnosis: {project.diagnosis.status}
                                                 </p>
                                             )}
-                                            <Link href={`/hr-projects/${project.id}`}>
+                                            <Link href={`${projectBasePath}/${project.id}`}>
                                                 <Button variant="outline" className="w-full">
                                                     <FileText className="mr-2 h-4 w-4" />
                                                     View Project

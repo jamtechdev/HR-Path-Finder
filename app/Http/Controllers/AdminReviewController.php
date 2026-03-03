@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 class AdminReviewController extends Controller
 {
     /**
-     * Show admin review page.
+     * Show admin review page.test
      */
     public function index(Request $request, HrProject $hrProject)
     {

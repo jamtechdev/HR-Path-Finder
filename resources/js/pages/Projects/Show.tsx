@@ -1,11 +1,11 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Clock, Lock } from 'lucide-react';
+import { CheckCircle2, Clock, Lock, ArrowLeft } from 'lucide-react';
 
 interface Project {
     id: number;
@@ -38,6 +38,13 @@ interface Props {
 }
 
 export default function ShowProject({ project }: Props) {
+    const { url, props } = usePage();
+    const currentPath = url.split('?')[0];
+    const user = (props as any).auth?.user;
+    const isAdmin = user?.roles?.some((role: { name: string }) => role.name === 'admin') || false;
+    const isAdminContext = isAdmin && currentPath.startsWith('/admin/hr-projects');
+    const projectsListPath = isAdmin ? '/admin/hr-projects' : '/hr-projects';
+
     const steps = [
         { key: 'diagnosis', label: 'Diagnosis', status: project.diagnosis?.status || project.step_statuses?.diagnosis },
         { key: 'organization', label: 'Organization Design', status: project.organizationDesign?.status || project.step_statuses?.organization },
@@ -63,6 +70,12 @@ export default function ShowProject({ project }: Props) {
                     <Head title={`${project.company.name} - HR Project`} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
+                            <Link href={projectsListPath}>
+                                <Button variant="ghost" className="mb-4">
+                                    <ArrowLeft className="w-4 h-4 mr-2" />
+                                    Back to Projects
+                                </Button>
+                            </Link>
                             <h1 className="text-3xl font-bold">{project.company.name}</h1>
                             <p className="text-muted-foreground">HR Project #{project.id}</p>
                         </div>
@@ -104,12 +117,25 @@ export default function ShowProject({ project }: Props) {
                                         <CardTitle>Quick Actions</CardTitle>
                                     </CardHeader>
                                     <CardContent className="flex gap-4">
-                                        <Link href={`/hr-manager/diagnosis/${project.id}/overview`}>
-                                            <Button>Continue Diagnosis</Button>
-                                        </Link>
-                                        <Link href={`/hr-system/${project.id}`}>
-                                            <Button variant="outline">View Overview</Button>
-                                        </Link>
+                                        {isAdmin ? (
+                                            <>
+                                                <Link href={`/admin/review/${project.id}`}>
+                                                    <Button>Review Project</Button>
+                                                </Link>
+                                                <Link href={`/admin/hr-system/${project.id}`}>
+                                                    <Button variant="outline">View Overview</Button>
+                                                </Link>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Link href={`/hr-manager/diagnosis/${project.id}/overview`}>
+                                                    <Button>Continue Diagnosis</Button>
+                                                </Link>
+                                                <Link href={`/hr-system/${project.id}`}>
+                                                    <Button variant="outline">View Overview</Button>
+                                                </Link>
+                                            </>
+                                        )}
                                     </CardContent>
                                 </Card>
                             )}
