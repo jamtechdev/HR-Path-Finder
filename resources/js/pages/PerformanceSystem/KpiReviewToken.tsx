@@ -569,8 +569,6 @@ export default function KpiReviewToken({ token, project, organizationName: defau
                         </div>
                     </form>
                 )}
-                    </div>
-
                 </div>
             </div>
         </div>
