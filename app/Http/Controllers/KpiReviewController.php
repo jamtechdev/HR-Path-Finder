@@ -6,10 +6,12 @@ use App\Models\HrProject;
 use App\Models\KpiReviewToken;
 use App\Models\OrganizationalKpi;
 use App\Models\KpiEditHistory;
+use App\Mail\KpiReviewRequestMail;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
 
 class KpiReviewController extends Controller
 {
@@ -48,19 +50,48 @@ class KpiReviewController extends Controller
         sort($allOrganizations);
 
         // Load KPIs for the default organization (from token)
-        $kpis = OrganizationalKpi::where('hr_project_id', $hrProject->id)
-            ->where('organization_name', $defaultOrganizationName)
+        // Strictly restrict access to only the organization assigned to this token
+        // Use trim and case-insensitive matching to handle any whitespace issues
+        // Load KPIs and remove duplicates
+        $allKpis = OrganizationalKpi::where('hr_project_id', $hrProject->id)
+            ->whereRaw('TRIM(organization_name) = ?', [trim($defaultOrganizationName)])
             ->with('linkedJob')
+            ->orderBy('created_at', 'desc')
             ->get();
+        
+        // Remove duplicates - keep the one with highest ID (most recent)
+        $uniqueKpis = collect($allKpis)->unique(function ($kpi) {
+            return strtolower(trim($kpi->organization_name)) . '::' . strtolower(trim($kpi->kpi_name));
+        })->values();
+        
+        $kpis = $uniqueKpis;
+
+        // Log for debugging
+        \Log::info('KPI Review Token Page Loaded', [
+            'token' => $token,
+            'project_id' => $hrProject->id,
+            'organization_name' => $defaultOrganizationName,
+            'kpis_count' => $kpis->count(),
+            'all_organizations' => $allOrganizations,
+        ]);
+
+        // Verify access scope - ensure token can only access its assigned organization
+        if ($reviewToken->organization_name !== $defaultOrganizationName) {
+            abort(403, 'Access denied. This token is restricted to a specific organization.');
+        }
+
+        // Check if token is already used (review completed)
+        $isCompleted = $reviewToken->is_used || ($reviewToken->uses_count >= $reviewToken->max_uses);
 
         return Inertia::render('PerformanceSystem/KpiReviewToken', [
             'token' => $token,
             'project' => $hrProject,
             'organizationName' => $defaultOrganizationName,
             'allOrganizations' => $allOrganizations,
-            'kpis' => $kpis,
+            'kpis' => $kpis->toArray(),
             'reviewerName' => $reviewToken->name,
             'reviewerEmail' => $reviewToken->email,
+            'isCompleted' => $isCompleted,
         ]);
     }
 
@@ -78,6 +109,7 @@ class KpiReviewController extends Controller
         $validated = $request->validate([
             'kpis' => ['required', 'array'],
             'organization_name' => ['required', 'string'],
+            'review_comments' => ['nullable', 'string', 'max:5000'],
             'kpis.*.id' => ['nullable', 'exists:organizational_kpis,id'],
             'kpis.*.kpi_name' => ['required', 'string'],
             'kpis.*.purpose' => ['nullable', 'string'],
@@ -92,6 +124,11 @@ class KpiReviewController extends Controller
 
         $hrProject = $reviewToken->hrProject;
         $organizationName = $validated['organization_name'] ?? $reviewToken->organization_name;
+
+        // Strictly enforce access scope - token can only access its assigned organization
+        if ($reviewToken->organization_name !== $organizationName) {
+            abort(403, 'Access denied. This token is restricted to a specific organization.');
+        }
 
         \DB::transaction(function () use ($hrProject, $organizationName, $validated, $reviewToken) {
             foreach ($validated['kpis'] as $kpiData) {
@@ -115,50 +152,104 @@ class KpiReviewController extends Controller
 
                         // Log edit history
                         KpiEditHistory::create([
-                            'kpi_id' => $kpi->id,
-                            'editor_name' => $reviewToken->name,
-                            'editor_email' => $reviewToken->email,
-                            'action' => 'updated',
-                            'old_values' => $oldValues,
-                            'new_values' => $kpi->toArray(),
-                            'change_description' => 'Organization manager proposed changes',
+                            'organizational_kpi_id' => $kpi->id,
+                            'edited_by_type' => 'org_manager',
+                            'edited_by_id' => null,
+                            'edited_by_name' => $reviewToken->name,
+                            'changes' => [
+                                'old_values' => $oldValues,
+                                'new_values' => $kpi->toArray(),
+                                'description' => 'Organization manager proposed changes',
+                            ],
                         ]);
                     }
                 } else {
-                    // Create new KPI
-                    $kpi = OrganizationalKpi::create([
-                        'hr_project_id' => $hrProject->id,
-                        'organization_name' => $organizationName,
-                        'kpi_name' => $kpiData['kpi_name'],
-                        'purpose' => $kpiData['purpose'] ?? null,
-                        'category' => $kpiData['category'] ?? null,
-                        'linked_job_id' => $kpiData['linked_job_id'] ?? null,
-                        'linked_csf' => $kpiData['linked_csf'] ?? null,
-                        'formula' => $kpiData['formula'] ?? null,
-                        'measurement_method' => $kpiData['measurement_method'] ?? null,
-                        'weight' => $kpiData['weight'] ?? null,
-                        'is_active' => $kpiData['is_active'] ?? true,
-                        'status' => 'proposed',
-                    ]);
+                    // Check if KPI already exists for this organization and name (case-insensitive, trimmed)
+                    $existingKpi = OrganizationalKpi::where('hr_project_id', $hrProject->id)
+                        ->whereRaw('TRIM(LOWER(organization_name)) = ?', [trim(strtolower($organizationName))])
+                        ->whereRaw('TRIM(LOWER(kpi_name)) = ?', [trim(strtolower($kpiData['kpi_name']))])
+                        ->first();
+                    
+                    if ($existingKpi) {
+                        // Update existing KPI instead of creating duplicate
+                        $oldValues = $existingKpi->toArray();
+                        $existingKpi->update([
+                            'purpose' => $kpiData['purpose'] ?? $existingKpi->purpose,
+                            'category' => $kpiData['category'] ?? $existingKpi->category,
+                            'linked_job_id' => $kpiData['linked_job_id'] ?? $existingKpi->linked_job_id,
+                            'linked_csf' => $kpiData['linked_csf'] ?? $existingKpi->linked_csf,
+                            'formula' => $kpiData['formula'] ?? $existingKpi->formula,
+                            'measurement_method' => $kpiData['measurement_method'] ?? $existingKpi->measurement_method,
+                            'weight' => $kpiData['weight'] ?? $existingKpi->weight,
+                            'is_active' => $kpiData['is_active'] ?? $existingKpi->is_active,
+                            'status' => 'proposed',
+                        ]);
+                        
+                        $kpi = $existingKpi;
+                    } else {
+                        // Create new KPI only if it doesn't exist
+                        $kpi = OrganizationalKpi::create([
+                            'hr_project_id' => $hrProject->id,
+                            'organization_name' => trim($organizationName),
+                            'kpi_name' => trim($kpiData['kpi_name']),
+                            'purpose' => $kpiData['purpose'] ?? null,
+                            'category' => $kpiData['category'] ?? null,
+                            'linked_job_id' => $kpiData['linked_job_id'] ?? null,
+                            'linked_csf' => $kpiData['linked_csf'] ?? null,
+                            'formula' => $kpiData['formula'] ?? null,
+                            'measurement_method' => $kpiData['measurement_method'] ?? null,
+                            'weight' => $kpiData['weight'] ?? null,
+                            'is_active' => $kpiData['is_active'] ?? true,
+                            'status' => 'proposed',
+                        ]);
+                    }
 
                     // Log edit history
                     KpiEditHistory::create([
-                        'kpi_id' => $kpi->id,
-                        'editor_name' => $reviewToken->name,
-                        'editor_email' => $reviewToken->email,
-                        'action' => 'created',
-                        'old_values' => null,
-                        'new_values' => $kpi->toArray(),
-                        'change_description' => 'Organization manager created new KPI',
+                        'organizational_kpi_id' => $kpi->id,
+                        'edited_by_type' => 'org_manager',
+                        'edited_by_id' => null,
+                        'edited_by_name' => $reviewToken->name,
+                        'changes' => [
+                            'old_values' => null,
+                            'new_values' => $kpi->toArray(),
+                            'description' => 'Organization manager created new KPI',
+                        ],
                     ]);
                 }
             }
         });
 
-        // Increment token use
-        $reviewToken->incrementUse();
+        // Save review comments to edit history if provided
+        if (!empty($validated['review_comments'])) {
+            KpiEditHistory::create([
+                'organizational_kpi_id' => null, // General review comment, not tied to specific KPI
+                'edited_by_type' => 'org_manager',
+                'edited_by_id' => null,
+                'edited_by_name' => $reviewToken->name,
+                'changes' => [
+                    'old_values' => null,
+                    'new_values' => ['review_comments' => $validated['review_comments']],
+                    'description' => 'Organization manager provided review comments',
+                ],
+            ]);
+        }
 
-        return back()->with('success', 'Your KPI review has been submitted. HR will review your changes.');
+        // Mark token as used after review submission
+        $reviewToken->update(['is_used' => true]);
+        $reviewToken->increment('uses_count');
+
+        // Log submission
+        \Log::info('KPI Review Submitted', [
+            'token' => $token,
+            'organization_name' => $organizationName,
+            'kpis_count' => count($validated['kpis']),
+            'has_review_comments' => !empty($validated['review_comments']),
+        ]);
+
+        // Redirect back to the review page - Inertia will call show() method which reloads fresh KPIs
+        return redirect()->route('kpi-review.token', ['token' => $token])
+            ->with('success', 'Your KPI review has been submitted successfully. Thank you for your feedback!');
     }
 
     /**
@@ -172,13 +263,28 @@ class KpiReviewController extends Controller
             abort(404, 'Invalid or expired review link.');
         }
 
+        // Strictly enforce access scope - token can only access its assigned organization
+        if ($reviewToken->organization_name !== $organizationName) {
+            abort(403, 'Access denied. This token is restricted to a specific organization.');
+        }
+
         $hrProject = $reviewToken->hrProject;
 
         // Load KPIs for the selected organization
-        $kpis = OrganizationalKpi::where('hr_project_id', $hrProject->id)
-            ->where('organization_name', $organizationName)
+        // Use trim and case-insensitive matching
+        // Load KPIs and remove duplicates
+        $allKpis = OrganizationalKpi::where('hr_project_id', $hrProject->id)
+            ->whereRaw('TRIM(organization_name) = ?', [trim($organizationName)])
             ->with('linkedJob')
+            ->orderBy('created_at', 'desc')
             ->get();
+        
+        // Remove duplicates - keep the one with highest ID (most recent)
+        $uniqueKpis = collect($allKpis)->unique(function ($kpi) {
+            return strtolower(trim($kpi->organization_name)) . '::' . strtolower(trim($kpi->kpi_name));
+        })->values();
+        
+        $kpis = $uniqueKpis;
 
         return response()->json([
             'kpis' => $kpis,
@@ -235,8 +341,13 @@ class KpiReviewController extends Controller
                     'project_id' => $hrProject->id,
                 ]);
 
-                \Illuminate\Support\Facades\Notification::route('mail', $ceo->email)
-                    ->notify(new \App\Notifications\KpiReviewRequestNotification($reviewToken, $hrProject));
+                // Send email directly using Mail facade (no queue)
+                Mail::to($ceo->email)->send(new KpiReviewRequestMail($reviewToken, $hrProject));
+
+                \Log::info('KPI Review Request Email sent successfully to CEO', [
+                    'ceo_id' => $ceo->id,
+                    'ceo_email' => $ceo->email,
+                ]);
 
                 $emailsSent++;
             } catch (\Exception $e) {
@@ -244,8 +355,9 @@ class KpiReviewController extends Controller
                     'ceo_id' => $ceo->id,
                     'ceo_email' => $ceo->email,
                     'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
                 ]);
-                $errors[] = "Failed to send email to CEO: {$ceo->email}";
+                $errors[] = "Failed to send email to CEO: {$ceo->email} - {$e->getMessage()}";
             }
         }
 
@@ -273,8 +385,13 @@ class KpiReviewController extends Controller
                     'project_id' => $hrProject->id,
                 ]);
 
-                \Illuminate\Support\Facades\Notification::route('mail', $admin->email)
-                    ->notify(new \App\Notifications\KpiReviewRequestNotification($reviewToken, $hrProject));
+                // Send email directly using Mail facade (no queue)
+                Mail::to($admin->email)->send(new KpiReviewRequestMail($reviewToken, $hrProject));
+
+                \Log::info('KPI Review Request Email sent successfully to Admin', [
+                    'admin_id' => $admin->id,
+                    'admin_email' => $admin->email,
+                ]);
 
                 $emailsSent++;
             } catch (\Exception $e) {

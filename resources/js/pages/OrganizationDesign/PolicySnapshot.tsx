@@ -157,7 +157,7 @@ export default function PolicySnapshot({ project, questions }: Props) {
                             <Button
                                 variant="outline"
                                 size="lg"
-                                onClick={() => router.visit(`/hr-manager/job-analysis/${project.id}/intro`)}
+                                onClick={() => router.visit(`/hr-manager/job-analysis/${project.id}/overview`)}
                                 className="flex items-center"
                             >
                                 <ChevronLeft className="w-4 h-4 mr-2" />

@@ -34,7 +34,7 @@ export default function CompensationSnapshotEdit({ question, answerTypes }: Prop
     const [options, setOptions] = useState<string[]>(question.options || []);
     const [explanation, setExplanation] = useState<string>(question.metadata?.explanation || '');
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, put, processing, errors } = useForm({
         question_text: question.question_text,
         answer_type: question.answer_type,
         options: question.options || [],
@@ -60,7 +60,7 @@ export default function CompensationSnapshotEdit({ question, answerTypes }: Prop
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(`/admin/compensation-snapshot/${question.id}`, {
+        put(`/admin/compensation-snapshot/${question.id}`, {
             onSuccess: () => {
                 router.visit('/admin/compensation-snapshot');
             },

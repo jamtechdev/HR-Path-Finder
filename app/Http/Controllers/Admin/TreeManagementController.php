@@ -4,13 +4,19 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\HrProject;
-use App\Models\JobDefinition;
-use App\Models\OrgChartMapping;
+use App\Services\ReportDataService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class TreeManagementController extends Controller
 {
+    protected ReportDataService $reportDataService;
+
+    public function __construct(ReportDataService $reportDataService)
+    {
+        $this->reportDataService = $reportDataService;
+    }
+
     /**
      * Show tree management page (Admin only).
      */
@@ -23,57 +29,7 @@ class TreeManagementController extends Controller
             abort(403);
         }
 
-        // Load all necessary data
-        $hrProject->load([
-            'diagnosis',
-            'organizationDesign',
-            'performanceSystem',
-            'compensationSystem',
-            'company',
-            'ceoPhilosophy',
-        ]);
-
-        // Load finalized job definitions with job keywords
-        $jobDefinitions = JobDefinition::where('hr_project_id', $hrProject->id)
-            ->where('is_finalized', true)
-            ->with('jobKeyword')
-            ->get();
-
-        // Load org chart mappings for reporting structure
-        $orgChartMappings = OrgChartMapping::where('hr_project_id', $hrProject->id)->get();
-        
-        // Map reporting structure to job definitions
-        $jobDefinitions = $jobDefinitions->map(function ($job) use ($orgChartMappings) {
-            $mapping = $orgChartMappings->first(function ($mapping) use ($job) {
-                $jobKeywordIds = $mapping->job_keyword_ids ?? [];
-                return in_array($job->job_keyword_id, $jobKeywordIds);
-            });
-
-            if ($mapping) {
-                $job->reporting_structure = [
-                    'executive_director' => $mapping->org_head_name ? 
-                        "{$mapping->org_head_title} {$mapping->org_head_name}" : null,
-                    'reporting_hierarchy' => $mapping->org_head_rank ? 
-                        "Team Leader → {$mapping->org_head_rank} → CEO" : null,
-                ];
-            }
-
-            // Set job group from job keyword category
-            if ($job->jobKeyword && $job->jobKeyword->category) {
-                $job->job_group = $job->jobKeyword->category;
-            }
-
-            return $job;
-        });
-        
-        $stepStatuses = $hrProject->step_statuses ?? [];
-        $mainStepStatuses = [
-            'diagnosis' => $stepStatuses['diagnosis'] ?? 'not_started',
-            'job_analysis' => $stepStatuses['job_analysis'] ?? 'not_started',
-            'performance' => $stepStatuses['performance'] ?? 'not_started',
-            'compensation' => $stepStatuses['compensation'] ?? 'not_started',
-            'hr_policy_os' => $stepStatuses['hr_policy_os'] ?? 'not_started',
-        ];
+        $data = $this->reportDataService->getComprehensiveProjectData($hrProject);
 
         // Load admin recommendations
         $adminRecommendations = \App\Models\AdminComment::where('hr_project_id', $hrProject->id)
@@ -91,12 +47,13 @@ class TreeManagementController extends Controller
         $component = $componentMap[$tab] ?? 'Admin/TreeManagement/Overview';
 
         return Inertia::render($component, [
-            'project' => $hrProject,
-            'stepStatuses' => $mainStepStatuses,
+            'project' => $data['project'],
+            'stepStatuses' => $data['stepStatuses'],
             'activeTab' => $tab,
             'projectId' => $hrProject->id,
-            'jobDefinitions' => $jobDefinitions,
+            'jobDefinitions' => $data['jobDefinitions'],
             'adminRecommendations' => $adminRecommendations,
+            'hrSystemSnapshot' => $data['hrSystemSnapshot'],
         ]);
     }
 

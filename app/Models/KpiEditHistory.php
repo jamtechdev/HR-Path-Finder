@@ -10,26 +10,33 @@ class KpiEditHistory extends Model
 {
     use HasFactory;
 
+    protected $table = 'kpi_edit_history';
+
     protected $fillable = [
-        'kpi_id',
-        'editor_name',
-        'editor_email',
-        'action',
-        'old_values',
-        'new_values',
-        'change_description',
+        'organizational_kpi_id',
+        'edited_by_type',
+        'edited_by_id',
+        'edited_by_name',
+        'changes',
     ];
 
     protected $casts = [
-        'old_values' => 'array',
-        'new_values' => 'array',
+        'changes' => 'array',
     ];
 
     /**
-     * Get the KPI.
+     * Get the organizational KPI that this edit history belongs to.
      */
-    public function kpi(): BelongsTo
+    public function organizationalKpi(): BelongsTo
     {
-        return $this->belongsTo(OrganizationalKpi::class, 'kpi_id');
+        return $this->belongsTo(OrganizationalKpi::class);
+    }
+
+    /**
+     * Scope to filter by editor type.
+     */
+    public function scopeByEditorType($query, string $type)
+    {
+        return $query->where('edited_by_type', $type);
     }
 }

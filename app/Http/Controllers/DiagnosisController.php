@@ -269,6 +269,7 @@ class DiagnosisController extends Controller
             Notification::send($ceo, new DiagnosisSubmittedNotification($hrProject));
         }
 
-        return redirect()->route('hr-manager.dashboard')->with('success', 'Diagnosis submitted for CEO review.');
+        // Return back to allow frontend to show modal, then redirect
+        return back()->with('success', 'Diagnosis submitted for CEO review.');
     }
 }

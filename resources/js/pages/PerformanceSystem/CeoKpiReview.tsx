@@ -35,13 +35,26 @@ interface Props {
             name: string;
         };
     };
-    kpisByOrganization: Record<string, OrganizationalKpi[]>;
-    organizations: string[];
+    kpis: OrganizationalKpi[];
+    orgChartMappings?: any[];
+    isAdmin?: boolean;
 }
 
-export default function CeoKpiReview({ project, kpisByOrganization, organizations }: Props) {
+export default function CeoKpiReview({ project, kpis = [], orgChartMappings = [], isAdmin = false }: Props) {
     const [revisionRequests, setRevisionRequests] = useState<Record<string, string>>({});
     const [selectedOrg, setSelectedOrg] = useState<string>('');
+    
+    // Group KPIs by organization
+    const kpisByOrganization = kpis.reduce((acc, kpi) => {
+        const orgName = kpi.organization_name;
+        if (!acc[orgName]) {
+            acc[orgName] = [];
+        }
+        acc[orgName].push(kpi);
+        return acc;
+    }, {} as Record<string, OrganizationalKpi[]>);
+    
+    const organizations = Object.keys(kpisByOrganization);
 
     const { data, setData, post, processing } = useForm({
         action: 'approve',
@@ -49,9 +62,9 @@ export default function CeoKpiReview({ project, kpisByOrganization, organization
     });
 
     const handleApprove = () => {
-        post(`/ceo/kpi-review/${project.id}`, {
-            action: 'approve',
-        }, {
+        const route = isAdmin ? `/admin/kpi-review/${project.id}` : `/ceo/kpi-review/${project.id}`;
+        setData('action', 'approve');
+        post(route, {
             onSuccess: () => {
                 // Redirect handled by controller
             },
@@ -71,10 +84,12 @@ export default function CeoKpiReview({ project, kpisByOrganization, organization
             return;
         }
 
-        post(`/ceo/kpi-review/${project.id}`, {
+        const route = isAdmin ? `/admin/kpi-review/${project.id}` : `/ceo/kpi-review/${project.id}`;
+        setData({
             action: 'request_revision',
             revision_requests: requests,
         });
+        post(route);
     };
 
     const getStatusBadge = (status: string) => {
@@ -95,12 +110,12 @@ export default function CeoKpiReview({ project, kpisByOrganization, organization
             <Head title={`CEO KPI Review - ${project?.company?.name || 'KPI Review'}`} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
-                            <Link href="/ceo/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
+                            <Link href={isAdmin ? "/admin/dashboard" : "/ceo/dashboard"} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 Back
                             </Link>
                             <div className="flex items-center gap-3">
-                                <h1 className="text-3xl font-bold">CEO KPI Review</h1>
+                                <h1 className="text-3xl font-bold">{isAdmin ? 'Admin' : 'CEO'} KPI Review</h1>
                             </div>
                             <p className="text-muted-foreground mt-1">Review and finalize organizational KPIs from a company-wide perspective</p>
                         </div>

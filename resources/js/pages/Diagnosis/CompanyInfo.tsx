@@ -184,10 +184,10 @@ export default function CompanyInfo({
                 }}
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
-                <Card className="shadow-lg border-border/50">
-                    <CardContent className="p-8">
+                <Card className="shadow-sm border">
+                    <CardContent className="p-6">
                         {/* Two Column Layout */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Left Column */}
                             <div className="space-y-6">
                                 {/* Company Name */}

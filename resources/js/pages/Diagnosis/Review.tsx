@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -75,7 +75,7 @@ export default function Review({
     stepStatuses,
     projectId,
 }: Props) {
-    const { post, processing } = useForm({});
+    const [processing, setProcessing] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteProcessing, setInviteProcessing] = useState(false);
@@ -84,11 +84,20 @@ export default function Review({
 
     const handleSubmit = () => {
         if (projectId) {
-            post(`/hr-manager/diagnosis/${projectId}/submit`, {
+            setProcessing(true);
+            router.post(`/hr-manager/diagnosis/${projectId}/submit`, {}, {
                 onSuccess: () => {
                     // Show success modal instead of redirecting
                     setShowSuccessModal(true);
+                    setProcessing(false);
                 },
+                onError: (errors) => {
+                    console.error('Submit error:', errors);
+                    setProcessing(false);
+                },
+                preserveState: true,
+                preserveScroll: true,
+                only: [], // Prevent prop updates to keep modal state
             });
         }
     };

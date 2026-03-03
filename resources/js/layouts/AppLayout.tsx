@@ -3,6 +3,7 @@ import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar'
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
 import TranslationLoader from '@/components/TranslationLoader';
+import { Toaster } from '@/components/ui/toaster';
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -30,6 +31,7 @@ export default function AppLayout({
                 <main className="flex-1 overflow-auto bg-background">
                     {children}
                 </main>
+                <Toaster />
             </SidebarInset>
         </SidebarProvider>
     );

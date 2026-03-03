@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { SidebarGroup, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { CheckCircle2, Lock, Target, DollarSign, Building2, FileText, LayoutGrid, TrendingUp, Award, User, Briefcase } from 'lucide-react';
+import { CheckCircle2, Lock, Target, DollarSign, Building2, FileText, LayoutGrid, TrendingUp, Award, User, Briefcase, Network, FileBarChart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface HRManagerSidebarProps {
@@ -135,23 +135,25 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                 return 'locked'; // Step 2+ locked until CEO survey
             }
             
-            // Check if all previous steps are VERIFIED (approved/locked) to unlock this step
+            // Check if all previous steps are submitted/approved/locked to unlock this step
+            // Allow progression after submission (submitted status) while CEO approval is pending
             let allPreviousVerified = true;
             for (let i = 0; i < stepIndex; i++) {
                 const prevStep = MAIN_STEPS[i];
                 const prevStatus = stepStatuses[prevStep.id];
                 
-                // For diagnosis, need to be approved/locked (verified)
+                // For diagnosis, need to be submitted/approved/locked
                 if (prevStep.id === 'diagnosis') {
                     const prevDiagnosisStatus = stepStatuses['diagnosis'];
-                    // Must be approved or locked (verified) to unlock next step
-                    if (!prevDiagnosisStatus || !['approved', 'locked', 'completed'].includes(prevDiagnosisStatus)) {
+                    // Must be submitted, approved, or locked to unlock next step
+                    if (!prevDiagnosisStatus || !['submitted', 'approved', 'locked', 'completed'].includes(prevDiagnosisStatus)) {
                         allPreviousVerified = false;
                         break;
                     }
                 } else {
-                    // For other steps, must be APPROVED/LOCKED (verified) by CEO to unlock next step
-                    if (!prevStatus || !['approved', 'locked', 'completed'].includes(prevStatus)) {
+                    // For other steps, must be submitted/approved/locked to unlock next step
+                    // This allows HR to continue after submission while CEO approval is pending
+                    if (!prevStatus || !['submitted', 'approved', 'locked', 'completed'].includes(prevStatus)) {
                         allPreviousVerified = false;
                         break;
                     }
@@ -206,15 +208,16 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
             return true;
         }
         
-        // Check if all previous steps are VERIFIED (approved/locked) to unlock this step
+        // Check if all previous steps are SUBMITTED, APPROVED, or LOCKED to unlock this step
+        // This allows HR to continue working after submission while CEO approval is pending
         for (let i = 0; i < stepIndex; i++) {
             const prevStep = MAIN_STEPS[i];
             const prevStatus = stepStatuses[prevStep.id];
             
-            // Previous step must be VERIFIED (approved/locked) to unlock next step
-            // If previous step is not verified (undefined, not_started, in_progress, or submitted), this step is locked
-            if (!prevStatus || !['approved', 'locked', 'completed'].includes(prevStatus)) {
-                return true; // Locked because previous step is not verified
+            // Previous step must be SUBMITTED, APPROVED, or LOCKED to unlock next step
+            // SUBMITTED status allows progression while waiting for CEO approval
+            if (!prevStatus || !['submitted', 'approved', 'locked', 'completed'].includes(prevStatus)) {
+                return true; // Locked because previous step is not submitted/verified
             }
         }
         
@@ -232,7 +235,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                 return `${step.route}/${projectId}/overview`;
             }
             if (step.id === 'job_analysis') {
-                return `${step.route}/${projectId}/intro`;
+                return `${step.route}/${projectId}/overview`;
             }
             if (step.id === 'performance') {
                 return `${step.route}/${projectId}/overview`;
@@ -420,6 +423,52 @@ export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSideb
                                 </SidebarMenuItem>
                             );
                         })}
+                    </SidebarMenu>
+                </SidebarGroup>
+
+                {/* Tree and Report Section */}
+                <SidebarGroup>
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={currentPath.startsWith('/hr-manager/tree/')}
+                                className={cn(
+                                    "transition-all duration-200 rounded-lg w-full",
+                                    isCollapsed ? "px-3 py-3 justify-center" : "px-4 py-6 gap-3"
+                                )}
+                            >
+                                <Link href={projectId ? `/hr-manager/tree/${projectId}/overview` : '#'} className="flex items-center w-full">
+                                    <Network className={cn(
+                                        "transition-all duration-200 flex-shrink-0",
+                                        isCollapsed ? "w-5 h-5" : "w-5 h-5"
+                                    )} />
+                                    {!isCollapsed && (
+                                        <span className="text-sm font-medium">Tree</span>
+                                    )}
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={currentPath.startsWith('/hr-manager/report/')}
+                                className={cn(
+                                    "transition-all duration-200 rounded-lg w-full",
+                                    isCollapsed ? "px-3 py-3 justify-center" : "px-4 py-6 gap-3"
+                                )}
+                            >
+                                <Link href={projectId ? `/hr-manager/report/${projectId}` : '#'} className="flex items-center w-full">
+                                    <FileBarChart className={cn(
+                                        "transition-all duration-200 flex-shrink-0",
+                                        isCollapsed ? "w-5 h-5" : "w-5 h-5"
+                                    )} />
+                                    {!isCollapsed && (
+                                        <span className="text-sm font-medium">Report</span>
+                                    )}
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
                     </SidebarMenu>
                 </SidebarGroup>
             </nav>

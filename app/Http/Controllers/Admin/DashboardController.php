@@ -37,6 +37,13 @@ class DashboardController extends Controller
             return $diagnosisStatus && $diagnosisStatus->value === 'submitted' && !$project->ceoPhilosophy;
         })->count();
 
+        // Get projects with KPIs that need Admin review
+        $pendingKpiReviews = $projects->filter(function ($project) {
+            $performanceStatus = $project->getStepStatus('performance');
+            $hasKpis = \App\Models\OrganizationalKpi::where('hr_project_id', $project->id)->exists();
+            return $hasKpis && ($performanceStatus && in_array($performanceStatus->value, ['in_progress', 'submitted']));
+        });
+
         // Get recent projects
         $recentProjects = $projects->sortByDesc('created_at')->take(5)->values();
 
@@ -83,8 +90,10 @@ class DashboardController extends Controller
                 'completed_projects' => $completedProjects,
                 'pending_diagnosis' => $pendingDiagnosis,
                 'pending_ceo_survey' => $pendingCeoSurvey,
+                'pending_kpi_review' => $pendingKpiReviews->count(),
             ],
             'recentProjects' => $recentProjects,
+            'pendingKpiReviews' => $pendingKpiReviews->values(),
             'projectsNeedingPerformanceRecommendation' => $projectsNeedingPerformanceRecommendation,
             'projectsNeedingCompensationRecommendation' => $projectsNeedingCompensationRecommendation,
             'companies' => $companies,

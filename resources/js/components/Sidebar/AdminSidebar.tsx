@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Settings, LayoutGrid, FolderOpen, HelpCircle, FileText, Building2, AlertCircle, Database, Layers, Target, DollarSign, Languages, ChevronRight, ChevronDown, Users, Eye, UserPlus } from 'lucide-react';
+import { Settings, LayoutGrid, FolderOpen, HelpCircle, FileText, Building2, AlertCircle, Database, Layers, Target, DollarSign, Languages, ChevronRight, ChevronDown, Users, Eye, UserPlus, Network, FileBarChart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
@@ -41,6 +41,9 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
     ];
 
     const isActive = (path: string) => {
+        if (path === '/admin/kpi-review') {
+            return currentPath.startsWith('/admin/kpi-review/');
+        }
         if (path === '/') {
             return currentPath === '/';
         }
@@ -114,6 +117,38 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                     <Eye className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
                                     {!isCollapsed && <span className="flex-1 text-left truncate">Project Tree</span>}
                                 </Link>
+
+                                {currentProjectId && (
+                                    <>
+                                        <Link
+                                            href={`/admin/tree/${currentProjectId}/overview`}
+                                            className={cn(
+                                                "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                                                isActive(`/admin/tree/${currentProjectId}`)
+                                                    ? "bg-sidebar-accent text-sidebar-primary"
+                                                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                                                isCollapsed && "justify-center px-3"
+                                            )}
+                                        >
+                                            <Network className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
+                                            {!isCollapsed && <span className="flex-1 text-left truncate">Tree</span>}
+                                        </Link>
+
+                                        <Link
+                                            href={`/admin/report/${currentProjectId}`}
+                                            className={cn(
+                                                "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                                                isActive(`/admin/report/${currentProjectId}`)
+                                                    ? "bg-sidebar-accent text-sidebar-primary"
+                                                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                                                isCollapsed && "justify-center px-3"
+                                            )}
+                                        >
+                                            <FileBarChart className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
+                                            {!isCollapsed && <span className="flex-1 text-left truncate">Report</span>}
+                                        </Link>
+                                    </>
+                                )}
                                 
                                 <Link
                                     href="/admin/questions/ceo"
@@ -156,6 +191,35 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                     <Target className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
                                     {!isCollapsed && <span className="flex-1 text-left truncate">Performance Snapshot</span>}
                                 </Link>
+                                
+                                {/* KPI Review - Show if there are projects with KPIs */}
+                                {projects.length > 0 && (() => {
+                                    const projectsWithKpis = projects.filter((project: Project) => {
+                                        const stepStatuses = (project as any).step_statuses || {};
+                                        const performanceStatus = stepStatuses.performance;
+                                        return performanceStatus && ['in_progress', 'submitted'].includes(performanceStatus);
+                                    });
+                                    
+                                    if (projectsWithKpis.length > 0) {
+                                        const firstProjectWithKpis = projectsWithKpis[0];
+                                        return (
+                                            <Link
+                                                href={`/admin/kpi-review/${firstProjectWithKpis.id}`}
+                                                className={cn(
+                                                    "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                                                    isActive('/admin/kpi-review')
+                                                        ? "bg-sidebar-accent text-sidebar-primary"
+                                                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                                                    isCollapsed && "justify-center px-3"
+                                                )}
+                                            >
+                                                <Target className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
+                                                {!isCollapsed && <span className="flex-1 text-left truncate">KPI Review</span>}
+                                            </Link>
+                                        );
+                                    }
+                                    return null;
+                                })()}
                                 
                                 <Link
                                     href="/admin/hr-issues"

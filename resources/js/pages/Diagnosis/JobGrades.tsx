@@ -134,10 +134,10 @@ export default function JobGrades({
                 }}
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
-                <Card>
-                    <CardContent className="px-6">
+                <Card className="shadow-sm border">
+                    <CardContent className="p-6">
                         <div className="space-y-4">
-                            <Label className="text-sm font-semibold">Grade Names and Promotion Duration</Label>
+                            <Label className="text-sm font-medium text-foreground">Grade Names and Promotion Duration</Label>
                             <div className="space-y-3">
                                 {grades.map((grade) => (
                                     <div key={grade.id} className="flex items-center gap-3 p-3 border rounded-md">

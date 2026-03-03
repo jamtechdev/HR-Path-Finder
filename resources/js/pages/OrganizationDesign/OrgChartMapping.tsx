@@ -1,12 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, X, GripVertical } from 'lucide-react';
+import { Plus, X, GripVertical, Layout, List, Info, HelpCircle, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import DiagramEditor from '@/components/OrgChart/DiagramEditor';
+import ChartGallery from '@/components/CEO/Review/ChartGallery';
+import type { Node, Edge } from 'reactflow';
 
 interface JobDefinition {
     id: number;
@@ -43,14 +54,19 @@ interface Props {
     jobDefinitions: JobDefinition[];
     mappings: OrgChartMapping[];
     organizationalCharts?: Record<string, string>;
+    onSubmit?: () => void;
 }
 
-export default function OrgChartMapping({ project, jobDefinitions, mappings, organizationalCharts }: Props) {
+export default function OrgChartMapping({ project, jobDefinitions, mappings, organizationalCharts, onSubmit: externalOnSubmit }: Props) {
+    const [viewMode, setViewMode] = useState<'diagram' | 'list'>('diagram');
     const [orgUnits, setOrgUnits] = useState<Array<OrgChartMapping & { id?: number }>>(
         mappings.length > 0 ? mappings : [{ org_unit_name: '', job_keyword_ids: [], org_head: null, job_specialists: [] }]
     );
     const [draggedJobId, setDraggedJobId] = useState<number | null>(null);
     const [dragOverUnitIndex, setDragOverUnitIndex] = useState<number | null>(null);
+    const [diagramNodes, setDiagramNodes] = useState<Node[]>([]);
+    const [diagramEdges, setDiagramEdges] = useState<Edge[]>([]);
+    const { toast } = useToast();
 
     const { data, setData, post, processing } = useForm({
         mappings: [] as OrgChartMapping[],
@@ -58,6 +74,73 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
 
     useEffect(() => {
         setData('mappings', orgUnits.filter(unit => unit.org_unit_name));
+    }, [orgUnits]);
+
+    // Convert mappings to diagram nodes on mount and when switching to diagram view
+    useEffect(() => {
+        if (viewMode === 'diagram') {
+            // Use orgUnits if they have been edited (have org_unit_name), otherwise use initial mappings
+            const sourceData = orgUnits.length > 0 && orgUnits[0].org_unit_name ? orgUnits : mappings;
+            
+            if (sourceData.length > 0) {
+                const nodes: Node[] = sourceData.map((mapping, index) => ({
+                    id: `node-${(mapping as any).id || index}`,
+                    type: 'orgNode',
+                    position: {
+                        x: (index % 3) * 300,
+                        y: Math.floor(index / 3) * 200,
+                    },
+                    data: {
+                        label: mapping.org_unit_name || 'Organization',
+                        orgUnitName: mapping.org_unit_name || '',
+                        jobKeywordIds: mapping.job_keyword_ids || [],
+                        orgHead: mapping.org_head || undefined,
+                        jobSpecialists: mapping.job_specialists || [],
+                        jobDefinitions,
+                    },
+                }));
+                setDiagramNodes(nodes);
+            }
+        }
+    }, [mappings, jobDefinitions, viewMode]);
+
+    const handleDiagramSave = useCallback((nodes: Node[], edges: Edge[]) => {
+        // Convert diagram nodes back to org units format
+        const updatedUnits = nodes.map((node) => ({
+            org_unit_name: node.data.orgUnitName || node.data.label,
+            job_keyword_ids: node.data.jobKeywordIds || [],
+            org_head: node.data.orgHead || null,
+            job_specialists: node.data.jobSpecialists || [],
+        }));
+        setOrgUnits(updatedUnits as Array<OrgChartMapping & { id?: number }>);
+    }, []);
+
+    const handleNodeUpdate = useCallback((nodeId: string, data: Partial<any>) => {
+        setDiagramNodes((nds) => {
+            const updatedNodes = nds.map((node) =>
+                node.id === nodeId
+                    ? { ...node, data: { ...node.data, ...data } }
+                    : node
+            );
+            
+            // Sync with orgUnits when jobKeywordIds are updated
+            if (data.jobKeywordIds !== undefined) {
+                const updatedNode = updatedNodes.find(n => n.id === nodeId);
+                if (updatedNode) {
+                    const unitIndex = orgUnits.findIndex(u => u.org_unit_name === (updatedNode.data.orgUnitName || updatedNode.data.label));
+                    if (unitIndex !== -1) {
+                        const newUnits = [...orgUnits];
+                        newUnits[unitIndex] = {
+                            ...newUnits[unitIndex],
+                            job_keyword_ids: data.jobKeywordIds,
+                        };
+                        setOrgUnits(newUnits);
+                    }
+                }
+            }
+            
+            return updatedNodes;
+        });
     }, [orgUnits]);
 
     const addOrgUnit = () => {
@@ -71,8 +154,12 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
     };
 
     const handleDragStart = (e: React.DragEvent, jobId: number) => {
-        setDraggedJobId(jobId);
-        e.dataTransfer.effectAllowed = 'move';
+        const jobDef = jobDefinitions.find(j => j.id === jobId);
+        if (jobDef?.job_keyword_id) {
+            setDraggedJobId(jobId);
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('application/job-id', jobDef.job_keyword_id.toString());
+        }
     };
 
     const handleDragOver = (e: React.DragEvent, unitIndex: number) => {
@@ -105,6 +192,19 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                 job_keyword_ids: [...currentJobIds, jobDef.job_keyword_id],
             };
             setOrgUnits(newUnits);
+            
+            // Show success notification
+            toast({
+                title: "Job assigned successfully",
+                description: `${jobDef.job_name} has been assigned to ${unit.org_unit_name || 'organization unit'}.`,
+            });
+        } else if (jobDef.job_keyword_id && currentJobIds.includes(jobDef.job_keyword_id)) {
+            // Job already assigned
+            toast({
+                title: "Job already assigned",
+                description: `${jobDef.job_name} is already assigned to this unit.`,
+                variant: "default",
+            });
         }
 
         setDraggedJobId(null);
@@ -138,12 +238,17 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
     const handleSubmit = () => {
         post(`/hr-manager/job-analysis/${project.id}/org-chart-mapping`, {
             onSuccess: () => {
-                // After saving, submit the Job Analysis step
-                router.post(`/hr-manager/job-analysis/${project.id}/submit`, {}, {
-                    onSuccess: () => {
-                        router.visit('/hr-manager/dashboard');
-                    },
-                });
+                if (externalOnSubmit) {
+                    // If external onSubmit is provided (from tab interface), use it
+                    externalOnSubmit();
+                } else {
+                    // Otherwise, use the default behavior
+                    router.post(`/hr-manager/job-analysis/${project.id}/submit`, {}, {
+                        onSuccess: () => {
+                            router.visit('/hr-manager/dashboard');
+                        },
+                    });
+                }
             },
         });
     };
@@ -152,66 +257,204 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
         <AppLayout>
             <Head title={`Org Chart Mapping - ${project?.company?.name || 'Job Analysis'}`} />
             <div className="p-6 md:p-8 max-w-7xl mx-auto">
-                        <div className="mb-6">
-                            <h1 className="text-3xl font-bold mb-2">Organization Chart Mapping</h1>
-                            <p className="text-muted-foreground">
-                                Map finalized job definitions to organizational units and assign personnel.
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Left Panel - Org Chart (70%) */}
-                            <div className="lg:col-span-2 space-y-4">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Organization Chart</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        {organizationalCharts && Object.keys(organizationalCharts).length > 0 ? (
-                                            <div className="space-y-2">
-                                                {Object.entries(organizationalCharts).map(([year, path]) => (
-                                                    <div key={year} className="p-2 border rounded flex items-center justify-start gap-2">
-                                                        <p className="text-sm font-medium">{year}</p>
-                                                        <img src={`/storage/${path}`} alt={`Org chart ${year}`} className="mt-2 max-w-full" />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <p className="text-muted-foreground text-center py-8">
-                                                Organization chart will be displayed here. For MVP, admin can manually create diagrams.
+                        <div className="mb-8">
+                            <div className="flex items-start justify-between gap-4 mb-4">
+                                <div className="flex-1">
+                                    <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                                        Organization Chart Mapping
+                                    </h1>
+                                    <p className="text-lg text-muted-foreground leading-relaxed">
+                                        Map finalized job definitions to organizational units and assign personnel to create your organizational structure.
+                                    </p>
+                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="outline" size="icon" className="rounded-full">
+                                                <HelpCircle className="w-5 h-5" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="max-w-sm">
+                                            <p className="text-sm">
+                                                <strong>How to use:</strong> Drag job cards from the right panel onto organization nodes in the diagram, or drop them into organization units in the list view. You can assign multiple jobs to each unit.
                                             </p>
-                                        )}
-                                    </CardContent>
-                                </Card>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </div>
-
-                            {/* Right Panel - Job Keywords (30%) */}
-                            <div className="space-y-4">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Finalized Jobs</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="space-y-2">
-                                            {jobDefinitions.map((job) => (
-                                                <div
-                                                    key={job.id}
-                                                    className="p-2 border rounded cursor-move hover:bg-muted flex items-center gap-2"
-                                                    draggable
-                                                    onDragStart={(e) => handleDragStart(e, job.id)}
-                                                >
-                                                    <GripVertical className="w-4 h-4 text-muted-foreground" />
-                                                    <span>{job.job_name}</span>
-                                                </div>
-                                            ))}
+                            
+                            {/* Professional Info Card */}
+                            <Card className="border-blue-200 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:bg-blue-950/10 dark:border-blue-900 shadow-sm">
+                                <CardContent className="p-5">
+                                    <div className="flex items-start gap-4">
+                                        <div className="flex-shrink-0">
+                                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                                                <Info className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                            </div>
                                         </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
+                                        <div className="flex-1 space-y-2">
+                                            <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                                                Professional HR Consulting Workflow
+                                            </p>
+                                            <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
+                                                This step connects your finalized job definitions to your organizational structure. Drag and drop job cards onto organizational units in the diagram or list view. Each unit can have multiple roles assigned. Complete this mapping to establish your organizational hierarchy before proceeding to the Performance Management stage.
+                                            </p>
+                                            <div className="flex items-center gap-2 pt-2">
+                                                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                                <span className="text-xs text-blue-700 dark:text-blue-300">
+                                                    {jobDefinitions.length} finalized {jobDefinitions.length === 1 ? 'job' : 'jobs'} available for assignment
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
+
+                        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'diagram' | 'list')} className="w-full">
+                            <TabsList className="mb-4">
+                                <TabsTrigger value="diagram">
+                                    <Layout className="w-4 h-4 mr-2" />
+                                    Visual Diagram
+                                </TabsTrigger>
+                                <TabsTrigger value="list">
+                                    <List className="w-4 h-4 mr-2" />
+                                    List View
+                                </TabsTrigger>
+                            </TabsList>
+
+                            <TabsContent value="diagram" className="space-y-4">
+                                <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
+                                    {/* Left Panel - Diagram Editor (70%) */}
+                                    <div className="lg:col-span-7 space-y-4">
+                                        <Card className="shadow-sm border">
+                                            <CardHeader>
+                                                <CardTitle>Organization Chart Diagram</CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="p-6">
+                                                <DiagramEditor
+                                                    initialNodes={diagramNodes}
+                                                    initialEdges={diagramEdges}
+                                                    onSave={handleDiagramSave}
+                                                    onNodeUpdate={handleNodeUpdate}
+                                                    jobDefinitions={jobDefinitions}
+                                                />
+                                            </CardContent>
+                                        </Card>
+                                        {organizationalCharts && Object.keys(organizationalCharts).length > 0 && (
+                                            <ChartGallery charts={organizationalCharts} title="Reference Charts" />
+                                        )}
+                                    </div>
+
+                                    {/* Right Panel - Job Keywords (30%) */}
+                                    <div className="lg:col-span-3 space-y-4">
+                                        <Card className="shadow-sm border">
+                                            <CardHeader>
+                                                <CardTitle>Finalized Jobs</CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="p-6">
+                                                <div className="mb-3">
+                                                    <p className="text-sm font-medium text-foreground mb-1">
+                                                        Finalized Jobs
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Drag jobs onto organization nodes in the diagram or drop them into organization units below
+                                                    </p>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {jobDefinitions.length === 0 ? (
+                                                        <p className="text-sm text-muted-foreground text-center py-4">
+                                                            No finalized jobs available. Please finalize job definitions first.
+                                                        </p>
+                                                    ) : (
+                                                        jobDefinitions.map((job) => (
+                                                            <div
+                                                                key={job.id}
+                                                                className="p-3 border-2 rounded-lg cursor-move hover:bg-primary/5 hover:border-primary/50 transition-all duration-200 flex items-center gap-2 group bg-white shadow-sm hover:shadow-md"
+                                                                draggable
+                                                                onDragStart={(e) => {
+                                                                    handleDragStart(e, job.id);
+                                                                    e.currentTarget.classList.add('opacity-50');
+                                                                }}
+                                                                onDragEnd={(e) => {
+                                                                    e.currentTarget.classList.remove('opacity-50');
+                                                                }}
+                                                            >
+                                                                <GripVertical className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
+                                                                <span className="text-sm font-medium flex-1">{job.job_name}</span>
+                                                                <Badge variant="outline" className="text-xs">Drag me</Badge>
+                                                            </div>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                </div>
+                            </TabsContent>
+
+                            <TabsContent value="list" className="space-y-4">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    {/* Left Panel - Org Chart (70%) */}
+                                    <div className="lg:col-span-2 space-y-4">
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle>Organization Chart</CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                {organizationalCharts && Object.keys(organizationalCharts).length > 0 ? (
+                                                    <ChartGallery charts={organizationalCharts} title="" showTitle={false} />
+                                                ) : (
+                                                    <p className="text-muted-foreground text-center py-8">
+                                                        Organization chart will be displayed here. For MVP, admin can manually create diagrams.
+                                                    </p>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+
+                                    {/* Right Panel - Job Keywords (30%) */}
+                                    <div className="space-y-4">
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle>Finalized Jobs</CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="space-y-2">
+                                                    {jobDefinitions.length === 0 ? (
+                                                        <p className="text-sm text-muted-foreground text-center py-4">
+                                                            No finalized jobs available. Please finalize job definitions first.
+                                                        </p>
+                                                    ) : (
+                                                        jobDefinitions.map((job) => (
+                                                            <div
+                                                                key={job.id}
+                                                                className="p-3 border-2 rounded-lg cursor-move hover:bg-primary/5 hover:border-primary/50 transition-all duration-200 flex items-center gap-2 group bg-white shadow-sm hover:shadow-md"
+                                                                draggable
+                                                                onDragStart={(e) => {
+                                                                    handleDragStart(e, job.id);
+                                                                    e.currentTarget.classList.add('opacity-50');
+                                                                }}
+                                                                onDragEnd={(e) => {
+                                                                    e.currentTarget.classList.remove('opacity-50');
+                                                                }}
+                                                            >
+                                                                <GripVertical className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
+                                                                <span className="text-sm font-medium flex-1">{job.job_name}</span>
+                                                                <Badge variant="outline" className="text-xs">Drag me</Badge>
+                                                            </div>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                </div>
+                            </TabsContent>
+                        </Tabs>
 
                         {/* Organization Units */}
-                        <Card className="mt-6">
+                        <Card className="mt-6 shadow-sm border">
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <CardTitle>Organization Units</CardTitle>
@@ -221,14 +464,14 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                     </Button>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-4">
+                            <CardContent className="p-6 space-y-4">
                                 {orgUnits.map((unit, index) => (
                                     <div
                                         key={index}
-                                        className={`p-4 border-2 rounded-lg space-y-4 ${
+                                        className={`p-4 border-2 rounded-lg space-y-4 transition-all duration-200 ${
                                             dragOverUnitIndex === index
-                                                ? 'border-primary bg-primary/10'
-                                                : 'border-muted'
+                                                ? 'border-primary bg-primary/10 ring-2 ring-primary shadow-lg scale-[1.02]'
+                                                : 'border-muted hover:border-primary/30'
                                         }`}
                                         onDragOver={(e) => handleDragOver(e, index)}
                                         onDragLeave={handleDragLeave}
@@ -379,10 +622,37 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                             </CardContent>
                         </Card>
 
-                        <div className="mt-6 flex justify-end">
-                            <Button onClick={handleSubmit} disabled={processing} size="lg">
-                                Save & Complete
-                            </Button>
+                        <div className="mt-8 pt-6 border-t">
+                            <Card className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-primary/20">
+                                <CardContent className="p-6">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div className="flex-1">
+                                            <h3 className="text-lg font-semibold mb-2">Ready to Complete Job Analysis?</h3>
+                                            <p className="text-sm text-muted-foreground">
+                                                Make sure all finalized jobs are mapped to organizational units. Once submitted, you'll be able to proceed to the Performance System stage.
+                                            </p>
+                                        </div>
+                                        <Button 
+                                            onClick={handleSubmit} 
+                                            disabled={processing} 
+                                            size="lg"
+                                            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 min-w-[180px]"
+                                        >
+                                            {processing ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                                    Submitting...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <CheckCircle2 className="w-5 h-5 mr-2" />
+                                                    Save & Complete
+                                                </>
+                                            )}
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
                     </div>
         </AppLayout>

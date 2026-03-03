@@ -52,8 +52,9 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
     const [draggedJobId, setDraggedJobId] = useState<number | null>(null);
     const [dragOverGroupId, setDragOverGroupId] = useState<string | null>(null);
 
-    const { data, setData, post, processing } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         selected_job_keyword_ids: [] as number[],
+        custom_jobs: [] as string[],
         grouped_jobs: [] as Array<{ name: string; job_keyword_ids: number[] }>,
     });
 
@@ -82,8 +83,9 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
 
     const handleAddCustomJob = () => {
         if (customJob.trim()) {
-            // In real implementation, this would create a new job keyword
-            // For now, we'll just add it to the list
+            // Add to custom jobs list
+            const currentCustomJobs = data.custom_jobs || [];
+            setData('custom_jobs', [...currentCustomJobs, customJob.trim()]);
             setCustomJob('');
         }
     };
@@ -162,10 +164,25 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
     };
 
     const handleSubmit = () => {
+        // Validate that at least one job is selected
+        const hasSelectedJobs = selectedJobIds.length > 0;
+        const hasCustomJobs = data.custom_jobs && data.custom_jobs.length > 0;
+        const hasGroupedJobs = groupedJobs.length > 0;
+
+        if (!hasSelectedJobs && !hasCustomJobs && !hasGroupedJobs) {
+            // Show error message
+            alert('Please select at least one job, add a custom job, or create a grouped job before proceeding.');
+            return;
+        }
+
         post(`/hr-manager/job-analysis/${project.id}/job-list-selection`, {
             onSuccess: () => {
                 router.visit(`/hr-manager/job-analysis/${project.id}/job-definition`);
             },
+            onError: (errors) => {
+                // Scroll to top to show errors
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         });
     };
 
@@ -179,6 +196,21 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
                                 Select relevant jobs from the suggested list. You can group multiple jobs into a single role.
                             </p>
                         </div>
+
+                        {/* Error Display */}
+                        {errors.selected_job_keyword_ids && (
+                            <div className="mb-4 p-4 bg-destructive/10 border-2 border-destructive/50 rounded-lg shadow-sm">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-destructive/20 flex items-center justify-center mt-0.5">
+                                        <span className="text-destructive text-xs font-bold">!</span>
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-sm font-semibold text-destructive mb-1">Validation Error</p>
+                                        <p className="text-sm text-destructive/90">{errors.selected_job_keyword_ids}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         <Card>
                             <CardHeader>
@@ -210,21 +242,42 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
                                     ))}
                                 </div>
 
-                                <div className="flex items-center gap-2 pt-4 border-t">
-                                    <Input
-                                        value={customJob}
-                                        onChange={(e) => setCustomJob(e.target.value)}
-                                        placeholder="Add custom job name"
-                                        onKeyPress={(e) => {
-                                            if (e.key === 'Enter') {
-                                                handleAddCustomJob();
-                                            }
-                                        }}
-                                    />
-                                    <Button onClick={handleAddCustomJob} variant="outline">
-                                        <Plus className="w-4 h-4 mr-2" />
-                                        Add
-                                    </Button>
+                                <div className="pt-4 border-t space-y-2">
+                                    <Label className="text-sm font-medium">Add Custom Job</Label>
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            value={customJob}
+                                            onChange={(e) => setCustomJob(e.target.value)}
+                                            placeholder="Enter custom job name (e.g., R&D Planning, Global Operations)"
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    handleAddCustomJob();
+                                                }
+                                            }}
+                                        />
+                                        <Button onClick={handleAddCustomJob} variant="outline" disabled={!customJob.trim()}>
+                                            <Plus className="w-4 h-4 mr-2" />
+                                            Add
+                                        </Button>
+                                    </div>
+                                    {data.custom_jobs && data.custom_jobs.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {data.custom_jobs.map((customJobName, index) => (
+                                                <Badge key={index} variant="secondary" className="p-2 flex items-center gap-1">
+                                                    {customJobName}
+                                                    <button
+                                                        onClick={() => {
+                                                            const newCustomJobs = data.custom_jobs.filter((_, i) => i !== index);
+                                                            setData('custom_jobs', newCustomJobs);
+                                                        }}
+                                                        className="ml-1 hover:text-destructive"
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

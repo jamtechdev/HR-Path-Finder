@@ -158,11 +158,11 @@ export default function Executives({
                 }}
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
-                <Card>
-                    <CardContent className="px-6">
+                <Card className="shadow-sm border">
+                    <CardContent className="p-6">
                         {/* Total Executives */}
-                        <div className="flex flex-col gap-3 mb-3">
-                            <Label htmlFor="total_executives">Total Executives</Label>
+                        <div className="flex flex-col gap-3">
+                            <Label htmlFor="total_executives" className="text-sm font-medium text-foreground">Total Executives</Label>
                             <Input
                                 id="total_executives"
                                 type="number"
@@ -174,8 +174,8 @@ export default function Executives({
                         </div>
 
                         {/* Executive Positions - Default Options */}
-                        <div className="flex flex-col gap-3 mb-3">
-                            <Label>Executive Positions</Label>
+                        <div className="flex flex-col gap-3 mt-6">
+                            <Label className="text-sm font-medium text-foreground">Executive Positions</Label>
                             <MultiSelectQuestion
                                 question="Select default positions"
                                 value={selectedDefaultPositions}

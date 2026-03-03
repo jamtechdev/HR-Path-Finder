@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, FileText, BookOpen, Map, BarChart3, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import StepHeader from '@/components/StepHeader/StepHeader';
+import { cn } from '@/lib/utils';
 
 interface HrPolicyOs {
     id?: number;
@@ -114,35 +116,50 @@ export default function HrPolicyOsIndex({
     const canEdit = hrPolicyOsStatus !== 'locked' && hrPolicyOsStatus !== 'approved';
     const canSubmit = hrPolicyOsStatus === 'in_progress' || hrPolicyOsStatus === 'not_started';
 
+    // Calculate completed tabs count
+    const completedTabsCount = 0; // TODO: Add proper completion logic
+
+    // Get status for header
+    const getStatusForHeader = (): 'not_started' | 'in_progress' | 'submitted' => {
+        if (hrPolicyOsStatus === 'submitted' || hrPolicyOsStatus === 'approved' || hrPolicyOsStatus === 'locked') {
+            return 'submitted';
+        }
+        if (hrPolicyOsStatus === 'in_progress' || completedTabsCount > 0) {
+            return 'in_progress';
+        }
+        return 'not_started';
+    };
+
     return (
         <AppLayout 
             showWorkflowSteps={true}
             stepStatuses={stepStatuses}
             projectId={projectId}
         >
-            <Head title="HR Policy OS & Implementation Blueprint" />
-            <div className="px-6">
-                        {/* Header */}
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => router.visit('/hr-manager/dashboard')}
-                                >
-                                    <ArrowLeft className="h-4 w-4 mr-2" />
-                                    Back to Dashboard
-                                </Button>
-                                <div>
-                                    <h1 className="text-2xl font-bold">HR Policy OS & Implementation Blueprint</h1>
-                                    <p className="text-sm text-muted-foreground">
-                                        Step 5: Transform design outputs into operational HR policies and documentation
-                                    </p>
+            <Head title="Step 5: HR Policy OS" />
+            <div className="p-6 md:p-8 max-w-7xl mx-auto bg-background">
+                {/* Header - Match Diagnosis Style */}
+                <div className="mb-6">
+                    <StepHeader
+                        title="Step 5: HR Policy OS"
+                        description="HR Policy Manual, System Handbook, Implementation Roadmap, and Analytics Blueprint."
+                        status={getStatusForHeader()}
+                        backHref="/hr-manager/dashboard"
+                    />
+                </div>
+
+                {/* Progress Overview - Match Diagnosis Style */}
+                <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-700">Progress</span>
+                        <span className="text-sm text-gray-600">{completedTabsCount} of 4</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-1">
+                        <div 
+                            className="bg-primary h-1 rounded-full transition-all duration-300"
+                            style={{ width: `${(completedTabsCount / 4) * 100}%` }}
+                        />
                                 </div>
-                            </div>
-                            <Badge variant={hrPolicyOsStatus === 'locked' ? 'default' : 'secondary'}>
-                                {hrPolicyOsStatus === 'locked' ? 'Locked' : hrPolicyOsStatus === 'submitted' ? 'Submitted' : 'In Progress'}
-                            </Badge>
                         </div>
 
                         {/* Disclaimer */}
@@ -217,36 +234,69 @@ export default function HrPolicyOsIndex({
                         )}
 
                         <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* Tabs Navigation - Match Diagnosis Style */}
+                            <div className="flex gap-2 overflow-x-auto pb-2 scroll-smooth mb-6" style={{ scrollbarWidth: 'thin' }}>
+                                {[
+                                    { id: 'policy-manual', label: 'Policy Manual', icon: FileText },
+                                    { id: 'handbook', label: 'System Handbook', icon: BookOpen },
+                                    { id: 'roadmap', label: 'Roadmap', icon: Map },
+                                    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+                                ].map((tab) => {
+                                    const Icon = tab.icon;
+                                    const isActive = activeTab === tab.id;
+                                    const isCompleted = false; // TODO: Add completion logic
+                                    const TabIcon = isCompleted ? CheckCircle2 : Icon;
+                                    
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => setActiveTab(tab.id)}
+                                            className={cn(
+                                                "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all cursor-pointer relative",
+                                                isActive
+                                                    ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary ring-offset-2"
+                                                    : isCompleted
+                                                    ? "bg-green-100 text-green-700 hover:bg-green-200 border-2 border-green-300"
+                                                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                            )}
+                                        >
+                                            {isCompleted && !isActive && (
+                                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                                                    <CheckCircle2 className="w-3 h-3 text-white" />
+                                                </div>
+                                            )}
+                                            <TabIcon className={cn(
+                                                "w-4 h-4 flex-shrink-0",
+                                                isActive && "text-primary-foreground",
+                                                isCompleted && !isActive && "text-green-600"
+                                            )} />
+                                            <span className="hidden sm:inline">{tab.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
                             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                                <TabsList className="grid w-full grid-cols-4">
-                                    <TabsTrigger value="policy-manual">
-                                        <FileText className="h-4 w-4 mr-2" />
-                                        Policy Manual
-                                    </TabsTrigger>
-                                    <TabsTrigger value="handbook">
-                                        <BookOpen className="h-4 w-4 mr-2" />
-                                        System Handbook
-                                    </TabsTrigger>
-                                    <TabsTrigger value="roadmap">
-                                        <Map className="h-4 w-4 mr-2" />
-                                        Roadmap
-                                    </TabsTrigger>
-                                    <TabsTrigger value="analytics">
-                                        <BarChart3 className="h-4 w-4 mr-2" />
-                                        Analytics
-                                    </TabsTrigger>
+                                <TabsList className="hidden">
+                                    <TabsTrigger value="policy-manual" />
+                                    <TabsTrigger value="handbook" />
+                                    <TabsTrigger value="roadmap" />
+                                    <TabsTrigger value="analytics" />
                                 </TabsList>
 
                                 {/* Policy Manual Tab */}
-                                <TabsContent value="policy-manual" className="space-y-4">
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle>HR Policy Manual</CardTitle>
-                                            <CardDescription>
+                                <TabsContent value="policy-manual" className="mt-0">
+                                    <Card className="shadow-lg border-2 hover:border-primary/30 transition-all">
+                                        <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
+                                            <CardTitle className="text-2xl flex items-center gap-2">
+                                                <FileText className="w-6 h-6 text-primary" />
+                                                HR Policy Manual
+                                            </CardTitle>
+                                            <CardDescription className="text-base mt-2">
                                                 Auto-generated policy documents from Steps 1-4. You can customize the content as needed.
                                             </CardDescription>
                                         </CardHeader>
-                                        <CardContent className="space-y-4">
+                                        <CardContent className="p-8 space-y-8">
                                             <div className="space-y-2">
                                                 <Label>Company HR Philosophy</Label>
                                                 <Textarea
@@ -330,15 +380,15 @@ export default function HrPolicyOsIndex({
                                 </TabsContent>
 
                                 {/* System Handbook Tab */}
-                                <TabsContent value="handbook" className="space-y-4">
-                                    <Card>
+                                <TabsContent value="handbook" className="mt-0">
+                                    <Card className="shadow-sm border">
                                         <CardHeader>
                                             <CardTitle>HR System Handbook</CardTitle>
                                             <CardDescription>
                                                 Simplified handbook explaining how HR systems work internally
                                             </CardDescription>
                                         </CardHeader>
-                                        <CardContent className="space-y-4">
+                                        <CardContent className="p-6 space-y-6">
                                             <div className="space-y-2">
                                                 <Label>System Overview</Label>
                                                 <Textarea
@@ -422,15 +472,15 @@ export default function HrPolicyOsIndex({
                                 </TabsContent>
 
                                 {/* Implementation Roadmap Tab */}
-                                <TabsContent value="roadmap" className="space-y-4">
-                                    <Card>
+                                <TabsContent value="roadmap" className="mt-0">
+                                    <Card className="shadow-sm border">
                                         <CardHeader>
                                             <CardTitle>Implementation Roadmap</CardTitle>
                                             <CardDescription>
                                                 Realistic rollout plan for deploying the designed HR systems
                                             </CardDescription>
                                         </CardHeader>
-                                        <CardContent className="space-y-4">
+                                        <CardContent className="p-6 space-y-6">
                                             <div className="space-y-2">
                                                 <Label>Rollout Sequence</Label>
                                                 <Input
@@ -510,15 +560,15 @@ export default function HrPolicyOsIndex({
                                 </TabsContent>
 
                                 {/* Analytics Blueprint Tab */}
-                                <TabsContent value="analytics" className="space-y-4">
-                                    <Card>
+                                <TabsContent value="analytics" className="mt-0">
+                                    <Card className="shadow-sm border">
                                         <CardHeader>
                                             <CardTitle>HR Analytics & KPI Blueprint</CardTitle>
                                             <CardDescription>
                                                 Define what HR metrics should be tracked after implementation
                                             </CardDescription>
                                         </CardHeader>
-                                        <CardContent className="space-y-4">
+                                        <CardContent className="p-6 space-y-6">
                                             <div className="space-y-2">
                                                 <Label>Performance Distribution Health</Label>
                                                 <Textarea

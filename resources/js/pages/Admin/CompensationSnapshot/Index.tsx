@@ -26,8 +26,16 @@ interface Props {
 
 export default function CompensationSnapshotIndex({ questions, answerTypes }: Props) {
     const [searchTerm, setSearchTerm] = useState('');
+    const [localQuestions, setLocalQuestions] = useState(questions);
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-    const filteredQuestions = questions.filter(q =>
+    // Update local questions when props change
+    React.useEffect(() => {
+        setLocalQuestions(questions);
+    }, [questions]);
+
+    const filteredQuestions = localQuestions.filter(q =>
         q.question_text.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -37,6 +45,58 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
                 preserveScroll: true,
             });
         }
+    };
+
+    const handleDragStart = (e: React.DragEvent, index: number) => {
+        setDraggedIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        setDragOverIndex(index);
+    };
+
+    const handleDragLeave = () => {
+        setDragOverIndex(null);
+    };
+
+    const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+        e.preventDefault();
+        setDragOverIndex(null);
+
+        if (draggedIndex === null || draggedIndex === dropIndex) {
+            setDraggedIndex(null);
+            return;
+        }
+
+        const newQuestions = [...localQuestions];
+        const [removed] = newQuestions.splice(draggedIndex, 1);
+        newQuestions.splice(dropIndex, 0, removed);
+
+        // Update order values
+        const updatedQuestions = newQuestions.map((q, idx) => ({
+            ...q,
+            order: idx + 1,
+        }));
+
+        setLocalQuestions(updatedQuestions);
+        setDraggedIndex(null);
+
+        // Save new order to backend
+        router.post('/admin/compensation-snapshot/reorder', {
+            questions: updatedQuestions.map((q, idx) => ({
+                id: q.id,
+                order: idx + 1,
+            })),
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Reload to get updated data
+                router.reload({ only: ['questions'] });
+            },
+        });
     };
 
     const getAnswerTypeLabel = (type: string) => {
@@ -85,10 +145,19 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-2">
-                                    {filteredQuestions.map((question) => (
+                                    {filteredQuestions.map((question, index) => {
+                                        const originalIndex = localQuestions.findIndex(q => q.id === question.id);
+                                        return (
                                         <div
                                             key={question.id}
-                                            className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50"
+                                            draggable
+                                            onDragStart={(e) => handleDragStart(e, originalIndex)}
+                                            onDragOver={(e) => handleDragOver(e, originalIndex)}
+                                            onDragLeave={handleDragLeave}
+                                            onDrop={(e) => handleDrop(e, originalIndex)}
+                                            className={`flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors ${
+                                                dragOverIndex === originalIndex ? 'bg-primary/10 border-primary' : ''
+                                            } ${draggedIndex === originalIndex ? 'opacity-50' : ''}`}
                                         >
                                             <div className="flex items-start gap-3 flex-1">
                                                 <GripVertical className="w-5 h-5 text-muted-foreground mt-1 cursor-move" />
@@ -134,7 +203,7 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
                                                 </Button>
                                             </div>
                                         </div>
-                                    ))}
+                                    )})}
                                     {filteredQuestions.length === 0 && (
                                         <div className="text-center py-12 text-muted-foreground">
                                             {searchTerm ? 'No questions found matching your search.' : 'No questions configured yet.'}

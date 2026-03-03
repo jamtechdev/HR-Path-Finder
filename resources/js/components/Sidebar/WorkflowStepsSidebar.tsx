@@ -106,7 +106,7 @@ export default function WorkflowStepsSidebar({
                 return `${step.route}/${projectId}/overview`;
             }
             if (step.id === 'job_analysis') {
-                return `${step.route}/${projectId}/intro`;
+                return `${step.route}/${projectId}/overview`;
             }
             if (step.id === 'performance') {
                 return `${step.route}/${projectId}/overview`;

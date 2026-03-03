@@ -144,20 +144,26 @@ export default function FormLayout({
                                return false;
                            });
         
-        // Only validate if step is not completed AND we have new data to validate
-        if (!stepCompleted && !hasFormData) {
+        // Always validate required fields before proceeding (unless step is already completed)
+        if (!stepCompleted) {
             // Use custom validation if provided
             if (validateBeforeNext) {
                 const result = validateBeforeNext();
                 if (result !== true) {
                     setValidationError(typeof result === 'string' ? result : 'Please fill in all required fields.');
+                    // Scroll to top to show error
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                     return;
                 }
             } else {
-                // Use default validation - check diagnosis data
-                const validation = validateStepRequiredFields(activeTab, diagnosis);
+                // Use default validation - check both diagnosis data and formData
+                // First check formData if available (for unsaved changes)
+                const dataToValidate = formData && Object.keys(formData).length > 0 ? formData : diagnosis;
+                const validation = validateStepRequiredFields(activeTab, dataToValidate);
                 if (!validation.isValid) {
                     setValidationError(validation.error || 'Please fill in all required fields.');
+                    // Scroll to top to show error
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                     return;
                 }
             }
@@ -198,12 +204,19 @@ export default function FormLayout({
                 forceFormData: hasFiles(formData), // Use FormData if files are present
                 onSuccess: () => {
                     setIsSaving(false);
-                    // Navigate after successful save
-                    if (onNext) {
-                        onNext();
-                    } else if (nextRoute) {
-                        router.visit(getNextUrl()!);
-                    }
+                    // Navigate after successful save with smooth scroll
+                    setTimeout(() => {
+                        if (onNext) {
+                            onNext();
+                        } else if (nextRoute) {
+                            router.visit(getNextUrl()!, {
+                                onSuccess: () => {
+                                    // Scroll to top of page after navigation
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }
+                            });
+                        }
+                    }, 300);
                 },
                 onError: () => {
                     setIsSaving(false);
@@ -216,7 +229,12 @@ export default function FormLayout({
         if (onNext) {
             onNext();
         } else if (nextRoute) {
-            router.visit(getNextUrl()!);
+            router.visit(getNextUrl()!, {
+                onSuccess: () => {
+                    // Scroll to top of page after navigation
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
         }
     };
 
@@ -311,8 +329,16 @@ export default function FormLayout({
 
                         {/* Validation Error */}
                         {validationError && (
-                            <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                                <p className="text-sm text-destructive font-medium">{validationError}</p>
+                            <div className="mb-4 p-4 bg-destructive/10 border-2 border-destructive/50 rounded-lg shadow-sm animate-in slide-in-from-top-2">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-destructive/20 flex items-center justify-center mt-0.5">
+                                        <span className="text-destructive text-xs font-bold">!</span>
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-sm font-semibold text-destructive mb-1">Validation Error</p>
+                                        <p className="text-sm text-destructive/90">{validationError}</p>
+                                    </div>
+                                </div>
                             </div>
                         )}
 

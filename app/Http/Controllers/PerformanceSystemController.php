@@ -13,6 +13,7 @@ use App\Models\EvaluationModelAssignment;
 use App\Models\EvaluationStructure;
 use App\Models\JobDefinition;
 use App\Models\OrgChartMapping;
+use App\Models\KpiEditHistory;
 use App\Services\RecommendationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -50,6 +51,20 @@ class PerformanceSystemController extends Controller
             'evaluationStructure',
         ]);
         $performanceSystem = $hrProject->performanceSystem;
+        
+        // Auto-create PerformanceSystem record if it doesn't exist but other performance data exists
+        if (!$performanceSystem && (
+            $hrProject->performanceSnapshotResponses->isNotEmpty() ||
+            $hrProject->organizationalKpis->isNotEmpty() ||
+            $hrProject->evaluationModelAssignments->isNotEmpty() ||
+            $hrProject->evaluationStructure
+        )) {
+            $performanceSystem = PerformanceSystem::create([
+                'hr_project_id' => $hrProject->id,
+                'status' => StepStatus::IN_PROGRESS,
+            ]);
+            $hrProject->refresh();
+        }
 
         // Load questions for snapshot tab
         $snapshotQuestions = PerformanceSnapshotQuestion::where('is_active', true)
@@ -107,6 +122,67 @@ class PerformanceSystemController extends Controller
             'hr_policy_os' => $stepStatuses['hr_policy_os'] ?? 'not_started',
         ];
 
+        // Map old tab names to new ones for backward compatibility
+        $tabMapping = [
+            'overview' => 'overview',
+            'snapshot' => 'performance-snapshot',
+            'kpi-review' => 'kpi-review',
+            'ceo-kpi-review' => 'ceo-kpi-review',
+            'model-assignment' => 'model-assignment',
+            'evaluation-structure' => 'evaluation-structure',
+            'review' => 'review-submit',
+            'review-submit' => 'review-submit',
+        ];
+        $mappedTab = $tabMapping[$tab] ?? ($tab ?: 'overview');
+
+        // Load performance snapshot responses
+        $snapshotResponses = PerformanceSnapshotResponse::where('hr_project_id', $hrProject->id)
+            ->get()
+            ->keyBy('question_id')
+            ->map(function ($response) {
+                return [
+                    'response' => $response->response,
+                    'text_response' => $response->text_response,
+                ];
+            })
+            ->toArray();
+
+        // Load organizational KPIs
+        // Load KPIs and remove duplicates based on organization_name + kpi_name (case-insensitive, trimmed)
+        $allKpis = OrganizationalKpi::where('hr_project_id', $hrProject->id)
+            ->with('linkedJob')
+            ->get();
+        
+        // Remove duplicates - keep the one with highest ID (most recent)
+        $uniqueKpis = collect($allKpis)->unique(function ($kpi) {
+            return strtolower(trim($kpi->organization_name)) . '::' . strtolower(trim($kpi->kpi_name));
+        })->values();
+        
+        $organizationalKpis = $uniqueKpis;
+
+        // Load evaluation model assignments
+        $evaluationModelAssignments = EvaluationModelAssignment::where('hr_project_id', $hrProject->id)
+            ->with('jobDefinition.jobKeyword')
+            ->get();
+
+        // Load evaluation model guidance
+        $modelGuidance = [
+            'mbo' => \App\Models\EvaluationModelGuidance::getActiveByModelType('mbo'),
+            'bsc' => \App\Models\EvaluationModelGuidance::getActiveByModelType('bsc'),
+            'okr' => \App\Models\EvaluationModelGuidance::getActiveByModelType('okr'),
+        ];
+
+        // Load job recommendations
+        $jobRecommendations = [];
+        foreach ($jobDefinitions as $job) {
+            if ($job->job_keyword_id) {
+                $recommendation = \App\Models\JobEvaluationModelRecommendation::getRecommendationForJob($job->job_keyword_id);
+                if ($recommendation) {
+                    $jobRecommendations[$job->job_keyword_id] = $recommendation;
+                }
+            }
+        }
+
         // Use Index component which handles all tabs internally
         return Inertia::render('PerformanceSystem/Index', [
             'project' => $hrProject,
@@ -114,12 +190,92 @@ class PerformanceSystemController extends Controller
             'consultantRecommendation' => $consultantRecommendation,
             'algorithmRecommendations' => $algorithmRecommendations,
             'stepStatuses' => $mainStepStatuses,
-            'activeTab' => $tab,
+            'activeTab' => $mappedTab,
             'projectId' => $hrProject->id,
             'snapshotQuestions' => $snapshotQuestions,
+            'snapshotResponses' => $snapshotResponses,
             'jobDefinitions' => $jobDefinitions,
+            'organizationalKpis' => $organizationalKpis->toArray(),
             'orgChartMappings' => $orgChartMappings,
             'kpiReviewTokens' => $kpiReviewTokens,
+            'evaluationModelAssignments' => $evaluationModelAssignments,
+            'evaluationStructure' => $hrProject->evaluationStructure ? [
+                // Flatten structure for frontend (maintain backward compatibility)
+                'organizational_evaluation' => [
+                    'evaluation_cycle' => $hrProject->evaluationStructure->org_evaluation_cycle,
+                    'evaluation_timing' => $hrProject->evaluationStructure->org_evaluation_timing,
+                    'evaluator_type' => $hrProject->evaluationStructure->org_evaluator_type,
+                    'evaluation_method' => $hrProject->evaluationStructure->org_evaluation_method,
+                    'rating_scale' => $hrProject->evaluationStructure->org_rating_scale,
+                    'rating_distribution' => $hrProject->evaluationStructure->org_rating_distribution,
+                    'evaluation_group' => $hrProject->evaluationStructure->org_evaluation_group,
+                    'use_of_results' => $hrProject->evaluationStructure->org_use_of_results,
+                ],
+                'individual_evaluation' => [
+                    'evaluation_cycle' => $hrProject->evaluationStructure->individual_evaluation_cycle,
+                    'evaluation_timing' => $hrProject->evaluationStructure->individual_evaluation_timing,
+                    'evaluator_types' => $hrProject->evaluationStructure->individual_evaluator_types,
+                    'evaluators' => $hrProject->evaluationStructure->individual_evaluators,
+                    'evaluation_method' => $hrProject->evaluationStructure->individual_evaluation_method,
+                    'rating_scale' => $hrProject->evaluationStructure->individual_rating_scale,
+                    'rating_distribution' => $hrProject->evaluationStructure->individual_rating_distribution,
+                    'evaluation_groups' => $hrProject->evaluationStructure->individual_evaluation_groups,
+                    'use_of_results' => $hrProject->evaluationStructure->individual_use_of_results,
+                    'organization_leader_evaluation' => $hrProject->evaluationStructure->organization_leader_evaluation,
+                ],
+            ] : null,
+            'modelGuidance' => [
+                'mbo' => $modelGuidance['mbo'] ? [
+                    'concept' => $modelGuidance['mbo']->concept,
+                    'key_characteristics' => $modelGuidance['mbo']->key_characteristics,
+                    'example' => $modelGuidance['mbo']->example,
+                    'pros' => $modelGuidance['mbo']->pros,
+                    'cons' => $modelGuidance['mbo']->cons,
+                    'best_fit_organizations' => $modelGuidance['mbo']->best_fit_organizations,
+                ] : null,
+                'bsc' => $modelGuidance['bsc'] ? [
+                    'concept' => $modelGuidance['bsc']->concept,
+                    'key_characteristics' => $modelGuidance['bsc']->key_characteristics,
+                    'example' => $modelGuidance['bsc']->example,
+                    'pros' => $modelGuidance['bsc']->pros,
+                    'cons' => $modelGuidance['bsc']->cons,
+                    'best_fit_organizations' => $modelGuidance['bsc']->best_fit_organizations,
+                ] : null,
+                'okr' => $modelGuidance['okr'] ? [
+                    'concept' => $modelGuidance['okr']->concept,
+                    'key_characteristics' => $modelGuidance['okr']->key_characteristics,
+                    'example' => $modelGuidance['okr']->example,
+                    'pros' => $modelGuidance['okr']->pros,
+                    'cons' => $modelGuidance['okr']->cons,
+                    'best_fit_organizations' => $modelGuidance['okr']->best_fit_organizations,
+                ] : null,
+            ],
+            'jobRecommendations' => $jobRecommendations,
+            'evaluationStructure' => $hrProject->evaluationStructure ? [
+                // Flatten structure for frontend (maintain backward compatibility)
+                'organizational_evaluation' => [
+                    'evaluation_cycle' => $hrProject->evaluationStructure->org_evaluation_cycle,
+                    'evaluation_timing' => $hrProject->evaluationStructure->org_evaluation_timing,
+                    'evaluator_type' => $hrProject->evaluationStructure->org_evaluator_type,
+                    'evaluation_method' => $hrProject->evaluationStructure->org_evaluation_method,
+                    'rating_scale' => $hrProject->evaluationStructure->org_rating_scale,
+                    'rating_distribution' => $hrProject->evaluationStructure->org_rating_distribution,
+                    'evaluation_group' => $hrProject->evaluationStructure->org_evaluation_group,
+                    'use_of_results' => $hrProject->evaluationStructure->org_use_of_results,
+                ],
+                'individual_evaluation' => [
+                    'evaluation_cycle' => $hrProject->evaluationStructure->individual_evaluation_cycle,
+                    'evaluation_timing' => $hrProject->evaluationStructure->individual_evaluation_timing,
+                    'evaluator_types' => $hrProject->evaluationStructure->individual_evaluator_types,
+                    'evaluators' => $hrProject->evaluationStructure->individual_evaluators,
+                    'evaluation_method' => $hrProject->evaluationStructure->individual_evaluation_method,
+                    'rating_scale' => $hrProject->evaluationStructure->individual_rating_scale,
+                    'rating_distribution' => $hrProject->evaluationStructure->individual_rating_distribution,
+                    'evaluation_groups' => $hrProject->evaluationStructure->individual_evaluation_groups,
+                    'use_of_results' => $hrProject->evaluationStructure->individual_use_of_results,
+                    'organization_leader_evaluation' => $hrProject->evaluationStructure->organization_leader_evaluation,
+                ],
+            ] : null,
         ]);
     }
 
@@ -128,9 +284,9 @@ class PerformanceSystemController extends Controller
      */
     public function store(Request $request, HrProject $hrProject)
     {
-        $tab = $request->input('tab', 'overview');
+        $tab = $request->input('tab', 'performance-snapshot');
 
-        if ($tab === 'snapshot') {
+        if ($tab === 'performance-snapshot' || $tab === 'snapshot') {
             return $this->storeSnapshot($request, $hrProject);
         } elseif ($tab === 'kpi-review') {
             return $this->storeKpiReview($request, $hrProject);
@@ -140,46 +296,7 @@ class PerformanceSystemController extends Controller
             return $this->storeEvaluationStructure($request, $hrProject);
         }
 
-        $validated = $request->validate([
-            'evaluation_units' => ['nullable', 'array'],
-            'performance_methods' => ['nullable', 'array'],
-            'assessment_structure' => ['nullable', 'array'],
-        ]);
-
-        // Extract single values from arrays
-        $data = [
-            'status' => StepStatus::IN_PROGRESS,
-        ];
-
-        if (!empty($validated['evaluation_units']) && is_array($validated['evaluation_units'])) {
-            $data['evaluation_unit'] = $validated['evaluation_units'][0] ?? null;
-        }
-
-        if (!empty($validated['performance_methods']) && is_array($validated['performance_methods'])) {
-            $data['performance_method'] = $validated['performance_methods'][0] ?? null;
-        }
-
-        // Handle assessment_structure if provided
-        if (!empty($validated['assessment_structure']) && is_array($validated['assessment_structure'])) {
-            // Map assessment_structure.type to evaluation_logic if needed
-            // For now, we'll store it as evaluation_logic if type is provided
-            if (isset($validated['assessment_structure']['type'])) {
-                $type = $validated['assessment_structure']['type'];
-                // Map: quantitative -> quantitative, qualitative -> qualitative, hybrid -> mixed
-                $data['evaluation_logic'] = $type === 'hybrid' ? 'mixed' : $type;
-            }
-        }
-
-        $performanceSystem = PerformanceSystem::updateOrCreate(
-            ['hr_project_id' => $hrProject->id],
-            $data
-        );
-
-        $hrProject->setStepStatus('performance', StepStatus::IN_PROGRESS);
-
-        $tab = $request->input('tab', 'overview');
-        return redirect()->route('hr-manager.performance-system.index', [$hrProject, $tab])
-            ->with('success', 'Performance system data saved successfully.');
+        return back()->withErrors(['error' => 'Invalid tab specified.']);
     }
 
     /**
@@ -213,8 +330,8 @@ class PerformanceSystemController extends Controller
 
         $hrProject->setStepStatus('performance', StepStatus::IN_PROGRESS);
 
-        $tab = $request->input('tab', 'snapshot');
-        return redirect()->route('hr-manager.performance-system.index', [$hrProject, $tab])
+        // Redirect to KPI Review tab
+        return redirect()->route('hr-manager.performance-system.index', [$hrProject, 'kpi-review'])
             ->with('success', 'Performance snapshot saved successfully.');
     }
 
@@ -237,33 +354,207 @@ class PerformanceSystemController extends Controller
             'kpis.*.is_active' => ['nullable', 'boolean'],
         ]);
 
-        DB::transaction(function () use ($hrProject, $validated) {
-            // Delete existing KPIs for this project
-            OrganizationalKpi::where('hr_project_id', $hrProject->id)->delete();
-
+        $newKpis = [];
+        
+        DB::transaction(function () use ($hrProject, $validated, $request, &$newKpis) {
             foreach ($validated['kpis'] as $kpiData) {
-                OrganizationalKpi::create([
-                    'hr_project_id' => $hrProject->id,
-                    'organization_name' => $kpiData['organization_name'],
-                    'kpi_name' => $kpiData['kpi_name'],
-                    'purpose' => $kpiData['purpose'] ?? null,
-                    'category' => $kpiData['category'] ?? null,
-                    'linked_job_id' => $kpiData['linked_job_id'] ?? null,
-                    'linked_csf' => $kpiData['linked_csf'] ?? null,
-                    'formula' => $kpiData['formula'] ?? null,
-                    'measurement_method' => $kpiData['measurement_method'] ?? null,
-                    'weight' => $kpiData['weight'] ?? null,
-                    'is_active' => $kpiData['is_active'] ?? true,
-                    'status' => 'draft',
-                ]);
+                if (isset($kpiData['id']) && $kpiData['id']) {
+                    $kpi = OrganizationalKpi::find($kpiData['id']);
+                    if ($kpi && $kpi->hr_project_id === $hrProject->id) {
+                        $oldValues = $kpi->toArray();
+                        $kpi->update([
+                            'organization_name' => $kpiData['organization_name'],
+                            'kpi_name' => $kpiData['kpi_name'],
+                            'purpose' => $kpiData['purpose'] ?? null,
+                            'category' => $kpiData['category'] ?? null,
+                            'linked_job_id' => $kpiData['linked_job_id'] ?? null,
+                            'linked_csf' => $kpiData['linked_csf'] ?? null,
+                            'formula' => $kpiData['formula'] ?? null,
+                            'measurement_method' => $kpiData['measurement_method'] ?? null,
+                            'weight' => $kpiData['weight'] ?? null,
+                            'is_active' => $kpiData['is_active'] ?? true,
+                            'status' => 'draft',
+                        ]);
+
+                        // Log edit history for HR Manager
+                        KpiEditHistory::create([
+                            'organizational_kpi_id' => $kpi->id,
+                            'edited_by_type' => 'hr_manager',
+                            'edited_by_id' => $request->user()->id,
+                            'edited_by_name' => $request->user()->name,
+                            'changes' => [
+                                'old_values' => $oldValues,
+                                'new_values' => $kpi->toArray(),
+                                'description' => 'HR Manager updated KPI',
+                            ],
+                        ]);
+                    }
+                } else {
+                    // Check if KPI already exists for this organization and name (case-insensitive, trimmed)
+                    $existingKpi = OrganizationalKpi::where('hr_project_id', $hrProject->id)
+                        ->whereRaw('TRIM(LOWER(organization_name)) = ?', [trim(strtolower($kpiData['organization_name']))])
+                        ->whereRaw('TRIM(LOWER(kpi_name)) = ?', [trim(strtolower($kpiData['kpi_name']))])
+                        ->first();
+                    
+                    if ($existingKpi) {
+                        // Update existing KPI instead of creating duplicate
+                        $oldValues = $existingKpi->toArray();
+                        $existingKpi->update([
+                            'purpose' => $kpiData['purpose'] ?? $existingKpi->purpose,
+                            'category' => $kpiData['category'] ?? $existingKpi->category,
+                            'linked_job_id' => $kpiData['linked_job_id'] ?? $existingKpi->linked_job_id,
+                            'linked_csf' => $kpiData['linked_csf'] ?? $existingKpi->linked_csf,
+                            'formula' => $kpiData['formula'] ?? $existingKpi->formula,
+                            'measurement_method' => $kpiData['measurement_method'] ?? $existingKpi->measurement_method,
+                            'weight' => $kpiData['weight'] ?? $existingKpi->weight,
+                            'is_active' => $kpiData['is_active'] ?? $existingKpi->is_active,
+                            'status' => 'draft',
+                        ]);
+
+                        // Log edit history for HR Manager
+                        KpiEditHistory::create([
+                            'organizational_kpi_id' => $existingKpi->id,
+                            'edited_by_type' => 'hr_manager',
+                            'edited_by_id' => $request->user()->id,
+                            'edited_by_name' => $request->user()->name,
+                            'changes' => [
+                                'old_values' => $oldValues,
+                                'new_values' => $existingKpi->toArray(),
+                                'description' => 'HR Manager updated existing KPI (duplicate prevented)',
+                            ],
+                        ]);
+                        
+                        $kpi = $existingKpi;
+                    } else {
+                        // Create new KPI only if it doesn't exist
+                        $kpi = OrganizationalKpi::create([
+                            'hr_project_id' => $hrProject->id,
+                            'organization_name' => trim($kpiData['organization_name']),
+                            'kpi_name' => trim($kpiData['kpi_name']),
+                            'purpose' => $kpiData['purpose'] ?? null,
+                            'category' => $kpiData['category'] ?? null,
+                            'linked_job_id' => $kpiData['linked_job_id'] ?? null,
+                            'linked_csf' => $kpiData['linked_csf'] ?? null,
+                            'formula' => $kpiData['formula'] ?? null,
+                            'measurement_method' => $kpiData['measurement_method'] ?? null,
+                            'weight' => $kpiData['weight'] ?? null,
+                            'is_active' => $kpiData['is_active'] ?? true,
+                            'status' => 'draft',
+                        ]);
+
+                        // Log edit history for HR Manager
+                        KpiEditHistory::create([
+                            'organizational_kpi_id' => $kpi->id,
+                            'edited_by_type' => 'hr_manager',
+                            'edited_by_id' => $request->user()->id,
+                            'edited_by_name' => $request->user()->name,
+                            'changes' => [
+                                'old_values' => null,
+                                'new_values' => $kpi->toArray(),
+                                'description' => 'HR Manager created new KPI',
+                            ],
+                        ]);
+                        
+                        // Track newly created KPIs for email notification
+                        $newKpis[] = $kpi->toArray();
+                    }
+                }
+            }
+        });
+        
+        // Send email notifications to CEO and Admin when new KPIs are created
+        if (!empty($newKpis)) {
+            $hrProject->load('company');
+            $company = $hrProject->company;
+            
+            // Get all CEOs for this company
+            $ceos = $company->ceos()->get();
+            
+            // Get all admins
+            $admins = \App\Models\User::role('admin')->get();
+            
+            // Send email to all CEOs
+            foreach ($ceos as $ceo) {
+                try {
+                    \Mail::to($ceo->email)->send(new \App\Mail\KpiCreatedNotificationMail($hrProject, $newKpis, 'ceo'));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send KPI creation email to CEO', [
+                        'ceo_id' => $ceo->id,
+                        'ceo_email' => $ceo->email,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+            
+            // Send email to all admins
+            foreach ($admins as $admin) {
+                try {
+                    \Mail::to($admin->email)->send(new \App\Mail\KpiCreatedNotificationMail($hrProject, $newKpis, 'admin'));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send KPI creation email to Admin', [
+                        'admin_id' => $admin->id,
+                        'admin_email' => $admin->email,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+
+        $hrProject->setStepStatus('performance', StepStatus::IN_PROGRESS);
+
+        // Return back with success message - frontend will reload KPIs
+        return back()->with('success', 'KPI saved successfully.');
+    }
+
+    /**
+     * Store CEO KPI review data.
+     */
+    protected function storeCeoKpiReview(Request $request, HrProject $hrProject)
+    {
+        $action = $request->input('action');
+        $validated = $request->validate([
+            'kpis' => ['required', 'array'],
+            'kpis.*.id' => ['required', 'exists:organizational_kpis,id'],
+            'kpis.*.ceo_approval_status' => ['nullable', 'in:approved,revision_requested'],
+            'kpis.*.ceo_revision_comment' => ['nullable', 'string'],
+            'organization_name' => ['nullable', 'string'],
+        ]);
+
+        DB::transaction(function () use ($hrProject, $validated, $action, $request) {
+            foreach ($validated['kpis'] as $kpiData) {
+                $kpi = OrganizationalKpi::where('id', $kpiData['id'])
+                    ->where('hr_project_id', $hrProject->id)
+                    ->first();
+                
+                if ($kpi) {
+                    $oldValues = $kpi->toArray();
+                    $kpi->update([
+                        'ceo_approval_status' => $kpiData['ceo_approval_status'] ?? null,
+                        'ceo_revision_comment' => $kpiData['ceo_revision_comment'] ?? null,
+                    ]);
+
+                    // Log edit history for CEO
+                    KpiEditHistory::create([
+                        'organizational_kpi_id' => $kpi->id,
+                        'edited_by_type' => 'ceo',
+                        'edited_by_id' => $request->user()->id,
+                        'edited_by_name' => $request->user()->name,
+                        'changes' => [
+                            'old_values' => $oldValues,
+                            'new_values' => $kpi->toArray(),
+                            'description' => $action === 'request_revision' 
+                                ? 'CEO requested revision: ' . ($kpiData['ceo_revision_comment'] ?? '')
+                                : 'CEO approved KPI',
+                        ],
+                    ]);
+                }
             }
         });
 
         $hrProject->setStepStatus('performance', StepStatus::IN_PROGRESS);
 
-        $tab = $request->input('tab', 'kpi-review');
-        return redirect()->route('hr-manager.performance-system.index', [$hrProject, $tab])
-            ->with('success', 'KPI review saved successfully.');
+        // Return back with success message - frontend will reload data
+        return back()->with('success', 'CEO KPI review saved successfully.');
     }
 
     /**
@@ -273,28 +564,25 @@ class PerformanceSystemController extends Controller
     {
         $validated = $request->validate([
             'assignments' => ['required', 'array'],
-            'assignments.*.job_definition_id' => ['required', 'exists:job_definitions,id'],
-            'assignments.*.evaluation_model' => ['required', 'in:mbo,bsc,okr'],
         ]);
 
         DB::transaction(function () use ($hrProject, $validated) {
             // Delete existing assignments for this project
             EvaluationModelAssignment::where('hr_project_id', $hrProject->id)->delete();
 
-            foreach ($validated['assignments'] as $assignment) {
+            foreach ($validated['assignments'] as $jobId => $modelType) {
                 EvaluationModelAssignment::create([
                     'hr_project_id' => $hrProject->id,
-                    'job_definition_id' => $assignment['job_definition_id'],
-                    'evaluation_model' => $assignment['evaluation_model'],
+                    'job_definition_id' => $jobId,
+                    'evaluation_model' => $modelType,
                 ]);
             }
         });
 
         $hrProject->setStepStatus('performance', StepStatus::IN_PROGRESS);
 
-        $tab = $request->input('tab', 'model-assignment');
-        return redirect()->route('hr-manager.performance-system.index', [$hrProject, $tab])
-            ->with('success', 'Evaluation model assignments saved successfully.');
+        // Return back with success message - frontend will reload data
+        return back()->with('success', 'Evaluation model assignments saved successfully.');
     }
 
     /**
@@ -307,31 +595,56 @@ class PerformanceSystemController extends Controller
             'org_evaluation_timing' => ['nullable', 'string'],
             'org_evaluator_type' => ['nullable', 'string'],
             'org_evaluation_method' => ['nullable', 'in:absolute,relative'],
-            'org_rating_scale' => ['nullable', 'in:3_level,4_level'],
+            'org_rating_scale' => ['nullable', 'in:3-level,4-level'],
             'org_rating_distribution' => ['nullable', 'array'],
-            'org_evaluation_group' => ['nullable', 'string'],
-            'org_use_of_results' => ['nullable', 'array'],
+            'org_evaluation_group' => ['nullable', 'in:team_level,executive_level'],
+            'org_use_of_results' => ['nullable', 'in:linked_to_org_manager,linked_to_individual'],
             'individual_evaluation_cycle' => ['nullable', 'in:annual,semi_annual,quarterly'],
             'individual_evaluation_timing' => ['nullable', 'string'],
             'individual_evaluator_types' => ['nullable', 'array'],
             'individual_evaluators' => ['nullable', 'array'],
             'individual_evaluation_method' => ['nullable', 'in:absolute,relative'],
-            'individual_rating_scale' => ['nullable', 'in:3_level,4_level,5_level'],
+            'individual_rating_scale' => ['nullable', 'in:3-level,4-level,5-level'],
             'individual_rating_distribution' => ['nullable', 'array'],
             'individual_evaluation_groups' => ['nullable', 'array'],
             'individual_use_of_results' => ['nullable', 'array'],
-            'organization_leader_evaluation' => ['nullable', 'in:replaced_by_org,separate_individual'],
+            'organization_leader_evaluation' => ['nullable', 'in:replaced_by_org,conducted_separately'],
         ]);
+
+        // Store data in individual columns (matching database schema)
+        $data = [
+            'hr_project_id' => $hrProject->id,
+            // Organizational Evaluation
+            'org_evaluation_cycle' => $validated['org_evaluation_cycle'] ?? null,
+            'org_evaluation_timing' => $validated['org_evaluation_timing'] ?? null,
+            'org_evaluator_type' => $validated['org_evaluator_type'] ?? null,
+            'org_evaluation_method' => $validated['org_evaluation_method'] ?? null,
+            'org_rating_scale' => $validated['org_rating_scale'] ?? null,
+            'org_rating_distribution' => $validated['org_rating_distribution'] ?? null,
+            'org_evaluation_group' => $validated['org_evaluation_group'] ?? null,
+            'org_use_of_results' => $validated['org_use_of_results'] ?? null,
+            // Individual Evaluation
+            'individual_evaluation_cycle' => $validated['individual_evaluation_cycle'] ?? null,
+            'individual_evaluation_timing' => $validated['individual_evaluation_timing'] ?? null,
+            'individual_evaluator_types' => $validated['individual_evaluator_types'] ?? null,
+            'individual_evaluators' => $validated['individual_evaluators'] ?? null,
+            'individual_evaluation_method' => $validated['individual_evaluation_method'] ?? null,
+            'individual_rating_scale' => $validated['individual_rating_scale'] ?? null,
+            'individual_rating_distribution' => $validated['individual_rating_distribution'] ?? null,
+            'individual_evaluation_groups' => $validated['individual_evaluation_groups'] ?? null,
+            'individual_use_of_results' => $validated['individual_use_of_results'] ?? null,
+            'organization_leader_evaluation' => $validated['organization_leader_evaluation'] ?? null,
+        ];
 
         EvaluationStructure::updateOrCreate(
             ['hr_project_id' => $hrProject->id],
-            $validated
+            $data
         );
 
         $hrProject->setStepStatus('performance', StepStatus::IN_PROGRESS);
 
-        $tab = $request->input('tab', 'evaluation-structure');
-        return redirect()->route('hr-manager.performance-system.index', [$hrProject, $tab])
+        // Redirect to review-submit tab after saving
+        return redirect()->route('hr-manager.performance-system.index', [$hrProject, 'review-submit'])
             ->with('success', 'Evaluation structure saved successfully.');
     }
 

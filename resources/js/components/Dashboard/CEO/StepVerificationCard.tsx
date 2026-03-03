@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Clock, Lock, Eye, X } from 'lucide-react';
+import SuccessModal from '@/components/Modals/SuccessModal';
 
 interface StepVerificationCardProps {
     projectId: number;
@@ -16,27 +17,42 @@ const STEP_LABELS: Record<string, string> = {
     ceo_diagnosis: 'CEO Diagnosis',
     performance: 'Performance System',
     compensation: 'Compensation System',
-    tree: 'TREE',
-    conclusion: 'Conclusion',
+    hr_policy_os: 'HR Policy OS',
 };
 
 const STEP_ROUTES: Record<string, (projectId: number) => string> = {
     diagnosis: (id) => `/ceo/review/diagnosis/${id}`,
     job_analysis: (id) => `/ceo/job-analysis/${id}/intro`,
-    performance: (id) => `/hr-manager/performance-system/${id}/overview`,
+    performance: (id) => `/ceo/review/performance-system/${id}`,
     compensation: (id) => `/ceo/review/compensation/${id}`,
-    tree: (id) => `/hr-manager/tree/${id}/overview`,
-    conclusion: (id) => `/hr-manager/conclusion/${id}`,
+    hr_policy_os: (id) => `/ceo/hr-policy-os/${id}`,
 };
 
 export default function StepVerificationCard({ projectId, stepStatuses }: StepVerificationCardProps) {
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
+    const [nextStepRoute, setNextStepRoute] = useState<string | null>(null);
+    const [nextStepLabel, setNextStepLabel] = useState('Next Step');
+
     const handleVerify = (step: string) => {
         router.post(`/ceo/verify/step/${projectId}`, {
             step,
         }, {
             preserveScroll: true,
             onSuccess: () => {
-                // Success handled by flash message
+                setSuccessMessage(`${STEP_LABELS[step] || step} has been verified successfully!`);
+                // Find next step that needs verification
+                const steps = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'hr_policy_os'];
+                const currentIndex = steps.indexOf(step);
+                const nextStep = steps.find((s, idx) => idx > currentIndex && stepStatuses[s] === 'submitted');
+                if (nextStep && STEP_ROUTES[nextStep]) {
+                    setNextStepRoute(STEP_ROUTES[nextStep](projectId));
+                    setNextStepLabel(`Review ${STEP_LABELS[nextStep] || nextStep}`);
+                } else {
+                    setNextStepRoute('/ceo/projects');
+                    setNextStepLabel('Back to Projects');
+                }
+                setShowSuccessModal(true);
             },
         });
     };
@@ -47,9 +63,19 @@ export default function StepVerificationCard({ projectId, stepStatuses }: StepVe
         }, {
             preserveScroll: true,
             onSuccess: () => {
-                // Success handled by flash message
+                setSuccessMessage(`Revision requested for ${STEP_LABELS[step] || step}.`);
+                setNextStepRoute('/ceo/projects');
+                setNextStepLabel('Back to Projects');
+                setShowSuccessModal(true);
             },
         });
+    };
+
+    const handleNextStep = () => {
+        if (nextStepRoute) {
+            router.visit(nextStepRoute);
+        }
+        setShowSuccessModal(false);
     };
 
     const getStepStatus = (step: string) => {
@@ -86,7 +112,7 @@ export default function StepVerificationCard({ projectId, stepStatuses }: StepVe
         }
     };
 
-    const steps = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'tree', 'conclusion'];
+    const steps = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'hr_policy_os'];
 
     return (
         <Card>
@@ -160,6 +186,15 @@ export default function StepVerificationCard({ projectId, stepStatuses }: StepVe
                     );
                 })}
             </CardContent>
+            
+            <SuccessModal
+                isOpen={showSuccessModal}
+                onClose={() => setShowSuccessModal(false)}
+                title="Success!"
+                message={successMessage}
+                nextStepLabel={nextStepLabel}
+                onNextStep={nextStepRoute ? handleNextStep : undefined}
+            />
         </Card>
     );
 }

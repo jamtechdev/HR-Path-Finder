@@ -33,7 +33,7 @@ export default function PerformanceSnapshotEdit({ question, answerTypes }: Props
     const [answerType, setAnswerType] = useState<string>(question.answer_type);
     const [options, setOptions] = useState<string[]>(question.options || []);
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, put, processing, errors } = useForm({
         question_text: question.question_text,
         answer_type: question.answer_type,
         options: question.options || [],
@@ -50,7 +50,7 @@ export default function PerformanceSnapshotEdit({ question, answerTypes }: Props
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(`/admin/performance-snapshot/${question.id}`, {
+        put(`/admin/performance-snapshot/${question.id}`, {
             onSuccess: () => {
                 router.visit('/admin/performance-snapshot');
             },

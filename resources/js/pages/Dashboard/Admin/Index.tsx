@@ -44,8 +44,10 @@ interface Props {
         completed_projects: number;
         pending_diagnosis: number;
         pending_ceo_survey: number;
+        pending_kpi_review?: number;
     };
     recentProjects: Project[];
+    pendingKpiReviews?: Project[];
     projectsNeedingPerformanceRecommendation?: Project[];
     projectsNeedingCompensationRecommendation?: Project[];
     companies?: Company[];
@@ -55,6 +57,7 @@ export default function AdminDashboard({
     projects, 
     stats, 
     recentProjects,
+    pendingKpiReviews = [],
     projectsNeedingPerformanceRecommendation = [],
     projectsNeedingCompensationRecommendation = [],
     companies = []

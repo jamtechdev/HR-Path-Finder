@@ -94,11 +94,11 @@ export default function JobStructure({
                 formData={data}
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
-                <Card>
-                    <CardContent className="px-6">
+                <Card className="shadow-sm border">
+                    <CardContent className="p-6">
                         {/* Job Categories */}
                         <div className="space-y-3">
-                            <Label className="text-base font-semibold text-foreground block">Job Category</Label>
+                            <Label className="text-sm font-medium text-foreground block">Job Category</Label>
                             <DynamicList
                                 label=""
                                 items={jobCategories}
@@ -110,8 +110,8 @@ export default function JobStructure({
                         </div>
 
                         {/* Job Functions */}
-                        <div className="space-y-3 mt-3">
-                            <Label className="text-base font-semibold text-foreground">Job Function</Label>
+                        <div className="space-y-3 mt-6">
+                            <Label className="text-sm font-medium text-foreground block">Job Function</Label>
                             <MultiSelectQuestion
                                 question="Select job functions"
                                 value={jobFunctions.filter(f => DEFAULT_JOB_FUNCTIONS.includes(f))}

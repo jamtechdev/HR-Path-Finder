@@ -67,7 +67,7 @@ class DiagnosisWizardController extends Controller
      * Show diagnosis wizard tab (with project ID).
      * Handles route: diagnosis/{hrProject}/{tab}
      */
-    public function showWithProject(Request $request, HrProject $hrProject, ?string $tab = null): Response
+    public function showWithProject(Request $request, HrProject $hrProject, ?string $tab = null): Response|RedirectResponse
     {
         $activeTab = $tab ?? 'overview';
         return $this->renderDiagnosisPage($request, $hrProject, $activeTab);
@@ -109,6 +109,24 @@ class DiagnosisWizardController extends Controller
         // Calculate individual step statuses if diagnosis exists
         if ($diagnosis && $diagnosis->exists) {
             $stepStatuses = $this->calculateDiagnosisStepStatuses($diagnosis, $stepStatuses);
+        }
+
+        // Auto-redirect to company-info if on overview and diagnosis hasn't started
+        if ($activeTab === 'overview') {
+            $diagnosis = $hrProject->diagnosis;
+            $hasStarted = $diagnosis && (
+                $diagnosis->industry_category || 
+                $diagnosis->present_headcount > 0 ||
+                $diagnosis->status !== StepStatus::NOT_STARTED->value
+            );
+            
+            // If diagnosis hasn't started, auto-redirect to company-info
+            if (!$hasStarted) {
+                if ($hrProject->id) {
+                    return redirect("/hr-manager/diagnosis/{$hrProject->id}/company-info");
+                }
+                return redirect('/hr-manager/diagnosis/company-info');
+            }
         }
 
         // Determine which component to render based on tab

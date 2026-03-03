@@ -59,6 +59,25 @@ class CompensationSystemController extends Controller
         ]);
         $compensationSystem = $hrProject->compensationSystem;
 
+        // Auto-create CompensationSystem record if it doesn't exist but other compensation data exists
+        if (!$compensationSystem && (
+            $hrProject->compensationSnapshotResponses->isNotEmpty() ||
+            $hrProject->baseSalaryFramework !== null ||
+            $hrProject->payBands->isNotEmpty() ||
+            $hrProject->salaryTables->isNotEmpty() ||
+            $hrProject->payBandOperationCriteria !== null ||
+            $hrProject->bonusPoolConfiguration !== null ||
+            $hrProject->benefitsConfiguration !== null
+        )) {
+            $compensationSystem = CompensationSystem::updateOrCreate(
+                ['hr_project_id' => $hrProject->id],
+                ['status' => StepStatus::IN_PROGRESS]
+            );
+            $hrProject->setStepStatus('compensation', StepStatus::IN_PROGRESS);
+            $hrProject->load('compensationSystem'); // Reload to get the newly created system
+            $compensationSystem = $hrProject->compensationSystem; // Update local variable
+        }
+
         // Load snapshot questions
         $snapshotQuestions = CompensationSnapshotQuestion::where('is_active', true)
             ->orderBy('order')
@@ -442,7 +461,34 @@ class CompensationSystemController extends Controller
             abort(403);
         }
 
+        $hrProject->load([
+            'compensationSystem',
+            'compensationSnapshotResponses',
+            'baseSalaryFramework',
+            'payBands',
+            'salaryTables',
+            'payBandOperationCriteria',
+            'bonusPoolConfiguration',
+            'benefitsConfiguration',
+        ]);
+
         $compensationSystem = $hrProject->compensationSystem;
+
+        // Auto-create CompensationSystem if it doesn't exist but other compensation data exists
+        if (!$compensationSystem && (
+            $hrProject->compensationSnapshotResponses->isNotEmpty() ||
+            $hrProject->baseSalaryFramework !== null ||
+            $hrProject->payBands->isNotEmpty() ||
+            $hrProject->salaryTables->isNotEmpty() ||
+            $hrProject->payBandOperationCriteria !== null ||
+            $hrProject->bonusPoolConfiguration !== null ||
+            $hrProject->benefitsConfiguration !== null
+        )) {
+            $compensationSystem = CompensationSystem::updateOrCreate(
+                ['hr_project_id' => $hrProject->id],
+                ['status' => StepStatus::IN_PROGRESS]
+            );
+        }
         
         if (!$compensationSystem) {
             return back()->withErrors(['error' => 'Please complete the compensation system first.']);

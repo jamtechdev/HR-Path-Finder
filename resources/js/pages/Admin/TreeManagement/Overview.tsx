@@ -6,6 +6,7 @@ import AppHeader from '@/components/Header/AppHeader';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Building2, Users, TrendingUp } from 'lucide-react';
+import D3TreeView from '@/components/Tree/D3TreeView';
 
 interface JobDefinition {
     id: number;
@@ -15,6 +16,36 @@ interface JobDefinition {
     reporting_structure?: {
         executive_director?: string;
         reporting_hierarchy?: string;
+    };
+}
+
+interface HrSystemSnapshot {
+    company: {
+        name: string;
+        industry: string;
+        size: number;
+    };
+    ceo_philosophy: {
+        main_trait?: string;
+        secondary_trait?: string;
+    };
+    job_architecture: {
+        jobs_defined: number;
+    };
+    performance_management: {
+        model?: string;
+        cycle?: string;
+        rating_scale?: string;
+    };
+    compensation_benefits: {
+        salary_system?: string;
+        salary_increase_process?: string;
+        bonus_metric?: string;
+        benefits_level?: number;
+        welfare_program?: string;
+    };
+    hr_system_report: {
+        status: string;
     };
 }
 
@@ -28,6 +59,7 @@ interface Props {
     stepStatuses: Record<string, string>;
     projectId: number;
     jobDefinitions: JobDefinition[];
+    hrSystemSnapshot: HrSystemSnapshot;
 }
 
 export default function TreeManagementOverview({
@@ -35,6 +67,7 @@ export default function TreeManagementOverview({
     stepStatuses,
     projectId,
     jobDefinitions,
+    hrSystemSnapshot,
 }: Props) {
     return (
         <SidebarProvider defaultOpen={true}>
@@ -53,7 +86,7 @@ export default function TreeManagementOverview({
                         </div>
 
                         {/* Info Card */}
-                        <Card className="border-blue-200 bg-blue-50">
+                        <Card className="border-blue-200 bg-blue-50 mb-6">
                             <CardContent className="pt-6">
                                 <p className="text-sm text-blue-800">
                                     <strong>Admin Access:</strong> This is an admin-only feature for managing 
@@ -61,6 +94,11 @@ export default function TreeManagementOverview({
                                 </p>
                             </CardContent>
                         </Card>
+
+                        {/* HR System Tree View */}
+                        <div className="mb-6">
+                            <D3TreeView hrSystemSnapshot={hrSystemSnapshot} />
+                        </div>
 
                         {/* Job Definitions Overview */}
                         <Card>

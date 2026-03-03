@@ -18,22 +18,31 @@ class CeoKpiReviewController extends Controller
             abort(403);
         }
 
-        // Load all organizational KPIs grouped by organization
-        $kpis = OrganizationalKpi::where('hr_project_id', $hrProject->id)
-            ->with('linkedJob')
-            ->get()
-            ->groupBy('organization_name');
+        // Check if CEO is associated with the company
+        if (!$hrProject->company->users->contains($request->user())) {
+            abort(403);
+        }
 
-        // Get unique organization names
-        $organizations = $kpis->keys()->toArray();
+        // Load all organizational KPIs and remove duplicates
+        $allKpis = OrganizationalKpi::where('hr_project_id', $hrProject->id)
+            ->with('linkedJob')
+            ->orderBy('organization_name')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        // Remove duplicates - keep the one with highest ID (most recent)
+        $uniqueKpis = collect($allKpis)->unique(function ($kpi) {
+            return strtolower(trim($kpi->organization_name)) . '::' . strtolower(trim($kpi->kpi_name));
+        })->values();
+        
+        $kpis = $uniqueKpis;
 
         // Load org chart mappings for reference
         $orgChartMappings = \App\Models\OrgChartMapping::where('hr_project_id', $hrProject->id)->get();
 
         return Inertia::render('PerformanceSystem/CeoKpiReview', [
             'project' => $hrProject,
-            'kpisByOrganization' => $kpis,
-            'organizations' => $organizations,
+            'kpis' => $kpis,
             'orgChartMappings' => $orgChartMappings,
         ]);
     }
@@ -47,12 +56,20 @@ class CeoKpiReviewController extends Controller
             abort(403);
         }
 
+        // Check if CEO is associated with the company
+        if (!$hrProject->company->users->contains($request->user())) {
+            abort(403);
+        }
+
         $action = $request->input('action'); // 'approve' or 'request_revision'
 
         if ($action === 'approve') {
             // Approve all KPIs
             OrganizationalKpi::where('hr_project_id', $hrProject->id)
-                ->update(['status' => 'approved']);
+                ->update([
+                    'ceo_approval_status' => 'approved',
+                    'status' => 'approved'
+                ]);
 
             // Mark performance step as approved
             $hrProject->setStepStatus('performance', \App\Enums\StepStatus::APPROVED);
@@ -71,6 +88,8 @@ class CeoKpiReviewController extends Controller
                     OrganizationalKpi::where('hr_project_id', $hrProject->id)
                         ->where('organization_name', $revision['organization_name'])
                         ->update([
+                            'ceo_approval_status' => 'revision_requested',
+                            'ceo_revision_comment' => $revision['comment'],
                             'status' => 'revision_requested',
                             'revision_comment' => $revision['comment'],
                         ]);

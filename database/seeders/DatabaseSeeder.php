@@ -27,6 +27,9 @@ class DatabaseSeeder extends Seeder
         // Seed performance snapshot questions
         $this->call(PerformanceSnapshotQuestionSeeder::class);
         
+        // Seed compensation snapshot questions
+        $this->call(CompensationSnapshotQuestionSeeder::class);
+        
         // Seed HR issues
         $this->call(HrIssueSeeder::class);
         

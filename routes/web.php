@@ -104,10 +104,17 @@ Route::middleware(['auth'])->group(function () {
         Route::get('dashboard', [\App\Http\Controllers\Dashboard\CeoDashboardController::class, 'index'])
             ->name('dashboard');
         
+        // Projects
+        Route::get('projects', [\App\Http\Controllers\Dashboard\CeoDashboardController::class, 'projects'])->name('projects.index');
+        Route::get('projects/{hrProject}/verification', [\App\Http\Controllers\Dashboard\CeoDashboardController::class, 'verification'])->name('projects.verification');
+        
         // Diagnosis Review
         Route::get('review/diagnosis/{hrProject}', [\App\Http\Controllers\CeoReviewController::class, 'reviewDiagnosis'])->name('review.diagnosis');
         Route::post('review/diagnosis/{hrProject}/update', [\App\Http\Controllers\CeoReviewController::class, 'updateDiagnosis'])->name('review.diagnosis.update');
         Route::post('review/diagnosis/{hrProject}/confirm', [\App\Http\Controllers\CeoReviewController::class, 'confirmDiagnosis'])->name('review.diagnosis.confirm');
+        
+        // Performance System Review
+        Route::get('review/performance-system/{hrProject}', [\App\Http\Controllers\CeoReviewController::class, 'reviewPerformanceSystem'])->name('review.performance-system');
         
         // Compensation Review
         Route::get('review/compensation/{hrProject}', [\App\Http\Controllers\CeoReviewController::class, 'reviewCompensation'])->name('review.compensation');
@@ -128,6 +135,14 @@ Route::middleware(['auth'])->group(function () {
         // HR Policy OS Review (Step 5)
         Route::get('hr-policy-os/{hrProject}', [\App\Http\Controllers\HrPolicyOsController::class, 'ceoReview'])->name('hr-policy-os.review');
         Route::post('hr-policy-os/{hrProject}/approve', [\App\Http\Controllers\HrPolicyOsController::class, 'approve'])->name('hr-policy-os.approve');
+        
+        // Tree Management (CEO)
+        Route::get('tree/{hrProject}/{tab?}', [\App\Http\Controllers\CeoTreeController::class, 'index'])->name('tree.index');
+        
+        // Report (CEO)
+        Route::get('report/{hrProject}', [\App\Http\Controllers\CeoReportController::class, 'index'])->name('report.index');
+        Route::get('report/{hrProject}/download', [\App\Http\Controllers\CeoReportController::class, 'downloadFullReport'])->name('report.download');
+        Route::get('report/{hrProject}/download/{step}', [\App\Http\Controllers\CeoReportController::class, 'downloadStepReport'])->name('report.download.step');
         
         // CEO KPI Review (Performance Step 4-2)
         Route::get('kpi-review/{hrProject}', [\App\Http\Controllers\CeoKpiReviewController::class, 'index'])->name('kpi-review.index');
@@ -161,19 +176,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('organization-design/{hrProject}', [\App\Http\Controllers\OrganizationDesignController::class, 'store'])->name('organization-design.store');
         Route::post('organization-design/{hrProject}/submit', [\App\Http\Controllers\OrganizationDesignController::class, 'submit'])->name('organization-design.submit');
         
-        // Job Analysis Module
-        Route::get('job-analysis/{hrProject}/intro', [\App\Http\Controllers\JobAnalysisController::class, 'intro'])->name('job-analysis.intro');
+        // Job Analysis Module (Rebuilt - no incremental saves, only finalization)
+        Route::get('job-analysis/{hrProject}/{tab?}', [\App\Http\Controllers\JobAnalysisController::class, 'index'])->name('job-analysis.index');
         Route::post('job-analysis/{hrProject}/intro/store', [\App\Http\Controllers\JobAnalysisController::class, 'storeIntro'])->name('job-analysis.intro.store');
-        Route::get('job-analysis/{hrProject}/policy-snapshot', [\App\Http\Controllers\JobAnalysisController::class, 'policySnapshot'])->name('job-analysis.policy-snapshot');
-        Route::post('job-analysis/{hrProject}/policy-snapshot', [\App\Http\Controllers\JobAnalysisController::class, 'storePolicySnapshot'])->name('job-analysis.policy-snapshot.store');
-        Route::get('job-analysis/{hrProject}/job-list-selection', [\App\Http\Controllers\JobAnalysisController::class, 'jobListSelection'])->name('job-analysis.job-list-selection');
-        Route::post('job-analysis/{hrProject}/job-list-selection', [\App\Http\Controllers\JobAnalysisController::class, 'storeJobListSelection'])->name('job-analysis.job-list-selection.store');
-        Route::get('job-analysis/{hrProject}/job-definition/{jobDefinition?}', [\App\Http\Controllers\JobAnalysisController::class, 'jobDefinition'])->name('job-analysis.job-definition');
-        Route::post('job-analysis/{hrProject}/job-definition/{jobDefinition}', [\App\Http\Controllers\JobAnalysisController::class, 'storeJobDefinition'])->name('job-analysis.job-definition.store');
-        Route::get('job-analysis/{hrProject}/finalization', [\App\Http\Controllers\JobAnalysisController::class, 'finalization'])->name('job-analysis.finalization');
         Route::post('job-analysis/{hrProject}/finalize', [\App\Http\Controllers\JobAnalysisController::class, 'finalize'])->name('job-analysis.finalize');
-        Route::get('job-analysis/{hrProject}/org-chart-mapping', [\App\Http\Controllers\JobAnalysisController::class, 'orgChartMapping'])->name('job-analysis.org-chart-mapping');
-        Route::post('job-analysis/{hrProject}/org-chart-mapping', [\App\Http\Controllers\JobAnalysisController::class, 'storeOrgChartMapping'])->name('job-analysis.org-chart-mapping.store');
         Route::post('job-analysis/{hrProject}/submit', [\App\Http\Controllers\JobAnalysisController::class, 'submit'])->name('job-analysis.submit');
         
         // Performance System
@@ -181,6 +187,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('performance-system/{hrProject}', [\App\Http\Controllers\PerformanceSystemController::class, 'store'])->name('performance-system.store');
         Route::post('performance-system/{hrProject}/submit', [\App\Http\Controllers\PerformanceSystemController::class, 'submit'])->name('performance-system.submit');
         Route::post('performance-system/{hrProject}/send-review-request', [\App\Http\Controllers\KpiReviewController::class, 'sendReviewRequest'])->name('performance-system.send-review-request');
+        Route::get('performance-system/{hrProject}/kpi-edit-history/{organizationalKpi}', [\App\Http\Controllers\Admin\KpiEditHistoryController::class, 'show'])->name('performance-system.kpi-edit-history.show');
         
         // Compensation System
         Route::get('compensation-system/{hrProject}/{tab?}', [\App\Http\Controllers\CompensationSystemController::class, 'index'])->name('compensation-system.index');
@@ -191,6 +198,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('hr-policy-os/{hrProject}', [\App\Http\Controllers\HrPolicyOsController::class, 'index'])->name('hr-policy-os.index');
         Route::post('hr-policy-os/{hrProject}', [\App\Http\Controllers\HrPolicyOsController::class, 'store'])->name('hr-policy-os.store');
         Route::post('hr-policy-os/{hrProject}/submit', [\App\Http\Controllers\HrPolicyOsController::class, 'submit'])->name('hr-policy-os.submit');
+        
+        // Tree Management (HR Manager)
+        Route::get('tree/{hrProject}/{tab?}', [\App\Http\Controllers\HrTreeController::class, 'index'])->name('tree.index');
+        
+        // Report (HR Manager)
+        Route::get('report/{hrProject}', [\App\Http\Controllers\HrReportController::class, 'index'])->name('report.index');
+        Route::get('report/{hrProject}/download', [\App\Http\Controllers\HrReportController::class, 'downloadFullReport'])->name('report.download');
+        Route::get('report/{hrProject}/download/{step}', [\App\Http\Controllers\HrReportController::class, 'downloadStepReport'])->name('report.download.step');
     });
     
     // ========== Admin Routes ==========
@@ -202,6 +217,10 @@ Route::middleware(['auth'])->group(function () {
         // Review
         Route::get('review/{hrProject}', [\App\Http\Controllers\AdminReviewController::class, 'index'])->name('review.index');
         Route::post('review/{hrProject}/comment', [\App\Http\Controllers\AdminReviewController::class, 'addComment'])->name('review.comment');
+        
+        // KPI Review
+        Route::get('kpi-review/{hrProject}', [\App\Http\Controllers\Admin\KpiReviewController::class, 'index'])->name('kpi-review.index');
+        Route::post('kpi-review/{hrProject}', [\App\Http\Controllers\Admin\KpiReviewController::class, 'store'])->name('kpi-review.store');
         
         // CEO Questions Management
         Route::resource('questions/ceo', \App\Http\Controllers\Admin\DiagnosisQuestionController::class)->names([
@@ -264,6 +283,17 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('industries/subcategories/{subCategory}', [\App\Http\Controllers\Admin\IndustryController::class, 'destroySubCategory'])->name('industries.subcategories.destroy');
         
         // Job Keywords Management
+        // Job Analysis Admin Management
+        Route::resource('job-analysis/intro-texts', \App\Http\Controllers\Admin\JobAnalysisIntroController::class)->names([
+            'index' => 'job-analysis.intro-texts.index',
+            'create' => 'job-analysis.intro-texts.create',
+            'store' => 'job-analysis.intro-texts.store',
+            'show' => 'job-analysis.intro-texts.show',
+            'edit' => 'job-analysis.intro-texts.edit',
+            'update' => 'job-analysis.intro-texts.update',
+            'destroy' => 'job-analysis.intro-texts.destroy',
+        ]);
+        
         Route::resource('job-keywords', \App\Http\Controllers\Admin\JobKeywordController::class)->names([
             'index' => 'job-keywords.index',
             'create' => 'job-keywords.create',
@@ -293,6 +323,38 @@ Route::middleware(['auth'])->group(function () {
             'update' => 'performance-snapshot.update',
             'destroy' => 'performance-snapshot.destroy',
         ]);
+
+        // Evaluation Model Guidance
+        Route::resource('evaluation-model-guidance', \App\Http\Controllers\Admin\EvaluationModelGuidanceController::class)->names([
+            'index' => 'evaluation-model-guidance.index',
+            'create' => 'evaluation-model-guidance.create',
+            'store' => 'evaluation-model-guidance.store',
+            'edit' => 'evaluation-model-guidance.edit',
+            'update' => 'evaluation-model-guidance.update',
+            'destroy' => 'evaluation-model-guidance.destroy',
+        ]);
+
+        // Job Evaluation Model Recommendations
+        Route::resource('job-model-recommendation', \App\Http\Controllers\Admin\JobEvaluationModelRecommendationController::class)->names([
+            'index' => 'job-model-recommendation.index',
+            'store' => 'job-model-recommendation.store',
+            'update' => 'job-model-recommendation.update',
+            'destroy' => 'job-model-recommendation.destroy',
+        ]);
+
+        // Evaluation Option Guidance
+        Route::resource('evaluation-option-guidance', \App\Http\Controllers\Admin\EvaluationOptionGuidanceController::class)->names([
+            'index' => 'evaluation-option-guidance.index',
+            'create' => 'evaluation-option-guidance.create',
+            'store' => 'evaluation-option-guidance.store',
+            'edit' => 'evaluation-option-guidance.edit',
+            'update' => 'evaluation-option-guidance.update',
+            'destroy' => 'evaluation-option-guidance.destroy',
+        ]);
+
+        // KPI Edit History
+        Route::get('kpi-edit-history', [\App\Http\Controllers\Admin\KpiEditHistoryController::class, 'index'])->name('kpi-edit-history.index');
+        Route::get('kpi-edit-history/{organizationalKpi}', [\App\Http\Controllers\Admin\KpiEditHistoryController::class, 'show'])->name('kpi-edit-history.show');
         Route::post('performance-snapshot/reorder', [\App\Http\Controllers\Admin\PerformanceSnapshotQuestionController::class, 'reorder'])->name('performance-snapshot.reorder');
         
         // Compensation Snapshot Questions Management
@@ -349,6 +411,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('tree/{hrProject}/{tab?}', [\App\Http\Controllers\Admin\TreeManagementController::class, 'index'])->name('tree.index');
         Route::post('tree/{hrProject}', [\App\Http\Controllers\Admin\TreeManagementController::class, 'store'])->name('tree.store');
         Route::post('tree/{hrProject}/update', [\App\Http\Controllers\Admin\TreeManagementController::class, 'update'])->name('tree.update');
+        
+        // Report (Admin)
+        Route::get('report/{hrProject}', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('report.index');
+        Route::get('report/{hrProject}/download', [\App\Http\Controllers\Admin\ReportController::class, 'downloadFullReport'])->name('report.download');
+        Route::get('report/{hrProject}/download/{step}', [\App\Http\Controllers\Admin\ReportController::class, 'downloadStepReport'])->name('report.download.step');
     });
     
     // ========== HR System Overview ==========

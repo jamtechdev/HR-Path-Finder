@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { TrendingUp, Users, Calendar, CheckCircle2, Target, DollarSign, Building2, UserPlus, Mail, X, Award, Sparkles, Clock, ArrowRight, Lock } from 'lucide-react';
 import ProgressTracker from '@/components/Dashboard/HRManager/ProgressTracker';
 import StepCard from '@/components/Dashboard/HRManager/StepCard';
+import ProfessionalWorkflow from '@/components/Workflow/ProfessionalWorkflow';
 import type { StepKey, StepStatus } from '@/types/workflow';
 
 interface User {
@@ -148,23 +149,25 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                 return 'locked'; // Step 2+ locked until CEO survey
             }
             
-            // Check if all previous steps are VERIFIED (approved/locked) to unlock this step
+            // Check if all previous steps are submitted/approved/locked to unlock this step
+            // Allow progression after submission (submitted status) while CEO approval is pending
             let allPreviousVerified = true;
             for (let i = 0; i < stepIndex; i++) {
                 const prevStep = STEP_CONFIG[i];
                 const prevStatus = stepStatuses[prevStep.id] as StepStatus | undefined;
                 
-                // For diagnosis, must be VERIFIED (approved/locked) to unlock next step
+                // For diagnosis, must be submitted/approved/locked to unlock next step
                 if (prevStep.id === 'diagnosis') {
                     const prevDiagnosisStatus = stepStatuses['diagnosis'] as StepStatus | undefined;
-                    // Must be approved or locked (verified) to unlock next step
-                    if (!prevDiagnosisStatus || !['approved', 'locked', 'completed'].includes(prevDiagnosisStatus)) {
+                    // Must be submitted, approved, or locked to unlock next step
+                    if (!prevDiagnosisStatus || !['submitted', 'approved', 'locked', 'completed'].includes(prevDiagnosisStatus)) {
                         allPreviousVerified = false;
                         break;
                     }
                 } else {
-                    // For other steps, must be VERIFIED (approved/locked) by CEO to unlock next step
-                    if (!prevStatus || !['approved', 'locked', 'completed'].includes(prevStatus)) {
+                    // For other steps, must be submitted/approved/locked to unlock next step
+                    // This allows HR to continue after submission while CEO approval is pending
+                    if (!prevStatus || !['submitted', 'approved', 'locked', 'completed'].includes(prevStatus)) {
                         allPreviousVerified = false;
                         break;
                     }
@@ -222,14 +225,16 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
             return true;
         }
         
-        // Check if all previous steps are VERIFIED (approved/locked) to unlock this step
+        // Check if all previous steps are SUBMITTED, APPROVED, or LOCKED to unlock this step
+        // This allows HR to continue working after submission while CEO approval is pending
         for (let i = 0; i < stepIndex; i++) {
             const prevStep = STEP_CONFIG[i];
             const prevStatus = stepStatuses[prevStep.id] as StepStatus | undefined;
             
-            // Previous step must be VERIFIED (approved/locked) to unlock next step
-            if (!prevStatus || !['approved', 'locked', 'completed'].includes(prevStatus)) {
-                return true; // Locked because previous step is not verified
+            // Previous step must be SUBMITTED, APPROVED, or LOCKED to unlock next step
+            // SUBMITTED status allows progression while waiting for CEO approval
+            if (!prevStatus || !['submitted', 'approved', 'locked', 'completed'].includes(prevStatus)) {
+                return true; // Locked because previous step is not submitted/verified
             }
         }
         
@@ -251,7 +256,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
             case 'diagnosis':
                 return `/hr-manager/diagnosis/${activeProject.id}/overview`;
             case 'job_analysis':
-                return `/hr-manager/job-analysis/${activeProject.id}/intro`;
+                return `/hr-manager/job-analysis/${activeProject.id}/overview`;
             case 'performance':
                 return `/hr-manager/performance-system/${activeProject.id}/overview`;
             case 'compensation':

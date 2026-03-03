@@ -252,7 +252,8 @@ class HrProject extends Model
 
     /**
      * Check if a step is unlocked.
-     * A step is unlocked only if the previous step is verified (approved/locked) by CEO.
+     * A step is unlocked if the previous step is submitted, approved, or locked.
+     * This allows HR to continue working while CEO approval is pending.
      */
     public function isStepUnlocked(string $step): bool
     {
@@ -266,8 +267,13 @@ class HrProject extends Model
         $previousStep = $stepOrder[$stepIndex - 1];
         $previousStatus = $this->getStepStatus($previousStep);
 
-        // Previous step must be approved/locked (CEO verified) to unlock next step
-        return $previousStatus && in_array($previousStatus, [StepStatus::APPROVED, StepStatus::LOCKED]);
+        // Previous step must be submitted, approved, or locked to unlock next step
+        // This allows HR to continue after submission while CEO approval is pending
+        return $previousStatus && in_array($previousStatus, [
+            StepStatus::SUBMITTED,
+            StepStatus::APPROVED,
+            StepStatus::LOCKED
+        ]);
     }
 
     /**

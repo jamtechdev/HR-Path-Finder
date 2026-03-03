@@ -102,8 +102,8 @@ export default function HrIssues({
                 formData={data}
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
-                <Card className="bg-muted/50">
-                    <CardContent className="px-6">
+                <Card className="shadow-sm border">
+                    <CardContent className="p-6">
                         <div className="bg-muted/50 p-4 rounded-lg mb-4">
                             <p className="text-sm text-muted-foreground">
                                 Select all issues that apply to your organization. You can add additional items if needed.
@@ -117,7 +117,7 @@ export default function HrIssues({
 
                             return (
                                 <div key={category} className="space-y-3">
-                                    <Label className="text-sm font-semibold my-3 block">
+                                    <Label className="text-sm font-medium text-foreground my-3 block">
                                         {CATEGORY_LABELS[category]}
                                     </Label>
                                     <MultiSelectQuestion

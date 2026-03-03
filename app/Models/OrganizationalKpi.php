@@ -24,6 +24,10 @@ class OrganizationalKpi extends Model
         'weight',
         'is_active',
         'status',
+        'proposed_by_manager_id',
+        'proposed_at',
+        'ceo_approval_status',
+        'ceo_revision_comment',
         'revision_comment',
     ];
 
@@ -53,6 +57,6 @@ class OrganizationalKpi extends Model
      */
     public function editHistory(): HasMany
     {
-        return $this->hasMany(KpiEditHistory::class, 'kpi_id');
+        return $this->hasMany(KpiEditHistory::class, 'organizational_kpi_id');
     }
 }

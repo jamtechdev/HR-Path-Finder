@@ -17,6 +17,7 @@ class PerformanceSnapshotQuestion extends Model
         'order',
         'is_active',
         'version',
+        'recommendation_rule_id',
         'metadata',
     ];
 

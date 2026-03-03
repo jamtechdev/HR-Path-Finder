@@ -12,6 +12,9 @@ class PolicySnapshotQuestionSeeder extends Seeder
      */
     public function run(): void
     {
+        // Delete all existing policy snapshot questions
+        PolicySnapshotQuestion::query()->delete();
+
         $questions = [
             [
                 'order' => 1,
@@ -53,8 +56,5 @@ class PolicySnapshotQuestionSeeder extends Seeder
                 'has_conditional_text' => $question['has_conditional_text'],
             ]);
         }
-
-        $this->command->info('Policy snapshot questions seeded successfully!');
-        $this->command->info('Total questions created: ' . PolicySnapshotQuestion::count());
     }
 }

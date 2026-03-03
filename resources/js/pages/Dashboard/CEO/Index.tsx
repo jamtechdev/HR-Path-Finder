@@ -14,7 +14,8 @@ import {
     AlertCircle,
     ArrowRight,
     Eye,
-    TrendingUp
+    TrendingUp,
+    Target
 } from 'lucide-react';
 import StepVerificationCard from '@/components/Dashboard/CEO/StepVerificationCard';
 
@@ -45,16 +46,18 @@ interface Project {
 interface Props {
     projects: Project[];
     pendingReviews: Project[];
+    pendingKpiReviews?: Project[];
     stats: {
         total_projects: number;
         pending_diagnosis_review: number;
         pending_ceo_survey: number;
+        pending_kpi_review?: number;
         completed_projects: number;
     };
     needsAttention: Project[];
 }
 
-export default function CeoDashboard({ projects, pendingReviews, stats, needsAttention }: Props) {
+export default function CeoDashboard({ projects, pendingReviews, pendingKpiReviews = [], stats, needsAttention }: Props) {
     const getStatusBadge = (status: string) => {
         const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
             'not_started': { label: 'Not Started', variant: 'outline' },
@@ -85,61 +88,69 @@ export default function CeoDashboard({ projects, pendingReviews, stats, needsAtt
 
                         {/* Statistics Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                            <Card className="border-t-6 border-t-blue-500">
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm text-muted-foreground mb-1">Total Projects</p>
-                                            <p className="text-3xl font-bold">{stats.total_projects}</p>
+                            <Link href="/ceo/projects">
+                                <Card className="border-t-6 border-t-blue-500 hover:shadow-lg transition-shadow cursor-pointer">
+                                    <CardContent className="p-6">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-sm text-muted-foreground mb-1">Total Projects</p>
+                                                <p className="text-3xl font-bold">{stats.total_projects}</p>
+                                            </div>
+                                            <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                                                <FolderKanban className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                            </div>
                                         </div>
-                                        <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                                            <FolderKanban className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                    </CardContent>
+                                </Card>
+                            </Link>
 
-                            <Card className="border-t-6 border-t-orange-500">
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm text-muted-foreground mb-1">Pending Review</p>
-                                            <p className="text-3xl font-bold">{stats.pending_diagnosis_review}</p>
+                            <Link href="/ceo/projects">
+                                <Card className="border-t-6 border-t-orange-500 hover:shadow-lg transition-shadow cursor-pointer">
+                                    <CardContent className="p-6">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-sm text-muted-foreground mb-1">Pending Review</p>
+                                                <p className="text-3xl font-bold">{stats.pending_diagnosis_review}</p>
+                                            </div>
+                                            <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
+                                                <Clock className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                                            </div>
                                         </div>
-                                        <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
-                                            <Clock className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                    </CardContent>
+                                </Card>
+                            </Link>
 
-                            <Card className="border-t-6 border-t-yellow-500">
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm text-muted-foreground mb-1">Pending Survey</p>
-                                            <p className="text-3xl font-bold">{stats.pending_ceo_survey}</p>
+                            <Link href="/ceo/projects">
+                                <Card className="border-t-6 border-t-yellow-500 hover:shadow-lg transition-shadow cursor-pointer">
+                                    <CardContent className="p-6">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-sm text-muted-foreground mb-1">Pending Survey</p>
+                                                <p className="text-3xl font-bold">{stats.pending_ceo_survey}</p>
+                                            </div>
+                                            <div className="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center">
+                                                <FileText className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                                            </div>
                                         </div>
-                                        <div className="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center">
-                                            <FileText className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                    </CardContent>
+                                </Card>
+                            </Link>
 
-                            <Card className="border-t-6 border-t-green-500">
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm text-muted-foreground mb-1">Completed</p>
-                                            <p className="text-3xl font-bold">{stats.completed_projects}</p>
+                            <Link href="/ceo/projects">
+                                <Card className="border-t-6 border-t-green-500 hover:shadow-lg transition-shadow cursor-pointer">
+                                    <CardContent className="p-6">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-sm text-muted-foreground mb-1">Completed</p>
+                                                <p className="text-3xl font-bold">{stats.completed_projects}</p>
+                                            </div>
+                                            <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                                                <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+                                            </div>
                                         </div>
-                                        <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                                            <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                    </CardContent>
+                                </Card>
+                            </Link>
                         </div>
 
                         {/* Action Cards */}
@@ -176,6 +187,48 @@ export default function CeoDashboard({ projects, pendingReviews, stats, needsAtt
                                         <Link href="/ceo/dashboard">
                                             <Button variant="outline" className="w-full">
                                                 View All Pending Reviews ({pendingReviews.length})
+                                                <ArrowRight className="w-4 h-4 ml-2" />
+                                            </Button>
+                                        </Link>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* KPI Review Section */}
+                        {pendingKpiReviews.length > 0 && (
+                            <Card className="mb-8 border-blue-200 dark:border-blue-800">
+                                <CardHeader>
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                                            <Target className="w-5 h-5" />
+                                            Action Required: KPI Review
+                                        </CardTitle>
+                                        <Badge variant="secondary">{pendingKpiReviews.length}</Badge>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-sm text-muted-foreground mb-4">
+                                        You have {pendingKpiReviews.length} project{pendingKpiReviews.length > 1 ? 's' : ''} with KPIs waiting for your review
+                                    </p>
+                                    <div className="space-y-2 mb-4">
+                                        {pendingKpiReviews.slice(0, 3).map((project) => (
+                                            <Link
+                                                key={project.id}
+                                                href={`/ceo/kpi-review/${project.id}`}
+                                                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                                            >
+                                                <span className="font-medium">
+                                                    {project.company?.name || `Project #${project.id}`}
+                                                </span>
+                                                <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                                            </Link>
+                                        ))}
+                                    </div>
+                                    {pendingKpiReviews.length > 3 && (
+                                        <Link href="/ceo/dashboard">
+                                            <Button variant="outline" className="w-full">
+                                                View All KPI Reviews ({pendingKpiReviews.length})
                                                 <ArrowRight className="w-4 h-4 ml-2" />
                                             </Button>
                                         </Link>
@@ -260,99 +313,54 @@ export default function CeoDashboard({ projects, pendingReviews, stats, needsAtt
                             </Card>
                         )}
 
-                        {/* Step Verification for Active Project */}
-                        {projects.length > 0 && projects[0] && (
-                            <Card className="mb-8">
-                                <CardHeader>
-                                    <CardTitle>Step Verification - {projects[0].company?.name || `Project #${projects[0].id}`}</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <StepVerificationCard
-                                        projectId={projects[0].id}
-                                        stepStatuses={projects[0].step_statuses || {}}
-                                    />
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        {/* All Projects */}
-                        <Card>
+                        {/* Quick Actions */}
+                        <Card className="mb-8">
                             <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle>All Projects</CardTitle>
-                                    <Link href="/hr-projects">
-                                        <Button variant="ghost" size="sm">
-                                            View All
-                                            <ArrowRight className="w-4 h-4 ml-2" />
-                                        </Button>
-                                    </Link>
-                                </div>
+                                <CardTitle>Quick Actions</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                {projects.length > 0 ? (
-                                    <div className="space-y-3">
-                                        {projects.map((project) => {
-                                            const diagnosisStatus = project.step_statuses?.diagnosis || 'not_started';
-                                            const statusBadge = getStatusBadge(diagnosisStatus);
-                                            const needsSurvey = diagnosisStatus === 'submitted' && !project.ceoPhilosophy;
-                                            const hrProgress = project.hr_progress;
-                                            const ceoProgress = project.ceo_progress;
-                                            
-                                            return (
-                                                <Link
-                                                    key={project.id}
-                                                    href={needsSurvey 
-                                                        ? `/ceo/philosophy/survey/${project.id}`
-                                                        : `/ceo/review/diagnosis/${project.id}`
-                                                    }
-                                                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                                                >
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <Link href="/ceo/projects">
+                                        <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary/50">
+                                            <CardContent className="p-6">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                                                        <FolderKanban className="w-6 h-6 text-primary" />
+                                                    </div>
                                                     <div className="flex-1">
-                                                        <div className="flex items-center gap-3 mb-1">
-                                                            <p className="font-medium">
-                                                                {project.company?.name || `Project #${project.id}`}
-                                                            </p>
-                                                            <Badge variant={statusBadge.variant}>
-                                                                {statusBadge.label}
-                                                            </Badge>
-                                                            {needsSurvey && (
-                                                                <Badge variant="outline" className="text-orange-600">
-                                                                    Survey Required
-                                                                </Badge>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex items-center gap-4 mt-2">
-                                                            {hrProgress && (
-                                                                <p className="text-xs text-muted-foreground">
-                                                                    HR: {hrProgress.completed}/{hrProgress.total} steps
-                                                                    {hrProgress.in_progress > 0 && ` (${hrProgress.in_progress} in progress)`}
-                                                                    {hrProgress.submitted && hrProgress.submitted > 0 && ` (${hrProgress.submitted} pending verification)`}
-                                                                </p>
-                                                            )}
-                                                            {ceoProgress && (
-                                                                <p className="text-xs text-muted-foreground">
-                                                                    CEO: Verified {ceoProgress.verified_steps || 0}/{hrProgress?.total || 7} steps
-                                                                    {ceoProgress.pending_verification && ceoProgress.pending_verification > 0 && ` (${ceoProgress.pending_verification} pending)`}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                        <p className="text-xs text-muted-foreground mt-1">
-                                                            {needsSurvey 
-                                                                ? 'Complete CEO Philosophy Survey'
-                                                                : `Created ${new Date(project.created_at).toLocaleDateString()}`
-                                                            }
+                                                        <p className="font-semibold mb-1">View All Projects</p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            Manage and review all your projects
                                                         </p>
                                                     </div>
-                                                    <Eye className="w-5 h-5 text-muted-foreground" />
-                                                </Link>
-                                            );
-                                        })}
-                                    </div>
-                                ) : (
-                                    <p className="text-center text-muted-foreground py-8">
-                                        No projects assigned to you yet
-                                    </p>
-                                )}
+                                                    <ArrowRight className="w-5 h-5 text-muted-foreground" />
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </Link>
+                                    {pendingReviews.length > 0 && (
+                                        <Link href="/ceo/projects">
+                                            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 border-orange-200 hover:border-orange-300">
+                                                <CardContent className="p-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
+                                                            <Clock className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <p className="font-semibold mb-1">Pending Reviews</p>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {pendingReviews.length} project{pendingReviews.length > 1 ? 's' : ''} waiting for review
+                                                            </p>
+                                                        </div>
+                                                        <Badge variant="secondary" className="text-lg px-3 py-1">
+                                                            {pendingReviews.length}
+                                                        </Badge>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        </Link>
+                                    )}
+                                </div>
                             </CardContent>
                         </Card>
                     </div>

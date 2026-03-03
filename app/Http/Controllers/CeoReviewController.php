@@ -271,6 +271,113 @@ class CeoReviewController extends Controller
     }
 
     /**
+     * Show performance system review page.
+     */
+    public function reviewPerformanceSystem(Request $request, HrProject $hrProject)
+    {
+        if (!$request->user()->hasRole('ceo')) {
+            abort(403);
+        }
+
+        // Check if CEO is associated with the company
+        if (!$hrProject->company->users->contains($request->user())) {
+            abort(403);
+        }
+
+        $hrProject->load([
+            'diagnosis',
+            'company',
+            'performanceSystem',
+            'performanceSnapshotResponses.question',
+            'organizationalKpis.linkedJob',
+            'evaluationModelAssignments.jobDefinition',
+            'evaluationStructure',
+        ]);
+
+        // Auto-create PerformanceSystem record if it doesn't exist but other performance data exists
+        if (!$hrProject->performanceSystem && (
+            $hrProject->performanceSnapshotResponses->isNotEmpty() ||
+            $hrProject->organizationalKpis->isNotEmpty() ||
+            $hrProject->evaluationModelAssignments->isNotEmpty() ||
+            $hrProject->evaluationStructure
+        )) {
+            $hrProject->performanceSystem = \App\Models\PerformanceSystem::create([
+                'hr_project_id' => $hrProject->id,
+                'status' => \App\Enums\StepStatus::IN_PROGRESS,
+            ]);
+        }
+
+        // Load snapshot questions
+        $snapshotQuestions = \App\Models\PerformanceSnapshotQuestion::where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
+        // Load job definitions
+        $jobDefinitions = \App\Models\JobDefinition::where('hr_project_id', $hrProject->id)
+            ->where('is_finalized', true)
+            ->with('jobKeyword')
+            ->get();
+
+        // Load org chart mappings
+        $orgChartMappings = \App\Models\OrgChartMapping::where('hr_project_id', $hrProject->id)->get();
+
+        // Load KPI review tokens
+        $kpiReviewTokens = \App\Models\KpiReviewToken::where('hr_project_id', $hrProject->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('organization_name')
+            ->map(function ($tokens) {
+                return $tokens->map(function ($token) {
+                    return [
+                        'id' => $token->id,
+                        'token' => $token->token,
+                        'email' => $token->email,
+                        'name' => $token->name,
+                        'organization_name' => $token->organization_name,
+                        'created_at' => $token->created_at,
+                        'expires_at' => $token->expires_at,
+                        'uses_count' => $token->uses_count,
+                        'max_uses' => $token->max_uses,
+                        'is_valid' => $token->isValid(),
+                        'review_link' => route('kpi-review.token', ['token' => $token->token]),
+                    ];
+                });
+            })
+            ->toArray();
+
+        // Get algorithm-based recommendations
+        $algorithmRecommendations = app(\App\Services\RecommendationService::class)
+            ->getRecommendedPerformanceMethod($hrProject);
+
+        // Load consultant recommendation
+        $consultantRecommendation = \App\Models\AdminComment::where('hr_project_id', $hrProject->id)
+            ->where('is_recommendation', true)
+            ->where('recommendation_type', 'performance')
+            ->first();
+
+        $stepStatuses = $hrProject->step_statuses ?? [];
+        $mainStepStatuses = [
+            'diagnosis' => $stepStatuses['diagnosis'] ?? 'not_started',
+            'job_analysis' => $stepStatuses['job_analysis'] ?? 'not_started',
+            'performance' => $stepStatuses['performance'] ?? 'not_started',
+            'compensation' => $stepStatuses['compensation'] ?? 'not_started',
+            'hr_policy_os' => $stepStatuses['hr_policy_os'] ?? 'not_started',
+        ];
+
+        return \Inertia\Inertia::render('CEO/Review/PerformanceSystem', [
+            'project' => $hrProject,
+            'performanceSystem' => $hrProject->performanceSystem,
+            'consultantRecommendation' => $consultantRecommendation,
+            'algorithmRecommendations' => $algorithmRecommendations,
+            'stepStatuses' => $mainStepStatuses,
+            'snapshotQuestions' => $snapshotQuestions,
+            'jobDefinitions' => $jobDefinitions,
+            'orgChartMappings' => $orgChartMappings,
+            'kpiReviewTokens' => $kpiReviewTokens,
+        ]);
+    }
+
+    /**
      * Show compensation review page.
      */
     public function reviewCompensation(Request $request, HrProject $hrProject)

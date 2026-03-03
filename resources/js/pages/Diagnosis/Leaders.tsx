@@ -73,8 +73,8 @@ export default function Leaders({
                 formData={data}
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
-                <Card>
-                    <CardContent className="px-6">
+                <Card className="shadow-sm border">
+                    <CardContent className="p-6">
                         <div className="bg-muted/50 p-4 rounded-lg">
                             <p className="text-sm text-muted-foreground">
                                 <strong>Note:</strong> Leaders are defined as employees above Team Leader level. This excludes executives.
@@ -82,8 +82,8 @@ export default function Leaders({
                         </div>
 
                         {/* Total Leaders */}
-                        <div className="flex flex-col gap-3 mb-3">
-                            <Label htmlFor="leadership_count">Total Leaders (Above Team Leader)</Label>
+                        <div className="flex flex-col gap-3">
+                            <Label htmlFor="leadership_count" className="text-sm font-medium text-foreground">Total Leaders (Above Team Leader)</Label>
                             <Input
                                 id="leadership_count"
                                 type="number"
@@ -96,8 +96,8 @@ export default function Leaders({
 
                         {/* Leaders Ratio (Auto-calculated) */}
                         {leadershipPercentage !== null && (
-                            <div className="flex flex-col gap-3 mb-3">
-                                <Label>Leaders Ratio (Auto-calculated)</Label>
+                            <div className="flex flex-col gap-3 mt-6">
+                                <Label className="text-sm font-medium text-foreground">Leaders Ratio (Auto-calculated)</Label>
                                 <div className="p-3 bg-muted rounded-md">
                                     <p className="text-lg font-semibold">{leadershipPercentage}%</p>
                                     <p className="text-xs text-muted-foreground">

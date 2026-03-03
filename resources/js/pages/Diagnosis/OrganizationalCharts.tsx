@@ -175,8 +175,8 @@ export default function OrganizationalCharts({
                 formData={data}
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
-                <Card>
-                    <CardContent className="px-6">
+                <Card className="shadow-sm border">
+                    <CardContent className="p-6">
                         <div className="bg-muted/50 p-4 rounded-lg mb-4">
                             <p className="text-sm text-muted-foreground">
                                 Upload organizational charts for the specified years. Allowed formats: JPG, PNG, PDF
