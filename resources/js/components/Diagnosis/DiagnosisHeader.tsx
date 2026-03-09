@@ -1,54 +1,46 @@
 import { Link } from '@inertiajs/react';
-import { ChevronLeft } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 
 interface DiagnosisHeaderProps {
     title: string;
-    description: string;
     status: 'not_started' | 'in_progress' | 'submitted';
     backHref?: string;
+    stepCounter?: string; // e.g. "3 of 10"
 }
 
-export default function DiagnosisHeader({ 
-    title, 
-    description, 
+export default function DiagnosisHeader({
+    title,
     status,
-    backHref = '/diagnosis'
+    backHref = '/diagnosis',
+    stepCounter,
 }: DiagnosisHeaderProps) {
-    const statusLabel = status === 'not_started' ? 'Not Started' : 
-                       status === 'in_progress' ? 'In Progress' : 
-                       status === 'submitted' ? 'Submitted' : 
-                       'Not Started';
-    
-    const statusClasses = status === 'not_started' 
-        ? 'bg-muted text-muted-foreground'
-        : status === 'in_progress'
-        ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 border-yellow-500/20' // Yellow badge for in_progress
-        : 'bg-success/10 text-success border-success/20'; // Green badge for submitted
+    const statusLabel = status === 'in_progress' ? '● 진행 중' : status === 'submitted' ? '완료' : '미시작';
+    const showMintBadge = status === 'in_progress';
 
     return (
-        <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
-                <Link
-                    href={backHref}
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground h-10 w-10 mt-0.5"
+        <div className="flex items-center gap-3 mb-3.5">
+            <Link
+                href={backHref}
+                className="w-7 h-7 rounded-[7px] bg-[var(--hr-gray-100)] hover:bg-[var(--hr-gray-200)] flex items-center justify-center text-[14px] text-[var(--hr-gray-600)] transition-colors shrink-0"
+            >
+                ←
+            </Link>
+            <div className="flex items-center gap-2.5">
+                <h2 className="text-[17px] font-bold text-[var(--hr-gray-800)] tracking-[-0.3px]">{title}</h2>
+                <span
+                    className={`text-[10.5px] font-semibold py-[3px] px-[9px] rounded-[20px] ${
+                        showMintBadge
+                            ? 'bg-[rgba(78,205,196,0.15)] text-[#2ea89e]'
+                            : status === 'submitted'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-[var(--hr-gray-100)] text-[var(--hr-gray-400)]'
+                    }`}
                 >
-                    <ChevronLeft className="w-5 h-5" />
-                </Link>
-                <div>
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-display font-bold tracking-tight">
-                            {title}
-                        </h1>
-                        <Badge className={statusClasses}>
-                            {statusLabel}
-                        </Badge>
-                    </div>
-                    <p className="text-muted-foreground mt-1">
-                        {description}
-                    </p>
-                </div>
+                    {statusLabel}
+                </span>
             </div>
+            {stepCounter && (
+                <span className="text-[12px] text-[var(--hr-gray-400)] ml-auto">{stepCounter}</span>
+            )}
         </div>
     );
 }

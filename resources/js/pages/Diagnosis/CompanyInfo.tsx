@@ -84,15 +84,8 @@ export default function CompanyInfo({
         return value;
     };
 
-    const [selectedSecondaryIndustries, setSelectedSecondaryIndustries] = useState<string[]>(
-        diagnosis?.secondary_industries && Array.isArray(diagnosis.secondary_industries) 
-            ? diagnosis.secondary_industries 
-            : []
-    );
     const [logoPreview, setLogoPreview] = useState<string | null>(company.logo_path || null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    
-    const secondaryIndustryOptions = ['Technology', 'Manufacturing', 'Healthcare', 'Finance', 'Retail', 'Consulting'];
 
     const { data, setData, post, processing, errors } = useForm<{
         company_name: string;
@@ -180,7 +173,6 @@ export default function CompanyInfo({
                 formData={{
                     ...data,
                     is_public: data.is_public,
-                    secondary_industries: selectedSecondaryIndustries,
                 }}
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
@@ -445,43 +437,6 @@ export default function CompanyInfo({
                                     )}
                                 </div>
 
-                                {/* Secondary Industries */}
-                                <div className="flex flex-col gap-3">
-                                    <Label className="text-sm font-medium text-foreground">
-                                        Secondary Industries
-                                    </Label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {secondaryIndustryOptions.map((industry) => {
-                                            const isSelected = selectedSecondaryIndustries.includes(industry);
-                                            return (
-                                                <button
-                                                    key={industry}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        if (isSelected) {
-                                                            setSelectedSecondaryIndustries(
-                                                                selectedSecondaryIndustries.filter(i => i !== industry)
-                                                            );
-                                                        } else {
-                                                            setSelectedSecondaryIndustries([
-                                                                ...selectedSecondaryIndustries,
-                                                                industry
-                                                            ]);
-                                                        }
-                                                    }}
-                                                    className={cn(
-                                                        "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
-                                                        isSelected
-                                                            ? "bg-primary text-primary-foreground shadow-sm"
-                                                            : "bg-muted text-muted-foreground hover:bg-muted/80"
-                                                    )}
-                                                >
-                                                    {industry}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
                             </div>
                         </div>
 

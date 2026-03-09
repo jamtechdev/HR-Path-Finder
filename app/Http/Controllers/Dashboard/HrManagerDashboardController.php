@@ -96,7 +96,7 @@ class HrManagerDashboardController extends Controller
             $canSwitchToCeo = $company->users()->where('users.id', $user->id)->wherePivot('role', 'ceo')->exists();
         }
 
-        return Inertia::render('Dashboard/HRManager/Index', [
+        return Inertia::render('Dashboard/HRManager/PathFinderDashboard', [
             'user' => [
                 'name' => $user->name,
                 'email' => $user->email,

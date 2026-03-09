@@ -161,7 +161,8 @@
       "logo": "HR Pathfinder",
       "company": "powered by bettercompany",
       "sign_in": "로그인",
-      "get_started": "시작하기"
+      "get_started": "시작하기",
+      "dashboard": "대시보드"
     },
     "footer": {
       "copyright": "© 2026 Everthere.inc All rights reserved."
@@ -171,7 +172,39 @@
     "welcome": "환영합니다",
     "overview": "개요",
     "recent_activity": "최근 활동",
-    "statistics": "통계"
+    "statistics": "통계",
+    "pathfinder": {
+      "welcome_back": "다시 오신 것을 환영합니다, {{name}}",
+      "subtitle": "HR 시스템 설계를 단계별로 진행하세요. Step {{step}} {{title}}가 진행 중입니다.",
+      "step_in_progress": "Step {{num}}: {{title}} 진행 중",
+      "banner_desc": "회사 기본 정보, 인력 현황, 조직 구조를 입력하고 진단을 완료하면 다음 단계가 열립니다.",
+      "design_steps": "Design Steps",
+      "step_unlock_hint": "각 단계를 완료해야 다음 단계가 열립니다",
+      "locked": "잠금",
+      "in_progress": "진행 중",
+      "complete": "완료",
+      "continue": "계속하기",
+      "start_btn": "시작하기",
+      "prev_step_required": "이전 단계를 완료해야 열립니다",
+      "prev_step_required_after": "이전 단계 완료 후 열립니다",
+      "progress_label": "진행률",
+      "overall_progress": "Overall Progress",
+      "completed_steps": "완료된 단계",
+      "ceo_survey": "CEO Survey",
+      "not_started": "미시작",
+      "ceo_survey_start_hint": "CEO 설문을 시작해주세요",
+      "current_step": "Current Step",
+      "active": "Active",
+      "steps_remaining": "Steps Remaining",
+      "keep_going": "계속 진행하세요!",
+      "completed_count": "{{done}} / {{total}} completed"
+    }
+  },
+  "sidebar": {
+    "menu": "메뉴",
+    "design_steps": "설계 단계",
+    "tree": "Tree",
+    "report": "Report"
   },
   "steps": {
     "diagnosis": "진단",
@@ -193,5 +226,17 @@
     "save_failed": "저장에 실패했습니다",
     "delete_confirm": "정말 삭제하시겠습니까?",
     "unsaved_changes": "저장되지 않은 변경사항이 있습니다"
+  },
+  "diagnosis": {
+    "executives": {
+      "card_title": "임원 포지션 설정",
+      "card_desc": "해당되는 임원 직책을 선택하고 인원수를 입력하세요",
+      "total_label": "총 임원",
+      "total_suffix": "명",
+      "preset_badge": "기본",
+      "count_suffix": "명",
+      "add_custom": "커스텀 임원 직책 추가",
+      "custom_placeholder": "직책명 입력 (예: CPO, 부회장)"
+    }
   }
 }

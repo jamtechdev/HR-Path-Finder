@@ -5,6 +5,9 @@ import { ArrowRight } from 'lucide-react';
 
 interface CTASectionKoProps {
     canRegister?: boolean;
+    isAuthenticated?: boolean;
+    dashboardUrl?: string;
+    dashboardLabel?: string;
     title?: string;
     description?: string;
     buttonText?: string;
@@ -12,6 +15,9 @@ interface CTASectionKoProps {
 
 export function CTASectionKo({ 
     canRegister = true,
+    isAuthenticated = false,
+    dashboardUrl = '/dashboard',
+    dashboardLabel = 'Dashboard',
     title = 'HR 시스템을 설계할 준비가 되셨나요?',
     description = '오늘 무료 체험을 시작하고 프로토타입부터 전체 구현까지 확장 가능한 컨설팅급 HR 설계를 경험해보세요.',
     buttonText = '무료로 시작하기'
@@ -26,8 +32,8 @@ export function CTASectionKo({
                     {description}
                 </p>
                 <Button asChild className="bg-white hover:bg-gray-100 text-[#0a1629] font-medium px-6 py-3 rounded-lg text-base h-auto shadow-sm">
-                    <Link href={canRegister ? register() : '#'}>
-                        {buttonText}
+                    <Link href={isAuthenticated ? dashboardUrl : (canRegister ? register() : '#')}>
+                        {isAuthenticated ? dashboardLabel : buttonText}
                         <ArrowRight className="ml-2 w-4 h-4" />
                     </Link>
                 </Button>

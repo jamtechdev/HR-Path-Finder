@@ -10,7 +10,8 @@ import {
     Network, 
     Layers, 
     AlertTriangle, 
-    History 
+    History,
+    FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -21,6 +22,7 @@ interface Tab {
 }
 
 const tabs: Tab[] = [
+    { id: 'summary', label: 'Summary', icon: FileText },
     { id: 'company-info', label: 'Company Info', icon: Building2 },
     { id: 'workforce', label: 'Workforce', icon: Users },
     { id: 'executives', label: 'Executives', icon: UserCog },

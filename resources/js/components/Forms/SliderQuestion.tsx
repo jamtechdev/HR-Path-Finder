@@ -37,16 +37,16 @@ export default function SliderQuestion({
                     <span className="text-xs text-muted-foreground">{optionA || 'Option A'}</span>
                     <span className="text-xs text-muted-foreground">{optionB || 'Option B'}</span>
                 </div>
-                <Slider
-                    value={[value]}
-                    onValueChange={(vals) => onChange(vals[0])}
-                    min={min}
-                    max={max}
-                    step={1}
-                    className="w-full"
-                />
-                <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs font-medium">{value}</span>
+                <div className="flex items-center gap-3">
+                    <Slider
+                        value={[value]}
+                        onValueChange={(vals) => onChange(vals[0])}
+                        min={min}
+                        max={max}
+                        step={1}
+                        className="flex-1"
+                    />
+                    <span className="text-sm font-semibold tabular-nums min-w-[2rem] text-right">{value}</span>
                 </div>
             </div>
             {error && <p className="text-sm text-red-600">{error}</p>}

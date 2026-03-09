@@ -23,9 +23,6 @@ interface CompanyInfoTabProps {
     setData: (key: string, value: any) => void;
     industryCategories: IndustryCategory[];
     hqLocations: string[];
-    selectedSecondaryIndustries: string[];
-    setSelectedSecondaryIndustries: (industries: string[]) => void;
-    secondaryIndustryOptions: string[];
 }
 
 export default function CompanyInfoTab({
@@ -34,9 +31,6 @@ export default function CompanyInfoTab({
     setData,
     industryCategories,
     hqLocations,
-    selectedSecondaryIndustries,
-    setSelectedSecondaryIndustries,
-    secondaryIndustryOptions,
 }: CompanyInfoTabProps) {
     const selectedIndustryCategory = industryCategories.find(cat => cat.name === data.industry_category);
     const subCategories = selectedIndustryCategory?.subCategories || [];
@@ -202,41 +196,6 @@ export default function CompanyInfoTab({
                                     placeholder="Please specify"
                                 />
                             )}
-                        </div>
-                    </div>
-                    
-                    {/* Secondary Industries */}
-                    <div className="space-y-3 pt-4 border-t">
-                        <Label className="text-sm font-semibold">Secondary Industries</Label>
-                        <div className="flex flex-wrap gap-3">
-                            {secondaryIndustryOptions.map((industry) => {
-                                const isSelected = selectedSecondaryIndustries.includes(industry);
-                                return (
-                                    <button
-                                        key={industry}
-                                        type="button"
-                                        onClick={() => {
-                                            if (isSelected) {
-                                                setSelectedSecondaryIndustries(
-                                                    selectedSecondaryIndustries.filter(i => i !== industry)
-                                                );
-                                            } else {
-                                                setSelectedSecondaryIndustries([
-                                                    ...selectedSecondaryIndustries,
-                                                    industry
-                                                ]);
-                                            }
-                                        }}
-                                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                                            isSelected
-                                                ? 'bg-primary text-primary-foreground shadow-md hover:shadow-lg'
-                                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                        }`}
-                                    >
-                                        {industry}
-                                    </button>
-                                );
-                            })}
                         </div>
                     </div>
                 </CardContent>

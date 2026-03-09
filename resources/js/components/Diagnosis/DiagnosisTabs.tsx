@@ -220,16 +220,15 @@ export default function DiagnosisTabs({
     };
 
     return (
-        <div 
+        <div
             ref={tabsContainerRef}
-            className="flex gap-2 overflow-x-auto pb-2 scroll-smooth"
-            style={{ scrollbarWidth: 'thin' }}
+            className="flex gap-0.5 overflow-x-auto scroll-smooth mt-3.5 min-w-0 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden"
         >
             {tabs.map((tab, index) => {
                 const enabled = isTabEnabled(tab.id, index);
-                const completed = isTabCompleted(tab.id);
+                const completed = isTabCompleted(tab.id) && tab.id !== 'overview';
                 const isActive = tab.id === normalizedActiveTab;
-                const TabIcon = completed ? Check : tab.icon;
+                const TabIcon = tab.icon;
                 const tabRoute = getTabRoute(tab);
 
                 if (!enabled) {
@@ -237,9 +236,9 @@ export default function DiagnosisTabs({
                         <button
                             key={tab.id}
                             disabled
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all bg-muted/50 text-muted-foreground/50 cursor-not-allowed"
+                            className="flex items-center gap-1.5 py-2 px-3.5 pb-2.5 border-b-2 border-transparent text-[12px] font-medium whitespace-nowrap text-[var(--hr-gray-300)] cursor-not-allowed shrink-0"
                         >
-                            <TabIcon className="w-4 h-4" />
+                            <TabIcon className="w-3.5 h-3.5 opacity-70" />
                             <span className="hidden sm:inline">{tab.name}</span>
                         </button>
                     );
@@ -252,24 +251,19 @@ export default function DiagnosisTabs({
                         href={tabRoute}
                         onClick={(e) => handleTabClick(e, tab.id, tabRoute, index)}
                         className={cn(
-                            "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all cursor-pointer relative",
-                            isActive
-                                ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary ring-offset-2"
-                                : completed && tab.id !== 'overview'
-                                ? "bg-green-100 text-green-700 hover:bg-green-200 border-2 border-green-300"
-                                : "bg-muted text-muted-foreground hover:bg-muted/80"
+                            "flex items-center gap-1.5 py-2 px-3.5 pb-2.5 border-b-2 shrink-0 whitespace-nowrap text-[12px] font-medium transition-all cursor-pointer",
+                            isActive && "text-[var(--hr-navy)] border-[var(--hr-navy)] font-bold",
+                            completed && !isActive && "text-[#2ea89e] border-transparent",
+                            !isActive && !completed && "text-[var(--hr-gray-400)] border-transparent hover:text-[var(--hr-gray-600)]"
                         )}
                     >
-                        {completed && tab.id !== 'overview' && !isActive && (
-                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                                <Check className="w-3 h-3 text-white" />
+                        {completed && !isActive ? (
+                            <div className="w-[15px] h-[15px] rounded-full bg-[rgba(78,205,196,0.15)] flex items-center justify-center text-[8px] text-[#2ea89e] shrink-0">
+                                <Check className="w-2.5 h-2.5" />
                             </div>
+                        ) : (
+                            <TabIcon className={cn("w-3.5 h-3.5 shrink-0", isActive ? "opacity-100" : "opacity-70")} />
                         )}
-                        <TabIcon className={cn(
-                            "w-4 h-4 flex-shrink-0",
-                            isActive && "text-primary-foreground",
-                            completed && !isActive && tab.id !== 'overview' && "text-green-600"
-                        )} />
                         <span className="hidden sm:inline">{tab.name}</span>
                     </Link>
                 );

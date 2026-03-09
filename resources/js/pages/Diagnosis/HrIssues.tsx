@@ -5,6 +5,8 @@ import MultiSelectQuestion from '@/components/Forms/MultiSelectQuestion';
 import TextQuestion from '@/components/Forms/TextQuestion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface Diagnosis {
     id: number;
@@ -72,6 +74,8 @@ export default function HrIssues({
         hr_issues: [] as string[],
         custom_hr_issues: diagnosis?.custom_hr_issues || '',
     });
+
+    const [otherOptionChecked, setOtherOptionChecked] = useState(Boolean(diagnosis?.custom_hr_issues?.trim()));
 
     // Update form data when selections change
     useEffect(() => {
@@ -141,16 +145,30 @@ export default function HrIssues({
                             );
                         })}
 
-                        {/* Custom HR Issues */}
-                        <div className="space-y-2">
-                            <TextQuestion
-                                question="Additional Issues (Optional)"
-                                value={data.custom_hr_issues}
-                                onChange={(value) => setData('custom_hr_issues', value)}
-                                type="textarea"
-                                placeholder="Add any additional HR or organizational issues not listed above"
-                                rows={4}
-                            />
+                        {/* Other option with text input */}
+                        <div className="space-y-3 mt-6">
+                            <Label className="text-sm font-medium text-foreground my-3 block">Other</Label>
+                            <div className="flex items-center space-x-2 p-4 border rounded-lg">
+                                <Checkbox
+                                    id="hr-issue-other"
+                                    checked={otherOptionChecked}
+                                    onCheckedChange={(checked) => {
+                                        setOtherOptionChecked(checked === true);
+                                        if (!checked) setData('custom_hr_issues', '');
+                                    }}
+                                />
+                                <label htmlFor="hr-issue-other" className="text-sm font-medium leading-none cursor-pointer">
+                                    Other (describe additional HR issues not listed above)
+                                </label>
+                            </div>
+                            {otherOptionChecked && (
+                                <Input
+                                    value={data.custom_hr_issues}
+                                    onChange={(e) => setData('custom_hr_issues', e.target.value)}
+                                    placeholder="Please describe additional HR issues..."
+                                    className="mt-2"
+                                />
+                            )}
                         </div>
                     </CardContent>
                 </Card>

@@ -7,6 +7,9 @@ import { CompensationBenchmarkPreview } from './CompensationBenchmarkPreview';
 
 interface HeroSectionKoProps {
     canRegister?: boolean;
+    isAuthenticated?: boolean;
+    dashboardUrl?: string;
+    dashboardLabel?: string;
     badge?: string;
     title?: string;
     description?: string;
@@ -24,6 +27,9 @@ interface HeroSectionKoProps {
 
 export function HeroSectionKo({ 
     canRegister = true,
+    isAuthenticated = false,
+    dashboardUrl = '/dashboard',
+    dashboardLabel = 'Dashboard',
     badge = '컨설팅급 HR 설계 플랫폼',
     title = '정밀한 HR 시스템을 설계하세요.',
     description = '중소기업의 HR 프레임워크 구축 방식을 혁신합니다. 단계별 가이드 접근 방식으로 전문 컨설팅 업무를 현대적인 SaaS 플랫폼 안에서 재현합니다.',
@@ -69,8 +75,8 @@ export function HeroSectionKo({
                         
                         <div className="flex flex-col sm:flex-row gap-4 mb-8">
                             <Button asChild className="bg-[#0a1629] hover:bg-[#0d1b35] text-white font-medium px-6 py-3 rounded-lg text-base h-auto shadow-sm">
-                                <Link href={canRegister ? register() : login()}>
-                                    {primaryButton}
+                                <Link href={isAuthenticated ? dashboardUrl : (canRegister ? register() : login())}>
+                                    {isAuthenticated ? dashboardLabel : primaryButton}
                                     <ArrowRight className="ml-2 w-4 h-4" />
                                 </Link>
                             </Button>

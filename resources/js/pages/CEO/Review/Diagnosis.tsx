@@ -109,10 +109,9 @@ export default function CeoReviewDiagnosis({
     hqLocations = [],
     hrIssues = [],
 }: Props) {
-    const [activeTab, setActiveTab] = useState('company-info');
+    const [activeTab, setActiveTab] = useState('summary');
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const secondaryIndustryOptions = ['Technology', 'Manufacturing', 'Healthcare', 'Finance', 'Retail', 'Consulting'];
     
     const { data, setData, post, processing, errors } = useForm({
         ...diagnosis,
@@ -121,13 +120,7 @@ export default function CeoReviewDiagnosis({
         is_public: company.is_public ?? false,
         brand_name: company.brand_name || '',
         foundation_date: company.foundation_date || '',
-        secondary_industries: diagnosis?.secondary_industries || [],
     });
-
-    // Initialize selected secondary industries from diagnosis data
-    const [selectedSecondaryIndustries, setSelectedSecondaryIndustries] = useState<string[]>(
-        diagnosis?.secondary_industries || []
-    );
 
     // Update form data when diagnosis or company props change (after save/reload)
     useEffect(() => {
@@ -144,14 +137,7 @@ export default function CeoReviewDiagnosis({
         setData('is_public', company.is_public ?? false);
         setData('brand_name', company.brand_name || '');
         setData('foundation_date', company.foundation_date || '');
-        setData('secondary_industries', diagnosis?.secondary_industries || []);
-        setSelectedSecondaryIndustries(diagnosis?.secondary_industries || []);
     }, [diagnosis, company]);
-
-    // Update form data when secondary industries change
-    useEffect(() => {
-        setData('secondary_industries', selectedSecondaryIndustries);
-    }, [selectedSecondaryIndustries]);
 
     // Calculate gender ratio
     useEffect(() => {
@@ -265,6 +251,36 @@ export default function CeoReviewDiagnosis({
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                             <DiagnosisTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
+                            <TabsContent value="summary" className="space-y-4">
+                                <div className="rounded-lg border bg-card p-6">
+                                    <h2 className="text-xl font-semibold mb-4">HR Summary – Pain Points Overview</h2>
+                                    <p className="text-muted-foreground text-sm mb-4">
+                                        Quick overview of the main HR and organizational issues identified from the diagnosis inputs.
+                                    </p>
+                                    {((diagnosis?.hr_issues && diagnosis.hr_issues.length > 0) || diagnosis?.custom_hr_issues?.trim()) ? (
+                                        <ul className="space-y-2">
+                                            {(diagnosis?.hr_issues || []).map((issueId) => {
+                                                const issue = hrIssues.find((i) => i.id.toString() === issueId.toString());
+                                                return (
+                                                    <li key={issueId} className="flex items-start gap-2">
+                                                        <span className="text-destructive mt-0.5">•</span>
+                                                        <span>{issue ? issue.name : issueId}</span>
+                                                    </li>
+                                                );
+                                            })}
+                                            {diagnosis?.custom_hr_issues?.trim() && (
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-destructive mt-0.5">•</span>
+                                                    <span>{diagnosis.custom_hr_issues}</span>
+                                                </li>
+                                            )}
+                                        </ul>
+                                    ) : (
+                                        <p className="text-muted-foreground text-sm">No HR issues or pain points have been recorded yet.</p>
+                                    )}
+                                </div>
+                            </TabsContent>
+
                             <TabsContent value="company-info" className="space-y-4">
                                 <CompanyInfoTab
                                     company={company}
@@ -272,9 +288,6 @@ export default function CeoReviewDiagnosis({
                                     setData={setData}
                                     industryCategories={industryCategories}
                                     hqLocations={hqLocations}
-                                    selectedSecondaryIndustries={selectedSecondaryIndustries}
-                                    setSelectedSecondaryIndustries={setSelectedSecondaryIndustries}
-                                    secondaryIndustryOptions={secondaryIndustryOptions}
                                 />
                             </TabsContent>
 

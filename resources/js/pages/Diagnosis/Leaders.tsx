@@ -61,7 +61,7 @@ export default function Leaders({
         <>
             <Head title={`Leaders - ${company?.name || project?.company?.name || 'Company'}`} />
             <FormLayout
-                title="Leaders"
+                title="Leaders (Excluding Executives)"
                 project={project}
                 diagnosis={diagnosis}
                 activeTab={activeTab}

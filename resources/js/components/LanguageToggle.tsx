@@ -10,7 +10,12 @@ import {
 import { useEffect, useState } from 'react';
 import i18n from '@/lib/i18n';
 
-export function LanguageToggle() {
+interface LanguageToggleProps {
+    /** When true, show only globe icon (e.g. in dashboard header). Default false for landing. */
+    iconOnly?: boolean;
+}
+
+export function LanguageToggle({ iconOnly = false }: LanguageToggleProps) {
     const { i18n: i18nInstance } = useTranslation();
     const [currentLang, setCurrentLang] = useState(i18nInstance.language || 'ko');
 
@@ -39,12 +44,17 @@ export function LanguageToggle() {
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="ghost"
-                    size="sm"
-                    className="gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800"
+                    size={iconOnly ? 'icon' : 'sm'}
+                    className={iconOnly ? 'size-9' : 'gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'}
+                    title={iconOnly ? `${currentLanguage.flag} ${currentLanguage.name}` : undefined}
                 >
                     <Globe className="w-4 h-4" />
-                    <span className="hidden sm:inline">{currentLanguage.flag} {currentLanguage.name}</span>
-                    <span className="sm:hidden">{currentLanguage.flag}</span>
+                    {!iconOnly && (
+                        <>
+                            <span className="hidden sm:inline">{currentLanguage.flag} {currentLanguage.name}</span>
+                            <span className="sm:hidden">{currentLanguage.flag}</span>
+                        </>
+                    )}
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40 dark:bg-gray-900 dark:border-gray-700">

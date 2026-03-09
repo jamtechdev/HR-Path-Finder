@@ -56,7 +56,7 @@ export default function Workforce({
         expected_headcount_3y: diagnosis?.expected_headcount_3y || 0,
         average_tenure_active: diagnosis?.average_tenure_active || 0,
         average_tenure_leavers: diagnosis?.average_tenure_leavers || 0,
-        average_age: diagnosis?.average_age || 0,
+        average_age: diagnosis?.average_age ?? 18,
         gender_male: diagnosis?.gender_male || 0,
         gender_female: diagnosis?.gender_female || 0,
         gender_other: diagnosis?.gender_other || 0,

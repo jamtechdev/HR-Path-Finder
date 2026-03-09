@@ -1,477 +1,199 @@
 import { Link, usePage } from '@inertiajs/react';
-import { SidebarGroup, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { CheckCircle2, Lock, Target, DollarSign, Building2, FileText, LayoutGrid, TrendingUp, Award, User, Briefcase, Network, FileBarChart } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
-interface HRManagerSidebarProps {
-    isCollapsed?: boolean;
-}
+import { useTranslation } from 'react-i18next';
+import { Target, DollarSign, Building2, LayoutGrid, Award, TreeDeciduous, FileText } from 'lucide-react';
 
 interface StepConfig {
     id: string;
     step: number;
-    title: string;
-    desc: string;
+    name: string;
     icon: React.ComponentType<{ className?: string }>;
     route: string;
 }
 
-// Updated step names as per user request - CEO step removed from HR side
 const MAIN_STEPS: StepConfig[] = [
-    {
-        id: 'diagnosis',
-        step: 1,
-        title: 'Diagnosis (Company info.)',
-        desc: 'Input company information, business profile, workforce details, and organizational culture.',
-        icon: CheckCircle2,
-        route: '/hr-manager/diagnosis',
-    },
-    {
-        id: 'job_analysis',
-        step: 2,
-        title: 'Job Analysis',
-        desc: 'Define job roles, responsibilities, competencies, and organizational mapping.',
-        icon: Building2,
-        route: '/hr-manager/job-analysis',
-    },
-    {
-        id: 'performance',
-        step: 3,
-        title: 'Performance.Man.',
-        desc: 'Design evaluation units, performance management methods, and assessment structures.',
-        icon: Target,
-        route: '/hr-manager/performance-system',
-    },
-    {
-        id: 'compensation',
-        step: 4,
-        title: 'C&B',
-        desc: 'Define compensation structure, differentiation methods, and incentive components.',
-        icon: DollarSign,
-        route: '/hr-manager/compensation-system',
-    },
-    {
-        id: 'hr_policy_os',
-        step: 5,
-        title: 'HR Policy OS',
-        desc: 'HR Policy Manual, System Handbook, Implementation Roadmap, and Analytics Blueprint.',
-        icon: Award,
-        route: '/hr-manager/hr-policy-os',
-    },
+    { id: 'diagnosis', step: 1, name: 'Diagnosis', icon: Building2, route: '/hr-manager/diagnosis' },
+    { id: 'job_analysis', step: 2, name: 'Job Analysis', icon: Building2, route: '/hr-manager/job-analysis' },
+    { id: 'performance', step: 3, name: 'Performance System', icon: Target, route: '/hr-manager/performance-system' },
+    { id: 'compensation', step: 4, name: 'Compensation System', icon: DollarSign, route: '/hr-manager/compensation-system' },
+    { id: 'hr_policy_os', step: 5, name: 'HR Policy OS', icon: Award, route: '/hr-manager/hr-policy-os' },
 ];
 
-export default function HRManagerSidebar({ isCollapsed = false }: HRManagerSidebarProps) {
+export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?: boolean }) {
+    const { t } = useTranslation();
     const { url, props } = usePage();
     const currentPath = url.split('?')[0];
-    
-    // Get step statuses and project ID from page props
-    // Try multiple prop names to ensure we get stepStatuses
-    const stepStatuses: Record<string, string> = (props as any).stepStatuses 
-        || (props as any).mainStepStatuses 
-        || (props as any).step_statuses 
+    const stepStatuses: Record<string, string> = (props as any).stepStatuses
+        || (props as any).mainStepStatuses
+        || (props as any).step_statuses
         || (props as any).activeProject?.step_statuses
         || {};
     const projectId = (props as any).projectId || (props as any).project?.id;
+    const ceoPhilosophyStatus = (props as any).ceoPhilosophyStatus || 'not_started';
 
-    const isActive = (path: string) => {
-        if (path === '/') {
-            return currentPath === '/';
-        }
-        if (path === '/dashboard') {
-            return currentPath === '/dashboard' || currentPath === '/hr-manager/dashboard' || currentPath.startsWith('/hr-manager/dashboard/');
-        }
-        if (path === '/companies') {
-            return currentPath === '/companies' || currentPath.startsWith('/companies/');
-        }
-        return currentPath === path || currentPath.startsWith(`${path}/`);
-    };
+    const isDashboardActive = currentPath === '/hr-manager/dashboard' || currentPath.startsWith('/hr-manager/dashboard/');
+    const isCompaniesActive = currentPath === '/companies' || currentPath.startsWith('/companies/');
 
     const getStepState = (stepId: string): 'current' | 'locked' | 'completed' => {
         const status = stepStatuses[stepId];
-        const stepIndex = MAIN_STEPS.findIndex(s => s.id === stepId);
-        const isCurrentlyActive = isStepActive({ id: stepId, route: '', step: 0, title: '', desc: '', icon: CheckCircle2 });
-        
-        // Check CEO Philosophy status from props
-        const ceoPhilosophyStatus = (props as any).ceoPhilosophyStatus || 'not_started';
-        const diagnosisStatus = stepStatuses['diagnosis'];
-        const isDiagnosisSubmitted = diagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(diagnosisStatus);
+        const stepIndex = MAIN_STEPS.findIndex((s) => s.id === stepId);
+        const isStepActive = currentPath.startsWith(MAIN_STEPS.find((s) => s.id === stepId)?.route ?? '');
         const isCeoSurveyCompleted = ceoPhilosophyStatus === 'completed';
-        
-        // For diagnosis step: completed only if approved/locked
+        const diagnosisStatus = stepStatuses['diagnosis'];
+        const diagnosisOk = diagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(diagnosisStatus);
+
         if (stepId === 'diagnosis') {
-            if (status && ['approved', 'locked', 'completed'].includes(status)) {
-                return 'completed';
-            }
-            // If submitted but not approved yet, it's current (accessible for review)
-            if (status === 'submitted') {
-                return 'current';
-            }
+            if (status && ['approved', 'locked', 'completed'].includes(status)) return 'completed';
+            if (status === 'submitted') return 'current';
         } else {
-            // For other steps: completed if approved/locked/completed
-            if (status && ['approved', 'locked', 'completed'].includes(status)) {
-                return 'completed';
-            }
+            if (status && ['approved', 'locked', 'completed'].includes(status)) return 'completed';
         }
-        
-        // If this step is currently active (user is on this page), it's current
-        if (isCurrentlyActive) {
-            return 'current';
-        }
-        
-        // If step is submitted by HR, it's accessible (not locked) but not completed until CEO approves
-        if (status === 'submitted') {
-            return 'current'; // Allow HR to view their submitted work
-        }
-        
-        // Check if this is the first step and it's not started yet
-        if (stepIndex === 0 && (!status || status === 'not_started')) {
-            return 'current';
-        }
-        
-        // Check if previous steps are VERIFIED (approved/locked) to unlock this step
-        // Only unlock if CEO survey is completed (for step 2+)
+        if (isStepActive) return 'current';
+        if (status === 'submitted') return 'current';
+        if (stepIndex === 0 && (!status || status === 'not_started')) return 'current';
         if (stepIndex > 0) {
-            if (!isCeoSurveyCompleted) {
-                return 'locked'; // Step 2+ locked until CEO survey
-            }
-            
-            // Check if all previous steps are submitted/approved/locked to unlock this step
-            // Allow progression after submission (submitted status) while CEO approval is pending
-            let allPreviousVerified = true;
+            if (!isCeoSurveyCompleted) return 'locked';
             for (let i = 0; i < stepIndex; i++) {
-                const prevStep = MAIN_STEPS[i];
-                const prevStatus = stepStatuses[prevStep.id];
-                
-                // For diagnosis, need to be submitted/approved/locked
-                if (prevStep.id === 'diagnosis') {
-                    const prevDiagnosisStatus = stepStatuses['diagnosis'];
-                    // Must be submitted, approved, or locked to unlock next step
-                    if (!prevDiagnosisStatus || !['submitted', 'approved', 'locked', 'completed'].includes(prevDiagnosisStatus)) {
-                        allPreviousVerified = false;
-                        break;
-                    }
-                } else {
-                    // For other steps, must be submitted/approved/locked to unlock next step
-                    // This allows HR to continue after submission while CEO approval is pending
-                    if (!prevStatus || !['submitted', 'approved', 'locked', 'completed'].includes(prevStatus)) {
-                        allPreviousVerified = false;
-                        break;
-                    }
-                }
+                const prevStatus = stepStatuses[MAIN_STEPS[i].id];
+                if (!prevStatus || !['submitted', 'approved', 'locked', 'completed'].includes(prevStatus)) return 'locked';
             }
-            
-            // If all previous verified and this step is in_progress or not_started, it's current
-            if (allPreviousVerified) {
-                if (!status || status === 'not_started' || status === 'in_progress') {
-                    return 'current';
-                }
-            } else {
-                return 'locked';
-            }
+            if (!status || status === 'not_started' || status === 'in_progress') return 'current';
         }
-        
-        // All other steps are locked
         return 'locked';
     };
-    
-    // Check if step should actually be locked - match dashboard logic exactly
-    // Steps are locked until previous step is VERIFIED (approved/locked)
+
     const isStepActuallyLocked = (stepId: string): boolean => {
-        const status = stepStatuses[stepId] || 'not_started';
-        const stepIndex = MAIN_STEPS.findIndex(s => s.id === stepId);
-        
-        // First step (diagnosis) is never locked
-        if (stepIndex === 0) {
-            return false;
-        }
-        
-        // If step is currently active, it should NOT be locked (user can be on it)
-        if (isStepActive({ id: stepId, route: '', step: 0, title: '', desc: '', icon: CheckCircle2 })) {
-            return false;
-        }
-        
-        // If step is submitted, it should NOT be locked (accessible for review/view)
-        if (status === 'submitted') {
-            return false; // Submitted steps are accessible for HR to view
-        }
-        
-        // If step is verified (approved/locked), it should NOT be locked
-        if (status && ['approved', 'locked', 'completed'].includes(status)) {
-            return false; // Verified steps are accessible
-        }
-        
-        const ceoPhilosophyStatus = (props as any).ceoPhilosophyStatus || 'not_started';
-        const isCeoSurveyCompleted = ceoPhilosophyStatus === 'completed';
-        
-        // If CEO survey not done, all steps except diagnosis are locked
-        if (!isCeoSurveyCompleted && stepId !== 'diagnosis') {
-            return true;
-        }
-        
-        // Check if all previous steps are SUBMITTED, APPROVED, or LOCKED to unlock this step
-        // This allows HR to continue working after submission while CEO approval is pending
+        const status = stepStatuses[stepId] ?? 'not_started';
+        const stepIndex = MAIN_STEPS.findIndex((s) => s.id === stepId);
+        if (stepIndex === 0) return false;
+        if (currentPath.startsWith(MAIN_STEPS.find((s) => s.id === stepId)?.route ?? '')) return false;
+        if (status === 'submitted') return false;
+        if (status && ['approved', 'locked', 'completed'].includes(status)) return false;
+        if (ceoPhilosophyStatus !== 'completed' && stepId !== 'diagnosis') return true;
         for (let i = 0; i < stepIndex; i++) {
-            const prevStep = MAIN_STEPS[i];
-            const prevStatus = stepStatuses[prevStep.id];
-            
-            // Previous step must be SUBMITTED, APPROVED, or LOCKED to unlock next step
-            // SUBMITTED status allows progression while waiting for CEO approval
-            if (!prevStatus || !['submitted', 'approved', 'locked', 'completed'].includes(prevStatus)) {
-                return true; // Locked because previous step is not submitted/verified
-            }
+            const prevStatus = stepStatuses[MAIN_STEPS[i].id];
+            if (!prevStatus || !['submitted', 'approved', 'locked', 'completed'].includes(prevStatus)) return true;
         }
-        
-        // If all previous steps are verified, this step is unlocked
         return false;
     };
 
-    const isStepActive = (step: StepConfig): boolean => {
-        return currentPath.startsWith(step.route);
-    };
-
     const getStepRoute = (step: StepConfig): string => {
-        if (projectId) {
-            if (step.id === 'diagnosis') {
-                return `${step.route}/${projectId}/overview`;
-            }
-            if (step.id === 'job_analysis') {
-                return `${step.route}/${projectId}/overview`;
-            }
-            if (step.id === 'performance') {
-                return `${step.route}/${projectId}/overview`;
-            }
-            if (step.id === 'compensation') {
-                return `${step.route}/${projectId}/overview`;
-            }
-            if (step.id === 'tree') {
-                return `${step.route}/${projectId}/overview`;
-            }
-            if (step.id === 'conclusion') {
-                return `${step.route}/${projectId}`;
-            }
-            return `${step.route}/${projectId}`;
-        }
-        return step.route;
+        if (!projectId) return step.id === 'diagnosis' ? step.route : '#';
+        return `${step.route}/${projectId}/overview`;
     };
 
     return (
-        <div className="flex flex-col h-full w-full">
-            {/* Header - Match dashboard style */}
-            <div className={cn(
-                "flex items-center border-b border-sidebar-border/30 gap-3 transition-all duration-200",
-                isCollapsed ? "h-16 px-4 justify-center" : "h-20 px-6"
-            )}>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center flex-shrink-0 shadow-lg transition-all duration-200">
-                    <span className="text-white font-bold text-base">HR</span>
+        <div className="relative flex h-full w-full flex-col bg-[#111d35] min-h-0">
+            {/* Right edge gradient line */}
+            <div className="absolute top-0 right-0 w-px h-full bg-gradient-to-b from-transparent via-[rgba(78,205,196,0.3)] to-transparent pointer-events-none" aria-hidden />
+
+            {/* Logo */}
+            <div className="py-[18px] px-5 border-b border-white/[0.06] flex items-center gap-2.5 flex-shrink-0 relative">
+                <div className="w-8 h-8 bg-[#4ecdc4] rounded-lg flex items-center justify-center font-bold text-[13px] text-[#111d35] flex-shrink-0">
+                    HR
                 </div>
                 {!isCollapsed && (
-                    <div className="flex flex-col gap-1">
-                        <span className="font-semibold text-sidebar-foreground text-lg leading-none">HR Path-Finder</span>
-                        <span className="text-xs text-sidebar-foreground/60 leading-none">by BetterCompany</span>
+                    <div className="flex flex-col">
+                        <strong className="text-[13px] font-bold text-white tracking-[-0.2px] leading-tight">HR Path-Finder</strong>
+                        <span className="text-[10px] text-[#9ba5bc] font-normal">by BetterCompany</span>
                     </div>
                 )}
             </div>
-            
-            {/* Navigation - Match dashboard style */}
-            <nav className="flex-1 overflow-y-auto">
-                <SidebarGroup className={cn("transition-all duration-200", isCollapsed ? "px-3 py-6" : "px-3 py-8")}>
-                    <SidebarMenu className={cn("transition-all duration-200", isCollapsed ? "space-y-2" : "space-y-2")}>
-                        {/* Dashboard Menu Item */}
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                asChild
-                                isActive={isActive('/dashboard')}
-                                className={cn(
-                                    "transition-all duration-200 rounded-lg",
-                                    isCollapsed ? "px-3 py-3 justify-center w-full" : "px-4 py-6 gap-3"
-                                )}
-                            >
-                                <Link href="/hr-manager/dashboard" className="flex items-center w-full">
-                                    <LayoutGrid className={cn("flex-shrink-0 transition-all duration-200", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                    {!isCollapsed && <span className="font-medium">Dashboard</span>}
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
 
-                        {/* Companies Menu Item */}
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                asChild
-                                isActive={isActive('/companies')}
-                                className={cn(
-                                    "transition-all duration-200 rounded-lg",
-                                    isCollapsed ? "px-3 py-3 justify-center w-full" : "px-4 py-3 gap-3"
-                                )}
-                            >
-                                <Link href="/companies" className="flex items-center w-full">
-                                    <Briefcase className={cn("flex-shrink-0 transition-all duration-200", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                    {!isCollapsed && <span className="font-medium">Companies</span>}
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                        
-                        {/* Workflow Steps */}
-                        {MAIN_STEPS.map((step) => {
-                            const state = getStepState(step.id);
-                            const status = stepStatuses[step.id] || 'not_started';
-                            const isCompleted = state === 'completed';
-                            const isActuallyLocked = isStepActuallyLocked(step.id);
-                            const isStepActiveState = isStepActive(step);
-                            const StepIcon = step.icon;
+            {/* Scrollable section */}
+            <div className="flex-1 overflow-y-auto py-5 px-3 pb-2 min-h-0">
+                <div className="text-[9px] font-semibold tracking-[1.2px] uppercase text-[rgba(155,165,188,0.5)] px-2 mb-1.5">{t('sidebar.menu')}</div>
 
+                <Link
+                    href="/hr-manager/dashboard"
+                    className={`flex items-center gap-[9px] py-2 px-2.5 rounded-lg mb-0.5 transition-colors relative ${isDashboardActive ? 'bg-[rgba(78,205,196,0.12)]' : 'hover:bg-white/[0.06]'}`}
+                >
+                    {isDashboardActive && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-[18px] bg-[#4ecdc4] rounded-r-[2px]" />
+                    )}
+                    <LayoutGrid className={`w-[18px] h-[18px] flex-shrink-0 ${isDashboardActive ? 'opacity-100 text-[#4ecdc4]' : 'opacity-70 text-white'}`} />
+                    {!isCollapsed && (
+                        <span className={`text-[12.5px] font-medium ${isDashboardActive ? 'text-[#4ecdc4] font-semibold' : 'text-white/60'}`}>
+                            {t('navigation.dashboard')}
+                        </span>
+                    )}
+                </Link>
+
+                <Link
+                    href="/companies"
+                    className="flex items-center gap-[9px] py-2 px-2.5 rounded-lg mb-0.5 transition-colors hover:bg-white/[0.06]"
+                >
+                    <Building2 className="w-[18px] h-[18px] flex-shrink-0 opacity-70 text-white" />
+                    {!isCollapsed && <span className="text-[12.5px] font-medium text-white/60">{t('navigation.companies')}</span>}
+                </Link>
+
+                <div className="mt-4">
+                    <div className="text-[9px] font-semibold tracking-[1.2px] uppercase text-[rgba(155,165,188,0.5)] px-2 mb-1.5 mt-2">{t('sidebar.design_steps')}</div>
+                    {MAIN_STEPS.map((step) => {
+                        const state = getStepState(step.id);
+                        const locked = isStepActuallyLocked(step.id);
+                        const active = state === 'current' || state === 'completed';
+                        const href = getStepRoute(step);
+                        const StepIcon = step.icon;
+
+                        if (locked) {
                             return (
-                                <SidebarMenuItem key={step.id}>
-                                    {isActuallyLocked ? (
-                                        <SidebarMenuButton
-                                            disabled
-                                            className={cn(
-                                                "transition-all duration-200 rounded-lg cursor-not-allowed",
-                                                isCollapsed ? "px-3 py-3 justify-center w-full opacity-70" : "px-4 py-6 gap-3 opacity-65"
-                                            )}
-                                        >
-                                            <div className={cn("flex items-center w-full", isCollapsed ? "justify-center" : "gap-3")}>
-                                                <div className={cn(
-                                                    "rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200",
-                                                    isCollapsed ? "w-7 h-7 border-sidebar-foreground/50 bg-sidebar-background/60" : "w-6 h-6 border-sidebar-foreground/50 bg-sidebar-background/60"
-                                                )}>
-                                                    <Lock className={cn(
-                                                        "text-sidebar-foreground/60 transition-all duration-200",
-                                                        isCollapsed ? "w-4 h-4" : "w-3.5 h-3.5"
-                                                    )} />
-                                                </div>
-                                                {!isCollapsed && (
-                                                    <div className="flex-1 text-left">
-                                                        <span className="text-sm font-medium text-sidebar-foreground/60 block">
-                                                            Step {step.step}: {step.title}
-                                                        </span>
-                                                        <span className="text-xs text-sidebar-foreground/50 mt-0.5 block">
-                                                            Locked
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </SidebarMenuButton>
-                                    ) : (
-                                        <SidebarMenuButton
-                                            asChild
-                                            isActive={isStepActiveState}
-                                            className={cn(
-                                                "transition-all duration-200 rounded-lg w-full",
-                                                isCollapsed ? "px-3 py-3 justify-center" : "px-4 py-6 gap-3",
-                                                isCompleted && !isStepActiveState
-                                                    ? "bg-green-600 hover:bg-green-700 text-white" 
-                                                    : isStepActiveState
-                                                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                                                        : "bg-transparent hover:bg-sidebar-accent"
-                                            )}
-                                        >
-                                            <Link href={getStepRoute(step)} className="flex items-center w-full">
-                                                {/* Status Indicator - Green background for completed, icon for others */}
-                                                {isCompleted && !isStepActiveState ? (
-                                                    <CheckCircle2 className={cn(
-                                                        "text-white transition-all duration-200 flex-shrink-0",
-                                                        isCollapsed ? "w-5 h-5" : "w-5 h-5"
-                                                    )} />
-                                                ) : (
-                                                    <div className={cn(
-                                                        "rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200",
-                                                        isCollapsed ? "w-7 h-7" : "w-6 h-6",
-                                                        isStepActiveState 
-                                                            ? "bg-sidebar-primary/20 border-sidebar-primary" 
-                                                            : "bg-transparent border-sidebar-foreground/20"
-                                                    )}>
-                                                        {isStepActiveState ? (
-                                                            <StepIcon className={cn(
-                                                                "transition-all duration-200",
-                                                                isCollapsed ? "w-4 h-4" : "w-3.5 h-3.5",
-                                                                "text-sidebar-primary"
-                                                            )} />
-                                                        ) : isCompleted ? (
-                                                            <CheckCircle2 className={cn(
-                                                                "transition-all duration-200",
-                                                                isCollapsed ? "w-4 h-4" : "w-3.5 h-3.5",
-                                                                "text-green-600"
-                                                            )} />
-                                                        ) : (
-                                                            <StepIcon className={cn(
-                                                                "transition-all duration-200",
-                                                                isCollapsed ? "w-4 h-4" : "w-3.5 h-3.5",
-                                                                "text-sidebar-foreground/60"
-                                                            )} />
-                                                        )}
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Step Text */}
-                                                {!isCollapsed && (
-                                                    <div className="flex-1 text-left">
-                                                        <span className={cn(
-                                                            "text-sm font-medium block",
-                                                            isStepActiveState 
-                                                                ? "text-sidebar-primary-foreground" 
-                                                                : isCompleted 
-                                                                    ? "text-white" 
-                                                                    : "text-sidebar-foreground"
-                                                        )}>
-                                                            Step {step.step}: {step.title}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </Link>
-                                        </SidebarMenuButton>
-                                    )}
-                                </SidebarMenuItem>
+                                <div
+                                    key={step.id}
+                                    className="flex items-center gap-[9px] py-1.5 px-2.5 rounded-[7px] mb-0.5 opacity-45 cursor-not-allowed"
+                                >
+                                    <div className="w-5 h-5 rounded-full border-[1.5px] border-white/20 flex items-center justify-center text-[9px] font-bold flex-shrink-0 text-white/40">
+                                        {step.step}
+                                    </div>
+                                    {!isCollapsed && <span className="text-[11.5px] text-white/50">{t(`steps.${step.id}`)}</span>}
+                                </div>
                             );
-                        })}
-                    </SidebarMenu>
-                </SidebarGroup>
+                        }
 
-                {/* Tree and Report Section */}
-                <SidebarGroup>
-                    <SidebarMenu>
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                asChild
-                                isActive={currentPath.startsWith('/hr-manager/tree/')}
-                                className={cn(
-                                    "transition-all duration-200 rounded-lg w-full",
-                                    isCollapsed ? "px-3 py-3 justify-center" : "px-4 py-6 gap-3"
-                                )}
+                        return (
+                            <Link
+                                key={step.id}
+                                href={href}
+                                className={`flex items-center gap-[9px] py-1.5 px-2.5 rounded-[7px] mb-0.5 transition-all cursor-pointer ${
+                                    active ? 'opacity-100 bg-[rgba(78,205,196,0.08)]' : 'opacity-45 hover:opacity-65'
+                                }`}
                             >
-                                <Link href={projectId ? `/hr-manager/tree/${projectId}/overview` : '#'} className="flex items-center w-full">
-                                    <Network className={cn(
-                                        "transition-all duration-200 flex-shrink-0",
-                                        isCollapsed ? "w-5 h-5" : "w-5 h-5"
-                                    )} />
-                                    {!isCollapsed && (
-                                        <span className="text-sm font-medium">Tree</span>
-                                    )}
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                asChild
-                                isActive={currentPath.startsWith('/hr-manager/report/')}
-                                className={cn(
-                                    "transition-all duration-200 rounded-lg w-full",
-                                    isCollapsed ? "px-3 py-3 justify-center" : "px-4 py-6 gap-3"
+                                <div
+                                    className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0 border-[1.5px] ${
+                                        active
+                                            ? 'border-[#4ecdc4] bg-[#4ecdc4] text-[#111d35]'
+                                            : 'border-white/20 text-white/40'
+                                    }`}
+                                >
+                                    {step.step}
+                                </div>
+                                {!isCollapsed && (
+                                    <span className={`text-[11.5px] ${active ? 'text-white/90 font-medium' : 'text-white/50 font-normal'}`}>
+                                        {t(`steps.${step.id}`)}
+                                    </span>
                                 )}
-                            >
-                                <Link href={projectId ? `/hr-manager/report/${projectId}` : '#'} className="flex items-center w-full">
-                                    <FileBarChart className={cn(
-                                        "transition-all duration-200 flex-shrink-0",
-                                        isCollapsed ? "w-5 h-5" : "w-5 h-5"
-                                    )} />
-                                    {!isCollapsed && (
-                                        <span className="text-sm font-medium">Report</span>
-                                    )}
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </SidebarGroup>
-            </nav>
+                            </Link>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Bottom: Tree, Report */}
+            <div className="py-3 px-3 border-t border-white/[0.06] flex-shrink-0">
+                <Link
+                    href={projectId ? `/hr-manager/tree/${projectId}/overview` : '#'}
+                    className="flex items-center gap-[9px] py-1.5 px-2.5 rounded-[7px] mb-0.5 transition-colors hover:bg-white/[0.06]"
+                >
+                    <TreeDeciduous className="w-[18px] h-[18px] opacity-50 text-white" />
+                    {!isCollapsed && <span className="text-[12px] font-medium text-white/45">{t('sidebar.tree')}</span>}
+                </Link>
+                <Link
+                    href={projectId ? `/hr-manager/report/${projectId}` : '#'}
+                    className="flex items-center gap-[9px] py-1.5 px-2.5 rounded-[7px] mb-0.5 transition-colors hover:bg-white/[0.06]"
+                >
+                    <FileText className="w-[18px] h-[18px] opacity-50 text-white" />
+                    {!isCollapsed && <span className="text-[12px] font-medium text-white/45">{t('sidebar.report')}</span>}
+                </Link>
+            </div>
         </div>
     );
 }

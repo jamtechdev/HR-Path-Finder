@@ -301,37 +301,33 @@ export default function FormLayout({
         const status = stepStatuses[tab.id];
         return status && ['submitted', 'approved', 'locked', 'completed', 'in_progress'].includes(status);
     }).length;
+    const currentStepIndex = displayTabs.findIndex(tab => tab.id === activeTab);
+    const stepCounter = currentStepIndex >= 0 ? `${currentStepIndex + 1} of ${displayTabs.length}` : '';
 
     return (
         <AppLayout>
-            <div className="p-6 md:p-8 max-w-7xl mx-auto bg-background">
-                        {/* Header - Same as Overview */}
-                        <div className="mb-6">
+            <div className="flex flex-col min-h-full bg-[var(--hr-gray-50)]">
+                        {/* Step Header - white bar with back, title, badge, counter */}
+                        <div className="bg-white border-b border-[var(--hr-gray-200)] pt-4 px-9 pb-0 shrink-0">
                             <DiagnosisHeader
                                 title="Step 1: Diagnosis"
-                                description="Input company information and organizational context."
                                 status={getStatusForHeader()}
                                 backHref={getBackHref()}
+                                stepCounter={stepCounter}
                             />
-                        </div>
-
-                        {/* Progress Overview - Same as Overview */}
-                        <div className="mb-6">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium text-gray-700">Overview</span>
-                                <span className="text-sm text-gray-600">{completedCount} of {displayTabs.length}</span>
+                            {/* Overview bar */}
+                            <div className="flex items-center gap-2.5 mt-0 mb-0">
+                                <span className="text-[11px] text-[var(--hr-gray-400)] whitespace-nowrap">Overview</span>
+                                <div className="flex-1 h-[3px] bg-[var(--hr-gray-200)] rounded-[3px] overflow-hidden">
+                                    <div
+                                        className="h-full bg-[var(--hr-mint)] rounded-[3px] transition-all duration-400 ease-out"
+                                        style={{ width: `${displayTabs.length ? (completedCount / displayTabs.length) * 100 : 0}%` }}
+                                    />
+                                </div>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-1">
-                                <div 
-                                    className="bg-primary h-1 rounded-full transition-all duration-300"
-                                    style={{ width: `${(completedCount / displayTabs.length) * 100}%` }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Tabs Navigation - Same as Overview */}
-                        <div className="mb-6">
-                            <DiagnosisTabs
+                            {/* Tabs - scrollable */}
+                            <div className="mt-3.5">
+                                <DiagnosisTabs
                                 tabs={diagnosisTabs}
                                 activeTab={activeTab as any}
                                 stepStatus={stepStatuses}
@@ -340,13 +336,13 @@ export default function FormLayout({
                                 diagnosisStatus={diagnosisStatus as any}
                                 diagnosis={diagnosis}
                             />
+                            </div>
                         </div>
 
+                        {/* Form area - scrollable content */}
+                        <div className="flex-1 overflow-y-auto py-7 px-9">
                         {/* Page Title */}
-                        <div className="mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h2>
-                            {subtitle && <p className="text-muted-foreground mt-1">{subtitle}</p>}
-                        </div>
+                        <h2 className="text-[17px] font-bold text-[var(--hr-gray-800)] tracking-[-0.3px] mb-5">{title}</h2>
 
                         {/* Read-only Notice */}
                         {(diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked') && (
@@ -376,36 +372,36 @@ export default function FormLayout({
                         <div className="mb-6">
                             {children}
                         </div>
+                        </div>
 
-                        {/* Navigation */}
+                        {/* Bottom Nav - white bar */}
                         {(showBack || showNext) && (
-                            <div className="flex items-center justify-between pt-6 border-t">
-                                {showBack && (
-                                    <Link href={getBackUrl()}>
-                                        <Button variant="outline" disabled={processing}>
-                                            <ArrowLeft className="w-4 h-4 mr-2" />
-                                            Back
-                                        </Button>
+                            <div className="bg-white border-t border-[var(--hr-gray-200)] py-3.5 px-9 flex items-center justify-between shrink-0">
+                                {showBack ? (
+                                    <Link
+                                        href={getBackUrl()}
+                                        className="flex items-center gap-[7px] py-2 px-[18px] border border-[var(--hr-gray-200)] rounded-lg bg-white text-[13px] font-medium text-[var(--hr-gray-600)] hover:border-[var(--hr-gray-300)] hover:bg-[var(--hr-gray-50)] transition-colors"
+                                    >
+                                        ← Back
                                     </Link>
-                                )}
-                                {showNext && (
-                                    <>
-                                        {onNext ? (
-                                            <Button onClick={handleNext} disabled={processing || isSaving}>
-                                                {isSaving ? 'Saving...' : nextLabel}
-                                                <ArrowRight className="w-4 h-4 ml-2" />
-                                            </Button>
-                                        ) : nextRoute ? (
-                                            <Button onClick={handleNext} disabled={processing || isSaving}>
-                                                {isSaving ? 'Saving...' : nextLabel}
-                                                <ArrowRight className="w-4 h-4 ml-2" />
-                                            </Button>
-                                        ) : null}
-                                    </>
+                                ) : <span />}
+                                <span className="text-[11.5px] text-[var(--hr-gray-400)]">{stepCounter}</span>
+                                {showNext ? (
+                                    <button
+                                        type="button"
+                                        onClick={handleNext}
+                                        disabled={processing || isSaving}
+                                        className="flex items-center gap-[7px] py-2 px-[22px] rounded-lg bg-[var(--hr-navy)] text-[13px] font-bold text-white hover:bg-[var(--hr-navy-mid)] hover:-translate-y-px transition-all disabled:opacity-50"
+                                    >
+                                        {isSaving ? 'Saving...' : nextLabel}
+                                        →
+                                    </button>
+                                ) : (
+                                    <span />
                                 )}
                             </div>
                         )}
-                    </div>
+            </div>
         </AppLayout>
     );
 }

@@ -152,7 +152,8 @@
       "logo": "HR Copilot",
       "company": "by BetterCompany",
       "sign_in": "Sign In",
-      "get_started": "Get Started"
+      "get_started": "Get Started",
+      "dashboard": "Dashboard"
     },
     "footer": {
       "copyright": "© 2025 BetterCompany. All rights reserved."
@@ -171,7 +172,39 @@
     "welcome": "Welcome",
     "overview": "Overview",
     "recent_activity": "Recent Activity",
-    "statistics": "Statistics"
+    "statistics": "Statistics",
+    "pathfinder": {
+      "welcome_back": "Welcome back, {{name}}",
+      "subtitle": "Continue your HR system design step by step. Step {{step}} {{title}} is in progress.",
+      "step_in_progress": "Step {{num}}: {{title}} in progress",
+      "banner_desc": "Enter company basics, workforce, and org structure, then complete diagnosis to unlock the next step.",
+      "design_steps": "Design Steps",
+      "step_unlock_hint": "Complete each step to unlock the next",
+      "locked": "Locked",
+      "in_progress": "In progress",
+      "complete": "Complete",
+      "continue": "Continue",
+      "start_btn": "Start",
+      "prev_step_required": "Complete the previous step to unlock",
+      "prev_step_required_after": "Opens after completing the previous step",
+      "progress_label": "Progress",
+      "overall_progress": "Overall Progress",
+      "completed_steps": "Completed steps",
+      "ceo_survey": "CEO Survey",
+      "not_started": "Not Started",
+      "ceo_survey_start_hint": "Please start the CEO survey",
+      "current_step": "Current Step",
+      "active": "Active",
+      "steps_remaining": "Steps Remaining",
+      "keep_going": "Keep going!",
+      "completed_count": "{{done}} / {{total}} completed"
+    }
+  },
+  "sidebar": {
+    "menu": "Menu",
+    "design_steps": "Design Steps",
+    "tree": "Tree",
+    "report": "Report"
   },
   "steps": {
     "diagnosis": "Diagnosis",
@@ -193,5 +226,17 @@
     "save_failed": "Failed to save",
     "delete_confirm": "Are you sure you want to delete?",
     "unsaved_changes": "You have unsaved changes"
+  },
+  "diagnosis": {
+    "executives": {
+      "card_title": "Executive Position Settings",
+      "card_desc": "Select the applicable executive positions and enter the number of people",
+      "total_label": "Total Executives",
+      "total_suffix": "people",
+      "preset_badge": "Default",
+      "count_suffix": "people",
+      "add_custom": "Add custom executive position",
+      "custom_placeholder": "Position name (e.g. CPO, Vice Chair)"
+    }
   }
 }

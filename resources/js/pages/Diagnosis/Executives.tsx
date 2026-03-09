@@ -1,12 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Plus, X } from 'lucide-react';
-import MultiSelectQuestion from '@/components/Forms/MultiSelectQuestion';
+import { Plus, X, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Diagnosis {
     id: number;
@@ -15,15 +11,8 @@ interface Diagnosis {
 }
 
 interface Props {
-    project: {
-        id: number;
-        company: {
-            name: string;
-        };
-    };
-    company: {
-        name: string;
-    };
+    project: { id: number; company: { name: string } };
+    company: { name: string };
     diagnosis?: Diagnosis;
     activeTab: string;
     diagnosisStatus: string;
@@ -37,7 +26,7 @@ interface ExecutivePosition {
     count: number;
 }
 
-const DEFAULT_POSITIONS = ['CEO', 'CTO', 'COO', 'CFO'];
+const DEFAULT_POSITIONS = ['CEO', 'COO', 'CTO', 'CFO', 'CMO'];
 
 export default function Executives({
     project,
@@ -48,6 +37,7 @@ export default function Executives({
     stepStatuses,
     projectId,
 }: Props) {
+    const { t } = useTranslation();
     const [positions, setPositions] = useState<ExecutivePosition[]>(() => {
         if (diagnosis?.executive_positions) {
             if (Array.isArray(diagnosis.executive_positions)) {
@@ -56,88 +46,96 @@ export default function Executives({
                     role: pos.role || '',
                     count: pos.count || 0,
                 }));
-            } else {
-                // Convert object to array
-                return Object.entries(diagnosis.executive_positions).map(([role, count], index) => ({
-                    id: `pos-${index}`,
-                    role,
-                    count: count as number,
-                }));
             }
+            return Object.entries(diagnosis.executive_positions).map(([role, count], index) => ({
+                id: `pos-${index}`,
+                role,
+                count: count as number,
+            }));
         }
         return [];
     });
     const [selectedDefaultPositions, setSelectedDefaultPositions] = useState<string[]>(() => {
         const selected: string[] = [];
-        positions.forEach(pos => {
-            if (DEFAULT_POSITIONS.includes(pos.role)) {
-                selected.push(pos.role);
-            }
+        positions.forEach((pos) => {
+            if (DEFAULT_POSITIONS.includes(pos.role)) selected.push(pos.role);
         });
         return selected;
     });
+    const [customInputVisible, setCustomInputVisible] = useState(false);
+    const [customRoleName, setCustomRoleName] = useState('');
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData } = useForm({
         total_executives: diagnosis?.total_executives || 0,
         executive_positions: [] as Array<{ role: string; count: number }>,
     });
 
-    // Sync selected default positions with positions array
+    const toggleDefaultPosition = (role: string) => {
+        setSelectedDefaultPositions((prev) =>
+            prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role].sort()
+        );
+    };
+
     useEffect(() => {
-        const newPositions = [...positions];
-        
-        // Remove unselected default positions
-        newPositions.forEach((pos, index) => {
-            if (DEFAULT_POSITIONS.includes(pos.role) && !selectedDefaultPositions.includes(pos.role)) {
-                newPositions.splice(index, 1);
-            }
+        setPositions((prev) => {
+            const next: ExecutivePosition[] = [];
+            selectedDefaultPositions.forEach((role) => {
+                const ex = prev.find((p) => p.role === role);
+                next.push(ex || { id: `pos-${Date.now()}-${role}`, role, count: 1 });
+            });
+            prev.forEach((p) => {
+                if (!DEFAULT_POSITIONS.includes(p.role)) next.push(p);
+            });
+            return next;
         });
-
-        // Add newly selected default positions
-        selectedDefaultPositions.forEach(role => {
-            if (!newPositions.find(p => p.role === role)) {
-                newPositions.push({ id: `pos-${Date.now()}-${role}`, role, count: 1 });
-            }
-        });
-
-        setPositions(newPositions);
     }, [selectedDefaultPositions]);
 
-    // Update form data when positions change
     useEffect(() => {
         const positionsArray = positions
-            .filter(pos => pos.role && pos.count > 0)
-            .map(pos => ({ role: pos.role, count: pos.count }));
-        setData('executive_positions', positionsArray);
+            .filter((pos) => pos.role && pos.count > 0)
+            .map((pos) => ({ role: pos.role, count: pos.count }));
+        const total = positionsArray.reduce((sum, p) => sum + p.count, 0);
+        setData({ executive_positions: positionsArray, total_executives: total });
     }, [positions]);
 
-    // Removed auto-save - only save on review and submit
+    const updatePosition = (id: string, updates: Partial<ExecutivePosition>) => {
+        setPositions(
+            positions.map((p) => {
+                if (p.id !== id) return p;
+                const updated = { ...p, ...updates };
+                if (updated.role.toUpperCase() === 'CXO') return p;
+                return updated;
+            })
+        );
+    };
 
     const addCustomPosition = () => {
-        setPositions([...positions, { id: `pos-${Date.now()}`, role: '', count: 1 }]);
+        const name = customRoleName.trim();
+        if (!name || DEFAULT_POSITIONS.includes(name)) {
+            setCustomInputVisible(false);
+            setCustomRoleName('');
+            return;
+        }
+        setPositions((prev) => [...prev, { id: `pos-${Date.now()}`, role: name, count: 1 }]);
+        setCustomInputVisible(false);
+        setCustomRoleName('');
     };
 
     const removePosition = (id: string) => {
-        const pos = positions.find(p => p.id === id);
+        const pos = positions.find((p) => p.id === id);
         if (pos && DEFAULT_POSITIONS.includes(pos.role)) {
-            setSelectedDefaultPositions(selectedDefaultPositions.filter(r => r !== pos.role));
+            setSelectedDefaultPositions(selectedDefaultPositions.filter((r) => r !== pos.role));
         }
         setPositions(positions.filter((p) => p.id !== id));
     };
 
-    const updatePosition = (id: string, updates: Partial<ExecutivePosition>) => {
-        setPositions(positions.map((p) => {
-            if (p.id === id) {
-                const updated = { ...p, ...updates };
-                // Validate: cannot be "CXO"
-                if (updated.role.toUpperCase() === 'CXO') {
-                    return p; // Don't update if trying to set to CXO
-                }
-                return updated;
-            }
-            return p;
-        }));
-    };
+    const totalCount = positions
+        .filter((p) => p.role && p.count > 0)
+        .reduce((sum, p) => sum + p.count, 0);
+
+    const getPositionCount = (role: string) => positions.find((p) => p.role === role)?.count ?? 0;
+
+    const isReadOnly = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
 
     return (
         <>
@@ -158,117 +156,195 @@ export default function Executives({
                 }}
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
-                <Card className="shadow-sm border">
-                    <CardContent className="p-6">
-                        {/* Total Executives */}
-                        <div className="flex flex-col gap-3">
-                            <Label htmlFor="total_executives" className="text-sm font-medium text-foreground">Total Executives</Label>
-                            <Input
-                                id="total_executives"
-                                type="number"
-                                min="0"
-                                value={data.total_executives || ''}
-                                onChange={(e) => setData('total_executives', parseInt(e.target.value) || 0)}
-                                placeholder="0"
-                            />
+                <div className="bg-white border border-[var(--hr-gray-200)] rounded-[14px] overflow-hidden mb-3.5">
+                    {/* Card header */}
+                    <div className="py-4 px-[22px] border-b border-[var(--hr-gray-100)] flex items-center justify-between flex-wrap gap-3">
+                        <div>
+                            <h3 className="text-[13px] font-bold text-[var(--hr-gray-800)]">
+                                {t('diagnosis.executives.card_title', '임원 포지션 설정')}
+                            </h3>
+                            <p className="text-[11.5px] text-[var(--hr-gray-400)] mt-0.5">
+                                {t('diagnosis.executives.card_desc', '해당되는 임원 직책을 선택하고 인원수를 입력하세요')}
+                            </p>
                         </div>
-
-                        {/* Executive Positions - Default Options */}
-                        <div className="flex flex-col gap-3 mt-6">
-                            <Label className="text-sm font-medium text-foreground">Executive Positions</Label>
-                            <MultiSelectQuestion
-                                question="Select default positions"
-                                value={selectedDefaultPositions}
-                                onChange={setSelectedDefaultPositions}
-                                options={DEFAULT_POSITIONS}
-                                columns={2}
-                            />
+                        <div className="flex items-center gap-1.5 bg-[var(--hr-mint-dim)] border border-[rgba(78,205,196,0.2)] rounded-lg py-1.5 px-3.5">
+                            <span className="text-[11px] text-[var(--hr-gray-600)]">
+                                {t('diagnosis.executives.total_label', '총 임원')}
+                            </span>
+                            <strong className="text-[18px] font-bold text-[var(--hr-navy)] leading-none">
+                                {totalCount}
+                            </strong>
+                            <em className="text-[11px] text-[var(--hr-gray-400)] not-italic">
+                                {t('diagnosis.executives.total_suffix', '명')}
+                            </em>
                         </div>
+                    </div>
 
-                        {/* Custom Positions */}
-                        <div className="flex flex-col gap-3 mb-3">
-                            <div className="flex items-center justify-between">
-                                <Label>Other Positions</Label>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={addCustomPosition}
-                                >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Add Custom Position
-                                </Button>
-                            </div>
-                            <div className="flex flex-col gap-3 mb-3">
-                                {positions
-                                    .filter(pos => !DEFAULT_POSITIONS.includes(pos.role))
-                                    .map((position) => (
-                                        <div key={position.id} className="flex items-center gap-2">
-                                            <Input
-                                                placeholder="Position name (cannot be CXO)"
-                                                value={position.role}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    if (value.toUpperCase() !== 'CXO') {
-                                                        updatePosition(position.id, { role: value });
-                                                    }
-                                                }}
-                                                className="flex-1"
-                                            />
-                                            <Input
+                    <div className="p-5 px-[22px]">
+                        <div className="flex flex-col gap-2">
+                            {/* Default position rows */}
+                            {DEFAULT_POSITIONS.map((role) => {
+                                const selected = selectedDefaultPositions.includes(role);
+                                const count = getPositionCount(role);
+                                return (
+                                    <div
+                                        key={role}
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => !isReadOnly && toggleDefaultPosition(role)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                if (!isReadOnly) toggleDefaultPosition(role);
+                                            }
+                                        }}
+                                        className={`flex items-center gap-3 py-2.5 px-3.5 border rounded-[10px] transition-all cursor-pointer ${
+                                            selected
+                                                ? 'border-[var(--hr-mint)] bg-white shadow-[0_0_0_1px_var(--hr-mint)]'
+                                                : 'border-[var(--hr-gray-200)] bg-[var(--hr-gray-50)] hover:border-[var(--hr-gray-300)] hover:bg-white'
+                                        }`}
+                                    >
+                                        <div
+                                            className={`w-[18px] h-[18px] rounded-[5px] border-2 flex items-center justify-center shrink-0 ${
+                                                selected
+                                                    ? 'border-[var(--hr-mint)] bg-[var(--hr-mint)]'
+                                                    : 'border-[var(--hr-gray-300)] bg-white'
+                                            }`}
+                                        >
+                                            {selected && <Check className="w-2.5 h-2.5 text-[var(--hr-navy-deep)]" />}
+                                        </div>
+                                        <span
+                                            className={`flex-1 text-[13px] font-semibold ${
+                                                selected ? 'text-[var(--hr-gray-800)]' : 'text-[var(--hr-gray-600)]'
+                                            }`}
+                                        >
+                                            {role}
+                                        </span>
+                                        <span className="text-[9.5px] font-semibold py-0.5 px-1.5 rounded-[10px] bg-[var(--hr-gray-100)] text-[var(--hr-gray-400)]">
+                                            {t('diagnosis.executives.preset_badge', '기본')}
+                                        </span>
+                                        {selected && (
+                                            <div className="flex items-center gap-1.5">
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    value={count}
+                                                    onChange={(e) => {
+                                                        const pos = positions.find((p) => p.role === role);
+                                                        if (pos) updatePosition(pos.id, { count: parseInt(e.target.value, 10) || 0 });
+                                                    }}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    disabled={isReadOnly}
+                                                    className="w-12 text-center text-[12px] font-bold text-[var(--hr-navy)] border-0 bg-transparent focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                />
+                                                <span className="text-[11px] text-[var(--hr-gray-400)]">
+                                                    {t('diagnosis.executives.count_suffix', '명')}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+
+                            {/* Custom positions */}
+                            {positions
+                                .filter((p) => !DEFAULT_POSITIONS.includes(p.role))
+                                .map((position) => (
+                                    <div
+                                        key={position.id}
+                                        className="flex items-center gap-2.5 py-2.5 px-3.5 border border-[var(--hr-mint)] rounded-[10px] bg-white shadow-[0_0_0_1px_var(--hr-mint)]"
+                                    >
+                                        <div className="w-[18px] h-[18px] rounded-[5px] border-2 border-[var(--hr-mint)] bg-[var(--hr-mint)] flex items-center justify-center shrink-0">
+                                            <Check className="w-2.5 h-2.5 text-[var(--hr-navy-deep)]" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={position.role}
+                                            onChange={(e) => {
+                                                const v = e.target.value;
+                                                if (v.toUpperCase() !== 'CXO') updatePosition(position.id, { role: v });
+                                            }}
+                                            placeholder={t('diagnosis.executives.custom_placeholder', '직책명 입력 (예: CPO, 부회장)')}
+                                            disabled={isReadOnly}
+                                            className="flex-1 text-[13px] font-semibold text-[var(--hr-gray-800)] border-0 bg-transparent outline-none placeholder:text-[var(--hr-gray-300)]"
+                                        />
+                                        <div className="flex items-center gap-1.5">
+                                            <input
                                                 type="number"
-                                                placeholder="Count"
-                                                value={position.count || ''}
-                                                onChange={(e) => updatePosition(position.id, { count: parseInt(e.target.value) || 0 })}
-                                                min="0"
-                                                className="w-24"
+                                                min={0}
+                                                value={position.count}
+                                                onChange={(e) =>
+                                                    updatePosition(position.id, { count: parseInt(e.target.value, 10) || 0 })
+                                                }
+                                                disabled={isReadOnly}
+                                                className="w-12 text-center text-[12px] font-bold text-[var(--hr-navy)] border-0 bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                             />
-                                            <Button
+                                            <span className="text-[11px] text-[var(--hr-gray-400)]">
+                                                {t('diagnosis.executives.count_suffix', '명')}
+                                            </span>
+                                        </div>
+                                        {!isReadOnly && (
+                                            <button
                                                 type="button"
-                                                variant="ghost"
-                                                size="sm"
                                                 onClick={() => removePosition(position.id)}
+                                                className="w-[22px] h-[22px] rounded-md bg-[var(--hr-gray-100)] flex items-center justify-center text-[12px] text-[var(--hr-gray-400)] hover:bg-[var(--hr-gray-200)] transition-colors"
                                             >
-                                                <X className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    ))}
-                            </div>
-                        </div>
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
 
-                        {/* Positions with Counts */}
-                        <div className="flex flex-col gap-3 mb-3">
-                            <Label>Position Counts</Label>
-                            <div className="flex flex-col gap-3 mb-3">
-                                {positions
-                                    .filter(pos => pos.role)
-                                    .map((position) => (
-                                        <div key={position.id} className="flex items-center gap-2 p-2 border rounded-md">
-                                            <span className="flex-1 font-medium">{position.role}</span>
-                                            <Input
-                                                type="number"
-                                                value={position.count || ''}
-                                                onChange={(e) => updatePosition(position.id, { count: parseInt(e.target.value) || 0 })}
-                                                min="0"
-                                                className="w-24"
-                                            />
-                                            <span className="text-sm text-muted-foreground">people</span>
-                                            {!DEFAULT_POSITIONS.includes(position.role) && (
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => removePosition(position.id)}
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </Button>
-                                            )}
-                                        </div>
-                                    ))}
-                            </div>
+                            {/* Add custom row (inline input when visible) */}
+                            {customInputVisible ? (
+                                <div className="flex items-center gap-2.5 py-2.5 px-3.5 border border-[var(--hr-mint)] rounded-[10px] bg-white shadow-[0_0_0_1px_var(--hr-mint)] mt-1">
+                                    <div className="w-[18px] h-[18px] rounded-[5px] border-2 border-[var(--hr-mint)] bg-[var(--hr-mint)] flex items-center justify-center shrink-0">
+                                        <Check className="w-2.5 h-2.5 text-[var(--hr-navy-deep)]" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={customRoleName}
+                                        onChange={(e) => setCustomRoleName(e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomPosition(); } }}
+                                        placeholder={t('diagnosis.executives.custom_placeholder', '직책명 입력 (예: CPO, 부회장)')}
+                                        autoFocus
+                                        className="flex-1 text-[13px] font-semibold text-[var(--hr-gray-800)] border-0 bg-transparent outline-none placeholder:text-[var(--hr-gray-300)]"
+                                    />
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-[12px] font-bold text-[var(--hr-navy)]">1</span>
+                                        <span className="text-[11px] text-[var(--hr-gray-400)]">
+                                            {t('diagnosis.executives.count_suffix', '명')}
+                                        </span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setCustomInputVisible(false);
+                                            setCustomRoleName('');
+                                        }}
+                                        className="w-[22px] h-[22px] rounded-md bg-[var(--hr-gray-100)] flex items-center justify-center text-[12px] text-[var(--hr-gray-400)] hover:bg-[var(--hr-gray-200)]"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => setCustomInputVisible(true)}
+                                    disabled={isReadOnly}
+                                    className="flex items-center gap-2 py-2.5 px-3.5 mt-1 border border-dashed border-[var(--hr-gray-200)] rounded-[10px] bg-transparent cursor-pointer hover:border-[var(--hr-mint)] hover:bg-[var(--hr-mint-dim)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full"
+                                >
+                                    <div className="w-[22px] h-[22px] rounded-md bg-[var(--hr-gray-100)] flex items-center justify-center text-[14px] text-[var(--hr-gray-400)]">
+                                        <Plus className="w-4 h-4" />
+                                    </div>
+                                    <span className="text-[12.5px] font-medium text-[var(--hr-gray-400)]">
+                                        {t('diagnosis.executives.add_custom', '커스텀 임원 직책 추가')}
+                                    </span>
+                                </button>
+                            )}
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             </FormLayout>
         </>
     );

@@ -8,10 +8,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
+    /* Reference: HR Path-Finder – Pretendard for all pages (Korean + English) */
     --font-sans:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
-        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-        'Noto Color Emoji';
+        'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -62,6 +62,25 @@
 }
 
 :root {
+    /* HR Path-Finder reference design tokens (match given HTML) */
+    --hr-navy: #1a2744;
+    --hr-navy-deep: #111d35;
+    --hr-navy-mid: #223058;
+    --hr-navy-light: #2d3f6b;
+    --hr-mint: #4ecdc4;
+    --hr-mint-dim: rgba(78, 205, 196, 0.15);
+    --hr-gold: #c9a84c;
+    --hr-gold-dim: rgba(201, 168, 76, 0.12);
+    --hr-gray-50: #f8f9fb;
+    --hr-gray-100: #f0f2f6;
+    --hr-gray-200: #e2e6ee;
+    --hr-gray-300: #cdd3df;
+    --hr-gray-400: #9ba5bc;
+    --hr-gray-600: #5a6478;
+    --hr-gray-800: #2d3340;
+    --hr-sidebar-w: 220px;
+    --hr-topbar-h: 52px;
+
     --background: 210 20% 98%;
     --foreground: 215 25% 15%;
     --card: 0 0% 100%;
@@ -151,7 +170,8 @@
     }
 
     body {
-        @apply bg-background text-foreground;
+        @apply bg-background text-foreground font-sans antialiased;
+        font-family: var(--font-sans);
     }
 }
 

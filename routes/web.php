@@ -16,7 +16,11 @@ Route::get('/', function (Request $request) {
     ]);
 })->name('home');
 
-Route::get('/login', function () {
+Route::get('/login', function (Request $request) {
+    // If already logged in, redirect to role-based dashboard
+    if ($request->user()) {
+        return redirect()->route('dashboard');
+    }
     return Inertia::render('auth/login', [
         'canRegister' => Features::enabled(Features::registration()),
     ]);

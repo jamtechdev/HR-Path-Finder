@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -13,6 +13,7 @@ import MultiSelectQuestion from '@/components/Forms/MultiSelectQuestion';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
 import { ChevronRight, ChevronLeft, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface DiagnosisQuestion {
@@ -90,6 +91,7 @@ export default function CeoPhilosophySurvey({
     const [currentStep, setCurrentStep] = useState(0);
     const [hasSeenIntro, setHasSeenIntro] = useState(false);
     const [hasAgreed, setHasAgreed] = useState(false);
+    const [validationError, setValidationError] = useState<string | null>(null);
 
     const { data, setData, post, processing, errors } = useForm({
         management_philosophy: philosophy?.management_philosophy_responses || {},
@@ -98,20 +100,80 @@ export default function CeoPhilosophySurvey({
         leadership: philosophy?.leadership_responses || {},
         general: philosophy?.general_responses || {},
         organizational_issues: philosophy?.organizational_issues || diagnosis?.hr_issues || [],
+        organizational_issues_other: (philosophy as any)?.organizational_issues_other || '',
         concerns: philosophy?.concerns || '',
     });
+    const stepRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
     const progress = ((currentStep + 1) / STEPS.length) * 100;
+
+    const validateCurrentStep = (): { valid: boolean; message?: string; ref?: HTMLDivElement | null } => {
+        const stepId = STEPS[currentStep].id;
+        if (stepId === 'intro') return { valid: hasAgreed };
+        if (stepId === 'management') {
+            const qs = managementPhilosophyQuestions;
+            for (const q of qs) {
+                const v = data.management_philosophy[q.id.toString()];
+                if (v === undefined || v === null || (typeof v === 'number' && isNaN(v))) {
+                    return { valid: false, message: 'Please answer this question before continuing.', ref: stepRefs.current[currentStep] };
+                }
+            }
+        }
+        if (stepId === 'vision') {
+            const qs = visionMissionQuestions;
+            for (const q of qs) {
+                const v = data.vision_mission[q.id.toString()];
+                if (v === undefined || v === null || v === '') {
+                    return { valid: false, message: 'Please answer this question before continuing.', ref: stepRefs.current[currentStep] };
+                }
+            }
+        }
+        if (stepId === 'growth') {
+            if (!data.growth_stage?.trim()) {
+                return { valid: false, message: 'Please answer this question before continuing.', ref: stepRefs.current[currentStep] };
+            }
+        }
+        if (stepId === 'leadership') {
+            for (const q of leadershipQuestions) {
+                const v = data.leadership[q.id.toString()];
+                if (v === undefined || v === null || (typeof v === 'number' && isNaN(v))) {
+                    return { valid: false, message: 'Please answer this question before continuing.', ref: stepRefs.current[currentStep] };
+                }
+            }
+        }
+        if (stepId === 'general') {
+            for (const q of generalQuestions) {
+                const v = data.general[q.id.toString()];
+                if (v === undefined || v === null || (typeof v === 'number' && isNaN(v))) {
+                    return { valid: false, message: 'Please answer this question before continuing.', ref: stepRefs.current[currentStep] };
+                }
+            }
+        }
+        if (stepId === 'concerns') {
+            if (concernsQuestion && !data.concerns?.trim()) {
+                return { valid: false, message: 'Please answer this question before continuing.', ref: stepRefs.current[currentStep] };
+            }
+        }
+        return { valid: true };
+    };
 
     const handleNext = () => {
         if (currentStep === 0) {
             if (!hasAgreed) {
-                return; // Cannot proceed without agreeing
+                return;
             }
-            if (!hasSeenIntro) {
-                setHasSeenIntro(true);
+            setHasSeenIntro(true);
+        } else {
+            const result = validateCurrentStep();
+            if (!result.valid) {
+                setValidationError(result.message || 'Please answer this question before continuing.');
+                setTimeout(() => {
+                    result.ref?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+                return;
             }
         }
+        setValidationError(null);
         if (currentStep < STEPS.length - 1) {
             setCurrentStep(currentStep + 1);
         }
@@ -124,6 +186,13 @@ export default function CeoPhilosophySurvey({
     };
 
     const handleSubmit = () => {
+        const result = validateCurrentStep();
+        if (!result.valid) {
+            setValidationError(result.message || 'Please answer this question before continuing.');
+            result.ref?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+        }
+        setValidationError(null);
         post(`/ceo/philosophy/survey/${project.id}`, {
             preserveScroll: true,
             onSuccess: () => {
@@ -446,6 +515,27 @@ For the most meaningful outcome, please answer honestly and instinctively, based
                                     </div>
                                 </div>
                             ))}
+                            {/* Other option with text input */}
+                            <div className="space-y-3 mt-6 pt-6 border-t">
+                                <div className="flex items-center space-x-2 p-4 border rounded-lg">
+                                    <Checkbox
+                                        id="issue-other"
+                                        checked={Boolean((data as any).organizational_issues_other?.trim())}
+                                        onCheckedChange={(checked) => {
+                                            if (!checked) setData('organizational_issues_other', '' as any);
+                                        }}
+                                    />
+                                    <label htmlFor="issue-other" className="text-sm font-medium leading-none cursor-pointer">
+                                        Other (describe additional issues not listed above)
+                                    </label>
+                                </div>
+                                <Input
+                                    value={(data as any).organizational_issues_other || ''}
+                                    onChange={(e) => setData('organizational_issues_other', e.target.value as any)}
+                                    placeholder="Please describe additional HR or organizational issues..."
+                                    className="mt-2"
+                                />
+                            </div>
                         </CardContent>
                     </Card>
                 );
@@ -507,21 +597,30 @@ For the most meaningful outcome, please answer honestly and instinctively, based
                             <Progress value={progress} className="h-3 rounded-full" />
                         </div>
 
-                        {Object.keys(errors).length > 0 && (
+                        {(Object.keys(errors).length > 0 || validationError) && (
                             <Alert variant="destructive" className="mb-6">
                                 <AlertCircle className="h-4 w-4" />
                                 <AlertDescription>
-                                    <p className="font-medium mb-1">Please fix the following before submitting:</p>
-                                    <ul className="list-disc list-inside text-sm mt-2 space-y-1">
-                                        {Object.entries(errors).map(([field, message]) => (
-                                            <li key={field}>{String(message)}</li>
-                                        ))}
-                                    </ul>
+                                    <p className="font-medium mb-1">
+                                        {validationError || 'Please fix the following before submitting:'}
+                                    </p>
+                                    {Object.keys(errors).length > 0 && (
+                                        <ul className="list-disc list-inside text-sm mt-2 space-y-1">
+                                            {Object.entries(errors).map(([field, message]) => (
+                                                <li key={field}>{String(message)}</li>
+                                            ))}
+                                        </ul>
+                                    )}
                                 </AlertDescription>
                             </Alert>
                         )}
 
-                        {renderStepContent()}
+                        <div 
+                            ref={(el) => { stepRefs.current[currentStep] = el; }}
+                            className={validationError ? 'ring-2 ring-destructive ring-offset-2 rounded-lg' : ''}
+                        >
+                            {renderStepContent()}
+                        </div>
 
                         <div className="mt-8 flex items-center justify-between gap-4">
                             <Button

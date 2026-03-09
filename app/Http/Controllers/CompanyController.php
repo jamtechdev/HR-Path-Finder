@@ -94,9 +94,31 @@ class CompanyController extends Controller
                 'created_at' => $company->created_at,
             ];
         });
-        
+
+        // Share HR sidebar props so sidebar shows same state as dashboard (stepStatuses, projectId, ceoPhilosophyStatus)
+        $activeProject = \App\Models\HrProject::whereHas('company', function ($query) use ($user) {
+            $query->whereHas('users', function ($q) use ($user) {
+                $q->where('users.id', $user->id)
+                  ->where('company_users.role', 'hr_manager');
+            });
+        })
+        ->where('status', 'active')
+        ->with(['company'])
+        ->first();
+
+        $stepStatuses = $activeProject?->step_statuses ?? [];
+        $ceoPhilosophyStatus = 'not_started';
+        if ($activeProject && $activeProject->ceoPhilosophy && $activeProject->ceoPhilosophy->completed_at) {
+            $ceoPhilosophyStatus = 'completed';
+        } elseif ($activeProject && $activeProject->diagnosis && $activeProject->diagnosis->status === 'submitted') {
+            $ceoPhilosophyStatus = 'in_progress';
+        }
+
         return Inertia::render('companies/Index', [
             'companies' => $companies,
+            'stepStatuses' => $stepStatuses,
+            'projectId' => $activeProject?->id,
+            'ceoPhilosophyStatus' => $ceoPhilosophyStatus,
         ]);
     }
 

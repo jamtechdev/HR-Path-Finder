@@ -1,11 +1,11 @@
 import React, { useMemo, useEffect, useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { HeroSectionKo } from '@/components/landing/HeroSectionKo';
 import { CTASectionKo } from '@/components/landing/CTASectionKo';
 import { FeatureCard } from '@/components/landing/FeatureCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { login, register } from '@/routes';
+import { login, register, dashboard } from '@/routes';
 import { CheckCircle2, Sparkles, Target, Users, TrendingUp, Shield, Zap, ArrowRight, Building2, BarChart3, Coins, UserCog } from 'lucide-react';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import TranslationLoader from '@/components/TranslationLoader';
@@ -19,6 +19,8 @@ interface Props {
 
 export default function LandingPage({ canRegister = true }: Props) {
     const { t, i18n } = useTranslation();
+    const { props } = usePage<{ auth?: { user?: unknown } }>();
+    const isAuthenticated = Boolean(props.auth?.user);
     const [currentLang, setCurrentLang] = useState(i18n.language || 'ko');
 
     // Listen for language changes
@@ -160,15 +162,26 @@ export default function LandingPage({ canRegister = true }: Props) {
                             </div>
                             <div className="flex items-center gap-4">
                                 <LanguageToggle />
-                                <Link href={login()} className="text-sm font-medium text-gray-700 hover:text-[#0a1629] dark:text-gray-300 dark:hover:text-white">
-                                    {t('landing.header.sign_in', '로그인')}
-                                </Link>
-                                <Button asChild className="bg-[#0a1629] hover:bg-[#0d1b35] text-white font-medium px-4 py-2 rounded-lg text-sm h-auto shadow-sm">
-                                    <Link href={canRegister ? register() : login()}>
-                                        {t('landing.header.get_started', '시작하기')}
-                                        <ArrowRight className="ml-2 w-4 h-4" />
-                                    </Link>
-                                </Button>
+                                {isAuthenticated ? (
+                                    <Button asChild className="bg-[#0a1629] hover:bg-[#0d1b35] text-white font-medium px-4 py-2 rounded-lg text-sm h-auto shadow-sm">
+                                        <Link href={dashboard()}>
+                                            {t('landing.header.dashboard', 'Dashboard')}
+                                            <ArrowRight className="ml-2 w-4 h-4" />
+                                        </Link>
+                                    </Button>
+                                ) : (
+                                    <>
+                                        <Link href={login()} className="text-sm font-medium text-gray-700 hover:text-[#0a1629] dark:text-gray-300 dark:hover:text-white">
+                                            {t('landing.header.sign_in', '로그인')}
+                                        </Link>
+                                        <Button asChild className="bg-[#0a1629] hover:bg-[#0d1b35] text-white font-medium px-4 py-2 rounded-lg text-sm h-auto shadow-sm">
+                                            <Link href={canRegister ? register() : login()}>
+                                                {t('landing.header.get_started', '시작하기')}
+                                                <ArrowRight className="ml-2 w-4 h-4" />
+                                            </Link>
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -178,6 +191,9 @@ export default function LandingPage({ canRegister = true }: Props) {
                 <section className="border-b bg-gradient-to-b from-background to-muted/20 dark:from-background dark:to-muted/40">
                     <HeroSectionKo 
                         canRegister={canRegister}
+                        isAuthenticated={isAuthenticated}
+                        dashboardUrl={dashboard()}
+                        dashboardLabel={t('landing.header.dashboard', 'Dashboard')}
                         badge={t('landing.hero.badge', '20~300인 기업 특화 HR제도 설계 플랫폼')}
                         title={t('landing.hero.title', 'HR컨설팅의 설계 프로세스를 온라인에서 직접 진행하세요')}
                         description={t('landing.hero.description', '복잡한 HR제도 설계를 단계별 가이드로 따라가며 직접 완성할 수 있습니다. 설계 과정에는 전문 HR컨설팅의 기준과 로직이 반영되어 있으며 고객사의 설계안에 대해 전문 컨설턴트가 종합 리포트를 제공합니다.')}
@@ -271,6 +287,9 @@ export default function LandingPage({ canRegister = true }: Props) {
                 {/* CTA Section */}
                 <CTASectionKo 
                     canRegister={canRegister}
+                    isAuthenticated={isAuthenticated}
+                    dashboardUrl={dashboard()}
+                    dashboardLabel={t('landing.header.dashboard', 'Dashboard')}
                     title={t('landing.cta.title', '우리 회사의 HR시스템을 설계할 준비가 되셨나요?')}
                     description={t('landing.cta.description', 'HR-Pathfinder의 기능은 점진적으로 계속 확장됩니다. 인연이 된 고객사의 성공적인 비즈니스를 위해 지속적인 지원을 아끼지 않겠습니다.')}
                     buttonText={t('landing.cta.button', 'HR Pathfinder 시작하기')}
