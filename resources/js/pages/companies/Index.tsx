@@ -150,10 +150,42 @@ export default function CompaniesIndex({ companies }: Props) {
         });
     };
 
+    const hasNoCompanies = companies.length === 0;
+
     return (
         <AppLayout>
-            <Head title="Companies - HR Manager" />
+            <Head title={hasNoCompanies ? 'Create Company - HR Manager' : 'Companies - HR Manager'} />
             <div className="p-6 md:p-8 max-w-7xl mx-auto">
+                {hasNoCompanies ? (
+                    /* No company yet: show create-company page (this page) */
+                    <div className="space-y-6">
+                        <div>
+                            <h1 className="text-2xl font-bold text-foreground">Create your first company</h1>
+                            <p className="text-muted-foreground mt-1">
+                                Add a company to start the HR system design process. You can create more companies later.
+                            </p>
+                        </div>
+                        <Card className="border-2 border-dashed border-muted-foreground/25 bg-muted/30">
+                            <CardContent className="py-16 text-center">
+                                <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+                                    <Building2 className="w-8 h-8 text-primary" />
+                                </div>
+                                <h3 className="text-xl font-semibold mb-2">No company yet</h3>
+                                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                                    Create your first company to get started with HR Path-Finder. After creating a company, you will see your dashboard with design steps and progress.
+                                </p>
+                                <Link href="/hr-manager/companies/create">
+                                    <Button size="lg" className="gap-2">
+                                        <Plus className="w-5 h-5" />
+                                        Create Company
+                                    </Button>
+                                </Link>
+                            </CardContent>
+                        </Card>
+                    </div>
+                ) : (
+                    /* Company created: show card-style companies list (dashboard-style) */
+                    <>
                 <div className="mb-6 flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold text-foreground">My Companies</h1>
@@ -161,32 +193,14 @@ export default function CompaniesIndex({ companies }: Props) {
                             Manage your companies and CEO assignments
                         </p>
                     </div>
-                    <Link href="/companies/create">
+                    <Link href="/hr-manager/companies/create">
                         <Button>
                             <Plus className="w-4 h-4 mr-2" />
                             Create Company
                         </Button>
                     </Link>
                 </div>
-
-                {companies.length === 0 ? (
-                    <Card>
-                        <CardContent className="py-12 text-center">
-                            <Building2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                            <h3 className="text-lg font-semibold mb-2">No companies yet</h3>
-                            <p className="text-muted-foreground mb-4">
-                                Create your first company to get started
-                            </p>
-                            <Link href="/companies/create">
-                                <Button>
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Create Company
-                                </Button>
-                            </Link>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <div className="space-y-4">
+                <div className="space-y-4">
                         {companies.map((company) => {
                             const isExpanded = expandedCompanies.has(company.id);
                             const allCeos = [...company.ceos, ...company.invitations.filter(inv => inv.status === 'accepted').map(inv => ({
@@ -240,7 +254,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                                             Invite CEO
                                                         </Button>
                                                     )}
-                                                    <Link href={`/companies/${company.id}`}>
+                                                    <Link href={`/hr-manager/companies/${company.id}`}>
                                                         <Button variant="outline" size="sm">
                                                             View Details
                                                         </Button>
@@ -279,7 +293,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                                                                 <TableCell>{ceo.email}</TableCell>
                                                                                 <TableCell>{getStatusBadge(ceo.status)}</TableCell>
                                                                                 <TableCell>
-                                                                                    <Link href={`/companies/${company.id}`}>
+                                                                                    <Link href={`/hr-manager/companies/${company.id}`}>
                                                                                         <Button variant="ghost" size="sm">View</Button>
                                                                                     </Link>
                                                                                 </TableCell>
@@ -385,7 +399,8 @@ export default function CompaniesIndex({ companies }: Props) {
                                 </Card>
                             );
                         })}
-                    </div>
+                </div>
+                </>
                 )}
 
                 {/* Invite CEO Dialog */}

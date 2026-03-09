@@ -28,6 +28,12 @@ class HrManagerDashboardController extends Controller
         if (!$user->hasRole('hr_manager')) {
             abort(403, 'You do not have permission to access this page.');
         }
+
+        // Workspace done = HR manager has at least one company (first-time vs current dashboard)
+        $companiesCount = \App\Models\Company::whereHas('users', function ($query) use ($user) {
+            $query->where('users.id', $user->id)->where('company_users.role', 'hr_manager');
+        })->count();
+        $workspaceDone = $companiesCount > 0;
         
         // Get active project for this HR manager (only HR role projects, not CEO)
         // When user has both roles but hasn't switched, show only HR content
@@ -97,6 +103,7 @@ class HrManagerDashboardController extends Controller
         }
 
         return Inertia::render('Dashboard/HRManager/PathFinderDashboard', [
+            'workspaceDone' => $workspaceDone,
             'user' => [
                 'name' => $user->name,
                 'email' => $user->email,

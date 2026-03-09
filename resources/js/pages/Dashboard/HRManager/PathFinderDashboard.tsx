@@ -13,6 +13,7 @@ const STEP_CONFIG = [
 ];
 
 interface PathFinderDashboardProps {
+  workspaceDone?: boolean;
   user?: { name: string; email: string };
   activeProject?: { id: number; company: { id: number; name: string }; status: string; step_statuses?: Record<string, string> } | null;
   company?: { id: number; name: string; hasCeo: boolean } | null;
@@ -59,6 +60,7 @@ function getStepRoute(stepId: string, projectId?: number | null): string {
 }
 
 export default function PathFinderDashboard({
+  workspaceDone = true,
   user = { name: 'HR Manager', email: 'hrm@company.com' },
   activeProject = null,
   company = null,
@@ -88,6 +90,139 @@ export default function PathFinderDashboard({
       progress: stepProgress,
     };
   });
+
+  // First-time / no workspace: show onboarding screen (create company to get started)
+  if (!workspaceDone) {
+    const onboardingProgress = 20;
+    return (
+      <AppLayout stepStatuses={{}} projectId={undefined} ceoPhilosophyStatus="not_started">
+        <Head title="HR Path-Finder — Dashboard" />
+        <div className="min-h-full bg-[var(--hr-gray-50)] text-[var(--hr-gray-800)] font-sans">
+          <div className="py-[30px] px-4 md:px-9">
+            <div className="mb-6">
+              <h1 className="text-[22px] font-bold text-[var(--hr-gray-800)] tracking-[-0.4px] leading-tight">
+                {t('dashboard.pathfinder.welcome_back', { name: user.name })}
+              </h1>
+              <p className="text-[13px] text-[var(--hr-gray-400)] mt-1">
+                {t('dashboard.pathfinder.subtitle', { step: 1, title: t('steps.diagnosis') })}
+              </p>
+            </div>
+            {/* Blue banner - Step 1 in progress */}
+            <div className="bg-gradient-to-br from-[var(--hr-navy)] to-[var(--hr-navy-mid)] rounded-[14px] p-7 md:px-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-6 relative overflow-hidden">
+              <div className="relative z-[1]">
+                <h2 className="text-base font-bold text-white mb-1.5">Step 1: Diagnosis {t('dashboard.pathfinder.in_progress')}</h2>
+                <p className="text-[12.5px] text-white/55 max-w-[380px] leading-relaxed">
+                  {t('dashboard.pathfinder.banner_desc')}
+                </p>
+              </div>
+              <div className="flex items-center gap-6 relative z-[1]">
+                <div className="relative w-16 h-16 flex-shrink-0">
+                  <svg className="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="5" />
+                    <circle cx="32" cy="32" r="26" fill="none" stroke="#4ecdc4" strokeWidth="5" strokeDasharray="163.4" strokeDashoffset={163.4 - (163.4 * onboardingProgress) / 100} strokeLinecap="round" />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <strong className="text-[15px] font-bold text-white leading-none">{onboardingProgress}%</strong>
+                    <span className="text-[9px] text-white/40 mt-0.5">{t('dashboard.pathfinder.complete', '완료')}</span>
+                  </div>
+                </div>
+                <Link
+                  href="/hr-manager/companies"
+                  className="bg-[var(--hr-mint)] text-[var(--hr-navy-deep)] py-2.5 px-5 rounded-lg text-[13px] font-bold flex items-center gap-1.5 hover:bg-[#5de0d7] hover:-translate-y-0.5 transition-all whitespace-nowrap"
+                >
+                  {t('dashboard.pathfinder.continue', '계속하기')} →
+                </Link>
+              </div>
+            </div>
+            {/* Design Steps - Step 1 active, rest locked */}
+            <div className="flex items-baseline justify-between mb-3.5">
+              <h3 className="text-[15px] font-bold text-[var(--hr-gray-800)] tracking-[-0.2px]">{t('dashboard.pathfinder.design_steps')}</h3>
+              <span className="text-[11.5px] text-[var(--hr-gray-400)]">{t('dashboard.pathfinder.completed_count', { done: 0, total: 5 })}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3.5">
+              {/* Step 1 - Active */}
+              <div className="bg-white border border-[#4ecdc4] rounded-xl p-5 pl-[22px] transition-all relative overflow-hidden shadow-[0_0_0_1px_#4ecdc4,0_4px_20px_rgba(78,205,196,0.12)]">
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#4ecdc4] to-[#3ab5ad]" />
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-semibold text-[#9ba5bc] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">Step 1</span>
+                    <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px]">● {t('dashboard.pathfinder.in_progress')}</span>
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-[10px] bg-[rgba(78,205,196,0.12)] flex items-center justify-center text-base mb-2.5">
+                  <Building2 className="w-5 h-5 text-[#4ecdc4]" />
+                </div>
+                <h4 className="text-sm font-bold text-[#2d3340] mb-1.5 tracking-[-0.2px]">Diagnosis</h4>
+                <p className="text-[11.5px] text-[#5a6478] leading-relaxed mb-4">{STEP_CONFIG[0].desc}</p>
+                <div className="mb-4">
+                  <div className="flex justify-between text-[10px] text-[var(--hr-gray-400)] mb-1">
+                    <span>{t('dashboard.pathfinder.progress_label')}</span>
+                    <span>{onboardingProgress}%</span>
+                  </div>
+                  <div className="h-1 bg-[#e2e6ee] rounded overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-[#4ecdc4] to-[#3ab5ad] rounded transition-[width] duration-500" style={{ width: `${onboardingProgress}%` }} />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span />
+                  <Link
+                    href="/hr-manager/companies"
+                    className="bg-[var(--hr-navy)] text-white py-2 px-4 rounded-[7px] text-xs font-semibold flex items-center gap-1.5 hover:bg-[var(--hr-navy-mid)] hover:-translate-y-0.5 transition-all"
+                  >
+                    {t('dashboard.pathfinder.start_btn', '시작하기')} →
+                  </Link>
+                </div>
+              </div>
+              {/* Steps 2–4 locked */}
+              {STEP_CONFIG.slice(1, 4).map((step) => (
+                <div key={step.id} className="bg-[#f8f9fb] border border-[#e2e6ee] rounded-xl p-5 opacity-70">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-semibold text-[#9ba5bc] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">Step {step.num}</span>
+                      <span className="text-[10px] font-semibold text-[var(--hr-gray-400)] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px] inline-flex items-center gap-1">
+                        <Lock className="w-3 h-3" />
+                        {t('dashboard.pathfinder.locked')}
+                      </span>
+                    </div>
+                    <div className="w-7 h-7 bg-[#f0f2f6] rounded-[7px] flex items-center justify-center text-[13px]">
+                      <Lock className="w-3.5 h-3.5 text-[#9ba5bc]" />
+                    </div>
+                  </div>
+                  <h4 className="text-sm font-bold text-[#9ba5bc] mb-1.5">{step.title}</h4>
+                  <p className="text-[11.5px] text-[#9ba5bc] leading-relaxed mb-4">{step.desc}</p>
+                  <div className="flex items-center gap-1.5 text-[11px] text-[var(--hr-gray-400)]">
+                    <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                    {t('dashboard.pathfinder.prev_step_required_after')}
+                  </div>
+                </div>
+              ))}
+              {/* Step 5 full-width locked */}
+              <div className="col-span-2 flex items-center justify-between py-[18px] px-[22px] rounded-xl border border-[#e2e6ee] bg-[#f8f9fb] opacity-70">
+                <div className="flex items-center gap-4">
+                  <div className="w-9 h-9 rounded-[9px] bg-[#e2e6ee] flex items-center justify-center text-base">
+                    <Lock className="w-4 h-4 text-[#9ba5bc]" />
+                  </div>
+                  <div>
+                    <div className="flex gap-1.5 mb-1.5">
+                      <span className="text-[10px] font-semibold text-[#9ba5bc] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">Step 5</span>
+                      <span className="text-[10px] font-semibold text-[var(--hr-gray-400)] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">{t('dashboard.pathfinder.locked')}</span>
+                    </div>
+                    <h4 className="text-sm font-bold text-[#9ba5bc] mb-1">HR Policy OS</h4>
+                    <p className="text-[11.5px] text-[#9ba5bc] mb-0">{STEP_CONFIG[4].desc}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 text-[11px] text-[var(--hr-gray-400)] flex-shrink-0">
+                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                  {t('dashboard.pathfinder.prev_step_required_after')}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout stepStatuses={stepStatuses} projectId={projectId ?? undefined} ceoPhilosophyStatus={ceoPhilosophyStatus}>
       <Head title="HR Path-Finder — Dashboard" />

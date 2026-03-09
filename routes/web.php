@@ -163,6 +163,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('dashboard', [\App\Http\Controllers\Dashboard\HrManagerDashboardController::class, 'index'])
             ->name('dashboard');
         
+        // Companies (HR Manager)
+        Route::get('companies', [\App\Http\Controllers\CompanyController::class, 'index'])->name('companies.index');
+        Route::get('companies/create', [\App\Http\Controllers\CompanyController::class, 'create'])->name('companies.create');
+        Route::post('companies', [\App\Http\Controllers\CompanyController::class, 'store'])->name('companies.store');
+        Route::get('companies/{company}', [\App\Http\Controllers\CompanyController::class, 'show'])->name('companies.show');
+        
         // Diagnosis Wizard - More specific routes first
         Route::get('diagnosis/{hrProject}/{tab}', [\App\Http\Controllers\DiagnosisWizardController::class, 'showWithProject'])
             ->name('diagnosis.project.tab');

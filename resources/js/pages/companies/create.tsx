@@ -71,7 +71,7 @@ export default function CreateCompany() {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post('/companies', {
+        post('/hr-manager/companies', {
             forceFormData: true,
             onSuccess: () => {
                 // Reset preview on success

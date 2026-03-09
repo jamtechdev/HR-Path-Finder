@@ -31,7 +31,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?
     const ceoPhilosophyStatus = (props as any).ceoPhilosophyStatus || 'not_started';
 
     const isDashboardActive = currentPath === '/hr-manager/dashboard' || currentPath.startsWith('/hr-manager/dashboard/');
-    const isCompaniesActive = currentPath === '/companies' || currentPath.startsWith('/companies/');
+    const isCompaniesActive = currentPath === '/hr-manager/companies' || currentPath.startsWith('/hr-manager/companies/');
 
     const getStepState = (stepId: string): 'current' | 'locked' | 'completed' => {
         const status = stepStatuses[stepId];
@@ -119,11 +119,18 @@ export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?
                 </Link>
 
                 <Link
-                    href="/companies"
-                    className="flex items-center gap-[9px] py-2 px-2.5 rounded-lg mb-0.5 transition-colors hover:bg-white/[0.06]"
+                    href="/hr-manager/companies"
+                    className={`flex items-center gap-[9px] py-2 px-2.5 rounded-lg mb-0.5 transition-colors relative ${isCompaniesActive ? 'bg-[rgba(78,205,196,0.12)]' : 'hover:bg-white/[0.06]'}`}
                 >
-                    <Building2 className="w-[18px] h-[18px] flex-shrink-0 opacity-70 text-white" />
-                    {!isCollapsed && <span className="text-[12.5px] font-medium text-white/60">{t('navigation.companies')}</span>}
+                    {isCompaniesActive && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-[18px] bg-[#4ecdc4] rounded-r-[2px]" />
+                    )}
+                    <Building2 className={`w-[18px] h-[18px] flex-shrink-0 ${isCompaniesActive ? 'opacity-100 text-[#4ecdc4]' : 'opacity-70 text-white'}`} />
+                    {!isCollapsed && (
+                        <span className={`text-[12.5px] font-medium ${isCompaniesActive ? 'text-[#4ecdc4] font-semibold' : 'text-white/60'}`}>
+                            {t('navigation.companies')}
+                        </span>
+                    )}
                 </Link>
 
                 <div className="mt-4">

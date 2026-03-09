@@ -22,7 +22,7 @@ import { LanguageToggle } from '@/components/LanguageToggle';
 function getBreadcrumbLabel(path: string): string {
     if (path.startsWith('/admin')) return 'Admin';
     if (path.startsWith('/ceo')) return 'CEO';
-    if (path === '/companies' || path.startsWith('/companies/')) return 'Companies';
+    if (path === '/companies' || path.startsWith('/companies/') || path === '/hr-manager/companies' || path.startsWith('/hr-manager/companies/')) return 'Companies';
     if (path.startsWith('/hr-manager/dashboard') || path === '/dashboard') return 'Dashboard';
     if (path.startsWith('/hr-manager/diagnosis')) return 'Diagnosis';
     if (path.startsWith('/hr-manager/job-analysis')) return 'Job Analysis';

@@ -146,7 +146,7 @@ export default function ShowCompany({ company }: Props) {
                 {/* Header */}
                 <div className="mb-6 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Link href="/companies">
+                        <Link href="/hr-manager/companies">
                             <Button variant="ghost" size="sm">
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 Back
