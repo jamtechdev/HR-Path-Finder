@@ -5,6 +5,7 @@ import StepNavigation from '../components/StepNavigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
+import { toast } from '@/hooks/use-toast';
 import { FileText, Network, Target, CheckCircle2, AlertCircle, ArrowRight, ChevronDown, ChevronUp, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { PolicyAnswer, JobSelection, JobDefinition, OrgChartMapping } from '../hooks/useJobAnalysisState';
@@ -87,11 +88,13 @@ export default function Step6ReviewSubmit({
 
         router.post(`/hr-manager/job-analysis/${projectId}/submit`, finalData, {
             onSuccess: () => {
+                toast({ title: 'Job Analysis submitted', description: 'Job Analysis has been completed successfully.' });
                 router.visit('/hr-manager/dashboard');
             },
-            onError: (errors) => {
-                console.error('Submit error:', errors);
-                alert('Error submitting data. Please try again.');
+            onError: (errors: Record<string, unknown>) => {
+                const msg = errors && typeof errors === 'object' && (errors.message ?? Object.values(errors)[0]);
+                const desc = Array.isArray(msg) ? msg[0] : String(msg ?? 'Error submitting data. Please try again.');
+                toast({ title: 'Submission failed', description: desc, variant: 'destructive' });
                 setProcessing(false);
             },
         });

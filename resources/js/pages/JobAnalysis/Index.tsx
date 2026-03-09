@@ -3,6 +3,7 @@ import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 import StepHeader from '@/components/StepHeader/StepHeader';
 import StepProgress from './components/StepProgress';
+import { toast } from '@/hooks/use-toast';
 import Overview from './steps/Overview';
 import Step0BeforeYouBegin from './steps/Step0BeforeYouBegin';
 import Step1PolicySnapshot from './steps/Step1PolicySnapshot';
@@ -172,12 +173,15 @@ export default function JobAnalysisIndex({
         if (stepIndex > currentIndex) {
             const validation = validateStep(activeStepLocal);
             if (!validation.isValid) {
-                return; // Don't allow forward navigation if current step is invalid
+                const msg = validation.errors?.length ? validation.errors.join(' ') : 'Please complete required fields before continuing.';
+                toast({ title: 'Validation error', description: msg, variant: 'destructive' });
+                return;
             }
         }
 
         // Check if step is enabled
         if (!isStepEnabled(stepId, stepIndex)) {
+            toast({ title: 'Step locked', description: 'Complete the current step before continuing.', variant: 'destructive' });
             return;
         }
 
@@ -196,7 +200,13 @@ export default function JobAnalysisIndex({
         markStepCompleted('before-you-begin');
         router.post(`/hr-manager/job-analysis/${project.id}/intro/store`, {}, {
             onSuccess: () => {
+                toast({ title: 'Saved', description: 'Intro step completed.' });
                 handleStepChange('policy-snapshot');
+            },
+            onError: (errors: Record<string, unknown>) => {
+                const msg = errors && typeof errors === 'object' && (errors.message ?? Object.values(errors)[0]);
+                const desc = Array.isArray(msg) ? msg[0] : String(msg ?? 'Failed to save. Please try again.');
+                toast({ title: 'Save failed', description: desc, variant: 'destructive' });
             },
         });
     };

@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
 import { ChevronDown, ChevronUp, FileText, CheckCircle2, Network, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import SuccessModal from '@/components/Modals/SuccessModal';
@@ -104,9 +105,12 @@ export default function Step4Finalization({
             onSuccess: () => {
                 setIsSubmitting(false);
                 setShowSuccessModal(true);
+                toast({ title: 'Job list finalized', description: 'Job definitions have been finalized successfully.' });
             },
-            onError: (errors) => {
-                console.error('Finalize error:', errors);
+            onError: (errors: Record<string, unknown>) => {
+                const msg = errors && typeof errors === 'object' && (errors.message ?? Object.values(errors)[0]);
+                const desc = Array.isArray(msg) ? msg[0] : String(msg ?? 'Failed to finalize. Please try again.');
+                toast({ title: 'Finalization failed', description: desc, variant: 'destructive' });
                 setIsSubmitting(false);
             },
         });

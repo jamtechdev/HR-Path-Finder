@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -99,7 +100,9 @@ export default function Review({
     const handleSubmit = () => {
         setSubmitError('');
         if (!projectId) {
-            setSubmitError('Project not loaded. Please refresh or go back to the dashboard.');
+            const msg = 'Project not loaded. Please refresh or go back to the dashboard.';
+            setSubmitError(msg);
+            toast({ title: 'Cannot submit', description: msg, variant: 'destructive' });
             return;
         }
         setProcessing(true);
@@ -108,13 +111,16 @@ export default function Review({
                 setSubmitError('');
                 setShowSuccessModal(true);
                 setProcessing(false);
+                toast({ title: 'Diagnosis submitted', description: 'Your diagnosis has been submitted for CEO review.' });
             },
             onError: (payload: Record<string, unknown>) => {
                 const errors = (payload?.errors ?? payload) as Record<string, string | string[]>;
                 const message = errors?.error ?? errors?.message ?? Object.values(errors)[0];
                 const msg = Array.isArray(message) ? message[0] : message;
-                setSubmitError(typeof msg === 'string' ? msg : 'Submission failed. Please try again.');
+                const displayMsg = typeof msg === 'string' ? msg : 'Submission failed. Please try again.';
+                setSubmitError(displayMsg);
                 setProcessing(false);
+                toast({ title: 'Submission failed', description: displayMsg, variant: 'destructive' });
             },
             preserveState: true,
             preserveScroll: true,
@@ -142,10 +148,13 @@ export default function Review({
                 setInviteSuccess(true);
                 setInviteProcessing(false);
                 setInviteError('');
+                toast({ title: 'Invitation sent', description: `An invitation has been sent to ${inviteEmail}.` });
             },
-            onError: (errors) => {
-                setInviteError(errors.email || 'Failed to send invitation. Please try again.');
+            onError: (errors: { email?: string }) => {
+                const errMsg = errors.email || 'Failed to send invitation. Please try again.';
+                setInviteError(errMsg);
                 setInviteProcessing(false);
+                toast({ title: 'Invitation failed', description: errMsg, variant: 'destructive' });
             },
             preserveState: true,
             preserveScroll: true,

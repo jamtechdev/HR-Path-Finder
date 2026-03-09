@@ -5,6 +5,7 @@ import DiagnosisHeader from '@/components/Diagnosis/DiagnosisHeader';
 import DiagnosisTabs from '@/components/Diagnosis/DiagnosisTabs';
 import { diagnosisTabs } from '@/config/diagnosisTabs';
 import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface FormLayoutProps {
@@ -77,7 +78,31 @@ const validateStepRequiredFields = (tabId: string, diagnosis: any): { isValid: b
                 return { isValid: false, error: 'At least one Job Category or Job Function is required.' };
             }
             break;
-        
+
+        case 'hr-issues':
+            if ((!diagnosis.hr_issues || !Array.isArray(diagnosis.hr_issues) || diagnosis.hr_issues.length === 0) &&
+                (!diagnosis.custom_hr_issues || String(diagnosis.custom_hr_issues).trim() === '')) {
+                return { isValid: false, error: 'At least one HR issue or custom description is required.' };
+            }
+            break;
+
+        case 'executives':
+            if (typeof diagnosis.total_executives === 'number' && diagnosis.total_executives < 0) {
+                return { isValid: false, error: 'Number of executives cannot be negative.' };
+            }
+            break;
+
+        case 'leaders':
+            if (typeof diagnosis.leadership_count === 'number' && diagnosis.leadership_count < 0) {
+                return { isValid: false, error: 'Leadership count cannot be negative.' };
+            }
+            break;
+
+        case 'job-grades':
+            if (diagnosis.job_grade_names != null && Array.isArray(diagnosis.job_grade_names) && diagnosis.job_grade_names.length === 0) {
+                return { isValid: false, error: 'Add at least one job grade or skip this step.' };
+            }
+            break;
     }
 
     return { isValid: true };
@@ -150,19 +175,20 @@ export default function FormLayout({
             if (validateBeforeNext) {
                 const result = validateBeforeNext();
                 if (result !== true) {
-                    setValidationError(typeof result === 'string' ? result : 'Please fill in all required fields.');
-                    // Scroll to top to show error
+                    const errMsg = typeof result === 'string' ? result : 'Please fill in all required fields.';
+                    setValidationError(errMsg);
+                    toast({ title: 'Validation error', description: errMsg, variant: 'destructive' });
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     return;
                 }
             } else {
                 // Use default validation - check both diagnosis data and formData
-                // First check formData if available (for unsaved changes)
                 const dataToValidate = formData && Object.keys(formData).length > 0 ? formData : diagnosis;
                 const validation = validateStepRequiredFields(activeTab, dataToValidate);
                 if (!validation.isValid) {
-                    setValidationError(validation.error || 'Please fill in all required fields.');
-                    // Scroll to top to show error
+                    const errMsg = validation.error || 'Please fill in all required fields.';
+                    setValidationError(errMsg);
+                    toast({ title: 'Validation error', description: errMsg, variant: 'destructive' });
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     return;
                 }
@@ -204,22 +230,26 @@ export default function FormLayout({
                 forceFormData: hasFiles(formData), // Use FormData if files are present
                 onSuccess: () => {
                     setIsSaving(false);
-                    // Navigate after successful save with smooth scroll
+                    toast({ title: 'Saved', description: 'Your changes have been saved successfully.' });
                     setTimeout(() => {
                         if (onNext) {
                             onNext();
                         } else if (nextRoute) {
                             router.visit(getNextUrl()!, {
                                 onSuccess: () => {
-                                    // Scroll to top of page after navigation
                                     window.scrollTo({ top: 0, behavior: 'smooth' });
                                 }
                             });
                         }
                     }, 300);
                 },
-                onError: () => {
+                onError: (errors: Record<string, string | string[]>) => {
                     setIsSaving(false);
+                    const msg = typeof errors === 'object' && errors !== null
+                        ? (errors.message ?? Object.values(errors)[0])
+                        : 'Failed to save. Please try again.';
+                    const desc = Array.isArray(msg) ? msg[0] : String(msg ?? '');
+                    toast({ title: 'Save failed', description: desc || 'Failed to save. Please try again.', variant: 'destructive' });
                 },
             });
             return;
