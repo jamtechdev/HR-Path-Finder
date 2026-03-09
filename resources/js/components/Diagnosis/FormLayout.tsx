@@ -5,7 +5,7 @@ import DiagnosisHeader from '@/components/Diagnosis/DiagnosisHeader';
 import DiagnosisTabs from '@/components/Diagnosis/DiagnosisTabs';
 import { diagnosisTabs } from '@/config/diagnosisTabs';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
+import { toast, dismissAll } from '@/hooks/use-toast';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface FormLayoutProps {
@@ -230,7 +230,8 @@ export default function FormLayout({
                 forceFormData: hasFiles(formData), // Use FormData if files are present
                 onSuccess: () => {
                     setIsSaving(false);
-                    toast({ title: 'Saved', description: 'Your changes have been saved successfully.' });
+                    dismissAll();
+                    toast({ title: 'Saved', description: 'Your changes have been saved successfully.', variant: 'success' });
                     setTimeout(() => {
                         if (onNext) {
                             onNext();

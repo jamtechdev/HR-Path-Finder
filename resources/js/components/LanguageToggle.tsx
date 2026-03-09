@@ -17,19 +17,21 @@ interface LanguageToggleProps {
 
 export function LanguageToggle({ iconOnly = false }: LanguageToggleProps) {
     const { i18n: i18nInstance } = useTranslation();
-    const [currentLang, setCurrentLang] = useState(i18nInstance.language || 'ko');
+    const normalize = (l: string) => (l && l.startsWith('en') ? 'en' : 'ko');
+    const [currentLang, setCurrentLang] = useState(normalize(i18nInstance.language || 'ko'));
 
     useEffect(() => {
-        setCurrentLang(i18nInstance.language || 'ko');
+        setCurrentLang(normalize(i18nInstance.language || 'ko'));
     }, [i18nInstance.language]);
 
     const changeLanguage = (lang: string) => {
-        i18nInstance.changeLanguage(lang);
-        setCurrentLang(lang);
-        // Store in localStorage
-        localStorage.setItem('i18nextLng', lang);
-        // Dispatch custom event to notify other components
-        window.dispatchEvent(new CustomEvent('languageChanged', { detail: { language: lang } }));
+        const code = lang === 'en' ? 'en' : 'ko'; // ensure only en or ko for persistence
+        i18nInstance.changeLanguage(code);
+        setCurrentLang(code);
+        try {
+            localStorage.setItem('i18nextLng', code);
+        } catch (_) {}
+        window.dispatchEvent(new CustomEvent('languageChanged', { detail: { language: code } }));
     };
 
     const languages = [
