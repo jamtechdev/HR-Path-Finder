@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -76,30 +77,49 @@ export default function Review({
     projectId,
 }: Props) {
     const [processing, setProcessing] = useState(false);
+    const [submitError, setSubmitError] = useState('');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteProcessing, setInviteProcessing] = useState(false);
     const [inviteError, setInviteError] = useState('');
     const [inviteSuccess, setInviteSuccess] = useState(false);
 
-    const handleSubmit = () => {
-        if (projectId) {
-            setProcessing(true);
-            router.post(`/hr-manager/diagnosis/${projectId}/submit`, {}, {
-                onSuccess: () => {
-                    // Show success modal instead of redirecting
-                    setShowSuccessModal(true);
-                    setProcessing(false);
-                },
-                onError: (errors) => {
-                    console.error('Submit error:', errors);
-                    setProcessing(false);
-                },
-                preserveState: true,
-                preserveScroll: true,
-                only: [], // Prevent prop updates to keep modal state
-            });
+    const { props } = usePage<{ errors?: Record<string, string> }>();
+
+    // Show errors from server when redirected back with validation/authorization errors
+    useEffect(() => {
+        const errors = props.errors;
+        if (errors && typeof errors === 'object') {
+            const message = (errors as Record<string, string | string[]>).error;
+            const msg = Array.isArray(message) ? message[0] : message;
+            if (msg) setSubmitError(msg);
         }
+    }, [props.errors]);
+
+    const handleSubmit = () => {
+        setSubmitError('');
+        if (!projectId) {
+            setSubmitError('Project not loaded. Please refresh or go back to the dashboard.');
+            return;
+        }
+        setProcessing(true);
+        router.post(`/hr-manager/diagnosis/${projectId}/submit`, {}, {
+            onSuccess: () => {
+                setSubmitError('');
+                setShowSuccessModal(true);
+                setProcessing(false);
+            },
+            onError: (payload: Record<string, unknown>) => {
+                const errors = (payload?.errors ?? payload) as Record<string, string | string[]>;
+                const message = errors?.error ?? errors?.message ?? Object.values(errors)[0];
+                const msg = Array.isArray(message) ? message[0] : message;
+                setSubmitError(typeof msg === 'string' ? msg : 'Submission failed. Please try again.');
+                setProcessing(false);
+            },
+            preserveState: true,
+            preserveScroll: true,
+            only: [], // Prevent prop updates to keep modal state
+        });
     };
 
     const handleInviteCeo = (e: React.FormEvent) => {
@@ -1037,6 +1057,20 @@ export default function Review({
                     {/* Submit Section */}
                     <Card>
                         <CardContent className="p-6">
+                            {submitError && (
+                                <Alert variant="destructive" className="mb-4">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <AlertTitle>Submission failed</AlertTitle>
+                                    <AlertDescription>{submitError}</AlertDescription>
+                                </Alert>
+                            )}
+                            {!projectId && diagnosisStatus !== 'submitted' && (
+                                <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                    <p className="text-sm text-amber-800 dark:text-amber-200">
+                                        Project not loaded. Please refresh or go back to the dashboard.
+                                    </p>
+                                </div>
+                            )}
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h3 className="font-semibold text-lg mb-2">Ready to Submit?</h3>
@@ -1046,7 +1080,7 @@ export default function Review({
                                 </div>
                                 <Button
                                     onClick={handleSubmit}
-                                    disabled={processing || diagnosisStatus === 'submitted'}
+                                    disabled={processing || diagnosisStatus === 'submitted' || !projectId}
                                     size="lg"
                                 >
                                     {diagnosisStatus === 'submitted' ? (
@@ -1054,6 +1088,8 @@ export default function Review({
                                             <CheckCircle2 className="w-4 h-4 mr-2" />
                                             Submitted
                                         </>
+                                    ) : processing ? (
+                                        'Submitting…'
                                     ) : (
                                         'Submit Diagnosis'
                                     )}

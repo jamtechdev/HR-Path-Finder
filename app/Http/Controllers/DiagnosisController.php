@@ -249,8 +249,13 @@ class DiagnosisController extends Controller
         }
 
         $diagnosis = $hrProject->diagnosis;
-        
+
         if (!$diagnosis) {
+            if ($request->header('X-Inertia')) {
+                return response()->json([
+                    'errors' => ['error' => ['Please complete the diagnosis first.']],
+                ], 422);
+            }
             return back()->withErrors(['error' => 'Please complete the diagnosis first.']);
         }
 
