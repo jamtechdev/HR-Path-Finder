@@ -12,7 +12,8 @@ import SelectQuestion from '@/components/Forms/SelectQuestion';
 import MultiSelectQuestion from '@/components/Forms/MultiSelectQuestion';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronRight, ChevronLeft, CheckCircle2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ChevronRight, ChevronLeft, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface DiagnosisQuestion {
     id: number;
@@ -124,8 +125,12 @@ export default function CeoPhilosophySurvey({
 
     const handleSubmit = () => {
         post(`/ceo/philosophy/survey/${project.id}`, {
+            preserveScroll: true,
             onSuccess: () => {
                 router.visit('/ceo/dashboard');
+            },
+            onError: () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             },
         });
     };
@@ -502,6 +507,20 @@ For the most meaningful outcome, please answer honestly and instinctively, based
                             <Progress value={progress} className="h-3 rounded-full" />
                         </div>
 
+                        {Object.keys(errors).length > 0 && (
+                            <Alert variant="destructive" className="mb-6">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertDescription>
+                                    <p className="font-medium mb-1">Please fix the following before submitting:</p>
+                                    <ul className="list-disc list-inside text-sm mt-2 space-y-1">
+                                        {Object.entries(errors).map(([field, message]) => (
+                                            <li key={field}>{String(message)}</li>
+                                        ))}
+                                    </ul>
+                                </AlertDescription>
+                            </Alert>
+                        )}
+
                         {renderStepContent()}
 
                         <div className="mt-8 flex items-center justify-between gap-4">
@@ -532,8 +551,17 @@ For the most meaningful outcome, please answer honestly and instinctively, based
                                     size="lg"
                                     className="min-w-[180px] bg-primary hover:bg-primary/90"
                                 >
-                                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                                    Submit Survey
+                                    {processing ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                                            Submitting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                                            Submit Survey
+                                        </>
+                                    )}
                                 </Button>
                             )}
                         </div>

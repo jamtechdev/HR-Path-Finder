@@ -18,6 +18,8 @@ import HrIssuesTab from '@/components/CEO/Review/HrIssuesTab';
 import ChangeHistoryTab from '@/components/CEO/Review/ChangeHistoryTab';
 import DiagnosisActions from '@/components/CEO/Review/DiagnosisActions';
 import SuccessModal from '@/components/Modals/SuccessModal';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 interface Diagnosis {
     id: number;
@@ -220,8 +222,13 @@ export default function CeoReviewDiagnosis({
 
     const handleConfirm = () => {
         post(`/ceo/review/diagnosis/${project.id}/confirm`, {
+            preserveScroll: true,
             onSuccess: () => {
                 setShowSuccessModal(true);
+            },
+            onError: () => {
+                // Validation/backend errors are shared via Inertia; ensure user sees feedback
+                router.reload({ only: ['diagnosis', 'company'] });
             },
         });
     };
@@ -243,6 +250,17 @@ export default function CeoReviewDiagnosis({
                         <DiagnosisHeader 
                             status={diagnosis?.status}
                         />
+
+                        {Object.keys(errors).length > 0 && (
+                            <Alert variant="destructive" className="mb-6">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertDescription>
+                                    {Object.entries(errors).map(([key, msg]) => (
+                                        <p key={key}>{String(msg)}</p>
+                                    ))}
+                                </AlertDescription>
+                            </Alert>
+                        )}
 
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                             <DiagnosisTabs activeTab={activeTab} onTabChange={setActiveTab} />

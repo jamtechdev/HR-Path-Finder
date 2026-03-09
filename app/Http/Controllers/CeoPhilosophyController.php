@@ -103,12 +103,14 @@ class CeoPhilosophyController extends Controller
         $validated = $request->validate([
             'management_philosophy' => ['required', 'array'],
             'vision_mission' => ['required', 'array'],
-            'growth_stage' => ['required', 'string'],
+            'growth_stage' => ['nullable', 'string'],
             'leadership' => ['required', 'array'],
             'general' => ['required', 'array'],
             'organizational_issues' => ['nullable', 'array'],
-            'concerns' => ['required', 'string'],
+            'concerns' => ['nullable', 'string'],
         ]);
+        $validated['growth_stage'] = $validated['growth_stage'] ?? '';
+        $validated['concerns'] = $validated['concerns'] ?? '';
 
         $ceoPhilosophy = CeoPhilosophy::updateOrCreate(
             [
