@@ -1,12 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
-import DynamicList from '@/components/Forms/DynamicList';
-import MultiSelectQuestion from '@/components/Forms/MultiSelectQuestion';
-import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { both, tr } from '@/config/diagnosisTranslations';
+import { X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const SEP = '|';
+
+interface JobFunction {
+    id: number;
+    name: string;
+}
+
+interface JobCategory {
+    id: number;
+    name: string;
+    functions: JobFunction[];
+}
 
 interface Diagnosis {
     id: number;
@@ -15,15 +25,8 @@ interface Diagnosis {
 }
 
 interface Props {
-    project: {
-        id: number;
-        company: {
-            name: string;
-        };
-    };
-    company: {
-        name: string;
-    };
+    project: { id: number; company: { name: string } };
+    company: { name: string };
     diagnosis?: Diagnosis;
     activeTab: string;
     diagnosisStatus: string;
@@ -31,15 +34,65 @@ interface Props {
     projectId?: number;
 }
 
-const DEFAULT_JOB_FUNCTIONS = [
-    'HR',
-    'General Affairs',
-    'Finance',
-    'Accounting',
-    'Treasury',
-    'IT',
-    'Tax',
-];
+function buildCategoriesFromDiagnosis(diagnosis?: Diagnosis | null): JobCategory[] {
+    const cats = diagnosis?.job_categories ?? [];
+    const fns = diagnosis?.job_functions ?? [];
+    const hasPrefix = fns.some((s) => typeof s === 'string' && s.includes(SEP));
+    if (hasPrefix) {
+        const byCategory: Record<string, string[]> = {};
+        fns.forEach((s) => {
+            const str = String(s);
+            const idx = str.indexOf(SEP);
+            if (idx > 0) {
+                const cat = str.slice(0, idx).trim();
+                const fn = str.slice(idx + 1).trim();
+                if (fn) {
+                    if (!byCategory[cat]) byCategory[cat] = [];
+                    if (!byCategory[cat].includes(fn)) byCategory[cat].push(fn);
+                }
+            }
+        });
+        const list: JobCategory[] = [];
+        const seen = new Set<string>();
+        cats.forEach((name) => {
+            const n = String(name).trim();
+            if (!n || seen.has(n)) return;
+            seen.add(n);
+            list.push({
+                id: list.length + 1,
+                name: n,
+                functions: (byCategory[n] ?? []).map((fn, i) => ({ id: (list.length + 1) * 100 + i, name: fn })),
+            });
+        });
+        Object.keys(byCategory).forEach((n) => {
+            if (seen.has(n)) return;
+            seen.add(n);
+            list.push({
+                id: list.length + 1,
+                name: n,
+                functions: byCategory[n].map((fn, i) => ({ id: (list.length + 1) * 100 + i, name: fn })),
+            });
+        });
+        return list.length ? list : [{ id: 1, name: 'Management', functions: [] }, { id: 2, name: 'Support', functions: [] }];
+    }
+    if (cats.length === 0 && fns.length === 0) {
+        return [
+            { id: 1, name: 'Management', functions: [{ id: 101, name: 'HR' }, { id: 102, name: 'General Affairs' }, { id: 103, name: 'Finance' }] },
+            { id: 2, name: 'Support', functions: [{ id: 201, name: 'IT' }, { id: 202, name: 'Treasury' }] },
+        ];
+    }
+    const list: JobCategory[] = cats.length
+        ? cats.map((name, i) => ({ id: i + 1, name: String(name).trim(), functions: [] as JobFunction[] }))
+        : [{ id: 1, name: 'General', functions: [] }];
+    fns.forEach((fn, i) => {
+        const name = String(fn).trim();
+        if (!name) return;
+        if (list[0]) {
+            list[0].functions.push({ id: 1000 + i, name });
+        }
+    });
+    return list;
+}
 
 export default function JobStructure({
     project,
@@ -50,39 +103,91 @@ export default function JobStructure({
     stepStatuses,
     projectId,
 }: Props) {
-    const [jobCategories, setJobCategories] = useState<string[]>(
-        diagnosis?.job_categories || []
-    );
-    const [jobFunctions, setJobFunctions] = useState<string[]>(
-        diagnosis?.job_functions || []
-    );
-    const [customJobFunction, setCustomJobFunction] = useState('');
+    const [categories, setCategories] = useState<JobCategory[]>(() => buildCategoriesFromDiagnosis(diagnosis));
+    const [selectedCatId, setSelectedCatId] = useState<number | null>(() => {
+        const list = buildCategoriesFromDiagnosis(diagnosis);
+        return list.length > 0 ? list[0].id : null;
+    });
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [fnInput, setFnInput] = useState('');
+    const [addingCategory, setAddingCategory] = useState(false);
 
-    const { data, setData, post, processing, errors } = useForm({
+    const selectedCat = categories.find((c) => c.id === selectedCatId);
+
+    const { data, setData } = useForm({
         job_categories: [] as string[],
         job_functions: [] as string[],
     });
 
-    // Update form data when changes occur
     useEffect(() => {
-        setData('job_categories', jobCategories);
-        setData('job_functions', jobFunctions);
-    }, [jobCategories, jobFunctions]);
+        setData(
+            'job_categories',
+            categories.map((c) => c.name)
+        );
+        setData(
+            'job_functions',
+            categories.flatMap((c) => c.functions.map((f) => `${c.name}${SEP}${f.name}`))
+        );
+    }, [categories]);
 
-    // Removed auto-save - only save on review and submit
+    const addCategory = () => {
+        const name = newCategoryName.trim();
+        if (!name) return;
+        const newId = Math.max(0, ...categories.map((c) => c.id)) + 1;
+        const newCat: JobCategory = { id: newId, name, functions: [] };
+        setCategories((prev) => [...prev, newCat]);
+        setSelectedCatId(newCat.id);
+        setNewCategoryName('');
+        setAddingCategory(false);
+    };
 
-    const addCustomJobFunction = () => {
-        if (customJobFunction.trim() && !jobFunctions.includes(customJobFunction.trim())) {
-            setJobFunctions([...jobFunctions, customJobFunction.trim()]);
-            setCustomJobFunction('');
+    const removeCategory = (catId: number) => {
+        const remaining = categories.filter((c) => c.id !== catId);
+        setCategories(remaining);
+        if (selectedCatId === catId) {
+            setSelectedCatId(remaining.length > 0 ? remaining[0].id : null);
         }
     };
+
+    const addFunction = () => {
+        const name = fnInput.trim();
+        if (!name || !selectedCatId) return;
+        setCategories((prev) =>
+            prev.map((c) =>
+                c.id === selectedCatId
+                    ? { ...c, functions: [...c.functions, { id: Date.now(), name }] }
+                    : c
+            )
+        );
+        setFnInput('');
+    };
+
+    const removeFunction = (fnId: number) => {
+        if (!selectedCatId) return;
+        setCategories((prev) =>
+            prev.map((c) =>
+                c.id === selectedCatId ? { ...c, functions: c.functions.filter((f) => f.id !== fnId) } : c
+            )
+        );
+    };
+
+    const titleEn = both('jobStructureTitle').en;
+    const desc = both('jobStructureDesc');
+    const categoryListLabel = both('jobCategoryList');
+    const addCatBtn = both('addCategory');
+    const functionsCount = both('functionsCount');
+    const addCatPlaceholder = both('addCategoryPlaceholder');
+    const confirmLabel = both('confirm');
+    const cancelLabel = both('cancel');
+    const addCategoryEmpty = both('addCategoryEmpty');
+    const addFunctionBelow = both('addFunctionBelow');
+    const selectCategoryLeft = both('selectCategoryLeft');
 
     return (
         <>
             <Head title={`Job Structure - ${company?.name || project?.company?.name || 'Company'}`} />
             <FormLayout
-                title="Job Structure"
+                title={titleEn}
                 project={project}
                 diagnosis={diagnosis}
                 activeTab={activeTab}
@@ -94,89 +199,206 @@ export default function JobStructure({
                 formData={data}
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
-                <Card className="shadow-sm border">
-                    <CardContent className="p-6">
-                        {/* Job Categories */}
-                        <div className="space-y-3">
-                            <Label className="text-sm font-medium text-foreground block">Job Category</Label>
-                            <DynamicList
-                                label=""
-                                items={jobCategories}
-                                onChange={setJobCategories}
-                                placeholder="Enter job category (e.g., Management, Support)"
-                                addLabel="Add Job Category"
-                               
-                            />
+                <div className="space-y-7">
+                    <div>
+                        <h1 className="text-2xl font-bold text-[#0f2a4a]">{tr('jobStructureTitle')}</h1>
+                        <p className="text-sm text-[#64748b] mt-1.5">{desc.ko}</p>
+                        <p className="text-xs text-muted-foreground/80 mt-0.5">{desc.en}</p>
+                    </div>
+
+                    <div
+                        className="grid rounded-xl border-[1.5px] border-[#e2e8f0] bg-white overflow-hidden min-h-[460px]"
+                        style={{ gridTemplateColumns: '260px 1fr', boxShadow: '0 1px 4px rgba(15,42,74,0.07)' }}
+                    >
+                        {/* Left: Category list */}
+                        <div className="flex flex-col border-r border-[#e2e8f0]">
+                            <div className="px-4 py-3.5 border-b border-[#e2e8f0] bg-[#f8fafc] flex items-center justify-between">
+                                <span className="text-xs font-bold text-[#94a3b8] uppercase tracking-wider">
+                                    {categoryListLabel.ko}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => setAddingCategory(true)}
+                                    className="bg-[#0f2a4a] text-white border-0 rounded-md py-1 px-2.5 text-xs font-semibold cursor-pointer"
+                                >
+                                    {addCatBtn.ko}
+                                </button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto p-2">
+                                {categories.map((cat, idx) => {
+                                    const isSelected = cat.id === selectedCatId;
+                                    return (
+                                        <div
+                                            key={cat.id}
+                                            role="button"
+                                            tabIndex={0}
+                                            onClick={() => setSelectedCatId(cat.id)}
+                                            onKeyDown={(e) => e.key === 'Enter' && setSelectedCatId(cat.id)}
+                                            className={cn(
+                                                'flex items-center justify-between py-2.5 px-3 rounded-lg cursor-pointer mb-0.5 transition-colors',
+                                                isSelected ? 'bg-[#0f2a4a]' : 'hover:bg-muted/50'
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="flex flex-col items-center gap-0.5">
+                                                    <div
+                                                        className={cn(
+                                                            'w-2 h-2 rounded-full flex-shrink-0',
+                                                            isSelected ? 'bg-[#c8a84b]' : 'bg-[#cbd5e1]'
+                                                        )}
+                                                    />
+                                                    {idx < categories.length - 1 && (
+                                                        <div
+                                                            className="w-[1.5px] h-4 mt-0.5"
+                                                            style={{
+                                                                background: isSelected ? 'rgba(200,168,75,0.27)' : '#e2e8f0',
+                                                            }}
+                                                        />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <div
+                                                        className={cn(
+                                                            'text-sm font-medium',
+                                                            isSelected ? 'text-white font-bold' : 'text-[#0f2a4a]'
+                                                        )}
+                                                    >
+                                                        {cat.name}
+                                                    </div>
+                                                    <div
+                                                        className={cn(
+                                                            'text-[11px]',
+                                                            isSelected ? 'text-[#c8a84b]' : 'text-[#94a3b8]'
+                                                        )}
+                                                    >
+                                                        {functionsCount.ko} {cat.functions.length}{both('functionsCountSuffix').ko}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    removeCategory(cat.id);
+                                                }}
+                                                className={cn(
+                                                    'bg-transparent border-0 cursor-pointer text-sm p-0.5 leading-none',
+                                                    isSelected ? 'text-white/40 hover:text-white' : 'text-[#cbd5e1] hover:text-[#94a3b8]'
+                                                )}
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                                {addingCategory && (
+                                    <div className="p-2">
+                                        <input
+                                            autoFocus
+                                            value={newCategoryName}
+                                            onChange={(e) => setNewCategoryName(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') addCategory();
+                                                if (e.key === 'Escape') {
+                                                    setAddingCategory(false);
+                                                    setNewCategoryName('');
+                                                }
+                                            }}
+                                            placeholder={addCatPlaceholder.ko}
+                                            className="w-full border-[1.5px] border-[#0f2a4a] rounded-md py-2 px-2.5 text-[13px] text-[#0f2a4a] outline-none"
+                                        />
+                                        <div className="flex gap-1.5 mt-1.5">
+                                            <button
+                                                type="button"
+                                                onClick={addCategory}
+                                                className="flex-1 bg-[#0f2a4a] text-white border-0 rounded-md py-2 text-xs font-semibold cursor-pointer"
+                                            >
+                                                {confirmLabel.ko}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setAddingCategory(false);
+                                                    setNewCategoryName('');
+                                                }}
+                                                className="flex-1 bg-[#f1f5f9] text-[#475569] border-0 rounded-md py-2 text-xs font-semibold cursor-pointer"
+                                            >
+                                                {cancelLabel.ko}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                                {categories.length === 0 && !addingCategory && (
+                                    <div className="py-6 px-3 text-center text-[#cbd5e1] text-sm">
+                                        {addCategoryEmpty.ko}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        {/* Job Functions */}
-                        <div className="space-y-3 mt-6">
-                            <Label className="text-sm font-medium text-foreground block">Job Function</Label>
-                            <MultiSelectQuestion
-                                question="Select job functions"
-                                value={jobFunctions.filter(f => DEFAULT_JOB_FUNCTIONS.includes(f))}
-                                onChange={(selected) => {
-                                    const customFunctions = jobFunctions.filter(f => !DEFAULT_JOB_FUNCTIONS.includes(f));
-                                    setJobFunctions([...selected, ...customFunctions]);
-                                }}
-                                options={DEFAULT_JOB_FUNCTIONS}
-                                columns={2}
-                            />
-                            
-                            {/* Custom Job Functions */}
-                            <div className="flex items-center gap-2 mt-3">
-                                <input
-                                    type="text"
-                                    value={customJobFunction}
-                                    onChange={(e) => setCustomJobFunction(e.target.value)}
-                                    onKeyPress={(e) => {
-                                        if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            addCustomJobFunction();
-                                        }
-                                    }}
-                                    placeholder="Add custom job function"
-                                    className="flex-1 px-3 py-2 border rounded-md"
-                                />
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={addCustomJobFunction}
-                                    className="bg-accent text-accent-foreground "
-                                >
-                                    <Plus className="w-4 h-4 " />
-                                    Add
-                                </Button>
-                            </div>
-
-                            {/* Display selected custom functions */}
-                            {jobFunctions.filter(f => !DEFAULT_JOB_FUNCTIONS.includes(f)).length > 0 && (
-                                <div className="mt-3 space-y-2">
-                                    <Label className="text-sm text-muted-foreground mb-3">Custom Job Functions:</Label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {jobFunctions
-                                            .filter(f => !DEFAULT_JOB_FUNCTIONS.includes(f))
-                                            .map((func, index) => (
-                                                <span
-                                                    key={index}
-                                                    className="px-2 py-1 bg-primary/10 text-primary rounded-md text-sm"
-                                                >
-                                                    {func}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setJobFunctions(jobFunctions.filter(f => f !== func))}
-                                                        className="ml-2 text-primary/70 hover:text-primary"
-                                                    >
-                                                        ×
-                                                    </button>
-                                                </span>
-                                            ))}
+                        {/* Right: Functions for selected category */}
+                        <div className="flex flex-col">
+                            {selectedCat ? (
+                                <>
+                                    <div className="px-5 py-3.5 border-b border-[#e2e8f0] bg-[#f8fafc] flex items-center gap-2.5">
+                                        <div className="w-2 h-2 rounded-full bg-[#c8a84b]" />
+                                        <span className="text-[15px] font-bold text-[#0f2a4a]">{selectedCat.name}</span>
+                                        <span className="bg-[#f0f4fa] border border-[#c7d7f0] rounded-full py-0.5 px-2.5 text-xs font-semibold text-[#4a6fa5]">
+                                            {functionsCount.ko} {selectedCat.functions.length}{both('functionsCountSuffix').ko}
+                                        </span>
                                     </div>
+                                    <div className="flex-1 p-5 overflow-y-auto">
+                                        {selectedCat.functions.length === 0 ? (
+                                            <div className="flex flex-col items-center justify-center h-40 text-[#cbd5e1] border-2 border-dashed border-[#e2e8f0] rounded-lg">
+                                                <div className="text-3xl mb-2">＋</div>
+                                                <div className="text-sm">{addFunctionBelow.ko}</div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-wrap gap-2">
+                                                {selectedCat.functions.map((fn) => (
+                                                    <span
+                                                        key={fn.id}
+                                                        className="inline-flex items-center gap-1.5 py-1.5 px-3.5 bg-[#f0f4fa] border border-[#c7d7f0] rounded-full text-[13px] font-semibold text-[#0f2a4a]"
+                                                    >
+                                                        {fn.name}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeFunction(fn.id)}
+                                                            className="bg-transparent border-0 text-[#94a3b8] cursor-pointer p-0 leading-none hover:text-[#64748b]"
+                                                        >
+                                                            <X className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="px-5 py-4 border-t border-[#e2e8f0] bg-[#fafafa] flex gap-2">
+                                        <input
+                                            value={fnInput}
+                                            onChange={(e) => setFnInput(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && addFunction()}
+                                            placeholder={tr('addFunctionPlaceholder').replace(/\{\{name\}\}/g, selectedCat.name)}
+                                            className="flex-1 border-[1.5px] border-[#e2e8f0] rounded-lg py-2.5 px-3.5 text-[13px] text-[#0f2a4a] outline-none bg-white"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={addFunction}
+                                            className="bg-[#c8a84b] text-white border-0 rounded-lg py-2.5 px-4 text-[13px] font-semibold cursor-pointer whitespace-nowrap"
+                                        >
+                                            {tr('addFunctionBtn')}
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="flex-1 flex flex-col items-center justify-center text-[#cbd5e1] text-sm gap-2">
+                                    <div className="text-3xl">←</div>
+                                    <div>{selectCategoryLeft.ko}</div>
                                 </div>
                             )}
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             </FormLayout>
         </>
     );

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
+import { buildFinalizePayload } from '@/pages/JobAnalysis/utils/jobAnalysisStorage';
 import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -76,7 +77,8 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
     };
 
     const handleFinalize = () => {
-        post(`/hr-manager/job-analysis/${project.id}/finalize`, {
+        const payload = buildFinalizePayload(project.id);
+        post(`/hr-manager/job-analysis/${project.id}/finalize`, payload, {
             onSuccess: () => {
                 router.visit(`/hr-manager/job-analysis/${project.id}/org-chart-mapping`);
             },

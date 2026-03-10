@@ -100,6 +100,8 @@ class CeoReviewController extends Controller
             'is_public' => ['nullable', 'boolean'],
             'registration_number' => ['nullable', 'string', 'max:255'],
             'hq_location' => ['nullable', 'string', 'max:255'],
+            'brand_name' => ['nullable', 'string', 'max:255'],
+            'foundation_date' => ['nullable', 'string', 'max:255'],
             'industry_category' => ['nullable', 'string', 'max:255'],
             'industry_subcategory' => ['nullable', 'string', 'max:255'],
             'industry_other' => ['nullable', 'string', 'max:255'],
@@ -130,24 +132,37 @@ class CeoReviewController extends Controller
         $originalData = $diagnosis->toArray();
 
         DB::transaction(function () use ($diagnosis, $data, $request, $hrProject, $originalData) {
-            // Update company's is_public field if provided
-            if (isset($data['is_public'])) {
-                $companyOriginalValue = $hrProject->company->is_public ? 'true' : 'false';
-                $companyNewValue = $data['is_public'] ? 'true' : 'false';
-                
-                if ($companyOriginalValue != $companyNewValue) {
+            $company = $hrProject->company;
+            $companyUpdates = [];
+
+            // Update company fields (form sends company data alongside diagnosis)
+            $companyFields = ['is_public', 'registration_number', 'hq_location', 'brand_name', 'foundation_date'];
+            foreach ($companyFields as $field) {
+                if (!array_key_exists($field, $data)) {
+                    continue;
+                }
+                $value = $data[$field];
+                $current = $field === 'is_public' ? ($company->is_public ? 'true' : 'false') : ($company->$field ?? '');
+                $newStr = $field === 'is_public' ? ($value ? 'true' : 'false') : (string) $value;
+                if ($current != $newStr) {
                     CeoReviewLog::create([
                         'hr_project_id' => $hrProject->id,
-                        'field_name' => 'company.is_public',
+                        'field_name' => 'company.' . $field,
                         'field_type' => 'company',
-                        'original_value' => $companyOriginalValue,
-                        'modified_value' => $companyNewValue,
+                        'original_value' => $current,
+                        'modified_value' => $newStr,
                         'modified_by' => $request->user()->id,
                     ]);
                 }
-                
-                $hrProject->company->update(['is_public' => $data['is_public']]);
-                unset($data['is_public']); // Remove from diagnosis data
+                if ($field === 'is_public') {
+                    $companyUpdates['is_public'] = (bool) $value;
+                } else {
+                    $companyUpdates[$field] = $value;
+                }
+                unset($data[$field]);
+            }
+            if (!empty($companyUpdates)) {
+                $company->update($companyUpdates);
             }
 
             // Track changes
@@ -187,7 +202,7 @@ class CeoReviewController extends Controller
         $diagnosis->refresh();
         $hrProject->company->refresh();
 
-        return back()->with('success', 'Changes saved successfully. All modifications have been logged.');
+        return back();
     }
 
     /**

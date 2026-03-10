@@ -128,7 +128,7 @@ class DiagnosisController extends Controller
         // Reload the project to get updated step statuses
         $hrProject->refresh();
 
-        return back()->with('success', 'Diagnosis data saved successfully.');
+        return back();
     }
     
     /**

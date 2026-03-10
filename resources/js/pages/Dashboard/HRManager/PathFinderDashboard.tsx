@@ -2,7 +2,7 @@ import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/AppLayout';
-import { Building2, Lock, AlertTriangle, BarChart3, ClipboardList, Target, Unlock } from 'lucide-react';
+import { Building2, Lock, AlertTriangle, BarChart3, ClipboardList, Target, Unlock, CheckCircle2 } from 'lucide-react';
 
 const STEP_CONFIG = [
   { id: 'diagnosis', num: 1, name: 'Diagnosis', title: 'Diagnosis', desc: '회사 기본 정보, 업종, 인력 현황, 조직 구조, 핵심 HR 이슈를 입력합니다.' },
@@ -29,20 +29,23 @@ function getStepState(
   stepStatuses: Record<string, string>,
   currentStepKey: string | null,
   ceoPhilosophyStatus?: string
-): 'current' | 'locked' {
+): 'completed' | 'current' | 'locked' {
   const status = stepStatuses[stepId];
-  const isCeoDone = ceoPhilosophyStatus === 'completed';
-  const diagnosisStatus = stepStatuses['diagnosis'];
-  const diagnosisOk = diagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(diagnosisStatus);
+  const isStepComplete = status && ['submitted', 'approved', 'locked', 'completed'].includes(status);
 
-  if (stepIndex === 0) return currentStepKey === stepId || !status || status === 'not_started' || status === 'in_progress' ? 'current' : 'locked';
+  if (isStepComplete) return 'completed';
+
+  if (stepIndex === 0) {
+    return currentStepKey === stepId ? 'current' : 'locked';
+  }
+  const isCeoDone = ceoPhilosophyStatus === 'completed';
   if (!isCeoDone) return 'locked';
   for (let i = 0; i < stepIndex; i++) {
     const prev = STEP_CONFIG[i];
     const prevStatus = stepStatuses[prev.id];
     if (!prevStatus || !['submitted', 'approved', 'locked', 'completed'].includes(prevStatus)) return 'locked';
   }
-  return currentStepKey === stepId || !status || status === 'not_started' || status === 'in_progress' ? 'current' : 'locked';
+  return currentStepKey === stepId ? 'current' : 'locked';
 }
 
 function getStepRoute(stepId: string, projectId?: number | null): string {
@@ -75,6 +78,9 @@ export default function PathFinderDashboard({
   const currentStepTitle = STEP_CONFIG.find((s) => s.id === currentStepKey)?.title ?? 'Diagnosis';
   const companyName = company?.name ?? activeProject?.company?.name ?? null;
 
+  const diagnosisStatus = stepStatuses['diagnosis'];
+  const isDiagnosisSubmitted = diagnosisStatus === 'submitted';
+
   const steps = STEP_CONFIG.map((s, i) => ({
     ...s,
     active: getStepState(s.id, i, stepStatuses, currentStepKey, ceoPhilosophyStatus) === 'current',
@@ -86,8 +92,9 @@ export default function PathFinderDashboard({
     return {
       ...s,
       step: s.num,
-      status: state as 'current' | 'locked',
+      status: state,
       progress: stepProgress,
+      stepStatus: stepStatuses[s.id],
     };
   });
 
@@ -244,13 +251,32 @@ export default function PathFinderDashboard({
               </p>
             </div>
 
+            {/* Submitted - waiting for CEO banner */}
+            {isDiagnosisSubmitted && (
+              <div className="mb-6 rounded-xl border border-[var(--hr-mint)] bg-[rgba(78,205,196,0.08)] px-5 py-4 flex items-center gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--hr-mint)] text-[var(--hr-navy-deep)]">
+                  <CheckCircle2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-[14px] font-bold text-[var(--hr-gray-800)]">
+                    {t('dashboard.pathfinder.submitted_wait_ceo', 'Diagnosis submitted — waiting for CEO review')}
+                  </p>
+                  <p className="text-[12px] text-[var(--hr-gray-500)] mt-0.5">
+                    {t('dashboard.pathfinder.submitted_wait_ceo_hint', 'You can continue to Step 2 (Job Analysis) while the CEO reviews.')}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* STAT CARDS */}
             <div className="grid grid-cols-4 gap-3 mb-6">
               <div className="bg-gradient-to-br from-[var(--hr-navy)] to-[var(--hr-navy-mid)] border-0 rounded-xl p-[18px] pr-5 relative overflow-hidden hover:shadow-md transition-shadow">
                 <div className="absolute -top-5 -right-5 w-20 h-20 rounded-full bg-[rgba(78,205,196,0.1)] pointer-events-none" />
                 <div className="flex items-center justify-between mb-2.5">
                   <span className="text-[10.5px] font-semibold text-white/45 uppercase tracking-[0.6px]">{t('dashboard.pathfinder.overall_progress')}</span>
-                  <span className="text-[9.5px] font-semibold py-0.5 px-1.5 rounded-[20px] bg-[rgba(78,205,196,0.15)] text-[var(--hr-mint)]">{t('dashboard.pathfinder.in_progress')}</span>
+                  <span className="text-[9.5px] font-semibold py-0.5 px-1.5 rounded-[20px] bg-[rgba(78,205,196,0.15)] text-[var(--hr-mint)]">
+                    {isDiagnosisSubmitted ? t('dashboard.pathfinder.submitted_short', 'Submitted') : t('dashboard.pathfinder.in_progress')}
+                  </span>
                 </div>
                 <div className="text-[26px] font-bold text-white leading-none tracking-[-1px]">
                   {progress.completed} <sup className="text-[14px] font-medium text-white/40">/ {progress.total}</sup>
@@ -339,6 +365,50 @@ export default function PathFinderDashboard({
             <div className="grid grid-cols-2 gap-3.5">
               {stepCards.map((card) =>
                 card.fullWidth ? (
+                  card.status === 'completed' ? (
+                    <div
+                      key={card.step}
+                      className="col-span-2 flex items-center justify-between py-[18px] px-[22px] rounded-xl border border-[var(--hr-mint)] bg-white"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-9 h-9 rounded-[9px] bg-[rgba(78,205,196,0.15)] flex items-center justify-center text-base">
+                          <CheckCircle2 className="w-4 h-4 text-[#2ea89e]" />
+                        </div>
+                        <div>
+                          <div className="flex gap-1.5 mb-1.5">
+                            <span className="text-[10px] font-semibold text-[#9ba5bc] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">Step {card.step}</span>
+                            <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px] inline-flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" />{t('dashboard.pathfinder.complete')}
+                            </span>
+                          </div>
+                          <h4 className="text-sm font-bold text-[#2d3340] mb-1">{card.title}</h4>
+                          <p className="text-[11.5px] text-[#5a6478] mb-0">{card.desc}</p>
+                        </div>
+                      </div>
+                      <Link href={getStepRoute(card.id, projectId)} className="text-[12px] font-semibold text-[var(--hr-navy)] hover:text-[var(--hr-navy-mid)]">
+                        {t('buttons.view', 'View')} →
+                      </Link>
+                    </div>
+                  ) : card.status === 'current' ? (
+                    <div key={card.step} className="col-span-2 flex items-center justify-between py-[18px] px-[22px] rounded-xl border border-[#4ecdc4] bg-white shadow-[0_0_0_1px_#4ecdc4,0_4px_20px_rgba(78,205,196,0.12)]">
+                      <div className="flex items-center gap-4">
+                        <div className="w-9 h-9 rounded-[9px] bg-[rgba(78,205,196,0.12)] flex items-center justify-center text-base">
+                          <Building2 className="w-4 h-4 text-[#4ecdc4]" />
+                        </div>
+                        <div>
+                          <div className="flex gap-1.5 mb-1.5">
+                            <span className="text-[10px] font-semibold text-[#9ba5bc] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">Step {card.step}</span>
+                            <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px]">● {t('dashboard.pathfinder.in_progress')}</span>
+                          </div>
+                          <h4 className="text-sm font-bold text-[#2d3340] mb-1">{card.title}</h4>
+                          <p className="text-[11.5px] text-[#5a6478] mb-0">{card.desc}</p>
+                        </div>
+                      </div>
+                      <Link href={getStepRoute(card.id, projectId)} className="bg-[var(--hr-navy)] text-white py-2 px-4 rounded-[7px] text-xs font-semibold hover:bg-[var(--hr-navy-mid)]">
+                        {t('dashboard.pathfinder.continue')} →
+                      </Link>
+                    </div>
+                  ) : (
                   <div
                     key={card.step}
                     className="col-span-2 flex items-center justify-between py-[18px] px-[22px] rounded-xl border border-[#e2e6ee] bg-[#f8f9fb] opacity-70"
@@ -364,6 +434,41 @@ export default function PathFinderDashboard({
                       <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
                       {t('dashboard.pathfinder.prev_step_required_after')}
                     </div>
+                  </div>
+                  )
+                ) : card.status === 'completed' ? (
+                  <div
+                    key={card.step}
+                    className="bg-white border border-[var(--hr-mint)] rounded-xl p-5 pl-[22px] relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-[var(--hr-mint)]" />
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-semibold text-[#9ba5bc] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">
+                          Step {card.step}
+                        </span>
+                        <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px] inline-flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" />
+                          {t('dashboard.pathfinder.complete')}
+                        </span>
+                      </div>
+                      <div className="w-9 h-9 rounded-[10px] bg-[rgba(78,205,196,0.15)] flex items-center justify-center">
+                        <CheckCircle2 className="w-5 h-5 text-[#2ea89e]" />
+                      </div>
+                    </div>
+                    <h4 className="text-sm font-bold text-[#2d3340] mb-1.5 tracking-[-0.2px]">{card.title}</h4>
+                    <p className="text-[11.5px] text-[#5a6478] leading-relaxed mb-3">{card.desc}</p>
+                    {card.id === 'diagnosis' && card.stepStatus === 'submitted' && (
+                      <p className="text-[11px] text-[#2ea89e] font-medium mb-4">
+                        {t('dashboard.pathfinder.submitted_wait_ceo', 'Diagnosis submitted — waiting for CEO review')}
+                      </p>
+                    )}
+                    <Link
+                      href={getStepRoute(card.id, projectId)}
+                      className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[var(--hr-navy)] hover:text-[var(--hr-navy-mid)]"
+                    >
+                      {t('buttons.view', 'View')} →
+                    </Link>
                   </div>
                 ) : card.status === 'current' ? (
                   <div

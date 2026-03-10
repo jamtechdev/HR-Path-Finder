@@ -3,7 +3,9 @@ import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 import StepHeader from '@/components/StepHeader/StepHeader';
 import StepProgress from './components/StepProgress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
+import { Info } from 'lucide-react';
 import Overview from './steps/Overview';
 import Step0BeforeYouBegin from './steps/Step0BeforeYouBegin';
 import Step1PolicySnapshot from './steps/Step1PolicySnapshot';
@@ -212,13 +214,38 @@ export default function JobAnalysisIndex({
     };
 
     const handleStep1Continue = () => {
-        markStepCompleted('policy-snapshot');
-        handleStepChange('job-list-selection');
+        const policy_answers = Object.entries(state.policyAnswers).map(([questionId, a]) => ({
+            question_id: parseInt(questionId, 10),
+            answer: a.answer,
+            conditional_text: a.conditional_text,
+        }));
+        router.post(`/hr-manager/job-analysis/${project.id}/policy-snapshot`, { policy_answers }, {
+            onSuccess: () => {
+                toast({ title: 'Saved', description: 'Policy snapshot saved.' });
+                markStepCompleted('policy-snapshot');
+                handleStepChange('job-list-selection');
+            },
+            onError: (errors: Record<string, unknown>) => {
+                const msg = errors && typeof errors === 'object' && (errors.message ?? Object.values(errors)[0]);
+                const desc = Array.isArray(msg) ? msg[0] : String(msg ?? 'Failed to save.');
+                toast({ title: 'Save failed', description: desc, variant: 'destructive' });
+            },
+        });
     };
 
     const handleStep2Continue = () => {
-        markStepCompleted('job-list-selection');
-        handleStepChange('job-definition');
+        router.post(`/hr-manager/job-analysis/${project.id}/job-list-selection`, { job_selections: state.jobSelections }, {
+            onSuccess: () => {
+                toast({ title: 'Saved', description: 'Job list saved.' });
+                markStepCompleted('job-list-selection');
+                handleStepChange('job-definition');
+            },
+            onError: (errors: Record<string, unknown>) => {
+                const msg = errors && typeof errors === 'object' && (errors.message ?? Object.values(errors)[0]);
+                const desc = Array.isArray(msg) ? msg[0] : String(msg ?? 'Failed to save.');
+                toast({ title: 'Save failed', description: desc, variant: 'destructive' });
+            },
+        });
     };
 
     const handleStep3Continue = () => {
@@ -232,8 +259,27 @@ export default function JobAnalysisIndex({
     };
 
     const handleStep5Continue = () => {
-        markStepCompleted('org-chart-mapping');
-        handleStepChange('review-submit');
+        const org_chart_mappings = state.orgMappings.map(u => ({
+            org_unit_name: u.org_unit_name,
+            job_keyword_ids: u.job_keyword_ids,
+            org_head_name: u.org_head_name,
+            org_head_rank: u.org_head_rank,
+            org_head_title: u.org_head_title,
+            org_head_email: u.org_head_email,
+            job_specialists: u.job_specialists ?? [],
+        }));
+        router.post(`/hr-manager/job-analysis/${project.id}/org-chart-mapping`, { org_chart_mappings }, {
+            onSuccess: () => {
+                toast({ title: 'Saved', description: 'Org chart mapping saved.' });
+                markStepCompleted('org-chart-mapping');
+                handleStepChange('review-submit');
+            },
+            onError: (errors: Record<string, unknown>) => {
+                const msg = errors && typeof errors === 'object' && (errors.message ?? Object.values(errors)[0]);
+                const desc = Array.isArray(msg) ? msg[0] : String(msg ?? 'Failed to save.');
+                toast({ title: 'Save failed', description: desc, variant: 'destructive' });
+            },
+        });
     };
 
     const handleBack = () => {
@@ -380,6 +426,15 @@ export default function JobAnalysisIndex({
                             onStepClick={handleStepChange}
                         />
                     </div>
+                )}
+
+                {activeStepLocal !== 'overview' && !['submitted', 'approved', 'locked'].includes(stepStatuses?.job_analysis || '') && (
+                    <Alert className="border-blue-200 bg-blue-50/50 py-2">
+                        <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                        <AlertDescription className="text-sm">
+                            Progress is saved on this device until you complete <strong>Finalization</strong> and <strong>Review & Submit</strong>.
+                        </AlertDescription>
+                    </Alert>
                 )}
 
                 <div className="bg-white rounded-lg shadow-sm border">

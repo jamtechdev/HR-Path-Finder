@@ -197,7 +197,10 @@
       "active": "Active",
       "steps_remaining": "Steps Remaining",
       "keep_going": "Keep going!",
-      "completed_count": "{{done}} / {{total}} completed"
+      "completed_count": "{{done}} / {{total}} completed",
+      "submitted_wait_ceo": "Diagnosis submitted — waiting for CEO review",
+      "submitted_wait_ceo_hint": "You can continue to Step 2 (Job Analysis) while the CEO reviews.",
+      "submitted_short": "Submitted"
     }
   },
   "sidebar": {

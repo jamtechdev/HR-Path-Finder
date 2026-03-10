@@ -195,6 +195,204 @@ class JobAnalysisController extends Controller
     }
 
     /**
+     * Save policy snapshot answers to database (incremental save).
+     */
+    public function storePolicySnapshot(Request $request, HrProject $hrProject)
+    {
+        if (!$request->user()->hasRole('hr_manager')) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'policy_answers' => ['nullable', 'array'],
+            'policy_answers.*.question_id' => ['required', 'exists:policy_snapshot_questions,id'],
+            'policy_answers.*.answer' => ['required', 'string', 'in:yes,no,not_sure'],
+            'policy_answers.*.conditional_text' => ['nullable', 'string'],
+        ]);
+
+        if (!empty($validated['policy_answers'])) {
+            foreach ($validated['policy_answers'] as $answerData) {
+                PolicySnapshotAnswer::updateOrCreate(
+                    [
+                        'hr_project_id' => $hrProject->id,
+                        'question_id' => $answerData['question_id'],
+                    ],
+                    [
+                        'answer' => $answerData['answer'],
+                        'conditional_text' => $answerData['conditional_text'] ?? null,
+                    ]
+                );
+            }
+        }
+
+        return redirect()->route('hr-manager.job-analysis.index', [$hrProject, 'job-list-selection']);
+    }
+
+    /**
+     * Save job list selection to database (creates non-finalized job definitions).
+     */
+    public function storeJobListSelection(Request $request, HrProject $hrProject)
+    {
+        if (!$request->user()->hasRole('hr_manager')) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'job_selections' => ['required', 'array'],
+            'job_selections.selected_job_keyword_ids' => ['nullable', 'array'],
+            'job_selections.selected_job_keyword_ids.*' => ['exists:job_keywords,id'],
+            'job_selections.custom_jobs' => ['nullable', 'array'],
+            'job_selections.custom_jobs.*' => ['required', 'string', 'max:255'],
+            'job_selections.grouped_jobs' => ['nullable', 'array'],
+            'job_selections.grouped_jobs.*.name' => ['required', 'string'],
+            'job_selections.grouped_jobs.*.job_keyword_ids' => ['required', 'array'],
+            'job_selections.grouped_jobs.*.job_keyword_ids.*' => ['exists:job_keywords,id'],
+        ]);
+
+        $hasSelectedJobs = !empty($validated['job_selections']['selected_job_keyword_ids']) && count($validated['job_selections']['selected_job_keyword_ids']) > 0;
+        $hasCustomJobs = !empty($validated['job_selections']['custom_jobs']) && count($validated['job_selections']['custom_jobs']) > 0;
+        $hasGroupedJobs = !empty($validated['job_selections']['grouped_jobs']) && count($validated['job_selections']['grouped_jobs']) > 0;
+        if (!$hasSelectedJobs && !$hasCustomJobs && !$hasGroupedJobs) {
+            return back()->withErrors(['job_selections' => 'Please select at least one job, add a custom job, or create a grouped job.']);
+        }
+
+        $diagnosis = $hrProject->diagnosis;
+        $workforce = $diagnosis->present_headcount ?? 0;
+        $sizeRange = $this->determineSizeRange($workforce);
+
+        JobDefinition::where('hr_project_id', $hrProject->id)->where('is_finalized', false)->delete();
+
+        $customJobKeywordIds = [];
+        if (!empty($validated['job_selections']['custom_jobs'])) {
+            foreach ($validated['job_selections']['custom_jobs'] as $customJobName) {
+                $customJobKeyword = JobKeyword::create([
+                    'name' => $customJobName,
+                    'industry_category' => $diagnosis->industry_category ?? null,
+                    'company_size_range' => $sizeRange,
+                    'order' => JobKeyword::max('order') + 1,
+                    'is_active' => true,
+                ]);
+                $customJobKeywordIds[] = $customJobKeyword->id;
+            }
+        }
+
+        $allJobKeywordIds = array_merge(
+            $validated['job_selections']['selected_job_keyword_ids'] ?? [],
+            $customJobKeywordIds
+        );
+
+        foreach ($allJobKeywordIds as $jobKeywordId) {
+            $isInGroup = false;
+            if (!empty($validated['job_selections']['grouped_jobs'])) {
+                foreach ($validated['job_selections']['grouped_jobs'] as $groupedJob) {
+                    if (in_array($jobKeywordId, $groupedJob['job_keyword_ids'])) {
+                        $isInGroup = true;
+                        break;
+                    }
+                }
+            }
+            if (!$isInGroup) {
+                JobDefinition::create([
+                    'hr_project_id' => $hrProject->id,
+                    'job_keyword_id' => $jobKeywordId,
+                    'job_name' => JobKeyword::find($jobKeywordId)->name ?? '',
+                    'grouped_job_keyword_ids' => null,
+                    'is_finalized' => false,
+                ]);
+            }
+        }
+
+        if (!empty($validated['job_selections']['grouped_jobs'])) {
+            foreach ($validated['job_selections']['grouped_jobs'] as $groupedJob) {
+                JobDefinition::create([
+                    'hr_project_id' => $hrProject->id,
+                    'job_keyword_id' => null,
+                    'job_name' => $groupedJob['name'],
+                    'grouped_job_keyword_ids' => $groupedJob['job_keyword_ids'],
+                    'is_finalized' => false,
+                ]);
+            }
+        }
+
+        return redirect()->route('hr-manager.job-analysis.index', [$hrProject, 'job-definition']);
+    }
+
+    /**
+     * Save a single job definition (incremental save). Id can be job definition id or job_keyword_id for lookup.
+     */
+    public function storeJobDefinition(Request $request, HrProject $hrProject, int $id)
+    {
+        if (!$request->user()->hasRole('hr_manager')) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'job_description' => ['nullable', 'string'],
+            'job_specification' => ['nullable', 'array'],
+            'competency_levels' => ['nullable', 'array'],
+            'csfs' => ['nullable', 'array'],
+        ]);
+
+        $jobDefinition = JobDefinition::where('hr_project_id', $hrProject->id)
+            ->where('is_finalized', false)
+            ->where(function ($q) use ($id) {
+                $q->where('id', $id)->orWhere('job_keyword_id', $id);
+            })
+            ->firstOrFail();
+
+        $jobDefinition->update([
+            'job_description' => $validated['job_description'] ?? $jobDefinition->job_description,
+            'job_specification' => $validated['job_specification'] ?? $jobDefinition->job_specification,
+            'competency_levels' => $validated['competency_levels'] ?? $jobDefinition->competency_levels,
+            'csfs' => $validated['csfs'] ?? $jobDefinition->csfs,
+        ]);
+
+        return back();
+    }
+
+    /**
+     * Save org chart mappings to database (incremental save).
+     */
+    public function storeOrgChartMapping(Request $request, HrProject $hrProject)
+    {
+        if (!$request->user()->hasRole('hr_manager')) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'org_chart_mappings' => ['required', 'array'],
+            'org_chart_mappings.*.org_unit_name' => ['required', 'string'],
+            'org_chart_mappings.*.job_keyword_ids' => ['nullable', 'array'],
+            'org_chart_mappings.*.job_keyword_ids.*' => ['exists:job_keywords,id'],
+            'org_chart_mappings.*.org_head_name' => ['nullable', 'string'],
+            'org_chart_mappings.*.org_head_rank' => ['nullable', 'string'],
+            'org_chart_mappings.*.org_head_title' => ['nullable', 'string'],
+            'org_chart_mappings.*.org_head_email' => ['nullable', 'email'],
+            'org_chart_mappings.*.job_specialists' => ['nullable', 'array'],
+        ]);
+
+        OrgChartMapping::where('hr_project_id', $hrProject->id)->delete();
+
+        foreach ($validated['org_chart_mappings'] as $mapping) {
+            if (empty(trim($mapping['org_unit_name'] ?? ''))) {
+                continue;
+            }
+            OrgChartMapping::create([
+                'hr_project_id' => $hrProject->id,
+                'org_unit_name' => $mapping['org_unit_name'],
+                'job_keyword_ids' => $mapping['job_keyword_ids'] ?? [],
+                'org_head_name' => $mapping['org_head_name'] ?? null,
+                'org_head_rank' => $mapping['org_head_rank'] ?? null,
+                'org_head_title' => $mapping['org_head_title'] ?? null,
+                'org_head_email' => $mapping['org_head_email'] ?? null,
+                'job_specialists' => $mapping['job_specialists'] ?? [],
+            ]);
+        }
+
+        return back();
+    }
+
+    /**
      * Finalize all job analysis data.
      * This is the ONLY place where data is saved to database (except org chart mappings which are saved at submit).
      */

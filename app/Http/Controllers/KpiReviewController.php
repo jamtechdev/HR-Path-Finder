@@ -6,6 +6,7 @@ use App\Models\HrProject;
 use App\Models\KpiReviewToken;
 use App\Models\OrganizationalKpi;
 use App\Models\KpiEditHistory;
+use App\Models\OrgChartMapping;
 use App\Mail\KpiReviewRequestMail;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -293,7 +294,7 @@ class KpiReviewController extends Controller
 
     /**
      * Send review request email to organization leader (HR Manager action).
-     * Sends emails to all CEOs and admins for the company.
+     * Sends to: (1) the organization leader from org chart mapping (org_head_email), then (2) CEOs and admins.
      */
     public function sendReviewRequest(Request $request, HrProject $hrProject)
     {
@@ -308,14 +309,57 @@ class KpiReviewController extends Controller
         $hrProject->load('company');
         $company = $hrProject->company;
 
-        // Get all CEOs for this company
-        $ceos = $company->ceos()->get();
-        
-        // Get all admins (users with admin role)
-        $admins = \App\Models\User::role('admin')->get();
-
         $emailsSent = 0;
         $errors = [];
+
+        // 1) Send to the organization leader (org head) from org chart mapping for this organization
+        $orgMapping = OrgChartMapping::where('hr_project_id', $hrProject->id)
+            ->whereRaw('TRIM(LOWER(org_unit_name)) = ?', [strtolower(trim($validated['organization_name']))])
+            ->first();
+
+        if ($orgMapping && !empty(trim($orgMapping->org_head_email ?? ''))) {
+            try {
+                $token = KpiReviewToken::generateToken();
+                $expiresAt = Carbon::now()->addDays(7);
+                $leaderEmail = trim($orgMapping->org_head_email);
+                $leaderName = trim($orgMapping->org_head_name ?? '') ?: $leaderEmail;
+
+                $reviewToken = KpiReviewToken::create([
+                    'hr_project_id' => $hrProject->id,
+                    'organization_name' => $validated['organization_name'],
+                    'token' => $token,
+                    'email' => $leaderEmail,
+                    'name' => $leaderName,
+                    'expires_at' => $expiresAt,
+                    'max_uses' => 3,
+                ]);
+
+                \Log::info('Sending KPI Review Request Email to Organization Leader', [
+                    'organization_name' => $validated['organization_name'],
+                    'org_head_email' => $leaderEmail,
+                    'project_id' => $hrProject->id,
+                ]);
+
+                Mail::to($leaderEmail)->send(new KpiReviewRequestMail($reviewToken, $hrProject));
+
+                \Log::info('KPI Review Request Email sent successfully to Organization Leader', [
+                    'org_head_email' => $leaderEmail,
+                ]);
+
+                $emailsSent++;
+            } catch (\Exception $e) {
+                \Log::error('Failed to send KPI Review Request Email to Organization Leader', [
+                    'org_head_email' => $orgMapping->org_head_email ?? null,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+                $errors[] = "Failed to send email to organization leader: " . ($orgMapping->org_head_email ?? '') . " - {$e->getMessage()}";
+            }
+        }
+
+        // 2) Get CEOs and admins for the company
+        $ceos = $company->ceos()->get();
+        $admins = \App\Models\User::role('admin')->get();
 
         // Send email to all CEOs
         foreach ($ceos as $ceo) {

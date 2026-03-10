@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { mergeJobAnalysisState } from '@/pages/JobAnalysis/utils/jobAnalysisStorage';
+import { toast } from '@/hooks/use-toast';
 import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,19 +29,7 @@ interface Props {
 
 export default function PolicySnapshot({ project, questions }: Props) {
     const [answers, setAnswers] = useState<Record<number, { answer: string; conditional_text?: string }>>({});
-
-    const { data, setData, post, processing } = useForm({
-        answers: [] as Array<{ question_id: number; answer: string; conditional_text?: string }>,
-    });
-
-    useEffect(() => {
-        const answersArray = Object.entries(answers).map(([questionId, answerData]) => ({
-            question_id: parseInt(questionId),
-            answer: answerData.answer,
-            conditional_text: answerData.conditional_text,
-        }));
-        setData('answers', answersArray);
-    }, [answers]);
+    const [navigating, setNavigating] = useState(false);
 
     const handleAnswerChange = (questionId: number, answer: string) => {
         setAnswers({
@@ -62,11 +52,26 @@ export default function PolicySnapshot({ project, questions }: Props) {
     };
 
     const handleSubmit = () => {
-        // Allow submission even if no answers are selected
-        post(`/hr-manager/job-analysis/${project.id}/policy-snapshot`, {
+        setNavigating(true);
+        const policyAnswers: Record<number, { answer: string; conditional_text?: string }> = {};
+        Object.entries(answers).forEach(([questionId, answerData]) => {
+            policyAnswers[parseInt(questionId, 10)] = {
+                answer: answerData.answer,
+                conditional_text: answerData.conditional_text,
+            };
+        });
+        mergeJobAnalysisState(project.id, { policyAnswers });
+        const policy_answers = Object.entries(answers).map(([questionId, answerData]) => ({
+            question_id: parseInt(questionId, 10),
+            answer: answerData.answer,
+            conditional_text: answerData.conditional_text,
+        }));
+        router.post(`/hr-manager/job-analysis/${project.id}/policy-snapshot`, { policy_answers }, {
             onSuccess: () => {
-                router.visit(`/hr-manager/job-analysis/${project.id}/job-list-selection`);
+                setNavigating(false);
+                toast({ title: 'Saved', description: 'Policy snapshot saved.' });
             },
+            onError: () => setNavigating(false),
         });
     };
 
@@ -165,11 +170,11 @@ export default function PolicySnapshot({ project, questions }: Props) {
                             </Button>
                             <Button 
                                 onClick={handleSubmit} 
-                                disabled={processing}
+                                disabled={navigating}
                                 size="lg"
                                 className="flex items-center shadow-lg hover:shadow-xl transition-all"
                             >
-                                {processing ? (
+                                {navigating ? (
                                     <>
                                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                                         Saving...

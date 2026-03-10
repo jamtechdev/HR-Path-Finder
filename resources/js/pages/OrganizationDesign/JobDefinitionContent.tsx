@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, router } from '@inertiajs/react';
+import { readJobAnalysisState, mergeJobAnalysisState } from '@/pages/JobAnalysis/utils/jobAnalysisStorage';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -54,13 +55,14 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
     const [activeJobId, setActiveJobId] = useState<number | null>(selectedJob?.id || jobDefinitions[0]?.id || null);
     const [activeTab, setActiveTab] = useState('description');
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [saving, setSaving] = useState(false);
 
     const currentJob = jobDefinitions.find(j => j.id === activeJobId) || selectedJob;
     // Get template from currentJob if it has one, otherwise use passed template
     const currentTemplate = (currentJob as any)?.template || template;
     const isFinalized = currentJob?.is_finalized || false;
 
-    const { data, setData, post, processing } = useForm({
+    const { data, setData } = useForm({
         job_description: currentJob?.job_description || currentTemplate?.job_description || '',
         job_specification: currentJob?.job_specification || currentTemplate?.job_specification || {
             education: { required: '', preferred: '' },
@@ -97,41 +99,73 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
     }, [activeJobId, jobDefinitions]);
 
     const handleSave = () => {
-        if (activeJobId) {
-            post(`/hr-manager/job-analysis/${project.id}/job-definition/${activeJobId}`, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    setSaveSuccess(true);
-                    setTimeout(() => setSaveSuccess(false), 3000);
-                },
-            });
-        }
+        if (!activeJobId || !currentJob) return;
+        const key = currentJob.job_keyword_id != null
+            ? String(currentJob.job_keyword_id)
+            : `group-${currentJob.id}`;
+        const current = readJobAnalysisState(project.id);
+        const jobDefinitions = {
+            ...current.jobDefinitions,
+            [key]: {
+                job_keyword_id: currentJob.job_keyword_id,
+                job_name: currentJob.job_name,
+                grouped_job_keyword_ids: (currentJob as { grouped_job_keyword_ids?: number[] }).grouped_job_keyword_ids,
+                job_description: data.job_description,
+                job_specification: data.job_specification,
+                competency_levels: data.competency_levels,
+                csfs: data.csfs,
+            },
+        };
+        setSaving(true);
+        mergeJobAnalysisState(project.id, { jobDefinitions });
+        router.post(`/hr-manager/job-analysis/${project.id}/job-definition/${activeJobId}`, {
+            job_description: data.job_description,
+            job_specification: data.job_specification,
+            competency_levels: data.competency_levels,
+            csfs: data.csfs,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setSaveSuccess(true);
+                setTimeout(() => setSaveSuccess(false), 3000);
+            },
+            onFinish: () => setSaving(false),
+        });
     };
 
     const handleSaveAndNext = () => {
-        if (activeJobId) {
-            post(`/hr-manager/job-analysis/${project.id}/job-definition/${activeJobId}`, {
-                preserveScroll: false, // Don't preserve scroll when switching tabs
-                onSuccess: () => {
-                    setSaveSuccess(true);
-                    // Automatically continue to next tab after save
-                    // Use a longer delay to ensure the save is complete and state is updated
-                    setTimeout(() => {
-                        if (onContinue) {
-                            onContinue();
-                        }
-                    }, 800);
-                },
-                onError: (errors) => {
-                    console.error('Save error:', errors);
-                    // Don't switch tabs if there's an error
+        if (activeJobId && currentJob) {
+            setSaving(true);
+            mergeJobAnalysisState(project.id, {
+                jobDefinitions: {
+                    ...readJobAnalysisState(project.id).jobDefinitions,
+                    [currentJob.job_keyword_id != null ? String(currentJob.job_keyword_id) : `group-${currentJob.id}`]: {
+                        job_keyword_id: currentJob.job_keyword_id,
+                        job_name: currentJob.job_name,
+                        grouped_job_keyword_ids: (currentJob as { grouped_job_keyword_ids?: number[] }).grouped_job_keyword_ids,
+                        job_description: data.job_description,
+                        job_specification: data.job_specification,
+                        competency_levels: data.competency_levels,
+                        csfs: data.csfs,
+                    },
                 },
             });
-        } else {
-            // If no active job, just continue to next tab
-            if (onContinue) {
-                onContinue();
-            }
+            router.post(`/hr-manager/job-analysis/${project.id}/job-definition/${activeJobId}`, {
+                job_description: data.job_description,
+                job_specification: data.job_specification,
+                competency_levels: data.competency_levels,
+                csfs: data.csfs,
+            }, {
+                preserveScroll: false,
+                onSuccess: () => {
+                    setSaveSuccess(true);
+                    setTimeout(() => setSaveSuccess(false), 2000);
+                    if (onContinue) setTimeout(() => onContinue(), 400);
+                },
+                onFinish: () => setSaving(false),
+            });
+        } else if (onContinue) {
+            onContinue();
         }
     };
 
@@ -665,10 +699,10 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                 <Button 
                     variant="outline" 
                     onClick={handleSave} 
-                    disabled={processing || currentJob?.is_finalized}
+                    disabled={saving || currentJob?.is_finalized}
                     size="lg"
                 >
-                    {processing ? (
+                    {saving ? (
                         <>
                             <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
                             Saving...
@@ -682,11 +716,11 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                 </Button>
                 <Button
                     onClick={handleSaveAndNext}
-                    disabled={processing || currentJob?.is_finalized}
+                    disabled={saving || currentJob?.is_finalized}
                     size="lg"
                     className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
                 >
-                    {processing ? (
+                    {saving ? (
                         <>
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                             Saving...

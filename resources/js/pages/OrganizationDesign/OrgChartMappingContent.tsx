@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DiagramEditor from '@/components/OrgChart/DiagramEditor';
 import ChartGallery from '@/components/CEO/Review/ChartGallery';
 import type { Node, Edge } from 'reactflow';
+import { mergeJobAnalysisState, buildSubmitPayload } from '@/pages/JobAnalysis/utils/jobAnalysisStorage';
 
 interface JobDefinition {
     id: number;
@@ -58,6 +59,7 @@ interface Props {
 
 export default function OrgChartMappingContent({ project, jobDefinitions, mappings, organizationalCharts, onSubmit: externalOnSubmit }: Props) {
     const [viewMode, setViewMode] = useState<'diagram' | 'list'>('diagram');
+    const [submitting, setSubmitting] = useState(false);
     const [orgUnits, setOrgUnits] = useState<Array<OrgChartMapping & { id?: number }>>(
         mappings.length > 0 ? mappings : [{ org_unit_name: '', job_keyword_ids: [], org_head: null, job_specialists: [] }]
     );
@@ -67,7 +69,7 @@ export default function OrgChartMappingContent({ project, jobDefinitions, mappin
     const [diagramEdges, setDiagramEdges] = useState<Edge[]>([]);
     const { toast } = useToast();
 
-    const { data, setData, post, processing } = useForm({
+    const { setData } = useForm({
         mappings: [] as OrgChartMapping[],
     });
 
@@ -228,18 +230,59 @@ export default function OrgChartMappingContent({ project, jobDefinitions, mappin
         setOrgUnits(newUnits);
     };
 
+    const buildOrgChartMappingsPayload = () =>
+        orgUnits
+            .filter(u => u.org_unit_name?.trim())
+            .map(u => ({
+                org_unit_name: u.org_unit_name,
+                job_keyword_ids: u.job_keyword_ids || [],
+                org_head_name: (u.org_head as { name?: string })?.name ?? undefined,
+                org_head_rank: (u.org_head as { rank?: string })?.rank ?? undefined,
+                org_head_title: (u.org_head as { title?: string })?.title ?? undefined,
+                org_head_email: (u.org_head as { email?: string })?.email ?? undefined,
+                job_specialists: (u.job_specialists || []).map(s => ({
+                    job_keyword_id: s.job_keyword_id,
+                    name: s.name,
+                    rank: s.rank,
+                    title: s.title,
+                    email: s.email,
+                })),
+            }));
+
     const handleSubmit = () => {
-        post(`/hr-manager/job-analysis/${project.id}/org-chart-mapping`, {
+        const org_chart_mappings = buildOrgChartMappingsPayload();
+        const unitsForStorage = org_chart_mappings.map((u, i) => ({
+            id: String(i),
+            org_unit_name: u.org_unit_name,
+            job_keyword_ids: u.job_keyword_ids,
+            org_head_name: u.org_head_name,
+            org_head_rank: u.org_head_rank,
+            org_head_title: u.org_head_title,
+            org_head_email: u.org_head_email,
+            job_specialists: u.job_specialists,
+        }));
+        mergeJobAnalysisState(project.id, { orgMappings: unitsForStorage });
+
+        setSubmitting(true);
+        router.post(`/hr-manager/job-analysis/${project.id}/org-chart-mapping`, { org_chart_mappings }, {
             onSuccess: () => {
                 if (externalOnSubmit) {
                     externalOnSubmit();
-                } else {
-                    router.post(`/hr-manager/job-analysis/${project.id}/submit`, {}, {
-                        onSuccess: () => {
-                            router.visit('/hr-manager/dashboard');
-                        },
-                    });
+                    setSubmitting(false);
+                    return;
                 }
+                const payload = buildSubmitPayload(project.id, orgUnits);
+                router.post(`/hr-manager/job-analysis/${project.id}/submit`, payload, {
+                    onSuccess: () => router.visit('/hr-manager/dashboard'),
+                    onError: () => {
+                        setSubmitting(false);
+                        toast({ title: 'Submission failed', variant: 'destructive' });
+                    },
+                });
+            },
+            onError: () => {
+                setSubmitting(false);
+                toast({ title: 'Save failed', variant: 'destructive' });
             },
         });
     };
@@ -596,11 +639,11 @@ export default function OrgChartMappingContent({ project, jobDefinitions, mappin
                             </div>
                             <Button 
                                 onClick={handleSubmit} 
-                                disabled={processing} 
+                                disabled={submitting} 
                                 size="lg"
                                 className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 min-w-[180px]"
                             >
-                                {processing ? (
+                                {submitting ? (
                                     <>
                                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                                         Submitting...

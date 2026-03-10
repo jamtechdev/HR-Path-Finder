@@ -234,7 +234,7 @@ export default function DiagnosisTabs({
                 if (!enabled) {
                     return (
                         <button
-                            key={tab.id}
+                            key={tab.id ?? `tab-${index}-disabled`}
                             disabled
                             className="flex items-center gap-1.5 py-2 px-3.5 pb-2.5 border-b-2 border-transparent text-[12px] font-medium whitespace-nowrap text-[var(--hr-gray-300)] cursor-not-allowed shrink-0"
                         >
@@ -246,7 +246,7 @@ export default function DiagnosisTabs({
 
                 return (
                     <Link
-                        key={tab.id}
+                        key={tab.id ?? `tab-${index}`}
                         ref={isActive ? activeTabRef : null}
                         href={tabRoute}
                         onClick={(e) => handleTabClick(e, tab.id, tabRoute, index)}

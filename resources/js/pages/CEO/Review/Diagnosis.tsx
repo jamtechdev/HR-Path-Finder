@@ -18,6 +18,8 @@ import HrIssuesTab from '@/components/CEO/Review/HrIssuesTab';
 import ChangeHistoryTab from '@/components/CEO/Review/ChangeHistoryTab';
 import DiagnosisActions from '@/components/CEO/Review/DiagnosisActions';
 import SuccessModal from '@/components/Modals/SuccessModal';
+import { Toaster } from '@/components/ui/toaster';
+import { toast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
@@ -110,7 +112,6 @@ export default function CeoReviewDiagnosis({
     hrIssues = [],
 }: Props) {
     const [activeTab, setActiveTab] = useState('summary');
-    const [saveSuccess, setSaveSuccess] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     
     const { data, setData, post, processing, errors } = useForm({
@@ -197,10 +198,9 @@ export default function CeoReviewDiagnosis({
         post(`/ceo/review/diagnosis/${project.id}/update`, {
             preserveScroll: true,
             onSuccess: () => {
-                setSaveSuccess(true);
-                setTimeout(() => setSaveSuccess(false), 3000);
-                router.reload({ 
-                    only: ['diagnosis', 'company', 'reviewLogs']
+                toast({ title: 'Saved', description: 'Your changes have been saved successfully.' });
+                router.reload({
+                    only: ['diagnosis', 'company', 'reviewLogs'],
                 });
             },
         });
@@ -236,6 +236,15 @@ export default function CeoReviewDiagnosis({
                         <DiagnosisHeader 
                             status={diagnosis?.status}
                         />
+
+                        {diagnosis && diagnosis.status !== 'submitted' && (
+                            <Alert className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
+                                <AlertCircle className="h-4 w-4 text-amber-600" />
+                                <AlertDescription>
+                                    Diagnosis must be submitted by HR before you can save changes or confirm. Ask your HR Manager to complete and submit the Diagnosis step, then return here to review and save.
+                                </AlertDescription>
+                            </Alert>
+                        )}
 
                         {Object.keys(errors).length > 0 && (
                             <Alert variant="destructive" className="mb-6">
@@ -342,7 +351,6 @@ export default function CeoReviewDiagnosis({
                             onConfirm={handleConfirm}
                             processing={processing}
                             diagnosisStatus={diagnosis?.status}
-                            saveSuccess={saveSuccess}
                         />
                     </div>
                 </main>
@@ -356,6 +364,7 @@ export default function CeoReviewDiagnosis({
                 nextStepLabel="Proceed to Survey"
                 onNextStep={handleNextStep}
             />
+        <Toaster />
         </SidebarProvider>
     );
 }

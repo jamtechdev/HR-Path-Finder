@@ -197,7 +197,10 @@
       "active": "Active",
       "steps_remaining": "Steps Remaining",
       "keep_going": "계속 진행하세요!",
-      "completed_count": "{{done}} / {{total}} completed"
+      "completed_count": "{{done}} / {{total}} completed",
+      "submitted_wait_ceo": "진단 제출됨 — CEO 검토 대기 중",
+      "submitted_wait_ceo_hint": "CEO가 검토하는 동안 Step 2(직무 분석)를 진행할 수 있습니다.",
+      "submitted_short": "제출됨"
     }
   },
   "sidebar": {

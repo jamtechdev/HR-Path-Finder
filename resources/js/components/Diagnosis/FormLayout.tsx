@@ -1,12 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 import DiagnosisHeader from '@/components/Diagnosis/DiagnosisHeader';
 import DiagnosisTabs from '@/components/Diagnosis/DiagnosisTabs';
 import { diagnosisTabs } from '@/config/diagnosisTabs';
+import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
 import { Button } from '@/components/ui/button';
 import { toast, dismissAll } from '@/hooks/use-toast';
+import { tr } from '@/config/diagnosisTranslations';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+
+const AUTO_SAVE_DELAY_MS = 1800;
+
+function hasFiles(data: any): boolean {
+    if (!data) return false;
+    if (data instanceof File) return true;
+    if (Array.isArray(data)) return data.some((item: any) => hasFiles(item));
+    if (typeof data === 'object') return Object.values(data).some((value: any) => hasFiles(value));
+    return false;
+}
+
+function hasMeaningfulFormData(formData: any): boolean {
+    if (!formData || typeof formData !== 'object' || Object.keys(formData).length === 0) return false;
+    return Object.values(formData).some((val: any) => {
+        if (val instanceof File) return true;
+        if (Array.isArray(val) && val.length > 0) return true;
+        if (typeof val === 'object' && val !== null && Object.keys(val).length > 0) return true;
+        if (typeof val === 'string' && val.trim() !== '') return true;
+        if (typeof val === 'number' && val >= 0) return true;
+        return false;
+    });
+}
+
+function getFormDataSnapshot(formData: any): string {
+    if (!formData || typeof formData !== 'object') return '';
+    try {
+        return JSON.stringify(formData, (_k, v) => (v instanceof File ? '[File]' : v));
+    } catch {
+        return '';
+    }
+}
 
 interface FormLayoutProps {
     title: string;
@@ -55,13 +88,15 @@ const validateStepRequiredFields = (tabId: string, diagnosis: any): { isValid: b
             }
             break;
         
-        case 'organizational-charts':
-            if (!diagnosis.organizational_charts || 
-                (Array.isArray(diagnosis.organizational_charts) && diagnosis.organizational_charts.length === 0) ||
-                (typeof diagnosis.organizational_charts === 'object' && Object.keys(diagnosis.organizational_charts).length === 0)) {
-                return { isValid: false, error: 'At least one organizational chart is required. Please upload charts for the required years.' };
+        case 'organizational-charts': {
+            const charts = diagnosis.organizational_charts;
+            const chartKeys = typeof charts === 'object' && charts !== null && !Array.isArray(charts) ? Object.keys(charts) : [];
+            const hasAllYears = DIAGNOSIS_ORG_CHART_REQUIRED_YEARS.every((year) => chartKeys.includes(year));
+            if (!hasAllYears) {
+                return { isValid: false, error: 'Upload organizational charts for all required years (2023.12, 2024.12, 2025.12).' };
             }
             break;
+        }
         
         case 'organizational-structure':
             const structure = diagnosis.org_structure_types || diagnosis.organizational_structure;
@@ -80,10 +115,7 @@ const validateStepRequiredFields = (tabId: string, diagnosis: any): { isValid: b
             break;
 
         case 'hr-issues':
-            if ((!diagnosis.hr_issues || !Array.isArray(diagnosis.hr_issues) || diagnosis.hr_issues.length === 0) &&
-                (!diagnosis.custom_hr_issues || String(diagnosis.custom_hr_issues).trim() === '')) {
-                return { isValid: false, error: 'At least one HR issue or custom description is required.' };
-            }
+            // Optional step: user can skip if none apply
             break;
 
         case 'executives':
@@ -99,7 +131,8 @@ const validateStepRequiredFields = (tabId: string, diagnosis: any): { isValid: b
             break;
 
         case 'job-grades':
-            if (diagnosis.job_grade_names != null && Array.isArray(diagnosis.job_grade_names) && diagnosis.job_grade_names.length === 0) {
+            const grades = diagnosis.job_grade_names;
+            if (grades == null || !Array.isArray(grades) || grades.length === 0) {
                 return { isValid: false, error: 'Add at least one job grade or skip this step.' };
             }
             break;
@@ -124,7 +157,7 @@ export default function FormLayout({
     nextRoute,
     showBack = true,
     showNext = true,
-    nextLabel = 'Next',
+    nextLabel,
     processing = false,
     validateBeforeNext,
     formData,
@@ -132,6 +165,48 @@ export default function FormLayout({
 }: FormLayoutProps) {
     const [validationError, setValidationError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastAutoSaveSnapshotRef = useRef<string>('');
+    const initialMountRef = useRef(true);
+
+    const isReadOnly = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
+
+    // Debounced auto-save: persist formData to DB so leaving the page does not reset answers
+    useEffect(() => {
+        if (!saveRoute || !projectId || !formData || !hasMeaningfulFormData(formData) || isReadOnly) {
+            return;
+        }
+        const snapshot = getFormDataSnapshot(formData);
+        if (initialMountRef.current) {
+            initialMountRef.current = false;
+            lastAutoSaveSnapshotRef.current = snapshot;
+            return;
+        }
+        if (snapshot === lastAutoSaveSnapshotRef.current) {
+            return;
+        }
+        lastAutoSaveSnapshotRef.current = snapshot;
+        if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
+        autoSaveTimeoutRef.current = setTimeout(() => {
+            autoSaveTimeoutRef.current = null;
+            router.post(saveRoute, formData, {
+                preserveScroll: true,
+                forceFormData: hasFiles(formData),
+                onSuccess: () => {
+                    lastAutoSaveSnapshotRef.current = getFormDataSnapshot(formData);
+                },
+                onError: () => {
+                    toast({ title: 'Auto-save failed', description: 'Your changes may not be saved. Try clicking Next to save.', variant: 'destructive' });
+                },
+            });
+        }, AUTO_SAVE_DELAY_MS);
+        return () => {
+            if (autoSaveTimeoutRef.current) {
+                clearTimeout(autoSaveTimeoutRef.current);
+                autoSaveTimeoutRef.current = null;
+            }
+        };
+    }, [saveRoute, projectId, formData, isReadOnly]);
 
     const getBackUrl = () => {
         if (backRoute) {
@@ -149,7 +224,12 @@ export default function FormLayout({
 
     const handleNext = async (e: React.MouseEvent) => {
         e.preventDefault();
+        dismissAll(); // Ensure only one toast shows
         setValidationError(null);
+        if (autoSaveTimeoutRef.current) {
+            clearTimeout(autoSaveTimeoutRef.current);
+            autoSaveTimeoutRef.current = null;
+        }
 
         // Check if step is already completed - skip validation if completed
         const stepCompleted = stepStatuses[activeTab] === 'submitted' || 
@@ -177,7 +257,7 @@ export default function FormLayout({
                 if (result !== true) {
                     const errMsg = typeof result === 'string' ? result : 'Please fill in all required fields.';
                     setValidationError(errMsg);
-                    toast({ title: 'Validation error', description: errMsg, variant: 'destructive' });
+                    toast({ title: tr('validationError'), description: errMsg, variant: 'destructive' });
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     return;
                 }
@@ -188,7 +268,7 @@ export default function FormLayout({
                 if (!validation.isValid) {
                     const errMsg = validation.error || 'Please fill in all required fields.';
                     setValidationError(errMsg);
-                    toast({ title: 'Validation error', description: errMsg, variant: 'destructive' });
+                    toast({ title: tr('validationError'), description: errMsg, variant: 'destructive' });
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     return;
                 }
@@ -198,29 +278,18 @@ export default function FormLayout({
         // Check if diagnosis is submitted
         const isSubmitted = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
         
-        // If submitted and no new data to save, just navigate
+        // If submitted and no new data to save, show one toast then navigate
         if (isSubmitted && !hasFormData) {
-            // Just navigate without saving if no changes
-            if (onNext) {
-                onNext();
-            } else if (nextRoute) {
-                router.visit(getNextUrl()!);
-            }
+            toast({ title: tr('saved'), description: tr('proceeding'), variant: 'success' });
+            setTimeout(() => {
+                if (onNext) {
+                    onNext();
+                } else if (nextRoute) {
+                    router.visit(getNextUrl()!, { onSuccess: () => window.scrollTo({ top: 0, behavior: 'smooth' }) });
+                }
+            }, 200);
             return;
         }
-
-        // Check if formData contains files
-        const hasFiles = (data: any): boolean => {
-            if (!data) return false;
-            if (data instanceof File) return true;
-            if (Array.isArray(data)) {
-                return data.some(item => hasFiles(item));
-            }
-            if (typeof data === 'object') {
-                return Object.values(data).some(value => hasFiles(value));
-            }
-            return false;
-        };
 
         // Save form data before navigating if saveRoute and formData are provided
         if (saveRoute && formData && projectId) {
@@ -231,15 +300,13 @@ export default function FormLayout({
                 onSuccess: () => {
                     setIsSaving(false);
                     dismissAll();
-                    toast({ title: 'Saved', description: 'Your changes have been saved successfully.', variant: 'success' });
+                    toast({ title: tr('saved'), description: tr('savedDesc'), variant: 'success' });
                     setTimeout(() => {
                         if (onNext) {
                             onNext();
                         } else if (nextRoute) {
                             router.visit(getNextUrl()!, {
-                                onSuccess: () => {
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }
+                                onSuccess: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
                             });
                         }
                     }, 300);
@@ -250,23 +317,23 @@ export default function FormLayout({
                         ? (errors.message ?? Object.values(errors)[0])
                         : 'Failed to save. Please try again.';
                     const desc = Array.isArray(msg) ? msg[0] : String(msg ?? '');
-                    toast({ title: 'Save failed', description: desc || 'Failed to save. Please try again.', variant: 'destructive' });
+                    toast({ title: tr('saveFailed'), description: desc || 'Failed to save. Please try again.', variant: 'destructive' });
                 },
             });
             return;
         }
 
-        // If validation passes and no save needed, proceed
-        if (onNext) {
-            onNext();
-        } else if (nextRoute) {
-            router.visit(getNextUrl()!, {
-                onSuccess: () => {
-                    // Scroll to top of page after navigation
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-            });
-        }
+        // If validation passes and no save needed, show one toast then proceed
+        toast({ title: tr('saved'), description: tr('proceeding'), variant: 'success' });
+        setTimeout(() => {
+            if (onNext) {
+                onNext();
+            } else if (nextRoute) {
+                router.visit(getNextUrl()!, {
+                    onSuccess: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
+                });
+            }
+        }, 200);
     };
 
     // Get status for header - same logic as Overview
@@ -296,6 +363,39 @@ export default function FormLayout({
         return '/hr-manager/diagnosis/overview';
     };
 
+    const handleBack = (e: React.MouseEvent) => {
+        const backUrl = getBackUrl();
+        const hasDirtyData =
+            saveRoute &&
+            projectId &&
+            formData &&
+            hasMeaningfulFormData(formData) &&
+            !isReadOnly &&
+            getFormDataSnapshot(formData) !== lastAutoSaveSnapshotRef.current;
+        if (hasDirtyData) {
+            e.preventDefault();
+            if (autoSaveTimeoutRef.current) {
+                clearTimeout(autoSaveTimeoutRef.current);
+                autoSaveTimeoutRef.current = null;
+            }
+            setIsSaving(true);
+            router.post(saveRoute, formData, {
+                preserveScroll: false,
+                forceFormData: hasFiles(formData),
+                onSuccess: () => {
+                    setIsSaving(false);
+                    lastAutoSaveSnapshotRef.current = getFormDataSnapshot(formData);
+                    router.visit(backUrl);
+                },
+                onError: () => {
+                    setIsSaving(false);
+                    toast({ title: 'Save failed', description: 'Your changes may not be saved. Try again or click Next to save.', variant: 'destructive' });
+                },
+            });
+        }
+        // If !hasDirtyData, allow default (Link navigation)
+    };
+
     // Calculate progress - same as Overview
     const displayTabs = diagnosisTabs.filter(tab => tab.id !== 'overview');
     const completedCount = displayTabs.filter(tab => {
@@ -304,6 +404,20 @@ export default function FormLayout({
     }).length;
     const currentStepIndex = displayTabs.findIndex(tab => tab.id === activeTab);
     const stepCounter = currentStepIndex >= 0 ? `${currentStepIndex + 1} of ${displayTabs.length}` : '';
+
+    const canProceed = useMemo(() => {
+        const stepCompleted = stepStatuses[activeTab] === 'submitted' ||
+            stepStatuses[activeTab] === 'approved' ||
+            stepStatuses[activeTab] === 'locked' ||
+            stepStatuses[activeTab] === 'completed';
+        if (stepCompleted) return true;
+        if (validateBeforeNext) {
+            const result = validateBeforeNext();
+            return result === true;
+        }
+        const dataToValidate = formData && typeof formData === 'object' && Object.keys(formData).length > 0 ? formData : diagnosis;
+        return validateStepRequiredFields(activeTab, dataToValidate).isValid;
+    }, [activeTab, formData, diagnosis, stepStatuses, validateBeforeNext]);
 
     return (
         <AppLayout>
@@ -381,22 +495,28 @@ export default function FormLayout({
                                 {showBack ? (
                                     <Link
                                         href={getBackUrl()}
+                                        onClick={handleBack}
                                         className="flex items-center gap-[7px] py-2 px-[18px] border border-[var(--hr-gray-200)] rounded-lg bg-white text-[13px] font-medium text-[var(--hr-gray-600)] hover:border-[var(--hr-gray-300)] hover:bg-[var(--hr-gray-50)] transition-colors"
                                     >
-                                        ← Back
+                                        ← {tr('back')}
                                     </Link>
                                 ) : <span />}
                                 <span className="text-[11.5px] text-[var(--hr-gray-400)]">{stepCounter}</span>
                                 {showNext ? (
-                                    <button
-                                        type="button"
-                                        onClick={handleNext}
-                                        disabled={processing || isSaving}
-                                        className="flex items-center gap-[7px] py-2 px-[22px] rounded-lg bg-[var(--hr-navy)] text-[13px] font-bold text-white hover:bg-[var(--hr-navy-mid)] hover:-translate-y-px transition-all disabled:opacity-50"
-                                    >
-                                        {isSaving ? 'Saving...' : nextLabel}
-                                        →
-                                    </button>
+                                    <div className="relative flex flex-col items-end">
+                                        <button
+                                            type="button"
+                                            onClick={handleNext}
+                                            disabled={processing || isSaving || !canProceed}
+                                            className="flex items-center gap-[7px] py-2 px-[22px] rounded-lg bg-[var(--hr-navy)] text-[13px] font-bold text-white hover:bg-[var(--hr-navy-mid)] hover:-translate-y-px transition-all disabled:opacity-50"
+                                        >
+                                            {isSaving ? tr('saving') : (nextLabel ?? tr('next'))}
+                                            →
+                                        </button>
+                                        {!canProceed && !processing && !isSaving && (
+                                            <p className="mt-1.5 text-[11px] text-[var(--hr-gray-400)] whitespace-nowrap">{tr('completeRequired')}</p>
+                                        )}
+                                    </div>
                                 ) : (
                                     <span />
                                 )}

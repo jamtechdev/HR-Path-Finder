@@ -9,10 +9,12 @@ use App\Models\User;
 use App\Notifications\InvitationRejectedNotification;
 use App\Services\CompanyWorkspaceService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class CompanyInvitationController extends Controller
 {
@@ -137,34 +139,20 @@ class CompanyInvitationController extends Controller
             return redirect()->route('login')->with('error', 'This invitation has expired.');
         }
 
-        // Check if user exists
+        // Check if user exists (do NOT set temp password — CEO will set password on next screen)
         $user = User::where('email', $invitation->email)->first();
         $isNewUser = !$user;
-        
-        \Log::info('User check for acceptance', [
-            'invitation_id' => $invitation->id,
-            'email' => $invitation->email,
-            'is_new_user' => $isNewUser,
-            'user_id' => $user ? $user->id : null,
-        ]);
 
         if (!$user) {
-            // Create new user
-            $temporaryPassword = 'changeMe@123';
+            // Create new user with a random unusable password; they will set password on set-password page
             $user = User::create([
                 'name' => explode('@', $invitation->email)[0],
                 'email' => $invitation->email,
-                'password' => Hash::make($temporaryPassword),
-                'email_verified_at' => now(), // Auto-verify for invited users
+                'password' => Hash::make(Str::random(64)),
+                'email_verified_at' => now(),
             ]);
-
-            // Assign CEO role
             $user->assignRole('ceo');
-
-            // Store temporary password in invitation
-            $invitation->temporary_password = $temporaryPassword;
         } else {
-            // User exists, assign CEO role if not already assigned
             if (!$user->hasRole('ceo')) {
                 $user->assignRole('ceo');
             }
@@ -175,75 +163,95 @@ class CompanyInvitationController extends Controller
             $user->id => ['role' => $invitation->role],
         ]);
 
-        // Mark invitation as accepted (include temporary_password if it was set)
-        $updateData = ['accepted_at' => now()];
-        if (!empty($invitation->temporary_password)) {
-            $updateData['temporary_password'] = $invitation->temporary_password;
-        }
-        
-        \Log::info('Updating invitation with acceptance data', [
-            'invitation_id' => $invitation->id,
-            'update_data' => [
-                'accepted_at' => $updateData['accepted_at']->toIso8601String(),
-                'has_temp_password' => isset($updateData['temporary_password']),
-            ],
-        ]);
-        
-        $invitation->update($updateData);
-        
-        // Refresh the model to ensure all attributes are loaded from database
-        $invitation->refresh();
-        
-        \Log::info('Invitation refreshed after update', [
-            'invitation_id' => $invitation->id,
-            'accepted_at' => $invitation->accepted_at ? $invitation->accepted_at->toIso8601String() : null,
-            'accepted_at_type' => gettype($invitation->accepted_at),
-            'has_temp_password' => !empty($invitation->temporary_password),
-            'temporary_password_set' => isset($invitation->temporary_password),
-        ]);
+        // Mark invitation as accepted (no temporary_password — direct password set flow)
+        $invitation->update(['accepted_at' => now()]);
 
-        // Send welcome email AFTER acceptance - MUST complete before redirect
-        // Re-fetch invitation from database to ensure we have latest data
-        $invitation = CompanyInvitation::findOrFail($invitation->id);
-        
-        \Log::info('=== SENDING WELCOME EMAIL AFTER CEO ACCEPTANCE ===', [
-            'invitation_id' => $invitation->id,
+        // Redirect to Set Password page (no second email with credentials)
+        return redirect()->route('ceo.set-password', ['token' => $invitation->token])
+            ->with('success', 'Invitation accepted. Set your password to complete your account.');
+    }
+
+    /**
+     * Show Set Password page (after CEO accepted invitation). No auth required.
+     */
+    public function showSetPassword(string $token)
+    {
+        $invitation = CompanyInvitation::where('token', $token)->firstOrFail();
+
+        if (!$invitation->isAccepted()) {
+            return redirect()->route('invitations.accept', $token);
+        }
+
+        if ($invitation->isExpired()) {
+            return redirect()->route('login')->with('error', 'This invitation has expired.');
+        }
+
+        $user = User::where('email', $invitation->email)->first();
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Invalid invitation state.');
+        }
+
+        return Inertia::render('Invitations/CeoSetPassword', [
+            'token' => $token,
             'email' => $invitation->email,
-            'accepted_at' => $invitation->accepted_at ? $invitation->accepted_at->toIso8601String() : null,
-            'accepted_at_raw' => $invitation->getRawOriginal('accepted_at'),
-            'has_temp_password' => !empty($invitation->temporary_password),
-            'temporary_password' => !empty($invitation->temporary_password) ? '***' : null,
-            'is_new_user' => $isNewUser,
+            'companyName' => $invitation->company->name,
         ]);
-        
-        try {
-            // Send email synchronously (no queue) - wait for completion
-            $this->sendInvitationEmail($invitation, $invitation->email);
-            
-            \Log::info('=== WELCOME EMAIL SENT SUCCESSFULLY AFTER CEO ACCEPTANCE ===', [
-                'invitation_id' => $invitation->id,
-                'email' => $invitation->email,
-                'sent_at' => now()->toIso8601String(),
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('=== FAILED TO SEND WELCOME EMAIL AFTER CEO ACCEPTANCE ===', [
-                'invitation_id' => $invitation->id,
-                'email' => $invitation->email,
-                'error' => $e->getMessage(),
-                'error_file' => $e->getFile(),
-                'error_line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            // Don't fail the acceptance if email fails, but log it
+    }
+
+    /**
+     * Submit new password (post-accept). No auth required. Then log in and redirect.
+     */
+    public function submitSetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[^A-Za-z0-9]/'],
+        ], [
+            'password.regex' => 'Password must contain at least one uppercase letter, one number, and one special character.',
+        ]);
+
+        $invitation = CompanyInvitation::where('token', $request->token)->firstOrFail();
+        if (!$invitation->isAccepted()) {
+            return back()->withErrors(['token' => 'Invalid or already used invitation.']);
         }
 
-        if ($isNewUser) {
-            return redirect()->route('login')
-                ->with('success', 'Invitation accepted successfully! Please check your email for login credentials and welcome message.');
-        } else {
-            return redirect()->route('login')
-                ->with('success', 'Invitation accepted successfully! Please check your email for welcome message.');
+        $user = User::where('email', $invitation->email)->first();
+        if (!$user) {
+            return back()->withErrors(['token' => 'Invalid invitation state.']);
         }
+
+        $user->update(['password' => Hash::make($request->password)]);
+
+        // Optional: send welcome email without credentials (account ready)
+        try {
+            $this->sendWelcomeNoCredentials($invitation);
+        } catch (\Exception $e) {
+            \Log::warning('Welcome email (no credentials) failed', ['error' => $e->getMessage()]);
+        }
+
+        Auth::login($user, true);
+
+        return redirect()->route('ceo.dashboard')
+            ->with('success', 'Your account is ready. Welcome to HR Path-Finder!');
+    }
+
+    /**
+     * Send welcome email after password set (no credentials).
+     */
+    private function sendWelcomeNoCredentials(CompanyInvitation $invitation): void
+    {
+        $invitation->load(['company', 'inviter']);
+        $company = $invitation->company;
+        $loginUrl = route('login');
+        $subject = 'Your CEO account is ready — ' . $company->name;
+        $view = 'emails.ceo-invitation-welcome-no-credentials';
+        $data = [
+            'subject' => $subject,
+            'companyName' => $company->name,
+            'loginUrl' => $loginUrl,
+        ];
+        $mail = new CompanyInvitationMail($invitation, $subject, $view, $data);
+        Mail::to($invitation->email)->send($mail);
     }
 
     /**

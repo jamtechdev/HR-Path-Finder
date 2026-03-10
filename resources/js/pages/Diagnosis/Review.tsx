@@ -1,15 +1,111 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CheckCircle2,AlertCircle, Edit, Building2, Network, Users, UserCog, UserCheck, FileText, Image as ImageIcon, Download, Eye, Layers , TrendingUp , Clock, Mail, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Mail } from 'lucide-react';
+import { tr } from '@/config/diagnosisTranslations';
+import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
+
+// HR issue categories for grouping on review (id, color, issue strings)
+const HR_ISSUE_CATEGORIES = [
+    { id: 'retention', color: '#e8622a', issues: ['Does not bring in high-caliber leadership/management', 'Did not bring in right people for key roles', 'Did not bring in enough people in same dimension', 'High turnover in specific roles / teams', 'High turnover with less than 1 year of employment', 'High turnover with less than 3 or more years of employment'] },
+    { id: 'org', color: '#2a7de8', issues: ['Roles not clearly defined', 'Unclear responsibilities between two or more positions', 'Org structure does not enable business to change', 'Excessive span of control (too many direct reports)', 'Org structure shifts rapidly', 'Confusion of responsibility and accountability', 'Unclear where to go between', 'Slow handover to executives', 'Excessive handover to executives', "Org structure doesn't form at all stages", 'Grow all directions at all ages', 'Slow decision-making'] },
+    { id: 'culture', color: '#2aab6e', issues: ['Top-down culture and low freedom of leadership style', 'Lack of clear defined key success measures and competencies', 'Unclear how employees are recognised and why', "Does not manage teams' leadership capability", 'Chaos of local conflict', 'Low or no feedback culture', 'Lacking role models / conflict'] },
+    { id: 'reward', color: '#c8a84b', issues: ['Pay too evolved that it is not in a system', 'Same pay across levels that pushes talent out', 'Pay not linked to performance or contribution', 'Pay gap between line and new employees', 'Lack of reward for high performers', 'Excessive overload that is not rewarded', 'No clear ownership of reward decisions', 'Benefits not visible or valued'] },
+    { id: 'upskilling', color: '#7c3aed', issues: ['Few employees at all levels have learning and development set', 'Limited budget for learning and development', 'Lack of leadership development programs', 'Lack of steps or programs to become a manager'] },
+];
+const HR_ISSUE_CATEGORY_LABELS: Record<string, string> = {
+    retention: 'Retention',
+    org: 'Org Structure',
+    culture: 'Culture',
+    reward: 'Reward',
+    upskilling: 'Upskilling',
+    Other: 'Other',
+};
+
+const STEP_MAP: Record<string, string> = {
+    company: 'company-info',
+    workforce: 'workforce',
+    executives: 'executives',
+    leaders: 'leaders',
+    jobGrades: 'job-grades',
+    orgCharts: 'organizational-charts',
+    orgStructure: 'organizational-structure',
+    jobStructure: 'job-structure',
+    hrIssues: 'hr-issues',
+};
+
+const GRADE_COLORS = ['#1a3a6e', '#1e4d8c', '#2261aa', '#3b7fd4', '#6da8f0'];
+const GENDER_COLORS = ['#0f2a4a', '#c8a84b', '#94a3b8'];
+
+function pyramidShape(grades: { name: string; headcount: number }[]): { label: string; color: string; desc: string } {
+    if (!grades.length) return { label: tr('pyramidDiamond'), color: '#c8a84b', desc: tr('pyramidDiamondDesc') };
+    let inc = 0, dec = 0;
+    for (let i = 0; i < grades.length - 1; i++) {
+        if (grades[i].headcount < grades[i + 1].headcount) inc++;
+        else dec++;
+    }
+    if (inc >= grades.length - 1) return { label: tr('pyramidHealthy'), color: '#2aab6e', desc: tr('pyramidHealthyDesc') };
+    if (dec >= grades.length - 1) return { label: tr('pyramidInverted'), color: '#e8622a', desc: tr('pyramidInvertedDesc') };
+    return { label: tr('pyramidDiamond'), color: '#c8a84b', desc: tr('pyramidDiamondDesc') };
+}
+
+function ReviewCard({
+    title,
+    icon,
+    editUrl,
+    children,
+}: {
+    title: string;
+    icon: string;
+    editUrl: string;
+    children: React.ReactNode;
+}) {
+    const [hov, setHov] = useState(false);
+    return (
+        <div
+            onMouseEnter={() => setHov(true)}
+            onMouseLeave={() => setHov(false)}
+            className="overflow-hidden rounded-[14px] border-[1.5px] border-slate-200 bg-white transition-shadow"
+            style={{ boxShadow: hov ? '0 4px 18px rgba(15,42,74,0.1)' : '0 1px 4px rgba(15,42,74,0.05)' }}
+        >
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-4 py-3">
+                <div className="flex items-center gap-1.5">
+                    <span className="text-sm">{icon}</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#0f2a4a]">{title}</span>
+                </div>
+                <Link
+                    href={editUrl}
+                    className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500 transition-opacity hover:bg-slate-50"
+                    style={{ opacity: hov ? 1 : 0 }}
+                >
+                    <svg width="9" height="9" viewBox="0 0 11 11" fill="none" className="shrink-0">
+                        <path d="M7.5 1.5L9.5 3.5L3.5 9.5H1.5V7.5L7.5 1.5Z" stroke="#64748b" strokeWidth="1.3" strokeLinejoin="round" />
+                    </svg>
+                    {tr('editBtn')}
+                </Link>
+            </div>
+            <div className="p-4">{children}</div>
+        </div>
+    );
+}
+
+function KpiBlock({ label, value, unit, accent }: { label: string; value: number | string; unit: string; accent?: string }) {
+    return (
+        <div className="min-w-[80px] flex-1 rounded-lg bg-slate-50 p-3">
+            <div className="mb-0.5 text-[9px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
+            <div className="text-xl font-extrabold leading-none text-[#0f2a4a]" style={accent ? { color: accent } : undefined}>
+                {value}
+                <span className="ml-0.5 text-[11px] font-medium text-slate-400">{unit}</span>
+            </div>
+        </div>
+    );
+}
 
 interface Diagnosis {
     id: number;
@@ -32,6 +128,7 @@ interface Diagnosis {
     leadership_count?: number;
     leadership_percentage?: number;
     job_grade_names?: string[];
+    job_grade_headcounts?: Record<string, number>;
     promotion_years?: number[] | Record<string, number>;
     organizational_charts?: string[] | Record<string, string>;
     org_structure_types?: string[];
@@ -236,6 +333,76 @@ export default function Review({
         return {};
     };
 
+    // Derived data for dashboard
+    const jobGradesForPyramid = useMemo(() => {
+        const names = diagnosis?.job_grade_names ?? [];
+        const headcounts = (diagnosis?.job_grade_headcounts ?? {}) as Record<string, number>;
+        return names.map((name) => ({ name, headcount: Number(headcounts[name]) || 0 }));
+    }, [diagnosis?.job_grade_names, diagnosis?.job_grade_headcounts]);
+
+    const gradeTotal = useMemo(() => jobGradesForPyramid.reduce((s, g) => s + g.headcount, 0), [jobGradesForPyramid]);
+
+    const jobStructureForReview = useMemo(() => {
+        const funcs = diagnosis?.job_functions ?? [];
+        const map = new Map<string, string[]>();
+        for (const f of funcs) {
+            const s = String(f);
+            const sep = s.indexOf('|');
+            const cat = sep > 0 ? s.slice(0, sep).trim() : 'General';
+            const fn = sep > 0 ? s.slice(sep + 1).trim() : s;
+            if (!map.has(cat)) map.set(cat, []);
+            map.get(cat)!.push(fn);
+        }
+        return Array.from(map.entries()).map(([name, functions]) => ({ name, functions }));
+    }, [diagnosis?.job_functions]);
+
+    const hrIssuesByCategory = useMemo(() => {
+        const issues = diagnosis?.hr_issues ?? [];
+        const custom = (diagnosis?.custom_hr_issues ?? '').trim();
+        const result: { category: string; color: string; items: string[] }[] = [];
+        for (const cat of HR_ISSUE_CATEGORIES) {
+            const items = issues.filter((i) => cat.issues.includes(i));
+            if (items.length) result.push({ category: cat.id, color: cat.color, items });
+        }
+        if (custom) result.push({ category: 'Other', color: '#64748b', items: [custom] });
+        return result;
+    }, [diagnosis?.hr_issues, diagnosis?.custom_hr_issues]);
+
+    const currentOrgChartUrl = useMemo(() => {
+        const charts = diagnosis?.organizational_charts;
+        if (!charts || typeof charts !== 'object' || Array.isArray(charts)) return '';
+        const lastYear = DIAGNOSIS_ORG_CHART_REQUIRED_YEARS[DIAGNOSIS_ORG_CHART_REQUIRED_YEARS.length - 1];
+        const path = (charts as Record<string, string>)[lastYear];
+        if (!path || typeof path !== 'string') return '';
+        if (path.startsWith('http')) return path;
+        if (path.startsWith('/storage/')) return path;
+        return path.startsWith('storage/') ? `/${path}` : `/storage/${path}`;
+    }, [diagnosis?.organizational_charts]);
+
+    const totalHeadcount = Number(diagnosis?.present_headcount) || 0;
+    const execTotal = Number(diagnosis?.total_executives) || 0;
+    const leaderCountFromGrades = jobGradesForPyramid.slice(0, 2).reduce((s, g) => s + g.headcount, 0);
+    const leaderTotal = execTotal + leaderCountFromGrades;
+    const leaderRatio = totalHeadcount ? ((leaderTotal / totalHeadcount) * 100).toFixed(1) : '0';
+    const execRatio = totalHeadcount ? ((execTotal / totalHeadcount) * 100).toFixed(1) : '0';
+    const pyramidDiag = pyramidShape(jobGradesForPyramid);
+
+    const genderData = useMemo(() => {
+        const male = Number(diagnosis?.gender_male) || 0;
+        const female = Number(diagnosis?.gender_female) || 0;
+        const other = Number(diagnosis?.gender_other) || 0;
+        return [
+            { name: tr('male'), value: male },
+            { name: tr('female'), value: female },
+            { name: tr('other'), value: other || 1 },
+        ];
+    }, [diagnosis?.gender_male, diagnosis?.gender_female, diagnosis?.gender_other]);
+
+    const execPositionsStr = useMemo(() => {
+        const pos = getExecutivePositions();
+        return pos.map((p) => `${p.position} × ${p.count}`).join(', ');
+    }, [diagnosis?.executive_positions]);
+
     return (
         <>
             <Head title={`Review & Submit - ${company?.name || project?.company?.name || 'Company'}`} />
@@ -339,7 +506,7 @@ export default function Review({
             </Dialog>
 
             <FormLayout
-                title="Review & Submit Diagnosis"
+                title={tr('reviewDashboardTitle')}
                 project={project}
                 diagnosis={diagnosis}
                 activeTab={activeTab}
@@ -349,770 +516,344 @@ export default function Review({
                 backRoute="hr-issues"
                 showNext={false}
             >
-                <div className="space-y-6">
-                    {/* Company Information */}
-                    <Card className="overflow-hidden border-slate-200 shadow-sm py-0">
-                         <CardHeader className="bg-slate-900 py-3 text-white">
-                            <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="rounded-lg bg-white/10 p-2">
-                                <Building2 className="h-5 w-5 text-blue-400" />
+                <div className="space-y-4">
+                    {/* Page title */}
+                    <div className="mb-5">
+                        <h1 className="m-0 text-xl font-extrabold text-[#0f2a4a]">{tr('reviewDashboardTitle')}</h1>
+                        <p className="mt-1 text-xs text-slate-500">{tr('reviewDashboardDesc')}</p>
+                    </div>
+
+                    {/* Hero dark */}
+                    <div className="rounded-t-[14px] bg-gradient-to-br from-[#0f2a4a] to-[#1a4070] px-6 py-5">
+                        <div className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#c8a84b]">
+                            {company?.name || project?.company?.name || '—'} · {formatValue(diagnosis?.industry_category) || '—'}
+                        </div>
+                        <div className="flex flex-wrap items-end gap-7">
+                            <div>
+                                <div className="mb-0.5 text-[9px] text-slate-400">{tr('totalHeadcount')}</div>
+                                <div className="text-2xl font-extrabold leading-none text-white">
+                                    {totalHeadcount}
+                                    <span className="ml-0.5 text-xs font-medium text-slate-400">{tr('personsUnit')}</span>
                                 </div>
+                            </div>
+                            <div className="flex items-end gap-2">
                                 <div>
-                                <CardTitle className="text-lg font-bold tracking-tight">Company Information</CardTitle>
-                                <p className="text-xs text-slate-400">Corporate identity and registration details</p>
+                                    <div className="mb-0.5 text-[9px] text-slate-400">{tr('activeTenure')}</div>
+                                    <div className="text-2xl font-extrabold leading-none text-emerald-400">
+                                        {formatNumber(diagnosis?.average_tenure_active)}
+                                        <span className="ml-0.5 text-xs font-medium text-slate-400">{tr('yearsUnit')}</span>
+                                    </div>
+                                </div>
+                                <div className="pb-1 text-[10px] text-white/20">vs</div>
+                                <div>
+                                    <div className="mb-0.5 text-[9px] text-slate-400">{tr('exitTenure')}</div>
+                                    <div className="text-2xl font-extrabold leading-none text-slate-400">
+                                        {formatNumber(diagnosis?.average_tenure_leavers)}
+                                        <span className="ml-0.5 text-xs font-medium text-slate-400">{tr('yearsUnit')}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <Link href={getEditUrl('company-info')}>
-                                <Button 
-                                variant="secondary" 
-                                size="sm" 
-                                className="gap-2 rounded-full bg-blue-600 font-semibold text-white hover:bg-blue-500 border-none transition-all"
-                                >
-                                <Edit className="w-3.5 h-3.5" />
-                                <span>Edit</span>
-                                </Button>
-                            </Link>
+                            <div className="h-11 w-px self-center bg-white/10" />
+                            <div>
+                                <div className="mb-0.5 text-[9px] text-slate-400">{tr('leaderRatioLabel')}</div>
+                                <div className="text-2xl font-extrabold leading-none text-[#c8a84b]">{leaderRatio}%</div>
+                                <div className="mt-0.5 text-[9px] text-slate-400">
+                                    {leaderCountFromGrades}{tr('personsUnit')} / {tr('totalShort')} {totalHeadcount}{tr('personsUnit')}
+                                </div>
                             </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {/* Company Logo */}
-                            {company.logo_path && (() => {
-                                const getLogoUrl = (path: string): string => {
-                                    if (!path) return '';
-                                    if (path.startsWith('http://') || path.startsWith('https://')) {
-                                        return path;
-                                    }
-                                    if (path.startsWith('/storage/')) {
-                                        return path;
-                                    }
-                                    if (path.startsWith('storage/')) {
-                                        return `/${path}`;
-                                    }
-                                    return `/storage/${path}`;
-                                };
-                                
-                                const logoUrl = getLogoUrl(company.logo_path);
-                                
-                                return (
-                                    <div className="flex items-center gap-4 mb-4">
-                                        <span className="text-muted-foreground min-w-[120px]">Company Logo:</span>
-                                        <div className="flex items-center gap-2">
-                                            <img 
-                                                src={logoUrl} 
-                                                alt={company.name}
-                                                className="w-20 h-20 object-contain border rounded-lg p-2 bg-muted"
-                                                onError={(e) => {
-                                                    const target = e.target as HTMLImageElement;
-                                                    target.style.display = 'none';
-                                                    const parent = target.parentElement;
-                                                    if (parent) {
-                                                        const errorDiv = document.createElement('div');
-                                                        errorDiv.className = 'flex items-center gap-2 text-muted-foreground';
-                                                        errorDiv.innerHTML = '<span>Logo not found</span>';
-                                                        parent.appendChild(errorDiv);
-                                                    }
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                );
-                            })()}
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Company Name:</span>
-                                    <span className="text-sm font-medium text-slate-700  text-blue-600">{company.name}</span>
+                            <div>
+                                <div className="mb-0.5 text-[9px] text-slate-400">{tr('executiveRatioLabel')}</div>
+                                <div className="text-2xl font-extrabold leading-none text-sky-300">{execRatio}%</div>
+                                <div className="mt-0.5 text-[9px] text-slate-400">
+                                    {execTotal}{tr('personsUnit')} · {execPositionsStr || '—'}
                                 </div>
-                                {company.registration_number && (
-                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Registration Number:</span>
-                                        <span className="text-sm font-medium text-slate-700  text-blue-600">{company.registration_number}</span>
-                                    </div>
-                                )}
-                                {company.brand_name && (
-                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Brand Name:</span>
-                                        <span className="text-sm font-medium text-slate-700  text-blue-600">{company.brand_name}</span>
-                                    </div>
-                                )}
-                                {company.foundation_date && (
-                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Foundation Date:</span>
-                                        <span className="text-sm font-medium text-slate-700  text-blue-600">{company.foundation_date}</span>
-                                    </div>
-                                )}
-                                <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">HQ Location:</span>
-                                    <span className="text-sm font-medium text-slate-700  text-blue-600">{formatValue(company.hq_location)}</span>
-                                </div>
-                                {(company.is_public !== undefined || company.public_listing_status) && (
-                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Public Listing Status:</span>
-                                        <span className="text-sm font-medium text-slate-700  text-blue-600">
-                                            {company.public_listing_status 
-                                                ? company.public_listing_status.charAt(0).toUpperCase() + company.public_listing_status.slice(1)
-                                                : company.is_public ? 'Yes' : 'No'}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Hero light: gender + job structure */}
+                    <div className="flex flex-wrap items-center gap-6 rounded-b-[14px] border border-t-0 border-slate-200 bg-white px-6 py-4">
+                        <div className="flex items-center gap-3">
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-[#0f2a4a]">{tr('genderDistribution')}</div>
+                            <div className="relative h-20 w-20 shrink-0">
+                                <div
+                                    className="absolute inset-0 rounded-full border-[8px] border-transparent"
+                                    style={{
+                                        background: totalHeadcount
+                                            ? `conic-gradient(${GENDER_COLORS[0]} 0deg ${(Number(genderData[0].value) / totalHeadcount) * 360}deg, ${GENDER_COLORS[1]} ${(Number(genderData[0].value) / totalHeadcount) * 360}deg ${((Number(genderData[0].value) + Number(genderData[1].value)) / totalHeadcount) * 360}deg, ${GENDER_COLORS[2]} ${((Number(genderData[0].value) + Number(genderData[1].value)) / totalHeadcount) * 360}deg 360deg)`
+                                            : `conic-gradient(${GENDER_COLORS[0]} 0deg 120deg, ${GENDER_COLORS[1]} 120deg 240deg, ${GENDER_COLORS[2]} 240deg 360deg)`,
+                                        mask: 'radial-gradient(farthest-side, transparent calc(100% - 14px), black calc(100% - 14px))',
+                                        WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 14px), black calc(100% - 14px))',
+                                    }}
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                {genderData.map((d, i) => (
+                                    <div key={`gender-${i}-${d.name ?? ''}`} className="flex items-center gap-1.5">
+                                        <span
+                                            className="inline-block h-2 w-2 shrink-0 rounded-full"
+                                            style={{ backgroundColor: GENDER_COLORS[i] }}
+                                        />
+                                        <span className="text-[11px] font-medium text-slate-600">{d.name}</span>
+                                        <span className="text-[11px] font-bold text-[#0f2a4a]">{d.value}{tr('personsUnit')}</span>
+                                        <span className="text-[10px] text-slate-400">
+                                            ({totalHeadcount ? ((Number(d.value) / totalHeadcount) * 100).toFixed(0) : 0}%)
                                         </span>
                                     </div>
-                                )}
-                                <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Primary Industry:</span>
-                                    <span className="text-sm font-medium text-slate-700  text-blue-600">{formatValue(diagnosis?.industry_category)}</span>
-                                </div>
-                                {diagnosis?.industry_subcategory && (
-                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Industry Subcategory:</span>
-                                        <span className="text-sm font-medium text-slate-700  text-blue-600">{formatValue(diagnosis.industry_subcategory)}</span>
-                                    </div>
-                                )}
-                                {diagnosis?.industry_other && (
-                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1  dark:hover:bg-slate-700 transition-colors">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Other Industry:</span>
-                                        <span className="text-sm font-medium text-slate-700  text-blue-600">{formatValue(diagnosis.industry_other)}</span>
-                                    </div>
-                                )}
+                                ))}
                             </div>
-                        </CardContent>
-                
-                    </Card>
-
-                    {/* Workforce */}
-                    <Card className="overflow-hidden border-slate-200 shadow-sm  py-0">
-                        <CardHeader className="bg-slate-900 py-3 text-white">
-                            <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="rounded-lg bg-white/10 p-2">
-                                <Users className="h-5 w-5 text-emerald-400" />
+                        </div>
+                        <div className="h-14 w-px bg-slate-200" />
+                        <div className="flex items-center gap-5">
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-[#0f2a4a]">Job Structure</div>
+                            <div className="flex gap-4">
+                                <div className="text-center">
+                                    <div className="text-[28px] font-extrabold leading-none text-[#0f2a4a]">{jobStructureForReview.length}</div>
+                                    <div className="mt-0.5 text-[10px] text-slate-400">{tr('jobCategoriesCount')}</div>
                                 </div>
-                                <div>
-                                <CardTitle className="text-lg font-bold tracking-tight">Workforce Metrics</CardTitle>
-                                <p className="text-xs text-slate-400">Headcount, demographics, and tenure</p>
+                                <div className="h-9 w-px self-center bg-slate-200" />
+                                <div className="text-center">
+                                    <div className="text-[28px] font-extrabold leading-none text-[#c8a84b]">
+                                        {jobStructureForReview.reduce((s, c) => s + c.functions.length, 0)}
+                                    </div>
+                                    <div className="mt-0.5 text-[10px] text-slate-400">{tr('jobFunctionsCount')}</div>
                                 </div>
                             </div>
-                            <Link href={getEditUrl('workforce')}>
-                                <Button 
-                                variant="secondary" 
-                                size="sm" 
-                                className="gap-2 rounded-full bg-emerald-600 font-semibold text-white hover:bg-emerald-500 border-none transition-all"
-                                >
-                                <Edit className="w-3.5 h-3.5" />
-                                <span>Edit</span>
-                                </Button>
-                            </Link>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Current Headcount:</span>
-                                    <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis?.present_headcount)}</span>
-                                </div>
-                                {diagnosis?.expected_headcount_1y && (
-                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Expected (1 Year):</span>
-                                        <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.expected_headcount_1y)}</span>
-                                    </div>
-                                )}
-                                {diagnosis?.expected_headcount_2y && (
-                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Expected (2 Years):</span>
-                                        <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.expected_headcount_2y)}</span>
-                                    </div>
-                                )}
-                                {diagnosis?.expected_headcount_3y && (
-                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Expected (3 Years):</span>
-                                        <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.expected_headcount_3y)}</span>
-                                    </div>
-                                )}
-                                {diagnosis?.average_age && (
-                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Average Age:</span>
-                                        <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.average_age)} years</span>
-                                    </div>
-                                )}
-                                {diagnosis?.average_tenure_active && (
-                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Avg Tenure (Active):</span>
-                                        <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.average_tenure_active)} years</span>
-                                    </div>
-                                )}
-                                {diagnosis?.average_tenure_leavers && (
-                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Avg Tenure (Leavers):</span>
-                                        <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.average_tenure_leavers)} years</span>
-                                    </div>
-                                )}
-                            </div>
-                            
-                            {/* Gender Distribution */}
-                            {(diagnosis?.gender_male || diagnosis?.gender_female || diagnosis?.gender_other) && (
-                                <div className="mt-4 pt-4 border-t">
-                                    <h4 className="text-lg font-semibold text-slate-700 mb-3 dark:text-white">Gender Distribution</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        {diagnosis.gender_male && (
-                                            <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
-                                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Male:</span>
-                                                <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.gender_male)}</span>
-                                            </div>
-                                        )}
-                                        {diagnosis.gender_female && (
-                                            <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
-                                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Female:</span>
-                                                <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.gender_female)}</span>
-                                            </div>
-                                        )}
-                                        {diagnosis.gender_other && (
-                                            <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
-                                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Other:</span>
-                                                <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.gender_other)}</span>
-                                            </div>
-                                        )}
-                                        {diagnosis.gender_ratio && (
-                                            <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1 col-span-full">
-                                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Gender Ratio (Male %):</span>
-                                                <span className="text-lg font-semibold text-slate-700">{formatPercentage(diagnosis.gender_ratio)}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {/* Executives */}
-                    {diagnosis?.total_executives && (
-                        <Card className="overflow-hidden border-slate-200 shadow-sm  py-0">
-                             <CardHeader className="bg-slate-900 py-3 text-white">
-                                <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="rounded-lg bg-white/10 p-2">
-                                    <UserCog className="h-5 w-5 text-indigo-400" />
-                                    </div>
-                                    <div>
-                                    <CardTitle className="text-lg font-bold tracking-tight">Executives</CardTitle>
-                                    <p className="text-xs text-slate-400">Leadership structure and composition</p>
-                                    </div>
-                                </div>
-                                <Link href={getEditUrl('executives')}>
-                                    <Button 
-                                    variant="secondary" 
-                                    size="sm" 
-                                    className="gap-2 rounded-full bg-indigo-600 font-semibold text-white hover:bg-indigo-500 border-none transition-all"
-                                    >
-                                    <Edit className="w-3.5 h-3.5" />
-                                    <span>Edit</span>
-                                    </Button>
-                                </Link>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Total Executives:</span>
-                                        <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.total_executives)}</span>
-                                    </div>
-                                </div>
-                                
-                                {/* Executive Positions */}
-                                {getExecutivePositions().length > 0 && (
-                                    <div className="mt-4 pt-4 border-t">
-                                        <h4 className="font-medium mb-3">Executive Positions</h4>
-                                        <div className="space-y-2">
-                                            {getExecutivePositions().map((pos, index) => (
-                                                <div key={index} className="flex justify-between">
-                                                    <span className="text-muted-foreground">{pos.position}:</span>
-                                                    <span className="font-medium">{pos.count}</span>
-                                                </div>
+                            <div className="flex flex-col gap-1">
+                                {jobStructureForReview.map((cat, catIdx) => (
+                                    <div key={`jobstruct-${catIdx}-${cat.name ?? ''}`} className="flex items-center gap-1.5">
+                                        <span className="w-16 shrink-0 text-[10px] font-bold text-[#0f2a4a]">{cat.name}</span>
+                                        <div className="flex flex-wrap gap-0.5">
+                                            {cat.functions.map((fn, fnIdx) => (
+                                                <span
+                                                    key={`${cat.name ?? catIdx}-fn-${fnIdx}-${String(fn ?? '')}`}
+                                                    className="rounded-full border border-sky-200 bg-slate-50 px-1.5 py-0.5 text-[9px] font-semibold text-[#0f2a4a]"
+                                                >
+                                                    {fn}
+                                                </span>
                                             ))}
                                         </div>
                                     </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Row 1: Company + Workforce */}
+                    <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+                        <ReviewCard title={tr('companyCardTitle')} icon="🏢" editUrl={getEditUrl(STEP_MAP.company)}>
+                            <div className="grid grid-cols-2 gap-2">
+                                {[
+                                    [tr('foundedDate'), company?.foundation_date || '—'],
+                                    [tr('size'), totalHeadcount ? `${totalHeadcount} (headcount)` : '—'],
+                                    [tr('industry'), formatValue(diagnosis?.industry_category) || '—'],
+                                    [tr('listedStatus'), company?.public_listing_status ? String(company.public_listing_status) : (company?.is_public != null ? (company.is_public ? 'Yes' : 'No') : '—')],
+                                    [tr('hqLocation'), formatValue(company?.hq_location) || '—'],
+                                ].map(([k, v], idx) => (
+                                    <div key={`company-${idx}-${String(k ?? '')}`}>
+                                        <div className="mb-0.5 text-[9px] text-slate-400">{k}</div>
+                                        <div className="text-xs font-semibold text-[#0f2a4a]">{v}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </ReviewCard>
+                        <ReviewCard title={tr('workforceCardTitle')} icon="👥" editUrl={getEditUrl(STEP_MAP.workforce)}>
+                            <div className="flex gap-1.5">
+                                <KpiBlock label={tr('totalHeadcount')} value={totalHeadcount} unit={tr('personsUnit')} />
+                                {diagnosis?.average_age != null && (
+                                    <KpiBlock label={tr('avgAge')} value={formatNumber(diagnosis.average_age)} unit={tr('ageUnit')} accent="#2a7de8" />
                                 )}
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Leaders */}
-                    {diagnosis?.leadership_count && (
-                        <Card className="overflow-hidden border-slate-200 shadow-sm  py-0">
-                            <CardHeader className="bg-slate-900 py-3 text-white">
-                                <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="rounded-lg bg-white/10 p-2">
-                                    <UserCheck className="h-5 w-5 text-rose-400" />
-                                    </div>
-                                    <div>
-                                    <CardTitle className="text-lg font-bold tracking-tight">Management Layer</CardTitle>
-                                    <p className="text-xs text-slate-400">Department heads and team leads</p>
-                                    </div>
-                                </div>
-                                <Link href={getEditUrl('leaders')}>
-                                    <Button 
-                                    variant="secondary" 
-                                    size="sm" 
-                                    className="gap-2 rounded-full bg-rose-600 font-semibold text-white hover:bg-rose-500 border-none transition-all"
-                                    >
-                                    <Edit className="w-3.5 h-3.5" />
-                                    <span>Edit</span>
-                                    </Button>
-                                </Link>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Leadership Count:</span>
-                                        <span className="text-lg font-semibold text-slate-700">{formatNumber(diagnosis.leadership_count)}</span>
-                                    </div>
-                                    {diagnosis.leadership_percentage && (
-                                        <div className="bg-white dark:bg-slate-900 p-4 flex flex-col gap-1">
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Leadership Percentage:</span>
-                                            <span className="text-lg font-semibold text-slate-700">{formatPercentage(diagnosis.leadership_percentage)}</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Job Grades */}
-                    {diagnosis?.job_grade_names && Array.isArray(diagnosis.job_grade_names) && diagnosis.job_grade_names.length > 0 && (
-                        <Card className="overflow-hidden border-slate-200 shadow-sm  py-0">
-                            <CardHeader className="bg-slate-900 py-3 text-white">
-                                <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="rounded-lg bg-white/10 p-2">
-                                    <TrendingUp className="h-5 w-5 text-amber-400" />
-                                    </div>
-                                    <div>
-                                    <CardTitle className="text-lg font-bold tracking-tight">Job Grades</CardTitle>
-                                    <p className="text-xs text-slate-400">Career leveling and promotion cycles</p>
-                                    </div>
-                                </div>
-                                <Link href={getEditUrl('job-grades')}>
-                                    <Button 
-                                    variant="secondary" 
-                                    size="sm" 
-                                    className="gap-2 rounded-full bg-amber-600 font-semibold text-white hover:bg-amber-500 border-none transition-all"
-                                    >
-                                    <Edit className="w-3.5 h-3.5" />
-                                    <span>Edit</span>
-                                    </Button>
-                                </Link>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-3">
-                                    {diagnosis.job_grade_names.map((grade, index) => {
-                                        const promotionYears = diagnosis.promotion_years && typeof diagnosis.promotion_years === 'object' 
-                                            ? (diagnosis.promotion_years as Record<string, number>)[grade] 
-                                            : null;
-                                        
-                                        return (
-                                            <div key={index} className="flex items-center justify-between p-2  rounded">
-                                                <Badge variant="secondary" className="text-sm font-bold text-slate-700 bg-emerald-50">{grade}</Badge>
-                                                {promotionYears !== null && promotionYears !== undefined && (
-                                                    <div className="flex items-center gap-2 self-end sm:self-auto bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-100 shadow-sm transition-all group-hover:bg-white group-hover:border-amber-200">
-                                                        <Clock className="w-3.5 h-3.5 text-amber-500" />
-                                                        <span className="text-xs font-semibold text-slate-600">
-                                                        {promotionYears} <span className="font-normal text-slate-400 text-[10px] uppercase ml-1 text-nowrap">Avg. Years to Promote</span>
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Organizational Charts - Always show this section */}
-                    <Card className="overflow-hidden border-slate-200 shadow-sm  py-0">
-                         <CardHeader className="bg-slate-900 py-3 text-white">
-                            <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="rounded-lg bg-white/10 p-2">
-                                <ImageIcon className="h-5 w-5 text-sky-400" />
-                                </div>
-                                <div>
-                                <CardTitle className="text-lg font-bold tracking-tight">Organizational Charts</CardTitle>
-                                <p className="text-xs text-slate-400">Historical structural documentation</p>
-                                </div>
                             </div>
-                            <Link href={getEditUrl('organizational-charts')}>
-                                <Button 
-                                variant="secondary" 
-                                size="sm" 
-                                className="gap-2 rounded-full bg-sky-600 font-semibold text-white hover:bg-sky-500 border-none transition-all"
-                                >
-                                <Edit className="w-3.5 h-3.5" />
-                                <span>Update</span>
-                                </Button>
-                            </Link>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            {(() => {
-                                const REQUIRED_YEARS = ['2023.12', '2024.12', '2025.12'];
-                                let chartsMap: Record<string, string> = {};
-                                
-                                if (diagnosis?.organizational_charts) {
-                                    // Check if it's an object with year keys first (preferred format from backend)
-                                    if (typeof diagnosis.organizational_charts === 'object' && 
-                                        diagnosis.organizational_charts !== null && 
-                                        !Array.isArray(diagnosis.organizational_charts)) {
-                                        // Object format: { "2023.12": "path/to/file", ... }
-                                        Object.entries(diagnosis.organizational_charts).forEach(([year, path]) => {
-                                            if (REQUIRED_YEARS.includes(year) && !chartsMap[year]) {
-                                                // Handle different possible structures
-                                                let pathValue = '';
-                                                if (typeof path === 'string') {
-                                                    pathValue = path;
-                                                } else if (typeof path === 'object' && path !== null) {
-                                                    const pathObj = path as any;
-                                                    pathValue = pathObj.path || pathObj.file_url || '';
-                                                }
-                                                if (pathValue) {
-                                                    chartsMap[year] = String(pathValue);
-                                                }
-                                            }
-                                        });
-                                    } else if (Array.isArray(diagnosis.organizational_charts)) {
-                                        // Array format: ["path1", "path2", ...] - map to years by index
-                                        diagnosis.organizational_charts.forEach((chart, index) => {
-                                            if (index < REQUIRED_YEARS.length && !chartsMap[REQUIRED_YEARS[index]]) {
-                                                let path = '';
-                                                if (typeof chart === 'string') {
-                                                    path = chart;
-                                                } else if (typeof chart === 'object' && chart !== null) {
-                                                    const chartObj = chart as any;
-                                                    path = chartObj.path || chartObj.file_url || '';
-                                                }
-                                                if (path) {
-                                                    chartsMap[REQUIRED_YEARS[index]] = String(path);
-                                                }
-                                            }
-                                        });
-                                    }
-                                }
-                                
-                                const getImageUrl = (path: string | null | undefined): string => {
-                                    if (!path || typeof path !== 'string' || path.trim() === '') return '';
-                                    
-                                    // If it's already a full URL, return as is
-                                    if (path.startsWith('http://') || path.startsWith('https://')) {
-                                        return path;
-                                    }
-                                    
-                                    // If it starts with /storage/, return as is
-                                    if (path.startsWith('/storage/')) {
-                                        return path;
-                                    }
-                                    
-                                    // If it starts with storage/, add leading slash
-                                    if (path.startsWith('storage/')) {
-                                        return `/${path}`;
-                                    }
-                                    
-                                    // Otherwise, prepend /storage/
-                                    return `/storage/${path}`;
-                                };
-                                
-                                const isImageFile = (path: string | null | undefined): boolean => {
-                                    if (!path || typeof path !== 'string') return false;
-                                    const lowerPath = path.toLowerCase();
-                                    return lowerPath.endsWith('.jpg') || 
-                                           lowerPath.endsWith('.jpeg') || 
-                                           lowerPath.endsWith('.png') || 
-                                           lowerPath.endsWith('.gif') || 
-                                           lowerPath.endsWith('.webp');
-                                };
-                                
-                                const isPdfFile = (path: string | null | undefined): boolean => {
-                                    if (!path || typeof path !== 'string') return false;
-                                    return path.toLowerCase().endsWith('.pdf');
-                                };
-                                
-                                const isSubmitted = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
-                                
-                                return (
-                                    <div className="space-y-4">
-                                        {REQUIRED_YEARS.map((year) => {
-                                            const chartPathValue = chartsMap[year];
-                                            const chartPath = (typeof chartPathValue === 'string' && chartPathValue) ? chartPathValue : '';
-                                            const imageUrl = chartPath ? getImageUrl(chartPath) : '';
-                                            const isImage = chartPath ? isImageFile(chartPath) : false;
-                                            const isPdf = chartPath ? isPdfFile(chartPath) : false;
-                                            const hasFile = !!chartPath;
-                                            
+                        </ReviewCard>
+                    </div>
+
+                    {/* Row 2: Grade pyramid + Org chart */}
+                    <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+                        <ReviewCard title={tr('gradePyramidTitle')} icon="📊" editUrl={getEditUrl(STEP_MAP.jobGrades)}>
+                            <div className="flex flex-col gap-1">
+                                {jobGradesForPyramid.length ? (
+                                    <>
+                                        {jobGradesForPyramid.map((g, i) => {
+                                            const max = Math.max(...jobGradesForPyramid.map((x) => x.headcount), 1);
+                                            const pct = (g.headcount / max) * 100;
+                                            const ratio = gradeTotal ? ((g.headcount / gradeTotal) * 100).toFixed(1) : '0';
                                             return (
-                                                <div key={year} className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm hover:shadow-md transition">
-                                                    <div className="flex items-center flex-row-reverse gap-4">
-                                                        <span className="text-sm font-medium text-foreground min-w-[80px]">{year}:</span>
-                                                        {hasFile && isImage ? (
-                                                            <div className="w-24 h-24 rounded-lg overflow-hidden border bg-gray-100">
-                                                                <img 
-                                                                    src={imageUrl}
-                                                                    alt={`Organizational Chart ${year}`}
-                                                                    className="w-full h-full object-cover"
-                                                                    onError={(e) => {
-                                                                        const target = e.target as HTMLImageElement;
-                                                                        target.style.display = 'none';
-                                                                        const parent = target.parentElement;
-                                                                        if (parent) {
-                                                                            const errorDiv = document.createElement('span');
-                                                                            errorDiv.className = 'text-sm text-muted-foreground';
-                                                                            errorDiv.textContent = 'Image not found';
-                                                                            parent.appendChild(errorDiv);
-                                                                        }
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                        ) : hasFile && isPdf ? (
-                                                            <div className="flex items-center gap-2">
-                                                                <FileText className="w-5 h-5 text-muted-foreground" />
-                                                                <span className="text-sm text-muted-foreground">PDF File</span>
-                                                                <a 
-                                                                    href={imageUrl} 
-                                                                    target="_blank" 
-                                                                    rel="noopener noreferrer"
-                                                                    className="text-sm text-primary hover:text-primary/80 ml-2"
-                                                                >
-                                                                    View PDF
-                                                                </a>
-                                                            </div>
-                                                        ) : hasFile ? (
-                                                            <div className="flex items-center gap-2">
-                                                                <FileText className="w-5 h-5 text-muted-foreground" />
-                                                                <span className="text-sm text-muted-foreground">{chartPath.split('/').pop()}</span>
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-sm text-muted-foreground">No file uploaded</span>
-                                                        )}
-                                                    </div>
-                                                    {hasFile && (
-                                                        <a 
-                                                            href={imageUrl} 
-                                                            target="_blank" 
-                                                            rel="noopener noreferrer"
-                                                            className="text-primary hover:text-primary/80"
-                                                            title="View in new tab"
+                                                <div key={`grade-${i}-${String(g.name ?? '')}`} className="flex items-center gap-2">
+                                                    <div className="w-8 shrink-0 text-right text-[11px] font-bold text-slate-500">{g.name}</div>
+                                                    <div className="relative h-6 flex-1">
+                                                        <div
+                                                            className="absolute left-1/2 flex h-full min-w-[36px] -translate-x-1/2 items-center justify-center rounded text-[10px] font-bold text-white"
+                                                            style={{
+                                                                width: `${pct}%`,
+                                                                backgroundColor: GRADE_COLORS[i % GRADE_COLORS.length],
+                                                            }}
                                                         >
-                                                            <Eye className="w-4 h-4" />
-                                                        </a>
-                                                    )}
+                                                            {g.headcount}{tr('personsUnit')}
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-8 shrink-0 text-[9px] text-slate-400">{ratio}%</div>
                                                 </div>
                                             );
                                         })}
+                                        <div
+                                            className="mt-2 flex items-start gap-2 rounded-lg border px-3 py-2"
+                                            style={{
+                                                backgroundColor: `${pyramidDiag.color}10`,
+                                                borderColor: `${pyramidDiag.color}30`,
+                                            }}
+                                        >
+                                            <span className="shrink-0 text-xs font-extrabold" style={{ color: pyramidDiag.color }}>
+                                                {pyramidDiag.label}
+                                            </span>
+                                            <span className="text-[10px] leading-relaxed text-slate-600">{pyramidDiag.desc}</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <p className="text-xs text-slate-500">—</p>
+                                )}
+                            </div>
+                        </ReviewCard>
+                        <ReviewCard title={tr('currentOrgChartTitle')} icon="🗂️" editUrl={getEditUrl(STEP_MAP.orgCharts)}>
+                            <div className="flex min-h-[180px] flex-col items-center justify-center">
+                                {currentOrgChartUrl ? (
+                                    <img
+                                        src={currentOrgChartUrl}
+                                        alt="Org chart"
+                                        className="max-h-[220px] max-w-full rounded-lg border border-slate-200 object-contain"
+                                    />
+                                ) : (
+                                    <div className="flex min-h-[180px] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-sky-200 bg-slate-50">
+                                        <div className="text-2xl">🖼️</div>
+                                        <div className="text-xs font-semibold text-[#0f2a4a]">{tr('orgChartUploadHint')}</div>
+                                        <div className="text-center text-[10px] leading-relaxed text-slate-400">
+                                            {tr('orgChartUploadDesc')}
+                                        </div>
+                                        <Link
+                                            href={getEditUrl(STEP_MAP.orgCharts)}
+                                            className="mt-1 rounded-md bg-[#0f2a4a] px-3.5 py-1.5 text-[10px] font-semibold text-white"
+                                        >
+                                            {tr('goToPrevStep')}
+                                        </Link>
                                     </div>
-                                );
-                            })()}
-                        </CardContent>
-                    </Card>
+                                )}
+                            </div>
+                        </ReviewCard>
+                    </div>
 
-                    {/* Organizational Structure */}
-                    {diagnosis?.org_structure_types && Array.isArray(diagnosis.org_structure_types) && diagnosis.org_structure_types.length > 0 && (
-                       <Card className="overflow-hidden border-slate-200 shadow-sm  py-0">
-                        <CardHeader className="bg-slate-900 py-3 text-white">
-                            <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="rounded-lg bg-white/10 p-2">
-                                <Network className="h-5 w-5 text-emerald-400" />
+                    {/* Row 3: Org structure + HR issues */}
+                    <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+                        <ReviewCard title={tr('orgStructureCardTitle')} icon="🏗️" editUrl={getEditUrl(STEP_MAP.orgStructure)}>
+                            <div className="flex flex-col gap-2">
+                                <div className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">
+                                    {tr('selectedOrgTypes')}
                                 </div>
-                                <div>
-                                <CardTitle className="text-lg font-bold tracking-tight">Org Structure</CardTitle>
-                                <p className="text-xs text-slate-400">Framework and reporting logic</p>
-                                </div>
+                                {diagnosis?.org_structure_types && diagnosis.org_structure_types.length > 0 ? (
+                                    <div className="inline-flex items-center gap-2 self-start rounded-lg border border-sky-200 bg-slate-50 px-4 py-2.5">
+                                        <span className="text-lg">🏗️</span>
+                                        <span className="text-sm font-bold text-[#0f2a4a]">
+                                            {diagnosis.org_structure_types.map((t: string) => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')}
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <span className="text-xs text-slate-500">—</span>
+                                )}
                             </div>
-                            <Link href={getEditUrl('organizational-structure')}>
-                                <Button 
-                                variant="secondary" 
-                                size="sm" 
-                                className="gap-2 rounded-full bg-emerald-600 font-semibold text-white hover:bg-emerald-500 border-none transition-all"
-                                >
-                                <Edit className="w-3.5 h-3.5" />
-                                <span>Edit</span>
-                                </Button>
-                            </Link>
-                            </div>
-                        </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex flex-wrap gap-2 mb-4">
-                                    {diagnosis.org_structure_types.map((type, index) => (
-                                        <Badge key={index} variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-100 px-3 py-1 rounded-md text-xs font-semibold">{type}</Badge>
-                                    ))}
-                                </div>
-                                
-                                {/* Structure Explanations */}
-                                {Object.keys(getOrgStructureExplanations()).length > 0 && (
-                                    <div className="space-y-3 pt-4 border-t">
-                                        {Object.entries(getOrgStructureExplanations()).map(([type, explanation]) => (
-                                            <div key={type}>
-                                                <h4 className="font-medium mb-1">{type}</h4>
-                                                <p className="text-sm text-muted-foreground">{explanation}</p>
+                        </ReviewCard>
+                        <ReviewCard title={tr('hrIssuesCardTitle')} icon="⚠️" editUrl={getEditUrl(STEP_MAP.hrIssues)}>
+                            <div className="flex flex-col gap-2">
+                                {hrIssuesByCategory.length ? (
+                                    hrIssuesByCategory.map((cat, catIdx) => (
+                                        <div key={`hr-${catIdx}-${cat.category ?? ''}`} className="flex items-start gap-2">
+                                            <div
+                                                className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
+                                                style={{ backgroundColor: cat.color }}
+                                            />
+                                            <div>
+                                                <span className="text-[10px] font-bold uppercase tracking-wide text-[#0f2a4a]">
+                                                    {HR_ISSUE_CATEGORY_LABELS[cat.category] ?? cat.category}
+                                                </span>
+                                                <span
+                                                    className="ml-1.5 rounded-full border px-1.5 py-0 text-[9px] font-bold"
+                                                    style={{
+                                                        backgroundColor: `${cat.color}20`,
+                                                        borderColor: `${cat.color}40`,
+                                                        color: cat.color,
+                                                    }}
+                                                >
+                                                    {cat.items.length}{tr('itemsCount')}
+                                                </span>
+                                                <div className="mt-1 flex flex-wrap gap-0.5">
+                                                    {cat.items.map((item, itemIdx) => (
+                                                        <span
+                                                            key={`${cat.category}-item-${itemIdx}-${String(item ?? '')}`}
+                                                            className="rounded border px-1.5 py-0.5 text-[9px] text-slate-600"
+                                                            style={{
+                                                                backgroundColor: `${cat.color}0d`,
+                                                                borderColor: `${cat.color}25`,
+                                                            }}
+                                                        >
+                                                            {item}
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Job Structure */}
-                    {((diagnosis?.job_categories && Array.isArray(diagnosis.job_categories) && diagnosis.job_categories.length > 0) ||
-                      (diagnosis?.job_functions && Array.isArray(diagnosis.job_functions) && diagnosis.job_functions.length > 0)) && (
-                        <Card className="overflow-hidden border-slate-200 shadow-sm  py-0">
-                            <CardHeader className="bg-slate-900 py-3 text-white">
-                                <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="rounded-lg bg-white/10 p-2">
-                                    <Layers className="h-5 w-5 text-violet-400" />
-                                    </div>
-                                    <div>
-                                    <CardTitle className="text-lg font-bold tracking-tight">Job Structure</CardTitle>
-                                    <p className="text-xs text-slate-400">Taxonomy of roles and departments</p>
-                                    </div>
-                                </div>
-                                <Link href={getEditUrl('job-structure')}>
-                                    <Button 
-                                    variant="secondary" 
-                                    size="sm" 
-                                    className="gap-2 rounded-full bg-violet-600 font-semibold text-white hover:bg-violet-500 border-none transition-all"
-                                    >
-                                    <Edit className="w-3.5 h-3.5" />
-                                    <span>Edit</span>
-                                    </Button>
-                                </Link>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-4 p-4">
-                                {diagnosis.job_categories && Array.isArray(diagnosis.job_categories) && diagnosis.job_categories.length > 0 && (
-                                    <div>
-                                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 py-2">Job Categories</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {diagnosis.job_categories.map((category, index) => (
-                                                <Badge key={index} variant="secondary" className="bg-violet-50 text-violet-700 border-violet-100 px-3 py-1 rounded-md text-xs font-semibold">{category}</Badge>
-                                            ))}
                                         </div>
-                                    </div>
+                                    ))
+                                ) : (
+                                    <p className="text-xs text-slate-500">—</p>
                                 )}
-                                {diagnosis.job_functions && Array.isArray(diagnosis.job_functions) && diagnosis.job_functions.length > 0 && (
-                                    <div>
-                                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 py-2">Job Functions</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {diagnosis.job_functions.map((func, index) => (
-                                                <Badge key={index} variant="outline" className="bg-violet-50 text-violet-700 border-violet-100 px-3 py-1 rounded-md text-xs font-semibold">{func}</Badge>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                            
-                        </Card>
-                    )}
-
-                    {/* HR Issues */}
-                    {((diagnosis?.hr_issues && Array.isArray(diagnosis.hr_issues) && diagnosis.hr_issues.length > 0) ||
-                      diagnosis?.custom_hr_issues) && (
-                        <Card className="overflow-hidden border-red-100 shadow-sm transition-all hover:shadow-md">
-                            <CardHeader className="bg-slate-900 py-3 text-white">
-                                <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="rounded-lg bg-red-500/20 p-2">
-                                    <AlertCircle className="h-5 w-5 text-red-400" />
-                                    </div>
-                                    <div>
-                                    <CardTitle className="text-lg font-bold tracking-tight text-white">HR Pain Points</CardTitle>
-                                    <p className="text-xs text-slate-400">Critical areas requiring intervention</p>
-                                    </div>
-                                </div>
-                                <Link href={getEditUrl('hr-issues')}>
-                                    <Button 
-                                    variant="secondary" 
-                                    size="sm" 
-                                    className="gap-2 rounded-full bg-red-600 font-semibold text-white hover:bg-red-500 border-none transition-all"
-                                    >
-                                    <Edit className="w-3.5 h-3.5" />
-                                    <span>Edit</span>
-                                    </Button>
-                                </Link>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-4 pb-5">
-                                {diagnosis.hr_issues && Array.isArray(diagnosis.hr_issues) && diagnosis.hr_issues.length > 0 && (
-                                    <div>
-                                        <h4 className="font-medium mb-2 text-sm text-muted-foreground">Selected HR Issues</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {diagnosis.hr_issues.map((issue, index) => (
-                                                <Badge key={index} variant="destructive">{issue}</Badge>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                {diagnosis.custom_hr_issues && (
-                                    <div>
-                                        <h4 className="font-medium mb-2 text-sm text-muted-foreground">Custom HR Issues</h4>
-                                        <div className="p-4 bg-muted rounded-lg border">
-                                            <p className="text-sm whitespace-pre-wrap">{diagnosis.custom_hr_issues}</p>
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Submit Section */}
-                    <Card>
-                        <CardContent className="p-6">
-                            {submitError && (
-                                <Alert variant="destructive" className="mb-4">
-                                    <AlertCircle className="h-4 w-4" />
-                                    <AlertTitle>Submission failed</AlertTitle>
-                                    <AlertDescription>{submitError}</AlertDescription>
-                                </Alert>
-                            )}
-                            {!projectId && diagnosisStatus !== 'submitted' && (
-                                <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
-                                    <p className="text-sm text-amber-800 dark:text-amber-200">
-                                        Project not loaded. Please refresh or go back to the dashboard.
-                                    </p>
-                                </div>
-                            )}
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h3 className="font-semibold text-lg mb-2">Ready to Submit?</h3>
-                                    <p className="text-sm text-muted-foreground">
-                                        Review all sections above and submit the diagnosis for CEO review.
-                                    </p>
-                                </div>
-                                <Button
-                                    onClick={handleSubmit}
-                                    disabled={processing || diagnosisStatus === 'submitted' || !projectId}
-                                    size="lg"
-                                >
-                                    {diagnosisStatus === 'submitted' ? (
-                                        <>
-                                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                                            Submitted
-                                        </>
-                                    ) : processing ? (
-                                        'Submitting…'
-                                    ) : (
-                                        'Submit Diagnosis'
-                                    )}
-                                </Button>
                             </div>
-                            {diagnosisStatus === 'submitted' && (
-                                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                    <p className="text-sm text-blue-800">
-                                        Diagnosis has been submitted and is awaiting CEO review.
-                                    </p>
-                                </div>
+                        </ReviewCard>
+                    </div>
+
+                    {/* Submit CTA */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] bg-gradient-to-br from-[#0f2a4a] to-[#1a4070] px-6 py-5">
+                        <div>
+                            <div className="mb-0.5 text-sm font-bold text-white">{tr('submitConfirmTitle')}</div>
+                            <div className="text-[11px] text-slate-400">{tr('submitConfirmDesc')}</div>
+                        </div>
+                        <Button
+                            onClick={handleSubmit}
+                            disabled={processing || diagnosisStatus === 'submitted' || !projectId}
+                            className="whitespace-nowrap bg-[#c8a84b] font-bold text-white shadow-md hover:bg-[#b8983a]"
+                            style={{ boxShadow: '0 4px 12px rgba(200,168,75,0.4)' }}
+                        >
+                            {diagnosisStatus === 'submitted' ? (
+                                <>
+                                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                                    Submitted
+                                </>
+                            ) : processing ? (
+                                'Submitting…'
+                            ) : (
+                                tr('submitDiagnosisBtn')
                             )}
-                        </CardContent>
-                    </Card>
+                        </Button>
+                    </div>
+                    {submitError && (
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Submission failed</AlertTitle>
+                            <AlertDescription>{submitError}</AlertDescription>
+                        </Alert>
+                    )}
+                    {!projectId && diagnosisStatus !== 'submitted' && (
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                            <p className="text-sm text-amber-800">Project not loaded. Please refresh or go back to the dashboard.</p>
+                        </div>
+                    )}
+                    {diagnosisStatus === 'submitted' && (
+                        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                            <p className="text-sm text-blue-800">Diagnosis has been submitted and is awaiting CEO review.</p>
+                        </div>
+                    )}
+                    <div className="mt-4">
+                        <Link href={getEditUrl('hr-issues')}>
+                            <Button variant="outline" size="sm" className="border-slate-200 font-semibold text-slate-600">
+                                {tr('backBtn')}
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
             </FormLayout>
         </>

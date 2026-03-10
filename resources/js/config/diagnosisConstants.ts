@@ -1,0 +1,1 @@
+export const DIAGNOSIS_ORG_CHART_REQUIRED_YEARS = ['2023.12', '2024.12', '2025.12'] as const;

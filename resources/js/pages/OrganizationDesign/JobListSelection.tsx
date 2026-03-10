@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
+import { mergeJobAnalysisState } from '@/pages/JobAnalysis/utils/jobAnalysisStorage';
+import { toast } from '@/hooks/use-toast';
 import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,7 +54,7 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
     const [draggedJobId, setDraggedJobId] = useState<number | null>(null);
     const [dragOverGroupId, setDragOverGroupId] = useState<string | null>(null);
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, errors } = useForm({
         selected_job_keyword_ids: [] as number[],
         custom_jobs: [] as string[],
         grouped_jobs: [] as Array<{ name: string; job_keyword_ids: number[] }>,
@@ -163,26 +165,31 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
         setGroupedJobs(groupedJobs.filter(g => g.id !== groupId));
     };
 
+    const [navigating, setNavigating] = useState(false);
+
     const handleSubmit = () => {
-        // Validate that at least one job is selected
-        const hasSelectedJobs = selectedJobIds.length > 0;
+        const ungroupedJobIds = selectedJobIds.filter(id =>
+            !groupedJobs.some(g => g.jobIds.includes(id))
+        );
+        const hasSelectedJobs = ungroupedJobIds.length > 0;
         const hasCustomJobs = data.custom_jobs && data.custom_jobs.length > 0;
         const hasGroupedJobs = groupedJobs.length > 0;
 
         if (!hasSelectedJobs && !hasCustomJobs && !hasGroupedJobs) {
-            // Show error message
             alert('Please select at least one job, add a custom job, or create a grouped job before proceeding.');
             return;
         }
 
-        post(`/hr-manager/job-analysis/${project.id}/job-list-selection`, {
-            onSuccess: () => {
-                router.visit(`/hr-manager/job-analysis/${project.id}/job-definition`);
-            },
-            onError: (errors) => {
-                // Scroll to top to show errors
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+        setNavigating(true);
+        const jobSelections = {
+            selected_job_keyword_ids: ungroupedJobIds,
+            custom_jobs: data.custom_jobs || [],
+            grouped_jobs: groupedJobs.map(g => ({ name: g.name, job_keyword_ids: g.jobIds })),
+        };
+        mergeJobAnalysisState(project.id, { jobSelections });
+        router.post(`/hr-manager/job-analysis/${project.id}/job-list-selection`, { job_selections: jobSelections }, {
+            onSuccess: () => toast({ title: 'Saved', description: 'Job list saved.' }),
+            onError: () => setNavigating(false),
         });
     };
 
@@ -420,7 +427,7 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
                                 <ChevronLeft className="w-4 h-4 mr-2" />
                                 Back
                             </Button>
-                            <Button onClick={handleSubmit} disabled={processing || selectedJobIds.length === 0}>
+                            <Button onClick={handleSubmit} disabled={navigating}>
                                 Continue to Job Definition
                                 <ChevronRight className="w-4 h-4 ml-2" />
                             </Button>

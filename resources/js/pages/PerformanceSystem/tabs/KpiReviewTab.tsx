@@ -264,7 +264,7 @@ export default function KpiReviewTab({
             return;
         }
 
-        if (confirm(`Send review request email to all CEOs and Admins for "${orgName}"?`)) {
+        if (confirm(`Send review request email to the organization leader (${orgMapping.org_head_email}) for "${orgName}"? CEOs and admins will also be notified.`)) {
             router.post(`/hr-manager/performance-system/${project.id}/send-review-request`, {
                 organization_name: orgName,
             }, {
@@ -557,27 +557,34 @@ export default function KpiReviewTab({
                                     </CardContent>
                                 </Card>
 
-                                {kpiReviewTokens[selectedOrg] && (
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle>Review Link Status</CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="space-y-2 text-sm">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-muted-foreground">Status:</span>
-                                                    <Badge variant={kpiReviewTokens[selectedOrg].is_valid ? 'default' : 'destructive'}>
-                                                        {kpiReviewTokens[selectedOrg].is_valid ? 'Active' : 'Expired'}
-                                                    </Badge>
+                                {(() => {
+                                    const tokensForOrg = kpiReviewTokens[selectedOrg];
+                                    if (!tokensForOrg) return null;
+                                    const tokenStatus = Array.isArray(tokensForOrg) ? tokensForOrg[0] : tokensForOrg;
+                                    if (!tokenStatus) return null;
+                                    const isActive = tokenStatus.is_valid === true;
+                                    return (
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle>Review Link Status</CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="space-y-2 text-sm">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-muted-foreground">Status:</span>
+                                                        <Badge variant={isActive ? 'default' : 'destructive'}>
+                                                            {isActive ? 'Active' : 'Expired'}
+                                                        </Badge>
+                                                    </div>
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-muted-foreground">Uses:</span>
+                                                        <span>{tokenStatus.uses_count ?? 0} / {tokenStatus.max_uses ?? 3}</span>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-muted-foreground">Uses:</span>
-                                                    <span>{kpiReviewTokens[selectedOrg].uses_count} / {kpiReviewTokens[selectedOrg].max_uses}</span>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                )}
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })()}
                             </div>
                         </div>
                     </CardContent>

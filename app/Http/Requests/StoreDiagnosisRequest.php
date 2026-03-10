@@ -51,6 +51,8 @@ class StoreDiagnosisRequest extends FormRequest
             'leadership_count' => ['nullable', 'integer', 'min:0'],
             'job_grade_names' => ['nullable', 'array'],
             'promotion_years' => ['nullable', 'array'],
+            'job_grade_headcounts' => ['nullable', 'array'],
+            'job_grade_expected_roles' => ['nullable', 'array'],
             'organizational_charts' => ['nullable', 'array'],
             'org_structure_types' => ['nullable', 'array'],
             'org_structure_explanations' => ['nullable', 'array'],

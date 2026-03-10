@@ -63,9 +63,10 @@ Route::post('reset-password', [\App\Http\Controllers\PasswordResetController::cl
     ->name('password.update');
 
 // ========== Public Invitation Routes (No Auth Required) ==========
-// These routes must be public because CEO needs to accept/reject before having an account
 Route::get('invitations/accept/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'accept'])->name('invitations.accept');
 Route::get('invitations/reject/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'reject'])->name('invitations.reject');
+Route::get('invitations/set-password/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'showSetPassword'])->name('ceo.set-password');
+Route::post('invitations/set-password', [\App\Http\Controllers\CompanyInvitationController::class, 'submitSetPassword'])->name('ceo.set-password.submit');
 
 Route::middleware(['auth'])->group(function () {
     // Main dashboard with role-based redirect
@@ -186,9 +187,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('organization-design/{hrProject}', [\App\Http\Controllers\OrganizationDesignController::class, 'store'])->name('organization-design.store');
         Route::post('organization-design/{hrProject}/submit', [\App\Http\Controllers\OrganizationDesignController::class, 'submit'])->name('organization-design.submit');
         
-        // Job Analysis Module (Rebuilt - no incremental saves, only finalization)
+        // Job Analysis Module (incremental save + finalize/submit)
         Route::get('job-analysis/{hrProject}/{tab?}', [\App\Http\Controllers\JobAnalysisController::class, 'index'])->name('job-analysis.index');
         Route::post('job-analysis/{hrProject}/intro/store', [\App\Http\Controllers\JobAnalysisController::class, 'storeIntro'])->name('job-analysis.intro.store');
+        Route::post('job-analysis/{hrProject}/policy-snapshot', [\App\Http\Controllers\JobAnalysisController::class, 'storePolicySnapshot'])->name('job-analysis.policy-snapshot.store');
+        Route::post('job-analysis/{hrProject}/job-list-selection', [\App\Http\Controllers\JobAnalysisController::class, 'storeJobListSelection'])->name('job-analysis.job-list-selection.store');
+        Route::post('job-analysis/{hrProject}/job-definition/{id}', [\App\Http\Controllers\JobAnalysisController::class, 'storeJobDefinition'])->name('job-analysis.job-definition.store');
+        Route::post('job-analysis/{hrProject}/org-chart-mapping', [\App\Http\Controllers\JobAnalysisController::class, 'storeOrgChartMapping'])->name('job-analysis.org-chart-mapping.store');
         Route::post('job-analysis/{hrProject}/finalize', [\App\Http\Controllers\JobAnalysisController::class, 'finalize'])->name('job-analysis.finalize');
         Route::post('job-analysis/{hrProject}/submit', [\App\Http\Controllers\JobAnalysisController::class, 'submit'])->name('job-analysis.submit');
         

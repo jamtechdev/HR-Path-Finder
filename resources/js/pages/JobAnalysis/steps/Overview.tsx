@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
     FileText, 
     CheckCircle2, 
@@ -11,7 +12,8 @@ import {
     List,
     Briefcase,
     Network,
-    Send
+    Send,
+    Info
 } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
@@ -137,6 +139,15 @@ export default function JobAnalysisOverview({
                     Define job standards and role expectations for your organization. Complete each step to proceed.
                 </p>
             </div>
+
+            {!isSubmitted && (
+                <Alert className="border-blue-200 bg-blue-50/50">
+                    <Info className="h-4 w-4 text-blue-600" />
+                    <AlertDescription>
+                        Your progress is saved on this device only until you complete <strong>Finalization</strong> and <strong>Review & Submit</strong>. Use the same browser to continue, or complete those steps to save to the server.
+                    </AlertDescription>
+                </Alert>
+            )}
 
             {/* Progress Summary */}
             <Card className="border-2">

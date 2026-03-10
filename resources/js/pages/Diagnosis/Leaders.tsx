@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Card } from '@/components/ui/card';
+import { t, both, tr } from '@/config/diagnosisTranslations';
 
 interface Diagnosis {
     id: number;
@@ -13,15 +12,8 @@ interface Diagnosis {
 }
 
 interface Props {
-    project: {
-        id: number;
-        company: {
-            name: string;
-        };
-    };
-    company: {
-        name: string;
-    };
+    project: { id: number; company: { name: string } };
+    company: { name: string };
     diagnosis?: Diagnosis;
     activeTab: string;
     diagnosisStatus: string;
@@ -40,11 +32,10 @@ export default function Leaders({
 }: Props) {
     const [leadershipPercentage, setLeadershipPercentage] = React.useState<number | null>(null);
 
-    const { data, setData, post, processing, errors } = useForm({
-        leadership_count: diagnosis?.leadership_count || 0,
+    const { data, setData } = useForm({
+        leadership_count: diagnosis?.leadership_count ?? 0,
     });
 
-    // Calculate leadership percentage
     useEffect(() => {
         const workforce = diagnosis?.present_headcount || 0;
         if (workforce > 0 && data.leadership_count > 0) {
@@ -55,13 +46,16 @@ export default function Leaders({
         }
     }, [data.leadership_count, diagnosis?.present_headcount]);
 
-    // Removed auto-save - only save on review and submit
+    const b = both('leadersTitle');
+    const note = both('leadersNote');
+    const totalLabel = both('totalLeaders');
+    const ratioLabel = both('leadersRatio');
 
     return (
         <>
             <Head title={`Leaders - ${company?.name || project?.company?.name || 'Company'}`} />
             <FormLayout
-                title="Leaders (Excluding Executives)"
+                title={b.en}
                 project={project}
                 diagnosis={diagnosis}
                 activeTab={activeTab}
@@ -73,41 +67,54 @@ export default function Leaders({
                 formData={data}
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
             >
-                <Card className="shadow-sm border">
-                    <CardContent className="p-6">
-                        <div className="bg-muted/50 p-4 rounded-lg">
-                            <p className="text-sm text-muted-foreground">
-                                <strong>Note:</strong> Leaders are defined as employees above Team Leader level. This excludes executives.
-                            </p>
-                        </div>
+                <div className="space-y-5">
+                    <p className="text-[12.5px] text-muted-foreground leading-relaxed">
+                        {note.en}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground/80">{note.ko}</p>
 
-                        {/* Total Leaders */}
-                        <div className="flex flex-col gap-3">
-                            <Label htmlFor="leadership_count" className="text-sm font-medium text-foreground">Total Leaders (Above Team Leader)</Label>
-                            <Input
-                                id="leadership_count"
-                                type="number"
-                                min="0"
-                                value={data.leadership_count || ''}
-                                onChange={(e) => setData('leadership_count', parseInt(e.target.value) || 0)}
-                                placeholder="0"
-                            />
-                        </div>
+                    <div className="flex items-start gap-2.5 rounded-lg border border-[rgba(26,39,68,0.1)] border-l-[3px] border-l-[#1a2744] bg-[rgba(26,39,68,0.04)] p-3">
+                        <span className="text-sm flex-shrink-0 mt-0.5" aria-hidden>ℹ</span>
+                        <p className="text-xs text-[#5a6478] leading-relaxed">
+                            <strong className="text-[#1a2744]">Note:</strong> {note.en}
+                        </p>
+                    </div>
 
-                        {/* Leaders Ratio (Auto-calculated) */}
-                        {leadershipPercentage !== null && (
-                            <div className="flex flex-col gap-3 mt-6">
-                                <Label className="text-sm font-medium text-foreground">Leaders Ratio (Auto-calculated)</Label>
-                                <div className="p-3 bg-muted rounded-md">
-                                    <p className="text-lg font-semibold">{leadershipPercentage}%</p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {data.leadership_count} leaders / {diagnosis?.present_headcount || 0} workforce
-                                    </p>
-                                </div>
+                    <Card className="border rounded-[14px] overflow-hidden border-border bg-white">
+                        <div className="p-6 space-y-6">
+                            <div className="space-y-2">
+                                <label htmlFor="leadership_count" className="block text-[13px] font-semibold text-[#2d3340]">
+                                    {totalLabel.en}
+                                </label>
+                                <p className="text-[11px] text-muted-foreground">{totalLabel.ko}</p>
+                                <input
+                                    id="leadership_count"
+                                    type="number"
+                                    min={0}
+                                    value={data.leadership_count || ''}
+                                    onChange={(e) => setData('leadership_count', parseInt(e.target.value, 10) || 0)}
+                                    placeholder="0"
+                                    className="w-full max-w-[140px] h-11 px-3 border-[1.5px] border-border rounded-lg text-[13px] font-semibold text-[#1a2744] outline-none focus:border-[#4ecdc4] transition-colors"
+                                />
                             </div>
-                        )}
-                    </CardContent>
-                </Card>
+
+                            {leadershipPercentage !== null && (
+                                <div className="space-y-2 pt-2 border-t border-border">
+                                    <span className="block text-[13px] font-semibold text-[#2d3340]">
+                                        {ratioLabel.en}
+                                    </span>
+                                    <p className="text-[11px] text-muted-foreground">{ratioLabel.ko}</p>
+                                    <div className="p-4 rounded-lg bg-[#f8f9fb] border border-border">
+                                        <p className="text-lg font-bold text-[#1a2744]">{leadershipPercentage}%</p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            {data.leadership_count} {tr('leadersCountLabel')} / {diagnosis?.present_headcount || 0} {tr('workforceCountLabel')}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </Card>
+                </div>
             </FormLayout>
         </>
     );

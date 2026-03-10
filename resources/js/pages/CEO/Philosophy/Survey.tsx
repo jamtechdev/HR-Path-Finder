@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -104,6 +104,36 @@ export default function CeoPhilosophySurvey({
         concerns: philosophy?.concerns || '',
     });
     const stepRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
+    // Auto-save CEO survey responses so leaving the page does not lose answers.
+    const autoSaveTimeout = useRef<number | null>(null);
+    const lastSnapshot = useRef<string>('');
+
+    useEffect(() => {
+        const snapshot = JSON.stringify(data);
+        if (snapshot === lastSnapshot.current) return;
+        lastSnapshot.current = snapshot;
+
+        if (autoSaveTimeout.current !== null) {
+            window.clearTimeout(autoSaveTimeout.current);
+        }
+
+        autoSaveTimeout.current = window.setTimeout(() => {
+            post(`/ceo/philosophy/survey/${project.id}`, {
+                preserveScroll: true,
+                preserveState: true,
+                onError: () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+            });
+        }, 1500);
+
+        return () => {
+            if (autoSaveTimeout.current !== null) {
+                window.clearTimeout(autoSaveTimeout.current);
+            }
+        };
+    }, [data, post, project.id]);
 
     const progress = ((currentStep + 1) / STEPS.length) * 100;
 
