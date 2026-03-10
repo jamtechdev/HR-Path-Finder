@@ -23,18 +23,18 @@ interface Diagnosis {
 interface Props {
     project: {
         id: number;
-        company: {
-            name: string;
-        };
+        company: { name: string };
     };
-    company: {
-        name: string;
-    };
+    company: { name: string };
     diagnosis?: Diagnosis;
     activeTab: string;
     diagnosisStatus: string;
     stepStatuses: Record<string, string>;
     projectId?: number;
+    embedMode?: boolean;
+    readOnly?: boolean;
+    embedData?: Record<string, unknown>;
+    embedSetData?: (key: string, value: unknown) => void;
 }
 
 export default function Workforce({
@@ -45,11 +45,15 @@ export default function Workforce({
     diagnosisStatus,
     stepStatuses,
     projectId,
+    embedMode = false,
+    readOnly = false,
+    embedData,
+    embedSetData,
 }: Props) {
     const [malePercentage, setMalePercentage] = useState<number | null>(null);
     const [femalePercentage, setFemalePercentage] = useState<number | null>(null);
 
-    const { data, setData, post, processing, errors } = useForm({
+    const internalForm = useForm({
         present_headcount: diagnosis?.present_headcount || 0,
         expected_headcount_1y: diagnosis?.expected_headcount_1y || 0,
         expected_headcount_2y: diagnosis?.expected_headcount_2y || 0,
@@ -61,6 +65,10 @@ export default function Workforce({
         gender_female: diagnosis?.gender_female || 0,
         gender_other: diagnosis?.gender_other || 0,
     });
+    const useEmbed = embedMode && embedData != null && embedSetData;
+    const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
+    const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
+    const errors = internalForm.errors;
 
     // Calculate gender percentages
     useEffect(() => {
@@ -82,22 +90,7 @@ export default function Workforce({
 
     // Removed auto-save - only save on review and submit
 
-    return (
-        <>
-            <Head title={`Workforce Overview - ${company?.name || project?.company?.name || 'Company'}`} />
-            <FormLayout
-                title="Workforce Overview"
-                project={project}
-                diagnosis={diagnosis}
-                activeTab={activeTab}
-                diagnosisStatus={diagnosisStatus}
-                stepStatuses={stepStatuses}
-                projectId={projectId}
-                backRoute="company-info"
-                nextRoute="executives"
-                formData={data}
-                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
-            >
+    const cardContent = (
                 <Card className="shadow-sm border">
                     <CardContent className="p-6">
                         {/* Current Workforce Size */}
@@ -114,6 +107,7 @@ export default function Workforce({
                                 placeholder="Enter number of employees"
                                 className={errors.present_headcount ? 'border-destructive' : ''}
                                 required
+                                disabled={readOnly}
                             />
                             {errors.present_headcount && (
                                 <p className="text-sm text-destructive">{errors.present_headcount}</p>
@@ -136,6 +130,7 @@ export default function Workforce({
                                         onChange={(e) => setData('expected_headcount_1y', parseInt(e.target.value) || 0)}
                                         placeholder="0"
                                         required
+                                        disabled={readOnly}
                                     />
                                 </div>
                                 <div className="flex flex-col gap-3">
@@ -148,6 +143,7 @@ export default function Workforce({
                                         onChange={(e) => setData('expected_headcount_2y', parseInt(e.target.value) || 0)}
                                         placeholder="0"
                                         required
+                                        disabled={readOnly}
                                     />
                                 </div>
                                 <div className="flex flex-col gap-3">
@@ -160,6 +156,7 @@ export default function Workforce({
                                         onChange={(e) => setData('expected_headcount_3y', parseInt(e.target.value) || 0)}
                                         placeholder="0"
                                         required
+                                        disabled={readOnly}
                                     />
                                 </div>
                             </div>
@@ -182,6 +179,7 @@ export default function Workforce({
                                         onChange={(e) => setData('average_tenure_active', parseFloat(e.target.value) || 0)}
                                         placeholder="0.0"
                                         required
+                                        disabled={readOnly}
                                     />
                                 </div>
                                 <div className="flex flex-col gap-3">
@@ -195,6 +193,7 @@ export default function Workforce({
                                         onChange={(e) => setData('average_tenure_leavers', parseFloat(e.target.value) || 0)}
                                         placeholder="0.0"
                                         required
+                                        disabled={readOnly}
                                     />
                                 </div>
                             </div>
@@ -214,16 +213,13 @@ export default function Workforce({
                                 value={data.average_age || ''}
                                 onChange={(e) => {
                                     const value = parseFloat(e.target.value) || 0;
-                                    // Validate age range (18-100)
-                                    if (value >= 18 && value <= 100) {
-                                        setData('average_age', value);
-                                    } else if (value === 0 || e.target.value === '') {
-                                        setData('average_age', 0);
-                                    }
+                                    if (value >= 18 && value <= 100) setData('average_age', value);
+                                    else if (value === 0 || e.target.value === '') setData('average_age', 0);
                                 }}
                                 placeholder="0.0"
                                 className={errors.average_age ? 'border-destructive' : ''}
                                 required
+                                disabled={readOnly}
                             />
                             <p className="text-xs text-muted-foreground">Please enter age between 18 and 100 years</p>
                             {errors.average_age && (
@@ -247,6 +243,7 @@ export default function Workforce({
                                         onChange={(e) => setData('gender_male', parseInt(e.target.value) || 0)}
                                         placeholder="0"
                                         required
+                                        disabled={readOnly}
                                     />
                                     {malePercentage !== null && (
                                         <p className="text-xs text-muted-foreground">Male: {malePercentage}%</p>
@@ -262,6 +259,7 @@ export default function Workforce({
                                         onChange={(e) => setData('gender_female', parseInt(e.target.value) || 0)}
                                         placeholder="0"
                                         required
+                                        disabled={readOnly}
                                     />
                                     {femalePercentage !== null && (
                                         <p className="text-xs text-muted-foreground">Female: {femalePercentage}%</p>
@@ -280,6 +278,25 @@ export default function Workforce({
                         </div>
                     </CardContent>
                 </Card>
+    );
+    if (embedMode) return <>{cardContent}</>;
+    return (
+        <>
+            <Head title={`Workforce Overview - ${company?.name || project?.company?.name || 'Company'}`} />
+            <FormLayout
+                title="Workforce Overview"
+                project={project}
+                diagnosis={diagnosis}
+                activeTab={activeTab}
+                diagnosisStatus={diagnosisStatus}
+                stepStatuses={stepStatuses}
+                projectId={projectId}
+                backRoute="company-info"
+                nextRoute="executives"
+                formData={data}
+                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
+            >
+                {cardContent}
             </FormLayout>
         </>
     );

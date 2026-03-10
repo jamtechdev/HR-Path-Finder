@@ -19,6 +19,10 @@ interface Props {
     diagnosisStatus: string;
     stepStatuses: Record<string, string>;
     projectId?: number;
+    embedMode?: boolean;
+    readOnly?: boolean;
+    embedData?: Record<string, unknown>;
+    embedSetData?: (key: string, value: unknown) => void;
 }
 
 export default function Leaders({
@@ -29,12 +33,19 @@ export default function Leaders({
     diagnosisStatus,
     stepStatuses,
     projectId,
+    embedMode = false,
+    readOnly = false,
+    embedData,
+    embedSetData,
 }: Props) {
     const [leadershipPercentage, setLeadershipPercentage] = React.useState<number | null>(null);
 
-    const { data, setData } = useForm({
+    const internalForm = useForm({
         leadership_count: diagnosis?.leadership_count ?? 0,
     });
+    const useEmbed = embedMode && embedData != null && embedSetData;
+    const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
+    const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
 
     useEffect(() => {
         const workforce = diagnosis?.present_headcount || 0;
@@ -51,22 +62,7 @@ export default function Leaders({
     const totalLabel = both('totalLeaders');
     const ratioLabel = both('leadersRatio');
 
-    return (
-        <>
-            <Head title={`Leaders - ${company?.name || project?.company?.name || 'Company'}`} />
-            <FormLayout
-                title={b.en}
-                project={project}
-                diagnosis={diagnosis}
-                activeTab={activeTab}
-                diagnosisStatus={diagnosisStatus}
-                stepStatuses={stepStatuses}
-                projectId={projectId}
-                backRoute="executives"
-                nextRoute="job-grades"
-                formData={data}
-                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
-            >
+    const innerContent = (
                 <div className="space-y-5">
                     <p className="text-[12.5px] text-muted-foreground leading-relaxed">
                         {note.en}
@@ -94,7 +90,8 @@ export default function Leaders({
                                     value={data.leadership_count || ''}
                                     onChange={(e) => setData('leadership_count', parseInt(e.target.value, 10) || 0)}
                                     placeholder="0"
-                                    className="w-full max-w-[140px] h-11 px-3 border-[1.5px] border-border rounded-lg text-[13px] font-semibold text-[#1a2744] outline-none focus:border-[#4ecdc4] transition-colors"
+                                    disabled={readOnly}
+                                    className="w-full max-w-[140px] h-11 px-3 border-[1.5px] border-border rounded-lg text-[13px] font-semibold text-[#1a2744] outline-none focus:border-[#4ecdc4] transition-colors disabled:opacity-70"
                                 />
                             </div>
 
@@ -115,6 +112,25 @@ export default function Leaders({
                         </div>
                     </Card>
                 </div>
+    );
+    if (embedMode) return <>{innerContent}</>;
+    return (
+        <>
+            <Head title={`Leaders - ${company?.name || project?.company?.name || 'Company'}`} />
+            <FormLayout
+                title={b.en}
+                project={project}
+                diagnosis={diagnosis}
+                activeTab={activeTab}
+                diagnosisStatus={diagnosisStatus}
+                stepStatuses={stepStatuses}
+                projectId={projectId}
+                backRoute="executives"
+                nextRoute="job-grades"
+                formData={data}
+                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
+            >
+                {innerContent}
             </FormLayout>
         </>
     );

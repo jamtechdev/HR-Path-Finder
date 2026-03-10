@@ -2,13 +2,39 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ReadOnlyField } from './ReadOnlyField';
 
 interface LeadersTabProps {
     data: any;
     setData: (key: string, value: any) => void;
+    readOnly?: boolean;
 }
 
-export default function LeadersTab({ data, setData }: LeadersTabProps) {
+export default function LeadersTab({ data, setData, readOnly = false }: LeadersTabProps) {
+    if (readOnly) {
+        return (
+            <Card className="shadow-md">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
+                    <CardTitle className="text-xl">Leaders</CardTitle>
+                    <CardDescription>Excludes executives</CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
+                    <ReadOnlyField label="Total Leaders" value={data.leadership_count ?? '—'} />
+                    {data.leadership_percentage != null && (
+                        <div className="p-4 bg-muted/50 rounded-lg">
+                            <p className="text-sm font-medium">
+                                Leaders ratio: {Number(data.leadership_percentage).toFixed(2)}%
+                                <span className="text-muted-foreground ml-2">
+                                    ({data.leadership_count ?? 0} / {data.present_headcount ?? 0} workforce)
+                                </span>
+                            </p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        );
+    }
+
     return (
         <Card className="shadow-md">
             <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">

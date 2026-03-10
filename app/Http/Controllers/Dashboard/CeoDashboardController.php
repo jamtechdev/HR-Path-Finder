@@ -45,6 +45,12 @@ class CeoDashboardController extends Controller
             return $status && $status->value === 'submitted';
         });
 
+        // Projects where CEO can start survey now (diagnosis approved/locked, survey not done)
+        $surveyAvailableProjects = $projects->filter(function ($project) {
+            $diagnosisStatus = $project->getStepStatus('diagnosis');
+            return $diagnosisStatus && in_array($diagnosisStatus->value, ['approved', 'locked']) && !$project->ceoPhilosophy;
+        })->values();
+
         // Calculate statistics
         $totalProjects = $projects->count();
         $pendingDiagnosisReview = $pendingReviews->count();
@@ -145,10 +151,15 @@ class CeoDashboardController extends Controller
             'projects' => $projectsWithProgress,
             'pendingReviews' => $pendingReviews->values(),
             'pendingKpiReviews' => $pendingKpiReviews->values(),
+            'surveyAvailableProjects' => $surveyAvailableProjects->map(fn ($p) => [
+                'id' => $p->id,
+                'company' => $p->company ? ['id' => $p->company->id, 'name' => $p->company->name] : null,
+            ])->values(),
             'stats' => [
                 'total_projects' => $totalProjects,
                 'pending_diagnosis_review' => $pendingDiagnosisReview,
                 'pending_ceo_survey' => $pendingCeoSurvey,
+                'survey_available_count' => $surveyAvailableProjects->count(),
                 'pending_kpi_review' => $pendingKpiReviews->count(),
                 'completed_projects' => $completedProjects,
             ],
@@ -252,6 +263,9 @@ class CeoDashboardController extends Controller
             abort(403);
         }
 
+        $diagnosisStatus = $hrProject->getStepStatus('diagnosis');
+        $surveyAvailable = $diagnosisStatus && in_array($diagnosisStatus->value, ['approved', 'locked']) && !$hrProject->ceoPhilosophy;
+
         return Inertia::render('CEO/Projects/Verification', [
             'project' => [
                 'id' => $hrProject->id,
@@ -260,6 +274,7 @@ class CeoDashboardController extends Controller
                     'name' => $hrProject->company->name,
                 ] : null,
                 'step_statuses' => $hrProject->step_statuses ?? [],
+                'survey_available' => $surveyAvailable,
             ],
         ]);
     }

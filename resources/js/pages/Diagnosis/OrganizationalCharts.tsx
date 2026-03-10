@@ -19,6 +19,10 @@ interface Props {
     diagnosisStatus: string;
     stepStatuses: Record<string, string>;
     projectId?: number;
+    embedMode?: boolean;
+    readOnly?: boolean;
+    embedData?: Record<string, unknown>;
+    embedSetData?: (key: string, value: unknown) => void;
 }
 
 const REQUIRED_YEARS = [...DIAGNOSIS_ORG_CHART_REQUIRED_YEARS];
@@ -37,6 +41,10 @@ export default function OrganizationalCharts({
     diagnosisStatus,
     stepStatuses,
     projectId,
+    embedMode = false,
+    readOnly = false,
+    embedData,
+    embedSetData,
 }: Props) {
     const [existingImages, setExistingImages] = useState<Record<string, string>>(() => {
         const images: Record<string, string> = {};
@@ -57,7 +65,10 @@ export default function OrganizationalCharts({
     const [filePreviews, setFilePreviews] = useState<Record<string, string>>({});
     const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-    const { data, setData } = useForm({ organizational_charts: {} as Record<string, File> });
+    const internalForm = useForm({ organizational_charts: {} as Record<string, File> });
+    const useEmbed = embedMode && embedData != null && embedSetData;
+    const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
+    const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
 
     useEffect(() => {
         const out: Record<string, File> = {};
@@ -125,23 +136,7 @@ export default function OrganizationalCharts({
         return `${type} · ${sizeMB}MB`;
     };
 
-    return (
-        <>
-            <Head title={`Organizational Charts - ${company?.name || project?.company?.name || 'Company'}`} />
-            <FormLayout
-                title="Organizational Chart"
-                project={project}
-                diagnosis={diagnosis}
-                activeTab={activeTab}
-                diagnosisStatus={diagnosisStatus}
-                stepStatuses={stepStatuses}
-                projectId={projectId}
-                backRoute="job-grades"
-                nextRoute="organizational-structure"
-                formData={data}
-                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
-                validateBeforeNext={validateBeforeNext}
-            >
+    const innerContent = (
                 <div className="space-y-6">
                     <div>
                         <p className="text-[12.5px] text-muted-foreground leading-relaxed">
@@ -360,6 +355,26 @@ export default function OrganizationalCharts({
                         })}
                     </div>
                 </div>
+    );
+    if (embedMode) return <>{innerContent}</>;
+    return (
+        <>
+            <Head title={`Organizational Charts - ${company?.name || project?.company?.name || 'Company'}`} />
+            <FormLayout
+                title="Organizational Chart"
+                project={project}
+                diagnosis={diagnosis}
+                activeTab={activeTab}
+                diagnosisStatus={diagnosisStatus}
+                stepStatuses={stepStatuses}
+                projectId={projectId}
+                backRoute="job-grades"
+                nextRoute="organizational-structure"
+                formData={data}
+                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
+                validateBeforeNext={validateBeforeNext}
+            >
+                {innerContent}
             </FormLayout>
         </>
     );

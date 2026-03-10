@@ -32,6 +32,10 @@ interface Props {
     diagnosisStatus: string;
     stepStatuses: Record<string, string>;
     projectId?: number;
+    embedMode?: boolean;
+    readOnly?: boolean;
+    embedData?: Record<string, unknown>;
+    embedSetData?: (key: string, value: unknown) => void;
 }
 
 function buildCategoriesFromDiagnosis(diagnosis?: Diagnosis | null): JobCategory[] {
@@ -102,6 +106,10 @@ export default function JobStructure({
     diagnosisStatus,
     stepStatuses,
     projectId,
+    embedMode = false,
+    readOnly = false,
+    embedData,
+    embedSetData,
 }: Props) {
     const [categories, setCategories] = useState<JobCategory[]>(() => buildCategoriesFromDiagnosis(diagnosis));
     const [selectedCatId, setSelectedCatId] = useState<number | null>(() => {
@@ -114,10 +122,13 @@ export default function JobStructure({
 
     const selectedCat = categories.find((c) => c.id === selectedCatId);
 
-    const { data, setData } = useForm({
+    const internalForm = useForm({
         job_categories: [] as string[],
         job_functions: [] as string[],
     });
+    const useEmbed = embedMode && embedData != null && embedSetData;
+    const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
+    const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
 
     useEffect(() => {
         setData(
@@ -183,22 +194,7 @@ export default function JobStructure({
     const addFunctionBelow = both('addFunctionBelow');
     const selectCategoryLeft = both('selectCategoryLeft');
 
-    return (
-        <>
-            <Head title={`Job Structure - ${company?.name || project?.company?.name || 'Company'}`} />
-            <FormLayout
-                title={titleEn}
-                project={project}
-                diagnosis={diagnosis}
-                activeTab={activeTab}
-                diagnosisStatus={diagnosisStatus}
-                stepStatuses={stepStatuses}
-                projectId={projectId}
-                backRoute="organizational-structure"
-                nextRoute="hr-issues"
-                formData={data}
-                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
-            >
+    const innerContent = (
                 <div className="space-y-7">
                     <div>
                         <h1 className="text-2xl font-bold text-[#0f2a4a]">{tr('jobStructureTitle')}</h1>
@@ -399,6 +395,25 @@ export default function JobStructure({
                         </div>
                     </div>
                 </div>
+    );
+    if (embedMode) return <>{innerContent}</>;
+    return (
+        <>
+            <Head title={`Job Structure - ${company?.name || project?.company?.name || 'Company'}`} />
+            <FormLayout
+                title={titleEn}
+                project={project}
+                diagnosis={diagnosis}
+                activeTab={activeTab}
+                diagnosisStatus={diagnosisStatus}
+                stepStatuses={stepStatuses}
+                projectId={projectId}
+                backRoute="organizational-structure"
+                nextRoute="hr-issues"
+                formData={data}
+                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
+            >
+                {innerContent}
             </FormLayout>
         </>
     );

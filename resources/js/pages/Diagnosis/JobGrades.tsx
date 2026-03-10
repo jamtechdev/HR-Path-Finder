@@ -22,6 +22,10 @@ interface Props {
     diagnosisStatus: string;
     stepStatuses: Record<string, string>;
     projectId?: number;
+    embedMode?: boolean;
+    readOnly?: boolean;
+    embedData?: Record<string, unknown>;
+    embedSetData?: (key: string, value: unknown) => void;
 }
 
 interface JobGrade {
@@ -78,15 +82,22 @@ export default function JobGrades({
     diagnosisStatus,
     stepStatuses,
     projectId,
+    embedMode = false,
+    readOnly = false,
+    embedData,
+    embedSetData,
 }: Props) {
     const [grades, setGrades] = useState<JobGrade[]>(() => buildGradesFromDiagnosis(diagnosis));
 
-    const { data, setData, post, processing } = useForm({
+    const internalForm = useForm({
         job_grade_names: [] as string[],
         promotion_years: {} as Record<string, number | null>,
         job_grade_headcounts: {} as Record<string, number>,
         job_grade_expected_roles: {} as Record<string, string>,
     });
+    const useEmbed = embedMode && embedData != null && embedSetData;
+    const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
+    const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
 
     useEffect(() => {
         const names = grades.map((g) => g.name).filter(Boolean);
@@ -142,36 +153,7 @@ export default function JobGrades({
     const matchWorkforce = workforceTotal > 0 && sumHeadcount === workforceTotal;
     const diff = sumHeadcount - workforceTotal;
 
-    return (
-        <>
-            <Head title={`Job Grade System - ${company?.name || project?.company?.name || 'Company'}`} />
-            <FormLayout
-                title={both('jobGradeSystem').en}
-                project={project}
-                diagnosis={diagnosis}
-                activeTab={activeTab}
-                diagnosisStatus={diagnosisStatus}
-                stepStatuses={stepStatuses}
-                projectId={projectId}
-                backRoute="leaders"
-                nextRoute="organizational-charts"
-                formData={{
-                    job_grade_names: grades.map((g) => g.name),
-                    promotion_years: grades.reduce((acc, g) => {
-                        acc[g.name] = g.no_promotion_period ? null : g.promotion_years;
-                        return acc;
-                    }, {} as Record<string, number | null>),
-                    job_grade_headcounts: grades.reduce((acc, g) => {
-                        if (g.name) acc[g.name] = g.headcount;
-                        return acc;
-                    }, {} as Record<string, number>),
-                    job_grade_expected_roles: grades.reduce((acc, g) => {
-                        if (g.name && g.expected_role?.trim()) acc[g.name] = g.expected_role;
-                        return acc;
-                    }, {} as Record<string, string>),
-                }}
-                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
-            >
+    const innerContent = (
                 <div className="space-y-5">
                     <div>
                         <p className="text-[12.5px] text-muted-foreground leading-relaxed">
@@ -338,6 +320,39 @@ export default function JobGrades({
                         </div>
                     </Card>
                 </div>
+    );
+    if (embedMode) return <>{innerContent}</>;
+    return (
+        <>
+            <Head title={`Job Grade System - ${company?.name || project?.company?.name || 'Company'}`} />
+            <FormLayout
+                title={both('jobGradeSystem').en}
+                project={project}
+                diagnosis={diagnosis}
+                activeTab={activeTab}
+                diagnosisStatus={diagnosisStatus}
+                stepStatuses={stepStatuses}
+                projectId={projectId}
+                backRoute="leaders"
+                nextRoute="organizational-charts"
+                formData={{
+                    job_grade_names: grades.map((g) => g.name),
+                    promotion_years: grades.reduce((acc, g) => {
+                        acc[g.name] = g.no_promotion_period ? null : g.promotion_years;
+                        return acc;
+                    }, {} as Record<string, number | null>),
+                    job_grade_headcounts: grades.reduce((acc, g) => {
+                        if (g.name) acc[g.name] = g.headcount;
+                        return acc;
+                    }, {} as Record<string, number>),
+                    job_grade_expected_roles: grades.reduce((acc, g) => {
+                        if (g.name && g.expected_role?.trim()) acc[g.name] = g.expected_role;
+                        return acc;
+                    }, {} as Record<string, string>),
+                }}
+                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
+            >
+                {innerContent}
             </FormLayout>
         </>
     );

@@ -3,12 +3,14 @@ import { router } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Clock, Lock, Eye, X } from 'lucide-react';
+import { CheckCircle2, Clock, Lock, Eye, X, ClipboardList } from 'lucide-react';
 import SuccessModal from '@/components/Modals/SuccessModal';
 
 interface StepVerificationCardProps {
     projectId: number;
     stepStatuses: Record<string, string>;
+    /** When true, show CEO Survey row with View (e.g. when diagnosis is verified). */
+    surveyAvailable?: boolean;
 }
 
 const STEP_LABELS: Record<string, string> = {
@@ -28,7 +30,7 @@ const STEP_ROUTES: Record<string, (projectId: number) => string> = {
     hr_policy_os: (id) => `/ceo/hr-policy-os/${id}`,
 };
 
-export default function StepVerificationCard({ projectId, stepStatuses }: StepVerificationCardProps) {
+export default function StepVerificationCard({ projectId, stepStatuses, surveyAvailable }: StepVerificationCardProps) {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
     const [nextStepRoute, setNextStepRoute] = useState<string | null>(null);
@@ -113,6 +115,8 @@ export default function StepVerificationCard({ projectId, stepStatuses }: StepVe
     };
 
     const steps = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'hr_policy_os'];
+    const diagnosisVerified = ['approved', 'locked', 'completed'].includes(getStepStatus('diagnosis'));
+    const showSurveyRow = surveyAvailable ?? diagnosisVerified;
 
     return (
         <Card>
@@ -185,6 +189,31 @@ export default function StepVerificationCard({ projectId, stepStatuses }: StepVe
                         </div>
                     );
                 })}
+
+                {/* CEO Survey — View when diagnosis is verified */}
+                {showSurveyRow && (
+                    <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-3 flex-1">
+                            <ClipboardList className="w-4 h-4 text-indigo-500" />
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-medium">Management Philosophy Survey</span>
+                                    <Badge variant="secondary" className="text-xs">CEO Survey</Badge>
+                                </div>
+                            </div>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                                window.location.href = `/ceo/philosophy/survey/${projectId}`;
+                            }}
+                        >
+                            <Eye className="w-4 h-4 mr-1" />
+                            View Survey
+                        </Button>
+                    </div>
+                )}
             </CardContent>
             
             <SuccessModal

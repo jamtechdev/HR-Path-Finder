@@ -15,7 +15,8 @@ import {
     ArrowRight,
     Eye,
     TrendingUp,
-    Target
+    Target,
+    ClipboardList
 } from 'lucide-react';
 import StepVerificationCard from '@/components/Dashboard/CEO/StepVerificationCard';
 
@@ -43,21 +44,28 @@ interface Project {
     };
 }
 
+interface SurveyAvailableProject {
+    id: number;
+    company?: { id: number; name: string } | null;
+}
+
 interface Props {
     projects: Project[];
     pendingReviews: Project[];
     pendingKpiReviews?: Project[];
+    surveyAvailableProjects?: SurveyAvailableProject[];
     stats: {
         total_projects: number;
         pending_diagnosis_review: number;
         pending_ceo_survey: number;
+        survey_available_count?: number;
         pending_kpi_review?: number;
         completed_projects: number;
     };
     needsAttention: Project[];
 }
 
-export default function CeoDashboard({ projects, pendingReviews, pendingKpiReviews = [], stats, needsAttention }: Props) {
+export default function CeoDashboard({ projects, pendingReviews, pendingKpiReviews = [], surveyAvailableProjects = [], stats, needsAttention }: Props) {
     const getStatusBadge = (status: string) => {
         const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
             'not_started': { label: 'Not Started', variant: 'outline' },
@@ -120,13 +128,13 @@ export default function CeoDashboard({ projects, pendingReviews, pendingKpiRevie
                                 </Card>
                             </Link>
 
-                            <Link href="/ceo/projects">
+                            <Link href={surveyAvailableProjects.length > 0 ? `/ceo/philosophy/survey/${surveyAvailableProjects[0].id}` : '/ceo/projects'}>
                                 <Card className="border-t-6 border-t-yellow-500 hover:shadow-lg transition-shadow cursor-pointer">
                                     <CardContent className="p-6">
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="text-sm text-muted-foreground mb-1">Pending Survey</p>
-                                                <p className="text-3xl font-bold">{stats.pending_ceo_survey}</p>
+                                                <p className="text-3xl font-bold">{surveyAvailableProjects.length + stats.pending_ceo_survey}</p>
                                             </div>
                                             <div className="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center">
                                                 <FileText className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
@@ -338,6 +346,33 @@ export default function CeoDashboard({ projects, pendingReviews, pendingKpiRevie
                                             </CardContent>
                                         </Card>
                                     </Link>
+                                    {surveyAvailableProjects.length > 0 && (
+                                        <Link href={`/ceo/philosophy/survey/${surveyAvailableProjects[0].id}`}>
+                                            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 border-emerald-200 dark:border-emerald-800 hover:border-emerald-400 dark:hover:border-emerald-600">
+                                                <CardContent className="p-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center">
+                                                            <ClipboardList className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <p className="font-semibold mb-1">Start Survey</p>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                Complete Management Philosophy Survey
+                                                                {surveyAvailableProjects.length > 1
+                                                                    ? ` (${surveyAvailableProjects.length} projects)`
+                                                                    : surveyAvailableProjects[0].company?.name
+                                                                        ? ` — ${surveyAvailableProjects[0].company.name}`
+                                                                        : ''}
+                                                            </p>
+                                                        </div>
+                                                        <Badge variant="secondary" className="text-lg px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                                                            {surveyAvailableProjects.length}
+                                                        </Badge>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        </Link>
+                                    )}
                                     {pendingReviews.length > 0 && (
                                         <Link href="/ceo/projects">
                                             <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 border-orange-200 hover:border-orange-300">

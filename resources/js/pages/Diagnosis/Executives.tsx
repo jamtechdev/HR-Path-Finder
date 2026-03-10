@@ -18,6 +18,10 @@ interface Props {
     diagnosisStatus: string;
     stepStatuses: Record<string, string>;
     projectId?: number;
+    embedMode?: boolean;
+    readOnly?: boolean;
+    embedData?: Record<string, unknown>;
+    embedSetData?: (key: string, value: unknown) => void;
 }
 
 interface ExecutivePosition {
@@ -36,6 +40,10 @@ export default function Executives({
     diagnosisStatus,
     stepStatuses,
     projectId,
+    embedMode = false,
+    readOnly = false,
+    embedData,
+    embedSetData,
 }: Props) {
     const { t } = useTranslation();
     const [positions, setPositions] = useState<ExecutivePosition[]>(() => {
@@ -65,10 +73,13 @@ export default function Executives({
     const [customInputVisible, setCustomInputVisible] = useState(false);
     const [customRoleName, setCustomRoleName] = useState('');
 
-    const { data, setData } = useForm({
+    const internalForm = useForm({
         total_executives: diagnosis?.total_executives || 0,
         executive_positions: [] as Array<{ role: string; count: number }>,
     });
+    const useEmbed = embedMode && embedData != null && embedSetData;
+    const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
+    const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
 
     const toggleDefaultPosition = (role: string) => {
         setSelectedDefaultPositions((prev) =>
@@ -135,27 +146,10 @@ export default function Executives({
 
     const getPositionCount = (role: string) => positions.find((p) => p.role === role)?.count ?? 0;
 
-    const isReadOnly = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
+    const isReadOnlyStatus = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
+    const isReadOnly = readOnly || isReadOnlyStatus;
 
-    return (
-        <>
-            <Head title={`Executives - ${company?.name || project?.company?.name || 'Company'}`} />
-            <FormLayout
-                title="Executives"
-                project={project}
-                diagnosis={diagnosis}
-                activeTab={activeTab}
-                diagnosisStatus={diagnosisStatus}
-                stepStatuses={stepStatuses}
-                projectId={projectId}
-                backRoute="workforce"
-                nextRoute="leaders"
-                formData={{
-                    total_executives: data.total_executives,
-                    executive_positions: data.executive_positions,
-                }}
-                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
-            >
+    const innerContent = (
                 <div className="bg-white border border-[var(--hr-gray-200)] rounded-[14px] overflow-hidden mb-3.5">
                     {/* Card header */}
                     <div className="py-4 px-[22px] border-b border-[var(--hr-gray-100)] flex items-center justify-between flex-wrap gap-3">
@@ -345,6 +339,28 @@ export default function Executives({
                         </div>
                     </div>
                 </div>
+    );
+    if (embedMode) return <>{innerContent}</>;
+    return (
+        <>
+            <Head title={`Executives - ${company?.name || project?.company?.name || 'Company'}`} />
+            <FormLayout
+                title="Executives"
+                project={project}
+                diagnosis={diagnosis}
+                activeTab={activeTab}
+                diagnosisStatus={diagnosisStatus}
+                stepStatuses={stepStatuses}
+                projectId={projectId}
+                backRoute="workforce"
+                nextRoute="leaders"
+                formData={{
+                    total_executives: data.total_executives,
+                    executive_positions: data.executive_positions,
+                }}
+                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
+            >
+                {innerContent}
             </FormLayout>
         </>
     );

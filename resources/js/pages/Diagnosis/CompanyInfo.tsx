@@ -52,6 +52,13 @@ interface Props {
     projectId?: number;
     industryCategories?: IndustryCategory[];
     hqLocations?: string[]; // Admin-configurable locations
+    /** When true, render only inner content (no FormLayout/Head). Used when embedded in CEO review. */
+    embedMode?: boolean;
+    /** When true, all inputs are disabled (view-only). */
+    readOnly?: boolean;
+    /** When embedMode, optional form data from parent (CEO page) so one Save submits all. */
+    embedData?: Record<string, unknown>;
+    embedSetData?: (key: string, value: unknown) => void;
 }
 
 export default function CompanyInfo({
@@ -64,6 +71,10 @@ export default function CompanyInfo({
     projectId,
     industryCategories = [],
     hqLocations = [],
+    embedMode = false,
+    readOnly = false,
+    embedData,
+    embedSetData,
 }: Props) {
     // Format registration number for display (convert "291" to "291-00-00000" format if needed)
     const formatRegistrationNumber = (value: string): string => {
@@ -87,7 +98,7 @@ export default function CompanyInfo({
     const [logoPreview, setLogoPreview] = useState<string | null>(company.logo_path || null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const { data, setData, post, processing, errors } = useForm<{
+    const internalForm = useForm<{
         company_name: string;
         registration_number: string;
         hq_location: string;
@@ -110,6 +121,10 @@ export default function CompanyInfo({
         foundation_date: company.foundation_date || '',
         logo: null,
     });
+    const useEmbed = embedMode && embedData != null && embedSetData;
+    const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
+    const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v as never) : internalForm.setData;
+    const errors = internalForm.errors;
 
     // Removed auto-save - only save on review and submit
 
@@ -158,24 +173,7 @@ export default function CompanyInfo({
         reader.readAsDataURL(file);
     };
 
-    return (
-        <>
-            <Head title={`Company Info - ${company?.name || project?.company?.name || 'Company'}`} />
-            <FormLayout
-                title="Company Basic Information"
-                project={project}
-                diagnosis={diagnosis}
-                activeTab={activeTab}
-                diagnosisStatus={diagnosisStatus}
-                stepStatuses={stepStatuses}
-                projectId={projectId}
-                nextRoute="workforce"
-                formData={{
-                    ...data,
-                    is_public: data.is_public,
-                }}
-                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
-            >
+    const cardContent = (
                 <Card className="shadow-sm border">
                     <CardContent className="p-6">
                         {/* Two Column Layout */}
@@ -197,6 +195,7 @@ export default function CompanyInfo({
                                             errors.company_name && 'border-destructive'
                                         )}
                                         required
+                                        disabled={readOnly}
                                     />
                                     {errors.company_name && (
                                         <p className="text-sm text-destructive">{errors.company_name}</p>
@@ -219,6 +218,7 @@ export default function CompanyInfo({
                                                 errors.foundation_date && 'border-destructive'
                                             )}
                                             required
+                                            disabled={readOnly}
                                         />
                                         <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                                     </div>
@@ -239,6 +239,7 @@ export default function CompanyInfo({
                                             setData('industry_subcategory', '');
                                             setData('industry_other', '');
                                         }}
+                                        disabled={readOnly}
                                     >
                                         <SelectTrigger className={cn(
                                             "h-10 bg-background",
@@ -283,6 +284,7 @@ export default function CompanyInfo({
                                                         setData('industry_other', '');
                                                     }
                                                 }}
+                                                disabled={readOnly}
                                             >
                                                 <SelectTrigger className={cn(
                                                     "h-10 bg-background",
@@ -311,6 +313,7 @@ export default function CompanyInfo({
                                                         placeholder="Please specify"
                                                         className="h-10 bg-background"
                                                         required
+                                                        disabled={readOnly}
                                                     />
                                                     {errors.industry_other && (
                                                         <p className="text-sm text-destructive mt-1">{errors.industry_other}</p>
@@ -348,6 +351,7 @@ export default function CompanyInfo({
                                         )}
                                         required
                                         maxLength={13}
+                                        disabled={readOnly}
                                     />
                                     {errors.registration_number && (
                                         <p className="text-sm text-destructive">{errors.registration_number}</p>
@@ -368,6 +372,7 @@ export default function CompanyInfo({
                                         onChange={(e) => setData('brand_name', e.target.value)}
                                         placeholder="Enter brand name (if different)"
                                         className="h-10 bg-background"
+                                        disabled={readOnly}
                                     />
                                 </div>
 
@@ -380,6 +385,7 @@ export default function CompanyInfo({
                                         <Select
                                             value={data.hq_location}
                                             onValueChange={(value) => setData('hq_location', value)}
+                                            disabled={readOnly}
                                         >
                                             <SelectTrigger className={cn(
                                                 "h-10 bg-background",
@@ -406,6 +412,7 @@ export default function CompanyInfo({
                                                 errors.hq_location && 'border-destructive'
                                             )}
                                             required
+                                            disabled={readOnly}
                                         />
                                     )}
                                     {errors.hq_location && (
@@ -422,6 +429,7 @@ export default function CompanyInfo({
                                         value={data.is_public ? 'yes' : 'no'}
                                         onValueChange={(value) => setData('is_public', value === 'yes')}
                                         className="flex gap-6"
+                                        disabled={readOnly}
                                     >
                                         <div className="flex items-center space-x-2">
                                             <RadioGroupItem value="yes" id="public-yes" />
@@ -446,22 +454,18 @@ export default function CompanyInfo({
                                 Company Logo
                             </Label>
                             <div
-                                onClick={() => fileInputRef.current?.click()}
-                                onDragOver={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                }}
+                                onClick={() => !readOnly && fileInputRef.current?.click()}
+                                onDragOver={(e) => !readOnly && (e.preventDefault(), e.stopPropagation())}
                                 onDrop={(e) => {
+                                if (readOnly) return;
                                 e.preventDefault();
                                 e.stopPropagation();
                                 const files = e.dataTransfer.files;
-                                if (files.length > 0) {
-                                    handleFileChange(files[0]);
-                                }
+                                if (files.length > 0) handleFileChange(files[0]);
                                 }}
                                 className={cn(
-                                "border-2 border-dashed rounded-lg  text-center cursor-pointer transition-all duration-200",
-                                "hover:border-primary/50 hover:bg-muted/30",
+                                "border-2 border-dashed rounded-lg  text-center transition-all duration-200",
+                                !readOnly && "cursor-pointer hover:border-primary/50 hover:bg-muted/30",
                                 logoPreview ? "border-primary/30 bg-muted/20" : "border-border bg-muted/10 p-12"
                                 )}
                             >
@@ -485,6 +489,7 @@ export default function CompanyInfo({
                                         className="w-full max-h-[184px] object-cover rounded-lg"
                                     />
                                     </div>
+                                    {!readOnly && (
                                     <button
                                     type="button"
                                     onClick={(e) => {
@@ -499,6 +504,7 @@ export default function CompanyInfo({
                                     >
                                     <X className="w-4 h-4" />
                                     </button>
+                                    )}
                                 </div>
                                 ) : (
                                 <div className="space-y-3">
@@ -519,6 +525,28 @@ export default function CompanyInfo({
                             </div>
                     </CardContent>
                 </Card>
+    );
+
+    if (embedMode) return <>{cardContent}</>;
+    return (
+        <>
+            <Head title={`Company Info - ${company?.name || project?.company?.name || 'Company'}`} />
+            <FormLayout
+                title="Company Basic Information"
+                project={project}
+                diagnosis={diagnosis}
+                activeTab={activeTab}
+                diagnosisStatus={diagnosisStatus}
+                stepStatuses={stepStatuses}
+                projectId={projectId}
+                nextRoute="workforce"
+                formData={{
+                    ...data,
+                    is_public: data.is_public,
+                }}
+                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
+            >
+                {cardContent}
             </FormLayout>
         </>
     );

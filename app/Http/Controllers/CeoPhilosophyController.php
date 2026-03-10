@@ -30,7 +30,6 @@ class CeoPhilosophyController extends Controller
         $hrProject->load('company');
         
         // Check if diagnosis is submitted - survey should be accessible when diagnosis is submitted
-        // Allow access even if survey is partially completed or already completed (to allow review/update)
         $diagnosisStatus = $hrProject->getStepStatus('diagnosis');
         if (!$diagnosisStatus || !in_array($diagnosisStatus->value, ['submitted', 'approved', 'locked'])) {
             return redirect()->route('ceo.dashboard')
@@ -79,10 +78,13 @@ class CeoPhilosophyController extends Controller
             ->first();
 
         $philosophy = $hrProject->ceoPhilosophy;
+        // After validation errors, Laravel flashes old input; pass it so the form can rehydrate
+        $surveyOldInput = $request->session()->get('_old_input', []);
 
         return Inertia::render('CEO/Philosophy/Survey', [
             'project' => $hrProject,
             'philosophy' => $philosophy,
+            'surveyOldInput' => $surveyOldInput,
             'managementPhilosophyQuestions' => $managementPhilosophyQuestions,
             'visionMissionQuestions' => $visionMissionQuestions,
             'growthStageQuestion' => $growthStageQuestion,
@@ -97,20 +99,27 @@ class CeoPhilosophyController extends Controller
 
     /**
      * Store philosophy survey responses.
+     * On autosave, only management_philosophy and growth_stage are required; other sections can be empty.
      */
     public function store(Request $request, HrProject $hrProject)
     {
+        $isAutosave = $request->boolean('autosave');
         $validated = $request->validate([
             'management_philosophy' => ['required', 'array'],
-            'vision_mission' => ['required', 'array'],
+            'vision_mission' => [$isAutosave ? 'nullable' : 'required', 'array'],
             'growth_stage' => ['nullable', 'string'],
-            'leadership' => ['required', 'array'],
-            'general' => ['required', 'array'],
+            'leadership' => [$isAutosave ? 'nullable' : 'required', 'array'],
+            'general' => [$isAutosave ? 'nullable' : 'required', 'array'],
             'organizational_issues' => ['nullable', 'array'],
+            'organizational_issues_other' => ['nullable', 'string'],
             'concerns' => ['nullable', 'string'],
         ]);
+        $validated['vision_mission'] = $validated['vision_mission'] ?? [];
+        $validated['leadership'] = $validated['leadership'] ?? [];
+        $validated['general'] = $validated['general'] ?? [];
         $validated['growth_stage'] = $validated['growth_stage'] ?? '';
         $validated['concerns'] = $validated['concerns'] ?? '';
+        $validated['organizational_issues'] = $validated['organizational_issues'] ?? [];
 
         $ceoPhilosophy = CeoPhilosophy::updateOrCreate(
             [
@@ -129,7 +138,12 @@ class CeoPhilosophyController extends Controller
             ]
         );
 
-        // Mark diagnosis step as completed after CEO survey is done
+        // Auto-save: stay on survey page so user can continue. Final submit: redirect to dashboard and mark diagnosis complete.
+        if ($request->boolean('autosave')) {
+            return redirect()->back()->with('saved', true);
+        }
+
+        // Mark diagnosis step as completed after CEO survey is done (final submit only)
         $diagnosisStatus = $hrProject->getStepStatus('diagnosis');
         if ($diagnosisStatus && $diagnosisStatus->value === 'submitted') {
             $hrProject->setStepStatus('diagnosis', StepStatus::APPROVED);

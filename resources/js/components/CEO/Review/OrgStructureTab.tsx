@@ -2,10 +2,12 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ReadOnlyField } from './ReadOnlyField';
 
 interface OrgStructureTabProps {
     data: any;
     setData: (key: string, value: any) => void;
+    readOnly?: boolean;
 }
 
 const STRUCTURE_TYPES = [
@@ -16,7 +18,22 @@ const STRUCTURE_TYPES = [
     { value: 'no_defined', label: 'No Clearly Defined Structure' },
 ];
 
-export default function OrgStructureTab({ data, setData }: OrgStructureTabProps) {
+export default function OrgStructureTab({ data, setData, readOnly = false }: OrgStructureTabProps) {
+    if (readOnly) {
+        const selected = (data.org_structure_types || []).filter(Boolean);
+        const labels = selected.map((v: string) => STRUCTURE_TYPES.find((t) => t.value === v)?.label || v);
+        return (
+            <Card className="shadow-md">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
+                    <CardTitle className="text-xl">Organizational Structure</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                    <ReadOnlyField label="Structure Type" value={labels.length ? labels.join(', ') : '—'} />
+                </CardContent>
+            </Card>
+        );
+    }
+
     return (
         <Card className="shadow-md">
             <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">

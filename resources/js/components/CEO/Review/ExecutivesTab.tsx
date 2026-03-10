@@ -4,20 +4,40 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
+import { ReadOnlyField } from './ReadOnlyField';
 
 interface ExecutivesTabProps {
     data: any;
     setData: (key: string, value: any) => void;
     executivePositions: Array<{ role: string; count: number }>;
     setExecutivePositions: (positions: Array<{ role: string; count: number }>) => void;
+    readOnly?: boolean;
 }
 
 export default function ExecutivesTab({ 
     data, 
     setData, 
     executivePositions, 
-    setExecutivePositions 
+    setExecutivePositions,
+    readOnly = false,
 }: ExecutivesTabProps) {
+    if (readOnly) {
+        const positionsStr = executivePositions.length
+            ? executivePositions.map((p) => `${p.role}: ${p.count}`).join(', ')
+            : '—';
+        return (
+            <Card className="shadow-md">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
+                    <CardTitle className="text-xl">Executives</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
+                    <ReadOnlyField label="Total Executives" value={data.total_executives ?? '—'} />
+                    <ReadOnlyField label="Executive Positions" value={positionsStr} />
+                </CardContent>
+            </Card>
+        );
+    }
+
     return (
         <Card className="shadow-md">
             <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">

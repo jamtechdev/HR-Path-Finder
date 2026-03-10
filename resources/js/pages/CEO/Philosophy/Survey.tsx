@@ -1,54 +1,34 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import LikertScale from '@/components/Forms/LikertScale';
-import SliderQuestion from '@/components/Forms/SliderQuestion';
-import TextQuestion from '@/components/Forms/TextQuestion';
-import SelectQuestion from '@/components/Forms/SelectQuestion';
-import MultiSelectQuestion from '@/components/Forms/MultiSelectQuestion';
-import { Progress } from '@/components/ui/progress';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
-import { ChevronRight, ChevronLeft, CheckCircle2, AlertCircle } from 'lucide-react';
-
-interface DiagnosisQuestion {
-    id: number;
-    question_text: string;
-    question_type: string;
-    options?: string[];
-    metadata?: any;
-}
-
-interface HrIssue {
-    id: number;
-    name: string;
-    category: string;
-}
-
-interface IntroText {
-    content: string;
-    title?: string;
-}
+import { toast, dismissAll } from '@/hooks/use-toast';
+import { CheckCircle2 } from 'lucide-react';
+import type { DiagnosisQuestion, HrIssue, IntroText, SurveyFormData, VisionMissionValue } from './types';
+import { STEPS, MAX_ORGANIZATIONAL_ISSUES } from './constants';
+import {
+    IntroStep,
+    ManagementStep,
+    VisionStep,
+    GrowthStep,
+    LeadershipStep,
+    GeneralStep,
+    IssuesStep,
+    ConcernsStep,
+} from './steps';
 
 interface Props {
-    project: {
-        id: number;
-        company: {
-            name: string;
-        };
-    };
+    project: { id: number; company: { name: string } };
     philosophy?: {
         management_philosophy_responses?: Record<string, number>;
-        vision_mission_responses?: Record<string, any>;
+        vision_mission_responses?: Record<string, unknown>;
         growth_stage?: string;
         leadership_responses?: Record<string, number>;
         general_responses?: Record<string, number>;
         organizational_issues?: string[];
+        organizational_issues_other?: string;
         concerns?: string;
     };
     managementPhilosophyQuestions: DiagnosisQuestion[];
@@ -59,21 +39,11 @@ interface Props {
     concernsQuestion?: DiagnosisQuestion;
     hrIssues: HrIssue[];
     introText?: IntroText;
-    diagnosis?: {
-        hr_issues?: string[];
-    };
+    diagnosis?: { hr_issues?: string[] };
+    locked?: boolean;
+    /** Flashed old input after validation error so form can rehydrate */
+    surveyOldInput?: Record<string, unknown>;
 }
-
-const STEPS = [
-    { id: 'intro', name: 'Welcome' },
-    { id: 'management', name: 'Management Philosophy' },
-    { id: 'vision', name: 'Vision/Mission' },
-    { id: 'growth', name: 'Growth Stage' },
-    { id: 'leadership', name: 'Leadership' },
-    { id: 'general', name: 'General Questions' },
-    { id: 'issues', name: 'Organizational Issues' },
-    { id: 'concerns', name: 'CEO Concerns' },
-];
 
 export default function CeoPhilosophySurvey({
     project,
@@ -87,23 +57,111 @@ export default function CeoPhilosophySurvey({
     hrIssues,
     introText,
     diagnosis,
+    locked = false,
+    surveyOldInput,
 }: Props) {
     const [currentStep, setCurrentStep] = useState(0);
+    const [currentVisionChunk, setCurrentVisionChunk] = useState(0);
     const [hasSeenIntro, setHasSeenIntro] = useState(false);
     const [hasAgreed, setHasAgreed] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
 
-    const { data, setData, post, processing, errors } = useForm({
-        management_philosophy: philosophy?.management_philosophy_responses || {},
-        vision_mission: philosophy?.vision_mission_responses || {},
-        growth_stage: philosophy?.growth_stage || '',
-        leadership: philosophy?.leadership_responses || {},
-        general: philosophy?.general_responses || {},
-        organizational_issues: philosophy?.organizational_issues || diagnosis?.hr_issues || [],
-        organizational_issues_other: (philosophy as any)?.organizational_issues_other || '',
-        concerns: philosophy?.concerns || '',
-    });
+    const visionChunkQuestions = (chunkIndex: number) => {
+        if (chunkIndex === 0) return visionMissionQuestions.slice(0, 3);
+        if (chunkIndex === 1) return visionMissionQuestions.slice(3, 6);
+        return visionMissionQuestions.slice(6);
+    };
+
+    const initialFormData = useMemo((): SurveyFormData => {
+        const fromDb: SurveyFormData = {
+            management_philosophy: philosophy?.management_philosophy_responses || {},
+            vision_mission: (philosophy?.vision_mission_responses || {}) as Record<string, VisionMissionValue>,
+            growth_stage: philosophy?.growth_stage || '',
+            leadership: philosophy?.leadership_responses || {},
+            general: philosophy?.general_responses || {},
+            organizational_issues: philosophy?.organizational_issues ?? [],
+            organizational_issues_other: philosophy?.organizational_issues_other || '',
+            concerns: philosophy?.concerns || '',
+        };
+        const old = surveyOldInput as Partial<SurveyFormData> | null | undefined;
+        if (!old || typeof old !== 'object' || Object.keys(old).length === 0) return fromDb;
+        return {
+            management_philosophy: (old.management_philosophy != null && typeof old.management_philosophy === 'object') ? (old.management_philosophy as Record<string, number>) : fromDb.management_philosophy,
+            vision_mission: (old.vision_mission != null && typeof old.vision_mission === 'object') ? (old.vision_mission as Record<string, VisionMissionValue>) : fromDb.vision_mission,
+            growth_stage: typeof old.growth_stage === 'string' ? old.growth_stage : fromDb.growth_stage,
+            leadership: (old.leadership != null && typeof old.leadership === 'object') ? (old.leadership as Record<string, number>) : fromDb.leadership,
+            general: (old.general != null && typeof old.general === 'object') ? (old.general as Record<string, number>) : fromDb.general,
+            organizational_issues: Array.isArray(old.organizational_issues) ? old.organizational_issues : fromDb.organizational_issues,
+            organizational_issues_other: typeof old.organizational_issues_other === 'string' ? old.organizational_issues_other : fromDb.organizational_issues_other,
+            concerns: typeof old.concerns === 'string' ? old.concerns : fromDb.concerns,
+        };
+    }, [philosophy, diagnosis?.hr_issues, surveyOldInput]);
+
+    const { data, setData, post, processing, errors } = useForm<SurveyFormData>(initialFormData);
     const stepRefs = useRef<Record<number, HTMLDivElement | null>>({});
+    const didSetInitialStep = useRef(false);
+
+    // On load/refresh: restore to first incomplete step and treat intro as done if there's saved progress.
+    useEffect(() => {
+        if (didSetInitialStep.current) return;
+        didSetInitialStep.current = true;
+
+        const hasAnySavedProgress = philosophy && (
+            (philosophy.management_philosophy_responses && Object.keys(philosophy.management_philosophy_responses).length > 0) ||
+            (philosophy.vision_mission_responses && Object.keys(philosophy.vision_mission_responses).length > 0) ||
+            !!philosophy.growth_stage?.trim() ||
+            (philosophy.leadership_responses && Object.keys(philosophy.leadership_responses).length > 0) ||
+            (philosophy.general_responses && Object.keys(philosophy.general_responses).length > 0) ||
+            (Array.isArray(philosophy.organizational_issues) && philosophy.organizational_issues.length > 0) ||
+            !!philosophy.concerns?.trim()
+        );
+
+        const introAgreed = !!hasAnySavedProgress;
+        if (introAgreed) setHasAgreed(true);
+
+        const isStepCompleteWith = (i: number, form: SurveyFormData, introOk: boolean): boolean => {
+            if (i === 0) return introOk;
+            if (i === 1) return managementPhilosophyQuestions.every((q) => {
+                const v = form.management_philosophy[q.id.toString()];
+                return v != null && !Number.isNaN(Number(v));
+            });
+            if (i === 2) return visionMissionQuestions.every((q) => {
+                const v = form.vision_mission[q.id.toString()];
+                return v != null && v !== '';
+            });
+            if (i === 3) return !!form.growth_stage?.trim();
+            if (i === 4) return leadershipQuestions.every((q) => form.leadership[q.id.toString()] != null);
+            if (i === 5) return generalQuestions.every((q) => form.general[q.id.toString()] != null);
+            if (i === 6) return (form.organizational_issues || []).length >= 1;
+            if (i === 7) return !!form.concerns?.trim();
+            return false;
+        };
+
+        let firstIncomplete = 0;
+        for (let i = 0; i < STEPS.length; i++) {
+            if (!isStepCompleteWith(i, initialFormData, introAgreed)) {
+                firstIncomplete = i;
+                break;
+            }
+            firstIncomplete = i + 1;
+        }
+        if (firstIncomplete >= STEPS.length) firstIncomplete = STEPS.length - 1;
+        setCurrentStep(firstIncomplete);
+
+        if (firstIncomplete === 2) {
+            for (let c = 0; c < 3; c++) {
+                const qs = c === 0 ? visionMissionQuestions.slice(0, 3) : c === 1 ? visionMissionQuestions.slice(3, 6) : visionMissionQuestions.slice(6);
+                const chunkComplete = qs.every((q) => {
+                    const v = initialFormData.vision_mission[q.id.toString()];
+                    return v != null && v !== '';
+                });
+                if (!chunkComplete) {
+                    setCurrentVisionChunk(c);
+                    break;
+                }
+            }
+        }
+    }, [philosophy, initialFormData, managementPhilosophyQuestions, visionMissionQuestions, leadershipQuestions, generalQuestions]);
 
     // Auto-save CEO survey responses so leaving the page does not lose answers.
     const autoSaveTimeout = useRef<number | null>(null);
@@ -119,10 +177,12 @@ export default function CeoPhilosophySurvey({
         }
 
         autoSaveTimeout.current = window.setTimeout(() => {
-            post(`/ceo/philosophy/survey/${project.id}`, {
+            router.post(`/ceo/philosophy/survey/${project.id}`, { ...data, autosave: true } as never, {
                 preserveScroll: true,
                 preserveState: true,
                 onError: () => {
+                    dismissAll();
+                    toast({ title: 'Save failed', description: 'Your answers may not be saved. Try again or use Next to save.', variant: 'destructive' });
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 },
             });
@@ -133,9 +193,22 @@ export default function CeoPhilosophySurvey({
                 window.clearTimeout(autoSaveTimeout.current);
             }
         };
-    }, [data, post, project.id]);
+    }, [data, project.id]);
 
     const progress = ((currentStep + 1) / STEPS.length) * 100;
+
+    const totalQuestions = managementPhilosophyQuestions.length + visionMissionQuestions.length + 1 + leadershipQuestions.length + generalQuestions.length + 1 + (concernsQuestion ? 1 : 0) + 1;
+    const answeredCount = () => {
+        let n = 0;
+        n += Object.values(data.management_philosophy).filter((v) => v != null && !Number.isNaN(Number(v))).length;
+        n += Object.values(data.vision_mission).filter((v) => v != null && (typeof v === 'string' ? v.trim() !== '' : true)).length;
+        if (data.growth_stage?.trim()) n += 1;
+        n += Object.values(data.leadership).filter((v) => v != null && !Number.isNaN(Number(v))).length;
+        n += Object.values(data.general).filter((v) => v != null && !Number.isNaN(Number(v))).length;
+        if (data.concerns?.trim()) n += 1;
+        n += (data.organizational_issues?.length ?? 0) > 0 ? 1 : 0;
+        return n;
+    };
 
     const validateCurrentStep = (): { valid: boolean; message?: string; ref?: HTMLDivElement | null } => {
         const stepId = STEPS[currentStep].id;
@@ -179,10 +252,26 @@ export default function CeoPhilosophySurvey({
                 }
             }
         }
+        if (stepId === 'issues') {
+            const selected = (data.organizational_issues || []).length;
+            if (selected < 1) {
+                return { valid: false, message: 'Please select at least 1 organizational issue before continuing.', ref: stepRefs.current[currentStep] };
+            }
+        }
         if (stepId === 'concerns') {
             if (concernsQuestion && !data.concerns?.trim()) {
                 return { valid: false, message: 'Please answer this question before continuing.', ref: stepRefs.current[currentStep] };
             }
+        }
+        return { valid: true };
+    };
+
+    const validateVisionChunk = (chunkIndex: number): { valid: boolean; message?: string; ref?: HTMLDivElement | null } => {
+        const qs = visionChunkQuestions(chunkIndex);
+        for (const q of qs) {
+            const v = data.vision_mission[q.id.toString()];
+            const empty = v === undefined || v === null || (typeof v === 'string' && v.trim() === '') || (Array.isArray(v) && v.every((x) => !String(x).trim()));
+            if (empty) return { valid: false, message: 'Please answer all questions in this part before continuing.', ref: stepRefs.current[currentStep] };
         }
         return { valid: true };
     };
@@ -193,25 +282,57 @@ export default function CeoPhilosophySurvey({
                 return;
             }
             setHasSeenIntro(true);
+        } else if (currentStep === 2) {
+            if (currentVisionChunk < 2) {
+                const result = validateVisionChunk(currentVisionChunk);
+                if (!result.valid) {
+                    setValidationError(result.message ?? null);
+                    dismissAll();
+                    toast({ title: 'Answer required', description: result.message, variant: 'destructive' });
+                    result.ref?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    return;
+                }
+                setValidationError(null);
+                setCurrentVisionChunk(currentVisionChunk + 1);
+                return;
+            }
+            const result = validateCurrentStep();
+            if (!result.valid) {
+                setValidationError(result.message || 'Please answer this question before continuing.');
+                dismissAll();
+                toast({ title: 'Answer required', description: result.message, variant: 'destructive' });
+                setTimeout(() => result.ref?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+                return;
+            }
+            setValidationError(null);
+            setCurrentVisionChunk(0);
         } else {
             const result = validateCurrentStep();
             if (!result.valid) {
                 setValidationError(result.message || 'Please answer this question before continuing.');
+                dismissAll();
+                toast({ title: 'Answer required', description: result.message, variant: 'destructive' });
                 setTimeout(() => {
                     result.ref?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }, 100);
                 return;
             }
+            setValidationError(null);
         }
-        setValidationError(null);
         if (currentStep < STEPS.length - 1) {
             setCurrentStep(currentStep + 1);
         }
     };
 
     const handlePrevious = () => {
+        if (currentStep === 2 && currentVisionChunk > 0) {
+            setCurrentVisionChunk(currentVisionChunk - 1);
+            setValidationError(null);
+            return;
+        }
         if (currentStep > 0) {
             setCurrentStep(currentStep - 1);
+            setValidationError(null);
         }
     };
 
@@ -219,384 +340,112 @@ export default function CeoPhilosophySurvey({
         const result = validateCurrentStep();
         if (!result.valid) {
             setValidationError(result.message || 'Please answer this question before continuing.');
+            dismissAll();
+            toast({ title: 'Answer required', description: result.message, variant: 'destructive' });
             result.ref?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             return;
         }
         setValidationError(null);
+        dismissAll();
         post(`/ceo/philosophy/survey/${project.id}`, {
             preserveScroll: true,
             onSuccess: () => {
+                toast({ title: 'Survey submitted', description: 'Management Philosophy Survey completed successfully.', variant: 'success' });
                 router.visit('/ceo/dashboard');
             },
             onError: () => {
+                toast({ title: 'Submit failed', description: 'Could not submit. Please try again.', variant: 'destructive' });
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             },
         });
     };
 
     const renderStepContent = () => {
-        switch (STEPS[currentStep].id) {
+        const stepId = STEPS[currentStep].id;
+        switch (stepId) {
             case 'intro':
-                const defaultIntroContent = `This diagnostic is not an evaluation of your leadership or performance.
-There are no right or wrong answers.
-This assessment is designed to understand your current management priorities and decision-making perspective, based on your responses at this point in time.
-Please note the following:
-• Your individual responses will not be shared as-is with the HR manager or any other employees.
-• No one will be able to view your original answers to individual questions.
-• Results will be used only after being aggregated, interpreted, and anonymized into summary insights.
-• Any comparison with HR input is intended to understand differences in perspective, not to judge or evaluate individuals.
-For the most meaningful outcome, please answer honestly and instinctively, based on what you consider most important right now, rather than what may appear ideal or socially desirable.`;
-
                 return (
-                    <Card className="border-2 shadow-xl overflow-hidden p-0">
-                        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-1">
-                            <CardHeader className="py-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                                        <CheckCircle2 className="w-6 h-6 text-primary" />
-                                    </div>
-                                    <div>
-                                        <CardTitle className="text-2xl">Welcome to Your Survey</CardTitle>
-                                        <CardDescription className="text-base mt-1">
-                                            Let's begin your management philosophy assessment
-                                        </CardDescription>
-                                    </div>
-                                </div>
-                            </CardHeader>
-                        </div>
-                        <CardContent className="space-y-8">
-                            <div className="prose prose-lg max-w-none">
-                                <div className="whitespace-pre-line text-base leading-relaxed text-foreground space-y-4">
-                                    <p className="text-base font-medium text-foreground mb-4">
-                                        {introText?.content || defaultIntroContent}
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <div className="border-t py-6">
-                                <div className="flex items-start space-x-4 p-6 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border border-primary/20 hover:border-primary/40 transition-all">
-                                    <div className="flex-shrink-0 mt-1">
-                                        <Checkbox
-                                            id="agree-intro"
-                                            checked={hasAgreed}
-                                            onCheckedChange={(checked) => setHasAgreed(checked === true)}
-                                            className="w-5 h-5 border-2"
-                                        />
-                                    </div>
-                                    <label htmlFor="agree-intro" className="flex-1 cursor-pointer">
-                                        <span className="text-lg font-semibold text-foreground block mb-2">
-                                            I Understand & Ready to Start
-                                        </span>
-                                        <p className="text-sm text-muted-foreground leading-relaxed">
-                                            By checking this box, you confirm that you understand the purpose of this diagnostic and agree to proceed with the survey.
-                                        </p>
-                                    </label>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <IntroStep
+                        introText={introText}
+                        hasAgreed={hasAgreed}
+                        onAgreeChange={setHasAgreed}
+                    />
                 );
-
             case 'management':
                 return (
-                    <Card className="border-2 shadow-lg">
-                        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
-                            <CardTitle className="text-2xl">Management Philosophy</CardTitle>
-                            <CardDescription className="text-base my-2">
-                                Please rate each statement on a scale of 1-7, where 1 = Strongly Disagree and 7 = Strongly Agree
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-8 space-y-8">
-                            {managementPhilosophyQuestions.map((question) => (
-                                <LikertScale
-                                    key={question.id}
-                                    question={question.question_text}
-                                    value={data.management_philosophy[question.id.toString()]}
-                                    onChange={(value) => {
-                                        setData('management_philosophy', {
-                                            ...data.management_philosophy,
-                                            [question.id.toString()]: value,
-                                        });
-                                    }}
-                                    scale={7}
-                                    labels={question.metadata?.labels || []}
-                                    required
-                                />
-                            ))}
-                        </CardContent>
-                    </Card>
+                    <ManagementStep
+                        stepMeta={STEPS[currentStep]}
+                        stepIndex={currentStep}
+                        totalSteps={STEPS.length}
+                        questions={managementPhilosophyQuestions}
+                        data={data}
+                        setData={setData}
+                    />
                 );
-
             case 'vision':
                 return (
-                    <Card className="border-2 shadow-lg">
-                        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
-                            <CardTitle className="text-2xl">Vision/Mission/Ideal Talent Type</CardTitle>
-                            <CardDescription className="text-base my-2">
-                                This section clarifies the future direction of your company and the type of talent needed to achieve that vision.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-8 space-y-8">
-                            {visionMissionQuestions.map((question) => {
-                                if (question.question_type === 'select') {
-                                    return (
-                                        <SelectQuestion
-                                            key={question.id}
-                                            question={question.question_text}
-                                            value={data.vision_mission[question.id.toString()]}
-                                            onChange={(value) => {
-                                                setData('vision_mission', {
-                                                    ...data.vision_mission,
-                                                    [question.id.toString()]: value,
-                                                });
-                                            }}
-                                            options={question.options || []}
-                                            required
-                                        />
-                                    );
-                                } else if (question.question_type === 'number') {
-                                    return (
-                                        <TextQuestion
-                                            key={question.id}
-                                            question={question.question_text}
-                                            value={data.vision_mission[question.id.toString()]}
-                                            onChange={(value) => {
-                                                setData('vision_mission', {
-                                                    ...data.vision_mission,
-                                                    [question.id.toString()]: value,
-                                                });
-                                            }}
-                                            type="number"
-                                            placeholder={question.metadata?.unit || ''}
-                                            required
-                                        />
-                                    );
-                                } else {
-                                    return (
-                                        <TextQuestion
-                                            key={question.id}
-                                            question={question.question_text}
-                                            value={data.vision_mission[question.id.toString()]}
-                                            onChange={(value) => {
-                                                setData('vision_mission', {
-                                                    ...data.vision_mission,
-                                                    [question.id.toString()]: value,
-                                                });
-                                            }}
-                                            type="textarea"
-                                            required
-                                        />
-                                    );
-                                }
-                            })}
-                        </CardContent>
-                    </Card>
+                    <VisionStep
+                        currentChunk={currentVisionChunk}
+                        onChunkChange={setCurrentVisionChunk}
+                        getChunkQuestions={visionChunkQuestions}
+                        data={data}
+                        setData={setData}
+                    />
                 );
-
             case 'growth':
                 return (
-                    <Card className="border-2 shadow-lg">
-                        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
-                            <CardTitle className="text-2xl">Growth Stage</CardTitle>
-                            <CardDescription className="text-base mt-2">
-                                This section identifies your company's current growth phase to align organizational structure and people strategy with business maturity.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-8">
-                            {growthStageQuestion && (
-                                <SelectQuestion
-                                    question={growthStageQuestion.question_text}
-                                    value={data.growth_stage}
-                                    onChange={(value) => setData('growth_stage', value)}
-                                    options={growthStageQuestion.options || []}
-                                    required
-                                />
-                            )}
-                        </CardContent>
-                    </Card>
+                    <GrowthStep
+                        value={data.growth_stage}
+                        onChange={(value) => setData('growth_stage', value)}
+                    />
                 );
-
             case 'leadership':
                 return (
-                    <Card className="border-2 shadow-lg">
-                        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
-                            <CardTitle className="text-2xl">Leadership</CardTitle>
-                            <CardDescription className="text-base mt-2">
-                                This section examines leadership style and management practices to assess how leadership impacts execution and organizational culture.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-8 space-y-8">
-                            {leadershipQuestions.map((question) => (
-                                <SliderQuestion
-                                    key={question.id}
-                                    question={question.question_text}
-                                    value={data.leadership[question.id.toString()] || 4}
-                                    onChange={(value) => {
-                                        setData('leadership', {
-                                            ...data.leadership,
-                                            [question.id.toString()]: value,
-                                        });
-                                    }}
-                                    optionA={question.metadata?.option_a}
-                                    optionB={question.metadata?.option_b}
-                                    required
-                                />
-                            ))}
-                        </CardContent>
-                    </Card>
+                    <LeadershipStep
+                        questions={leadershipQuestions}
+                        data={data}
+                        setData={setData}
+                    />
                 );
-
             case 'general':
                 return (
-                    <Card className="border-2 shadow-lg">
-                        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
-                            <CardTitle className="text-2xl">General Questions</CardTitle>
-                            <CardDescription className="text-base mt-2">
-                                This section gathers overall operational context to support a balanced and accurate interpretation of your responses.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-8 space-y-8">
-                            {generalQuestions.map((question) => (
-                                <SliderQuestion
-                                    key={question.id}
-                                    question={question.question_text}
-                                    value={data.general[question.id.toString()] || 4}
-                                    onChange={(value) => {
-                                        setData('general', {
-                                            ...data.general,
-                                            [question.id.toString()]: value,
-                                        });
-                                    }}
-                                    optionA={question.metadata?.option_a}
-                                    optionB={question.metadata?.option_b}
-                                    required
-                                />
-                            ))}
-                        </CardContent>
-                    </Card>
+                    <GeneralStep
+                        questions={generalQuestions}
+                        data={data}
+                        setData={setData}
+                    />
                 );
-
             case 'issues':
-                // Group HR issues by category
-                const groupedIssues = hrIssues.reduce((acc, issue) => {
-                    const category = issue.category || 'others';
-                    if (!acc[category]) {
-                        acc[category] = [];
-                    }
-                    acc[category].push(issue);
-                    return acc;
-                }, {} as Record<string, typeof hrIssues>);
-
-                // Category display names
-                const categoryNames: Record<string, string> = {
-                    'recruitment_retention': 'Recruitment / Retention',
-                    'organizations': 'Organizations',
-                    'culture_leadership': 'Culture / Leadership',
-                    'evaluation_compensation': 'Evaluation / Compensation',
-                    'upskilling': 'Upskilling',
-                    'others': 'Others',
-                };
-
-                const handleIssueToggle = (issueId: string, isChecked: boolean) => {
-                    const currentIssues = data.organizational_issues || [];
-                    if (isChecked) {
-                        if (!currentIssues.includes(issueId)) {
-                            setData('organizational_issues', [...currentIssues, issueId]);
-                        }
-                    } else {
-                        setData('organizational_issues', currentIssues.filter((id: string | number) => id.toString() !== issueId));
-                    }
-                };
-
                 return (
-                    <Card className="border-2 shadow-lg">
-                        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
-                            <CardTitle className="text-2xl">Organizational Issues</CardTitle>
-                            <CardDescription className="text-base mt-2">
-                                These issues have been identified by your HR manager as key challenges currently facing the company. Please select the issues that you also agree are relevant from your perspective as CEO.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-8 space-y-8">
-                            {Object.entries(groupedIssues).map(([category, issues]) => (
-                                <div key={category} className="space-y-3">
-                                    <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                                        {categoryNames[category.toLowerCase()] || category}
-                                    </h4>
-                                    <div className="grid grid-cols-1 gap-3">
-                                        {issues.map((issue) => {
-                                            const issueIdStr = issue.id.toString();
-                                            const isSelected = (data.organizational_issues || []).some((id: string | number) => id.toString() === issueIdStr);
-                                            return (
-                                                <div key={issue.id} className="flex items-center space-x-2 p-4 border rounded-lg">
-                                                    <Checkbox
-                                                        id={`issue-${issue.id}`}
-                                                        checked={isSelected}
-                                                        onCheckedChange={(checked) => handleIssueToggle(issueIdStr, checked === true)}
-                                                    />
-                                                    <label
-                                                        htmlFor={`issue-${issue.id}`}
-                                                        className="text-sm font-medium leading-none cursor-pointer"
-                                                    >
-                                                        {issue.name}
-                                                    </label>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            ))}
-                            {/* Other option with text input */}
-                            <div className="space-y-3 mt-6 pt-6 border-t">
-                                <div className="flex items-center space-x-2 p-4 border rounded-lg">
-                                    <Checkbox
-                                        id="issue-other"
-                                        checked={Boolean((data as any).organizational_issues_other?.trim())}
-                                        onCheckedChange={(checked) => {
-                                            if (!checked) setData('organizational_issues_other', '' as any);
-                                        }}
-                                    />
-                                    <label htmlFor="issue-other" className="text-sm font-medium leading-none cursor-pointer">
-                                        Other (describe additional issues not listed above)
-                                    </label>
-                                </div>
-                                <Input
-                                    value={(data as any).organizational_issues_other || ''}
-                                    onChange={(e) => setData('organizational_issues_other', e.target.value as any)}
-                                    placeholder="Please describe additional HR or organizational issues..."
-                                    className="mt-2"
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <IssuesStep
+                        hrIssues={hrIssues}
+                        data={data}
+                        setData={setData}
+                    />
                 );
-
             case 'concerns':
                 return (
-                    <Card className="border-2 shadow-lg">
-                        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
-                            <CardTitle className="text-2xl">CEO's Concerns</CardTitle>
-                            <CardDescription className="text-base">
-                                This section captures the key concerns and priorities you currently have as CEO, providing direct input for defining practical focus areas and next steps.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-8">
-                            {concernsQuestion && (
-                                <TextQuestion
-                                    question={concernsQuestion.question_text}
-                                    value={data.concerns}
-                                    onChange={(value) => setData('concerns', value)}
-                                    type="textarea"
-                                    rows={6}
-                                    required
-                                />
-                            )}
-                        </CardContent>
-                    </Card>
+                    <ConcernsStep
+                        question={concernsQuestion}
+                        value={data.concerns}
+                        onChange={(value) => setData('concerns', value)}
+                    />
                 );
-
             default:
                 return null;
         }
+    };
+
+    const isStepComplete = (i: number) => {
+        if (i === 0) return hasAgreed;
+        if (i === 1) return managementPhilosophyQuestions.every((q) => data.management_philosophy[q.id.toString()] != null && !Number.isNaN(Number(data.management_philosophy[q.id.toString()])));
+        if (i === 2) return visionMissionQuestions.every((q) => data.vision_mission[q.id.toString()] != null && data.vision_mission[q.id.toString()] !== '');
+        if (i === 3) return !!data.growth_stage?.trim();
+        if (i === 4) return leadershipQuestions.every((q) => data.leadership[q.id.toString()] != null);
+        if (i === 5) return generalQuestions.every((q) => data.general[q.id.toString()] != null);
+        if (i === 6) return (data.organizational_issues || []).length >= 1;
+        if (i === 7) return !!data.concerns?.trim();
+        return false;
     };
 
     return (
@@ -604,98 +453,141 @@ For the most meaningful outcome, please answer honestly and instinctively, based
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
+            <SidebarInset className="flex flex-col overflow-hidden bg-[#F0EDE6]">
                 <AppHeader />
+                <div className="sticky top-0 z-10 bg-white border-b border-[#E2DDD4] px-4 sm:px-6 lg:px-10 py-3 sm:py-3.5">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-2.5">
+                        <span className="font-serif text-[15px] font-semibold text-[#0E1628]">
+                            {currentStep === 6 ? 'Organizational Issues' : currentStep === 7 ? "CEO's Concerns" : '경영 철학 진단'}
+                        </span>
+                        {currentStep === 7 ? (
+                            <div className="flex items-center gap-1.5 bg-gradient-to-r from-[#0E1628] to-[#2A3F6B] rounded-full py-1 px-3">
+                                <span className="font-serif text-[15px] font-bold text-[#E8C96B]">100%</span>
+                                <span className="text-[10px] text-white/50 uppercase tracking-wider">Complete</span>
+                            </div>
+                        ) : currentStep === 6 ? (
+                            <div className="flex items-center gap-2 bg-[#0E1628] rounded-full py-1.5 px-3.5">
+                                <span className="font-serif text-base font-bold text-[#E8C96B] leading-none">
+                                    {(data.organizational_issues || []).length}
+                                </span>
+                                <span className="text-xs text-white/30">/</span>
+                                <span className="text-[13px] text-white/50">{MAX_ORGANIZATIONAL_ISSUES}</span>
+                                <span className="text-[11px] text-white/40 font-light ml-0.5">selected</span>
+                            </div>
+                        ) : (
+                            <span className="text-[11px] text-[#9A9EB8]">
+                                섹션 <strong className="text-[#C9A84C] font-semibold">{currentStep + 1}</strong> / {STEPS.length}
+                            </span>
+                        )}
+                    </div>
+                    {currentStep === 6 && (
+                        <div className="flex gap-1.5 mb-2">
+                            {Array.from({ length: MAX_ORGANIZATIONAL_ISSUES }, (_, i) => {
+                                const n = (data.organizational_issues || []).length;
+                                const filled = i < n;
+                                return (
+                                    <div
+                                        key={i}
+                                        className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center text-[8px] font-bold transition-all ${
+                                            filled ? 'bg-[#0E1628] border-[#0E1628] text-[#E8C96B]' : 'bg-white border-[#E2DDD4] text-transparent'
+                                        }`}
+                                    >
+                                        {filled ? i + 1 : ''}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                    <div className="flex gap-1.5 flex-wrap overflow-x-auto pb-1 -mx-1">
+                        {STEPS.map((s, i) => (
+                            <div
+                                key={s.id}
+                                className={`h-7 px-3 rounded-full text-[11px] font-medium flex items-center gap-1.5 border transition-all ${
+                                    i === currentStep
+                                        ? 'bg-[#0E1628] border-[#0E1628] text-white'
+                                        : isStepComplete(i)
+                                            ? 'bg-[#2E9E6B]/10 border-[#2E9E6B]/30 text-[#2E9E6B]'
+                                            : 'bg-transparent border-[#E2DDD4] text-[#9A9EB8]'
+                                }`}
+                            >
+                                <span className={`w-1.5 h-1.5 rounded-full ${i === currentStep ? 'bg-[#E8C96B]' : 'bg-current opacity-60'}`} />
+                                {s.nameKo || s.name}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-2.5 h-[3px] bg-[#E8E4DC] rounded-full overflow-hidden">
+                        <div
+                            className="h-full rounded-full bg-gradient-to-r from-[#0E1628] to-[#C9A84C] transition-all duration-500"
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
+                </div>
+
                 <main className="flex-1 overflow-auto">
                     <Head title={`Management Philosophy Survey - ${project?.company?.name || 'Company'}`} />
-                    <div className="p-6 md:p-8 max-w-5xl mx-auto">
-                        <div className="mb-8">
-                            <div className="flex items-center justify-between mb-4">
-                                <div>
-                                    <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                                        Management Philosophy Survey
-                                    </h1>
-                                    <p className="text-muted-foreground text-lg">
-                                        Step {currentStep + 1} of {STEPS.length}: {STEPS[currentStep].name}
-                                    </p>
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-2xl font-bold text-primary">{Math.round(progress)}%</div>
-                                    <div className="text-xs text-muted-foreground uppercase tracking-wide">Complete</div>
-                                </div>
+                    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-10 pb-28 sm:pb-32">
+                        {Object.keys(errors).length > 0 && (
+                            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/30 dark:text-red-200">
+                                <ul className="list-disc list-inside space-y-0.5">
+                                    {Object.entries(errors).map(([field, message]) => (
+                                        <li key={field}>{String(message)}</li>
+                                    ))}
+                                </ul>
                             </div>
-                            <Progress value={progress} className="h-3 rounded-full" />
-                        </div>
-
-                        {(Object.keys(errors).length > 0 || validationError) && (
-                            <Alert variant="destructive" className="mb-6">
-                                <AlertCircle className="h-4 w-4" />
-                                <AlertDescription>
-                                    <p className="font-medium mb-1">
-                                        {validationError || 'Please fix the following before submitting:'}
-                                    </p>
-                                    {Object.keys(errors).length > 0 && (
-                                        <ul className="list-disc list-inside text-sm mt-2 space-y-1">
-                                            {Object.entries(errors).map(([field, message]) => (
-                                                <li key={field}>{String(message)}</li>
-                                            ))}
-                                        </ul>
-                                    )}
-                                </AlertDescription>
-                            </Alert>
                         )}
 
-                        <div 
-                            ref={(el) => { stepRefs.current[currentStep] = el; }}
-                            className={validationError ? 'ring-2 ring-destructive ring-offset-2 rounded-lg' : ''}
-                        >
+                        <div ref={(el) => { stepRefs.current[currentStep] = el; }}>
                             {renderStepContent()}
-                        </div>
-
-                        <div className="mt-8 flex items-center justify-between gap-4">
-                            <Button
-                                variant="outline"
-                                onClick={handlePrevious}
-                                disabled={currentStep === 0}
-                                size="lg"
-                                className="min-w-[140px]"
-                            >
-                                <ChevronLeft className="w-4 h-4 mr-2" />
-                                Previous
-                            </Button>
-                            {currentStep < STEPS.length - 1 ? (
-                                <Button 
-                                    onClick={handleNext}
-                                    disabled={currentStep === 0 && !hasAgreed}
-                                    size="lg"
-                                    className="min-w-[180px] bg-primary hover:bg-primary/90"
-                                >
-                                    {currentStep === 0 ? 'I Understand & Start' : 'Next'}
-                                    <ChevronRight className="w-4 h-4 ml-2" />
-                                </Button>
-                            ) : (
-                                <Button 
-                                    onClick={handleSubmit} 
-                                    disabled={processing}
-                                    size="lg"
-                                    className="min-w-[180px] bg-primary hover:bg-primary/90"
-                                >
-                                    {processing ? (
-                                        <>
-                                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                                            Submitting...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                                            Submit Survey
-                                        </>
-                                    )}
-                                </Button>
-                            )}
                         </div>
                     </div>
                 </main>
+
+                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E2DDD4] py-3 sm:py-4 px-4 sm:px-6 lg:px-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 z-20">
+                    <span className="text-[12px] text-[#9A9EB8] order-2 sm:order-1 text-center sm:text-left">
+                        {currentStep === 6 ? (
+                            <>
+                                <strong className="text-[#0E1628] font-semibold">{(data.organizational_issues || []).length}</strong> / {MAX_ORGANIZATIONAL_ISSUES} issues selected
+                            </>
+                        ) : (
+                            <>
+                                <strong className="text-[#0E1628] font-semibold">{answeredCount()}</strong> / {totalQuestions} 문항 응답
+                            </>
+                        )}
+                    </span>
+                    <div className="flex gap-2 sm:gap-2.5 justify-center sm:justify-end order-1 sm:order-2">
+                        <Button
+                            variant="outline"
+                            onClick={handlePrevious}
+                            disabled={currentStep === 0}
+                            className="flex-1 sm:flex-none min-w-0 sm:min-w-[100px] border-[#E2DDD4] text-[#4A4E69] hover:border-[#0E1628] hover:text-[#0E1628]"
+                        >
+                            ← 이전
+                        </Button>
+                        {currentStep < STEPS.length - 1 ? (
+                            <Button
+                                onClick={handleNext}
+                                disabled={currentStep === 0 && !hasAgreed}
+                                className="flex-1 sm:flex-none min-w-0 sm:min-w-[140px] bg-[#0E1628] hover:bg-[#1A2D50] text-white"
+                            >
+                                {currentStep === 2 && currentVisionChunk < 2 ? 'Next part →' : '다음 섹션 →'}
+                            </Button>
+                        ) : (
+                            <Button onClick={handleSubmit} disabled={processing} className="flex-1 sm:flex-none min-w-0 sm:min-w-[160px] bg-[#0E1628] hover:bg-[#1A2D50] text-white">
+                                {processing ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                        제출 중...
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                                        제출하기 ✓
+                                    </>
+                                )}
+                            </Button>
+                        )}
+                    </div>
+                </div>
             </SidebarInset>
         </SidebarProvider>
     );

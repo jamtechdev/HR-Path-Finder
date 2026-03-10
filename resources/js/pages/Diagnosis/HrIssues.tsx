@@ -112,6 +112,10 @@ interface Props {
     diagnosisStatus: string;
     stepStatuses: Record<string, string>;
     projectId?: number;
+    embedMode?: boolean;
+    readOnly?: boolean;
+    embedData?: Record<string, unknown>;
+    embedSetData?: (key: string, value: unknown) => void;
 }
 
 function buildCheckedFromDiagnosis(diagnosis?: Diagnosis | null): Record<string, string[]> {
@@ -133,6 +137,10 @@ export default function HrIssues({
     diagnosisStatus,
     stepStatuses,
     projectId,
+    embedMode = false,
+    readOnly = false,
+    embedData,
+    embedSetData,
 }: Props) {
     const [checked, setChecked] = useState<Record<string, string[]>>(() =>
         buildCheckedFromDiagnosis(diagnosis)
@@ -142,10 +150,13 @@ export default function HrIssues({
 
     const activeCat = CATEGORIES[activeCatIdx];
 
-    const { data, setData } = useForm({
+    const internalForm = useForm({
         hr_issues: [] as string[],
         custom_hr_issues: '',
     });
+    const useEmbed = embedMode && embedData != null && embedSetData;
+    const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
+    const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
 
     useEffect(() => {
         const flat = Object.entries(checked).flatMap(([, issues]) => issues);
@@ -187,22 +198,7 @@ export default function HrIssues({
     const directInputLabel = both('directInput');
     const customPlaceholder = both('customIssuePlaceholder');
 
-    return (
-        <>
-            <Head title={`Key HR/Organizational Issues - ${company?.name || project?.company?.name || 'Company'}`} />
-            <FormLayout
-                title={tr('hrIssuesTitle')}
-                project={project}
-                diagnosis={diagnosis}
-                activeTab={activeTab}
-                diagnosisStatus={diagnosisStatus}
-                stepStatuses={stepStatuses}
-                projectId={projectId}
-                backRoute="job-structure"
-                nextRoute="review"
-                formData={data}
-                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
-            >
+    const innerContent = (
                 <div className="space-y-5 max-w-[780px] mx-auto">
                     <div>
                         <h1 className="text-2xl font-bold text-[#0f2a4a]">{tr('hrIssuesTitle')}</h1>
@@ -416,6 +412,25 @@ export default function HrIssues({
                         </div>
                     )}
                 </div>
+    );
+    if (embedMode) return <>{innerContent}</>;
+    return (
+        <>
+            <Head title={`Key HR/Organizational Issues - ${company?.name || project?.company?.name || 'Company'}`} />
+            <FormLayout
+                title={tr('hrIssuesTitle')}
+                project={project}
+                diagnosis={diagnosis}
+                activeTab={activeTab}
+                diagnosisStatus={diagnosisStatus}
+                stepStatuses={stepStatuses}
+                projectId={projectId}
+                backRoute="job-structure"
+                nextRoute="review"
+                formData={data}
+                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
+            >
+                {innerContent}
             </FormLayout>
         </>
     );

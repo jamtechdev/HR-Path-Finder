@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ReadOnlyField } from './ReadOnlyField';
 
 interface Company {
     id: number;
@@ -23,6 +24,7 @@ interface CompanyInfoTabProps {
     setData: (key: string, value: any) => void;
     industryCategories: IndustryCategory[];
     hqLocations: string[];
+    readOnly?: boolean;
 }
 
 export default function CompanyInfoTab({
@@ -31,9 +33,56 @@ export default function CompanyInfoTab({
     setData,
     industryCategories,
     hqLocations,
+    readOnly = false,
 }: CompanyInfoTabProps) {
     const selectedIndustryCategory = industryCategories.find(cat => cat.name === data.industry_category);
     const subCategories = selectedIndustryCategory?.subCategories || [];
+
+    if (readOnly) {
+        return (
+            <div className="space-y-6">
+                <Card className="shadow-md">
+                    <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
+                        <CardTitle className="text-xl">Company Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <ReadOnlyField label="Company Name" value={company.name} />
+                            <ReadOnlyField label="Foundation Date" value={data.foundation_date || '—'} />
+                            <ReadOnlyField label="Business Registration Number" value={data.registration_number || '—'} />
+                            <ReadOnlyField label="Brand Name" value={data.brand_name || '—'} />
+                            <ReadOnlyField label="HQ Location" value={data.hq_location || '—'} />
+                            <ReadOnlyField label="Public Listing Status" value={data.is_public ? 'Yes' : 'No'} />
+                        </div>
+                        {company.logo_path && (
+                            <div className="mt-6 pt-6 border-t">
+                                <Label className="text-sm font-semibold mb-3 block">Company Logo</Label>
+                                <img
+                                    src={company.logo_path.startsWith('/') ? company.logo_path : `/storage/${company.logo_path}`}
+                                    alt="Company Logo"
+                                    className="w-24 h-24 object-contain border-2 border-border rounded-lg p-3 bg-muted shadow-sm"
+                                />
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+                <Card className="shadow-md">
+                    <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
+                        <CardTitle className="text-xl">Industry Classification</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <ReadOnlyField label="Major Industry Category" value={data.industry_category || '—'} />
+                            <ReadOnlyField label="Sub Industry Category" value={data.industry_subcategory || '—'} />
+                            {data.industry_subcategory === 'Others' && data.industry_other && (
+                                <ReadOnlyField label="Other (specify)" value={data.industry_other} />
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">

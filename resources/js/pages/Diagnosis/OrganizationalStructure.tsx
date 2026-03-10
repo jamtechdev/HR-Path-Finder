@@ -20,6 +20,10 @@ interface Props {
     diagnosisStatus: string;
     stepStatuses: Record<string, string>;
     projectId?: number;
+    embedMode?: boolean;
+    readOnly?: boolean;
+    embedData?: Record<string, unknown>;
+    embedSetData?: (key: string, value: unknown) => void;
 }
 
 const STRUCTURE_OPTIONS: Array<{ id: string; nameKo: string; descKo: string }> = [
@@ -52,6 +56,10 @@ export default function OrganizationalStructure({
     diagnosisStatus,
     stepStatuses,
     projectId,
+    embedMode = false,
+    readOnly = false,
+    embedData,
+    embedSetData,
 }: Props) {
     const [selectedIds, setSelectedIds] = useState<string[]>(() =>
         normalizeLoadedTypes(diagnosis?.org_structure_types)
@@ -62,10 +70,13 @@ export default function OrganizationalStructure({
             : '')
     );
 
-    const { data, setData } = useForm({
+    const internalForm = useForm({
         org_structure_types: [] as string[],
         org_structure_explanations: {} as Record<string, string>,
     });
+    const useEmbed = embedMode && embedData != null && embedSetData;
+    const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
+    const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
 
     useEffect(() => {
         setData('org_structure_types', selectedIds);
@@ -89,22 +100,7 @@ export default function OrganizationalStructure({
     const selectedLabel = both('selectedStructures');
     const noSelected = both('noStructureSelected');
 
-    return (
-        <>
-            <Head title={`Organizational Structure - ${company?.name || project?.company?.name || 'Company'}`} />
-            <FormLayout
-                title={tr('orgStructureTitle')}
-                project={project}
-                diagnosis={diagnosis}
-                activeTab={activeTab}
-                diagnosisStatus={diagnosisStatus}
-                stepStatuses={stepStatuses}
-                projectId={projectId}
-                backRoute="organizational-charts"
-                nextRoute="job-structure"
-                formData={{ org_structure_types: selectedIds, org_structure_explanations: { ...data.org_structure_explanations, custom: customNote } }}
-                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
-            >
+    const innerContent = (
                 <div className="space-y-6">
                     <div>
                         <p className="text-[12.5px] text-muted-foreground leading-relaxed">
@@ -120,7 +116,8 @@ export default function OrganizationalStructure({
                                 <button
                                     key={opt.id}
                                     type="button"
-                                    onClick={() => toggle(opt.id)}
+                                    onClick={() => !readOnly && toggle(opt.id)}
+                                    disabled={readOnly}
                                     className={cn(
                                         'relative rounded-2xl border-2 p-7 pt-7 flex flex-col items-center gap-4 text-center transition-all duration-200 select-none cursor-pointer',
                                         'bg-white border-[var(--gray-200)] hover:border-[var(--gray-300)] hover:shadow-lg hover:-translate-y-0.5',
@@ -189,6 +186,25 @@ export default function OrganizationalStructure({
                         </div>
                     </div>
                 </div>
+    );
+    if (embedMode) return <>{innerContent}</>;
+    return (
+        <>
+            <Head title={`Organizational Structure - ${company?.name || project?.company?.name || 'Company'}`} />
+            <FormLayout
+                title={tr('orgStructureTitle')}
+                project={project}
+                diagnosis={diagnosis}
+                activeTab={activeTab}
+                diagnosisStatus={diagnosisStatus}
+                stepStatuses={stepStatuses}
+                projectId={projectId}
+                backRoute="organizational-charts"
+                nextRoute="job-structure"
+                formData={{ org_structure_types: selectedIds, org_structure_explanations: { ...data.org_structure_explanations, custom: customNote } }}
+                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
+            >
+                {innerContent}
             </FormLayout>
         </>
     );

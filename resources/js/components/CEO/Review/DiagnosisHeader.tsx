@@ -48,17 +48,17 @@ export default function DiagnosisHeader({
     };
 
     return (
-        <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex-1">
-                    <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+        <div className="mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                    <h1 className="text-2xl sm:text-3xl font-extrabold mb-2 text-[#0f2a4a] tracking-tight">
                         {title}
                     </h1>
-                    <p className="text-lg text-muted-foreground leading-relaxed">
+                    <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-3xl">
                         {subtitle}
                     </p>
                 </div>
-                {getStatusBadge()}
+                <div className="flex-shrink-0">{getStatusBadge()}</div>
             </div>
         </div>
     );

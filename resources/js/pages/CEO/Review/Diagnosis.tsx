@@ -1,27 +1,41 @@
-import React, { useEffect, useState } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Head, useForm, router, Link } from '@inertiajs/react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import DiagnosisHeader from '@/components/CEO/Review/DiagnosisHeader';
 import DiagnosisTabs from '@/components/CEO/Review/DiagnosisTabs';
-import CompanyInfoTab from '@/components/CEO/Review/CompanyInfoTab';
-import WorkforceTab from '@/components/CEO/Review/WorkforceTab';
-import ExecutivesTab from '@/components/CEO/Review/ExecutivesTab';
-import LeadersTab from '@/components/CEO/Review/LeadersTab';
-import JobGradesTab from '@/components/CEO/Review/JobGradesTab';
-import OrgChartsTab from '@/components/CEO/Review/OrgChartsTab';
-import OrgStructureTab from '@/components/CEO/Review/OrgStructureTab';
-import JobStructureTab from '@/components/CEO/Review/JobStructureTab';
-import HrIssuesTab from '@/components/CEO/Review/HrIssuesTab';
 import ChangeHistoryTab from '@/components/CEO/Review/ChangeHistoryTab';
+import CompanyInfo from '@/pages/Diagnosis/CompanyInfo';
+import Workforce from '@/pages/Diagnosis/Workforce';
+import Executives from '@/pages/Diagnosis/Executives';
+import Leaders from '@/pages/Diagnosis/Leaders';
+import JobGrades from '@/pages/Diagnosis/JobGrades';
+import OrganizationalCharts from '@/pages/Diagnosis/OrganizationalCharts';
+import OrganizationalStructure from '@/pages/Diagnosis/OrganizationalStructure';
+import JobStructure from '@/pages/Diagnosis/JobStructure';
+import HrIssues from '@/pages/Diagnosis/HrIssues';
 import DiagnosisActions from '@/components/CEO/Review/DiagnosisActions';
 import SuccessModal from '@/components/Modals/SuccessModal';
 import { Toaster } from '@/components/ui/toaster';
 import { toast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft } from 'lucide-react';
+
+const formatValue = (value: unknown): string => {
+    if (value === null || value === undefined || value === '') return '—';
+    if (typeof value === 'object') {
+        if (Array.isArray(value)) return value.length > 0 ? value.join(', ') : '—';
+        return JSON.stringify(value);
+    }
+    return String(value);
+};
+const formatNumber = (value: number | string | null | undefined): string => {
+    if (value === null || value === undefined || value === '') return '—';
+    const n = typeof value === 'string' ? parseFloat(value) : value;
+    return isNaN(n) ? '—' : n.toLocaleString();
+};
 
 interface Diagnosis {
     id: number;
@@ -44,6 +58,7 @@ interface Diagnosis {
     leadership_count?: number;
     leadership_percentage?: number;
     job_grade_names?: string[];
+    job_grade_headcounts?: Record<string, number>;
     promotion_years?: Record<string, number | null>;
     org_structure_types?: string[];
     organizational_charts?: Record<string, string>;
@@ -111,16 +126,17 @@ export default function CeoReviewDiagnosis({
     hqLocations = [],
     hrIssues = [],
 }: Props) {
-    const [activeTab, setActiveTab] = useState('summary');
+    const [activeTab, setActiveTab] = useState('company-info');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     
     const { data, setData, post, processing, errors } = useForm({
         ...diagnosis,
-        registration_number: diagnosis?.registration_number || company.registration_number || '',
-        hq_location: diagnosis?.hq_location || company.hq_location || '',
-        is_public: company.is_public ?? false,
-        brand_name: company.brand_name || '',
-        foundation_date: company.foundation_date || '',
+        company_name: company?.name || '',
+        registration_number: diagnosis?.registration_number ?? company?.registration_number ?? '',
+        hq_location: diagnosis?.hq_location ?? company?.hq_location ?? '',
+        is_public: company?.is_public ?? false,
+        brand_name: company?.brand_name ?? '',
+        foundation_date: company?.foundation_date ?? '',
     });
 
     // Update form data when diagnosis or company props change (after save/reload)
@@ -132,12 +148,12 @@ export default function CeoReviewDiagnosis({
                 }
             });
         }
-        
-        setData('registration_number', diagnosis?.registration_number || company.registration_number || '');
-        setData('hq_location', diagnosis?.hq_location || company.hq_location || '');
-        setData('is_public', company.is_public ?? false);
-        setData('brand_name', company.brand_name || '');
-        setData('foundation_date', company.foundation_date || '');
+        setData('company_name', company?.name ?? '');
+        setData('registration_number', diagnosis?.registration_number ?? company?.registration_number ?? '');
+        setData('hq_location', diagnosis?.hq_location ?? company?.hq_location ?? '');
+        setData('is_public', company?.is_public ?? false);
+        setData('brand_name', company?.brand_name ?? '');
+        setData('foundation_date', company?.foundation_date ?? '');
     }, [diagnosis, company]);
 
     // Calculate gender ratio
@@ -156,43 +172,6 @@ export default function CeoReviewDiagnosis({
             setData('leadership_percentage', Math.round(percentage * 100) / 100);
         }
     }, [data.present_headcount, data.leadership_count]);
-
-    // Handle executive positions
-    const [executivePositions, setExecutivePositions] = useState<Array<{ role: string; count: number }>>(() => {
-        if (diagnosis?.executive_positions) {
-            if (Array.isArray(diagnosis.executive_positions)) {
-                return diagnosis.executive_positions;
-            } else {
-                return Object.entries(diagnosis.executive_positions).map(([role, count]) => ({
-                    role,
-                    count: count as number,
-                }));
-            }
-        }
-        return [];
-    });
-
-    // Update executive positions when diagnosis changes (after save/reload)
-    useEffect(() => {
-        if (diagnosis?.executive_positions) {
-            if (Array.isArray(diagnosis.executive_positions)) {
-                setExecutivePositions(diagnosis.executive_positions);
-            } else {
-                setExecutivePositions(
-                    Object.entries(diagnosis.executive_positions).map(([role, count]) => ({
-                        role,
-                        count: count as number,
-                    }))
-                );
-            }
-        } else {
-            setExecutivePositions([]);
-        }
-    }, [diagnosis]);
-
-    useEffect(() => {
-        setData('executive_positions', executivePositions);
-    }, [executivePositions]);
 
     const handleSave = () => {
         post(`/ceo/review/diagnosis/${project.id}/update`, {
@@ -223,6 +202,26 @@ export default function CeoReviewDiagnosis({
         router.visit(`/ceo/philosophy/survey/${project.id}`);
     };
 
+    const totalHeadcount = Number(diagnosis?.present_headcount) || 0;
+    const execTotal = Number(diagnosis?.total_executives) || 0;
+    const jobGradesForPyramid = useMemo(() => {
+        const names = diagnosis?.job_grade_names ?? [];
+        const headcounts = (diagnosis?.job_grade_headcounts ?? {}) as Record<string, number>;
+        return names.map((name) => ({ name, headcount: Number(headcounts[name]) || 0 }));
+    }, [diagnosis?.job_grade_names, diagnosis?.job_grade_headcounts]);
+    const leaderCountFromGrades = jobGradesForPyramid.slice(0, 2).reduce((s, g) => s + g.headcount, 0);
+    const leaderTotal = execTotal + leaderCountFromGrades;
+    const leaderRatio = totalHeadcount ? ((leaderTotal / totalHeadcount) * 100).toFixed(1) : '0';
+    const execRatio = totalHeadcount ? ((execTotal / totalHeadcount) * 100).toFixed(1) : '0';
+    const execPositionsStr = useMemo(() => {
+        const pos = Array.isArray(diagnosis?.executive_positions)
+            ? diagnosis.executive_positions
+            : diagnosis?.executive_positions && typeof diagnosis.executive_positions === 'object'
+                ? Object.entries(diagnosis.executive_positions).map(([role, count]) => ({ role, count: Number(count) || 0 }))
+                : [];
+        return pos.map((p) => `${p.role} × ${p.count}`).join(', ');
+    }, [diagnosis?.executive_positions]);
+
     return (
         <SidebarProvider defaultOpen={true}>
             <Sidebar collapsible="icon" variant="sidebar">
@@ -230,12 +229,71 @@ export default function CeoReviewDiagnosis({
             </Sidebar>
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
-                <main className="flex-1 overflow-auto">
+                <main className="flex-1 overflow-auto bg-slate-50/50">
                     <Head title={`Review Diagnosis - ${project.company.name}`} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
-                        <DiagnosisHeader 
+                        <Link
+                            href={`/ceo/projects/${project.id}/verification`}
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-[#0f2a4a] mb-6 transition-colors"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                            Back to Step Verification
+                        </Link>
+
+                        <DiagnosisHeader
+                            title="Review HR Diagnosis Inputs"
+                            subtitle="Review and edit the diagnosis data submitted by your HR Manager. All changes will be logged."
                             status={diagnosis?.status}
                         />
+
+                        {diagnosis && (
+                            <div className="rounded-t-[14px] bg-gradient-to-br from-[#0f2a4a] to-[#1a4070] px-6 py-5 mb-0">
+                                <div className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#c8a84b]">
+                                    {company?.name || project.company?.name || '—'} · {formatValue(diagnosis?.industry_category) || '—'}
+                                </div>
+                                <div className="flex flex-wrap items-end gap-6">
+                                    <div>
+                                        <div className="mb-0.5 text-[9px] text-slate-400">Total headcount</div>
+                                        <div className="text-2xl font-extrabold leading-none text-white">
+                                            {totalHeadcount}
+                                            <span className="ml-0.5 text-xs font-medium text-slate-400">persons</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-end gap-2">
+                                        <div>
+                                            <div className="mb-0.5 text-[9px] text-slate-400">Active tenure (avg)</div>
+                                            <div className="text-2xl font-extrabold leading-none text-emerald-400">
+                                                {formatNumber(diagnosis?.average_tenure_active)}
+                                                <span className="ml-0.5 text-xs font-medium text-slate-400">yrs</span>
+                                            </div>
+                                        </div>
+                                        <div className="pb-1 text-[10px] text-white/20">vs</div>
+                                        <div>
+                                            <div className="mb-0.5 text-[9px] text-slate-400">Exit tenure (avg)</div>
+                                            <div className="text-2xl font-extrabold leading-none text-slate-400">
+                                                {formatNumber(diagnosis?.average_tenure_leavers)}
+                                                <span className="ml-0.5 text-xs font-medium text-slate-400">yrs</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="h-11 w-px self-center bg-white/10" />
+                                    <div>
+                                        <div className="mb-0.5 text-[9px] text-slate-400">Leader ratio</div>
+                                        <div className="text-2xl font-extrabold leading-none text-[#c8a84b]">{leaderRatio}%</div>
+                                        <div className="mt-0.5 text-[9px] text-slate-400">
+                                            {leaderCountFromGrades} / {totalHeadcount} total
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="mb-0.5 text-[9px] text-slate-400">Executive ratio</div>
+                                        <div className="text-2xl font-extrabold leading-none text-sky-300">{execRatio}%</div>
+                                        <div className="mt-0.5 text-[9px] text-slate-400">
+                                            {execTotal} · {execPositionsStr || '—'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {diagnosis && diagnosis.status !== 'submitted' && (
                             <Alert className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
@@ -257,94 +315,69 @@ export default function CeoReviewDiagnosis({
                             </Alert>
                         )}
 
-                        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                        <div className="rounded-b-[14px] border border-t-0 border-slate-200 bg-white shadow-sm overflow-hidden">
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-0">
                             <DiagnosisTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
-                            <TabsContent value="summary" className="space-y-4">
-                                <div className="rounded-lg border bg-card p-6">
-                                    <h2 className="text-xl font-semibold mb-4">HR Summary – Pain Points Overview</h2>
-                                    <p className="text-muted-foreground text-sm mb-4">
-                                        Quick overview of the main HR and organizational issues identified from the diagnosis inputs.
-                                    </p>
-                                    {((diagnosis?.hr_issues && diagnosis.hr_issues.length > 0) || diagnosis?.custom_hr_issues?.trim()) ? (
-                                        <ul className="space-y-2">
-                                            {(diagnosis?.hr_issues || []).map((issueId) => {
-                                                const issue = hrIssues.find((i) => i.id.toString() === issueId.toString());
-                                                return (
-                                                    <li key={issueId} className="flex items-start gap-2">
-                                                        <span className="text-destructive mt-0.5">•</span>
-                                                        <span>{issue ? issue.name : issueId}</span>
-                                                    </li>
-                                                );
-                                            })}
-                                            {diagnosis?.custom_hr_issues?.trim() && (
-                                                <li className="flex items-start gap-2">
-                                                    <span className="text-destructive mt-0.5">•</span>
-                                                    <span>{diagnosis.custom_hr_issues}</span>
-                                                </li>
-                                            )}
-                                        </ul>
-                                    ) : (
-                                        <p className="text-muted-foreground text-sm">No HR issues or pain points have been recorded yet.</p>
-                                    )}
-                                </div>
+                            <TabsContent value="company-info" className="space-y-4 p-6 pt-4">
+                                {diagnosis && project && (
+                                    <CompanyInfo project={project} company={company} diagnosis={diagnosis} activeTab="company-info" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} industryCategories={industryCategories} hqLocations={hqLocations ?? []} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
+                                )}
                             </TabsContent>
 
-                            <TabsContent value="company-info" className="space-y-4">
-                                <CompanyInfoTab
-                                    company={company}
-                                    data={data}
-                                    setData={setData}
-                                    industryCategories={industryCategories}
-                                    hqLocations={hqLocations}
-                                />
+                            <TabsContent value="workforce" className="space-y-4 p-6 pt-4">
+                                {diagnosis && project && (
+                                    <Workforce project={project} company={company} diagnosis={diagnosis} activeTab="workforce" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
+                                )}
                             </TabsContent>
 
-                            <TabsContent value="workforce" className="space-y-4">
-                                <WorkforceTab data={data} setData={setData} />
+                            <TabsContent value="executives" className="space-y-4 p-6 pt-4">
+                                {diagnosis && project && (
+                                    <Executives project={project} company={company} diagnosis={diagnosis} activeTab="executives" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
+                                )}
                             </TabsContent>
 
-                            <TabsContent value="executives" className="space-y-4">
-                                <ExecutivesTab 
-                                    data={data} 
-                                    setData={setData}
-                                    executivePositions={executivePositions}
-                                    setExecutivePositions={setExecutivePositions}
-                                />
+                            <TabsContent value="leaders" className="space-y-4 p-6 pt-4">
+                                {diagnosis && project && (
+                                    <Leaders project={project} company={company} diagnosis={diagnosis} activeTab="leaders" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
+                                )}
                             </TabsContent>
 
-                            <TabsContent value="leaders" className="space-y-4">
-                                <LeadersTab data={data} setData={setData} />
+                            <TabsContent value="job-grades" className="space-y-4 p-6 pt-4">
+                                {diagnosis && project && (
+                                    <JobGrades project={project} company={company} diagnosis={diagnosis} activeTab="job-grades" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
+                                )}
                             </TabsContent>
 
-                            <TabsContent value="job-grades" className="space-y-4">
-                                <JobGradesTab data={data} setData={setData} />
+                            <TabsContent value="organizational-charts" className="space-y-4 p-6 pt-4">
+                                {diagnosis && project && (
+                                    <OrganizationalCharts project={project} company={company} diagnosis={diagnosis} activeTab="organizational-charts" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
+                                )}
                             </TabsContent>
 
-                            <TabsContent value="organizational-charts" className="space-y-4">
-                                <OrgChartsTab organizationalCharts={diagnosis?.organizational_charts || data.organizational_charts} />
+                            <TabsContent value="organizational-structure" className="space-y-4 p-6 pt-4">
+                                {diagnosis && project && (
+                                    <OrganizationalStructure project={project} company={company} diagnosis={diagnosis} activeTab="organizational-structure" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
+                                )}
                             </TabsContent>
 
-                            <TabsContent value="organizational-structure" className="space-y-4">
-                                <OrgStructureTab data={data} setData={setData} />
+                            <TabsContent value="job-structure" className="space-y-4 p-6 pt-4">
+                                {diagnosis && project && (
+                                    <JobStructure project={project} company={company} diagnosis={diagnosis} activeTab="job-structure" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
+                                )}
                             </TabsContent>
 
-                            <TabsContent value="job-structure" className="space-y-4">
-                                <JobStructureTab data={data} setData={setData} />
+                            <TabsContent value="hr-issues" className="space-y-4 p-6 pt-4">
+                                {diagnosis && project && (
+                                    <HrIssues project={project} company={company} diagnosis={diagnosis} activeTab="hr-issues" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
+                                )}
                             </TabsContent>
 
-                            <TabsContent value="hr-issues" className="space-y-4">
-                                <HrIssuesTab 
-                                    data={data} 
-                                    setData={setData} 
-                                    hrIssues={hrIssues}
-                                />
-                            </TabsContent>
-
-                            <TabsContent value="history" className="space-y-4">
+                            <TabsContent value="history" className="space-y-4 p-6 pt-4">
                                 <ChangeHistoryTab reviewLogs={reviewLogs} />
                             </TabsContent>
                         </Tabs>
+                        </div>
 
                         <DiagnosisActions
                             onSave={handleSave}
