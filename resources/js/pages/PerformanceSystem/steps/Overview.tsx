@@ -1,18 +1,16 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-    FileText, 
-    CheckCircle2, 
+import {
+    FileText,
+    CheckCircle2,
     ArrowRight,
-    Shield,
     Target,
     Users,
     Settings,
-    CheckCircle
+    CheckCircle,
+    Zap,
 } from 'lucide-react';
-import { router } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
 
 interface Step {
@@ -23,6 +21,9 @@ interface Step {
     route: string;
     isCompleted: boolean;
     isEnabled: boolean;
+    progressLabel?: string;
+    progressCurrent?: number;
+    progressTotal?: number;
 }
 
 interface Props {
@@ -34,13 +35,15 @@ interface Props {
     organizationalKpis?: any[];
     evaluationModelAssignments?: any[];
     evaluationStructure?: any;
+    jobCount?: number;
+    snapshotQuestionsCount?: number;
 }
 
-const STEPS: Omit<Step, 'isCompleted' | 'isEnabled'>[] = [
+const STEPS: Omit<Step, 'isCompleted' | 'isEnabled' | 'progressLabel' | 'progressCurrent' | 'progressTotal'>[] = [
     {
         id: 'performance-snapshot',
         name: 'Strategic Performance Snapshot',
-        description: 'Answer 10 questions about your company\'s performance management approach',
+        description: "Answer 10 questions about your company's performance management approach",
         icon: <FileText className="w-5 h-5" />,
         route: 'performance-snapshot',
     },
@@ -74,8 +77,8 @@ const STEPS: Omit<Step, 'isCompleted' | 'isEnabled'>[] = [
     },
 ];
 
-export default function PerformanceSystemOverview({ 
-    projectId, 
+export default function PerformanceSystemOverview({
+    projectId,
     stepStatuses = {},
     completedSteps = new Set(),
     onStepClick,
@@ -83,36 +86,61 @@ export default function PerformanceSystemOverview({
     organizationalKpis = [],
     evaluationModelAssignments = [],
     evaluationStructure,
+    jobCount = 0,
+    snapshotQuestionsCount = 10,
 }: Props) {
     const performanceStatus = stepStatuses?.performance || 'not_started';
     const isInProgress = performanceStatus === 'in_progress';
     const isSubmitted = ['submitted', 'approved', 'locked'].includes(performanceStatus);
 
-    const stepsWithStatus: Step[] = STEPS.map(step => {
+    const stepsWithStatus: Step[] = STEPS.map((step, idx) => {
         let isCompleted = false;
+        let progressLabel = '';
+        let progressCurrent = 0;
+        let progressTotal = 0;
+
         switch (step.id) {
             case 'performance-snapshot':
                 isCompleted = Object.keys(snapshotResponses).length > 0 || completedSteps.has(step.id);
+                progressLabel = 'questions';
+                progressCurrent = isCompleted ? snapshotQuestionsCount : Object.keys(snapshotResponses).length;
+                progressTotal = snapshotQuestionsCount;
                 break;
             case 'kpi-review':
                 isCompleted = organizationalKpis.length > 0 || completedSteps.has(step.id);
+                progressLabel = 'units reviewed';
+                progressCurrent = organizationalKpis.length;
+                progressTotal = 1;
                 break;
             case 'ceo-kpi-review':
                 isCompleted = completedSteps.has(step.id);
+                progressLabel = 'KPIs approved';
+                progressCurrent = 0;
+                progressTotal = 1;
                 break;
             case 'model-assignment':
                 isCompleted = evaluationModelAssignments.length > 0 || completedSteps.has(step.id);
+                progressLabel = 'assigned';
+                progressCurrent = evaluationModelAssignments.length;
+                progressTotal = 1;
                 break;
             case 'evaluation-structure':
                 isCompleted = !!evaluationStructure || completedSteps.has(step.id);
+                progressLabel = 'configured';
+                progressCurrent = evaluationStructure ? 1 : 0;
+                progressTotal = 1;
                 break;
             default:
                 isCompleted = completedSteps.has(step.id);
         }
+
         return {
             ...step,
             isCompleted,
-            isEnabled: true, // All steps are enabled from overview
+            isEnabled: true,
+            progressLabel,
+            progressCurrent,
+            progressTotal,
         };
     });
 
@@ -120,161 +148,182 @@ export default function PerformanceSystemOverview({
         if (onStepClick) {
             onStepClick(step.id);
         } else {
-            router.visit(`/hr-manager/performance-system/${projectId}/${step.route}`);
+            window.location.href = `/hr-manager/performance-system/${projectId}/${step.route}`;
         }
     };
 
-    const getStartRoute = () => {
-        // Find first incomplete step, or default to performance-snapshot
-        const firstIncomplete = stepsWithStatus.find(step => !step.isCompleted);
-        return firstIncomplete?.route || 'performance-snapshot';
-    };
-
-    const handleStart = () => {
-        const startRoute = getStartRoute();
-        if (onStepClick) {
-            onStepClick(startRoute);
-        } else {
-            router.visit(`/hr-manager/performance-system/${projectId}/${startRoute}`);
-        }
-    };
-
-    const completedCount = stepsWithStatus.filter(s => s.isCompleted).length;
+    const completedCount = stepsWithStatus.filter((s) => s.isCompleted).length;
     const totalSteps = stepsWithStatus.length;
-    const progressPercentage = (completedCount / totalSteps) * 100;
+    const progressPercentage = totalSteps > 0 ? (completedCount / totalSteps) * 100 : 0;
+    const firstIncompleteIndex = stepsWithStatus.findIndex((s) => !s.isCompleted);
+    const recommendedNextId = firstIncompleteIndex >= 0 ? stepsWithStatus[firstIncompleteIndex].id : null;
 
     return (
-        <div className="p-6 space-y-6">
-            {/* Header Section */}
-            <div className="text-center space-y-4">
-                <h2 className="text-3xl font-bold text-gray-900">Performance System Overview</h2>
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                    Design your performance management system including evaluation units, methods, and assessment structures.
-                </p>
+        <div className="space-y-6 pb-8">
+            {/* Connected From Previous Step banner */}
+            <div className="rounded-xl overflow-hidden bg-[#151535] text-white px-5 py-4 md:px-6 flex items-center gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[#22c55e]/20 flex items-center justify-center">
+                    <Zap className="w-6 h-6 text-[#22c55e]" />
+                </div>
+                <div>
+                    <p className="text-xs font-bold tracking-wider text-[#94a3b8] uppercase">
+                        Connected from previous step
+                    </p>
+                    <p className="text-sm md:text-base mt-0.5 text-slate-200">
+                        Job Analysis complete — Start performance management based on {jobCount} job data.
+                        {jobCount === 0 && ' (Complete Job Analysis first for job count.)'}
+                    </p>
+                </div>
             </div>
 
-            {/* Progress Summary */}
-            <Card className="border-2">
-                <CardHeader>
+            {/* Progress Summary card */}
+            <Card className="rounded-xl border border-[#e5e7eb] shadow-sm overflow-hidden">
+                <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
-                        <div>
-                            <CardTitle>Progress Summary</CardTitle>
-                            <CardDescription>
-                                {completedCount} of {totalSteps} steps completed
-                            </CardDescription>
-                        </div>
-                        <Badge 
-                            variant={isSubmitted ? 'default' : isInProgress ? 'secondary' : 'outline'}
-                            className="text-sm px-4 py-2"
+                        <CardTitle className="text-lg font-semibold text-[#121431]">
+                            Progress Summary
+                        </CardTitle>
+                        <span
+                            className={cn(
+                                'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold',
+                                isSubmitted
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : isInProgress
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : 'bg-[#f3f4f6] text-[#6b7280]'
+                            )}
                         >
                             {isSubmitted ? 'Submitted' : isInProgress ? 'In Progress' : 'Not Started'}
-                        </Badge>
+                        </span>
                     </div>
+                    <CardDescription className="text-[#6b7280]">
+                        {completedCount} of {totalSteps} steps completed
+                    </CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Overall Progress</span>
-                            <span className="font-medium">{Math.round(progressPercentage)}%</span>
-                        </div>
-                        <div className="w-full bg-muted rounded-full h-3">
-                            <div 
-                                className="bg-primary h-3 rounded-full transition-all duration-300"
-                                style={{ width: `${progressPercentage}%` }}
-                            />
-                        </div>
+                <CardContent className="pt-0">
+                    <p className="text-xs font-medium text-[#6b7280] mb-2">Overall Progress</p>
+                    <div className="w-full bg-[#e5e7eb] rounded-full h-2">
+                        <div
+                            className="bg-[#059669] h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${progressPercentage}%` }}
+                        />
                     </div>
                 </CardContent>
             </Card>
 
-            {/* Steps Grid */}
+            {/* Step cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {stepsWithStatus.map((step, index) => (
-                    <Card
-                        key={step.id}
-                        className={cn(
-                            'cursor-pointer transition-all hover:shadow-lg border-2',
-                            step.isCompleted 
-                                ? 'border-green-300 bg-green-50/50' 
-                                : 'border-border hover:border-primary/50'
-                        )}
-                        onClick={() => handleStepClick(step)}
-                    >
-                        <CardHeader>
-                            <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className={cn(
-                                        'p-2 rounded-lg',
-                                        step.isCompleted 
-                                            ? 'bg-green-100 text-green-700' 
-                                            : 'bg-muted text-muted-foreground'
-                                    )}>
-                                        {step.icon}
+                {stepsWithStatus.map((step, index) => {
+                    const isRecommendedNext = recommendedNextId === step.id;
+                    return (
+                        <Card
+                            key={step.id}
+                            className={cn(
+                                'rounded-xl border shadow-sm overflow-hidden transition-all cursor-pointer hover:shadow-md',
+                                isRecommendedNext
+                                    ? 'border-[#22c55e] border-2'
+                                    : step.isCompleted
+                                    ? 'border-[#22c55e]/50'
+                                    : 'border-[#e5e7eb]'
+                            )}
+                            onClick={() => handleStepClick(step)}
+                        >
+                            <CardHeader className="pb-2">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                        <div
+                                            className={cn(
+                                                'flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center',
+                                                isRecommendedNext
+                                                    ? 'bg-[#dcfce7] text-[#16a34a]'
+                                                    : step.isCompleted
+                                                    ? 'bg-[#dcfce7] text-[#16a34a]'
+                                                    : 'bg-[#f3f4f6] text-[#6b7280]'
+                                            )}
+                                        >
+                                            {step.icon}
+                                        </div>
+                                        <div className="min-w-0">
+                                            {isRecommendedNext && (
+                                                <span className="inline-block text-xs font-semibold text-[#16a34a] bg-[#dcfce7] px-2 py-0.5 rounded-full mb-1">
+                                                    ▷ Recommended Next
+                                                </span>
+                                            )}
+                                            <CardTitle className="text-base font-semibold text-[#121431]">
+                                                {step.name}
+                                            </CardTitle>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <CardTitle className="text-lg">{step.name}</CardTitle>
+                                    {step.isCompleted && (
+                                        <CheckCircle2 className="w-5 h-5 text-[#22c55e] flex-shrink-0" />
+                                    )}
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-3 pt-0">
+                                <CardDescription className="text-sm text-[#6b7280]">
+                                    {step.description}
+                                </CardDescription>
+                                <div className="space-y-1.5">
+                                    <p className="text-xs text-[#6b7280]">
+                                        {step.id === 'performance-snapshot' && (
+                                            <>
+                                                {step.progressCurrent} / {step.progressTotal} questions
+                                            </>
+                                        )}
+                                        {step.id === 'kpi-review' && (
+                                            <>{step.progressCurrent} units reviewed</>
+                                        )}
+                                        {step.id === 'ceo-kpi-review' && (
+                                            <>{step.progressCurrent} KPIs approved</>
+                                        )}
+                                        {step.id === 'model-assignment' && (
+                                            <>{step.progressCurrent} models assigned</>
+                                        )}
+                                        {step.id === 'evaluation-structure' && (
+                                            <>{step.progressCurrent > 0 ? 'Configured' : 'Not configured'}</>
+                                        )}
+                                    </p>
+                                    <div className="w-full bg-[#e5e7eb] rounded-full h-1.5">
+                                        <div
+                                            className={cn(
+                                                'h-1.5 rounded-full transition-all',
+                                                step.isCompleted ? 'bg-[#22c55e]' : 'bg-[#d1d5db]'
+                                            )}
+                                            style={{
+                                                width:
+                                                    step.progressTotal > 0
+                                                        ? `${(step.progressCurrent / step.progressTotal) * 100}%`
+                                                        : '0%',
+                                            }}
+                                        />
                                     </div>
                                 </div>
-                                {step.isCompleted && (
-                                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
-                                )}
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <CardDescription className="mb-4">
-                                {step.description}
-                            </CardDescription>
-                            <div className="flex items-center justify-between">
-                                <Badge 
-                                    variant={step.isCompleted ? 'default' : 'outline'}
-                                    className="text-xs"
-                                >
-                                    {step.isCompleted ? 'Completed' : 'Pending'}
-                                </Badge>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleStepClick(step);
-                                    }}
-                                >
-                                    {step.isCompleted ? 'Review' : 'Start'}
-                                    <ArrowRight className="w-4 h-4 ml-2" />
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-
-            {/* Information Section */}
-            <Card className="border-2 bg-blue-50/50">
-                <CardContent className="p-6">
-                    <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-gray-900">About Performance System</h3>
-                        <p className="text-sm text-gray-700 leading-relaxed">
-                            The Performance System allows you to design a comprehensive performance management framework for your organization. This includes:
-                        </p>
-                        <ul className="list-disc list-inside space-y-2 text-sm text-gray-700 ml-4">
-                            <li>Strategic performance snapshot and assessment</li>
-                            <li>Organizational KPIs and key performance indicators</li>
-                            <li>Evaluation model assignments (MBO, BSC, OKR) for different jobs</li>
-                            <li>Evaluation structure and assessment methods</li>
-                        </ul>
-                        <p className="text-sm text-gray-700 leading-relaxed mt-4">
-                            <strong>Note:</strong> The performance system you design will be used to evaluate and manage employee performance across your organization. All configurations will be based on the job analysis data you've already completed.
-                        </p>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Information Only - No Action Buttons */}
-            <div className="text-center pt-4">
-                <p className="text-sm text-muted-foreground">
-                    Click on any step card above to navigate to that section.
-                </p>
+                                <div className="flex items-center justify-between pt-1">
+                                    <span className="text-xs font-medium text-[#6b7280]">
+                                        {step.isCompleted ? 'Completed' : 'Pending'}
+                                    </span>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className={cn(
+                                            'h-8 text-sm font-medium',
+                                            isRecommendedNext
+                                                ? 'text-[#16a34a] hover:text-[#15803d] hover:bg-[#dcfce7]'
+                                                : 'text-[#6b7280] hover:text-[#374151]'
+                                        )}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleStepClick(step);
+                                        }}
+                                    >
+                                        {step.isCompleted ? 'Review' : 'Start'}
+                                        <ArrowRight className="w-4 h-4 ml-1" />
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    );
+                })}
             </div>
         </div>
     );

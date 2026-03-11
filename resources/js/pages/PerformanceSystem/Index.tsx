@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
@@ -10,6 +10,7 @@ import {
     Settings,
     Check,
     ChevronLeft,
+    LayoutGrid,
 } from 'lucide-react';
 import Overview from './steps/Overview';
 import PerformanceSnapshotTab from './tabs/PerformanceSnapshotTab';
@@ -258,16 +259,40 @@ export default function PerformanceSystemIndex({
         <AppLayout>
             <Head title={`Performance System - ${project?.company?.name || 'HR Manager'}`} />
             <div className="p-6 md:p-8 max-w-7xl mx-auto bg-background">
-                {/* Header - dark blue banner (new UI) */}
-                {activeTab !== 'overview' && (
+                {/* Header - dark blue banner: overview = centered title, else left-aligned */}
+                {activeTab === 'overview' ? (
                     <div className="mb-0 rounded-t-xl overflow-hidden">
-                        <div className="bg-[#151535] text-white px-5 py-4 md:px-6 flex items-start gap-4">
-                            <Link
-                                href="/hr-manager/dashboard"
+                        <div className="bg-[#151535] text-white px-5 py-6 md:px-6 flex items-start gap-4">
+                            <button
+                                type="button"
+                                onClick={() => router.visit('/hr-manager/dashboard')}
                                 className="inline-flex items-center justify-center w-10 h-10 rounded-md hover:bg-white/10 transition-colors shrink-0 mt-0.5"
+                                aria-label="Back to dashboard"
                             >
                                 <ChevronLeft className="w-5 h-5" />
-                            </Link>
+                            </button>
+                            <div className="flex-1 min-w-0 text-center">
+                                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+                                    Performance System Overview
+                                </h1>
+                                <p className="text-slate-300 mt-2 text-sm md:text-base max-w-2xl mx-auto">
+                                    Design your performance management system including evaluation units, methods, and assessment structures.
+                                </p>
+                            </div>
+                            <div className="w-10 shrink-0" aria-hidden />
+                        </div>
+                    </div>
+                ) : (
+                    <div className="mb-0 rounded-t-xl overflow-hidden">
+                        <div className="bg-[#151535] text-white px-5 py-4 md:px-6 flex items-start gap-4">
+                            <button
+                                type="button"
+                                onClick={() => router.visit('/hr-manager/dashboard')}
+                                className="inline-flex items-center justify-center w-10 h-10 rounded-md hover:bg-white/10 transition-colors shrink-0 mt-0.5"
+                                aria-label="Back to dashboard"
+                            >
+                                <ChevronLeft className="w-5 h-5" />
+                            </button>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-3 flex-wrap">
                                     <h1 className="text-xl md:text-2xl font-bold tracking-tight">
@@ -298,23 +323,8 @@ export default function PerformanceSystemIndex({
                     </div>
                 )}
 
-                {/* Overview Page */}
-                {activeTab === 'overview' && (
-                    <Overview
-                        projectId={project.id}
-                        stepStatuses={stepStatuses}
-                        completedSteps={new Set(Object.keys(tabCompletions).filter(k => tabCompletions[k]))}
-                        onStepClick={handleTabChange}
-                        snapshotResponses={snapshotResponses}
-                        organizationalKpis={organizationalKpis}
-                        evaluationModelAssignments={evaluationModelAssignments}
-                        evaluationStructure={project.evaluation_structure}
-                    />
-                )}
-
-                {/* Step bar: white background, tabs + progress + X/10 answered */}
-                {activeTab !== 'overview' && (
-                    <div className="bg-white border border-[#e5e7eb] border-t-0 rounded-b-xl shadow-sm mb-6 overflow-hidden">
+                {/* Tab bar - show for both overview and other tabs */}
+                <div className="bg-white border border-[#e5e7eb] border-t-0 rounded-b-xl shadow-sm mb-6 overflow-hidden">
                         <div className="flex items-center justify-between gap-4 px-4 py-3 flex-wrap">
                             <div className="flex gap-1 overflow-x-auto scroll-smooth shrink-0" style={{ scrollbarWidth: 'thin' }}>
                                 <button
@@ -326,7 +336,7 @@ export default function PerformanceSystemIndex({
                                             : 'text-[#6b7280] border-transparent hover:text-[#374151]'
                                     )}
                                 >
-                                    <FileText className="w-4 h-4 flex-shrink-0" />
+                                    <LayoutGrid className="w-4 h-4 flex-shrink-0" />
                                     <span className="hidden sm:inline">Overview</span>
                                 </button>
                                 {TABS.map((tab, index) => {
@@ -379,10 +389,24 @@ export default function PerformanceSystemIndex({
                             />
                         </div>
                     </div>
-                )}
-                
 
-                {/* Tab Content */}
+                {/* Overview Page content */}
+                {activeTab === 'overview' && (
+                    <Overview
+                        projectId={project.id}
+                        stepStatuses={stepStatuses}
+                        completedSteps={new Set(Object.keys(tabCompletions).filter(k => tabCompletions[k]))}
+                        onStepClick={handleTabChange}
+                        snapshotResponses={snapshotResponses}
+                        organizationalKpis={organizationalKpis}
+                        evaluationModelAssignments={evaluationModelAssignments}
+                        evaluationStructure={project.evaluation_structure}
+                        jobCount={jobDefinitions?.length ?? 0}
+                        snapshotQuestionsCount={snapshotQuestions?.length ?? 10}
+                    />
+                )}
+
+                {/* Tab Content (non-overview) */}
                 {activeTab !== 'overview' && (
                 <div>
                     {activeTab === 'performance-snapshot' && (
