@@ -453,11 +453,11 @@ export default function CeoPhilosophySurvey({
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden bg-[#F0EDE6]">
+            <SidebarInset className="flex flex-col overflow-hidden bg-[#F0EDE6] dark:bg-slate-900">
                 <AppHeader />
-                <div className="sticky top-0 z-10 bg-white border-b border-[#E2DDD4] px-4 sm:px-6 lg:px-10 py-3 sm:py-3.5">
+                <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-[#E2DDD4] dark:border-slate-700 px-4 sm:px-6 lg:px-10 py-3 sm:py-3.5">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-2.5">
-                        <span className="font-serif text-[15px] font-semibold text-[#0E1628]">
+                        <span className="font-serif text-[15px] font-semibold text-[#0E1628] dark:text-slate-100">
                             {currentStep === 6 ? 'Organizational Issues' : currentStep === 7 ? "CEO's Concerns" : '경영 철학 진단'}
                         </span>
                         {currentStep === 7 ? (
@@ -475,7 +475,7 @@ export default function CeoPhilosophySurvey({
                                 <span className="text-[11px] text-white/40 font-light ml-0.5">selected</span>
                             </div>
                         ) : (
-                            <span className="text-[11px] text-[#9A9EB8]">
+                            <span className="text-[11px] text-[#9A9EB8] dark:text-slate-400">
                                 섹션 <strong className="text-[#C9A84C] font-semibold">{currentStep + 1}</strong> / {STEPS.length}
                             </span>
                         )}
@@ -506,8 +506,8 @@ export default function CeoPhilosophySurvey({
                                     i === currentStep
                                         ? 'bg-[#0E1628] border-[#0E1628] text-white'
                                         : isStepComplete(i)
-                                            ? 'bg-[#2E9E6B]/10 border-[#2E9E6B]/30 text-[#2E9E6B]'
-                                            : 'bg-transparent border-[#E2DDD4] text-[#9A9EB8]'
+                                            ? 'bg-[#2E9E6B]/10 border-[#2E9E6B]/30 text-[#2E9E6B] dark:text-green-400'
+                                            : 'bg-transparent border-[#E2DDD4] text-[#9A9EB8] dark:text-slate-400 dark:border-slate-600'
                                 }`}
                             >
                                 <span className={`w-1.5 h-1.5 rounded-full ${i === currentStep ? 'bg-[#E8C96B]' : 'bg-current opacity-60'}`} />
@@ -515,7 +515,7 @@ export default function CeoPhilosophySurvey({
                             </div>
                         ))}
                     </div>
-                    <div className="mt-2.5 h-[3px] bg-[#E8E4DC] rounded-full overflow-hidden">
+                    <div className="mt-2.5 h-[3px] bg-[#E8E4DC] dark:bg-slate-700 rounded-full overflow-hidden">
                         <div
                             className="h-full rounded-full bg-gradient-to-r from-[#0E1628] to-[#C9A84C] transition-all duration-500"
                             style={{ width: `${progress}%` }}
@@ -542,15 +542,15 @@ export default function CeoPhilosophySurvey({
                     </div>
                 </main>
 
-                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E2DDD4] py-3 sm:py-4 px-4 sm:px-6 lg:px-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 z-20">
-                    <span className="text-[12px] text-[#9A9EB8] order-2 sm:order-1 text-center sm:text-left">
+                <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-[#E2DDD4] dark:border-slate-700 py-3 sm:py-4 px-4 sm:px-6 lg:px-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 z-20">
+                    <span className="text-[12px] text-[#9A9EB8] dark:text-slate-400 order-2 sm:order-1 text-center sm:text-left">
                         {currentStep === 6 ? (
                             <>
-                                <strong className="text-[#0E1628] font-semibold">{(data.organizational_issues || []).length}</strong> / {MAX_ORGANIZATIONAL_ISSUES} issues selected
+                                <strong className="text-[#0E1628] dark:text-slate-100 font-semibold">{(data.organizational_issues || []).length}</strong> / {MAX_ORGANIZATIONAL_ISSUES} issues selected
                             </>
                         ) : (
                             <>
-                                <strong className="text-[#0E1628] font-semibold">{answeredCount()}</strong> / {totalQuestions} 문항 응답
+                                <strong className="text-[#0E1628] dark:text-slate-100 font-semibold">{answeredCount()}</strong> / {totalQuestions} 문항 응답
                             </>
                         )}
                     </span>
@@ -559,7 +559,7 @@ export default function CeoPhilosophySurvey({
                             variant="outline"
                             onClick={handlePrevious}
                             disabled={currentStep === 0}
-                            className="flex-1 sm:flex-none min-w-0 sm:min-w-[100px] border-[#E2DDD4] text-[#4A4E69] hover:border-[#0E1628] hover:text-[#0E1628]"
+                            className="flex-1 sm:flex-none min-w-0 sm:min-w-[100px] border-[#E2DDD4] dark:border-slate-600 text-[#4A4E69] dark:text-slate-300 hover:border-[#0E1628] dark:hover:border-slate-400 hover:text-[#0E1628] dark:hover:text-slate-100"
                         >
                             ← 이전
                         </Button>

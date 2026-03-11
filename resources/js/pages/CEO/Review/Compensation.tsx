@@ -75,33 +75,33 @@ export default function CeoCompensationReview({
     return (
         <AppLayout>
             <Head title={`Compensation System Review - ${project.company.name}`} />
-                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+                    <div className="p-6 md:p-8 max-w-7xl mx-auto dark:bg-slate-900 min-h-screen">
                         <div className="mb-6">
                             <Button
                                 variant="ghost"
                                 onClick={() => router.visit('/ceo/dashboard')}
-                                className="mb-4"
+                                className="mb-4 dark:text-slate-300"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 Back to Dashboard
                             </Button>
                             <div className="flex items-center gap-3 mb-2">
-                                <h1 className="text-3xl font-bold">Compensation System Review</h1>
+                                <h1 className="text-3xl font-bold dark:text-slate-100">Compensation System Review</h1>
                                 <Badge variant={isSubmitted ? 'default' : 'secondary'}>
                                     {isSubmitted ? 'Submitted' : compensationStatus}
                                 </Badge>
                             </div>
-                            <p className="text-muted-foreground">
+                            <p className="text-muted-foreground dark:text-slate-400">
                                 Review the compensation system design for {project.company.name}
                             </p>
                         </div>
 
                         {!compensationSystem && (
-                            <Card className="border-yellow-200 bg-yellow-50">
+                            <Card className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950/30">
                                 <CardContent className="p-6">
                                     <div className="flex items-center gap-3">
                                         <AlertCircle className="w-5 h-5 text-yellow-600" />
-                                        <p className="text-yellow-800">
+                                        <p className="text-yellow-800 dark:text-yellow-200">
                                             Compensation system has not been submitted yet. Please wait for HR Manager to complete this step.
                                         </p>
                                     </div>
@@ -112,17 +112,17 @@ export default function CeoCompensationReview({
                         {compensationSystem && (
                             <div className="space-y-6">
                                 {/* Compensation Structure */}
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="flex items-center gap-2">
+                                <Card className="dark:bg-slate-800 dark:border-slate-700">
+                                    <CardHeader className="dark:bg-slate-800">
+                                        <CardTitle className="flex items-center gap-2 dark:text-slate-100">
                                             <DollarSign className="w-5 h-5" />
                                             Compensation Structure
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent>
+                                    <CardContent className="dark:bg-slate-800">
                                         <div className="space-y-2">
-                                            <p className="text-sm text-muted-foreground">Selected Structure:</p>
-                                            <p className="text-lg font-semibold">
+                                            <p className="text-sm text-muted-foreground dark:text-slate-400">Selected Structure:</p>
+                                            <p className="text-lg font-semibold dark:text-slate-200">
                                                 {compensationSystem.compensation_structure 
                                                     ? STRUCTURE_LABELS[compensationSystem.compensation_structure] || compensationSystem.compensation_structure
                                                     : 'Not specified'}
@@ -132,14 +132,14 @@ export default function CeoCompensationReview({
                                 </Card>
 
                                 {/* Differentiation Method */}
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Differentiation Method</CardTitle>
+                                <Card className="dark:bg-slate-800 dark:border-slate-700">
+                                    <CardHeader className="dark:bg-slate-800">
+                                        <CardTitle className="dark:text-slate-100">Differentiation Method</CardTitle>
                                     </CardHeader>
-                                    <CardContent>
+                                    <CardContent className="dark:bg-slate-800">
                                         <div className="space-y-2">
-                                            <p className="text-sm text-muted-foreground">Selected Method:</p>
-                                            <p className="text-lg font-semibold">
+                                            <p className="text-sm text-muted-foreground dark:text-slate-400">Selected Method:</p>
+                                            <p className="text-lg font-semibold dark:text-slate-200">
                                                 {compensationSystem.differentiation_logic
                                                     ? DIFFERENTIATION_LABELS[compensationSystem.differentiation_logic] || compensationSystem.differentiation_logic
                                                     : 'Not specified'}
@@ -149,23 +149,23 @@ export default function CeoCompensationReview({
                                 </Card>
 
                                 {/* Incentive Components */}
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Incentive Components</CardTitle>
+                                <Card className="dark:bg-slate-800 dark:border-slate-700">
+                                    <CardHeader className="dark:bg-slate-800">
+                                        <CardTitle className="dark:text-slate-100">Incentive Components</CardTitle>
                                     </CardHeader>
-                                    <CardContent>
+                                    <CardContent className="dark:bg-slate-800">
                                         <div className="space-y-2">
-                                            <p className="text-sm text-muted-foreground mb-3">Selected Components:</p>
+                                            <p className="text-sm text-muted-foreground dark:text-slate-400 mb-3">Selected Components:</p>
                                             {compensationSystem.incentive_types && compensationSystem.incentive_types.length > 0 ? (
                                                 <div className="flex flex-wrap gap-2">
                                                     {compensationSystem.incentive_types.map((type) => (
-                                                        <Badge key={type} variant="outline" className="text-sm">
+                                                        <Badge key={type} variant="outline" className="text-sm dark:border-slate-600 dark:text-slate-300">
                                                             {INCENTIVE_LABELS[type] || type}
                                                         </Badge>
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <p className="text-muted-foreground">No incentive components selected</p>
+                                                <p className="text-muted-foreground dark:text-slate-400">No incentive components selected</p>
                                             )}
                                         </div>
                                     </CardContent>
@@ -173,12 +173,12 @@ export default function CeoCompensationReview({
 
                                 {/* Action Buttons */}
                                 {isSubmitted && (
-                                    <Card className="border-primary/20 bg-primary/5">
+                                    <Card className="border-primary/20 bg-primary/5 dark:border-primary/30 dark:bg-primary/10">
                                         <CardContent className="p-6">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <h3 className="font-semibold mb-1">Review Actions</h3>
-                                                    <p className="text-sm text-muted-foreground">
+                                                    <h3 className="font-semibold mb-1 dark:text-slate-100">Review Actions</h3>
+                                                    <p className="text-sm text-muted-foreground dark:text-slate-400">
                                                         Approve this compensation system or request revisions from HR Manager.
                                                     </p>
                                                 </div>
@@ -206,11 +206,11 @@ export default function CeoCompensationReview({
                                 )}
 
                                 {!isSubmitted && (
-                                    <Card className="border-yellow-200 bg-yellow-50">
+                                    <Card className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950/30">
                                         <CardContent className="p-6">
                                             <div className="flex items-center gap-3">
                                                 <AlertCircle className="w-5 h-5 text-yellow-600" />
-                                                <p className="text-yellow-800">
+                                                <p className="text-yellow-800 dark:text-yellow-200">
                                                     This compensation system is not yet submitted. Please wait for HR Manager to submit it for review.
                                                 </p>
                                             </div>
@@ -223,3 +223,4 @@ export default function CeoCompensationReview({
         </AppLayout>
     );
 }
+

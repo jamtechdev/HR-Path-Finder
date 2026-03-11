@@ -120,20 +120,20 @@ export default function OrganizationalStructure({
                                     disabled={readOnly}
                                     className={cn(
                                         'relative rounded-2xl border-2 p-7 pt-7 flex flex-col items-center gap-4 text-center transition-all duration-200 select-none cursor-pointer',
-                                        'bg-white border-[var(--gray-200)] hover:border-[var(--gray-300)] hover:shadow-lg hover:-translate-y-0.5',
+                                        'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-lg hover:-translate-y-0.5',
                                         selected && 'border-[#4ecdc4] bg-[rgba(78,205,196,0.12)] shadow-[0_0_0_1px_#4ecdc4]'
                                     )}
                                 >
                                     <span
                                         className={cn(
                                             'absolute top-3.5 right-3.5 w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors',
-                                            selected ? 'border-[#4ecdc4] bg-[#4ecdc4] text-white' : 'border-[var(--gray-300)] bg-white'
+                                            selected ? 'border-[#4ecdc4] bg-[#4ecdc4] text-white' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
                                         )}
                                     >
                                         {selected && <Check className="w-2.5 h-2.5" strokeWidth={3} />}
                                     </span>
                                     <OrgStructureDiagram id={opt.id} />
-                                    <span className={cn('text-sm font-bold text-[#2d3340]', selected && 'text-[#2ea89e]')}>
+                                    <span className={cn('text-sm font-bold text-slate-800 dark:text-slate-100', selected && 'text-[#2ea89e]')}>
                                         {opt.nameKo}
                                     </span>
                                     <span className="text-xs text-muted-foreground leading-relaxed">
@@ -144,9 +144,9 @@ export default function OrganizationalStructure({
                         })}
                     </div>
 
-                    <div className="rounded-[14px] border-[1.5px] border-border bg-white p-5">
+                    <div className="rounded-[14px] border-[1.5px] border-border bg-white dark:bg-slate-900 p-5">
                         <div className="flex flex-col gap-1 mb-3">
-                            <span className="text-[13.5px] font-bold text-[#2d3340]">{customTitle.ko}</span>
+                            <span className="text-[13.5px] font-bold text-slate-800 dark:text-slate-100">{customTitle.ko}</span>
                             <span className="text-[11.5px] text-muted-foreground leading-relaxed">{customSub.ko}</span>
                         </div>
                         <textarea
@@ -154,11 +154,11 @@ export default function OrganizationalStructure({
                             onChange={(e) => setCustomNote(e.target.value)}
                             placeholder={customPlaceholder.ko}
                             rows={4}
-                            className="w-full px-3.5 py-3 border-[1.5px] border-border rounded-lg text-[13px] font-[inherit] text-foreground bg-[#f8f9fb] resize-y outline-none transition-colors focus:border-[#4ecdc4] focus:bg-white placeholder:text-muted-foreground leading-relaxed"
+                            className="w-full px-3.5 py-3 border-[1.5px] border-border rounded-lg text-[13px] font-[inherit] text-foreground bg-slate-50 dark:bg-slate-800 resize-y outline-none transition-colors focus:border-[#4ecdc4] focus:bg-white dark:focus:bg-slate-900 placeholder:text-muted-foreground leading-relaxed"
                         />
                     </div>
 
-                    <div className="rounded-xl border-[1.5px] border-border bg-white px-5 py-3.5 flex flex-wrap items-center gap-3">
+                    <div className="rounded-xl border-[1.5px] border-border bg-white dark:bg-slate-900 px-5 py-3.5 flex flex-wrap items-center gap-3">
                         <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
                             {selectedLabel.ko}
                         </span>

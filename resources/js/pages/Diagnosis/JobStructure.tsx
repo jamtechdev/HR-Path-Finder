@@ -197,25 +197,25 @@ export default function JobStructure({
     const innerContent = (
                 <div className="space-y-7">
                     <div>
-                        <h1 className="text-2xl font-bold text-[#0f2a4a]">{tr('jobStructureTitle')}</h1>
-                        <p className="text-sm text-[#64748b] mt-1.5">{desc.ko}</p>
+                        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{tr('jobStructureTitle')}</h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">{desc.ko}</p>
                         <p className="text-xs text-muted-foreground/80 mt-0.5">{desc.en}</p>
                     </div>
 
                     <div
-                        className="grid rounded-xl border-[1.5px] border-[#e2e8f0] bg-white overflow-hidden min-h-[460px]"
+                        className="grid rounded-xl border-[1.5px] border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden min-h-[460px]"
                         style={{ gridTemplateColumns: '260px 1fr', boxShadow: '0 1px 4px rgba(15,42,74,0.07)' }}
                     >
                         {/* Left: Category list */}
-                        <div className="flex flex-col border-r border-[#e2e8f0]">
-                            <div className="px-4 py-3.5 border-b border-[#e2e8f0] bg-[#f8fafc] flex items-center justify-between">
-                                <span className="text-xs font-bold text-[#94a3b8] uppercase tracking-wider">
+                        <div className="flex flex-col border-r border-slate-200 dark:border-slate-700">
+                            <div className="px-4 py-3.5 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-between">
+                                <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                                     {categoryListLabel.ko}
                                 </span>
                                 <button
                                     type="button"
                                     onClick={() => setAddingCategory(true)}
-                                    className="bg-[#0f2a4a] text-white border-0 rounded-md py-1 px-2.5 text-xs font-semibold cursor-pointer"
+                                    className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-0 rounded-md py-1 px-2.5 text-xs font-semibold cursor-pointer"
                                 >
                                     {addCatBtn.ko}
                                 </button>
@@ -232,7 +232,7 @@ export default function JobStructure({
                                             onKeyDown={(e) => e.key === 'Enter' && setSelectedCatId(cat.id)}
                                             className={cn(
                                                 'flex items-center justify-between py-2.5 px-3 rounded-lg cursor-pointer mb-0.5 transition-colors',
-                                                isSelected ? 'bg-[#0f2a4a]' : 'hover:bg-muted/50'
+                                                isSelected ? 'bg-slate-900 dark:bg-slate-100' : 'hover:bg-muted/50'
                                             )}
                                         >
                                             <div className="flex items-center gap-2.5">
@@ -240,7 +240,7 @@ export default function JobStructure({
                                                     <div
                                                         className={cn(
                                                             'w-2 h-2 rounded-full flex-shrink-0',
-                                                            isSelected ? 'bg-[#c8a84b]' : 'bg-[#cbd5e1]'
+                                                            isSelected ? 'bg-yellow-500' : 'bg-slate-300 dark:bg-slate-600'
                                                         )}
                                                     />
                                                     {idx < categories.length - 1 && (
@@ -256,7 +256,7 @@ export default function JobStructure({
                                                     <div
                                                         className={cn(
                                                             'text-sm font-medium',
-                                                            isSelected ? 'text-white font-bold' : 'text-[#0f2a4a]'
+                                                            isSelected ? 'text-white dark:text-slate-900 font-bold' : 'text-slate-900 dark:text-slate-100'
                                                         )}
                                                     >
                                                         {cat.name}
@@ -264,7 +264,7 @@ export default function JobStructure({
                                                     <div
                                                         className={cn(
                                                             'text-[11px]',
-                                                            isSelected ? 'text-[#c8a84b]' : 'text-[#94a3b8]'
+                                                            isSelected ? 'text-yellow-500' : 'text-slate-400 dark:text-slate-500'
                                                         )}
                                                     >
                                                         {functionsCount.ko} {cat.functions.length}{both('functionsCountSuffix').ko}
@@ -279,7 +279,7 @@ export default function JobStructure({
                                                 }}
                                                 className={cn(
                                                     'bg-transparent border-0 cursor-pointer text-sm p-0.5 leading-none',
-                                                    isSelected ? 'text-white/40 hover:text-white' : 'text-[#cbd5e1] hover:text-[#94a3b8]'
+                                                    isSelected ? 'text-white/40 dark:text-slate-900/40 hover:text-white dark:hover:text-slate-900' : 'text-slate-300 dark:text-slate-600 hover:text-slate-400 dark:hover:text-slate-500'
                                                 )}
                                             >
                                                 <X className="w-3.5 h-3.5" />
@@ -301,13 +301,13 @@ export default function JobStructure({
                                                 }
                                             }}
                                             placeholder={addCatPlaceholder.ko}
-                                            className="w-full border-[1.5px] border-[#0f2a4a] rounded-md py-2 px-2.5 text-[13px] text-[#0f2a4a] outline-none"
+                                            className="w-full border-[1.5px] border-slate-900 dark:border-slate-100 rounded-md py-2 px-2.5 text-[13px] text-slate-900 dark:text-slate-100 outline-none"
                                         />
                                         <div className="flex gap-1.5 mt-1.5">
                                             <button
                                                 type="button"
                                                 onClick={addCategory}
-                                                className="flex-1 bg-[#0f2a4a] text-white border-0 rounded-md py-2 text-xs font-semibold cursor-pointer"
+                                                className="flex-1 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-0 rounded-md py-2 text-xs font-semibold cursor-pointer"
                                             >
                                                 {confirmLabel.ko}
                                             </button>
@@ -317,7 +317,7 @@ export default function JobStructure({
                                                     setAddingCategory(false);
                                                     setNewCategoryName('');
                                                 }}
-                                                className="flex-1 bg-[#f1f5f9] text-[#475569] border-0 rounded-md py-2 text-xs font-semibold cursor-pointer"
+                                                className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-0 rounded-md py-2 text-xs font-semibold cursor-pointer"
                                             >
                                                 {cancelLabel.ko}
                                             </button>
@@ -325,7 +325,7 @@ export default function JobStructure({
                                     </div>
                                 )}
                                 {categories.length === 0 && !addingCategory && (
-                                    <div className="py-6 px-3 text-center text-[#cbd5e1] text-sm">
+                                    <div className="py-6 px-3 text-center text-slate-300 dark:text-slate-600 text-sm">
                                         {addCategoryEmpty.ko}
                                     </div>
                                 )}
@@ -336,16 +336,16 @@ export default function JobStructure({
                         <div className="flex flex-col">
                             {selectedCat ? (
                                 <>
-                                    <div className="px-5 py-3.5 border-b border-[#e2e8f0] bg-[#f8fafc] flex items-center gap-2.5">
-                                        <div className="w-2 h-2 rounded-full bg-[#c8a84b]" />
-                                        <span className="text-[15px] font-bold text-[#0f2a4a]">{selectedCat.name}</span>
-                                        <span className="bg-[#f0f4fa] border border-[#c7d7f0] rounded-full py-0.5 px-2.5 text-xs font-semibold text-[#4a6fa5]">
+                                    <div className="px-5 py-3.5 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center gap-2.5">
+                                        <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                                        <span className="text-[15px] font-bold text-slate-900 dark:text-slate-100">{selectedCat.name}</span>
+                                        <span className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-full py-0.5 px-2.5 text-xs font-semibold text-blue-600 dark:text-blue-400">
                                             {functionsCount.ko} {selectedCat.functions.length}{both('functionsCountSuffix').ko}
                                         </span>
                                     </div>
                                     <div className="flex-1 p-5 overflow-y-auto">
                                         {selectedCat.functions.length === 0 ? (
-                                            <div className="flex flex-col items-center justify-center h-40 text-[#cbd5e1] border-2 border-dashed border-[#e2e8f0] rounded-lg">
+                                            <div className="flex flex-col items-center justify-center h-40 text-slate-400 dark:text-slate-500 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
                                                 <div className="text-3xl mb-2">＋</div>
                                                 <div className="text-sm">{addFunctionBelow.ko}</div>
                                             </div>
@@ -354,13 +354,13 @@ export default function JobStructure({
                                                 {selectedCat.functions.map((fn) => (
                                                     <span
                                                         key={fn.id}
-                                                        className="inline-flex items-center gap-1.5 py-1.5 px-3.5 bg-[#f0f4fa] border border-[#c7d7f0] rounded-full text-[13px] font-semibold text-[#0f2a4a]"
+                                                        className="inline-flex items-center gap-1.5 py-1.5 px-3.5 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-full text-[13px] font-semibold text-blue-700 dark:text-blue-300"
                                                     >
                                                         {fn.name}
                                                         <button
                                                             type="button"
                                                             onClick={() => removeFunction(fn.id)}
-                                                            className="bg-transparent border-0 text-[#94a3b8] cursor-pointer p-0 leading-none hover:text-[#64748b]"
+                                                            className="bg-transparent border-0 text-slate-400 dark:text-slate-500 cursor-pointer p-0 leading-none hover:text-slate-600 dark:hover:text-slate-300"
                                                         >
                                                             <X className="w-3.5 h-3.5" />
                                                         </button>
@@ -369,13 +369,13 @@ export default function JobStructure({
                                             </div>
                                         )}
                                     </div>
-                                    <div className="px-5 py-4 border-t border-[#e2e8f0] bg-[#fafafa] flex gap-2">
+                                    <div className="px-5 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex gap-2">
                                         <input
                                             value={fnInput}
                                             onChange={(e) => setFnInput(e.target.value)}
                                             onKeyDown={(e) => e.key === 'Enter' && addFunction()}
                                             placeholder={tr('addFunctionPlaceholder').replace(/\{\{name\}\}/g, selectedCat.name)}
-                                            className="flex-1 border-[1.5px] border-[#e2e8f0] rounded-lg py-2.5 px-3.5 text-[13px] text-[#0f2a4a] outline-none bg-white"
+                                            className="flex-1 border-[1.5px] border-slate-200 dark:border-slate-700 rounded-lg py-2.5 px-3.5 text-[13px] text-slate-800 dark:text-slate-100 outline-none bg-white dark:bg-slate-900"
                                         />
                                         <button
                                             type="button"
@@ -387,7 +387,7 @@ export default function JobStructure({
                                     </div>
                                 </>
                             ) : (
-                                <div className="flex-1 flex flex-col items-center justify-center text-[#cbd5e1] text-sm gap-2">
+                                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 text-sm gap-2">
                                     <div className="text-3xl">←</div>
                                     <div>{selectCategoryLeft.ko}</div>
                                 </div>

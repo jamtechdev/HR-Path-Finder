@@ -71,17 +71,17 @@ function ReviewCard({
         <div
             onMouseEnter={() => setHov(true)}
             onMouseLeave={() => setHov(false)}
-            className="overflow-hidden rounded-[14px] border-[1.5px] border-slate-200 bg-white transition-shadow"
+            className="overflow-hidden rounded-[14px] border-[1.5px] border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 transition-shadow"
             style={{ boxShadow: hov ? '0 4px 18px rgba(15,42,74,0.1)' : '0 1px 4px rgba(15,42,74,0.05)' }}
         >
-            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-4 py-3">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-3">
                 <div className="flex items-center gap-1.5">
                     <span className="text-sm">{icon}</span>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#0f2a4a]">{title}</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">{title}</span>
                 </div>
                 <Link
                     href={editUrl}
-                    className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500 transition-opacity hover:bg-slate-50"
+                    className="inline-flex items-center gap-1 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-0.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400 transition-opacity hover:bg-slate-50 dark:hover:bg-slate-800"
                     style={{ opacity: hov ? 1 : 0 }}
                 >
                     <svg width="9" height="9" viewBox="0 0 11 11" fill="none" className="shrink-0">
@@ -97,9 +97,9 @@ function ReviewCard({
 
 function KpiBlock({ label, value, unit, accent }: { label: string; value: number | string; unit: string; accent?: string }) {
     return (
-        <div className="min-w-[80px] flex-1 rounded-lg bg-slate-50 p-3">
+        <div className="min-w-[80px] flex-1 rounded-lg bg-slate-50 dark:bg-slate-800 p-3">
             <div className="mb-0.5 text-[9px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
-            <div className="text-xl font-extrabold leading-none text-[#0f2a4a]" style={accent ? { color: accent } : undefined}>
+            <div className="text-xl font-extrabold leading-none text-slate-800 dark:text-slate-100" style={accent ? { color: accent } : undefined}>
                 {value}
                 <span className="ml-0.5 text-[11px] font-medium text-slate-400">{unit}</span>
             </div>
@@ -519,12 +519,12 @@ export default function Review({
                 <div className="space-y-4">
                     {/* Page title */}
                     <div className="mb-5">
-                        <h1 className="m-0 text-xl font-extrabold text-[#0f2a4a]">{tr('reviewDashboardTitle')}</h1>
+                        <h1 className="m-0 text-xl font-extrabold text-slate-800 dark:text-slate-100">{tr('reviewDashboardTitle')}</h1>
                         <p className="mt-1 text-xs text-slate-500">{tr('reviewDashboardDesc')}</p>
                     </div>
 
                     {/* Hero dark */}
-                    <div className="rounded-t-[14px] bg-gradient-to-br from-[#0f2a4a] to-[#1a4070] px-6 py-5">
+                    <div className="rounded-t-[14px] bg-gradient-to-br from-[#0f2a4a] to-[#1a4070] dark:from-slate-800 dark:to-slate-900 px-6 py-5">
                         <div className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#c8a84b]">
                             {company?.name || project?.company?.name || '—'} · {formatValue(diagnosis?.industry_category) || '—'}
                         </div>
@@ -572,9 +572,9 @@ export default function Review({
                     </div>
 
                     {/* Hero light: gender + job structure */}
-                    <div className="flex flex-wrap items-center gap-6 rounded-b-[14px] border border-t-0 border-slate-200 bg-white px-6 py-4">
+                    <div className="flex flex-wrap items-center gap-6 rounded-b-[14px] border border-t-0 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-6 py-4">
                         <div className="flex items-center gap-3">
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-[#0f2a4a]">{tr('genderDistribution')}</div>
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">{tr('genderDistribution')}</div>
                             <div className="relative h-20 w-20 shrink-0">
                                 <div
                                     className="absolute inset-0 rounded-full border-[8px] border-transparent"
@@ -595,7 +595,7 @@ export default function Review({
                                             style={{ backgroundColor: GENDER_COLORS[i] }}
                                         />
                                         <span className="text-[11px] font-medium text-slate-600">{d.name}</span>
-                                        <span className="text-[11px] font-bold text-[#0f2a4a]">{d.value}{tr('personsUnit')}</span>
+                                        <span className="text-[11px] font-bold text-slate-800 dark:text-slate-100">{d.value}{tr('personsUnit')}</span>
                                         <span className="text-[10px] text-slate-400">
                                             ({totalHeadcount ? ((Number(d.value) / totalHeadcount) * 100).toFixed(0) : 0}%)
                                         </span>
@@ -605,10 +605,10 @@ export default function Review({
                         </div>
                         <div className="h-14 w-px bg-slate-200" />
                         <div className="flex items-center gap-5">
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-[#0f2a4a]">Job Structure</div>
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">Job Structure</div>
                             <div className="flex gap-4">
                                 <div className="text-center">
-                                    <div className="text-[28px] font-extrabold leading-none text-[#0f2a4a]">{jobStructureForReview.length}</div>
+                                    <div className="text-[28px] font-extrabold leading-none text-slate-800 dark:text-slate-100">{jobStructureForReview.length}</div>
                                     <div className="mt-0.5 text-[10px] text-slate-400">{tr('jobCategoriesCount')}</div>
                                 </div>
                                 <div className="h-9 w-px self-center bg-slate-200" />
@@ -622,12 +622,12 @@ export default function Review({
                             <div className="flex flex-col gap-1">
                                 {jobStructureForReview.map((cat, catIdx) => (
                                     <div key={`jobstruct-${catIdx}-${cat.name ?? ''}`} className="flex items-center gap-1.5">
-                                        <span className="w-16 shrink-0 text-[10px] font-bold text-[#0f2a4a]">{cat.name}</span>
+                                        <span className="w-16 shrink-0 text-[10px] font-bold text-slate-800 dark:text-slate-100">{cat.name}</span>
                                         <div className="flex flex-wrap gap-0.5">
                                             {cat.functions.map((fn, fnIdx) => (
                                                 <span
                                                     key={`${cat.name ?? catIdx}-fn-${fnIdx}-${String(fn ?? '')}`}
-                                                    className="rounded-full border border-sky-200 bg-slate-50 px-1.5 py-0.5 text-[9px] font-semibold text-[#0f2a4a]"
+                                                    className="rounded-full border border-sky-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5 text-[9px] font-semibold text-slate-800 dark:text-slate-100"
                                                 >
                                                     {fn}
                                                 </span>
@@ -652,7 +652,7 @@ export default function Review({
                                 ].map(([k, v], idx) => (
                                     <div key={`company-${idx}-${String(k ?? '')}`}>
                                         <div className="mb-0.5 text-[9px] text-slate-400">{k}</div>
-                                        <div className="text-xs font-semibold text-[#0f2a4a]">{v}</div>
+                                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-100">{v}</div>
                                     </div>
                                 ))}
                             </div>
@@ -724,7 +724,7 @@ export default function Review({
                                 ) : (
                                     <div className="flex min-h-[180px] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-sky-200 bg-slate-50">
                                         <div className="text-2xl">🖼️</div>
-                                        <div className="text-xs font-semibold text-[#0f2a4a]">{tr('orgChartUploadHint')}</div>
+                                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-100">{tr('orgChartUploadHint')}</div>
                                         <div className="text-center text-[10px] leading-relaxed text-slate-400">
                                             {tr('orgChartUploadDesc')}
                                         </div>
@@ -750,7 +750,7 @@ export default function Review({
                                 {diagnosis?.org_structure_types && diagnosis.org_structure_types.length > 0 ? (
                                     <div className="inline-flex items-center gap-2 self-start rounded-lg border border-sky-200 bg-slate-50 px-4 py-2.5">
                                         <span className="text-lg">🏗️</span>
-                                        <span className="text-sm font-bold text-[#0f2a4a]">
+                                        <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
                                             {diagnosis.org_structure_types.map((t: string) => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')}
                                         </span>
                                     </div>
@@ -769,7 +769,7 @@ export default function Review({
                                                 style={{ backgroundColor: cat.color }}
                                             />
                                             <div>
-                                                <span className="text-[10px] font-bold uppercase tracking-wide text-[#0f2a4a]">
+                                                <span className="text-[10px] font-bold uppercase tracking-wide text-slate-800 dark:text-slate-100">
                                                     {HR_ISSUE_CATEGORY_LABELS[cat.category] ?? cat.category}
                                                 </span>
                                                 <span
@@ -807,7 +807,7 @@ export default function Review({
                     </div>
 
                     {/* Submit CTA */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] bg-gradient-to-br from-[#0f2a4a] to-[#1a4070] px-6 py-5">
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] bg-gradient-to-br from-[#0f2a4a] to-[#1a4070] dark:from-slate-800 dark:to-slate-900 px-6 py-5">
                         <div>
                             <div className="mb-0.5 text-sm font-bold text-white">{tr('submitConfirmTitle')}</div>
                             <div className="text-[11px] text-slate-400">{tr('submitConfirmDesc')}</div>

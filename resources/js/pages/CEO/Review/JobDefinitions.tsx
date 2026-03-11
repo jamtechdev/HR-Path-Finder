@@ -53,10 +53,10 @@ export default function CeoReviewJobDefinitions({
     return (
         <AppLayout>
             <Head title={`Job Definitions Review - ${project?.company?.name || 'Job Analysis'}`} />
-            <div className="p-6 md:p-8 max-w-7xl mx-auto">
+            <div className="p-6 md:p-8 max-w-7xl mx-auto dark:bg-slate-900 min-h-screen">
                 <div className="mb-6">
-                    <h1 className="text-3xl font-bold mb-2">Job Definitions Review</h1>
-                    <p className="text-muted-foreground">
+                    <h1 className="text-3xl font-bold mb-2 dark:text-slate-100">Job Definitions Review</h1>
+                    <p className="text-muted-foreground dark:text-slate-400">
                         Review the detailed job definitions created by your HR Manager.
                     </p>
                 </div>
@@ -64,30 +64,30 @@ export default function CeoReviewJobDefinitions({
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Job List Sidebar */}
                     <div className="lg:col-span-1">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Job List</CardTitle>
-                                <CardDescription>
+                        <Card className="dark:bg-slate-800 dark:border-slate-700">
+                            <CardHeader className="dark:bg-slate-800">
+                                <CardTitle className="dark:text-slate-100">Job List</CardTitle>
+                                <CardDescription className="dark:text-slate-400">
                                     {jobDefinitions.length} job{jobDefinitions.length !== 1 ? 's' : ''} defined
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="p-0">
+                            <CardContent className="p-0 dark:bg-slate-800">
                                 <div className="max-h-[600px] overflow-y-auto">
                                     {jobDefinitions.map((job) => (
                                         <button
                                             key={job.id}
                                             onClick={() => setSelectedJobId(job.id)}
-                                            className={`w-full text-left p-4 border-b last:border-b-0 transition-colors ${
+                                            className={`w-full text-left p-4 border-b last:border-b-0 transition-colors dark:border-slate-700 ${
                                                 selectedJobId === job.id
-                                                    ? 'bg-primary/10 border-primary'
-                                                    : 'hover:bg-muted/50'
+                                                    ? 'bg-primary/10 border-primary dark:bg-primary/20'
+                                                    : 'hover:bg-muted/50 dark:hover:bg-slate-700/50'
                                             }`}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex-1">
-                                                    <p className="font-medium">{job.job_name}</p>
+                                                    <p className="font-medium dark:text-slate-200">{job.job_name}</p>
                                                     {job.is_finalized && (
-                                                        <Badge variant="secondary" className="mt-1 text-xs">
+                                                        <Badge variant="secondary" className="mt-1 text-xs dark:bg-slate-700 dark:text-slate-200">
                                                             Finalized
                                                         </Badge>
                                                     )}
@@ -106,13 +106,13 @@ export default function CeoReviewJobDefinitions({
                     {/* Job Details */}
                     <div className="lg:col-span-2">
                         {selectedJob ? (
-                            <Card>
-                                <CardHeader>
+                            <Card className="dark:bg-slate-800 dark:border-slate-700">
+                                <CardHeader className="dark:bg-slate-800">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <CardTitle>{selectedJob.job_name}</CardTitle>
+                                            <CardTitle className="dark:text-slate-100">{selectedJob.job_name}</CardTitle>
                                             {selectedJob.job_keyword && (
-                                                <CardDescription>
+                                                <CardDescription className="dark:text-slate-400">
                                                     Based on: {selectedJob.job_keyword.name}
                                                 </CardDescription>
                                             )}
@@ -122,7 +122,7 @@ export default function CeoReviewJobDefinitions({
                                         )}
                                     </div>
                                 </CardHeader>
-                                <CardContent>
+                                <CardContent className="dark:bg-slate-800">
                                     <Tabs defaultValue="description" className="w-full">
                                         <TabsList>
                                             <TabsTrigger value="description">Description</TabsTrigger>

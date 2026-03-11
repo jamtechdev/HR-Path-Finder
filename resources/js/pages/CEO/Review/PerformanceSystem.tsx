@@ -152,7 +152,7 @@ export default function CeoReviewPerformanceSystem({
             </Sidebar>
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
-                <main className="flex-1 overflow-auto">
+                <main className="flex-1 overflow-auto dark:bg-slate-900">
                     <Head title={`Review Performance System - ${project.company.name}`} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         {/* Header */}

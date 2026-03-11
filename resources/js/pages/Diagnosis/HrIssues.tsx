@@ -201,8 +201,8 @@ export default function HrIssues({
     const innerContent = (
                 <div className="space-y-5 max-w-[780px] mx-auto">
                     <div>
-                        <h1 className="text-2xl font-bold text-[#0f2a4a]">{tr('hrIssuesTitle')}</h1>
-                        <p className="text-sm text-[#64748b] mt-1.5">{desc.ko}</p>
+                        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{tr('hrIssuesTitle')}</h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">{desc.ko}</p>
                         <p className="text-xs text-muted-foreground/80 mt-0.5">{desc.en}</p>
                     </div>
 
@@ -221,7 +221,7 @@ export default function HrIssues({
                                         background: isActive ? `${cat.color}15` : '#fff',
                                         color: isActive ? cat.color : '#64748b',
                                     }}
-                                    className="inline-flex items-center gap-1.5 py-1.5 px-3.5 rounded-full text-[13px] font-medium transition-all"
+                                    className="inline-flex items-center gap-1.5 py-1.5 px-3.5 rounded-full text-[13px] font-medium transition-all dark:bg-slate-800 dark:border-slate-700"
                                 >
                                     <span>{cat.emoji}</span>
                                     <span>{cat.labelShort}</span>
@@ -240,7 +240,7 @@ export default function HrIssues({
 
                     {/* Main card */}
                     <div
-                        className="rounded-2xl overflow-hidden border-2 bg-white"
+                        className="rounded-2xl overflow-hidden border-2 bg-white dark:bg-slate-900"
                         style={{
                             borderColor: `${activeCat.color}30`,
                             boxShadow: `0 4px 20px ${activeCat.color}18`,
@@ -248,7 +248,7 @@ export default function HrIssues({
                     >
                         {/* Card header */}
                         <div
-                            className="px-6 py-5 flex items-center justify-between border-b"
+                            className="px-6 py-5 flex items-center justify-between border-b dark:border-slate-700"
                             style={{
                                 background: `linear-gradient(135deg, ${activeCat.color}12, ${activeCat.color}06)`,
                                 borderColor: `${activeCat.color}20`,
@@ -262,8 +262,8 @@ export default function HrIssues({
                                     {activeCat.emoji}
                                 </div>
                                 <div>
-                                    <div className="text-base font-bold text-[#0f2a4a]">{activeCat.label}</div>
-                                    <div className="text-xs text-[#94a3b8] mt-0.5">
+                                    <div className="text-base font-bold text-slate-800 dark:text-slate-100">{activeCat.label}</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                         {both('totalItems').ko} {activeCat.issues.length}{itemsSuffix.ko}{' '}
                                         {catCheckedCount(activeCat.id) > 0 && (
                                             <span style={{ color: activeCat.color, fontWeight: 700 }}>
@@ -273,7 +273,7 @@ export default function HrIssues({
                                     </div>
                                 </div>
                             </div>
-                            <div className="text-[13px] text-[#94a3b8]">
+                            <div className="text-[13px] text-slate-500 dark:text-slate-400">
                                 {activeCatIdx + 1} / {CATEGORIES.length}
                             </div>
                         </div>
@@ -289,7 +289,7 @@ export default function HrIssues({
                                         onClick={() => toggleIssue(activeCat.id, issue)}
                                         className={cn(
                                             'w-full flex items-center gap-3 py-3 px-3.5 rounded-lg mb-1.5 cursor-pointer transition-all text-left',
-                                            selected ? 'border-[1.5px]' : 'border-[1.5px] border-transparent bg-[#fafafa] hover:bg-muted/50'
+                                            selected ? 'border-[1.5px]' : 'border-[1.5px] border-transparent bg-slate-50 dark:bg-slate-800 hover:bg-muted/50'
                                         )}
                                         style={{
                                             background: selected ? `${activeCat.color}10` : undefined,
@@ -308,7 +308,7 @@ export default function HrIssues({
                                         <span
                                             className={cn(
                                                 'text-sm',
-                                                selected ? 'font-semibold text-[#0f2a4a]' : 'font-normal text-[#475569]'
+                                                selected ? 'font-semibold text-slate-800 dark:text-slate-100' : 'font-normal text-slate-600 dark:text-slate-300'
                                             )}
                                         >
                                             {issue}
@@ -318,8 +318,8 @@ export default function HrIssues({
                             })}
 
                             {activeCat.id === 'other' && (
-                                <div className="mt-4 pt-4 border-t border-dashed border-[#e2e8f0]">
-                                    <div className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider mb-2">
+                                <div className="mt-4 pt-4 border-t border-dashed border-slate-200 dark:border-slate-700">
+                                    <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                                         {directInputLabel.ko}
                                     </div>
                                     <textarea
@@ -327,14 +327,14 @@ export default function HrIssues({
                                         onChange={(e) => setCustomIssue(e.target.value)}
                                         placeholder={customPlaceholder.ko}
                                         rows={3}
-                                        className="w-full border-[1.5px] border-[#e2e8f0] rounded-lg p-3 text-sm text-[#0f2a4a] outline-none resize-y bg-[#fafafa] font-[inherit] focus:border-[#0f2a4a] focus:bg-white"
+                                        className="w-full border-[1.5px] border-slate-200 dark:border-slate-700 rounded-lg p-3 text-sm text-slate-800 dark:text-slate-100 outline-none resize-y bg-slate-50 dark:bg-slate-800 font-[inherit] focus:border-slate-800 dark:focus:border-slate-100"
                                     />
                                 </div>
                             )}
                         </div>
 
                         {/* Card footer nav */}
-                        <div className="px-6 py-3.5 border-t border-[#e2e8f0] bg-[#f8fafc] flex items-center justify-between">
+                        <div className="px-6 py-3.5 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-between">
                             <button
                                 type="button"
                                 onClick={goPrev}
@@ -342,8 +342,8 @@ export default function HrIssues({
                                 className={cn(
                                     'border rounded-lg py-2 px-4 text-[13px] font-semibold transition-colors',
                                     activeCatIdx === 0
-                                        ? 'border-[#e2e8f0] text-[#cbd5e1] cursor-default'
-                                        : 'border-[#e2e8f0] text-[#475569] hover:bg-white'
+                                        ? 'border-slate-200 dark:border-slate-700 text-slate-300 dark:text-slate-600 cursor-default'
+                                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-900'
                                 )}
                             >
                                 {prevCat.ko}
@@ -390,8 +390,8 @@ export default function HrIssues({
 
                     {/* Summary bar */}
                     {totalChecked > 0 && (
-                        <div className="p-4 bg-white rounded-xl border border-[#e2e8f0] flex flex-wrap items-center gap-2">
-                            <span className="text-[13px] font-bold text-[#0f2a4a]">
+                        <div className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-wrap items-center gap-2">
+                            <span className="text-[13px] font-bold text-slate-800 dark:text-slate-100">
                                 {totalSelectedLabel.ko} {totalChecked}{both('issuesSuffix').ko}
                             </span>
                             <div className="flex gap-1.5 flex-wrap">
@@ -412,7 +412,7 @@ export default function HrIssues({
                         </div>
                     )}
                 </div>
-    );
+            );
     if (embedMode) return <>{innerContent}</>;
     return (
         <>

@@ -78,7 +78,7 @@ export default function JobAnalysisOverview({
     return (
         <div className="space-y-0">
             {/* Dark navy header */}
-            <div className="rounded-t-[14px] bg-gradient-to-br from-[#0f2a4a] to-[#1a4070] px-6 py-5">
+            <div className="rounded-t-[14px] bg-gradient-to-br from-[#0f2a4a] to-[#1a4070] dark:from-slate-800 dark:to-slate-900 px-6 py-5">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <div className="text-[10px] font-bold uppercase tracking-widest text-[#c8a84b] mb-1">
@@ -144,7 +144,7 @@ export default function JobAnalysisOverview({
                                 <div
                                     className={cn(
                                         'w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0',
-                                        completed ? 'bg-emerald-500 text-white' : enabled ? 'bg-[#0f2a4a] text-white' : 'bg-slate-200 text-slate-500'
+                                        completed ? 'bg-emerald-500 text-white' : enabled ? 'bg-[#0f2a4a] dark:bg-slate-700 text-white' : 'bg-slate-200 text-slate-500'
                                     )}
                                 >
                                     {completed ? <CheckCircle2 className="w-5 h-5" /> : index + 1}
@@ -154,7 +154,7 @@ export default function JobAnalysisOverview({
                                         <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                                             Step {index + 1} of {STEPS.length}
                                         </span>
-                                        <span className="inline-flex items-center gap-1.5 text-base font-bold text-[#0f2a4a]">
+                                        <span className="inline-flex items-center gap-1.5 text-base font-bold text-slate-800 dark:text-slate-100">
                                             {step.icon}
                                             {step.name}
                                         </span>
@@ -193,7 +193,7 @@ export default function JobAnalysisOverview({
                                     disabled={!enabled}
                                     className={cn(
                                         'min-w-[100px]',
-                                        enabled ? 'bg-[#0f2a4a] hover:bg-[#1a4070]' : 'opacity-60 cursor-not-allowed'
+                                        enabled ? 'bg-[#0f2a4a] dark:bg-slate-700 hover:bg-[#1a4070]' : 'opacity-60 cursor-not-allowed'
                                     )}
                                 >
                                     {completed ? 'Review' : 'Start'}

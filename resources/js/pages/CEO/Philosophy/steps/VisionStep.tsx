@@ -29,8 +29,8 @@ export default function VisionStep({
                 </div>
                 <div className="min-w-0 flex-1">
                     <div className="text-[10px] font-medium uppercase tracking-wider text-[#C9A84C] mb-1">{chunk.label}</div>
-                    <h2 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#0E1628] mb-1.5">{chunk.name}</h2>
-                    <p className="text-[12px] sm:text-[13px] text-[#4A4E69] font-light leading-relaxed">{chunk.desc}</p>
+                    <h2 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#0E1628] dark:text-slate-100 mb-1.5">{chunk.name}</h2>
+                    <p className="text-[12px] sm:text-[13px] text-[#4A4E69] dark:text-slate-400 font-light leading-relaxed">{chunk.desc}</p>
                 </div>
             </div>
             <div className="bg-[#0E1628] rounded-[10px] px-4 sm:px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 relative overflow-hidden">
@@ -48,7 +48,7 @@ export default function VisionStep({
                         type="button"
                         onClick={() => onChunkChange(i)}
                         className={`h-7 px-3 rounded-full text-[11px] font-medium border transition-all ${
-                            i === currentChunk ? 'bg-[#0E1628] border-[#0E1628] text-white' : 'bg-transparent border-[#E2DDD4] text-[#9A9EB8] hover:border-[#0E1628]/50'
+                            i === currentChunk ? 'bg-[#0E1628] border-[#0E1628] text-white' : 'bg-transparent border-[#E2DDD4] dark:border-slate-600 text-[#9A9EB8] dark:text-slate-400 hover:border-[#0E1628]/50 dark:hover:border-slate-500'
                         }`}
                     >
                         {c.name}
@@ -68,24 +68,24 @@ export default function VisionStep({
                     return (
                         <div
                             key={question.id}
-                            className={`bg-white border rounded-[10px] px-4 sm:px-6 py-4 sm:py-5 ${answered ? 'border-[#0E1628]/20' : 'border-[#E2DDD4]'}`}
+                            className={`bg-white dark:bg-slate-800 border rounded-[10px] px-4 sm:px-6 py-4 sm:py-5 ${answered ? 'border-[#0E1628]/20 dark:border-slate-600' : 'border-[#E2DDD4] dark:border-slate-600'}`}
                         >
-                            <div className="text-[10px] font-medium uppercase tracking-widest text-[#9A9EB8] mb-2">
+                            <div className="text-[10px] font-medium uppercase tracking-widest text-[#9A9EB8] dark:text-slate-400 mb-2">
                                 Q{qNum}
-                                {answered && <span className="float-right text-[#2E9E6B]">✓ 응답 완료</span>}
+                                {answered && <span className="float-right text-[#2E9E6B] dark:text-green-400">✓ 응답 완료</span>}
                             </div>
-                            <p className="text-[13px] sm:text-[14px] leading-relaxed text-[#1A1A2E] mb-3">
+                            <p className="text-[13px] sm:text-[14px] leading-relaxed text-[#1A1A2E] dark:text-slate-200 mb-3">
                                 {question.question_text}<span className="text-red-500 ml-0.5">*</span>
                             </p>
                             {isSegment && (
-                                <div className="flex gap-0 rounded-lg overflow-hidden border border-[#E2DDD4]">
+                                <div className="flex gap-0 rounded-lg overflow-hidden border border-[#E2DDD4] dark:border-slate-600">
                                     {(question.options || []).map((opt) => (
                                         <button
                                             key={opt}
                                             type="button"
                                             onClick={() => setData('vision_mission', { ...data.vision_mission, [qId]: opt })}
-                                            className={`flex-1 py-2.5 px-2 text-center text-xs sm:text-[13px] font-medium transition-all border-r border-[#E2DDD4] last:border-r-0 ${
-                                                val === opt ? 'bg-[#0E1628] text-white' : 'bg-[#FAFAF8] text-[#4A4E69] hover:bg-[#F8F4ED] hover:text-[#0E1628]'
+                                            className={`flex-1 py-2.5 px-2 text-center text-xs sm:text-[13px] font-medium transition-all border-r border-[#E2DDD4] dark:border-slate-600 last:border-r-0 ${
+                                                val === opt ? 'bg-[#0E1628] text-white' : 'bg-[#FAFAF8] dark:bg-slate-700 text-[#4A4E69] dark:text-slate-300 hover:bg-[#F8F4ED] dark:hover:bg-slate-600 hover:text-[#0E1628] dark:hover:text-slate-100'
                                             }`}
                                         >
                                             {opt}
@@ -95,7 +95,7 @@ export default function VisionStep({
                             )}
                             {isRevenue && (
                                 <div className="flex gap-0 rounded-lg overflow-hidden">
-                                    <div className="bg-[#F0EDE6] border border-[#E2DDD4] border-r-0 rounded-l-lg px-3 py-2.5 text-xs text-[#4A4E69] flex items-center">
+                                    <div className="bg-[#F0EDE6] dark:bg-slate-700 border border-[#E2DDD4] dark:border-slate-600 border-r-0 rounded-l-lg px-3 py-2.5 text-xs text-[#4A4E69] dark:text-slate-300 flex items-center">
                                         {unit}
                                     </div>
                                     <Input
@@ -104,7 +104,7 @@ export default function VisionStep({
                                         placeholder="e.g. 50,000"
                                         value={val != null ? String(val) : ''}
                                         onChange={(e) => setData('vision_mission', { ...data.vision_mission, [qId]: e.target.value })}
-                                        className="rounded-l-none border-[#E2DDD4] bg-[#FAFAF8] focus:bg-white"
+                                        className="rounded-l-none border-[#E2DDD4] dark:border-slate-600 bg-[#FAFAF8] dark:bg-slate-700 text-[#1A1A2E] dark:text-slate-200 focus:bg-white dark:focus:bg-slate-600 placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500"
                                     />
                                 </div>
                             )}
@@ -117,7 +117,7 @@ export default function VisionStep({
                                                 type="button"
                                                 onClick={() => setData('vision_mission', { ...data.vision_mission, [qId]: preset })}
                                                 className={`px-3 py-1.5 rounded-full text-xs border transition-all ${
-                                                    val === preset ? 'bg-[#0E1628] border-[#0E1628] text-white' : 'border-[#E2DDD4] bg-[#FAFAF8] text-[#4A4E69] hover:border-[#0E1628] hover:text-[#0E1628]'
+                                                    val === preset ? 'bg-[#0E1628] border-[#0E1628] text-white' : 'border-[#E2DDD4] dark:border-slate-600 bg-[#FAFAF8] dark:bg-slate-700 text-[#4A4E69] dark:text-slate-300 hover:border-[#0E1628] dark:hover:border-slate-500 hover:text-[#0E1628] dark:hover:text-slate-100'
                                                 }`}
                                             >
                                                 {preset}
@@ -129,7 +129,7 @@ export default function VisionStep({
                                         placeholder="Or type your own keyword..."
                                         value={typeof val === 'string' && !KEYWORD_PRESETS.includes(val) ? val : ''}
                                         onChange={(e) => setData('vision_mission', { ...data.vision_mission, [qId]: e.target.value })}
-                                        className="border-[#E2DDD4] bg-[#FAFAF8]"
+                                        className="border-[#E2DDD4] dark:border-slate-600 bg-[#FAFAF8] dark:bg-slate-700 text-[#1A1A2E] dark:text-slate-200 placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500"
                                     />
                                 </>
                             )}
@@ -140,14 +140,14 @@ export default function VisionStep({
                                         onChange={(e) => setData('vision_mission', { ...data.vision_mission, [qId]: e.target.value })}
                                         rows={3}
                                         placeholder="Type your answer..."
-                                        className="w-full border border-[#E2DDD4] rounded-lg px-3 py-2.5 text-sm bg-[#FAFAF8] focus:bg-white focus:border-[#0E1628] outline-none resize-y min-h-[80px]"
+                                        className="w-full border border-[#E2DDD4] dark:border-slate-600 rounded-lg px-3 py-2.5 text-sm bg-[#FAFAF8] dark:bg-slate-700 text-[#1A1A2E] dark:text-slate-200 focus:bg-white dark:focus:bg-slate-600 focus:border-[#0E1628] dark:focus:border-slate-400 outline-none resize-y min-h-[80px] placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500"
                                     />
                                 ) : (
                                     <Input
                                         value={typeof val === 'string' ? val : (val != null ? String(val) : '')}
                                         onChange={(e) => setData('vision_mission', { ...data.vision_mission, [qId]: e.target.value })}
                                         placeholder="Type your answer..."
-                                        className="border-[#E2DDD4] bg-[#FAFAF8] focus:bg-white"
+                                        className="border-[#E2DDD4] dark:border-slate-600 bg-[#FAFAF8] dark:bg-slate-700 text-[#1A1A2E] dark:text-slate-200 focus:bg-white dark:focus:bg-slate-600 placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500"
                                     />
                                 )
                             )}
@@ -158,3 +158,4 @@ export default function VisionStep({
         </div>
     );
 }
+

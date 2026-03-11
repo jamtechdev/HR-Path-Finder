@@ -161,19 +161,19 @@ export default function JobGrades({
                         </p>
                         <p className="text-[11px] text-muted-foreground/80 mt-1">{both('jobGradeDesc').ko}</p>
                     </div>
-                    <div className="flex items-start gap-2.5 rounded-lg border border-[rgba(26,39,68,0.1)] border-l-[3px] border-l-[#1a2744] bg-[rgba(26,39,68,0.04)] p-3">
+                    <div className="flex items-start gap-2.5 rounded-lg border border-slate-200 dark:border-slate-700 border-l-[3px] border-l-[#1a2744] bg-slate-50 dark:bg-slate-800/50 p-3">
                         <span className="text-sm flex-shrink-0 mt-0.5" aria-hidden>ℹ</span>
                         <div>
-                            <p className="text-xs text-[#5a6478] leading-relaxed">
-                                <strong className="text-[#1a2744]">{both('expectedRoleDraft').en.split(':')[0]}:</strong>{both('expectedRoleDraft').en.split(':').slice(1).join(':').trim()}
+                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                <strong className="text-slate-800 dark:text-slate-100">{both('expectedRoleDraft').en.split(':')[0]}:</strong>{both('expectedRoleDraft').en.split(':').slice(1).join(':').trim()}
                             </p>
                             <p className="text-[11px] text-muted-foreground/80 mt-1">{both('expectedRoleDraft').ko}</p>
                         </div>
                     </div>
-                    <Card className="border rounded-[14px] overflow-hidden border-border">
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--gray-100)] bg-white">
+                    <Card className="border rounded-[14px] overflow-hidden border-border bg-white dark:bg-slate-900">
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                             <div>
-                                <h3 className="text-[13px] font-bold text-[#2d3340]">{both('gradeNamesCard').en}</h3>
+                                <h3 className="text-[13px] font-bold text-slate-800 dark:text-slate-100">{both('gradeNamesCard').en}</h3>
                                 <p className="text-[11.5px] text-muted-foreground mt-0.5">{both('gradeNamesSub').ko}</p>
                             </div>
                             <button
@@ -188,7 +188,7 @@ export default function JobGrades({
                         <div className="p-0">
                             {/* Table header */}
                             <div
-                                className="grid gap-0 border-b border-border bg-[#f8f9fb] px-5 py-2 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground"
+                                className="grid gap-0 border-b border-border bg-slate-50 dark:bg-slate-800 px-5 py-2 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground"
                                 style={{ gridTemplateColumns: '140px 90px 120px 48px 1fr 32px' }}
                             >
                                 <div>{both('gradeName').ko} <span className="text-[10px] font-normal text-muted-foreground/80">({both('gradeName').en})</span></div>
@@ -201,7 +201,7 @@ export default function JobGrades({
                             {grades.map((grade) => (
                                 <div
                                     key={grade.id}
-                                    className="grid gap-0 px-5 py-3 border-b border-[var(--gray-100)] items-start hover:bg-muted/50 transition-colors"
+                                    className="grid gap-0 px-5 py-3 border-b border-slate-100 dark:border-slate-700 items-start hover:bg-muted/50 transition-colors"
                                     style={{ gridTemplateColumns: '140px 90px 120px 48px 1fr 32px' }}
                                 >
                                     <div className="pr-3 pt-1">
@@ -210,7 +210,7 @@ export default function JobGrades({
                                             value={grade.name}
                                             onChange={(e) => updateGrade(grade.id, { name: e.target.value })}
                                             placeholder="직급명 입력"
-                                            className="w-full border-0 border-b-2 border-dashed border-border bg-transparent text-[13px] font-semibold text-[#2d3340] outline-none px-1 py-0.5 rounded-t focus:border-[#4ecdc4] focus:bg-[rgba(78,205,196,0.05)]"
+                                            className="w-full border-0 border-b-2 border-dashed border-border bg-transparent text-[13px] font-semibold text-slate-800 dark:text-slate-100 outline-none px-1 py-0.5 rounded-t focus:border-emerald-500 focus:bg-emerald-50 dark:focus:bg-emerald-950/30"
                                         />
                                     </div>
                                     <div className="pr-3 pt-1">
@@ -224,7 +224,7 @@ export default function JobGrades({
                                                     updateGrade(grade.id, { promotion_years: isNaN(v) ? null : v, no_promotion_period: false });
                                                 }}
                                                 disabled={grade.no_promotion_period}
-                                                className="w-12 h-[34px] text-center border-[1.5px] border-border rounded-md text-[13px] font-bold text-[#1a2744] outline-none focus:border-[#4ecdc4] disabled:bg-muted disabled:text-muted-foreground"
+                                                className="w-12 h-[34px] text-center border-[1.5px] border-border rounded-md text-[13px] font-bold text-slate-900 dark:text-slate-100 outline-none focus:border-emerald-500 disabled:bg-muted disabled:text-muted-foreground"
                                             />
                                             <span className="text-[11px] text-muted-foreground">{tr('years')}</span>
                                         </div>
@@ -238,13 +238,13 @@ export default function JobGrades({
                                             <span
                                                 className={`w-4 h-4 rounded border-[1.5px] flex items-center justify-center flex-shrink-0 transition-colors ${
                                                     grade.no_promotion_period
-                                                        ? 'border-[#1a2744] bg-[#1a2744] text-white'
-                                                        : 'border-muted-foreground/40 bg-white'
+                                                        ? 'border-slate-900 dark:border-slate-100 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                                                        : 'border-muted-foreground/40 bg-white dark:bg-slate-800'
                                                 }`}
                                             >
                                                 {grade.no_promotion_period && <span className="text-[9px]">✓</span>}
                                             </span>
-                                            <span className={`text-[11.5px] ${grade.no_promotion_period ? 'text-[#1a2744] font-semibold' : 'text-muted-foreground'}`}>
+                                            <span className={`text-[11.5px] ${grade.no_promotion_period ? 'text-slate-900 dark:text-slate-100 font-semibold' : 'text-muted-foreground'}`}>
                                                 {tr('noFixedPeriod')}
                                             </span>
                                         </button>
@@ -259,7 +259,7 @@ export default function JobGrades({
                                                     const v = parseInt(e.target.value, 10);
                                                     updateGrade(grade.id, { headcount: isNaN(v) ? 0 : v });
                                                 }}
-                                                className="w-10 h-[34px] text-center border-[1.5px] border-border rounded-md text-[13px] font-bold text-[#1a2744] outline-none focus:border-[#4ecdc4]"
+                                                className="w-10 h-[34px] text-center border-[1.5px] border-border rounded-md text-[13px] font-bold text-slate-900 dark:text-slate-100 outline-none focus:border-emerald-500"
                                             />
                                             <span className="text-[11px] text-muted-foreground">{tr('persons')}</span>
                                         </div>
@@ -270,14 +270,14 @@ export default function JobGrades({
                                             onChange={(e) => updateGrade(grade.id, { expected_role: e.target.value })}
                                             placeholder={tr('expectedRolePlaceholder')}
                                             rows={3}
-                                            className="w-full min-h-[60px] px-2.5 py-2 border-[1.5px] border-border rounded-lg text-xs text-[#2d3340] bg-white resize-y outline-none focus:border-[#4ecdc4] placeholder:italic placeholder:text-muted-foreground/80 leading-relaxed"
+                                            className="w-full min-h-[60px] px-2.5 py-2 border-[1.5px] border-border rounded-lg text-xs text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900 resize-y outline-none focus:border-emerald-500 placeholder:italic placeholder:text-muted-foreground/80 leading-relaxed"
                                         />
                                     </div>
                                     <div className="flex justify-center pt-1.5">
                                         <button
                                             type="button"
                                             onClick={() => removeGrade(grade.id)}
-                                            className="w-[26px] h-[26px] rounded-md border-0 bg-muted text-muted-foreground hover:bg-[#fde8e8] hover:text-[#e05252] flex items-center justify-center text-[11px] transition-colors"
+                                            className="w-[26px] h-[26px] rounded-md border-0 bg-muted text-muted-foreground hover:bg-red-100 dark:hover:bg-red-950/30 hover:text-red-500 flex items-center justify-center text-[11px] transition-colors"
                                         >
                                             <X className="w-3 h-3" />
                                         </button>
@@ -286,10 +286,10 @@ export default function JobGrades({
                             ))}
                             {/* Summary row */}
                             <div
-                                className="grid gap-0 px-5 py-3 bg-[#f8f9fb] border-t-2 border-border items-center"
+                                className="grid gap-0 px-5 py-3 bg-slate-50 dark:bg-slate-800 border-t-2 border-border items-center"
                                 style={{ gridTemplateColumns: '140px 90px 120px 48px 1fr 32px' }}
                             >
-                                <div className="text-xs font-bold text-[#5a6478] pr-3 col-span-3">{tr('totalHeadcount')}</div>
+                                <div className="text-xs font-bold text-slate-600 dark:text-slate-300 pr-3 col-span-3">{tr('totalHeadcount')}</div>
                                 <div
                                     className={`text-[15px] font-extrabold pr-3 transition-colors ${matchWorkforce ? 'text-[#2aab6e]' : diff !== 0 ? 'text-[#e05252]' : 'text-foreground'}`}
                                 >
@@ -301,8 +301,8 @@ export default function JobGrades({
                                 <div
                                     className={`mx-5 mb-3.5 py-2.5 px-3.5 rounded-lg text-xs flex items-center gap-2 transition-colors ${
                                         matchWorkforce
-                                            ? 'bg-[rgba(42,171,110,0.08)] border border-[rgba(42,171,110,0.25)] text-[#1a7a4e]'
-                                            : 'bg-[rgba(224,82,82,0.08)] border border-[rgba(224,82,82,0.25)] text-[#e05252]'
+                                            ? 'bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400'
+                                            : 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400'
                                     }`}
                                 >
                                     <span className="flex-shrink-0">{matchWorkforce ? '✅' : '⚠️'}</span>

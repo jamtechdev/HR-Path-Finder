@@ -150,25 +150,25 @@ export default function Executives({
     const isReadOnly = readOnly || isReadOnlyStatus;
 
     const innerContent = (
-                <div className="bg-white border border-[var(--hr-gray-200)] rounded-[14px] overflow-hidden mb-3.5">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-[14px] overflow-hidden mb-3.5">
                     {/* Card header */}
-                    <div className="py-4 px-[22px] border-b border-[var(--hr-gray-100)] flex items-center justify-between flex-wrap gap-3">
+                    <div className="py-4 px-[22px] border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-3">
                         <div>
-                            <h3 className="text-[13px] font-bold text-[var(--hr-gray-800)]">
+                            <h3 className="text-[13px] font-bold text-slate-800 dark:text-slate-100">
                                 {t('diagnosis.executives.card_title', '임원 포지션 설정')}
                             </h3>
-                            <p className="text-[11.5px] text-[var(--hr-gray-400)] mt-0.5">
+                            <p className="text-[11.5px] text-slate-400 dark:text-slate-500 mt-0.5">
                                 {t('diagnosis.executives.card_desc', '해당되는 임원 직책을 선택하고 인원수를 입력하세요')}
                             </p>
                         </div>
-                        <div className="flex items-center gap-1.5 bg-[var(--hr-mint-dim)] border border-[rgba(78,205,196,0.2)] rounded-lg py-1.5 px-3.5">
-                            <span className="text-[11px] text-[var(--hr-gray-600)]">
+                        <div className="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg py-1.5 px-3.5">
+                            <span className="text-[11px] text-slate-600 dark:text-slate-300">
                                 {t('diagnosis.executives.total_label', '총 임원')}
                             </span>
-                            <strong className="text-[18px] font-bold text-[var(--hr-navy)] leading-none">
+                            <strong className="text-[18px] font-bold text-slate-900 dark:text-slate-100 leading-none">
                                 {totalCount}
                             </strong>
-                            <em className="text-[11px] text-[var(--hr-gray-400)] not-italic">
+                            <em className="text-[11px] text-slate-400 dark:text-slate-500 not-italic">
                                 {t('diagnosis.executives.total_suffix', '명')}
                             </em>
                         </div>
@@ -194,27 +194,27 @@ export default function Executives({
                                         }}
                                         className={`flex items-center gap-3 py-2.5 px-3.5 border rounded-[10px] transition-all cursor-pointer ${
                                             selected
-                                                ? 'border-[var(--hr-mint)] bg-white shadow-[0_0_0_1px_var(--hr-mint)]'
-                                                : 'border-[var(--hr-gray-200)] bg-[var(--hr-gray-50)] hover:border-[var(--hr-gray-300)] hover:bg-white'
+                                                ? 'border-emerald-500 bg-white dark:bg-slate-900 shadow-[0_0_0_1px_rgb(16_185_129)]'
+                                                : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-white dark:hover:bg-slate-900'
                                         }`}
                                     >
                                         <div
                                             className={`w-[18px] h-[18px] rounded-[5px] border-2 flex items-center justify-center shrink-0 ${
                                                 selected
-                                                    ? 'border-[var(--hr-mint)] bg-[var(--hr-mint)]'
-                                                    : 'border-[var(--hr-gray-300)] bg-white'
+                                                    ? 'border-emerald-500 bg-emerald-500'
+                                                    : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
                                             }`}
                                         >
-                                            {selected && <Check className="w-2.5 h-2.5 text-[var(--hr-navy-deep)]" />}
+                                            {selected && <Check className="w-2.5 h-2.5 text-white" />}
                                         </div>
                                         <span
                                             className={`flex-1 text-[13px] font-semibold ${
-                                                selected ? 'text-[var(--hr-gray-800)]' : 'text-[var(--hr-gray-600)]'
+                                                selected ? 'text-slate-800 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300'
                                             }`}
                                         >
                                             {role}
                                         </span>
-                                        <span className="text-[9.5px] font-semibold py-0.5 px-1.5 rounded-[10px] bg-[var(--hr-gray-100)] text-[var(--hr-gray-400)]">
+                                        <span className="text-[9.5px] font-semibold py-0.5 px-1.5 rounded-[10px] bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500">
                                             {t('diagnosis.executives.preset_badge', '기본')}
                                         </span>
                                         {selected && (

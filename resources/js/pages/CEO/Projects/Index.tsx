@@ -83,9 +83,9 @@ export default function CeoProjectsIndex({ projects, stats }: Props) {
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden bg-background">
+            <SidebarInset className="flex flex-col overflow-hidden bg-background dark:bg-slate-900">
                 <AppHeader />
-                <main className="flex-1 overflow-auto bg-gradient-to-br from-background via-muted/20 to-background">
+                <main className="flex-1 overflow-auto bg-gradient-to-br from-background via-muted/20 to-background dark:from-slate-900 dark:via-slate-800/50 dark:to-slate-900">
                     <Head title="Projects - CEO Dashboard" />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-8">
@@ -97,12 +97,12 @@ export default function CeoProjectsIndex({ projects, stats }: Props) {
 
                         {/* Statistics Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                            <Card className="border-t-6 border-t-blue-500 hover:shadow-lg transition-shadow cursor-pointer">
+                            <Card className="border-t-6 border-t-blue-500 hover:shadow-lg transition-shadow cursor-pointer dark:bg-slate-800 dark:border-slate-700">
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-sm text-muted-foreground mb-1">Total Projects</p>
-                                            <p className="text-3xl font-bold">{stats.total_projects}</p>
+                                            <p className="text-sm text-muted-foreground dark:text-slate-400 mb-1">Total Projects</p>
+                                            <p className="text-3xl font-bold dark:text-slate-100">{stats.total_projects}</p>
                                         </div>
                                         <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
                                             <FolderKanban className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -111,12 +111,12 @@ export default function CeoProjectsIndex({ projects, stats }: Props) {
                                 </CardContent>
                             </Card>
 
-                            <Card className="border-t-6 border-t-orange-500 hover:shadow-lg transition-shadow cursor-pointer">
+                            <Card className="border-t-6 border-t-orange-500 hover:shadow-lg transition-shadow cursor-pointer dark:bg-slate-800 dark:border-slate-700">
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-sm text-muted-foreground mb-1">Pending Review</p>
-                                            <p className="text-3xl font-bold">{stats.pending_diagnosis_review}</p>
+                                            <p className="text-sm text-muted-foreground dark:text-slate-400 mb-1">Pending Review</p>
+                                            <p className="text-3xl font-bold dark:text-slate-100">{stats.pending_diagnosis_review}</p>
                                         </div>
                                         <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
                                             <Clock className="w-6 h-6 text-orange-600 dark:text-orange-400" />
@@ -125,12 +125,12 @@ export default function CeoProjectsIndex({ projects, stats }: Props) {
                                 </CardContent>
                             </Card>
 
-                            <Card className="border-t-6 border-t-yellow-500 hover:shadow-lg transition-shadow cursor-pointer">
+                            <Card className="border-t-6 border-t-yellow-500 hover:shadow-lg transition-shadow cursor-pointer dark:bg-slate-800 dark:border-slate-700">
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-sm text-muted-foreground mb-1">Pending Survey</p>
-                                            <p className="text-3xl font-bold">{stats.pending_ceo_survey}</p>
+                                            <p className="text-sm text-muted-foreground dark:text-slate-400 mb-1">Pending Survey</p>
+                                            <p className="text-3xl font-bold dark:text-slate-100">{stats.pending_ceo_survey}</p>
                                         </div>
                                         <div className="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center">
                                             <FileText className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
@@ -139,12 +139,12 @@ export default function CeoProjectsIndex({ projects, stats }: Props) {
                                 </CardContent>
                             </Card>
 
-                            <Card className="border-t-6 border-t-green-500 hover:shadow-lg transition-shadow cursor-pointer">
+                            <Card className="border-t-6 border-t-green-500 hover:shadow-lg transition-shadow cursor-pointer dark:bg-slate-800 dark:border-slate-700">
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-sm text-muted-foreground mb-1">Completed</p>
-                                            <p className="text-3xl font-bold">{stats.completed_projects}</p>
+                                            <p className="text-sm text-muted-foreground dark:text-slate-400 mb-1">Completed</p>
+                                            <p className="text-3xl font-bold dark:text-slate-100">{stats.completed_projects}</p>
                                         </div>
                                         <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
                                             <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
@@ -171,14 +171,14 @@ export default function CeoProjectsIndex({ projects, stats }: Props) {
                                             href={`/ceo/projects/${project.id}/verification`}
                                             className="group"
                                         >
-                                            <Card className="h-full hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50 cursor-pointer">
-                                                <CardHeader className="pb-3">
+                                            <Card className="h-full hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50 cursor-pointer dark:bg-slate-800 dark:border-slate-700 dark:hover:border-primary/50">
+                                                <CardHeader className="pb-3 dark:bg-slate-800">
                                                     <div className="flex items-start justify-between mb-2">
                                                         <div className="flex-1">
-                                                            <CardTitle className="text-xl mb-1 group-hover:text-primary transition-colors">
+                                                            <CardTitle className="text-xl mb-1 group-hover:text-primary transition-colors dark:text-slate-100">
                                                                 {project.company?.name || `Project #${project.id}`}
                                                             </CardTitle>
-                                                            <p className="text-xs text-muted-foreground">
+                                                            <p className="text-xs text-muted-foreground dark:text-slate-400">
                                                                 Created {new Date(project.created_at).toLocaleDateString()}
                                                             </p>
                                                         </div>
@@ -192,12 +192,12 @@ export default function CeoProjectsIndex({ projects, stats }: Props) {
                                                     {hrProgress && (
                                                         <div>
                                                             <div className="flex items-center justify-between mb-2">
-                                                                <span className="text-sm font-medium">HR Progress</span>
-                                                                <span className="text-sm text-muted-foreground">
+                                                                <span className="text-sm font-medium dark:text-slate-300">HR Progress</span>
+                                                                <span className="text-sm text-muted-foreground dark:text-slate-400">
                                                                     {hrProgress.completed}/{hrProgress.total} steps
                                                                 </span>
                                                             </div>
-                                                            <div className="w-full bg-muted rounded-full h-2.5">
+                                                            <div className="w-full bg-muted rounded-full h-2.5 dark:bg-slate-700">
                                                                 <div
                                                                     className="bg-primary h-2.5 rounded-full transition-all duration-500"
                                                                     style={{ width: `${progressPercentage}%` }}
@@ -209,8 +209,8 @@ export default function CeoProjectsIndex({ projects, stats }: Props) {
                                                     {/* CEO Progress */}
                                                     {ceoProgress && (
                                                         <div className="flex items-center justify-between text-sm">
-                                                            <span className="text-muted-foreground">CEO Verification:</span>
-                                                            <span className="font-medium">
+                                                            <span className="text-muted-foreground dark:text-slate-400">CEO Verification:</span>
+                                                            <span className="font-medium dark:text-slate-300">
                                                                 {ceoProgress.verified_steps || 0}/{hrProgress?.total || 5} verified
                                                             </span>
                                                         </div>

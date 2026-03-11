@@ -229,12 +229,12 @@ export default function CeoReviewDiagnosis({
             </Sidebar>
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
-                <main className="flex-1 overflow-auto bg-slate-50/50">
+                <main className="flex-1 overflow-auto bg-slate-50/50 dark:bg-slate-900">
                     <Head title={`Review Diagnosis - ${project.company.name}`} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <Link
                             href={`/ceo/projects/${project.id}/verification`}
-                            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-[#0f2a4a] mb-6 transition-colors"
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 mb-6 transition-colors"
                         >
                             <ArrowLeft className="w-4 h-4" />
                             Back to Step Verification
@@ -247,7 +247,7 @@ export default function CeoReviewDiagnosis({
                         />
 
                         {diagnosis && (
-                            <div className="rounded-t-[14px] bg-gradient-to-br from-[#0f2a4a] to-[#1a4070] px-6 py-5 mb-0">
+                            <div className="rounded-t-[14px] bg-gradient-to-br from-[#0f2a4a] to-[#1a4070] dark:from-slate-800 dark:to-slate-900 px-6 py-5 mb-0">
                                 <div className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#c8a84b]">
                                     {company?.name || project.company?.name || '—'} · {formatValue(diagnosis?.industry_category) || '—'}
                                 </div>
@@ -315,7 +315,7 @@ export default function CeoReviewDiagnosis({
                             </Alert>
                         )}
 
-                        <div className="rounded-b-[14px] border border-t-0 border-slate-200 bg-white shadow-sm overflow-hidden">
+                        <div className="rounded-b-[14px] border border-t-0 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-0">
                             <DiagnosisTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
