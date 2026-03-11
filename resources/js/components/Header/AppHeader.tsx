@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { LanguageToggle } from '@/components/LanguageToggle';
+import { cn } from '@/lib/utils';
 
 function getBreadcrumbLabel(path: string): string {
     if (path.startsWith('/admin')) return 'Admin';
@@ -65,40 +66,58 @@ export default function AppHeader() {
         });
     };
 
+    const isJobAnalysis = path.startsWith('/hr-manager/job-analysis');
+    const headerDark = isJobAnalysis;
+
     return (
-        <header className="sticky top-0 z-50 w-full border-b border-[var(--hr-gray-200)] bg-white flex-shrink-0 h-[var(--hr-topbar-h)]">
+        <header className={cn(
+            'sticky top-0 z-50 w-full flex-shrink-0 h-[var(--hr-topbar-h)]',
+            headerDark
+                ? 'bg-[#0f2a4a] border-b border-white/10'
+                : 'border-b border-[var(--hr-gray-200)] bg-white'
+        )}>
             <div className="flex h-full items-center justify-between px-7 w-full">
-                {/* Left Side - Sidebar Toggle & Breadcrumb (match reference) */}
                 <div className="flex items-center gap-4">
-                    <SidebarTrigger className="md:flex hidden size-9 w-7 h-7 -ml-1" />
-                    <div className="flex items-center gap-2 text-[12px] text-[var(--hr-gray-400)]">
+                    <SidebarTrigger className={cn(
+                        'md:flex hidden size-9 w-7 h-7 -ml-1',
+                        headerDark && 'text-white hover:bg-white/10'
+                    )} />
+                    <div className={cn(
+                        'flex items-center gap-2 text-[12px]',
+                        headerDark ? 'text-white/80' : 'text-[var(--hr-gray-400)]'
+                    )}>
                         <span>HR Path-Finder</span>
                         <span>&nbsp;/&nbsp;</span>
-                        <strong className="text-[var(--hr-gray-800)] font-semibold">{breadcrumbLabel}</strong>
+                        <strong className={headerDark ? 'text-white font-semibold' : 'text-[var(--hr-gray-800)] font-semibold'}>{breadcrumbLabel}</strong>
                     </div>
                 </div>
 
-                {/* Right Side - Language, Bell, User (match reference: gap-4, bell 32x32 gray-100, avatar navy + mint) */}
                 <div className="flex items-center gap-4">
                     <LanguageToggle iconOnly />
-                    <Button variant="ghost" size="icon" className="relative w-8 h-8 rounded-lg bg-[var(--hr-gray-100)] hover:bg-[var(--hr-gray-200)]">
-                        <Bell className="h-4 w-4 text-[var(--hr-gray-800)]" />
+                    <Button variant="ghost" size="icon" className={cn(
+                        'relative w-8 h-8 rounded-lg',
+                        headerDark ? 'bg-white/10 hover:bg-white/20' : 'bg-[var(--hr-gray-100)] hover:bg-[var(--hr-gray-200)]'
+                    )}>
+                        <Bell className={cn('h-4 w-4', headerDark ? 'text-white' : 'text-[var(--hr-gray-800)]')} />
                         <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-[var(--hr-mint)]" />
                     </Button>
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="flex items-center gap-2 h-auto py-1 pr-2.5 pl-1 hover:bg-[var(--hr-gray-100)] rounded-lg">
+                            <Button variant="ghost" className={cn(
+                                'flex items-center gap-2 h-auto py-1 pr-2.5 pl-1 rounded-lg',
+                                headerDark ? 'hover:bg-white/10' : 'hover:bg-[var(--hr-gray-100)]'
+                            )}>
                                 <div className="w-[30px] h-[30px] rounded-lg bg-[var(--hr-navy)] flex items-center justify-center flex-shrink-0">
                                     <span className="text-[11px] font-bold text-[var(--hr-mint)]">
                                         {user?.name ? getInitials(user.name) : 'U'}
                                     </span>
                                 </div>
                                 <div className="hidden md:block text-left">
-                                    <p className="text-[12px] font-semibold text-[var(--hr-gray-800)] leading-tight">{user?.name || 'User'}</p>
-                                    <p className="text-[10px] text-[var(--hr-gray-400)]">{user?.email || ''}</p>
+                                    <p className={cn('text-[12px] font-semibold leading-tight', headerDark ? 'text-white' : 'text-[var(--hr-gray-800)]')}>{user?.name || 'User'}</p>
+                                    <p className={cn('text-[10px]', headerDark ? 'text-white/60' : 'text-[var(--hr-gray-400)]')}>{user?.email || ''}</p>
                                 </div>
-                                <ChevronDown className="h-4 w-4 text-[var(--hr-gray-400)] hidden md:block" />
+                                <ChevronDown className={cn('h-4 w-4 hidden md:block', headerDark ? 'text-white/60' : 'text-[var(--hr-gray-400)]')} />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent 

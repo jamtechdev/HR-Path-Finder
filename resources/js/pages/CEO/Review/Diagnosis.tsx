@@ -108,6 +108,7 @@ interface Props {
     project: {
         id: number;
         company: Company;
+        ceoPhilosophy?: { id?: number; completed_at?: string } | null;
     };
     diagnosis?: Diagnosis;
     company: Company;
@@ -199,7 +200,7 @@ export default function CeoReviewDiagnosis({
     };
 
     const handleNextStep = () => {
-        router.visit(`/ceo/philosophy/survey/${project.id}`);
+        router.visit('/ceo/dashboard');
     };
 
     const totalHeadcount = Number(diagnosis?.present_headcount) || 0;
@@ -384,6 +385,8 @@ export default function CeoReviewDiagnosis({
                             onConfirm={handleConfirm}
                             processing={processing}
                             diagnosisStatus={diagnosis?.status}
+                            hasSurveyCompleted={!!project?.ceoPhilosophy}
+                            projectId={project?.id}
                         />
                     </div>
                 </main>
@@ -393,8 +396,8 @@ export default function CeoReviewDiagnosis({
                 isOpen={showSuccessModal}
                 onClose={() => setShowSuccessModal(false)}
                 title="Diagnosis Confirmed!"
-                message="Diagnosis has been confirmed and locked. You can now proceed to complete the Management Philosophy Survey."
-                nextStepLabel="Proceed to Survey"
+                message="Diagnosis has been confirmed and locked."
+                nextStepLabel="Go to Dashboard"
                 onNextStep={handleNextStep}
             />
         <Toaster />

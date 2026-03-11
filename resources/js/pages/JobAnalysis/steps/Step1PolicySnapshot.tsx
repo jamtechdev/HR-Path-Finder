@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import StepContainer from '../components/StepContainer';
-import StepNavigation from '../components/StepNavigation';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ChevronLeft, ArrowRight, HelpCircle } from 'lucide-react';
 import type { PolicyAnswer } from '../hooks/useJobAnalysisState';
 
 interface Question {
@@ -20,6 +19,12 @@ interface Step1PolicySnapshotProps {
     onContinue: () => void;
     onBack: () => void;
 }
+
+const OPTIONS = [
+    { value: 'yes', label: 'Yes' },
+    { value: 'no', label: 'No' },
+    { value: 'not_sure', label: 'Not sure' },
+] as const;
 
 export default function Step1PolicySnapshot({
     questions,
@@ -61,9 +66,7 @@ export default function Step1PolicySnapshot({
         };
         setAnswers(newAnswers);
         prevAnswersRef.current = newAnswers;
-        if (onAnswersChangeRef.current) {
-            onAnswersChangeRef.current(newAnswers);
-        }
+        onAnswersChangeRef.current?.(newAnswers);
     };
 
     const handleConditionalTextChange = (questionId: number, text: string) => {
@@ -76,88 +79,181 @@ export default function Step1PolicySnapshot({
         };
         setAnswers(newAnswers);
         prevAnswersRef.current = newAnswers;
-        if (onAnswersChangeRef.current) {
-            onAnswersChangeRef.current(newAnswers);
-        }
+        onAnswersChangeRef.current?.(newAnswers);
     };
 
     const sortedQuestions = [...questions].sort((a, b) => a.order - b.order);
-    const allAnswered = sortedQuestions.every(q => answers[q.id]?.answer);
+    const answeredCount = sortedQuestions.filter((q) => answers[q.id]?.answer).length;
+    const totalCount = sortedQuestions.length;
+    const allAnswered = totalCount > 0 && answeredCount === totalCount;
 
     return (
-        <StepContainer
-            stepNumber={1}
-            stepName="Policy Snapshot"
-            description="This section provides a brief overview of how job roles and responsibilities are currently operated within your company. The information you provide will be used solely to support subsequent job analysis and potential adjustments to role and position frameworks."
-        >
-            <div className="space-y-6">
-                {sortedQuestions.length > 0 ? (
-                    sortedQuestions.map((question, index) => (
-                        <div
-                            key={`question-${question.id}-${index}`}
-                            className="space-y-4 p-5 rounded-xl border-2 border-muted hover:bg-muted/30 transition-colors"
-                        >
-                            <div className="flex items-start gap-4">
-                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-base font-bold text-primary">
-                                    {index + 1}
-                                </div>
-                                <div className="flex-1">
-                                    <Label className="text-lg font-semibold block mb-4">
-                                        {question.question_text}
-                                    </Label>
-                                    <RadioGroup
-                                        value={answers[question.id]?.answer || ''}
-                                        onValueChange={(value) => handleAnswerChange(question.id, value)}
-                                        className="mt-3 space-y-3"
-                                    >
-                                        <div className="flex items-center space-x-3 p-3 rounded-lg border-2 border-muted hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-all">
-                                            <RadioGroupItem value="yes" id={`q${question.id}-yes`} />
-                                            <Label htmlFor={`q${question.id}-yes`} className="font-normal cursor-pointer flex-1 text-base">
-                                                Yes
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-3 p-3 rounded-lg border-2 border-muted hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-all">
-                                            <RadioGroupItem value="no" id={`q${question.id}-no`} />
-                                            <Label htmlFor={`q${question.id}-no`} className="font-normal cursor-pointer flex-1 text-base">
-                                                No
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-3 p-3 rounded-lg border-2 border-muted hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-all">
-                                            <RadioGroupItem value="not_sure" id={`q${question.id}-not_sure`} />
-                                            <Label htmlFor={`q${question.id}-not_sure`} className="font-normal cursor-pointer flex-1 text-base">
-                                                Not sure
-                                            </Label>
-                                        </div>
-                                    </RadioGroup>
+        <div className="min-h-full flex flex-col bg-[#f5f3ef] text-[#1a1a3d]">
+            {/* Main content - match HTML .main-content */}
+            <main className="max-w-[900px] mx-auto w-full" style={{ margin: '40px auto 120px', padding: '0 20px' }}>
+                <div className="text-[#b18c4d] text-[11px] font-extrabold uppercase mb-2" style={{ letterSpacing: '0.8px', marginBottom: 8 }}>
+                    ● STEP 1 OF 6 — JOB ANALYSIS
+                </div>
+                <h1 className="text-[#1a1a3d] text-[32px] font-extrabold m-0" style={{ letterSpacing: '-0.5px', marginBottom: 20 }}>
+                    Policy Snapshot
+                </h1>
 
-                                    {question.has_conditional_text && answers[question.id]?.answer === 'yes' && (
-                                        <div className="ml-14 mt-4 space-y-2">
-                                            <Label className="text-sm font-semibold">If yes, which job(s)?</Label>
+                <div
+                    className="border-l-2 border-[#b18c4d] py-0.5 text-[#57606a] text-[15px]"
+                    style={{ paddingLeft: 25, paddingTop: 2, paddingBottom: 2, marginBottom: 40, lineHeight: 1.6 }}
+                >
+                    This section provides a brief overview of how job roles and responsibilities are
+                    currently operated within your company. The information you provide will be used
+                    solely to support subsequent job analysis and potential adjustments to role and
+                    position frameworks.
+                </div>
+
+                <div className="text-right text-[13px] font-bold text-[#94a3b8]" style={{ marginBottom: 12 }}>
+                    {answeredCount} / {totalCount} answered
+                </div>
+
+                {sortedQuestions.length > 0 ? (
+                    <div className="space-y-[30px]" style={{ marginBottom: 30 }}>
+                        {sortedQuestions.map((question, index) => {
+                            const currentAnswer = answers[question.id]?.answer || '';
+                            const isAnswered = !!currentAnswer;
+
+                            return (
+                                <div
+                                    key={question.id}
+                                    className="bg-white border border-[#e0ddd5] relative"
+                                    style={{
+                                        borderRadius: 16,
+                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+                                        marginBottom: 30,
+                                        overflow: 'visible',
+                                    }}
+                                >
+                                    {/* Number circle - overlaps left edge; no overflow-hidden on card so it shows */}
+                                    <div
+                                        className="absolute bg-[#1a1a3d] text-white rounded-full flex items-center justify-center text-[13px] font-bold z-10"
+                                        style={{ left: -16, top: 28, width: 32, height: 32, boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}
+                                        aria-hidden
+                                    >
+                                        {index + 1}
+                                    </div>
+
+                                    {isAnswered && (
+                                        <div className="absolute text-[#52b788] text-xs font-bold flex items-center gap-1" style={{ right: 45, top: 28 }}>
+                                            ✓ Answered
+                                        </div>
+                                    )}
+
+                                    <div className="flex justify-between items-start" style={{ padding: '30px 35px' }}>
+                                        <div className="flex-1 pr-6">
+                                            <p className="text-[#1a1a3d]" style={{ fontSize: 17, lineHeight: 1.5 }}>
+                                                {question.question_text}
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className="shrink-0 rounded-full bg-[#f1f5f9] text-[#94a3b8] flex items-center justify-center cursor-pointer hover:bg-[#e2e8f0]"
+                                            style={{ width: 20, height: 20, fontSize: 12 }}
+                                            aria-label="Help"
+                                        >
+                                            <HelpCircle className="w-3 h-3" />
+                                        </button>
+                                    </div>
+
+                                    <div className="border-t border-[#f1f5f9]">
+                                        {OPTIONS.map((opt) => {
+                                            const isActive = currentAnswer === opt.value;
+                                            return (
+                                                <button
+                                                    key={opt.value}
+                                                    type="button"
+                                                    onClick={() => handleAnswerChange(question.id, opt.value)}
+                                                    className={`
+                                                        w-full flex items-center text-left font-medium transition-colors border-b border-[#f1f5f9] last:border-b-0
+                                                        hover:bg-[#fcfcfc]
+                                                        ${isActive ? 'text-[#1a1a3d] font-bold bg-[#fcfcfc]' : 'text-[#475569]'}
+                                                    `}
+                                                    style={{ padding: '18px 35px', gap: 15 }}
+                                                >
+                                                    <span
+                                                        className={`
+                                                            rounded-full border-2 flex-shrink-0
+                                                            ${isActive
+                                                                ? 'border-[#1a1a3d] bg-[#1a1a3d]'
+                                                                : 'border-[#cbd5e1] bg-transparent'
+                                                            }
+                                                        `}
+                                                        style={{
+                                                            width: 20,
+                                                            height: 20,
+                                                            ...(isActive ? { boxShadow: 'inset 0 0 0 4px white' } : {}),
+                                                        }}
+                                                    />
+                                                    <span className="font-medium">{opt.label}</span>
+                                                    {isActive && (
+                                                        <span className="ml-auto text-[#52b788] font-bold">✓</span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {question.has_conditional_text && currentAnswer === 'yes' && (
+                                        <div className="border-t border-[#f1f5f9]" style={{ padding: '16px 35px' }}>
+                                            <Label className="text-sm font-semibold text-[#475569] block mb-2">
+                                                If yes, which job(s)?
+                                            </Label>
                                             <Input
                                                 value={answers[question.id]?.conditional_text || ''}
-                                                onChange={(e) => handleConditionalTextChange(question.id, e.target.value)}
+                                                onChange={(e) =>
+                                                    handleConditionalTextChange(question.id, e.target.value)
+                                                }
                                                 placeholder="Enter job names"
-                                                className="mt-1"
+                                                className="max-w-md border-[#e0ddd5] rounded-lg"
                                             />
                                         </div>
                                     )}
                                 </div>
-                            </div>
-                        </div>
-                    ))
+                            );
+                        })}
+                    </div>
                 ) : (
-                    <div className="text-center py-12">
-                        <p className="text-muted-foreground">No policy snapshot questions available.</p>
+                    <div className="text-center py-12 text-[#64748b]">
+                        No policy snapshot questions available.
                     </div>
                 )}
+            </main>
 
-                <StepNavigation
-                    onBack={onBack}
-                    onNext={onContinue}
-                    nextLabel="Continue to Job List Selection"
-                    nextDisabled={!allAnswered}
-                />
-            </div>
-        </StepContainer>
+            {/* Sticky footer - match HTML .bottom-nav */}
+            <footer className="sticky bottom-0 w-full bg-white border-t border-[#e0ddd5] py-[18px] px-6 md:px-[60px] flex flex-wrap items-center justify-between gap-4 z-10 mt-auto">
+                <p className="text-[13px] text-[#94a3b8] font-medium">
+                    {answeredCount} / {totalCount} answered — complete all to continue
+                </p>
+                <div className="flex gap-3">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={onBack}
+                        className="border-[#e0ddd5] font-bold px-8 py-6 rounded-lg"
+                    >
+                        <ChevronLeft className="w-4 h-4 mr-1" />
+                        Back
+                    </Button>
+                    <Button
+                        type="button"
+                        onClick={onContinue}
+                        disabled={!allAnswered}
+                        className={
+                            allAnswered
+                                ? 'bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white font-bold px-9 py-6 rounded-lg'
+                                : 'bg-[#b8b8c0] text-white font-bold px-9 py-6 rounded-lg pointer-events-none opacity-90'
+                        }
+                    >
+                        Save & Continue
+                        <ArrowRight className="w-4 h-4 ml-1" />
+                    </Button>
+                </div>
+            </footer>
+        </div>
     );
 }

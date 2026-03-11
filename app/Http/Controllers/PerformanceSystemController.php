@@ -307,9 +307,29 @@ class PerformanceSystemController extends Controller
         $validated = $request->validate([
             'responses' => ['required', 'array'],
             'responses.*.question_id' => ['required', 'exists:performance_snapshot_questions,id'],
-            'responses.*.response' => ['required'],
+            'responses.*.response' => ['required', 'array'],
+            'responses.*.response.*' => ['nullable', 'string'],
             'responses.*.text_response' => ['nullable', 'string'],
         ]);
+
+        $requiredQuestionIds = PerformanceSnapshotQuestion::where('is_active', true)->orderBy('order')->pluck('id')->values()->all();
+        $submittedIds = collect($validated['responses'])->pluck('question_id')->unique()->values()->all();
+        $missing = array_diff($requiredQuestionIds, $submittedIds);
+        if (count($missing) > 0) {
+            return back()->withErrors([
+                'responses' => 'Every question must be answered. Please answer all ' . count($requiredQuestionIds) . ' questions before continuing.',
+            ]);
+        }
+
+        foreach ($validated['responses'] as $r) {
+            $arr = is_array($r['response']) ? $r['response'] : [$r['response']];
+            $nonEmpty = array_filter(array_map('trim', $arr));
+            if (count($nonEmpty) === 0) {
+                return back()->withErrors([
+                    'responses' => 'Every question must have at least one option selected. Please complete all questions.',
+                ]);
+            }
+        }
 
         DB::transaction(function () use ($hrProject, $validated) {
             foreach ($validated['responses'] as $responseData) {

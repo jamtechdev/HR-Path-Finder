@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
-import StepHeader from '@/components/StepHeader/StepHeader';
 import StepProgress from './components/StepProgress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { Info } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import Overview from './steps/Overview';
-import Step0BeforeYouBegin from './steps/Step0BeforeYouBegin';
 import Step1PolicySnapshot from './steps/Step1PolicySnapshot';
 import Step2JobListSelection from './steps/Step2JobListSelection';
 import Step3JobDefinition from './steps/Step3JobDefinition';
 import Step4Finalization from './steps/Step4Finalization';
 import Step5OrgChartMapping from './steps/Step5OrgChartMapping';
 import Step6ReviewSubmit from './steps/Step6ReviewSubmit';
-import { useJobAnalysisState } from './hooks/useJobAnalysisState';
+import { useJobAnalysisState, type OrgChartMapping } from './hooks/useJobAnalysisState';
 import { useStepValidation } from './hooks/useStepValidation';
 
 interface Project {
@@ -47,13 +45,18 @@ interface Props {
     organizationalCharts?: any;
     industry?: string;
     sizeRange?: string;
+    diagnosisContext?: {
+        industry: string | null;
+        sizeRange: string | null;
+        jobClassificationStatus: string | null;
+        hasFormalFramework: boolean;
+    };
     introCompleted?: boolean;
     stepStatuses?: any;
     templates?: Record<number | string, any>;
 }
 
 const STEPS = [
-    { id: 'before-you-begin', name: 'Before You Begin' },
     { id: 'policy-snapshot', name: 'Policy Snapshot' },
     { id: 'job-list-selection', name: 'Job List Selection' },
     { id: 'job-definition', name: 'Job Definition' },
@@ -64,7 +67,7 @@ const STEPS = [
 
 export default function JobAnalysisIndex({
     project,
-    activeTab: initialTab = 'before-you-begin',
+    activeTab: initialTab = 'overview',
     introText,
     questions = [],
     policySnapshotAnswers = {},
@@ -73,6 +76,7 @@ export default function JobAnalysisIndex({
     organizationalCharts = {},
     industry,
     sizeRange,
+    diagnosisContext,
     introCompleted = false,
     stepStatuses = {},
     templates = {},
@@ -109,7 +113,7 @@ export default function JobAnalysisIndex({
             } else {
                 const validation = validateStep(step.id);
                 // Only mark as completed if validation passes AND step has actual data filled
-                if (validation.isValid && step.id !== 'before-you-begin') {
+                if (validation.isValid) {
                     // Additional check: make sure step actually has data
                     let hasData = false;
                     switch (step.id) {
@@ -146,24 +150,25 @@ export default function JobAnalysisIndex({
         setCompletedSteps(completed);
     }, [state, validateStep]);
 
-    // Load active step from localStorage or prop
+    // Load active step from URL first; use localStorage only when URL is a step (not overview)
     useEffect(() => {
-        // If overview or invalid step, show overview
-        const validStep = initialTab === 'overview' || !STEPS.some(s => s.id === initialTab) 
-            ? 'overview' 
+        const validStep = initialTab === 'overview' || !STEPS.some(s => s.id === initialTab)
+            ? 'overview'
             : initialTab;
-        
+
+        // Overview URL pe hamesha overview dikhao — localStorage se override mat karo
+        if (initialTab === 'overview') {
+            setActiveStepLocal('overview');
+            return;
+        }
+
         const stored = localStorage.getItem(`job-analysis-step-${project.id}`);
-        if (stored && (stored === 'overview' || STEPS.some(s => s.id === stored))) {
+        if (stored && STEPS.some(s => s.id === stored)) {
             setActiveStepLocal(stored);
-            if (stored !== 'overview') {
-                setActiveStep(stored);
-            }
+            setActiveStep(stored);
         } else {
             setActiveStepLocal(validStep);
-            if (validStep !== 'overview') {
-                setActiveStep(validStep);
-            }
+            setActiveStep(validStep);
         }
     }, [project.id, initialTab, setActiveStep]);
 
@@ -195,21 +200,6 @@ export default function JobAnalysisIndex({
         router.get(`/hr-manager/job-analysis/${project.id}/${stepId}`, {}, {
             preserveState: true,
             preserveScroll: false,
-        });
-    };
-
-    const handleStep0Continue = () => {
-        markStepCompleted('before-you-begin');
-        router.post(`/hr-manager/job-analysis/${project.id}/intro/store`, {}, {
-            onSuccess: () => {
-                toast({ title: 'Saved', description: 'Intro step completed.' });
-                handleStepChange('policy-snapshot');
-            },
-            onError: (errors: Record<string, unknown>) => {
-                const msg = errors && typeof errors === 'object' && (errors.message ?? Object.values(errors)[0]);
-                const desc = Array.isArray(msg) ? msg[0] : String(msg ?? 'Failed to save. Please try again.');
-                toast({ title: 'Save failed', description: desc, variant: 'destructive' });
-            },
         });
     };
 
@@ -258,9 +248,19 @@ export default function JobAnalysisIndex({
         handleStepChange('org-chart-mapping');
     };
 
-    const handleStep5Continue = () => {
-        const org_chart_mappings = state.orgMappings.map(u => ({
-            org_unit_name: u.org_unit_name,
+    const handleStep5Continue = (mappings?: OrgChartMapping[]) => {
+        const list = mappings ?? state.orgMappings;
+        const hasEmptyName = list.some(u => !(String(u.org_unit_name ?? '').trim()));
+        if (hasEmptyName) {
+            toast({
+                title: 'Validation',
+                description: 'Please enter a name for every organizational unit.',
+                variant: 'destructive',
+            });
+            return;
+        }
+        const org_chart_mappings = list.map(u => ({
+            org_unit_name: String(u.org_unit_name ?? '').trim(),
             job_keyword_ids: u.job_keyword_ids,
             org_head_name: u.org_head_name,
             org_head_rank: u.org_head_rank,
@@ -283,8 +283,13 @@ export default function JobAnalysisIndex({
     };
 
     const handleBack = () => {
-        const currentIndex = STEPS.findIndex(s => s.id === activeStep);
-        if (currentIndex > 0) {
+        const currentIndex = STEPS.findIndex(s => s.id === activeStepLocal);
+        if (currentIndex <= 0) {
+            setActiveStepLocal('overview');
+            setActiveStep('overview');
+            localStorage.setItem(`job-analysis-step-${project.id}`, 'overview');
+            router.get(`/hr-manager/job-analysis/${project.id}/overview`, {}, { preserveState: true, preserveScroll: false });
+        } else {
             handleStepChange(STEPS[currentIndex - 1].id);
         }
     };
@@ -298,14 +303,6 @@ export default function JobAnalysisIndex({
                         stepStatuses={stepStatuses}
                         completedSteps={completedSteps}
                         onStepClick={handleStepChange}
-                    />
-                );
-
-            case 'before-you-begin':
-                return (
-                    <Step0BeforeYouBegin
-                        introText={introText}
-                        onContinue={handleStep0Continue}
                     />
                 );
 
@@ -330,6 +327,7 @@ export default function JobAnalysisIndex({
                         onBack={handleBack}
                         industry={industry}
                         sizeRange={sizeRange}
+                        diagnosisContext={diagnosisContext}
                     />
                 );
 
@@ -378,6 +376,7 @@ export default function JobAnalysisIndex({
                         jobSelections={state.jobSelections}
                         jobDefinitions={state.jobDefinitions}
                         orgMappings={state.orgMappings}
+                        questions={questions}
                         onBack={handleBack}
                     />
                 );
@@ -406,44 +405,69 @@ export default function JobAnalysisIndex({
         return 'not_started';
     };
 
+    const currentStepIndex = STEPS.findIndex(s => s.id === activeStepLocal);
+    const currentStepLabel = currentStepIndex >= 0 ? STEPS[currentStepIndex].name : '';
+
     return (
         <AppLayout>
             <Head title="Job Analysis" />
-            <div className="space-y-6">
-                <StepHeader
-                    title="Job Analysis"
-                    subtitle="Define job standards and role expectations for your organization."
-                    status={getStatusForHeader()}
-                    onBack={() => router.visit('/hr-manager/dashboard')}
-                />
-
-                {activeStepLocal !== 'overview' && (
-                    <div className="bg-white rounded-lg shadow-sm border p-6">
-                        <StepProgress
-                            steps={STEPS}
-                            activeStep={activeStepLocal}
-                            completedSteps={completedSteps}
-                            onStepClick={handleStepChange}
-                        />
-                    </div>
-                )}
-
-                {activeStepLocal !== 'overview' && !['submitted', 'approved', 'locked'].includes(stepStatuses?.job_analysis || '') && (
-                    <Alert className="border-blue-200 bg-blue-50/50 py-2">
-                        <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                        <AlertDescription className="text-sm">
-                            Progress is saved on this device until you complete <strong>Finalization</strong> and <strong>Review & Submit</strong>.
-                        </AlertDescription>
-                    </Alert>
-                )}
-
-                <div className="bg-white rounded-lg shadow-sm border">
-                    <div className="transition-all duration-300 ease-in-out">
-                        <div key={activeStepLocal} className={activeStepLocal === 'overview' ? '' : 'animate-in fade-in slide-in-from-right duration-300'}>
-                            {renderStep()}
+            <div className="min-h-full bg-[#f5f3ef]">
+                {activeStepLocal === 'overview' ? (
+                    <div className="p-6 space-y-6">
+                        <div className="flex items-center justify-between">
+                            <Link
+                                href="/hr-manager/dashboard"
+                                className="text-sm font-medium text-[#0f2a4a] hover:text-[#1a4070] flex items-center gap-1"
+                            >
+                                <ChevronLeft className="w-4 h-4" />
+                                Back to Dashboard
+                            </Link>
                         </div>
+                        {renderStep()}
                     </div>
-                </div>
+                ) : (
+                    <>
+                        {/* Top header: #151535, P icon, HR Path-Finder / Job Analysis, gold In Progress badge */}
+                        <header className="bg-[#151535] text-white flex items-center justify-between flex-wrap gap-2 text-sm" style={{ padding: '14px 40px' }}>
+                            <div className="flex items-center gap-2 text-sm">
+                                <div className="w-6 h-6 rounded bg-white flex items-center justify-center text-[#1a1a3d] font-black text-xs shrink-0">P</div>
+                                <strong>HR Path-Finder</strong>
+                                <span className="opacity-50 font-normal">/ Job Analysis</span>
+                            </div>
+                            <span
+                                className="rounded-[20px] px-3.5 py-1 text-[11px] font-semibold text-white shrink-0"
+                                style={{ background: '#c8963e', paddingTop: 4, paddingBottom: 4, paddingLeft: 14, paddingRight: 14 }}
+                            >
+                                {getStatusForHeader().replace('_', ' ').toUpperCase()}
+                            </span>
+                        </header>
+
+                        <div className="p-6 space-y-6">
+                            <div className="bg-white border-b border-[#e0ddd5] px-4 py-4 flex justify-center" style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                                <StepProgress
+                                    steps={STEPS}
+                                    activeStep={activeStepLocal}
+                                    completedSteps={completedSteps}
+                                    onStepClick={handleStepChange}
+                                />
+                            </div>
+
+                            {['policy-snapshot', 'job-list-selection', 'job-definition', 'finalization', 'org-chart-mapping'].includes(activeStepLocal) ? (
+                                <div key={activeStepLocal} className="animate-in fade-in duration-300">
+                                    {renderStep()}
+                                </div>
+                            ) : (
+                                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                                    <div className="transition-all duration-300 ease-in-out">
+                                        <div key={activeStepLocal} className="animate-in fade-in slide-in-from-right duration-300">
+                                            {renderStep()}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </>
+                )}
             </div>
         </AppLayout>
     );

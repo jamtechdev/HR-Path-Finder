@@ -5,7 +5,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import RightSidePanel from '@/components/PerformanceSystem/RightSidePanel';
 
 interface Question {
@@ -24,14 +24,32 @@ interface Props {
     savedResponses?: Record<number, { response: string[]; text_response?: string }>;
     onContinue: (responses: Record<number, { response: string[]; text_response?: string }>) => void;
     onBack?: () => void;
+    onAnsweredChange?: (answered: number, total: number) => void;
 }
 
-export default function PerformanceSnapshotTab({ 
-    project, 
-    questions = [], 
+function isQuestionFullyAnswered(
+    question: Question,
+    responses: Record<number, { response: string[]; text_response?: string }>
+): boolean {
+    const data = responses[question.id];
+    const selected = data?.response ?? [];
+    if (selected.length === 0) return false;
+    const hasOther = question.options.some((o) => o.toLowerCase().includes('other'));
+    const selectedOther = selected.some((s) => s.toLowerCase().includes('other'));
+    if (hasOther && selectedOther) {
+        const text = (data?.text_response ?? '').trim();
+        if (!text) return false;
+    }
+    return true;
+}
+
+export default function PerformanceSnapshotTab({
+    project,
+    questions = [],
     savedResponses = {},
     onContinue,
-    onBack 
+    onBack,
+    onAnsweredChange,
 }: Props) {
     const [responses, setResponses] = useState<Record<number, { response: string[]; text_response?: string }>>(savedResponses);
     const [rightPanelOpen, setRightPanelOpen] = useState(false);
@@ -43,8 +61,16 @@ export default function PerformanceSnapshotTab({
         }
     }, [savedResponses]);
 
+    const totalQuestions = questions.length;
+    const answeredCount = questions.filter((q) => isQuestionFullyAnswered(q, responses)).length;
+    const allQuestionsAnswered = totalQuestions > 0 && answeredCount === totalQuestions;
+
+    useEffect(() => {
+        onAnsweredChange?.(answeredCount, totalQuestions);
+    }, [answeredCount, totalQuestions, onAnsweredChange]);
+
     const handleResponseChange = (questionId: number, option: string, checked: boolean) => {
-        const question = questions.find(q => q.id === questionId);
+        const question = questions.find((q) => q.id === questionId);
         if (!question) return;
 
         const currentResponse = responses[questionId]?.response || [];
@@ -65,7 +91,10 @@ export default function PerformanceSnapshotTab({
             } else {
                 setResponses({
                     ...responses,
-                    [questionId]: { response: currentResponse.filter(r => r !== option) },
+                    [questionId]: {
+                        ...responses[questionId],
+                        response: currentResponse.filter((r) => r !== option),
+                    },
                 });
             }
         } else if (question.answer_type === 'select_all_that_apply') {
@@ -77,7 +106,10 @@ export default function PerformanceSnapshotTab({
             } else {
                 setResponses({
                     ...responses,
-                    [questionId]: { response: currentResponse.filter(r => r !== option) },
+                    [questionId]: {
+                        ...responses[questionId],
+                        response: currentResponse.filter((r) => r !== option),
+                    },
                 });
             }
         }
@@ -94,9 +126,8 @@ export default function PerformanceSnapshotTab({
         });
     };
 
-    const handleOptionClick = async (option: string) => {
-        // Fetch guidance content for this option (would be implemented with API call)
-        // For now, show placeholder
+    const handleViewClick = (e: React.MouseEvent, option: string) => {
+        e.stopPropagation();
         setRightPanelContent({
             concept: `Guidance for: ${option}`,
             key_characteristics: 'Key characteristics will be loaded from admin configuration.',
@@ -106,136 +137,211 @@ export default function PerformanceSnapshotTab({
     };
 
     const handleContinue = () => {
+        if (!allQuestionsAnswered) return;
         onContinue(responses);
     };
 
     return (
         <>
             <div className="space-y-6">
-                <Card className="shadow-lg border-2">
-                    <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b-2">
-                        <CardTitle className="text-2xl font-bold">Strategic Performance Snapshot</CardTitle>
-                        <CardDescription className="text-base mt-2">
-                            Answer 10 questions about your company's performance management philosophy and current state. All questions and options are managed by Admin.
+                <Card className="shadow-sm border border-[#e5e7eb] rounded-xl overflow-hidden bg-white">
+                    <CardHeader className="border-b border-[#e5e7eb] bg-white pb-4">
+                        <CardTitle className="text-xl font-bold text-[#121431]">
+                            Strategic Performance Snapshot
+                        </CardTitle>
+                        <CardDescription className="text-[15px] text-[#6b7280] mt-1">
+                            Answer {totalQuestions} questions about your company's performance management philosophy and current state. All questions and options are mapped to HR system design outcomes.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="p-6 space-y-6">
                         {questions && questions.length > 0 ? (
-                            questions.map((question, index) => (
-                                <div key={question.id} className="space-y-4 p-5 rounded-xl border-2 border-muted hover:bg-muted/30 transition-colors">
-                                    <div className="flex items-start gap-4">
-                                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-base font-bold text-primary">
-                                            {index + 1}
-                                        </div>
-                                        <div className="flex-1">
-                                            <Label className="text-lg font-semibold block mb-4">{question.question_text}</Label>
-                                            
-                                            {question.answer_type === 'select_one' && (
-                                                <RadioGroup
-                                                    value={responses[question.id]?.response?.[0] || ''}
-                                                    onValueChange={(value) => handleResponseChange(question.id, value, true)}
-                                                    className="mt-3 space-y-3"
-                                                >
-                                                    {question.options.map((option) => (
-                                                        <div
-                                                            key={option}
-                                                            className="flex items-center space-x-3 p-3 rounded-lg border-2 border-muted hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-all"
-                                                            onClick={() => handleOptionClick(option)}
-                                                        >
-                                                            <RadioGroupItem value={option} id={`q${question.id}-${option}`} />
-                                                            <Label htmlFor={`q${question.id}-${option}`} className="font-normal cursor-pointer flex-1 text-base flex items-center gap-2">
-                                                                {option}
-                                                                <Info className="w-4 h-4 text-muted-foreground hover:text-primary" />
-                                                            </Label>
-                                                        </div>
-                                                    ))}
-                                                </RadioGroup>
-                                            )}
+                            questions.map((question, index) => {
+                                const selectedCount = responses[question.id]?.response?.length ?? 0;
+                                const maxSelect = question.answer_type === 'select_up_to_2' ? 2 : undefined;
+                                const isAnswered = isQuestionFullyAnswered(question, responses);
 
-                                            {(question.answer_type === 'select_up_to_2' || question.answer_type === 'select_all_that_apply') && (
-                                                <div className="mt-3 space-y-3">
-                                                    {question.answer_type === 'select_up_to_2' && (
-                                                        <p className="text-sm text-muted-foreground mb-2">
+                                return (
+                                    <div
+                                        key={question.id}
+                                        className="p-5 rounded-xl border border-[#e5e7eb] bg-white hover:border-[#d1d5db] transition-colors"
+                                    >
+                                        <div className="flex items-start gap-4">
+                                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#121431] text-white flex items-center justify-center text-base font-bold shadow-sm">
+                                                {index + 1}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <Label className="text-base font-semibold text-[#121431] block mb-3">
+                                                    {question.question_text}
+                                                </Label>
+
+                                                {question.answer_type === 'select_up_to_2' && (
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <span className="text-sm text-[#6b7280]">
                                                             Select up to 2 options
-                                                            {responses[question.id]?.response?.length === 2 && (
-                                                                <span className="text-orange-600 font-semibold ml-2">(Maximum reached)</span>
-                                                            )}
-                                                        </p>
-                                                    )}
-                                                    {question.options.map((option) => {
-                                                        const isChecked = responses[question.id]?.response?.includes(option) || false;
-                                                        const isDisabled = question.answer_type === 'select_up_to_2' && 
-                                                                          !isChecked && 
-                                                                          (responses[question.id]?.response?.length || 0) >= 2;
-                                                        return (
+                                                        </span>
+                                                        <span className="text-sm font-semibold text-[#059669]">
+                                                            {selectedCount}/{maxSelect} selected
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {question.answer_type === 'select_all_that_apply' && (
+                                                    <p className="text-sm text-[#6b7280] mb-3">Select all that apply</p>
+                                                )}
+
+                                                {question.answer_type === 'select_one' && (
+                                                    <RadioGroup
+                                                        value={responses[question.id]?.response?.[0] ?? ''}
+                                                        onValueChange={(value) =>
+                                                            handleResponseChange(question.id, value, true)
+                                                        }
+                                                        className="space-y-2"
+                                                    >
+                                                        {question.options.map((option) => (
                                                             <div
                                                                 key={option}
-                                                                className={`
-                                                                    flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer
-                                                                    ${isChecked ? 'border-primary bg-primary/10' : 'border-muted hover:border-primary/50 hover:bg-muted/50'}
-                                                                    ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}
-                                                                `}
-                                                                onClick={() => !isDisabled && handleOptionClick(option)}
+                                                                className="flex items-center justify-between gap-3 py-2.5 px-3 rounded-lg border border-[#e5e7eb] hover:bg-[#f9fafb]"
                                                             >
-                                                                <Checkbox
-                                                                    checked={isChecked}
-                                                                    onCheckedChange={(checked) => handleResponseChange(question.id, option, checked === true)}
-                                                                    disabled={isDisabled}
-                                                                    id={`q${question.id}-${option}`}
-                                                                />
-                                                                <Label htmlFor={`q${question.id}-${option}`} className="font-normal cursor-pointer flex-1 text-base flex items-center gap-2">
-                                                                    {option}
-                                                                    <Info className="w-4 h-4 text-muted-foreground hover:text-primary" />
-                                                                </Label>
+                                                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                                    <RadioGroupItem
+                                                                        value={option}
+                                                                        id={`q${question.id}-${option}`}
+                                                                        className="shrink-0"
+                                                                    />
+                                                                    <Label
+                                                                        htmlFor={`q${question.id}-${option}`}
+                                                                        className="font-normal text-[#374151] cursor-pointer flex-1"
+                                                                    >
+                                                                        {option}
+                                                                    </Label>
+                                                                </div>
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="shrink-0 h-8 px-3 text-[#6b7280] border-[#d1d5db] hover:bg-[#f3f4f6]"
+                                                                    onClick={(e) => handleViewClick(e, option)}
+                                                                >
+                                                                    <Eye className="w-4 h-4 mr-1.5" />
+                                                                    View
+                                                                </Button>
                                                             </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            )}
+                                                        ))}
+                                                    </RadioGroup>
+                                                )}
 
-                                            {/* Text input for "Other" option */}
-                                            {question.options.some(opt => opt.toLowerCase().includes('other')) && 
-                                             responses[question.id]?.response?.some(r => r.toLowerCase().includes('other')) && (
-                                                <div className="ml-14 mt-4 space-y-2">
-                                                    <Label className="text-sm font-semibold">Please specify:</Label>
-                                                    <Input
-                                                        value={responses[question.id]?.text_response || ''}
-                                                        onChange={(e) => handleTextResponseChange(question.id, e.target.value)}
-                                                        placeholder="Enter details..."
-                                                        className="mt-1"
-                                                    />
-                                                </div>
-                                            )}
+                                                {(question.answer_type === 'select_up_to_2' ||
+                                                    question.answer_type === 'select_all_that_apply') && (
+                                                    <div className="space-y-2">
+                                                        {question.options.map((option) => {
+                                                            const isChecked =
+                                                                responses[question.id]?.response?.includes(option) ?? false;
+                                                            const isDisabled =
+                                                                question.answer_type === 'select_up_to_2' &&
+                                                                !isChecked &&
+                                                                selectedCount >= 2;
+                                                            return (
+                                                                <div
+                                                                    key={option}
+                                                                    className={`flex items-center justify-between gap-3 py-2.5 px-3 rounded-lg border transition-colors ${
+                                                                        isChecked
+                                                                            ? 'border-[#059669] bg-[#f0fdf4]'
+                                                                            : 'border-[#e5e7eb] hover:bg-[#f9fafb]'
+                                                                    } ${isDisabled ? 'opacity-60' : ''}`}
+                                                                >
+                                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                                        <Checkbox
+                                                                            checked={isChecked}
+                                                                            onCheckedChange={(checked) =>
+                                                                                handleResponseChange(
+                                                                                    question.id,
+                                                                                    option,
+                                                                                    checked === true
+                                                                                )
+                                                                            }
+                                                                            disabled={isDisabled}
+                                                                            id={`q${question.id}-${option}`}
+                                                                            className="shrink-0"
+                                                                        />
+                                                                        <Label
+                                                                            htmlFor={`q${question.id}-${option}`}
+                                                                            className="font-normal text-[#374151] cursor-pointer flex-1"
+                                                                        >
+                                                                            {option}
+                                                                        </Label>
+                                                                    </div>
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className="shrink-0 h-8 px-3 text-[#6b7280] border-[#d1d5db] hover:bg-[#f3f4f6]"
+                                                                        onClick={(e) => handleViewClick(e, option)}
+                                                                    >
+                                                                        <Eye className="w-4 h-4 mr-1.5" />
+                                                                        View
+                                                                    </Button>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+
+                                                {question.options.some((opt) => opt.toLowerCase().includes('other')) &&
+                                                    responses[question.id]?.response?.some((r) =>
+                                                        r.toLowerCase().includes('other')
+                                                    ) && (
+                                                        <div className="ml-10 mt-4 space-y-2">
+                                                            <Label className="text-sm font-semibold text-[#374151]">
+                                                                Please specify:
+                                                            </Label>
+                                                            <Input
+                                                                value={responses[question.id]?.text_response ?? ''}
+                                                                onChange={(e) =>
+                                                                    handleTextResponseChange(question.id, e.target.value)
+                                                                }
+                                                                placeholder="Enter details..."
+                                                                className="mt-1 max-w-md border-[#e5e7eb]"
+                                                            />
+                                                        </div>
+                                                    )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))
+                                );
+                            })
                         ) : (
                             <div className="text-center py-12">
-                                <p className="text-muted-foreground">No performance snapshot questions available.</p>
+                                <p className="text-[#6b7280]">No performance snapshot questions available.</p>
                             </div>
                         )}
                     </CardContent>
                 </Card>
 
-                {/* Action Buttons */}
-                <div className="flex items-center justify-between gap-4 pt-6 border-t border-border">
+                <div className="flex items-center justify-between gap-4 pt-6 border-t border-[#e5e7eb]">
                     {onBack && (
-                        <Button 
-                            onClick={onBack} 
-                            variant="outline" 
+                        <Button
+                            onClick={onBack}
+                            variant="outline"
                             size="lg"
-                            className="flex items-center gap-2"
+                            className="flex items-center gap-2 border-[#e5e7eb]"
                         >
                             <ChevronLeft className="w-4 h-4" />
                             Back
                         </Button>
                     )}
-                    <div className="flex-1" />
-                    <Button 
-                        onClick={handleContinue} 
+                    <div className="flex-1 flex items-center justify-center">
+                        <span className="text-sm text-[#6b7280]">
+                            <span className="font-semibold text-[#121431]">{answeredCount}</span>/{totalQuestions} questions
+                            answered
+                            {!allQuestionsAnswered && totalQuestions > 0 && (
+                                <span className="text-amber-600 ml-1">— answer all to continue</span>
+                            )}
+                        </span>
+                    </div>
+                    <Button
+                        onClick={handleContinue}
                         size="lg"
-                        className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
+                        disabled={!allQuestionsAnswered}
+                        className="flex items-center gap-2 bg-[#121431] hover:bg-[#1e2a4a] disabled:opacity-50 disabled:pointer-events-none"
                     >
                         Continue to KPI Review
                         <ChevronRight className="w-4 h-4" />
@@ -243,7 +349,6 @@ export default function PerformanceSnapshotTab({
                 </div>
             </div>
 
-            {/* Right Side Panel */}
             <RightSidePanel
                 isOpen={rightPanelOpen}
                 onClose={() => setRightPanelOpen(false)}

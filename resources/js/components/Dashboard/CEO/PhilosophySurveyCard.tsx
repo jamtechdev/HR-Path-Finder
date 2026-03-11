@@ -40,7 +40,7 @@ export default function PhilosophySurveyCard({ project, ceoPhilosophyStatus }: P
                     )}
                 </div>
                 {project && (
-                    <Link href={`/hr-projects/${project.id}/ceo-philosophy`}>
+                    <Link href={`/ceo/philosophy/survey/${project.id}`}>
                         <Button
                             size="lg"
                             className="w-full"

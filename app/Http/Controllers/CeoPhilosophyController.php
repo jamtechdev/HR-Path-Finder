@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\StepStatus;
 use App\Models\CeoPhilosophy;
 use App\Models\DiagnosisQuestion;
 use App\Models\HrProject;
@@ -138,18 +137,14 @@ class CeoPhilosophyController extends Controller
             ]
         );
 
-        // Auto-save: stay on survey page so user can continue. Final submit: redirect to dashboard and mark diagnosis complete.
+        // Auto-save: stay on survey page so user can continue. Final submit: redirect to diagnosis review.
         if ($request->boolean('autosave')) {
             return redirect()->back()->with('saved', true);
         }
 
-        // Mark diagnosis step as completed after CEO survey is done (final submit only)
-        $diagnosisStatus = $hrProject->getStepStatus('diagnosis');
-        if ($diagnosisStatus && $diagnosisStatus->value === 'submitted') {
-            $hrProject->setStepStatus('diagnosis', StepStatus::APPROVED);
-        }
+        // Survey completed. CEO can now verify (confirm) the diagnosis from the review page — no auto-approve.
 
-        return redirect()->route('ceo.dashboard')
-            ->with('success', 'Management Philosophy Survey completed successfully. Step 1: Diagnosis is now complete.');
+        return redirect()->route('ceo.review.diagnosis', $hrProject)
+            ->with('success', 'Management Philosophy Survey completed. You can now verify and confirm the diagnosis.');
     }
 }

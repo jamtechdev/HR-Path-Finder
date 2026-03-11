@@ -65,7 +65,7 @@ const defaultState: JobAnalysisStoredState = {
     jobDefinitions: {},
     orgMappings: [],
     stepCompletions: {},
-    activeStep: 'before-you-begin',
+    activeStep: 'overview',
 };
 
 export function readJobAnalysisState(projectId: number): JobAnalysisStoredState {

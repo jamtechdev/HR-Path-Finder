@@ -45,10 +45,10 @@ class CeoDashboardController extends Controller
             return $status && $status->value === 'submitted';
         });
 
-        // Projects where CEO can start survey now (diagnosis approved/locked, survey not done)
+        // Projects where CEO can take survey (diagnosis submitted, survey not done — survey required before CEO can verify diagnosis)
         $surveyAvailableProjects = $projects->filter(function ($project) {
             $diagnosisStatus = $project->getStepStatus('diagnosis');
-            return $diagnosisStatus && in_array($diagnosisStatus->value, ['approved', 'locked']) && !$project->ceoPhilosophy;
+            return $diagnosisStatus && $diagnosisStatus->value === 'submitted' && !$project->ceoPhilosophy;
         })->values();
 
         // Calculate statistics
@@ -180,17 +180,20 @@ class CeoDashboardController extends Controller
                 $q->where('users.id', $user->id)
                   ->where('company_users.role', 'ceo');
             });
-        })->with(['company'])->get();
+        })->with(['company', 'ceoPhilosophy'])->get();
 
         $projectsWithProgress = $projects->map(function ($project) {
             $stepStatuses = $project->step_statuses ?? [];
-            
+            $diagnosisStatus = $project->getStepStatus('diagnosis');
+            $diagnosisSubmitted = $diagnosisStatus && $diagnosisStatus->value === 'submitted';
+            $hasSurvey = (bool) $project->ceoPhilosophy;
+
             $hrSteps = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'hr_policy_os'];
             $hrCompleted = 0;
             $hrInProgress = 0;
             $hrSubmitted = 0;
             $ceoVerified = 0;
-            
+
             foreach ($hrSteps as $step) {
                 $status = $stepStatuses[$step] ?? 'not_started';
                 if (in_array($status, ['approved', 'locked', 'completed'])) {
@@ -202,7 +205,7 @@ class CeoDashboardController extends Controller
                     $hrInProgress++;
                 }
             }
-            
+
             return [
                 'id' => $project->id,
                 'company' => $project->company ? [
@@ -210,6 +213,11 @@ class CeoDashboardController extends Controller
                     'name' => $project->company->name,
                 ] : null,
                 'step_statuses' => $stepStatuses,
+                'ceo_philosophy' => $project->ceoPhilosophy ? [
+                    'id' => $project->ceoPhilosophy->id,
+                    'completed_at' => $project->ceoPhilosophy->completed_at,
+                ] : null,
+                'survey_status' => !$diagnosisSubmitted ? 'not_available' : ($hasSurvey ? 'completed' : 'pending'),
                 'hr_progress' => [
                     'completed' => $hrCompleted,
                     'in_progress' => $hrInProgress,
@@ -264,7 +272,7 @@ class CeoDashboardController extends Controller
         }
 
         $diagnosisStatus = $hrProject->getStepStatus('diagnosis');
-        $surveyAvailable = $diagnosisStatus && in_array($diagnosisStatus->value, ['approved', 'locked']) && !$hrProject->ceoPhilosophy;
+        $surveyAvailable = $diagnosisStatus && $diagnosisStatus->value === 'submitted' && !$hrProject->ceoPhilosophy;
 
         return Inertia::render('CEO/Projects/Verification', [
             'project' => [

@@ -42,10 +42,49 @@ class JobAnalysisController extends Controller
     }
 
     /**
+     * Enrich suggested jobs with job_family and tags for Job List Selection UI.
+     */
+    private function enrichSuggestedJobsForListSelection(array $jobs, bool $hasFormalFramework): array
+    {
+        $familyByNames = [
+            'Corporate & Management Support' => ['HR', 'Accounting', 'Finance', 'General Affairs', 'Treasury', 'Business Planning'],
+            'Clinical & Medical' => ['Clinical Operations', 'Medical Affairs', 'Regulatory Affairs', 'Quality Assurance', 'Quality'],
+            'Operations & Technology' => ['IT', 'CS', 'Procurement', 'Logistics'],
+        ];
+        $nameToFamily = [];
+        foreach ($familyByNames as $family => $names) {
+            foreach ($names as $name) {
+                $nameToFamily[$name] = $family;
+            }
+        }
+
+        $enriched = [];
+        $order = 0;
+        foreach ($jobs as $job) {
+            $name = $job['name'] ?? '';
+            $tags = [];
+            if ($order < 6) {
+                $tags[] = 'core';
+            }
+            if (!$hasFormalFramework && $order < 2) {
+                $tags[] = 'pre_selected';
+            } elseif ($order >= 6 && $order < 9) {
+                $tags[] = 'recommended';
+            }
+            $enriched[] = array_merge($job, [
+                'job_family' => $nameToFamily[$name] ?? 'Other',
+                'tags' => array_values(array_unique($tags)),
+            ]);
+            $order++;
+        }
+        return $enriched;
+    }
+
+    /**
      * Show Job Analysis index with tabs.
      * Loads all necessary data for the current step without saving anything.
      */
-    public function index(Request $request, HrProject $hrProject, ?string $tab = 'before-you-begin')
+    public function index(Request $request, HrProject $hrProject, ?string $tab = 'overview')
     {
         if (!$request->user()->hasRole('hr_manager')) {
             abort(403);
@@ -146,10 +185,12 @@ class JobAnalysisController extends Controller
         $jobAnalysisStatus = $stepStatuses['job_analysis'] ?? 'not_started';
         $introCompleted = in_array($jobAnalysisStatus, ['in_progress', 'submitted', 'approved', 'locked']);
 
-        // Map old tab names to new step names
+        // Map old tab names to new step names (before-you-begin removed; redirect to overview)
+        if ($tab === 'before-you-begin' || $tab === 'intro') {
+            return redirect()->route('hr-manager.job-analysis.index', [$hrProject, 'overview']);
+        }
         $stepMap = [
             'overview' => 'overview',
-            'intro' => 'before-you-begin',
             'policy-snapshot' => 'policy-snapshot',
             'job-list-selection' => 'job-list-selection',
             'job-definition' => 'job-definition',
@@ -159,19 +200,40 @@ class JobAnalysisController extends Controller
         ];
         $activeStep = $stepMap[$tab] ?? $tab ?? 'overview';
 
+        // Diagnosis context for Job List Selection (Step 2): Industry, Company Size, Job Classification Status from Step 1
+        $formalFrameworkQuestion = $questions->firstWhere('order', 1);
+        $jobClassificationStatus = null;
+        if ($formalFrameworkQuestion && isset($savedAnswers[$formalFrameworkQuestion->id])) {
+            $jobClassificationStatus = $savedAnswers[$formalFrameworkQuestion->id]['answer'] ?? null;
+        }
+        $diagnosisContext = [
+            'industry' => $industry,
+            'sizeRange' => $sizeRange,
+            'jobClassificationStatus' => $jobClassificationStatus, // yes | no | not_sure
+            'hasFormalFramework' => $jobClassificationStatus === 'yes',
+        ];
+
+        // Enrich suggested jobs with job_family and tags for Job List Selection UI
+        $hasFormalFramework = $jobClassificationStatus === 'yes';
+        $suggestedJobsEnriched = $this->enrichSuggestedJobsForListSelection(
+            $suggestedJobs->toArray(),
+            $hasFormalFramework
+        );
+
         return Inertia::render('JobAnalysis/Index', [
             'project' => $hrProject,
             'activeTab' => $activeStep,
             'introText' => $introText,
             'questions' => $questions,
             'policySnapshotAnswers' => $savedAnswers,
-            'suggestedJobs' => $suggestedJobs,
+            'suggestedJobs' => $suggestedJobsEnriched,
             'jobDefinitions' => $jobDefinitions,
             'finalizedJobDefinitions' => $finalizedJobDefinitions,
             'mappings' => $mappings,
             'organizationalCharts' => $organizationalCharts,
             'industry' => $industry,
             'sizeRange' => $sizeRange,
+            'diagnosisContext' => $diagnosisContext,
             'introCompleted' => $introCompleted,
             'stepStatuses' => $stepStatuses,
             'templates' => $templates,

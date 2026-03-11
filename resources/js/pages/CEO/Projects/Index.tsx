@@ -11,8 +11,9 @@ import {
     Clock, 
     FileText,
     ArrowRight,
-    TrendingUp,
-    Building2
+    Building2,
+    ClipboardList,
+    Eye
 } from 'lucide-react';
 
 interface Project {
@@ -23,6 +24,8 @@ interface Project {
     } | null;
     step_statuses?: Record<string, string>;
     created_at: string;
+    survey_status?: 'not_available' | 'pending' | 'completed';
+    ceo_philosophy?: { id: number; completed_at?: string } | null;
     hr_progress?: {
         completed: number;
         in_progress: number;
@@ -154,6 +157,41 @@ export default function CeoProjectsIndex({ projects, stats }: Props) {
                             </Card>
                         </div>
 
+                        {/* Our Surveys - list of completed CEO surveys */}
+                        {projects.filter(p => p.survey_status === 'completed').length > 0 && (
+                            <Card className="mb-8 border-emerald-200 dark:border-emerald-800">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <ClipboardList className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                                        Our CEO Surveys
+                                    </CardTitle>
+                                    <p className="text-sm text-muted-foreground">
+                                        View your completed Management Philosophy Survey by project
+                                    </p>
+                                </CardHeader>
+                                <CardContent>
+                                    <ul className="space-y-2">
+                                        {projects.filter(p => p.survey_status === 'completed').map((project) => (
+                                            <li key={project.id}>
+                                                <Link
+                                                    href={`/ceo/philosophy/survey/${project.id}`}
+                                                    className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                                                >
+                                                    <span className="font-medium">{project.company?.name || `Project #${project.id}`}</span>
+                                                    <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                        {project.ceo_philosophy?.completed_at
+                                                            ? `Completed ${new Date(project.ceo_philosophy.completed_at).toLocaleDateString()}`
+                                                            : 'Survey completed'}
+                                                        <Eye className="w-4 h-4" />
+                                                    </span>
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </CardContent>
+                            </Card>
+                        )}
+
                         {/* Projects Grid */}
                         {projects.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -161,81 +199,111 @@ export default function CeoProjectsIndex({ projects, stats }: Props) {
                                     const overallStatus = getOverallStatus(project);
                                     const hrProgress = project.hr_progress;
                                     const ceoProgress = project.ceo_progress;
+                                    const surveyStatus = project.survey_status || 'not_available';
                                     const progressPercentage = hrProgress 
                                         ? Math.round((hrProgress.completed / hrProgress.total) * 100)
                                         : 0;
 
                                     return (
-                                        <Link
-                                            key={project.id}
-                                            href={`/ceo/projects/${project.id}/verification`}
-                                            className="group"
-                                        >
-                                            <Card className="h-full hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50 cursor-pointer">
-                                                <CardHeader className="pb-3">
-                                                    <div className="flex items-start justify-between mb-2">
-                                                        <div className="flex-1">
+                                        <Card key={project.id} className="h-full hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50">
+                                            <CardHeader className="pb-3">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div className="flex-1">
+                                                        <Link href={`/ceo/projects/${project.id}/verification`} className="group block">
                                                             <CardTitle className="text-xl mb-1 group-hover:text-primary transition-colors">
                                                                 {project.company?.name || `Project #${project.id}`}
                                                             </CardTitle>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                Created {new Date(project.created_at).toLocaleDateString()}
-                                                            </p>
-                                                        </div>
-                                                        <Badge variant={overallStatus.variant}>
-                                                            {overallStatus.label}
+                                                        </Link>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Created {new Date(project.created_at).toLocaleDateString()}
+                                                        </p>
+                                                    </div>
+                                                    <Badge variant={overallStatus.variant}>
+                                                        {overallStatus.label}
+                                                    </Badge>
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent className="space-y-4">
+                                                {/* Survey status & button */}
+                                                <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-muted/50">
+                                                    <span className="text-sm font-medium">Survey</span>
+                                                    {surveyStatus === 'completed' && (
+                                                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                                                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                                                            Completed
                                                         </Badge>
+                                                    )}
+                                                    {surveyStatus === 'pending' && (
+                                                        <Badge variant="secondary" className="bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                                                            <Clock className="w-3 h-3 mr-1" />
+                                                            Pending
+                                                        </Badge>
+                                                    )}
+                                                    {surveyStatus !== 'not_available' && (
+                                                        <Link
+                                                            href={`/ceo/philosophy/survey/${project.id}`}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
+                                                        >
+                                                            {surveyStatus === 'completed' ? (
+                                                                <>View Survey <Eye className="w-3.5 h-3.5" /></>
+                                                            ) : (
+                                                                <>Start Survey <ClipboardList className="w-3.5 h-3.5" /></>
+                                                            )}
+                                                        </Link>
+                                                    )}
+                                                </div>
+
+                                                {/* Progress Bar */}
+                                                {hrProgress && (
+                                                    <div>
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <span className="text-sm font-medium">HR Progress</span>
+                                                            <span className="text-sm text-muted-foreground">
+                                                                {hrProgress.completed}/{hrProgress.total} steps
+                                                            </span>
+                                                        </div>
+                                                        <div className="w-full bg-muted rounded-full h-2.5">
+                                                            <div
+                                                                className="bg-primary h-2.5 rounded-full transition-all duration-500"
+                                                                style={{ width: `${progressPercentage}%` }}
+                                                            />
+                                                        </div>
                                                     </div>
-                                                </CardHeader>
-                                                <CardContent className="space-y-4">
-                                                    {/* Progress Bar */}
-                                                    {hrProgress && (
-                                                        <div>
-                                                            <div className="flex items-center justify-between mb-2">
-                                                                <span className="text-sm font-medium">HR Progress</span>
-                                                                <span className="text-sm text-muted-foreground">
-                                                                    {hrProgress.completed}/{hrProgress.total} steps
-                                                                </span>
-                                                            </div>
-                                                            <div className="w-full bg-muted rounded-full h-2.5">
-                                                                <div
-                                                                    className="bg-primary h-2.5 rounded-full transition-all duration-500"
-                                                                    style={{ width: `${progressPercentage}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    )}
+                                                )}
 
-                                                    {/* CEO Progress */}
-                                                    {ceoProgress && (
-                                                        <div className="flex items-center justify-between text-sm">
-                                                            <span className="text-muted-foreground">CEO Verification:</span>
-                                                            <span className="font-medium">
-                                                                {ceoProgress.verified_steps || 0}/{hrProgress?.total || 5} verified
-                                                            </span>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Pending Verification */}
-                                                    {ceoProgress?.pending_verification && ceoProgress.pending_verification > 0 && (
-                                                        <div className="flex items-center gap-2 p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                                                            <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                                                            <span className="text-sm text-orange-600 dark:text-orange-400">
-                                                                {ceoProgress.pending_verification} step{ceoProgress.pending_verification > 1 ? 's' : ''} pending verification
-                                                            </span>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Action Button */}
-                                                    <div className="flex items-center justify-between pt-2 border-t">
-                                                        <span className="text-sm font-medium text-muted-foreground">
-                                                            View Details
+                                                {/* CEO Progress */}
+                                                {ceoProgress && (
+                                                    <div className="flex items-center justify-between text-sm">
+                                                        <span className="text-muted-foreground">CEO Verification:</span>
+                                                        <span className="font-medium">
+                                                            {ceoProgress.verified_steps || 0}/{hrProgress?.total || 5} verified
                                                         </span>
-                                                        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                                                     </div>
-                                                </CardContent>
-                                            </Card>
-                                        </Link>
+                                                )}
+
+                                                {/* Pending Verification */}
+                                                {ceoProgress?.pending_verification && ceoProgress.pending_verification > 0 && (
+                                                    <div className="flex items-center gap-2 p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                                                        <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                                                        <span className="text-sm text-orange-600 dark:text-orange-400">
+                                                            {ceoProgress.pending_verification} step{ceoProgress.pending_verification > 1 ? 's' : ''} pending verification
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                {/* Action */}
+                                                <div className="flex items-center justify-between pt-2 border-t">
+                                                    <Link
+                                                        href={`/ceo/projects/${project.id}/verification`}
+                                                        className="text-sm font-medium text-muted-foreground hover:text-primary flex items-center gap-1"
+                                                    >
+                                                        View Details
+                                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-all" />
+                                                    </Link>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
                                     );
                                 })}
                             </div>

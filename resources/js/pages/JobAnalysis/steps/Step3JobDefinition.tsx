@@ -1,15 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import StepContainer from '../components/StepContainer';
-import StepNavigation from '../components/StepNavigation';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
-import { FileText, User, TrendingUp, Target, Plus, X } from 'lucide-react';
+import { FileText, User, CheckSquare, Settings, ChevronLeft, ArrowRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { JobDefinition, JobSelection } from '../hooks/useJobAnalysisState';
 
@@ -27,7 +21,7 @@ interface Template {
         communication: { required: string; preferred: string };
     };
     competency_levels?: Array<{ level: string; description: string }>;
-    csfs?: Array<{ name: string; description: string }>;
+    csfs?: Array<{ name: string; description: string; strategic_importance?: string; category?: string }>;
 }
 
 interface Step3JobDefinitionProps {
@@ -40,6 +34,27 @@ interface Step3JobDefinitionProps {
     onBack: () => void;
 }
 
+const TAB_ORDER = ['description', 'specification', 'competency', 'csfs'] as const;
+type TabId = (typeof TAB_ORDER)[number];
+
+function countSectionsComplete(def: JobDefinition): number {
+    let n = 0;
+    if ((def.job_description || '').trim()) n++;
+    const spec = def.job_specification;
+    if (
+        spec?.education?.required?.trim() &&
+        spec?.experience?.required?.trim() &&
+        spec?.skills?.required?.trim() &&
+        spec?.communication?.required?.trim()
+    )
+        n++;
+    const levels = def.competency_levels || [];
+    if (levels.length > 0 && levels.some((l) => (l.description || '').trim())) n++;
+    const csfs = def.csfs || [];
+    if (csfs.length > 0 && csfs.some((c) => (c.name || '').trim())) n++;
+    return n;
+}
+
 export default function Step3JobDefinition({
     jobSelections,
     suggestedJobs,
@@ -50,489 +65,592 @@ export default function Step3JobDefinition({
     onBack,
 }: Step3JobDefinitionProps) {
     const [activeJobKey, setActiveJobKey] = useState<string>('');
-    const [activeTab, setActiveTab] = useState<'description' | 'specification' | 'competency' | 'csfs'>('description');
+    const [activeTab, setActiveTab] = useState<TabId>('description');
     const [localDefinitions, setLocalDefinitions] = useState<Record<string, JobDefinition>>(jobDefinitions);
 
-    // Generate all jobs list (selected, custom, grouped)
     const allJobs = useMemo(() => {
-        const jobs: Array<{ key: string; name: string; job_keyword_id?: number; grouped_job_keyword_ids?: number[] }> = [];
-        const addedJobIds = new Set<number>();
-
-        // Add individual selected jobs
-        jobSelections.selected_job_keyword_ids.forEach((jobId, index) => {
-            if (!addedJobIds.has(jobId)) {
-                const job = suggestedJobs.find(j => j.id === jobId);
-                if (job) {
-                    jobs.push({ key: `job-${jobId}`, name: job.name, job_keyword_id: jobId });
-                    addedJobIds.add(jobId);
-                }
+        const jobs: Array<{
+            key: string;
+            name: string;
+            job_keyword_id?: number;
+            grouped_job_keyword_ids?: number[];
+        }> = [];
+        const added = new Set<number>();
+        jobSelections.selected_job_keyword_ids.forEach((jobId) => {
+            if (added.has(jobId)) return;
+            const job = suggestedJobs.find((j) => j.id === jobId);
+            if (job) {
+                jobs.push({ key: `job-${jobId}`, name: job.name, job_keyword_id: jobId });
+                added.add(jobId);
             }
         });
-
-        // Add custom jobs
-        jobSelections.custom_jobs.forEach((customJob, index) => {
-            jobs.push({ key: `custom-${index}-${customJob}`, name: customJob });
+        jobSelections.custom_jobs.forEach((name, i) => {
+            jobs.push({ key: `custom-${i}-${name}`, name });
         });
-
-        // Add grouped jobs
-        jobSelections.grouped_jobs.forEach((group, index) => {
-            const sortedIds = [...group.job_keyword_ids].sort((a, b) => a - b).join('-');
+        jobSelections.grouped_jobs.forEach((group, i) => {
+            const sorted = [...group.job_keyword_ids].sort((a, b) => a - b).join('-');
             jobs.push({
-                key: `group-${sortedIds}-${index}`,
+                key: `group-${sorted}-${i}`,
                 name: group.name,
                 grouped_job_keyword_ids: group.job_keyword_ids,
             });
         });
-
         return jobs;
     }, [jobSelections, suggestedJobs]);
 
-    // Initialize active job
     useEffect(() => {
-        if (!activeJobKey && allJobs.length > 0) {
-            setActiveJobKey(allJobs[0].key);
-        }
+        if (!activeJobKey && allJobs.length > 0) setActiveJobKey(allJobs[0].key);
     }, [activeJobKey, allJobs]);
 
-    // Initialize definitions from templates
     useEffect(() => {
-        const newDefinitions: Record<string, JobDefinition> = { ...localDefinitions };
-
-        allJobs.forEach(job => {
-            if (!newDefinitions[job.key]) {
-                const template = templates[job.job_keyword_id || job.key] || {};
-                newDefinitions[job.key] = {
+        const next: Record<string, JobDefinition> = { ...localDefinitions };
+        allJobs.forEach((job) => {
+            if (!next[job.key]) {
+                const t = templates[job.job_keyword_id ?? job.key] || {};
+                next[job.key] = {
                     job_keyword_id: job.job_keyword_id,
                     job_name: job.name,
                     grouped_job_keyword_ids: job.grouped_job_keyword_ids,
-                    job_description: template.job_description || '',
-                    job_specification: template.job_specification || {
+                    job_description: t.job_description ?? '',
+                    job_specification: t.job_specification ?? {
                         education: { required: '', preferred: '' },
                         experience: { required: '', preferred: '' },
                         skills: { required: '', preferred: '' },
                         communication: { required: '', preferred: '' },
                     },
-                    competency_levels: template.competency_levels || [
+                    competency_levels: t.competency_levels ?? [
                         { level: 'LV1', description: '' },
                         { level: 'LV2', description: '' },
                         { level: 'LV3', description: '' },
                     ],
-                    csfs: template.csfs || [],
+                    csfs: (t.csfs || []).map((c) => ({
+                        name: c.name || '',
+                        description: c.description || '',
+                        strategic_importance: (c.strategic_importance as 'high' | 'medium' | 'low') || 'medium',
+                        category: (c.category as 'strategic' | 'process' | 'operational') || 'strategic',
+                    })),
                 };
             }
         });
-
-        setLocalDefinitions(newDefinitions);
-        onDefinitionsChange(newDefinitions);
+        setLocalDefinitions(next);
+        onDefinitionsChange(next);
     }, [allJobs, templates]);
 
-    const currentJob = allJobs.find(j => j.key === activeJobKey);
-    const currentJobDef = activeJobKey ? localDefinitions[activeJobKey] : null;
+    const currentJob = allJobs.find((j) => j.key === activeJobKey);
+    const currentDef = activeJobKey ? localDefinitions[activeJobKey] : null;
 
-    const updateJobDefinition = (key: string, updates: Partial<JobDefinition>) => {
-        const updated = {
+    const updateDef = (updates: Partial<JobDefinition>) => {
+        if (!activeJobKey) return;
+        const next = {
             ...localDefinitions,
-            [key]: { ...localDefinitions[key], ...updates },
+            [activeJobKey]: { ...localDefinitions[activeJobKey], ...updates },
         };
-        setLocalDefinitions(updated);
-        onDefinitionsChange(updated);
+        setLocalDefinitions(next);
+        onDefinitionsChange(next);
     };
 
-    const handleAddCompetencyLevel = () => {
-        if (!activeJobKey || !currentJobDef) return;
-        const levels = currentJobDef.competency_levels || [];
-        const newLevel = `LV${levels.length + 1}`;
-        updateJobDefinition(activeJobKey, {
-            competency_levels: [...levels, { level: newLevel, description: '' }],
+    const sectionCount = currentDef ? countSectionsComplete(currentDef) : 0;
+    const isTabComplete = (tab: TabId): boolean => {
+        if (!currentDef) return false;
+        switch (tab) {
+            case 'description':
+                return !!(currentDef.job_description || '').trim();
+            case 'specification': {
+                const s = currentDef.job_specification;
+                return !!(
+                    s?.education?.required?.trim() &&
+                    s?.experience?.required?.trim() &&
+                    s?.skills?.required?.trim() &&
+                    s?.communication?.required?.trim()
+                );
+            }
+            case 'competency':
+                return (
+                    (currentDef.competency_levels?.length ?? 0) > 0 &&
+                    (currentDef.competency_levels ?? []).some((l) => (l.description || '').trim())
+                );
+            case 'csfs':
+                return (currentDef.csfs ?? []).some((c) => (c.name || '').trim());
+            default:
+                return false;
+        }
+    };
+
+    const handleAddLevel = () => {
+        if (!currentDef) return;
+        const levels = currentDef.competency_levels || [];
+        updateDef({
+            competency_levels: [...levels, { level: `LV${levels.length + 1}`, description: '' }],
         });
     };
-
-    const handleRemoveCompetencyLevel = (index: number) => {
-        if (!activeJobKey || !currentJobDef) return;
-        const levels = currentJobDef.competency_levels || [];
-        updateJobDefinition(activeJobKey, {
-            competency_levels: levels.filter((_, i) => i !== index),
-        });
+    const handleRemoveLevel = (index: number) => {
+        if (!currentDef) return;
+        const levels = (currentDef.competency_levels || []).filter((_, i) => i !== index);
+        updateDef({ competency_levels: levels });
     };
-
-    const handleUpdateCompetencyLevel = (index: number, field: 'level' | 'description', value: string) => {
-        if (!activeJobKey || !currentJobDef) return;
-        const levels = [...(currentJobDef.competency_levels || [])];
+    const handleUpdateLevel = (index: number, field: 'level' | 'description', value: string) => {
+        if (!currentDef) return;
+        const levels = [...(currentDef.competency_levels || [])];
         levels[index] = { ...levels[index], [field]: value };
-        updateJobDefinition(activeJobKey, { competency_levels: levels });
+        updateDef({ competency_levels: levels });
     };
 
     const handleAddCSF = () => {
-        if (!activeJobKey || !currentJobDef) return;
-        const csfs = currentJobDef.csfs || [];
-        updateJobDefinition(activeJobKey, {
-            csfs: [...csfs, { name: '', description: '', strategic_importance: 'medium' }],
+        if (!currentDef) return;
+        const csfs = currentDef.csfs || [];
+        updateDef({
+            csfs: [
+                ...csfs,
+                {
+                    name: '',
+                    description: '',
+                    strategic_importance: 'medium',
+                    category: 'strategic',
+                },
+            ],
         });
     };
-
     const handleRemoveCSF = (index: number) => {
-        if (!activeJobKey || !currentJobDef) return;
-        const csfs = currentJobDef.csfs || [];
-        updateJobDefinition(activeJobKey, {
-            csfs: csfs.filter((_, i) => i !== index),
-        });
+        if (!currentDef) return;
+        const csfs = (currentDef.csfs || []).filter((_, i) => i !== index);
+        updateDef({ csfs });
     };
-
-    const handleUpdateCSF = (index: number, field: string, value: any) => {
-        if (!activeJobKey || !currentJobDef) return;
-        const csfs = [...(currentJobDef.csfs || [])];
+    const handleUpdateCSF = (index: number, field: string, value: unknown) => {
+        if (!currentDef) return;
+        const csfs = [...(currentDef.csfs || [])];
         csfs[index] = { ...csfs[index], [field]: value };
-        updateJobDefinition(activeJobKey, { csfs });
+        updateDef({ csfs });
     };
 
-    if (!currentJob || !currentJobDef) {
+    const goNextTab = () => {
+        const idx = TAB_ORDER.indexOf(activeTab);
+        if (idx < TAB_ORDER.length - 1) setActiveTab(TAB_ORDER[idx + 1]);
+    };
+
+    if (!currentJob || !currentDef) {
         return (
-            <StepContainer stepNumber={3} stepName="Job Definition">
-                <div className="text-center py-12">
-                    <p className="text-muted-foreground">No jobs selected. Please go back to Job List Selection.</p>
-                </div>
-            </StepContainer>
+            <div className="min-h-full flex flex-col bg-[#f6f3eb] items-center justify-center p-8">
+                <p className="text-[#666]">No jobs selected. Please go back to Job List Selection.</p>
+                <Button variant="outline" onClick={onBack} className="mt-4">
+                    ← Back
+                </Button>
+            </div>
         );
     }
 
+    const spec = currentDef.job_specification!;
+    const levels = currentDef.competency_levels || [];
+    const csfs = currentDef.csfs || [];
+
     return (
-        <StepContainer
-            stepNumber={3}
-            stepName="Job Definition"
-            description="For each selected role, create and finalize a Job Definition Document including Job Description, Job Specification, Job Competency Levels, and Critical Success Factors (CSFs)."
-        >
-            <div className="space-y-6">
-                <div>
-                    <Label className="text-lg font-semibold mb-3 block">Select Job to Define</Label>
+        <div className="min-h-full flex flex-col bg-[#f6f3eb] text-[#333]">
+            <div className="max-w-[1100px] mx-auto w-full py-10 pb-28 px-5" style={{ padding: '0 20px' }}>
+                <div className="text-[#b59461] font-bold text-[11px] mb-1">● STEP 3 OF 6 — JOB ANALYSIS</div>
+                <h1 className="text-[#1a1a3d] font-bold m-0 mb-2" style={{ fontSize: 28 }}>
+                    Job Definition
+                </h1>
+                <p className="text-[#666] mb-6 text-sm max-w-[800px] leading-relaxed">
+                    For each selected role, a Job Definition Document is created and finalized, including: Job Description, Job Specification, Job Competency Levels, and Critical Success Factors (CSFs).
+                    The job standards defined at this stage serve as the foundation for the subsequent design of the performance management system and the compensation system.
+                </p>
+
+                {/* Job selector */}
+                <div className="mb-6">
+                    <div className="font-bold text-sm mb-3">SELECT JOB TO DEFINE</div>
                     <div className="flex flex-wrap gap-2">
-                        {allJobs.map((job, index) => (
-                            <Button
-                                key={`job-btn-${job.key}-${index}`}
-                                variant={activeJobKey === job.key ? 'default' : 'outline'}
-                                onClick={() => {
-                                    setActiveJobKey(job.key);
-                                    setActiveTab('description');
-                                }}
-                                className="flex items-center gap-2"
-                            >
-                                {job.name}
-                                {job.grouped_job_keyword_ids && (
-                                    <Badge variant="secondary" className="ml-1 text-xs">
-                                        Grouped
-                                    </Badge>
-                                )}
-                            </Button>
-                        ))}
+                        {allJobs.map((job) => {
+                            const def = localDefinitions[job.key];
+                            const done = def ? countSectionsComplete(def) : 0;
+                            const active = activeJobKey === job.key;
+                            return (
+                                <button
+                                    key={job.key}
+                                    type="button"
+                                    onClick={() => {
+                                        setActiveJobKey(job.key);
+                                        setActiveTab('description');
+                                    }}
+                                    className={cn(
+                                        'rounded-full px-5 py-2.5 text-sm font-medium',
+                                        active
+                                            ? 'bg-[#1a1a3d] text-white'
+                                            : 'bg-[#e0ddd5]/50 text-[#666] border border-[#e0ddd5]'
+                                    )}
+                                >
+                                    {job.name} {done}/4
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
-                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-                    <TabsList className="grid w-full grid-cols-4">
-                        <TabsTrigger value="description" className="flex items-center gap-2">
-                            <FileText className="w-4 h-4" />
-                            Description
-                        </TabsTrigger>
-                        <TabsTrigger value="specification" className="flex items-center gap-2">
-                            <User className="w-4 h-4" />
-                            Specification
-                        </TabsTrigger>
-                        <TabsTrigger value="competency" className="flex items-center gap-2">
-                            <TrendingUp className="w-4 h-4" />
-                            Competency
-                        </TabsTrigger>
-                        <TabsTrigger value="csfs" className="flex items-center gap-2">
-                            <Target className="w-4 h-4" />
-                            CSFs
-                        </TabsTrigger>
-                    </TabsList>
+                {/* Tabs */}
+                <div className="flex gap-1 mb-6 border-b border-[#e0ddd5] pb-0">
+                    {TAB_ORDER.map((tabId) => {
+                        const isActive = activeTab === tabId;
+                        const complete = isTabComplete(tabId);
+                        const icons = {
+                            description: FileText,
+                            specification: User,
+                            competency: CheckSquare,
+                            csfs: Settings,
+                        };
+                        const Icon = icons[tabId];
+                        const labels = {
+                            description: 'Description',
+                            specification: 'Specification',
+                            competency: 'Competency',
+                            csfs: 'CSFs',
+                        };
+                        return (
+                            <button
+                                key={tabId}
+                                type="button"
+                                onClick={() => setActiveTab(tabId)}
+                                className={cn(
+                                    'flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-t-lg border border-b-0 border-[#e0ddd5] -mb-px',
+                                    isActive && 'bg-[#1a1a3d] text-white border-[#1a1a3d]',
+                                    !isActive && complete && 'bg-[#d4e9d5] text-[#2e7d32]',
+                                    !isActive && !complete && 'bg-white text-[#666]'
+                                )}
+                            >
+                                <Icon className="w-4 h-4" />
+                                {labels[tabId]}
+                                {complete && <span className="text-green-600">✓</span>}
+                            </button>
+                        );
+                    })}
+                </div>
 
-                    <TabsContent value="description" className="space-y-4 mt-6">
-                        <div>
-                            <Label className="text-base font-semibold mb-2 block">Job Description</Label>
+                {/* Tab content */}
+                <div className="bg-white rounded-lg border border-[#e0ddd5] p-6 shadow-sm">
+                    {activeTab === 'description' && (
+                        <>
+                            <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-bold text-[#1a1a3d]">JOB DESCRIPTION</span>
+                                    <span className="text-[10px] px-2 py-0.5 rounded bg-[#e0ddd5] text-[#666]">
+                                        STANDARD
+                                    </span>
+                                </div>
+                                <Button variant="outline" size="sm" className="border-[#e0ddd5] text-xs">
+                                    View Original Draft
+                                </Button>
+                            </div>
                             <Textarea
-                                value={currentJobDef.job_description || ''}
-                                onChange={(e) => updateJobDefinition(activeJobKey, { job_description: e.target.value })}
-                                placeholder="Enter job purpose and key responsibilities..."
-                                className="min-h-[200px]"
+                                value={currentDef.job_description || ''}
+                                onChange={(e) => updateDef({ job_description: e.target.value })}
+                                placeholder="Enter job description..."
+                                className="min-h-[200px] border-[#e0ddd5]"
                             />
-                        </div>
-                    </TabsContent>
+                            <div className="mt-4 flex justify-end">
+                                <Button
+                                    onClick={goNextTab}
+                                    className="bg-[#b59461] hover:bg-[#9a7d4d] text-white"
+                                >
+                                    Next: Specification →
+                                </Button>
+                            </div>
+                        </>
+                    )}
 
-                    <TabsContent value="specification" className="space-y-6 mt-6">
-                        <div className="grid grid-cols-2 gap-6">
-                            <Card className="p-4">
-                                <Label className="text-sm font-semibold mb-3 block">Education</Label>
-                                <div className="space-y-3">
-                                    <div>
-                                        <Label className="text-xs text-muted-foreground">Required</Label>
-                                        <Input
-                                            value={currentJobDef.job_specification?.education?.required || ''}
-                                            onChange={(e) => updateJobDefinition(activeJobKey, {
-                                                job_specification: {
-                                                    ...currentJobDef.job_specification!,
-                                                    education: {
-                                                        ...currentJobDef.job_specification!.education,
-                                                        required: e.target.value,
-                                                    },
-                                                },
-                                            })}
-                                            placeholder="Required education"
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label className="text-xs text-muted-foreground">Preferred</Label>
-                                        <Input
-                                            value={currentJobDef.job_specification?.education?.preferred || ''}
-                                            onChange={(e) => updateJobDefinition(activeJobKey, {
-                                                job_specification: {
-                                                    ...currentJobDef.job_specification!,
-                                                    education: {
-                                                        ...currentJobDef.job_specification!.education,
-                                                        preferred: e.target.value,
-                                                    },
-                                                },
-                                            })}
-                                            placeholder="Preferred education"
-                                        />
-                                    </div>
-                                </div>
-                            </Card>
-
-                            <Card className="p-4">
-                                <Label className="text-sm font-semibold mb-3 block">Experience</Label>
-                                <div className="space-y-3">
-                                    <div>
-                                        <Label className="text-xs text-muted-foreground">Required</Label>
-                                        <Input
-                                            value={currentJobDef.job_specification?.experience?.required || ''}
-                                            onChange={(e) => updateJobDefinition(activeJobKey, {
-                                                job_specification: {
-                                                    ...currentJobDef.job_specification!,
-                                                    experience: {
-                                                        ...currentJobDef.job_specification!.experience,
-                                                        required: e.target.value,
-                                                    },
-                                                },
-                                            })}
-                                            placeholder="Required experience"
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label className="text-xs text-muted-foreground">Preferred</Label>
-                                        <Input
-                                            value={currentJobDef.job_specification?.experience?.preferred || ''}
-                                            onChange={(e) => updateJobDefinition(activeJobKey, {
-                                                job_specification: {
-                                                    ...currentJobDef.job_specification!,
-                                                    experience: {
-                                                        ...currentJobDef.job_specification!.experience,
-                                                        preferred: e.target.value,
-                                                    },
-                                                },
-                                            })}
-                                            placeholder="Preferred experience"
-                                        />
-                                    </div>
-                                </div>
-                            </Card>
-
-                            <Card className="p-4">
-                                <Label className="text-sm font-semibold mb-3 block">Skills</Label>
-                                <div className="space-y-3">
-                                    <div>
-                                        <Label className="text-xs text-muted-foreground">Required</Label>
-                                        <Input
-                                            value={currentJobDef.job_specification?.skills?.required || ''}
-                                            onChange={(e) => updateJobDefinition(activeJobKey, {
-                                                job_specification: {
-                                                    ...currentJobDef.job_specification!,
-                                                    skills: {
-                                                        ...currentJobDef.job_specification!.skills,
-                                                        required: e.target.value,
-                                                    },
-                                                },
-                                            })}
-                                            placeholder="Required skills"
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label className="text-xs text-muted-foreground">Preferred</Label>
-                                        <Input
-                                            value={currentJobDef.job_specification?.skills?.preferred || ''}
-                                            onChange={(e) => updateJobDefinition(activeJobKey, {
-                                                job_specification: {
-                                                    ...currentJobDef.job_specification!,
-                                                    skills: {
-                                                        ...currentJobDef.job_specification!.skills,
-                                                        preferred: e.target.value,
-                                                    },
-                                                },
-                                            })}
-                                            placeholder="Preferred skills"
-                                        />
-                                    </div>
-                                </div>
-                            </Card>
-
-                            <Card className="p-4">
-                                <Label className="text-sm font-semibold mb-3 block">Communication</Label>
-                                <div className="space-y-3">
-                                    <div>
-                                        <Label className="text-xs text-muted-foreground">Required</Label>
-                                        <Input
-                                            value={currentJobDef.job_specification?.communication?.required || ''}
-                                            onChange={(e) => updateJobDefinition(activeJobKey, {
-                                                job_specification: {
-                                                    ...currentJobDef.job_specification!,
-                                                    communication: {
-                                                        ...currentJobDef.job_specification!.communication,
-                                                        required: e.target.value,
-                                                    },
-                                                },
-                                            })}
-                                            placeholder="Required communication"
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label className="text-xs text-muted-foreground">Preferred</Label>
-                                        <Input
-                                            value={currentJobDef.job_specification?.communication?.preferred || ''}
-                                            onChange={(e) => updateJobDefinition(activeJobKey, {
-                                                job_specification: {
-                                                    ...currentJobDef.job_specification!,
-                                                    communication: {
-                                                        ...currentJobDef.job_specification!.communication,
-                                                        preferred: e.target.value,
-                                                    },
-                                                },
-                                            })}
-                                            placeholder="Preferred communication"
-                                        />
-                                    </div>
-                                </div>
-                            </Card>
-                        </div>
-                    </TabsContent>
-
-                    <TabsContent value="competency" className="space-y-4 mt-6">
-                        <div className="flex items-center justify-between">
-                            <Label className="text-base font-semibold">Competency Levels</Label>
-                            <Button onClick={handleAddCompetencyLevel} variant="outline" size="sm">
-                                <Plus className="w-4 h-4 mr-2" />
-                                Add Level
-                            </Button>
-                        </div>
-                        <div className="space-y-3">
-                            {(currentJobDef.competency_levels || []).map((level, index) => (
-                                <Card key={index} className="p-4">
-                                    <div className="flex items-start gap-3">
-                                        <Input
-                                            value={level.level}
-                                            onChange={(e) => handleUpdateCompetencyLevel(index, 'level', e.target.value)}
-                                            className="w-24 flex-shrink-0"
-                                            placeholder="LV1"
-                                        />
-                                        <Textarea
-                                            value={level.description}
-                                            onChange={(e) => handleUpdateCompetencyLevel(index, 'description', e.target.value)}
-                                            placeholder="Enter competency level description..."
-                                            className="flex-1"
-                                        />
-                                        {(currentJobDef.competency_levels || []).length > 1 && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => handleRemoveCompetencyLevel(index)}
-                                                className="text-destructive hover:text-destructive"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </Button>
-                                        )}
-                                    </div>
-                                </Card>
-                            ))}
-                        </div>
-                    </TabsContent>
-
-                    <TabsContent value="csfs" className="space-y-4 mt-6">
-                        <div className="flex items-center justify-between">
-                            <Label className="text-base font-semibold">Critical Success Factors (CSFs)</Label>
-                            <Button onClick={handleAddCSF} variant="outline" size="sm">
-                                <Plus className="w-4 h-4 mr-2" />
-                                Add CSF
-                            </Button>
-                        </div>
-                        <div className="space-y-3">
-                            {(currentJobDef.csfs || []).map((csf, index) => (
-                                <Card key={index} className="p-5 border-2">
-                                    <div className="space-y-4">
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div className="flex-1 space-y-3">
-                                                <div>
-                                                    <Label className="text-sm font-semibold">CSF Name</Label>
-                                                    <Input
-                                                        value={csf.name}
-                                                        onChange={(e) => handleUpdateCSF(index, 'name', e.target.value)}
-                                                        placeholder="Enter CSF name"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <Label className="text-sm font-semibold">Description</Label>
-                                                    <Textarea
-                                                        value={csf.description}
-                                                        onChange={(e) => handleUpdateCSF(index, 'description', e.target.value)}
-                                                        placeholder="Enter CSF description..."
-                                                        className="min-h-[100px]"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <Label className="text-sm font-semibold mb-2 block">Strategic Importance</Label>
-                                                    <RadioGroup
-                                                        value={csf.strategic_importance || 'medium'}
-                                                        onValueChange={(value) => handleUpdateCSF(index, 'strategic_importance', value)}
-                                                    >
-                                                        <div className="flex items-center space-x-2">
-                                                            <RadioGroupItem value="high" id={`csf-${index}-high`} />
-                                                            <Label htmlFor={`csf-${index}-high`}>High</Label>
-                                                        </div>
-                                                        <div className="flex items-center space-x-2">
-                                                            <RadioGroupItem value="medium" id={`csf-${index}-medium`} />
-                                                            <Label htmlFor={`csf-${index}-medium`}>Medium</Label>
-                                                        </div>
-                                                        <div className="flex items-center space-x-2">
-                                                            <RadioGroupItem value="low" id={`csf-${index}-low`} />
-                                                            <Label htmlFor={`csf-${index}-low`}>Low</Label>
-                                                        </div>
-                                                    </RadioGroup>
-                                                </div>
+                    {activeTab === 'specification' && (
+                        <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {[
+                                    {
+                                        key: 'education' as const,
+                                        label: 'EDUCATION',
+                                        data: spec.education,
+                                    },
+                                    {
+                                        key: 'experience' as const,
+                                        label: 'EXPERIENCE',
+                                        data: spec.experience,
+                                    },
+                                    {
+                                        key: 'skills' as const,
+                                        label: 'SKILLS',
+                                        data: spec.skills,
+                                    },
+                                    {
+                                        key: 'communication' as const,
+                                        label: 'COMMUNICATION',
+                                        data: spec.communication,
+                                    },
+                                ].map(({ key, label, data }) => (
+                                    <div
+                                        key={key}
+                                        className="border border-[#e0ddd5] rounded-lg p-4 bg-[#fafaf9]"
+                                    >
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="font-bold text-sm">{label}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] px-2 py-0.5 rounded bg-[#e0ddd5]">
+                                                    STANDARD
+                                                </span>
+                                                <Button variant="outline" size="sm" className="text-xs h-7">
+                                                    View Original
+                                                </Button>
                                             </div>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => handleRemoveCSF(index)}
-                                                className="text-destructive hover:text-destructive"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </Button>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div>
+                                                <Label className="text-xs text-[#666]">
+                                                    REQUIRED <span className="text-red-500">*</span>
+                                                </Label>
+                                                <Input
+                                                    value={data.required}
+                                                    onChange={(e) =>
+                                                        updateDef({
+                                                            job_specification: {
+                                                                ...spec,
+                                                                [key]: { ...data, required: e.target.value },
+                                                            },
+                                                        })
+                                                    }
+                                                    className="mt-1 border-[#e0ddd5]"
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label className="text-xs text-[#666]">PREFERRED</Label>
+                                                <Input
+                                                    value={data.preferred}
+                                                    onChange={(e) =>
+                                                        updateDef({
+                                                            job_specification: {
+                                                                ...spec,
+                                                                [key]: { ...data, preferred: e.target.value },
+                                                            },
+                                                        })
+                                                    }
+                                                    className="mt-1 border-[#e0ddd5]"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </Card>
-                            ))}
-                            {(!currentJobDef.csfs || currentJobDef.csfs.length === 0) && (
-                                <div className="text-center py-8 text-muted-foreground">
-                                    No CSFs added yet. Click "Add CSF" to add critical success factors.
-                                </div>
-                            )}
-                        </div>
-                    </TabsContent>
-                </Tabs>
+                                ))}
+                            </div>
+                            <div className="mt-6 flex justify-end">
+                                <Button
+                                    onClick={goNextTab}
+                                    className="bg-[#b59461] hover:bg-[#9a7d4d] text-white"
+                                >
+                                    Next: Competency →
+                                </Button>
+                            </div>
+                        </>
+                    )}
 
-                <StepNavigation
-                    onBack={onBack}
-                    onNext={onContinue}
-                    nextLabel="Continue to Finalization"
-                />
+                    {activeTab === 'competency' && (
+                        <>
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="font-bold text-[#1a1a3d]">Competency Levels</span>
+                                <Button
+                                    onClick={handleAddLevel}
+                                    className="bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white text-sm"
+                                >
+                                    + Add Level
+                                </Button>
+                            </div>
+                            <div className="space-y-3">
+                                {levels.map((level, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center gap-3 p-3 border border-[#e0ddd5] rounded-lg bg-white"
+                                    >
+                                        <span className="bg-[#1a1a3d] text-white text-xs font-bold px-3 py-1.5 rounded-full shrink-0">
+                                            {level.level}
+                                        </span>
+                                        <Input
+                                            value={level.description}
+                                            onChange={(e) =>
+                                                handleUpdateLevel(index, 'description', e.target.value)
+                                            }
+                                            placeholder="e.g. Junior: Handles basic tasks..."
+                                            className="flex-1 border-[#e0ddd5]"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveLevel(index)}
+                                            className="text-red-500 hover:text-red-700 shrink-0"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-6 flex justify-end">
+                                <Button
+                                    onClick={goNextTab}
+                                    className="bg-[#b59461] hover:bg-[#9a7d4d] text-white"
+                                >
+                                    Next: CSFs →
+                                </Button>
+                            </div>
+                        </>
+                    )}
+
+                    {activeTab === 'csfs' && (
+                        <>
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="font-bold text-[#1a1a3d]">
+                                    Critical Success Factors (CSFs)
+                                </span>
+                                <Button
+                                    onClick={handleAddCSF}
+                                    className="bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white text-sm"
+                                >
+                                    + Add CSF
+                                </Button>
+                            </div>
+                            <div className="bg-[#f1f5f9] border border-[#e0ddd5] rounded-lg p-4 mb-6 text-sm text-[#666]">
+                                <strong className="text-[#333]">Category guide:</strong> Strategic – goals &
+                                direction. Process – how work gets done. Operational – day-to-day execution.
+                                The category determines placement in the Finalization matrix.
+                            </div>
+                            <div className="space-y-6">
+                                {csfs.map((csf, index) => (
+                                    <div
+                                        key={index}
+                                        className="border border-[#e0ddd5] rounded-lg p-5 bg-white relative"
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveCSF(index)}
+                                            className="absolute top-4 right-4 text-red-500 hover:text-red-700"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                        <div className="space-y-4 pr-8">
+                                            <div>
+                                                <Label className="text-xs font-semibold text-[#666]">
+                                                    CSF NAME <span className="text-red-500">*</span>
+                                                </Label>
+                                                <Input
+                                                    value={csf.name}
+                                                    onChange={(e) =>
+                                                        handleUpdateCSF(index, 'name', e.target.value)
+                                                    }
+                                                    className="mt-1 border-[#e0ddd5]"
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label className="text-xs font-semibold text-[#666]">
+                                                    DESCRIPTION
+                                                </Label>
+                                                <Textarea
+                                                    value={csf.description}
+                                                    onChange={(e) =>
+                                                        handleUpdateCSF(index, 'description', e.target.value)
+                                                    }
+                                                    className="mt-1 min-h-[80px] border-[#e0ddd5]"
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label className="text-xs font-semibold text-[#666] block mb-2">
+                                                    STRATEGIC IMPORTANCE
+                                                </Label>
+                                                <div className="flex gap-2">
+                                                    {(['high', 'medium', 'low'] as const).map((v) => (
+                                                        <button
+                                                            key={v}
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleUpdateCSF(index, 'strategic_importance', v)
+                                                            }
+                                                            className={cn(
+                                                                'px-4 py-2 rounded-full text-sm font-medium border',
+                                                                (csf.strategic_importance || 'medium') === v
+                                                                    ? 'bg-red-600 text-white border-red-600'
+                                                                    : 'bg-white border-[#e0ddd5] text-[#333]'
+                                                            )}
+                                                        >
+                                                            {v.charAt(0).toUpperCase() + v.slice(1)}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <Label className="text-xs font-semibold text-[#666] block mb-2">
+                                                    CSF CATEGORY <span className="text-red-500">*</span>
+                                                </Label>
+                                                <div className="flex gap-3">
+                                                    {(
+                                                        [
+                                                            ['strategic', 'Strategic'],
+                                                            ['process', 'Process'],
+                                                            ['operational', 'Operational'],
+                                                        ] as const
+                                                    ).map(([v, label]) => (
+                                                        <label
+                                                            key={v}
+                                                            className={cn(
+                                                                'flex items-center gap-2 cursor-pointer px-3 py-2 rounded border',
+                                                                (csf.category || 'strategic') === v
+                                                                    ? 'border-[#1a1a3d] bg-[#1a1a3d]/5'
+                                                                    : 'border-[#e0ddd5]'
+                                                            )}
+                                                        >
+                                                            <input
+                                                                type="radio"
+                                                                name={`csf-cat-${index}`}
+                                                                checked={(csf.category || 'strategic') === v}
+                                                                onChange={() =>
+                                                                    handleUpdateCSF(index, 'category', v)
+                                                                }
+                                                                className="text-[#1a1a3d]"
+                                                            />
+                                                            {label}
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                {csfs.length === 0 && (
+                                    <p className="text-[#666] text-sm py-4">
+                                        No CSFs yet. Click &quot;+ Add CSF&quot; to add one.
+                                    </p>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
-        </StepContainer>
+
+            {/* Sticky footer */}
+            <footer
+                className="sticky bottom-0 w-full bg-white border-t border-[#e0ddd5] py-4 px-6 flex flex-wrap items-center justify-between gap-4 z-10 mt-auto"
+                style={{ padding: '15px 50px' }}
+            >
+                <p className="text-sm text-[#666]">
+                    Defining <strong>{currentJob.name}</strong>
+                </p>
+                <div className="flex gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={onBack}
+                        className="border-[#ccc] rounded-md"
+                    >
+                        <ChevronLeft className="w-4 h-4 mr-1" />
+                        Back
+                    </Button>
+                    <Button type="button" variant="outline" className="border-[#ccc] rounded-md">
+                        Save Job
+                    </Button>
+                    <Button
+                        type="button"
+                        onClick={onContinue}
+                        className="bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white rounded-md font-bold"
+                    >
+                        Continue to Finalization
+                        <ArrowRight className="w-4 h-4 ml-1" />
+                    </Button>
+                </div>
+            </footer>
+        </div>
     );
 }

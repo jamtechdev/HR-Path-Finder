@@ -33,6 +33,7 @@ export interface JobDefinition {
         name: string;
         description: string;
         strategic_importance?: 'high' | 'medium' | 'low';
+        category?: 'strategic' | 'process' | 'operational';
     }>;
 }
 
@@ -99,7 +100,7 @@ export function useJobAnalysisState(projectId: number) {
         jobDefinitions: {},
         orgMappings: [],
         stepCompletions: {},
-        activeStep: 'before-you-begin',
+        activeStep: 'overview',
     });
 
     const [state, setState] = useState<JobAnalysisState>(loadState);

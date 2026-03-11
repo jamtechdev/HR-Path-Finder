@@ -34,7 +34,7 @@ class CeoReviewController extends Controller
             abort(403);
         }
 
-        $hrProject->load(['diagnosis', 'company']);
+        $hrProject->load(['diagnosis', 'company', 'ceoPhilosophy']);
         $reviewLogs = CeoReviewLog::where('hr_project_id', $hrProject->id)
             ->with('modifier')
             ->orderBy('created_at', 'desc')
@@ -207,6 +207,7 @@ class CeoReviewController extends Controller
 
     /**
      * Confirm and approve diagnosis.
+     * CEO must complete the Management Philosophy Survey before they can verify (confirm) the diagnosis.
      */
     public function confirmDiagnosis(Request $request, HrProject $hrProject)
     {
@@ -215,9 +216,15 @@ class CeoReviewController extends Controller
         }
 
         $diagnosis = $hrProject->diagnosis;
-        
+
         if (!$diagnosis || $diagnosis->status !== StepStatus::SUBMITTED) {
             return back()->withErrors(['error' => 'Diagnosis must be submitted before approval.']);
+        }
+
+        // Require CEO to complete the Management Philosophy Survey before verifying diagnosis
+        if (!$hrProject->ceoPhilosophy) {
+            return redirect()->route('ceo.philosophy.survey', $hrProject)
+                ->with('error', 'Complete the Management Philosophy Survey first to verify the diagnosis.');
         }
 
         // Create snapshot
@@ -226,8 +233,8 @@ class CeoReviewController extends Controller
         // Approve and lock diagnosis step (this will unlock organization design)
         $this->stepTransitionService->approveAndLockStep($hrProject, 'diagnosis');
 
-        return redirect()->route('ceo.philosophy.survey', $hrProject)
-            ->with('success', 'Diagnosis confirmed and locked. Please complete the Management Philosophy Survey.');
+        return redirect()->route('ceo.review.diagnosis', $hrProject)
+            ->with('success', 'Diagnosis confirmed and locked.');
     }
 
     /**

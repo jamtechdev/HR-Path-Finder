@@ -22,6 +22,8 @@ interface Diagnosis {
     id: number;
     job_categories?: string[];
     job_functions?: string[];
+    job_grade_names?: string[];
+    job_grade_headcounts?: Record<string, number>;
 }
 
 interface Props {
@@ -394,6 +396,45 @@ export default function JobStructure({
                             )}
                         </div>
                     </div>
+
+                    {/* Headcount per Job Grade - from Job Grades step */}
+                    {diagnosis?.job_grade_names?.length ? (() => {
+                        const names = diagnosis.job_grade_names;
+                        const headcounts = (diagnosis.job_grade_headcounts ?? {}) as Record<string, number>;
+                        const rows = names.map((name) => ({ name, headcount: Number(headcounts[name]) || 0 }));
+                        const total = rows.reduce((s, r) => s + r.headcount, 0);
+                        return (
+                            <div className="mt-6 rounded-xl border-[1.5px] border-[#e2e8f0] bg-white overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(15,42,74,0.07)' }}>
+                                <div className="px-4 py-3.5 border-b border-[#e2e8f0] bg-[#f8fafc]">
+                                    <span className="text-xs font-bold text-[#94a3b8] uppercase tracking-wider">
+                                        {tr('gradePyramidTitle')}
+                                    </span>
+                                </div>
+                                <div className="p-4">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="border-b border-[#e2e8f0]">
+                                                <th className="pb-2 text-[11px] font-bold text-[#64748b] uppercase tracking-wider">Job Grade</th>
+                                                <th className="pb-2 text-right text-[11px] font-bold text-[#64748b] uppercase tracking-wider">{tr('headcount')}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {rows.map((row, i) => (
+                                                <tr key={`grade-${i}-${row.name}`} className="border-b border-[#f1f5f9] last:border-0">
+                                                    <td className="py-2.5 text-[13px] font-semibold text-[#0f2a4a]">{row.name}</td>
+                                                    <td className="py-2.5 text-right text-[13px] font-medium text-[#0f2a4a]">{row.headcount}</td>
+                                                </tr>
+                                            ))}
+                                            <tr className="bg-[#f8fafc] font-bold">
+                                                <td className="py-2.5 pl-0 text-[13px] text-[#0f2a4a]">{tr('totalHeadcount')}</td>
+                                                <td className="py-2.5 text-right text-[13px] text-[#0f2a4a]">{total}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        );
+                    })() : null}
                 </div>
     );
     if (embedMode) return <>{innerContent}</>;

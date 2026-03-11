@@ -59,7 +59,6 @@ export const treeStructure: TreeStep[] = [
         color: 'border-purple-500 bg-purple-50',
         iconColor: 'text-purple-600',
         tabs: [
-            { id: 'before-you-begin', name: 'Before You Begin', icon: FileText },
             { id: 'policy-snapshot', name: 'Policy Snapshot', icon: Shield },
             { id: 'job-list-selection', name: 'Job List Selection', icon: Users },
             { id: 'job-definition', name: 'Job Definition', icon: BriefcaseBusiness },

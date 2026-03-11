@@ -10,9 +10,6 @@ export function useStepValidation(state: JobAnalysisState) {
     const validateStep = useMemo(() => {
         return (stepId: string): ValidationResult => {
             switch (stepId) {
-                case 'before-you-begin':
-                    return { isValid: true, errors: [] };
-
                 case 'policy-snapshot':
                     const unansweredQuestions = Object.keys(state.policyAnswers).length === 0;
                     if (unansweredQuestions) {
@@ -135,7 +132,6 @@ export function useStepValidation(state: JobAnalysisState) {
 
             // Check if previous steps are completed
             const steps = [
-                'before-you-begin',
                 'policy-snapshot',
                 'job-list-selection',
                 'job-definition',

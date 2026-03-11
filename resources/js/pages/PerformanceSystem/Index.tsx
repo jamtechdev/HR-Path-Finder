@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
@@ -8,7 +8,8 @@ import {
     Users, 
     CheckCircle2,
     Settings,
-    Check
+    Check,
+    ChevronLeft,
 } from 'lucide-react';
 import Overview from './steps/Overview';
 import PerformanceSnapshotTab from './tabs/PerformanceSnapshotTab';
@@ -16,7 +17,6 @@ import KpiReviewTab from './tabs/KpiReviewTab';
 import EvaluationModelAssignmentTab from './tabs/EvaluationModelAssignmentTab';
 import EvaluationStructureTab from './tabs/EvaluationStructureTab';
 import ReviewSubmitTab from './tabs/ReviewSubmitTab';
-import StepHeader from '@/components/StepHeader/StepHeader';
 import { cn } from '@/lib/utils';
 import { Send } from 'lucide-react';
 
@@ -79,6 +79,24 @@ export default function PerformanceSystemIndex({
 }: Props) {
     const [activeTab, setActiveTab] = useState(initialTab);
     const [tabCompletions, setTabCompletions] = useState<Record<string, boolean>>({});
+    const [snapshotAnsweredCount, setSnapshotAnsweredCount] = useState(() => {
+        const total = (snapshotQuestions as any[])?.length ?? 0;
+        if (total === 0) return 0;
+        let n = 0;
+        for (const q of snapshotQuestions as any[]) {
+            const r = snapshotResponses?.[q.id];
+            const arr = Array.isArray(r?.response) ? r.response : [];
+            if (arr.length > 0) {
+                const hasOther = (q.options || []).some((o: string) => String(o).toLowerCase().includes('other'));
+                const selectedOther = arr.some((s: string) => String(s).toLowerCase().includes('other'));
+                if (hasOther && selectedOther) {
+                    if ((r?.text_response ?? '').trim()) n++;
+                } else n++;
+            }
+        }
+        return n;
+    });
+    const snapshotTotalCount = (snapshotQuestions as any[])?.length ?? 0;
 
     // Validate tab completion based on data
     const validateTabCompletion = (tabId: string): boolean => {
@@ -240,15 +258,43 @@ export default function PerformanceSystemIndex({
         <AppLayout>
             <Head title={`Performance System - ${project?.company?.name || 'HR Manager'}`} />
             <div className="p-6 md:p-8 max-w-7xl mx-auto bg-background">
-                {/* Header */}
+                {/* Header - dark blue banner (new UI) */}
                 {activeTab !== 'overview' && (
-                    <div className="mb-6">
-                        <StepHeader
-                            title="Performance System"
-                            description="Design evaluation units, performance management methods, and assessment structures."
-                            status={getStatusForHeader()}
-                            backHref="/hr-manager/dashboard"
-                        />
+                    <div className="mb-0 rounded-t-xl overflow-hidden">
+                        <div className="bg-[#151535] text-white px-5 py-4 md:px-6 flex items-start gap-4">
+                            <Link
+                                href="/hr-manager/dashboard"
+                                className="inline-flex items-center justify-center w-10 h-10 rounded-md hover:bg-white/10 transition-colors shrink-0 mt-0.5"
+                            >
+                                <ChevronLeft className="w-5 h-5" />
+                            </Link>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+                                        Performance System
+                                    </h1>
+                                    <span
+                                        className={cn(
+                                            'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold',
+                                            getStatusForHeader() === 'in_progress'
+                                                ? 'bg-amber-500/90 text-white'
+                                                : getStatusForHeader() === 'submitted'
+                                                ? 'bg-emerald-600 text-white'
+                                                : 'bg-white/10 text-slate-300'
+                                        )}
+                                    >
+                                        {getStatusForHeader() === 'in_progress'
+                                            ? 'In Progress'
+                                            : getStatusForHeader() === 'submitted'
+                                            ? 'Submitted'
+                                            : 'Not Started'}
+                                    </span>
+                                </div>
+                                <p className="text-slate-300 mt-1 text-sm">
+                                    Design evaluation units, performance management methods, and assessment structures.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 )}
 
@@ -266,87 +312,74 @@ export default function PerformanceSystemIndex({
                     />
                 )}
 
-                {/* Progress Overview */}
+                {/* Step bar: white background, tabs + progress + X/10 answered */}
                 {activeTab !== 'overview' && (
-                    <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-gray-700">Progress</span>
-                            <span className="text-sm text-gray-600">{completedTabsCount} of {TABS.length}</span>
+                    <div className="bg-white border border-[#e5e7eb] border-t-0 rounded-b-xl shadow-sm mb-6 overflow-hidden">
+                        <div className="flex items-center justify-between gap-4 px-4 py-3 flex-wrap">
+                            <div className="flex gap-1 overflow-x-auto scroll-smooth shrink-0" style={{ scrollbarWidth: 'thin' }}>
+                                <button
+                                    onClick={() => handleTabChange('overview')}
+                                    className={cn(
+                                        'flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap transition-all cursor-pointer border-b-2 -mb-[9px]',
+                                        activeTab === 'overview'
+                                            ? 'text-[#121431] border-[#059669] font-semibold'
+                                            : 'text-[#6b7280] border-transparent hover:text-[#374151]'
+                                    )}
+                                >
+                                    <FileText className="w-4 h-4 flex-shrink-0" />
+                                    <span className="hidden sm:inline">Overview</span>
+                                </button>
+                                {TABS.map((tab, index) => {
+                                    const Icon = tab.icon;
+                                    const isActive = activeTab === tab.id;
+                                    const isEnabled = isTabEnabled(tab.id, index);
+                                    const isCompleted = validateTabCompletion(tab.id);
+                                    const TabIcon = isCompleted ? CheckCircle2 : Icon;
+                                    if (!isEnabled) {
+                                        return (
+                                            <button
+                                                key={tab.id}
+                                                disabled
+                                                className="flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap bg-[#f9fafb] text-[#9ca3af] cursor-not-allowed border-b-2 border-transparent -mb-[9px]"
+                                            >
+                                                <TabIcon className="w-4 h-4" />
+                                                <span className="hidden sm:inline">{tab.label}</span>
+                                            </button>
+                                        );
+                                    }
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => handleTabChange(tab.id)}
+                                            className={cn(
+                                                'flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap transition-all cursor-pointer border-b-2 -mb-[9px]',
+                                                isActive
+                                                    ? 'text-[#121431] border-[#059669] font-semibold'
+                                                    : isCompleted
+                                                    ? 'text-[#059669] border-transparent hover:text-[#047857]'
+                                                    : 'text-[#6b7280] border-transparent hover:text-[#374151]'
+                                            )}
+                                        >
+                                            <TabIcon className="w-4 h-4 flex-shrink-0" />
+                                            <span className="hidden sm:inline">{tab.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {activeTab === 'performance-snapshot' && snapshotTotalCount > 0 && (
+                                <span className="text-sm text-[#6b7280] font-medium shrink-0">
+                                    {snapshotAnsweredCount}/{snapshotTotalCount} questions answered
+                                </span>
+                            )}
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-1">
-                            <div 
-                                className="bg-primary h-1 rounded-full transition-all duration-300"
+                        <div className="h-1 w-full bg-[#e5e7eb]">
+                            <div
+                                className="h-full bg-[#059669] transition-all duration-300"
                                 style={{ width: `${(completedTabsCount / TABS.length) * 100}%` }}
                             />
                         </div>
                     </div>
                 )}
-
-                {/* Tabs Navigation */}
-                <div className="flex gap-2 overflow-x-auto pb-2 scroll-smooth mb-6" style={{ scrollbarWidth: 'thin' }}>
-                    {/* Overview Tab */}
-                    <button
-                        onClick={() => handleTabChange('overview')}
-                        className={cn(
-                            "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all cursor-pointer relative",
-                            activeTab === 'overview'
-                                ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary ring-offset-2"
-                                : "bg-muted text-muted-foreground hover:bg-muted/80"
-                        )}
-                    >
-                        <FileText className="w-4 h-4 flex-shrink-0" />
-                        <span className="hidden sm:inline">Overview</span>
-                    </button>
-
-                    {/* Other Tabs */}
-                    {TABS.map((tab, index) => {
-                        const Icon = tab.icon;
-                        const isActive = activeTab === tab.id;
-                        const isEnabled = isTabEnabled(tab.id, index);
-                        const isCompleted = validateTabCompletion(tab.id);
-                        const TabIcon = isCompleted ? CheckCircle2 : Icon;
-                        
-                        if (!isEnabled) {
-                            return (
-                                <button
-                                    key={tab.id}
-                                    disabled
-                                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all bg-muted/50 text-muted-foreground/50 cursor-not-allowed relative"
-                                >
-                                    <TabIcon className="w-4 h-4" />
-                                    <span className="hidden sm:inline">{tab.label}</span>
-                                </button>
-                            );
-                        }
-                        
-                        return (
-                            <button
-                                key={tab.id}
-                                onClick={() => handleTabChange(tab.id)}
-                                className={cn(
-                                    "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all cursor-pointer relative",
-                                    isActive
-                                        ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary ring-offset-2"
-                                        : isCompleted
-                                        ? "bg-green-100 text-green-700 hover:bg-green-200 border-2 border-green-300"
-                                        : "bg-muted text-muted-foreground hover:bg-muted/80"
-                                )}
-                            >
-                                {isCompleted && !isActive && (
-                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-white shadow-sm z-10">
-                                        <Check className="w-3 h-3 text-white" />
-                                    </div>
-                                )}
-                                <TabIcon className={cn(
-                                    "w-4 h-4 flex-shrink-0",
-                                    isActive && "text-primary-foreground",
-                                    isCompleted && !isActive && "text-green-600"
-                                )} />
-                                <span className="hidden sm:inline">{tab.label}</span>
-                            </button>
-                        );
-                    })}
-                    </div>
                 
 
                 {/* Tab Content */}
@@ -358,6 +391,8 @@ export default function PerformanceSystemIndex({
                             questions={snapshotQuestions}
                             savedResponses={snapshotResponses}
                             onContinue={handleSnapshotContinue}
+                            onBack={activeTab !== 'overview' ? () => handleTabChange('overview') : undefined}
+                            onAnsweredChange={(answered, total) => setSnapshotAnsweredCount(answered)}
                         />
                     )}
 
