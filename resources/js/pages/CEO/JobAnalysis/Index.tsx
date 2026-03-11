@@ -127,14 +127,14 @@ All inputs are confidential and will not be shared with other employees.`;
             <Head title={`Job Analysis - ${project?.company?.name || 'Review'}`} />
             <div className="space-y-6">
                 {/* Header */}
-                <div className="bg-white border-b">
+                <div className="bg-white dark:bg-slate-900 border-b dark:border-slate-700">
                     <div className="max-w-5xl mx-auto px-6 md:px-8 py-8">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                                <h1 className="text-3xl font-bold text-gray-800 dark:text-slate-100 mb-2">
                                     Job Analysis Review
                                 </h1>
-                                <p className="text-lg text-gray-600">
+                                <p className="text-lg text-gray-600 dark:text-slate-400">
                                     Review and verify the job analysis data submitted by HR Manager
                                 </p>
                             </div>
@@ -150,15 +150,15 @@ All inputs are confidential and will not be shared with other employees.`;
 
                 {/* Intro Section */}
                 <div className="max-w-5xl mx-auto px-6 md:px-8">
-                    <Card className="border-2 shadow-lg">
+                    <Card className="border-2 shadow-lg dark:border-slate-700 dark:bg-slate-800">
                         <CardHeader
-                            className="cursor-pointer hover:bg-muted/30 transition-colors"
+                            className="cursor-pointer hover:bg-muted/30 transition-colors dark:hover:bg-slate-700/50"
                             onClick={() => toggleSection('intro')}
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <FileText className="w-6 h-6 text-primary" />
-                                    <CardTitle className="text-xl">Before You Begin</CardTitle>
+                                    <CardTitle className="text-xl dark:text-slate-100">Before You Begin</CardTitle>
                                 </div>
                                 {expandedSections.has('intro') ? (
                                     <ChevronUp className="w-5 h-5 text-muted-foreground" />
@@ -168,10 +168,10 @@ All inputs are confidential and will not be shared with other employees.`;
                             </div>
                         </CardHeader>
                         {expandedSections.has('intro') && (
-                            <CardContent className="space-y-4">
-                                <div className="prose prose-sm max-w-none">
+                            <CardContent className="space-y-4 dark:bg-slate-800">
+                                <div className="prose prose-sm max-w-none dark:text-slate-300">
                                     {displayText.split('\n\n').map((paragraph, index) => (
-                                        <p key={index} className="mb-4 text-base leading-relaxed">
+                                        <p key={index} className="mb-4 text-base leading-relaxed dark:text-slate-300">
                                             {paragraph}
                                         </p>
                                     ))}
@@ -184,15 +184,15 @@ All inputs are confidential and will not be shared with other employees.`;
                 {/* Policy Snapshot Answers */}
                 {questions.length > 0 && (
                     <div className="max-w-5xl mx-auto px-6 md:px-8">
-                        <Card className="border-2 shadow-lg">
+                        <Card className="border-2 shadow-lg dark:border-slate-700 dark:bg-slate-800">
                             <CardHeader
-                                className="cursor-pointer hover:bg-muted/30 transition-colors"
+                                className="cursor-pointer hover:bg-muted/30 transition-colors dark:hover:bg-slate-700/50"
                                 onClick={() => toggleSection('policy-answers')}
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <Shield className="w-6 h-6 text-primary" />
-                                        <CardTitle className="text-xl">Policy Snapshot Answers</CardTitle>
+                                        <CardTitle className="text-xl dark:text-slate-100">Policy Snapshot Answers</CardTitle>
                                     </div>
                                     {expandedSections.has('policy-answers') ? (
                                         <ChevronUp className="w-5 h-5 text-muted-foreground" />
@@ -202,19 +202,19 @@ All inputs are confidential and will not be shared with other employees.`;
                                 </div>
                             </CardHeader>
                             {expandedSections.has('policy-answers') && (
-                                <CardContent className="space-y-4">
+                                <CardContent className="space-y-4 dark:bg-slate-800">
                                     {questions
                                         .sort((a, b) => a.order - b.order)
                                         .map((question, index) => {
                                             const answer = policyAnswers[question.id];
                                             return (
-                                                <div key={question.id} className="p-4 border-2 rounded-lg">
+                                                <div key={question.id} className="p-4 border-2 rounded-lg dark:border-slate-600 dark:bg-slate-700/50">
                                                     <div className="flex items-start gap-4">
                                                         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
                                                             {index + 1}
                                                         </div>
                                                         <div className="flex-1">
-                                                            <p className="font-semibold mb-2">{question.question_text}</p>
+                                                            <p className="font-semibold mb-2 dark:text-slate-200">{question.question_text}</p>
                                                             {answer ? (
                                                                 <div className="space-y-2">
                                                                     <Badge variant={answer.answer === 'yes' ? 'default' : answer.answer === 'no' ? 'secondary' : 'outline'}>
@@ -242,15 +242,15 @@ All inputs are confidential and will not be shared with other employees.`;
 
                 {/* Job List Selection */}
                 <div className="max-w-5xl mx-auto px-6 md:px-8">
-                    <Card className="border-2 shadow-lg">
+                    <Card className="border-2 shadow-lg dark:border-slate-700 dark:bg-slate-800">
                         <CardHeader
-                            className="cursor-pointer hover:bg-muted/30 transition-colors"
+                            className="cursor-pointer hover:bg-muted/30 transition-colors dark:hover:bg-slate-700/50"
                             onClick={() => toggleSection('job-list')}
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <List className="w-6 h-6 text-primary" />
-                                    <CardTitle className="text-xl">Job List Selection</CardTitle>
+                                    <CardTitle className="text-xl dark:text-slate-100">Job List Selection</CardTitle>
                                     <Badge variant="secondary">
                                         {jobDefinitions.length} Job{jobDefinitions.length !== 1 ? 's' : ''}
                                     </Badge>
@@ -276,14 +276,14 @@ All inputs are confidential and will not be shared with other employees.`;
                             </div>
                         </CardHeader>
                         {expandedSections.has('job-list') && (
-                            <CardContent>
+                            <CardContent className="dark:bg-slate-800">
                                 <div className="space-y-2">
-                                    <p className="text-sm text-muted-foreground mb-4">
+                                    <p className="text-sm text-muted-foreground mb-4 dark:text-slate-400">
                                         Industry: <strong>{industry || 'N/A'}</strong> | Size: <strong>{sizeRange || 'N/A'}</strong>
                                     </p>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                         {jobDefinitions.map((job) => (
-                                            <Badge key={job.id} variant="secondary" className="p-2 justify-center">
+                                            <Badge key={job.id} variant="secondary" className="p-2 justify-center dark:bg-slate-700 dark:text-slate-200">
                                                 {job.job_name}
                                                 {job.grouped_job_keyword_ids && (
                                                     <span className="ml-1 text-xs">(Grouped)</span>
@@ -300,15 +300,15 @@ All inputs are confidential and will not be shared with other employees.`;
                 {/* Job Definitions */}
                 {jobDefinitions.length > 0 && (
                     <div className="max-w-5xl mx-auto px-6 md:px-8">
-                        <Card className="border-2 shadow-lg">
+                        <Card className="border-2 shadow-lg dark:border-slate-700 dark:bg-slate-800">
                             <CardHeader
-                                className="cursor-pointer hover:bg-muted/30 transition-colors"
+                                className="cursor-pointer hover:bg-muted/30 transition-colors dark:hover:bg-slate-700/50"
                                 onClick={() => toggleSection('job-definitions')}
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <FileText className="w-6 h-6 text-primary" />
-                                        <CardTitle className="text-xl">Job Definitions</CardTitle>
+                                        <CardTitle className="text-xl dark:text-slate-100">Job Definitions</CardTitle>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Button
@@ -331,15 +331,15 @@ All inputs are confidential and will not be shared with other employees.`;
                                 </div>
                             </CardHeader>
                             {expandedSections.has('job-definitions') && (
-                                <CardContent className="space-y-4">
+                                <CardContent className="space-y-4 dark:bg-slate-800">
                                     {jobDefinitions.map((job) => (
-                                        <Card key={job.id} className="border">
+                                        <Card key={job.id} className="border dark:border-slate-600 dark:bg-slate-700/50">
                                             <CardHeader
-                                                className="cursor-pointer hover:bg-muted/30 transition-colors"
+                                                className="cursor-pointer hover:bg-muted/30 transition-colors dark:hover:bg-slate-600/50"
                                                 onClick={() => toggleJob(job.id)}
                                             >
                                                 <div className="flex items-center justify-between">
-                                                    <CardTitle className="text-lg">{job.job_name}</CardTitle>
+                                                    <CardTitle className="text-lg dark:text-slate-200">{job.job_name}</CardTitle>
                                                     {expandedJobs.has(job.id) ? (
                                                         <ChevronUp className="w-5 h-5 text-muted-foreground" />
                                                     ) : (
@@ -348,21 +348,21 @@ All inputs are confidential and will not be shared with other employees.`;
                                                 </div>
                                             </CardHeader>
                                             {expandedJobs.has(job.id) && (
-                                                <CardContent className="space-y-4">
+                                                <CardContent className="space-y-4 dark:bg-slate-700/30">
                                                     {job.job_description && (
                                                         <div>
-                                                            <h4 className="font-semibold mb-2">Job Description</h4>
-                                                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                                                            <h4 className="font-semibold mb-2 dark:text-slate-200">Job Description</h4>
+                                                            <p className="text-sm text-muted-foreground whitespace-pre-wrap dark:text-slate-400">
                                                                 {job.job_description}
                                                             </p>
                                                         </div>
                                                     )}
                                                     {job.competency_levels && job.competency_levels.length > 0 && (
                                                         <div>
-                                                            <h4 className="font-semibold mb-2">Competency Levels</h4>
+                                                            <h4 className="font-semibold mb-2 dark:text-slate-200">Competency Levels</h4>
                                                             <div className="space-y-2">
                                                                 {job.competency_levels.map((level: any, idx: number) => (
-                                                                    <div key={idx} className="text-sm">
+                                                                    <div key={idx} className="text-sm dark:text-slate-300">
                                                                         <strong>{level.level}:</strong> {level.description || 'No description'}
                                                                     </div>
                                                                 ))}
@@ -371,19 +371,19 @@ All inputs are confidential and will not be shared with other employees.`;
                                                     )}
                                                     {job.csfs && job.csfs.length > 0 && (
                                                         <div>
-                                                            <h4 className="font-semibold mb-2">Critical Success Factors</h4>
+                                                            <h4 className="font-semibold mb-2 dark:text-slate-200">Critical Success Factors</h4>
                                                             <div className="space-y-2">
                                                                 {job.csfs.map((csf: any, idx: number) => (
-                                                                    <div key={idx} className="text-sm p-2 bg-muted rounded">
+                                                                    <div key={idx} className="text-sm p-2 bg-muted rounded dark:bg-slate-600/50">
                                                                         <div className="flex items-center gap-2 mb-1">
-                                                                            <strong>{csf.name}</strong>
+                                                                            <strong className="dark:text-slate-200">{csf.name}</strong>
                                                                             {csf.strategic_importance && (
                                                                                 <Badge variant="outline" className="text-xs">
                                                                                     {csf.strategic_importance}
                                                                                 </Badge>
                                                                             )}
                                                                         </div>
-                                                                        <p className="text-muted-foreground">{csf.description || 'No description'}</p>
+                                                                        <p className="text-muted-foreground dark:text-slate-400">{csf.description || 'No description'}</p>
                                                                     </div>
                                                                 ))}
                                                             </div>
@@ -402,15 +402,15 @@ All inputs are confidential and will not be shared with other employees.`;
                 {/* Org Chart Mappings */}
                 {orgMappings.length > 0 && (
                     <div className="max-w-5xl mx-auto px-6 md:px-8">
-                        <Card className="border-2 shadow-lg">
+                        <Card className="border-2 shadow-lg dark:border-slate-700 dark:bg-slate-800">
                             <CardHeader
-                                className="cursor-pointer hover:bg-muted/30 transition-colors"
+                                className="cursor-pointer hover:bg-muted/30 transition-colors dark:hover:bg-slate-700/50"
                                 onClick={() => toggleSection('org-mappings')}
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <List className="w-6 h-6 text-primary" />
-                                        <CardTitle className="text-xl">Organization Chart Mappings</CardTitle>
+                                        <CardTitle className="text-xl dark:text-slate-100">Organization Chart Mappings</CardTitle>
                                         <Badge variant="secondary">{orgMappings.length} Unit{orgMappings.length !== 1 ? 's' : ''}</Badge>
                                     </div>
                                     {expandedSections.has('org-mappings') ? (
@@ -421,15 +421,15 @@ All inputs are confidential and will not be shared with other employees.`;
                                 </div>
                             </CardHeader>
                             {expandedSections.has('org-mappings') && (
-                                <CardContent className="space-y-4">
+                                <CardContent className="space-y-4 dark:bg-slate-800">
                                     {orgMappings.map((mapping) => (
-                                        <Card key={mapping.id} className="border">
+                                        <Card key={mapping.id} className="border dark:border-slate-600 dark:bg-slate-700/50">
                                             <CardHeader>
-                                                <CardTitle className="text-lg">{mapping.org_unit_name}</CardTitle>
+                                                <CardTitle className="text-lg dark:text-slate-200">{mapping.org_unit_name}</CardTitle>
                                             </CardHeader>
                                             <CardContent className="space-y-3">
                                                 {mapping.org_head_name && (
-                                                    <div>
+                                                    <div className="dark:text-slate-300">
                                                         <strong>Organization Head:</strong> {mapping.org_head_name}
                                                         {mapping.org_head_rank && ` (${mapping.org_head_rank})`}
                                                         {mapping.org_head_title && ` - ${mapping.org_head_title}`}
@@ -438,7 +438,7 @@ All inputs are confidential and will not be shared with other employees.`;
                                                 )}
                                                 {mapping.job_keyword_ids && mapping.job_keyword_ids.length > 0 && (
                                                     <div>
-                                                        <strong>Mapped Jobs:</strong>
+                                                        <strong className="dark:text-slate-200">Mapped Jobs:</strong>
                                                         <div className="flex flex-wrap gap-2 mt-2">
                                                             {mapping.job_keyword_ids.map((jobId) => {
                                                                 const job = jobDefinitions.find(j => 
@@ -466,12 +466,12 @@ All inputs are confidential and will not be shared with other employees.`;
                 {/* Action Buttons */}
                 {isSubmitted && (
                     <div className="max-w-5xl mx-auto px-6 md:px-8">
-                        <Card className="border-2 border-primary/20 bg-primary/5">
+                        <Card className="border-2 border-primary/20 bg-primary/5 dark:border-primary/30 dark:bg-primary/10">
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h3 className="font-semibold text-lg mb-2">Verification Actions</h3>
-                                        <p className="text-sm text-muted-foreground">
+                                        <h3 className="font-semibold text-lg mb-2 dark:text-slate-100">Verification Actions</h3>
+                                        <p className="text-sm text-muted-foreground dark:text-slate-400">
                                             Review the job analysis data and verify or request revisions if needed.
                                         </p>
                                     </div>
@@ -515,3 +515,4 @@ All inputs are confidential and will not be shared with other employees.`;
         </AppLayout>
     );
 }
+

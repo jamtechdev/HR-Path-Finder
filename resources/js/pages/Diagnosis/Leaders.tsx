@@ -69,17 +69,17 @@ export default function Leaders({
                     </p>
                     <p className="text-[11px] text-muted-foreground/80">{note.ko}</p>
 
-                    <div className="flex items-start gap-2.5 rounded-lg border border-[rgba(26,39,68,0.1)] border-l-[3px] border-l-[#1a2744] bg-[rgba(26,39,68,0.04)] p-3">
+                    <div className="flex items-start gap-2.5 rounded-lg border border-slate-200 dark:border-slate-700 border-l-[3px] border-l-[#1a2744] bg-slate-50 dark:bg-slate-800/50 p-3">
                         <span className="text-sm flex-shrink-0 mt-0.5" aria-hidden>ℹ</span>
-                        <p className="text-xs text-[#5a6478] leading-relaxed">
-                            <strong className="text-[#1a2744]">Note:</strong> {note.en}
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                            <strong className="text-slate-800 dark:text-slate-100">Note:</strong> {note.en}
                         </p>
                     </div>
 
-                    <Card className="border rounded-[14px] overflow-hidden border-border bg-white">
+                    <Card className="border rounded-[14px] overflow-hidden border-border bg-white dark:bg-slate-900">
                         <div className="p-6 space-y-6">
                             <div className="space-y-2">
-                                <label htmlFor="leadership_count" className="block text-[13px] font-semibold text-[#2d3340]">
+                                <label htmlFor="leadership_count" className="block text-[13px] font-semibold text-slate-800 dark:text-slate-100">
                                     {totalLabel.en}
                                 </label>
                                 <p className="text-[11px] text-muted-foreground">{totalLabel.ko}</p>
@@ -91,18 +91,18 @@ export default function Leaders({
                                     onChange={(e) => setData('leadership_count', parseInt(e.target.value, 10) || 0)}
                                     placeholder="0"
                                     disabled={readOnly}
-                                    className="w-full max-w-[140px] h-11 px-3 border-[1.5px] border-border rounded-lg text-[13px] font-semibold text-[#1a2744] outline-none focus:border-[#4ecdc4] transition-colors disabled:opacity-70"
+                                    className="w-full max-w-[140px] h-11 px-3 border-[1.5px] border-border rounded-lg text-[13px] font-semibold text-slate-800 dark:text-slate-100 outline-none focus:border-[#4ecdc4] transition-colors disabled:opacity-70"
                                 />
                             </div>
 
                             {leadershipPercentage !== null && (
                                 <div className="space-y-2 pt-2 border-t border-border">
-                                    <span className="block text-[13px] font-semibold text-[#2d3340]">
+                                    <span className="block text-[13px] font-semibold text-slate-800 dark:text-slate-100">
                                         {ratioLabel.en}
                                     </span>
                                     <p className="text-[11px] text-muted-foreground">{ratioLabel.ko}</p>
-                                    <div className="p-4 rounded-lg bg-[#f8f9fb] border border-border">
-                                        <p className="text-lg font-bold text-[#1a2744]">{leadershipPercentage}%</p>
+                                    <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800 border border-border">
+                                        <p className="text-lg font-bold text-slate-800 dark:text-slate-100">{leadershipPercentage}%</p>
                                         <p className="text-xs text-muted-foreground mt-1">
                                             {data.leadership_count} {tr('leadersCountLabel')} / {diagnosis?.present_headcount || 0} {tr('workforceCountLabel')}
                                         </p>

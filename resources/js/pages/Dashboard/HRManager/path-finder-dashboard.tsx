@@ -104,13 +104,13 @@ export default function PathFinderDashboard({
     return (
       <AppLayout stepStatuses={{}} projectId={undefined} ceoPhilosophyStatus="not_started">
         <Head title="HR Path-Finder — Dashboard" />
-        <div className="min-h-full bg-[var(--hr-gray-50)] text-[var(--hr-gray-800)] font-sans">
+            <div className="min-h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans">
           <div className="py-[30px] px-4 md:px-9">
             <div className="mb-6">
-              <h1 className="text-[22px] font-bold text-[var(--hr-gray-800)] tracking-[-0.4px] leading-tight">
+              <h1 className="text-[22px] font-bold text-slate-800 dark:text-slate-100 tracking-[-0.4px] leading-tight">
                 {t('dashboard.pathfinder.welcome_back', { name: user.name })}
               </h1>
-              <p className="text-[13px] text-[var(--hr-gray-400)] mt-1">
+              <p className="text-[13px] text-slate-400 dark:text-slate-500 mt-1">
                 {t('dashboard.pathfinder.subtitle', { step: 1, title: t('steps.diagnosis') })}
               </p>
             </div>
@@ -143,30 +143,30 @@ export default function PathFinderDashboard({
             </div>
             {/* Design Steps - Step 1 active, rest locked */}
             <div className="flex items-baseline justify-between mb-3.5">
-              <h3 className="text-[15px] font-bold text-[var(--hr-gray-800)] tracking-[-0.2px]">{t('dashboard.pathfinder.design_steps')}</h3>
-              <span className="text-[11.5px] text-[var(--hr-gray-400)]">{t('dashboard.pathfinder.completed_count', { done: 0, total: 5 })}</span>
+              <h3 className="text-[15px] font-bold text-slate-800 dark:text-slate-100 tracking-[-0.2px]">{t('dashboard.pathfinder.design_steps')}</h3>
+              <span className="text-[11.5px] text-slate-400 dark:text-slate-500">{t('dashboard.pathfinder.completed_count', { done: 0, total: 5 })}</span>
             </div>
             <div className="grid grid-cols-2 gap-3.5">
               {/* Step 1 - Active */}
-              <div className="bg-white border border-[#4ecdc4] rounded-xl p-5 pl-[22px] transition-all relative overflow-hidden shadow-[0_0_0_1px_#4ecdc4,0_4px_20px_rgba(78,205,196,0.12)]">
+              <div className="bg-white dark:bg-slate-900 border border-[#4ecdc4] rounded-xl p-5 pl-[22px] transition-all relative overflow-hidden shadow-[0_0_0_1px_#4ecdc4,0_4px_20px_rgba(78,205,196,0.12)]">
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#4ecdc4] to-[#3ab5ad]" />
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-semibold text-[#9ba5bc] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">Step 1</span>
+                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">Step 1</span>
                     <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px]">● {t('dashboard.pathfinder.in_progress')}</span>
                   </div>
                 </div>
                 <div className="w-9 h-9 rounded-[10px] bg-[rgba(78,205,196,0.12)] flex items-center justify-center text-base mb-2.5">
                   <Building2 className="w-5 h-5 text-[#4ecdc4]" />
                 </div>
-                <h4 className="text-sm font-bold text-[#2d3340] mb-1.5 tracking-[-0.2px]">Diagnosis</h4>
-                <p className="text-[11.5px] text-[#5a6478] leading-relaxed mb-4">{STEP_CONFIG[0].desc}</p>
+                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5 tracking-[-0.2px]">Diagnosis</h4>
+                <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed mb-4">{STEP_CONFIG[0].desc}</p>
                 <div className="mb-4">
-                  <div className="flex justify-between text-[10px] text-[var(--hr-gray-400)] mb-1">
+                  <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 mb-1">
                     <span>{t('dashboard.pathfinder.progress_label')}</span>
                     <span>{onboardingProgress}%</span>
                   </div>
-                  <div className="h-1 bg-[#e2e6ee] rounded overflow-hidden">
+                  <div className="h-1 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-[#4ecdc4] to-[#3ab5ad] rounded transition-[width] duration-500" style={{ width: `${onboardingProgress}%` }} />
                   </div>
                 </div>
@@ -182,43 +182,43 @@ export default function PathFinderDashboard({
               </div>
               {/* Steps 2–4 locked */}
               {STEP_CONFIG.slice(1, 4).map((step) => (
-                <div key={step.id} className="bg-[#f8f9fb] border border-[#e2e6ee] rounded-xl p-5 opacity-70">
+                <div key={step.id} className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 opacity-70">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-semibold text-[#9ba5bc] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">Step {step.num}</span>
-                      <span className="text-[10px] font-semibold text-[var(--hr-gray-400)] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px] inline-flex items-center gap-1">
+                      <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">Step {step.num}</span>
+                      <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px] inline-flex items-center gap-1">
                         <Lock className="w-3 h-3" />
                         {t('dashboard.pathfinder.locked')}
                       </span>
                     </div>
-                    <div className="w-7 h-7 bg-[#f0f2f6] rounded-[7px] flex items-center justify-center text-[13px]">
-                      <Lock className="w-3.5 h-3.5 text-[#9ba5bc]" />
+                    <div className="w-7 h-7 bg-slate-100 dark:bg-slate-800 rounded-[7px] flex items-center justify-center text-[13px]">
+                      <Lock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                     </div>
                   </div>
-                  <h4 className="text-sm font-bold text-[#9ba5bc] mb-1.5">{step.title}</h4>
-                  <p className="text-[11.5px] text-[#9ba5bc] leading-relaxed mb-4">{step.desc}</p>
-                  <div className="flex items-center gap-1.5 text-[11px] text-[var(--hr-gray-400)]">
+                  <h4 className="text-sm font-bold text-slate-400 dark:text-slate-500 mb-1.5">{step.title}</h4>
+                  <p className="text-[11.5px] text-slate-400 dark:text-slate-500 leading-relaxed mb-4">{step.desc}</p>
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500">
                     <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
                     {t('dashboard.pathfinder.prev_step_required_after')}
                   </div>
                 </div>
               ))}
               {/* Step 5 full-width locked */}
-              <div className="col-span-2 flex items-center justify-between py-[18px] px-[22px] rounded-xl border border-[#e2e6ee] bg-[#f8f9fb] opacity-70">
+              <div className="col-span-2 flex items-center justify-between py-[18px] px-[22px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 opacity-70">
                 <div className="flex items-center gap-4">
-                  <div className="w-9 h-9 rounded-[9px] bg-[#e2e6ee] flex items-center justify-center text-base">
-                    <Lock className="w-4 h-4 text-[#9ba5bc]" />
+                  <div className="w-9 h-9 rounded-[9px] bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-base">
+                    <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                   </div>
                   <div>
                     <div className="flex gap-1.5 mb-1.5">
-                      <span className="text-[10px] font-semibold text-[#9ba5bc] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">Step 5</span>
-                      <span className="text-[10px] font-semibold text-[var(--hr-gray-400)] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">{t('dashboard.pathfinder.locked')}</span>
+                      <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">Step 5</span>
+                      <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">{t('dashboard.pathfinder.locked')}</span>
                     </div>
-                    <h4 className="text-sm font-bold text-[#9ba5bc] mb-1">HR Policy OS</h4>
-                    <p className="text-[11.5px] text-[#9ba5bc] mb-0">{STEP_CONFIG[4].desc}</p>
+                    <h4 className="text-sm font-bold text-slate-400 dark:text-slate-500 mb-1">HR Policy OS</h4>
+                    <p className="text-[11.5px] text-slate-400 dark:text-slate-500 mb-0">{STEP_CONFIG[4].desc}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-[var(--hr-gray-400)] flex-shrink-0">
+                <div className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500 flex-shrink-0">
                   <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
                   {t('dashboard.pathfinder.prev_step_required_after')}
                 </div>
@@ -233,7 +233,7 @@ export default function PathFinderDashboard({
   return (
     <AppLayout stepStatuses={stepStatuses} projectId={projectId ?? undefined} ceoPhilosophyStatus={ceoPhilosophyStatus}>
       <Head title="HR Path-Finder — Dashboard" />
-      <div className="min-h-full bg-[var(--hr-gray-50)] text-[var(--hr-gray-800)] font-sans">
+      <div className="min-h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans">
         <div className="py-[30px] px-4 md:px-9">
             {/* PAGE HEADER + COMPANY TAG */}
             <div className="mb-6">
@@ -243,10 +243,10 @@ export default function PathFinderDashboard({
                   <span className="text-[11.5px] font-semibold text-[#2ea89e]">{companyName}</span>
                 </div>
               )}
-              <h1 className="text-[22px] font-bold text-[var(--hr-gray-800)] tracking-[-0.4px] leading-tight">
+              <h1 className="text-[22px] font-bold text-slate-800 dark:text-slate-100 tracking-[-0.4px] leading-tight">
                 {t('dashboard.pathfinder.welcome_back', { name: user.name })}
               </h1>
-              <p className="text-[13px] text-[var(--hr-gray-400)] mt-1">
+              <p className="text-[13px] text-slate-400 dark:text-slate-500 mt-1">
                 {t('dashboard.pathfinder.subtitle', { step: progress.currentStepNumber, title: t(`steps.${currentStepKey}`) })}
               </p>
             </div>
@@ -286,41 +286,41 @@ export default function PathFinderDashboard({
                   <BarChart3 className="w-[22px] h-[22px] text-white" />
                 </div>
               </div>
-              <div className="bg-white border border-[var(--hr-gray-200)] rounded-xl p-[18px] pr-5 relative overflow-hidden hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-shadow">
-                <div className="text-[10.5px] font-semibold text-[var(--hr-gray-400)] uppercase tracking-[0.6px] mb-2.5">{t('dashboard.pathfinder.ceo_survey')}</div>
-                <div className={`text-[19px] font-bold mt-1 ${ceoPhilosophyStatus === 'completed' ? 'text-[var(--hr-gray-800)]' : 'text-[var(--hr-gray-400)]'}`}>
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-[18px] pr-5 relative overflow-hidden hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-shadow">
+                <div className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.6px] mb-2.5">{t('dashboard.pathfinder.ceo_survey')}</div>
+                <div className={`text-[19px] font-bold mt-1 ${ceoPhilosophyStatus === 'completed' ? 'text-slate-800 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'}`}>
                   {ceoPhilosophyStatus === 'completed' ? t('dashboard.pathfinder.complete') : ceoPhilosophyStatus === 'in_progress' ? t('dashboard.pathfinder.in_progress') : t('dashboard.pathfinder.not_started')}
                 </div>
-                <div className="text-[11px] text-[var(--hr-gray-400)] mt-1.5">
+                <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5">
                   {ceoPhilosophyStatus === 'completed' ? '' : t('dashboard.pathfinder.ceo_survey_start_hint')}
                 </div>
                 <div className="absolute bottom-3.5 right-4 opacity-[0.08]">
-                  <ClipboardList className="w-[22px] h-[22px] text-[var(--hr-gray-800)]" />
+                  <ClipboardList className="w-[22px] h-[22px] text-slate-800 dark:text-slate-100" />
                 </div>
               </div>
-              <div className="bg-white border border-[var(--hr-gray-200)] rounded-xl p-[18px] pr-5 relative overflow-hidden hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-shadow">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-[18px] pr-5 relative overflow-hidden hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-shadow">
                 <div className="flex items-center justify-between mb-2.5">
-                  <span className="text-[10.5px] font-semibold text-[var(--hr-gray-400)] uppercase tracking-[0.6px]">{t('dashboard.pathfinder.current_step')}</span>
+                  <span className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.6px]">{t('dashboard.pathfinder.current_step')}</span>
                   <span className="text-[9.5px] font-semibold py-0.5 px-1.5 rounded-[20px] bg-[rgba(78,205,196,0.12)] text-[#2ea89e]">{t('dashboard.pathfinder.active')}</span>
                 </div>
-                <div className="text-[22px] font-bold text-[var(--hr-gray-800)] mt-1">Step {progress.currentStepNumber}</div>
-                <div className="text-[11px] text-[var(--hr-gray-400)]">{currentStepTitle}</div>
+                <div className="text-[22px] font-bold text-slate-800 dark:text-slate-100 mt-1">Step {progress.currentStepNumber}</div>
+                <div className="text-[11px] text-slate-400 dark:text-slate-500">{currentStepTitle}</div>
                 <div className="absolute bottom-3.5 right-4 opacity-[0.08]">
-                  <Target className="w-[22px] h-[22px] text-[var(--hr-gray-800)]" />
+                  <Target className="w-[22px] h-[22px] text-slate-800 dark:text-slate-100" />
                 </div>
               </div>
-              <div className="bg-white border border-[var(--hr-gray-200)] rounded-xl p-[18px] pr-5 relative overflow-hidden hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-shadow">
-                <div className="text-[10.5px] font-semibold text-[var(--hr-gray-400)] uppercase tracking-[0.6px] mb-2.5">{t('dashboard.pathfinder.steps_remaining')}</div>
-                <div className="text-[26px] font-bold text-[var(--hr-gray-800)] leading-none tracking-[-1px]">{progress.total - progress.completed}</div>
-                <div className="text-[11px] text-[var(--hr-gray-400)] mt-1">{t('dashboard.pathfinder.keep_going')}</div>
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-[18px] pr-5 relative overflow-hidden hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-shadow">
+                <div className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.6px] mb-2.5">{t('dashboard.pathfinder.steps_remaining')}</div>
+                <div className="text-[26px] font-bold text-slate-800 dark:text-slate-100 leading-none tracking-[-1px]">{progress.total - progress.completed}</div>
+                <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">{t('dashboard.pathfinder.keep_going')}</div>
                 <div className="absolute bottom-3.5 right-4 opacity-[0.08]">
-                  <Unlock className="w-[22px] h-[22px] text-[var(--hr-gray-800)]" />
+                  <Unlock className="w-[22px] h-[22px] text-slate-800 dark:text-slate-100" />
                 </div>
               </div>
             </div>
 
             {/* STEP PROGRESS STRIP */}
-            <div className="bg-white border border-[var(--hr-gray-200)] rounded-xl py-4 px-6 flex items-center mb-6">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-4 px-6 flex items-center mb-6">
               {STEP_CONFIG.map((step, index) => {
                 const isActive = step.id === currentStepKey;
                 const isDone = progress.completed > index;
@@ -341,7 +341,7 @@ export default function PathFinderDashboard({
                     <div
                       className={`relative z-[1] w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 border-2 ${
                         isLocked
-                          ? 'bg-[var(--hr-gray-100)] border-[var(--hr-gray-200)] text-[var(--hr-gray-300)]'
+                          ? 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-300 dark:text-slate-600'
                           : isActive
                           ? 'bg-[var(--hr-mint)] text-[var(--hr-navy-deep)] border-[var(--hr-mint)] shadow-[0_0_0_4px_rgba(78,205,196,0.15)]'
                           : 'bg-[var(--hr-mint)] text-[var(--hr-navy-deep)] border-[var(--hr-mint)]'
@@ -349,7 +349,7 @@ export default function PathFinderDashboard({
                     >
                       {isLocked ? <Lock className="w-3 h-3" /> : step.num}
                     </div>
-                    <span className={`text-[10.5px] font-medium text-center relative z-[1] ${isActive ? 'text-[var(--hr-navy)] font-bold' : 'text-[var(--hr-gray-400)]'}`}>
+                    <span className={`text-[10.5px] font-medium text-center relative z-[1] ${isActive ? 'text-[var(--hr-navy)] font-bold' : 'text-slate-400 dark:text-slate-500'}`}>
                       {step.title}
                     </span>
                   </div>
@@ -359,8 +359,8 @@ export default function PathFinderDashboard({
 
             {/* DESIGN STEPS */}
             <div className="flex items-baseline justify-between mb-3.5">
-              <h3 className="text-[15px] font-bold text-[var(--hr-gray-800)] tracking-[-0.2px]">{t('dashboard.pathfinder.design_steps')}</h3>
-              <span className="text-[11.5px] text-[var(--hr-gray-400)]">{t('dashboard.pathfinder.completed_count', { done: progress.completed, total: progress.total })}</span>
+              <h3 className="text-[15px] font-bold text-slate-800 dark:text-slate-100 tracking-[-0.2px]">{t('dashboard.pathfinder.design_steps')}</h3>
+              <span className="text-[11.5px] text-slate-400 dark:text-slate-500">{t('dashboard.pathfinder.completed_count', { done: progress.completed, total: progress.total })}</span>
             </div>
             <div className="grid grid-cols-2 gap-3.5">
               {stepCards.map((card) =>
@@ -368,7 +368,7 @@ export default function PathFinderDashboard({
                   card.status === 'completed' ? (
                     <div
                       key={card.step}
-                      className="col-span-2 flex items-center justify-between py-[18px] px-[22px] rounded-xl border border-[var(--hr-mint)] bg-white"
+                      className="col-span-2 flex items-center justify-between py-[18px] px-[22px] rounded-xl border border-[var(--hr-mint)] bg-white dark:bg-slate-900"
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-9 h-9 rounded-[9px] bg-[rgba(78,205,196,0.15)] flex items-center justify-center text-base">
@@ -376,13 +376,13 @@ export default function PathFinderDashboard({
                         </div>
                         <div>
                           <div className="flex gap-1.5 mb-1.5">
-                            <span className="text-[10px] font-semibold text-[#9ba5bc] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">Step {card.step}</span>
+                            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">Step {card.step}</span>
                             <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px] inline-flex items-center gap-1">
                               <CheckCircle2 className="w-3 h-3" />{t('dashboard.pathfinder.complete')}
                             </span>
                           </div>
-                          <h4 className="text-sm font-bold text-[#2d3340] mb-1">{card.title}</h4>
-                          <p className="text-[11.5px] text-[#5a6478] mb-0">{card.desc}</p>
+                          <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">{card.title}</h4>
+                          <p className="text-[11.5px] text-slate-600 dark:text-slate-300 mb-0">{card.desc}</p>
                         </div>
                       </div>
                       <Link href={getStepRoute(card.id, projectId)} className="text-[12px] font-semibold text-[var(--hr-navy)] hover:text-[var(--hr-navy-mid)]">
@@ -390,18 +390,18 @@ export default function PathFinderDashboard({
                       </Link>
                     </div>
                   ) : card.status === 'current' ? (
-                    <div key={card.step} className="col-span-2 flex items-center justify-between py-[18px] px-[22px] rounded-xl border border-[#4ecdc4] bg-white shadow-[0_0_0_1px_#4ecdc4,0_4px_20px_rgba(78,205,196,0.12)]">
+                    <div key={card.step} className="col-span-2 flex items-center justify-between py-[18px] px-[22px] rounded-xl border border-[#4ecdc4] bg-white dark:bg-slate-900 shadow-[0_0_0_1px_#4ecdc4,0_4px_20px_rgba(78,205,196,0.12)]">
                       <div className="flex items-center gap-4">
                         <div className="w-9 h-9 rounded-[9px] bg-[rgba(78,205,196,0.12)] flex items-center justify-center text-base">
                           <Building2 className="w-4 h-4 text-[#4ecdc4]" />
                         </div>
                         <div>
                           <div className="flex gap-1.5 mb-1.5">
-                            <span className="text-[10px] font-semibold text-[#9ba5bc] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">Step {card.step}</span>
+                            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">Step {card.step}</span>
                             <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px]">● {t('dashboard.pathfinder.in_progress')}</span>
                           </div>
-                          <h4 className="text-sm font-bold text-[#2d3340] mb-1">{card.title}</h4>
-                          <p className="text-[11.5px] text-[#5a6478] mb-0">{card.desc}</p>
+                          <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">{card.title}</h4>
+                          <p className="text-[11.5px] text-slate-600 dark:text-slate-300 mb-0">{card.desc}</p>
                         </div>
                       </div>
                       <Link href={getStepRoute(card.id, projectId)} className="bg-[var(--hr-navy)] text-white py-2 px-4 rounded-[7px] text-xs font-semibold hover:bg-[var(--hr-navy-mid)]">
@@ -411,26 +411,26 @@ export default function PathFinderDashboard({
                   ) : (
                   <div
                     key={card.step}
-                    className="col-span-2 flex items-center justify-between py-[18px] px-[22px] rounded-xl border border-[#e2e6ee] bg-[#f8f9fb] opacity-70"
+                    className="col-span-2 flex items-center justify-between py-[18px] px-[22px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 opacity-70"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-9 h-9 rounded-[9px] bg-[#e2e6ee] flex items-center justify-center text-base">
-                        <Lock className="w-4 h-4 text-[#9ba5bc]" />
+                      <div className="w-9 h-9 rounded-[9px] bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-base">
+                        <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                       </div>
                       <div>
                         <div className="flex gap-1.5 mb-1.5">
-                          <span className="text-[10px] font-semibold text-[#9ba5bc] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">
+                          <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">
                             Step {card.step}
                           </span>
-                          <span className="text-[10px] font-semibold text-[var(--hr-gray-400)] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">
+                          <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">
                             {t('dashboard.pathfinder.locked')}
                           </span>
                         </div>
-                        <h4 className="text-sm font-bold text-[#9ba5bc] mb-1">{card.title}</h4>
-                        <p className="text-[11.5px] text-[#9ba5bc] mb-0">{card.desc}</p>
+                        <h4 className="text-sm font-bold text-slate-400 dark:text-slate-500 mb-1">{card.title}</h4>
+                        <p className="text-[11.5px] text-slate-400 dark:text-slate-500 mb-0">{card.desc}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[11px] text-[var(--hr-gray-400)] flex-shrink-0">
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500 flex-shrink-0">
                       <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
                       {t('dashboard.pathfinder.prev_step_required_after')}
                     </div>
@@ -439,12 +439,12 @@ export default function PathFinderDashboard({
                 ) : card.status === 'completed' ? (
                   <div
                     key={card.step}
-                    className="bg-white border border-[var(--hr-mint)] rounded-xl p-5 pl-[22px] relative overflow-hidden"
+                    className="bg-white dark:bg-slate-900 border border-[var(--hr-mint)] rounded-xl p-5 pl-[22px] relative overflow-hidden"
                   >
                     <div className="absolute top-0 left-0 right-0 h-0.5 bg-[var(--hr-mint)]" />
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-semibold text-[#9ba5bc] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">
+                        <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">
                           Step {card.step}
                         </span>
                         <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px] inline-flex items-center gap-1">
@@ -456,8 +456,8 @@ export default function PathFinderDashboard({
                         <CheckCircle2 className="w-5 h-5 text-[#2ea89e]" />
                       </div>
                     </div>
-                    <h4 className="text-sm font-bold text-[#2d3340] mb-1.5 tracking-[-0.2px]">{card.title}</h4>
-                    <p className="text-[11.5px] text-[#5a6478] leading-relaxed mb-3">{card.desc}</p>
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5 tracking-[-0.2px]">{card.title}</h4>
+                    <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed mb-3">{card.desc}</p>
                     {card.id === 'diagnosis' && card.stepStatus === 'submitted' && (
                       <p className="text-[11px] text-[#2ea89e] font-medium mb-4">
                         {t('dashboard.pathfinder.submitted_wait_ceo', 'Diagnosis submitted — waiting for CEO review')}
@@ -473,12 +473,12 @@ export default function PathFinderDashboard({
                 ) : card.status === 'current' ? (
                   <div
                     key={card.step}
-                    className="bg-white border border-[#4ecdc4] rounded-xl p-5 pl-[22px] transition-all relative overflow-hidden shadow-[0_0_0_1px_#4ecdc4,0_4px_20px_rgba(78,205,196,0.12)]"
+                    className="bg-white dark:bg-slate-900 border border-[#4ecdc4] rounded-xl p-5 pl-[22px] transition-all relative overflow-hidden shadow-[0_0_0_1px_#4ecdc4,0_4px_20px_rgba(78,205,196,0.12)]"
                   >
                     <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#4ecdc4] to-[#3ab5ad]" />
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-semibold text-[#9ba5bc] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">
+                        <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">
                           Step {card.step}
                         </span>
                         <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px]">
@@ -489,14 +489,14 @@ export default function PathFinderDashboard({
                     <div className="w-9 h-9 rounded-[10px] bg-[rgba(78,205,196,0.12)] flex items-center justify-center text-base mb-2.5">
                       <Building2 className="w-5 h-5 text-[#4ecdc4]" />
                     </div>
-                    <h4 className="text-sm font-bold text-[#2d3340] mb-1.5 tracking-[-0.2px]">{card.title}</h4>
-                    <p className="text-[11.5px] text-[#5a6478] leading-relaxed mb-4">{card.desc}</p>
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5 tracking-[-0.2px]">{card.title}</h4>
+                    <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed mb-4">{card.desc}</p>
                     <div className="mb-4">
-                      <div className="flex justify-between text-[10px] text-[var(--hr-gray-400)] mb-1">
+                      <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 mb-1">
                         <span>{t('dashboard.pathfinder.progress_label')}</span>
                         <span>{card.progress}%</span>
                       </div>
-                      <div className="h-1 bg-[#e2e6ee] rounded overflow-hidden">
+                      <div className="h-1 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden">
                         <div
                           className="h-full bg-gradient-to-r from-[#4ecdc4] to-[#3ab5ad] rounded transition-[width] duration-500 ease-out"
                           style={{ width: `${card.progress}%` }}
@@ -516,25 +516,25 @@ export default function PathFinderDashboard({
                 ) : (
                   <div
                     key={card.step}
-                    className="bg-[#f8f9fb] border border-[#e2e6ee] rounded-xl p-5 opacity-70"
+                    className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 opacity-70"
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-semibold text-[#9ba5bc] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px]">
+                        <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">
                           Step {card.step}
                         </span>
-                        <span className="text-[10px] font-semibold text-[var(--hr-gray-400)] bg-[#f0f2f6] py-0.5 px-2 rounded-[20px] inline-flex items-center gap-1">
+                        <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px] inline-flex items-center gap-1">
                             <Lock className="w-3 h-3" />
                             {t('dashboard.pathfinder.locked')}
                         </span>
                       </div>
-                      <div className="w-7 h-7 bg-[#f0f2f6] rounded-[7px] flex items-center justify-center text-[13px]">
-                        <Lock className="w-3.5 h-3.5 text-[#9ba5bc]" />
+                      <div className="w-7 h-7 bg-slate-100 dark:bg-slate-800 rounded-[7px] flex items-center justify-center text-[13px]">
+                        <Lock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                       </div>
                     </div>
-                    <h4 className="text-sm font-bold text-[#9ba5bc] mb-1.5">{card.title}</h4>
-                    <p className="text-[11.5px] text-[#9ba5bc] leading-relaxed mb-4">{card.desc}</p>
-                    <div className="flex items-center gap-1.5 text-[11px] text-[var(--hr-gray-400)]">
+                    <h4 className="text-sm font-bold text-slate-400 dark:text-slate-500 mb-1.5">{card.title}</h4>
+                    <p className="text-[11.5px] text-slate-400 dark:text-slate-500 leading-relaxed mb-4">{card.desc}</p>
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500">
                       <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
                       {t('dashboard.pathfinder.prev_step_required_after')}
                     </div>

@@ -79,10 +79,10 @@ export default function IssuesStep({ hrIssues, data, setData }: IssuesStepProps)
                     <div className="text-[10px] font-medium uppercase tracking-wider text-[#C9A84C] mb-1">
                         Step 7 of 8
                     </div>
-                    <h2 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#0E1628] mb-1.5">
+                    <h2 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#0E1628] dark:text-slate-100 mb-1.5">
                         Organizational Issues
                     </h2>
-                    <p className="text-[13px] text-[#4A4E69] font-light leading-relaxed max-w-[580px]">
+                    <p className="text-[13px] text-[#4A4E69] dark:text-slate-400 font-light leading-relaxed max-w-[580px]">
                         These issues have been identified by your HR manager as key challenges currently facing the company. Please select the issues that you also agree are relevant from your perspective as CEO.
                     </p>
                 </div>
@@ -103,33 +103,33 @@ export default function IssuesStep({ hrIssues, data, setData }: IssuesStepProps)
             </div>
 
             {/* Selected panel */}
-            <div className="bg-white border-[1.5px] border-[#0E1628] rounded-xl p-5 sm:p-6 relative overflow-hidden animate-in fade-in duration-300">
+            <div className="bg-white dark:bg-slate-900 border-[1.5px] border-[#0E1628] dark:border-slate-700 rounded-xl p-5 sm:p-6 relative overflow-hidden animate-in fade-in duration-300">
                 <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#0E1628] to-[#C9A84C]" />
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-                    <span className="font-serif text-sm font-bold text-[#0E1628]">
+                    <span className="font-serif text-sm font-bold text-[#0E1628] dark:text-slate-100">
                         Your Top Issues (in priority order)
                     </span>
-                    <span className="text-[11px] text-[#9A9EB8]">
+                    <span className="text-[11px] text-[#9A9EB8] dark:text-slate-400">
                         Click × to remove · First selected = highest priority
                     </span>
                 </div>
                 <div className="min-h-[44px] flex flex-col gap-2">
                     {selectedDetails.length === 0 ? (
-                        <div className="text-center py-4 px-4 text-[12.5px] text-[#9A9EB8] border-2 border-dashed border-[#E2DDD4] rounded-lg italic">
+                        <div className="text-center py-4 px-4 text-[12.5px] text-[#9A9EB8] dark:text-slate-400 border-2 border-dashed border-[#E2DDD4] dark:border-slate-600 rounded-lg italic">
                             Select issues from the categories below — up to 5
                         </div>
                     ) : (
                         selectedDetails.map((item, idx) => (
                             <div
                                 key={item.id}
-                                className="flex items-center gap-2.5 bg-[#F8F4ED] border border-[#E2DDD4] rounded-lg py-2.5 px-3.5 animate-in fade-in duration-200"
+                                className="flex items-center gap-2.5 bg-[#F8F4ED] dark:bg-slate-800 border border-[#E2DDD4] dark:border-slate-600 rounded-lg py-2.5 px-3.5 animate-in fade-in duration-200"
                             >
                                 <div className="w-[22px] h-[22px] rounded-full bg-[#0E1628] text-[#E8C96B] flex items-center justify-center text-[10px] font-bold flex-shrink-0">
                                     {idx + 1}
                                 </div>
-                                <span className="flex-1 text-[13px] text-[#1A1A2E] font-normal">
+                                <span className="flex-1 text-[13px] text-[#1A1A2E] dark:text-slate-200 font-normal">
                                     {item.name}
-                                    <span className="text-[10px] text-[#9A9EB8] ml-1">
+                                    <span className="text-[10px] text-[#9A9EB8] dark:text-slate-400 ml-1">
                                         {getCategoryMeta(item.category).name}
                                     </span>
                                 </span>
@@ -158,11 +158,11 @@ export default function IssuesStep({ hrIssues, data, setData }: IssuesStepProps)
                                 <div className="w-8 h-8 rounded-lg bg-[#0E1628] flex items-center justify-center text-[15px] flex-shrink-0">
                                     {meta.icon}
                                 </div>
-                                <span className="text-[11px] font-semibold uppercase tracking-wider text-[#0E1628]">
+                                <span className="text-[11px] font-semibold uppercase tracking-wider text-[#0E1628] dark:text-slate-200">
                                     {meta.name}
                                 </span>
                                 {selectedInCat > 0 && (
-                                    <span className="ml-auto text-[11px] text-[#9A9EB8]">{selectedInCat} selected</span>
+                                    <span className="ml-auto text-[11px] text-[#9A9EB8] dark:text-slate-400">{selectedInCat} selected</span>
                                 )}
                             </div>
                             <div className="flex flex-wrap gap-2">
@@ -179,7 +179,7 @@ export default function IssuesStep({ hrIssues, data, setData }: IssuesStepProps)
                                                 flex items-start gap-2 rounded-lg px-3.5 py-2.5 border-[1.5px] text-left transition-all
                                                 ${isSelected
                                                     ? 'bg-[#0E1628] border-[#0E1628] text-white shadow-md'
-                                                    : 'bg-white border-[#E2DDD4] text-[#1A1A2E] hover:border-[#0E1628]/25 hover:shadow-sm'
+                                                    : 'bg-white dark:bg-slate-800 border-[#E2DDD4] dark:border-slate-600 text-[#1A1A2E] dark:text-slate-200 hover:border-[#0E1628]/25 dark:hover:border-slate-500 hover:shadow-sm'
                                                 }
                                                 ${disabled ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}
                                             `}
@@ -206,15 +206,15 @@ export default function IssuesStep({ hrIssues, data, setData }: IssuesStepProps)
             </div>
 
             {/* Other */}
-            <div className="pt-4 border-t border-[#E2DDD4] space-y-2">
-                <label className="text-sm font-medium text-[#1A1A2E]">
+            <div className="pt-4 border-t border-[#E2DDD4] dark:border-slate-700 space-y-2">
+                <label className="text-sm font-medium text-[#1A1A2E] dark:text-slate-200">
                     Other (describe additional issues not listed above)
                 </label>
                 <Input
                     value={data.organizational_issues_other || ''}
                     onChange={(e) => setData('organizational_issues_other', e.target.value)}
                     placeholder="Please describe additional HR or organizational issues..."
-                    className="border-[#E2DDD4] bg-[#FAFAF8]"
+                    className="border-[#E2DDD4] dark:border-slate-600 bg-[#FAFAF8] dark:bg-slate-800 text-[#1A1A2E] dark:text-slate-200 placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500"
                 />
             </div>
         </div>

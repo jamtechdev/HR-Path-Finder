@@ -28,7 +28,7 @@ export default function CeoProjectVerification({ project }: Props) {
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden bg-background">
+            <SidebarInset className="flex flex-col overflow-hidden bg-background dark:bg-slate-900">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-gradient-to-br from-background via-muted/20 to-background">
                     <Head title={`Step Verification - ${project.company?.name || 'Project'}`} />

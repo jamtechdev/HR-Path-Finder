@@ -167,8 +167,8 @@ export default function OrganizationalCharts({
                                                 hasFile(year)
                                                     ? 'border-[#4ecdc4] bg-[#4ecdc4] text-[#111d35]'
                                                     : activeYear === year
-                                                    ? 'border-[#1a2744] bg-[#1a2744] text-white'
-                                                    : 'border-muted-foreground/40 bg-white text-muted-foreground'
+                                                    ? 'border-[#1a2744] dark:border-slate-700 bg-[#1a2744] dark:bg-slate-800 text-white'
+                                                    : 'border-muted-foreground/40 bg-white dark:bg-slate-800 text-muted-foreground'
                                             )}
                                         >
                                             {hasFile(year) ? '✓' : idx + 1}
@@ -176,7 +176,7 @@ export default function OrganizationalCharts({
                                         <span
                                             className={cn(
                                                 'text-[13px] font-semibold',
-                                                hasFile(year) ? 'text-[#2ea89e]' : activeYear === year ? 'text-[#1a2744]' : 'text-muted-foreground'
+                                                hasFile(year) ? 'text-[#2ea89e]' : activeYear === year ? 'text-slate-800 dark:text-slate-100' : 'text-muted-foreground'
                                             )}
                                         >
                                             {YEAR_LABELS[year]?.title ?? year}
@@ -206,7 +206,7 @@ export default function OrganizationalCharts({
                                 key={i}
                                 className={cn(
                                     'w-1.5 h-1.5 rounded-full',
-                                    i < uploadedCount ? 'bg-[#4ecdc4]' : i === uploadedCount ? 'bg-[#1a2744]' : 'bg-border'
+                                    i < uploadedCount ? 'bg-[#4ecdc4]' : i === uploadedCount ? 'bg-[#1a2744] dark:bg-slate-700' : 'bg-border'
                                 )}
                             />
                         ))}
@@ -240,9 +240,9 @@ export default function OrganizationalCharts({
                                         }
                                     }}
                                     className={cn(
-                                        'rounded-[14px] overflow-hidden transition-all cursor-pointer border-[1.5px]',
+                                        'rounded-[14px] overflow-hidden transition-all cursor-pointer border-[1.5px] bg-white dark:bg-slate-900',
                                         isUploaded && 'border-[#4ecdc4] border-solid',
-                                        isActive && !isUploaded && 'border-[#1a2744] border-solid shadow-md',
+                                        isActive && !isUploaded && 'border-[#1a2744] dark:border-slate-700 border-solid shadow-md',
                                         !isUploaded && !isActive && 'border-dashed border-muted-foreground/40'
                                     )}
                                 >
@@ -335,7 +335,7 @@ export default function OrganizationalCharts({
                                             >
                                                 <Upload className="w-5 h-5 text-muted-foreground" />
                                             </div>
-                                            <div className={cn('text-[13px] font-semibold text-center', isActive ? 'text-[#5a6478]' : 'text-muted-foreground')}>
+                                            <div className={cn('text-[13px] font-semibold text-center', isActive ? 'text-slate-600 dark:text-slate-300' : 'text-muted-foreground')}>
                                                 {tr('clickOrDrag')}
                                             </div>
                                             <div className="text-[11px] text-muted-foreground text-center">
@@ -355,7 +355,7 @@ export default function OrganizationalCharts({
                         })}
                     </div>
                 </div>
-    );
+            );
     if (embedMode) return <>{innerContent}</>;
     return (
         <>
