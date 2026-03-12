@@ -6,24 +6,21 @@ import {
     CheckCircle2,
     ArrowRight,
     Target,
-    Users,
     Settings,
-    CheckCircle,
-    Zap,
+    LayoutGrid,
+    Send,
+    Lock,
+    Rocket,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface Step {
+interface StepConfig {
     id: string;
     name: string;
     description: string;
     icon: React.ReactNode;
     route: string;
-    isCompleted: boolean;
-    isEnabled: boolean;
-    progressLabel?: string;
-    progressCurrent?: number;
-    progressTotal?: number;
+    estMin: number;
 }
 
 interface Props {
@@ -37,15 +34,19 @@ interface Props {
     evaluationStructure?: any;
     jobCount?: number;
     snapshotQuestionsCount?: number;
+    completedTabsCount?: number;
+    tabsLength?: number;
+    hideProgressCard?: boolean;
 }
 
-const STEPS: Omit<Step, 'isCompleted' | 'isEnabled' | 'progressLabel' | 'progressCurrent' | 'progressTotal'>[] = [
+const STEPS: StepConfig[] = [
     {
         id: 'performance-snapshot',
         name: 'Strategic Performance Snapshot',
         description: "Answer 10 questions about your company's performance management approach",
         icon: <FileText className="w-5 h-5" />,
         route: 'performance-snapshot',
+        estMin: 5,
     },
     {
         id: 'kpi-review',
@@ -53,13 +54,7 @@ const STEPS: Omit<Step, 'isCompleted' | 'isEnabled' | 'progressLabel' | 'progres
         description: 'Review and manage organizational KPIs',
         icon: <Target className="w-5 h-5" />,
         route: 'kpi-review',
-    },
-    {
-        id: 'ceo-kpi-review',
-        name: 'CEO KPI Review',
-        description: 'CEO review of organizational KPIs',
-        icon: <Users className="w-5 h-5" />,
-        route: 'ceo-kpi-review',
+        estMin: 4,
     },
     {
         id: 'model-assignment',
@@ -67,13 +62,23 @@ const STEPS: Omit<Step, 'isCompleted' | 'isEnabled' | 'progressLabel' | 'progres
         description: 'Assign evaluation models (MBO, BSC, OKR) to jobs',
         icon: <Settings className="w-5 h-5" />,
         route: 'model-assignment',
+        estMin: 5,
     },
     {
         id: 'evaluation-structure',
         name: 'Evaluation Structure',
         description: 'Configure evaluation structure and assessment methods',
-        icon: <CheckCircle className="w-5 h-5" />,
+        icon: <LayoutGrid className="w-5 h-5" />,
         route: 'evaluation-structure',
+        estMin: 3,
+    },
+    {
+        id: 'review-submit',
+        name: 'Review & Submit',
+        description: 'Final review and submission of performance system',
+        icon: <Send className="w-5 h-5" />,
+        route: 'review-submit',
+        estMin: 2,
     },
 ];
 
@@ -88,63 +93,24 @@ export default function PerformanceSystemOverview({
     evaluationStructure,
     jobCount = 0,
     snapshotQuestionsCount = 10,
+    completedTabsCount: completedCountProp,
+    tabsLength: totalStepsProp,
+    hideProgressCard = false,
 }: Props) {
-    const performanceStatus = stepStatuses?.performance || 'not_started';
-    const isInProgress = performanceStatus === 'in_progress';
-    const isSubmitted = ['submitted', 'approved', 'locked'].includes(performanceStatus);
+    const completedCount = completedCountProp ?? STEPS.filter((s) => completedSteps.has(s.id)).length;
+    const totalSteps = totalStepsProp ?? STEPS.length;
+    const progressPercentage = totalSteps > 0 ? (completedCount / totalSteps) * 100 : 0;
 
-    const stepsWithStatus: Step[] = STEPS.map((step, idx) => {
-        let isCompleted = false;
-        let progressLabel = '';
-        let progressCurrent = 0;
-        let progressTotal = 0;
-
-        switch (step.id) {
-            case 'performance-snapshot':
-                isCompleted = Object.keys(snapshotResponses).length > 0 || completedSteps.has(step.id);
-                progressLabel = 'questions';
-                progressCurrent = isCompleted ? snapshotQuestionsCount : Object.keys(snapshotResponses).length;
-                progressTotal = snapshotQuestionsCount;
-                break;
-            case 'kpi-review':
-                isCompleted = organizationalKpis.length > 0 || completedSteps.has(step.id);
-                progressLabel = 'units reviewed';
-                progressCurrent = organizationalKpis.length;
-                progressTotal = 1;
-                break;
-            case 'ceo-kpi-review':
-                isCompleted = completedSteps.has(step.id);
-                progressLabel = 'KPIs approved';
-                progressCurrent = 0;
-                progressTotal = 1;
-                break;
-            case 'model-assignment':
-                isCompleted = evaluationModelAssignments.length > 0 || completedSteps.has(step.id);
-                progressLabel = 'assigned';
-                progressCurrent = evaluationModelAssignments.length;
-                progressTotal = 1;
-                break;
-            case 'evaluation-structure':
-                isCompleted = !!evaluationStructure || completedSteps.has(step.id);
-                progressLabel = 'configured';
-                progressCurrent = evaluationStructure ? 1 : 0;
-                progressTotal = 1;
-                break;
-            default:
-                isCompleted = completedSteps.has(step.id);
+    const isStepEnabled = (index: number) => {
+        if (index === 0) return true;
+        for (let i = 0; i < index; i++) {
+            if (!completedSteps.has(STEPS[i].id)) return false;
         }
+        return true;
+    };
 
-        return {
-            ...step,
-            isCompleted,
-            isEnabled: true,
-            progressLabel,
-            progressCurrent,
-            progressTotal,
-        };
-    });
-
-    const handleStepClick = (step: Step) => {
+    const handleStart = (step: StepConfig, index: number) => {
+        if (!isStepEnabled(index)) return;
         if (onStepClick) {
             onStepClick(step.id);
         } else {
@@ -152,50 +118,14 @@ export default function PerformanceSystemOverview({
         }
     };
 
-    const completedCount = stepsWithStatus.filter((s) => s.isCompleted).length;
-    const totalSteps = stepsWithStatus.length;
-    const progressPercentage = totalSteps > 0 ? (completedCount / totalSteps) * 100 : 0;
-    const firstIncompleteIndex = stepsWithStatus.findIndex((s) => !s.isCompleted);
-    const recommendedNextId = firstIncompleteIndex >= 0 ? stepsWithStatus[firstIncompleteIndex].id : null;
-
     return (
-        <div className="space-y-6 pb-8">
-            {/* Connected From Previous Step banner */}
-            <div className="rounded-xl overflow-hidden bg-[#151535] text-white px-5 py-4 md:px-6 flex items-center gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[#22c55e]/20 flex items-center justify-center">
-                    <Zap className="w-6 h-6 text-[#22c55e]" />
-                </div>
-                <div>
-                    <p className="text-xs font-bold tracking-wider text-[#94a3b8] uppercase">
-                        Connected from previous step
-                    </p>
-                    <p className="text-sm md:text-base mt-0.5 text-slate-200">
-                        Job Analysis complete — Start performance management based on {jobCount} job data.
-                        {jobCount === 0 && ' (Complete Job Analysis first for job count.)'}
-                    </p>
-                </div>
-            </div>
-
-            {/* Progress Summary card */}
-            <Card className="rounded-xl border border-[#e5e7eb] shadow-sm overflow-hidden">
+        <div className="space-y-6 pb-8 px-2">
+            {!hideProgressCard && (
+            <Card className="rounded-xl border border-[#e5e7eb] shadow-sm overflow-hidden bg-white">
                 <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg font-semibold text-[#121431]">
-                            Progress Summary
-                        </CardTitle>
-                        <span
-                            className={cn(
-                                'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold',
-                                isSubmitted
-                                    ? 'bg-emerald-100 text-emerald-700'
-                                    : isInProgress
-                                    ? 'bg-blue-100 text-blue-700'
-                                    : 'bg-[#f3f4f6] text-[#6b7280]'
-                            )}
-                        >
-                            {isSubmitted ? 'Submitted' : isInProgress ? 'In Progress' : 'Not Started'}
-                        </span>
-                    </div>
+                    <CardTitle className="text-lg font-semibold text-[#121431]">
+                        Progress Summary
+                    </CardTitle>
                     <CardDescription className="text-[#6b7280]">
                         {completedCount} of {totalSteps} steps completed
                     </CardDescription>
@@ -210,121 +140,119 @@ export default function PerformanceSystemOverview({
                     </div>
                 </CardContent>
             </Card>
+            )}
 
-            {/* Step cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {stepsWithStatus.map((step, index) => {
-                    const isRecommendedNext = recommendedNextId === step.id;
-                    return (
-                        <Card
-                            key={step.id}
-                            className={cn(
-                                'rounded-xl border shadow-sm overflow-hidden transition-all cursor-pointer hover:shadow-md',
-                                isRecommendedNext
-                                    ? 'border-[#22c55e] border-2'
-                                    : step.isCompleted
-                                    ? 'border-[#22c55e]/50'
-                                    : 'border-[#e5e7eb]'
-                            )}
-                            onClick={() => handleStepClick(step)}
-                        >
-                            <CardHeader className="pb-2">
-                                <div className="flex items-start justify-between gap-2">
-                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+            {/* Timeline — same as Job Analysis: vertical line + numbered circles + step cards */}
+            <div className="flex-1 relative w-full">
+                <div className="absolute left-8 top-0 bottom-0 w-px bg-[#d1d5db] z-[1]" aria-hidden />
+                <div className="space-y-6 relative z-[2]">
+                    {STEPS.map((step, index) => {
+                        const completed = completedSteps.has(step.id);
+                        const enabled = isStepEnabled(index);
+                        const isActive = enabled && !completed;
+
+                        return (
+                            <div key={step.id} className="flex gap-6">
+                                <div
+                                    className={cn(
+                                        'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-5 border',
+                                        completed && 'bg-emerald-500 border-emerald-500 text-white',
+                                        isActive && 'bg-[#1e293b] text-white border-[#1e293b]',
+                                        !enabled && 'bg-white border-[#d1d5db] text-[#94a3b8]'
+                                    )}
+                                >
+                                    {completed ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
+                                </div>
+                                <div
+                                    className={cn(
+                                        'flex-1 bg-white rounded-xl border border-[#e2e8f0] p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-all',
+                                        isActive && 'border-2 border-[#1e293b] shadow-lg',
+                                        !enabled && 'opacity-60 bg-[#fafafa]'
+                                    )}
+                                >
+                                    <div className="min-w-0">
                                         <div
                                             className={cn(
-                                                'flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center',
-                                                isRecommendedNext
-                                                    ? 'bg-[#dcfce7] text-[#16a34a]'
-                                                    : step.isCompleted
-                                                    ? 'bg-[#dcfce7] text-[#16a34a]'
-                                                    : 'bg-[#f3f4f6] text-[#6b7280]'
+                                                'text-[11px] font-bold uppercase',
+                                                enabled ? 'text-[#b38e5d]' : 'text-[#cbd5e1]'
+                                            )}
+                                        >
+                                            STEP {index + 1} OF {STEPS.length}
+                                        </div>
+                                        <div
+                                            className={cn(
+                                                'text-xl font-bold mt-1 flex items-center gap-2',
+                                                enabled ? 'text-[#1e293b]' : 'text-[#94a3b8]'
                                             )}
                                         >
                                             {step.icon}
+                                            {step.name}
                                         </div>
-                                        <div className="min-w-0">
-                                            {isRecommendedNext && (
-                                                <span className="inline-block text-xs font-semibold text-[#16a34a] bg-[#dcfce7] px-2 py-0.5 rounded-full mb-1">
-                                                    ▷ Recommended Next
-                                                </span>
+                                        <p
+                                            className={cn(
+                                                'text-sm mt-1 mb-3',
+                                                enabled ? 'text-[#64748b]' : 'text-[#cbd5e1]'
                                             )}
-                                            <CardTitle className="text-base font-semibold text-[#121431]">
-                                                {step.name}
-                                            </CardTitle>
+                                        >
+                                            {step.description}
+                                        </p>
+                                        <div
+                                            className={cn('text-xs', enabled ? 'text-[#94a3b8]' : 'text-[#cbd5e1]')}
+                                        >
+                                            ~{step.estMin} min
+                                            {!enabled && index > 0 && ` • Complete Step ${index} first`}
                                         </div>
                                     </div>
-                                    {step.isCompleted && (
-                                        <CheckCircle2 className="w-5 h-5 text-[#22c55e] flex-shrink-0" />
-                                    )}
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-3 pt-0">
-                                <CardDescription className="text-sm text-[#6b7280]">
-                                    {step.description}
-                                </CardDescription>
-                                <div className="space-y-1.5">
-                                    <p className="text-xs text-[#6b7280]">
-                                        {step.id === 'performance-snapshot' && (
+                                    <div className="flex flex-col items-end gap-3 flex-shrink-0">
+                                        {enabled && !completed && (
                                             <>
-                                                {step.progressCurrent} / {step.progressTotal} questions
+                                                <div className="bg-[#f8fafc] text-[#64748b] px-3 py-1.5 rounded-lg text-xs">
+                                                    Ready to Start
+                                                </div>
+                                                <Button
+                                                    onClick={() => handleStart(step, index)}
+                                                    className="bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold px-6 py-2.5 rounded-lg flex items-center gap-2"
+                                                >
+                                                    Start <ArrowRight className="w-4 h-4" />
+                                                </Button>
                                             </>
                                         )}
-                                        {step.id === 'kpi-review' && (
-                                            <>{step.progressCurrent} units reviewed</>
+                                        {completed && (
+                                            <Button
+                                                onClick={() => handleStart(step, index)}
+                                                variant="outline"
+                                                className="font-bold px-6 py-2.5 rounded-lg flex items-center gap-2"
+                                            >
+                                                Review <ArrowRight className="w-4 h-4" />
+                                            </Button>
                                         )}
-                                        {step.id === 'ceo-kpi-review' && (
-                                            <>{step.progressCurrent} KPIs approved</>
+                                        {!enabled && (
+                                            <div className="bg-[#f1f5f9] text-[#94a3b8] px-3 py-2 rounded-lg text-xs flex items-center gap-1.5">
+                                                <Lock className="w-3.5 h-3.5" />
+                                                Locked
+                                            </div>
                                         )}
-                                        {step.id === 'model-assignment' && (
-                                            <>{step.progressCurrent} models assigned</>
-                                        )}
-                                        {step.id === 'evaluation-structure' && (
-                                            <>{step.progressCurrent > 0 ? 'Configured' : 'Not configured'}</>
-                                        )}
-                                    </p>
-                                    <div className="w-full bg-[#e5e7eb] rounded-full h-1.5">
-                                        <div
-                                            className={cn(
-                                                'h-1.5 rounded-full transition-all',
-                                                step.isCompleted ? 'bg-[#22c55e]' : 'bg-[#d1d5db]'
-                                            )}
-                                            style={{
-                                                width:
-                                                    step.progressTotal > 0
-                                                        ? `${(step.progressCurrent / step.progressTotal) * 100}%`
-                                                        : '0%',
-                                            }}
-                                        />
                                     </div>
                                 </div>
-                                <div className="flex items-center justify-between pt-1">
-                                    <span className="text-xs font-medium text-[#6b7280]">
-                                        {step.isCompleted ? 'Completed' : 'Pending'}
-                                    </span>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className={cn(
-                                            'h-8 text-sm font-medium',
-                                            isRecommendedNext
-                                                ? 'text-[#16a34a] hover:text-[#15803d] hover:bg-[#dcfce7]'
-                                                : 'text-[#6b7280] hover:text-[#374151]'
-                                        )}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleStepClick(step);
-                                        }}
-                                    >
-                                        {step.isCompleted ? 'Review' : 'Start'}
-                                        <ArrowRight className="w-4 h-4 ml-1" />
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    );
-                })}
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
+
+            {/* Footer — same as Job Analysis */}
+            <footer className="sticky bottom-0 w-full bg-white py-4 px-5 md:px-[10%] flex flex-wrap items-center justify-between gap-4 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-10 mt-auto border-t border-[#e2e8f0]">
+                <p className="text-sm text-[#64748b]">
+                    <b>{completedCount}</b> of {totalSteps} steps completed
+                </p>
+                <Button
+                    onClick={() => handleStart(STEPS[0], 0)}
+                    className="bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold px-8 py-3 rounded-lg"
+                >
+                    <Rocket className="w-4 h-4 mr-2" />
+                    Start Performance System
+                </Button>
+            </footer>
         </div>
     );
 }

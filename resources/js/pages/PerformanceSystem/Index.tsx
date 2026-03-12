@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
@@ -258,72 +258,128 @@ export default function PerformanceSystemIndex({
     return (
         <AppLayout>
             <Head title={`Performance System - ${project?.company?.name || 'HR Manager'}`} />
-            <div className="p-6 md:p-8 max-w-7xl mx-auto bg-background">
-                {/* Header - dark blue banner: overview = centered title, else left-aligned */}
-                {activeTab === 'overview' ? (
-                    <div className="mb-0 rounded-t-xl overflow-hidden">
-                        <div className="bg-[#151535] text-white px-5 py-6 md:px-6 flex items-start gap-4">
-                            <button
-                                type="button"
-                                onClick={() => router.visit('/hr-manager/dashboard')}
-                                className="inline-flex items-center justify-center w-10 h-10 rounded-md hover:bg-white/10 transition-colors shrink-0 mt-0.5"
-                                aria-label="Back to dashboard"
+            {/* Match Job Analysis: on overview = full-page cream bg, no tab bar. Else = header + tab bar + content */}
+            {activeTab === 'overview' ? (
+                <div className="min-h-full bg-[#f5f3ef]">
+                    <div className="p-6 space-y-6">
+                        <div className="flex items-center justify-between">
+                            <Link
+                                href="/hr-manager/dashboard"
+                                className="text-sm font-medium text-[#0f2a4a] hover:text-[#1a4070] flex items-center gap-1"
                             >
-                                <ChevronLeft className="w-5 h-5" />
-                            </button>
-                            <div className="flex-1 min-w-0 text-center">
-                                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-                                    Performance System Overview
-                                </h1>
-                                <p className="text-slate-300 mt-2 text-sm md:text-base max-w-2xl mx-auto">
-                                    Design your performance management system including evaluation units, methods, and assessment structures.
-                                </p>
-                            </div>
-                            <div className="w-10 shrink-0" aria-hidden />
+                                <ChevronLeft className="w-4 h-4" />
+                                Back to Dashboard
+                            </Link>
                         </div>
-                    </div>
-                ) : (
-                    <div className="mb-0 rounded-t-xl overflow-hidden">
-                        <div className="bg-[#151535] text-white px-5 py-4 md:px-6 flex items-start gap-4">
-                            <button
-                                type="button"
-                                onClick={() => router.visit('/hr-manager/dashboard')}
-                                className="inline-flex items-center justify-center w-10 h-10 rounded-md hover:bg-white/10 transition-colors shrink-0 mt-0.5"
-                                aria-label="Back to dashboard"
-                            >
-                                <ChevronLeft className="w-5 h-5" />
-                            </button>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-3 flex-wrap">
-                                    <h1 className="text-xl md:text-2xl font-bold tracking-tight">
-                                        Performance System
-                                    </h1>
-                                    <span
-                                        className={cn(
-                                            'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold',
-                                            getStatusForHeader() === 'in_progress'
-                                                ? 'bg-amber-500/90 text-white'
-                                                : getStatusForHeader() === 'submitted'
-                                                ? 'bg-emerald-600 text-white'
-                                                : 'bg-white/10 text-slate-300'
-                                        )}
-                                    >
-                                        {getStatusForHeader() === 'in_progress'
-                                            ? 'In Progress'
-                                            : getStatusForHeader() === 'submitted'
-                                            ? 'Submitted'
-                                            : 'Not Started'}
-                                    </span>
+                        {/* Full-page overview: hero + progress + cards (same structure as Job Analysis Overview) */}
+                        <div className="flex flex-col min-h-full">
+                            <section className="bg-[#0f172a] text-white px-6 py-10 pb-20 md:px-[10%] rounded-xl overflow-hidden">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
+                                    <div className="font-bold text-lg">
+                                        HR Path-Finder <span className="font-normal text-[#64748b] ml-2">/ Performance System</span>
+                                    </div>
+                                    <div className="bg-white/10 border border-white/20 px-3 py-1 rounded-[20px] text-xs text-[#94a3b8]">
+                                        {getStatusForHeader() === 'submitted' ? 'SUBMITTED' : getStatusForHeader() === 'in_progress' ? 'IN PROGRESS' : 'NOT STARTED'}
+                                    </div>
                                 </div>
-                                <p className="text-slate-300 mt-1 text-sm">
-                                    Design evaluation units, performance management methods, and assessment structures.
+                                <div className="text-[#b38e5d] uppercase text-xs font-bold tracking-wider mb-1">
+                                    ● STAGE 3 OF 5 — PERFORMANCE
+                                </div>
+                                <h1 className="text-3xl md:text-4xl font-bold mt-2 mb-2">Performance System Overview</h1>
+                                <p className="text-[#94a3b8] max-w-[600px] leading-relaxed">
+                                    Define evaluation units, performance management methods, and assessment structures. Complete each step in sequence to build a consultant-ready performance framework.
                                 </p>
+                                <div className="mt-6 p-5 rounded-xl bg-white/5 border border-white/10 max-w-[720px]">
+                                    <div className="text-[11px] font-bold uppercase tracking-wider text-[#b38e5d] mb-2">
+                                        Before you begin
+                                    </div>
+                                    <p className="text-[#e2e8f0] text-sm leading-relaxed m-0">
+                                        This stage builds on your Job Analysis. You will set up strategic performance snapshots, review organizational KPIs, assign evaluation models to jobs, and configure the evaluation structure. Complete each step in order.
+                                    </p>
+                                </div>
+                                <div className="mt-8 bg-white/5 border border-white/10 rounded-xl p-6 flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
+                                    <div className="border-r-0 md:border-r md:border-white/10 pr-0 md:pr-10">
+                                        <div className="text-[11px] text-[#94a3b8] uppercase">Steps Done</div>
+                                        <strong className="text-2xl text-[#b38e5d]">
+                                            {completedTabsCount} / {TABS.length}
+                                        </strong>
+                                        <div className="text-[11px] text-[#64748b]">steps completed</div>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between text-xs font-bold mb-2">
+                                            <span>Overall Progress</span>
+                                            <span>{Math.round((completedTabsCount / TABS.length) * 100)}%</span>
+                                        </div>
+                                        <div className="h-1 w-full rounded-sm bg-white/10 overflow-hidden">
+                                            <div
+                                                className="h-full rounded-sm bg-[#b38e5d] transition-all duration-300"
+                                                style={{ width: `${(completedTabsCount / TABS.length) * 100}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                            <div className="flex-1 max-w-[1000px] mx-auto px-5 -mt-10 relative w-full pb-8">
+                                <Overview
+                                    projectId={project.id}
+                                    stepStatuses={stepStatuses}
+                                    completedSteps={new Set(Object.keys(tabCompletions).filter(k => tabCompletions[k]))}
+                                    onStepClick={handleTabChange}
+                                    snapshotResponses={snapshotResponses}
+                                    organizationalKpis={organizationalKpis}
+                                    evaluationModelAssignments={evaluationModelAssignments}
+                                    evaluationStructure={project.evaluation_structure}
+                                    jobCount={jobDefinitions?.length ?? 0}
+                                    snapshotQuestionsCount={snapshotQuestions?.length ?? 10}
+                                    completedTabsCount={completedTabsCount}
+                                    tabsLength={TABS.length}
+                                    hideProgressCard
+                                />
                             </div>
                         </div>
                     </div>
-                )}
+                </div>
+            ) : (
+            <div className="p-6 md:p-8 max-w-7xl mx-auto bg-background">
+                <div className="mb-0 rounded-t-xl overflow-hidden">
+                    <div className="bg-[#151535] text-white px-5 py-4 md:px-6 flex items-start gap-4">
+                        <button
+                            type="button"
+                            onClick={() => handleTabChange('overview')}
+                            className="inline-flex items-center justify-center w-10 h-10 rounded-md hover:bg-white/10 transition-colors shrink-0 mt-0.5"
+                            aria-label="Back to overview"
+                        >
+                            <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 flex-wrap">
+                                <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+                                    Performance System
+                                </h1>
+                                <span
+                                    className={cn(
+                                        'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold',
+                                        getStatusForHeader() === 'in_progress'
+                                            ? 'bg-amber-500/90 text-white'
+                                            : getStatusForHeader() === 'submitted'
+                                            ? 'bg-emerald-600 text-white'
+                                            : 'bg-white/10 text-slate-300'
+                                    )}
+                                >
+                                    {getStatusForHeader() === 'in_progress'
+                                        ? 'In Progress'
+                                        : getStatusForHeader() === 'submitted'
+                                        ? 'Submitted'
+                                        : 'Not Started'}
+                                </span>
+                            </div>
+                            <p className="text-slate-300 mt-1 text-sm">
+                                Design evaluation units, performance management methods, and assessment structures.
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
-                {/* Tab bar - show for both overview and other tabs */}
                 <div className="bg-white border border-[#e5e7eb] border-t-0 rounded-b-xl shadow-sm mb-6 overflow-hidden">
                         <div className="flex items-center justify-between gap-4 px-4 py-3 flex-wrap">
                             <div className="flex gap-1 overflow-x-auto scroll-smooth shrink-0" style={{ scrollbarWidth: 'thin' }}>
@@ -390,22 +446,6 @@ export default function PerformanceSystemIndex({
                         </div>
                     </div>
 
-                {/* Overview Page content */}
-                {activeTab === 'overview' && (
-                    <Overview
-                        projectId={project.id}
-                        stepStatuses={stepStatuses}
-                        completedSteps={new Set(Object.keys(tabCompletions).filter(k => tabCompletions[k]))}
-                        onStepClick={handleTabChange}
-                        snapshotResponses={snapshotResponses}
-                        organizationalKpis={organizationalKpis}
-                        evaluationModelAssignments={evaluationModelAssignments}
-                        evaluationStructure={project.evaluation_structure}
-                        jobCount={jobDefinitions?.length ?? 0}
-                        snapshotQuestionsCount={snapshotQuestions?.length ?? 10}
-                    />
-                )}
-
                 {/* Tab Content (non-overview) */}
                 {activeTab !== 'overview' && (
                 <div>
@@ -467,6 +507,7 @@ export default function PerformanceSystemIndex({
                 </div>
                 )}
             </div>
+            )}
         </AppLayout>
     );
 }

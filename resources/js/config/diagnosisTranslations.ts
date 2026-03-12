@@ -176,6 +176,8 @@ export const t = {
   industry: { en: 'Industry', ko: '업종' },
   listedStatus: { en: 'Listed', ko: '상장여부' },
   hqLocation: { en: 'HQ location', ko: '본사 위치' },
+  brandName: { en: 'Brand name', ko: '브랜드명' },
+  registrationNumber: { en: 'Registration no.', ko: '사업자등록번호' },
   fullTime: { en: 'Full-time', ko: '정규직' },
   partTime: { en: 'Part-time', ko: '파트타임' },
   contractors: { en: 'Contractors', ko: '계약직' },
@@ -206,12 +208,25 @@ export const t = {
   editBtn: { en: 'Edit', ko: '수정' },
   submitConfirmTitle: { en: 'Have you checked all contents?', ko: '모든 내용을 확인하셨나요?' },
   submitConfirmDesc: {
-    en: 'After submission, a consultant will review and prepare the HR system report.',
-    ko: '제출 후 컨설턴트가 검토하여 HR 시스템 리포트를 작성합니다.',
+    en: 'The consultant will start writing the report.',
+    ko: '컨설턴트가 리포트 작성을 시작합니다.',
   },
+  reviewDashboardDescShort: {
+    en: 'Review the entered content and submit it.',
+    ko: '입력한 내용을 검토하고 제출하세요.',
+  },
+  listedShort: { en: 'Listed', ko: '상장' },
+  sector: { en: 'Industry', ko: '업종' },
+  avgAgeShort: { en: 'Avg. age', ko: '평균연령' },
+  avgTenureShort: { en: 'Avg. tenure', ko: '평균 근속' },
+  gradeDistributionTitle: { en: 'Job grade distribution', ko: '직급별 분포' },
+  currentIssuesTitle: { en: 'Current issues', ko: '당면 이슈' },
   submitDiagnosisBtn: { en: 'Submit Diagnosis →', ko: '진단 제출하기 →' },
   backBtn: { en: '← Back', ko: '← 이전' },
   itemsCount: { en: 'items', ko: '건' },
+  expectedHeadcount1y: { en: 'Expected (1 yr)', ko: '1년 후 예상' },
+  expectedHeadcount2y: { en: 'Expected (2 yr)', ko: '2년 후 예상' },
+  expectedHeadcount3y: { en: 'Expected (3 yr)', ko: '3년 후 예상' },
 } as const;
 
 export type Lang = 'en' | 'ko';

@@ -275,19 +275,14 @@ export default function FormLayout({
             }
         }
 
-        // Check if diagnosis is submitted
+        // If diagnosis is already submitted/approved/locked, skip save and go to next step (avoid "cannot be edited" error)
         const isSubmitted = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
-        
-        // If submitted and no new data to save, show one toast then navigate
-        if (isSubmitted && !hasFormData) {
-            toast({ title: tr('saved'), description: tr('proceeding'), variant: 'success' });
-            setTimeout(() => {
-                if (onNext) {
-                    onNext();
-                } else if (nextRoute) {
-                    router.visit(getNextUrl()!, { onSuccess: () => window.scrollTo({ top: 0, behavior: 'smooth' }) });
-                }
-            }, 200);
+        if (isSubmitted) {
+            if (onNext) {
+                onNext();
+            } else if (nextRoute && getNextUrl()) {
+                router.visit(getNextUrl()!, { onSuccess: () => window.scrollTo({ top: 0, behavior: 'smooth' }) });
+            }
             return;
         }
 

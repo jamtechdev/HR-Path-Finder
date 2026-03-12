@@ -8,10 +8,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-    /* Reference: HR Path-Finder – Pretendard for all pages (Korean + English) */
-    --font-sans:
-        'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif,
-        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Project-wide: Source Sans 3, Noto Serif KR, Source Serif 4 (landing revision) */
+    --font-sans: 'Source Sans 3', 'Noto Serif KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-serif: 'Source Serif 4', 'Noto Serif KR', Georgia, serif;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -62,106 +61,107 @@
 }
 
 :root {
-    /* HR Path-Finder reference design tokens (match given HTML) */
-    --hr-navy: #1a2744;
-    --hr-navy-deep: #111d35;
-    --hr-navy-mid: #223058;
-    --hr-navy-light: #2d3f6b;
-    --hr-mint: #4ecdc4;
-    --hr-mint-dim: rgba(78, 205, 196, 0.15);
-    --hr-gold: #c9a84c;
-    --hr-gold-dim: rgba(201, 168, 76, 0.12);
-    --hr-gray-50: #f8f9fb;
+    /* Landing revision palette: navy #0B1E3D, mint #2ECFAB, gold #C8A84B, cream #FAF8F3 */
+    --hr-navy: #0B1E3D;
+    --hr-navy-deep: #0B1E3D;
+    --hr-navy-mid: #132847;
+    --hr-navy-light: #1E3A5F;
+    --hr-mint: #2ECFAB;
+    --hr-mint-dim: rgba(46, 207, 171, 0.15);
+    --hr-gold: #C8A84B;
+    --hr-gold-dim: rgba(200, 168, 75, 0.12);
+    --hr-gray-50: #FAF8F3;
     --hr-gray-100: #f0f2f6;
-    --hr-gray-200: #e2e6ee;
+    --hr-gray-200: #e4e8ef;
     --hr-gray-300: #cdd3df;
-    --hr-gray-400: #9ba5bc;
-    --hr-gray-600: #5a6478;
-    --hr-gray-800: #2d3340;
+    --hr-gray-400: #6B82A0;
+    --hr-gray-600: #3D5068;
+    --hr-gray-800: #0D1B2A;
     --hr-sidebar-w: 220px;
     --hr-topbar-h: 52px;
 
-    --background: 210 20% 98%;
-    --foreground: 215 25% 15%;
+    /* HSL for Tailwind: navy 217 69% 14%, mint 166 64% 50%, gold 43 52% 54%, cream 40 33% 97% */
+    --background: 40 33% 97%;
+    --foreground: 217 69% 14%;
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 217 69% 14%;
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
-    --primary: 212 55% 25%;
+    --popover-foreground: 217 69% 14%;
+    --primary: 217 69% 14%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 20% 94%;
-    --secondary-foreground: 215 25% 25%;
-    --muted: 210 15% 92%;
-    --muted-foreground: 215 15% 45%;
-    --accent: 8 76% 56%;
-    --accent-foreground: 0 0% 100%;
-    --success: 168 76% 32%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 38 92% 15%;
+    --secondary: 40 20% 94%;
+    --secondary-foreground: 217 69% 14%;
+    --muted: 40 15% 94%;
+    --muted-foreground: 214 25% 35%;
+    --accent: 166 64% 50%;
+    --accent-foreground: 217 69% 14%;
+    --success: 166 64% 50%;
+    --success-foreground: 217 69% 14%;
+    --warning: 43 52% 54%;
+    --warning-foreground: 217 69% 14%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --step-locked: 210 15% 75%;
-    --step-active: 212 55% 25%;
-    --step-completed: 168 76% 32%;
-    --step-pending: 38 92% 50%;
-    --border: 214 20% 88%;
-    --input: 214 20% 88%;
-    --ring: 212 55% 40%;
+    --step-locked: 214 20% 75%;
+    --step-active: 217 69% 14%;
+    --step-completed: 166 64% 50%;
+    --step-pending: 43 52% 54%;
+    --border: 214 20% 90%;
+    --input: 214 20% 90%;
+    --ring: 166 64% 50%;
     --radius: 0.625rem;
-    --sidebar-background: 215 25% 12%;
-    --sidebar-foreground: 210 15% 85%;
-    --sidebar-primary: 168 76% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 25% 18%;
-    --sidebar-accent-foreground: 210 15% 90%;
-    --sidebar-border: 215 20% 20%;
-    --sidebar-ring: 168 76% 45%;
-    --gradient-primary: linear-gradient(135deg, hsl(212 55% 25%) 0%, hsl(212 65% 35%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(8 76% 56%) 0%, hsl(25 90% 55%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(168 76% 32%) 0%, hsl(168 65% 42%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(215 25% 12%) 0%, hsl(212 55% 22%) 50%, hsl(215 30% 18%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(210 20% 97%) 100%);
-    --shadow-sm: 0 1px 2px 0 hsla(215 25% 15% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsla(215 25% 15% / 0.08), 0 2px 4px -2px hsla(215 25% 15% / 0.05);
-    --shadow-lg: 0 10px 15px -3px hsla(215 25% 15% / 0.1), 0 4px 6px -4px hsla(215 25% 15% / 0.05);
-    --shadow-xl: 0 20px 25px -5px hsla(215 25% 15% / 0.1), 0 8px 10px -6px hsla(215 25% 15% / 0.05);
-    --shadow-glow: 0 0 20px hsla(212 55% 40% / 0.15);
-    --shadow-accent-glow: 0 0 30px hsla(8 76% 56% / 0.25);
+    --sidebar-background: 217 69% 14%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 166 64% 50%;
+    --sidebar-primary-foreground: 217 69% 14%;
+    --sidebar-accent: 217 58% 18%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 166 64% 50% / 0.2;
+    --sidebar-ring: 166 64% 50%;
+    --gradient-primary: linear-gradient(135deg, #0B1E3D 0%, #1E3A5F 100%);
+    --gradient-accent: linear-gradient(135deg, #2ECFAB 0%, #7EE8D0 100%);
+    --gradient-success: linear-gradient(135deg, #2ECFAB 0%, #7EE8D0 100%);
+    --gradient-hero: linear-gradient(135deg, #0B1E3D 0%, #132847 50%, #1E3A5F 100%);
+    --gradient-card: linear-gradient(180deg, #fff 0%, #FAF8F3 100%);
+    --shadow-sm: 0 1px 2px 0 rgb(11 30 61 / 0.06);
+    --shadow-md: 0 4px 6px -1px rgb(11 30 61 / 0.08), 0 2px 4px -2px rgb(11 30 61 / 0.05);
+    --shadow-lg: 0 10px 15px -3px rgb(11 30 61 / 0.1), 0 4px 6px -4px rgb(11 30 61 / 0.05);
+    --shadow-xl: 0 20px 25px -5px rgb(11 30 61 / 0.1), 0 8px 10px -6px rgb(11 30 61 / 0.05);
+    --shadow-glow: 0 0 20px rgb(46 207 171 / 0.2);
+    --shadow-accent-glow: 0 0 30px rgb(46 207 171 / 0.3);
 }
 
 .dark {
-    --background: 215 25% 12%;
-    --foreground: 210 15% 85%;
-    --card: 215 25% 18%;
-    --card-foreground: 210 15% 85%;
-    --popover: 215 25% 18%;
-    --popover-foreground: 210 15% 85%;
-    --primary: 212 55% 65%;
-    --primary-foreground: 215 25% 15%;
-    --secondary: 215 25% 25%;
-    --secondary-foreground: 210 15% 85%;
-    --muted: 215 25% 25%;
-    --muted-foreground: 210 15% 65%;
-    --accent: 8 76% 56%;
-    --accent-foreground: 0 0% 100%;
-    --success: 168 76% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 55%;
-    --warning-foreground: 38 92% 15%;
+    --background: 217 69% 10%;
+    --foreground: 0 0% 95%;
+    --card: 217 58% 14%;
+    --card-foreground: 0 0% 95%;
+    --popover: 217 58% 14%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 166 64% 50%;
+    --primary-foreground: 217 69% 14%;
+    --secondary: 217 58% 18%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 217 58% 18%;
+    --muted-foreground: 210 15% 70%;
+    --accent: 166 64% 55%;
+    --accent-foreground: 217 69% 14%;
+    --success: 166 64% 55%;
+    --success-foreground: 217 69% 14%;
+    --warning: 43 52% 55%;
+    --warning-foreground: 217 69% 14%;
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 215 20% 30%;
-    --input: 215 20% 30%;
-    --ring: 212 55% 50%;
-    --sidebar-background: 215 25% 12%;
-    --sidebar-foreground: 210 15% 85%;
-    --sidebar-primary: 168 76% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 25% 18%;
-    --sidebar-accent-foreground: 210 15% 90%;
-    --sidebar-border: 215 20% 20%;
-    --sidebar-ring: 168 76% 45%;
+    --border: 217 30% 25%;
+    --input: 217 30% 25%;
+    --ring: 166 64% 50%;
+    --sidebar-background: 217 69% 14%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 166 64% 50%;
+    --sidebar-primary-foreground: 217 69% 14%;
+    --sidebar-accent: 217 58% 18%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 217 30% 25%;
+    --sidebar-ring: 166 64% 50%;
 }
 
 @layer base {
@@ -169,9 +169,19 @@
         @apply border-border;
     }
 
+    html {
+        background-color: hsl(var(--background));
+    }
+
     body {
-        @apply bg-background text-foreground font-sans antialiased;
+        @apply bg-background text-foreground antialiased;
         font-family: var(--font-sans);
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    h1, h2, h3, .font-serif {
+        font-family: var(--font-serif);
     }
 }
 

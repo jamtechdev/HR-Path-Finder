@@ -31,63 +31,43 @@ export default function Login({
 
 
     return (
-        <div className="min-h-screen gradient-hero flex flex-nowrap relative overflow-hidden">
-            {/* Animated Background Elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute bottom-20 right-10 w-96 h-96 bg-success/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-accent/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+        <div className="min-h-screen flex flex-nowrap relative overflow-hidden" data-auth-revision>
+            <div className="absolute inset-0 overflow-hidden pointer-events-none lg:block hidden">
+                <div className="absolute top-20 left-10 w-72 h-72 bg-[#2ECFAB]/10 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#C8A84B]/8 rounded-full blur-3xl animate-pulse delay-1000" />
             </div>
 
-            {/* Left Side - Promotional Section */}
-            <div className="hidden lg:flex lg:w-1/2 lg:flex-shrink-0 flex-col justify-between p-12 text-white relative z-10">
+            <div className="hidden lg:flex lg:w-1/2 lg:flex-shrink-0 flex-col justify-between p-12 bg-[#0B1E3D] text-white relative z-10">
                 <div className="animate-in fade-in slide-in-from-left-4 duration-700">
                     <Link href={home()} className="flex items-center gap-3 mb-8 cursor-pointer">
-                        <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20">
+                        <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-[#2ECFAB]/20">
                             HR
                         </div>
                         <div>
-                            <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
-                            <p className="text-white/70 text-sm">by BetterCompany</p>
+                            <h1 className="font-serif text-2xl font-bold">HR <span className="text-[#2ECFAB]">Pathfinder</span></h1>
+                            <p className="text-white/60 text-sm">powered by BetterCompany</p>
                         </div>
                     </Link>
                 </div>
-                
                 <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-1000 delay-200">
-                        <div>
-                            <h2 className="font-display text-5xl font-bold leading-tight mb-4">
-                                {t('auth.login.promo_title')}
-                            </h2>
-                            <p className="text-white/80 text-lg max-w-md leading-relaxed">
-                                {t('auth.login.promo_subtitle')}
-                            </p>
-                        </div>
-                        
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-3 text-white/90">
-                                <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
-                                    <Zap className="w-5 h-5 text-success" />
+                    <div>
+                        <h2 className="font-serif text-4xl font-bold leading-tight mb-4">{t('auth.login.promo_title')}</h2>
+                        <p className="text-white/70 text-lg max-w-md leading-relaxed">{t('auth.login.promo_subtitle')}</p>
+                    </div>
+                    <div className="space-y-4">
+                        {[t('auth.login.feature_fast'), t('auth.login.feature_security'), t('auth.login.feature_collaboration')].map((text, i) => (
+                            <div key={i} className="flex items-center gap-3 text-white/90">
+                                <div className="w-8 h-8 rounded-lg bg-[#2ECFAB]/20 flex items-center justify-center">
+                                    {i === 0 ? <Zap className="w-5 h-5 text-[#2ECFAB]" /> : i === 1 ? <Shield className="w-5 h-5 text-[#2ECFAB]" /> : <CheckCircle2 className="w-5 h-5 text-[#2ECFAB]" />}
                                 </div>
-                                <span className="text-sm">{t('auth.login.feature_fast')}</span>
+                                <span className="text-sm">{text}</span>
                             </div>
-                            <div className="flex items-center gap-3 text-white/90">
-                                <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
-                                    <Shield className="w-5 h-5 text-success" />
-                                </div>
-                                <span className="text-sm">{t('auth.login.feature_security')}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-white/90">
-                                <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
-                                    <CheckCircle2 className="w-5 h-5 text-success" />
-                                </div>
-                                <span className="text-sm">{t('auth.login.feature_collaboration')}</span>
-                            </div>
-                        </div>
+                        ))}
+                    </div>
                 </div>
-                
-                <div className="flex items-center gap-8 text-white/60 text-sm animate-in fade-in slide-in-from-left-4 duration-1000 delay-500">
+                <div className="flex items-center gap-8 text-white/55 text-sm">
                     <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-success animate-pulse"></div>
+                        <div className="w-2 h-2 rounded-full bg-[#2ECFAB] animate-pulse" />
                         <span>{t('auth.login.trusted')}</span>
                     </div>
                     <span>•</span>
@@ -95,45 +75,32 @@ export default function Login({
                 </div>
             </div>
 
-            {/* Right Side - Login Form */}
-            <div className="w-full lg:w-1/2 lg:flex-shrink-0 flex items-center justify-center p-6 md:p-12 bg-background/95 backdrop-blur-sm relative z-10">
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-[#FAF8F3] relative z-10">
                 <div className="w-full max-w-md">
                     <Head title="Sign in" />
 
-                    {/* Mobile Logo */}
-                    <div className="lg:hidden flex items-center gap-3 justify-center mb-8 animate-in fade-in slide-in-from-top-4">
+                    <div className="lg:hidden flex items-center gap-3 justify-center mb-8">
                         <Link href={home()} className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-[#0a1629] flex items-center justify-center shadow-lg cursor-pointer text-white">
-                                HR
-                            </div>
+                            <div className="w-12 h-12 rounded-xl bg-[#0B1E3D] flex items-center justify-center text-white font-bold">HR</div>
                             <div>
-                                <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
-                                <p className="text-muted-foreground text-sm">by BetterCompany</p>
+                                <h1 className="font-serif text-2xl font-bold text-[#0D1B2A]">HR <span className="text-[#2ECFAB]">Pathfinder</span></h1>
+                                <p className="text-[#3D5068] text-sm">powered by BetterCompany</p>
                             </div>
                         </Link>
                     </div>
-
-                    {/* Back to Home Link */}
                     <div className="mb-4">
-                        <Link href={home()} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                        <Link href={home()} className="inline-flex items-center gap-2 text-sm text-[#3D5068] hover:text-[#0B1E3D] transition-colors">
                             <ArrowLeft className="w-4 h-4" />
                             {t('auth.login.back_to_home')}
                         </Link>
                     </div>
-
-                    {/* Login Card */}
-                    <div className="bg-card border border-border rounded-2xl shadow-xl p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                        {/* Header */}
+                    <div className="bg-white border border-[#EEF0F4] rounded-2xl shadow-lg p-8 space-y-6">
                         <div className="text-center lg:text-left">
-                            <h2 className="text-3xl font-display font-bold">
-                                {t('auth.login.title')}
-                            </h2>
-                            <p className="text-muted-foreground mt-2 text-sm">{t('auth.login.subtitle')}</p>
+                            <h2 className="font-serif text-3xl font-bold text-[#0B1E3D]">{t('auth.login.title')}</h2>
+                            <p className="text-[#3D5068] mt-2 text-sm">{t('auth.login.subtitle')}</p>
                         </div>
-
-                        {/* Status Message */}
                         {status && (
-                            <div className="p-4 rounded-lg bg-success/10 border border-success/20 text-center text-sm font-medium text-success animate-in fade-in slide-in-from-top-4">
+                            <div className="p-4 rounded-lg bg-[#E6FAF6] border border-[#2ECFAB]/30 text-sm font-medium text-[#1A8C6F]">
                                 {status}
                             </div>
                         )}
@@ -165,7 +132,7 @@ export default function Login({
                                     tabIndex={1}
                                     autoComplete="email"
                                     placeholder={t('auth.login.email_placeholder')}
-                                    className="h-11 w-full transition-all duration-200 focus:ring-2 focus:ring-primary/20 cursor-text"
+                                    className="h-11 w-full border-[#EEF0F4] focus:ring-2 focus:ring-[#2ECFAB]/30 focus:border-[#2ECFAB]/50"
                                 />
                                 <InputError message={form.errors.email} />
                             </div>
@@ -176,11 +143,7 @@ export default function Login({
                                         {t('auth.login.password_label')}
                                     </Label>
                                     {canResetPassword && (
-                                        <TextLink
-                                            href={request()}
-                                            className="text-sm text-[#0a1629] hover:text-[#0d1b35] font-medium transition-all duration-200 hover:underline cursor-pointer"
-                                            tabIndex={5}
-                                        >
+                                        <TextLink href={request()} className="text-sm text-[#2ECFAB] hover:text-[#1A8C6F] font-medium hover:underline" tabIndex={5}>
                                             {t('auth.login.forgot_password')}
                                         </TextLink>
                                     )}
@@ -194,14 +157,14 @@ export default function Login({
                                     tabIndex={2}
                                     autoComplete="current-password"
                                     placeholder="••••••••"
-                                    className="h-11 w-full transition-all duration-200 focus:ring-2 focus:ring-primary/20 cursor-text"
+                                    className="h-11 w-full border-[#EEF0F4] focus:ring-2 focus:ring-[#2ECFAB]/30 focus:border-[#2ECFAB]/50"
                                 />
                                 <InputError message={form.errors.password} />
                             </div>
 
                             <Button
                                 type="submit"
-                                className="w-full h-11 bg-[#0a1629] hover:bg-[#0d1b35] text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
+                                className="w-full h-11 bg-[#2ECFAB] hover:bg-[#7EE8D0] text-[#0B1E3D] font-bold shadow-lg hover:shadow-xl transition-all"
                                 tabIndex={3}
                                 disabled={form.processing}
                                 data-test="login-button"
@@ -221,16 +184,12 @@ export default function Login({
                         </form>
 
                         {canRegister && (
-                            <div className="pt-4 border-t border-border">
-                                <p className="text-center text-sm text-muted-foreground">
+                            <div className="pt-4 border-t border-[#EEF0F4]">
+                                <p className="text-center text-sm text-[#3D5068]">
                                     {t('auth.login.no_account')}{' '}
-                                    <TextLink
-                                        href={register()}
-                                        className="text-[#0a1629] font-semibold hover:text-[#0d1b35] transition-all duration-200 hover:underline cursor-pointer inline-flex items-center gap-1"
-                                        tabIndex={4}
-                                    >
+                                    <TextLink href={register()} className="text-[#2ECFAB] font-semibold hover:text-[#1A8C6F] hover:underline inline-flex items-center gap-1" tabIndex={4}>
                                         {t('auth.login.create_account')}
-                                        <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-1" />
+                                        <ArrowRight className="h-3 w-3" />
                                     </TextLink>
                                 </p>
                             </div>

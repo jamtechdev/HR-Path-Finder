@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { CheckCircle2, AlertCircle, Mail } from 'lucide-react';
 import { tr } from '@/config/diagnosisTranslations';
 import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
+import { diagnosisTabs } from '@/config/diagnosisTabs';
 
 // HR issue categories for grouping on review (id, color, issue strings)
 const HR_ISSUE_CATEGORIES = [
@@ -71,18 +72,21 @@ function ReviewCard({
         <div
             onMouseEnter={() => setHov(true)}
             onMouseLeave={() => setHov(false)}
-            className="overflow-hidden rounded-[14px] border-[1.5px] border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 transition-shadow"
-            style={{ boxShadow: hov ? '0 4px 18px rgba(15,42,74,0.1)' : '0 1px 4px rgba(15,42,74,0.05)' }}
+            className="overflow-hidden rounded-[14px] border-[1.5px] bg-white transition-shadow"
+            style={{
+                borderColor: '#e2e8f0',
+                boxShadow: hov ? '0 4px 18px rgba(15,42,74,0.1)' : '0 1px 4px rgba(15,42,74,0.05)',
+            }}
         >
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-3">
+            <div className="flex items-center justify-between border-b" style={{ borderColor: '#f0f4f8', background: '#f8fafc', padding: '12px 16px' }}>
                 <div className="flex items-center gap-1.5">
                     <span className="text-sm">{icon}</span>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">{title}</span>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#0f2a4a]">{title}</span>
                 </div>
                 <Link
                     href={editUrl}
-                    className="inline-flex items-center gap-1 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-0.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400 transition-opacity hover:bg-slate-50 dark:hover:bg-slate-800"
-                    style={{ opacity: hov ? 1 : 0 }}
+                    className="inline-flex items-center gap-1 rounded-[5px] border px-2 py-0.5 text-[10px] font-semibold transition-opacity hover:bg-slate-50"
+                    style={{ opacity: hov ? 1 : 0, borderColor: '#e2e8f0', color: '#64748b' }}
                 >
                     <svg width="9" height="9" viewBox="0 0 11 11" fill="none" className="shrink-0">
                         <path d="M7.5 1.5L9.5 3.5L3.5 9.5H1.5V7.5L7.5 1.5Z" stroke="#64748b" strokeWidth="1.3" strokeLinejoin="round" />
@@ -90,18 +94,18 @@ function ReviewCard({
                     {tr('editBtn')}
                 </Link>
             </div>
-            <div className="p-4">{children}</div>
+            <div style={{ padding: '14px 16px' }}>{children}</div>
         </div>
     );
 }
 
 function KpiBlock({ label, value, unit, accent }: { label: string; value: number | string; unit: string; accent?: string }) {
     return (
-        <div className="min-w-[80px] flex-1 rounded-lg bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="mb-0.5 text-[9px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
-            <div className="text-xl font-extrabold leading-none text-slate-800 dark:text-slate-100" style={accent ? { color: accent } : undefined}>
+        <div className="min-w-[80px] flex-1 rounded-[9px] p-3" style={{ background: '#f8fafc', padding: '11px 13px' }}>
+            <div className="mb-0.5 text-[9px] font-semibold uppercase tracking-[0.05em] text-[#94a3b8]">{label}</div>
+            <div className="text-xl font-extrabold leading-none text-[#0f2a4a]" style={accent ? { color: accent } : undefined}>
                 {value}
-                <span className="ml-0.5 text-[11px] font-medium text-slate-400">{unit}</span>
+                <span className="ml-0.5 text-[11px] font-medium text-[#94a3b8]">{unit}</span>
             </div>
         </div>
     );
@@ -344,17 +348,24 @@ export default function Review({
 
     const jobStructureForReview = useMemo(() => {
         const funcs = diagnosis?.job_functions ?? [];
+        const cats = diagnosis?.job_categories ?? [];
         const map = new Map<string, string[]>();
+        for (const c of cats) {
+            const name = String(c).trim();
+            if (name && !map.has(name)) map.set(name, []);
+        }
         for (const f of funcs) {
             const s = String(f);
             const sep = s.indexOf('|');
             const cat = sep > 0 ? s.slice(0, sep).trim() : 'General';
             const fn = sep > 0 ? s.slice(sep + 1).trim() : s;
             if (!map.has(cat)) map.set(cat, []);
-            map.get(cat)!.push(fn);
+            if (fn) map.get(cat)!.push(fn);
         }
+        if (map.size === 0 && (funcs.length || cats.length)) return [];
+        if (map.size === 0) return [];
         return Array.from(map.entries()).map(([name, functions]) => ({ name, functions }));
-    }, [diagnosis?.job_functions]);
+    }, [diagnosis?.job_functions, diagnosis?.job_categories]);
 
     const hrIssuesByCategory = useMemo(() => {
         const issues = diagnosis?.hr_issues ?? [];
@@ -516,159 +527,143 @@ export default function Review({
                 backRoute="hr-issues"
                 showNext={false}
             >
+                <div className="-mx-9 -mt-7 bg-[#f4f6f9] min-h-full pb-6">
+                    {/* Step nav bar — ref: gap 8px, padding 4px 11px, sticky, 52px */}
+                    <div className="bg-white border-b border-[#e2e8f0] px-5 flex items-center gap-2 h-[52px] overflow-x-auto shrink-0 sticky top-0 z-[100]" style={{ gap: 8 }}>
+                        {diagnosisTabs
+                            .filter((tab) => tab.id !== 'overview')
+                            .map((tab) => {
+                                const isCurrent = tab.id === 'review';
+                                const isDone = tab.id !== 'review';
+                                const href = projectId ? `/hr-manager/diagnosis/${projectId}/${tab.id}` : `/hr-manager/diagnosis/${tab.id}`;
+                                return (
+                                    <Link
+                                        key={tab.id}
+                                        href={href}
+                                        className="flex items-center gap-1 py-1 px-[11px] rounded-[20px] text-[11.5px] font-medium whitespace-nowrap shrink-0 transition-colors"
+                                        style={{
+                                            background: isCurrent ? '#0f2a4a' : isDone ? '#e8f8ef' : 'transparent',
+                                            color: isCurrent ? '#fff' : isDone ? '#1a9e55' : '#94a3b8',
+                                            border: isCurrent ? 'none' : isDone ? '1.5px solid #a7efcc' : '1.5px solid #e2e8f0',
+                                            fontWeight: isCurrent ? 700 : 500,
+                                        }}
+                                    >
+                                        {isDone && !isCurrent && <span className="shrink-0">✓</span>}
+                                        {tab.name}
+                                    </Link>
+                                );
+                            })}
+                    </div>
+                    <div className="max-w-[960px] mx-auto px-5 pt-7 pb-12" style={{ padding: '28px 20px 50px' }}>
                 <div className="space-y-4">
-                    {/* Page title */}
-                    <div className="mb-5">
-                        <h1 className="m-0 text-xl font-extrabold text-slate-800 dark:text-slate-100">{tr('reviewDashboardTitle')}</h1>
-                        <p className="mt-1 text-xs text-slate-500">{tr('reviewDashboardDesc')}</p>
-                    </div>
+                    {/* Page header — ref: margin-bottom 20px */}
+                    <header className="mb-5" style={{ marginBottom: 20 }}>
+                        <h1 className="m-0 text-xl font-extrabold text-[#0f2a4a]" style={{ fontSize: 20, fontWeight: 800 }}>{tr('reviewDashboardTitle')}</h1>
+                        <p className="mt-1 text-[12px] text-[#94a3b8]" style={{ marginTop: 4 }}>{tr('reviewDashboardDescShort')}</p>
+                    </header>
 
-                    {/* Hero dark */}
-                    <div className="rounded-t-[14px] bg-gradient-to-br from-[#0f2a4a] to-[#1a4070] dark:from-slate-800 dark:to-slate-900 px-6 py-5">
-                        <div className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#c8a84b]">
-                            {company?.name || project?.company?.name || '—'} · {formatValue(diagnosis?.industry_category) || '—'}
+                    {/* Hero dark — ref: 3 KPIs only, padding 22px 26px, divider 44px */}
+                    <div className="rounded-t-[14px] text-white" style={{ background: 'linear-gradient(135deg, #0f2a4a 0%, #1a4070 100%)', padding: '22px 26px' }}>
+                        <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.08em] text-[#c8a84b]">
+                            {company?.name || project?.company?.name || '—'} · {[diagnosis?.industry_category, diagnosis?.industry_subcategory].filter(Boolean).map((v) => formatValue(v)).join(' · ') || '—'}
                         </div>
-                        <div className="flex flex-wrap items-end gap-7">
+                        <div className="flex flex-wrap items-end gap-7" style={{ gap: 28 }}>
                             <div>
-                                <div className="mb-0.5 text-[9px] text-slate-400">{tr('totalHeadcount')}</div>
-                                <div className="text-2xl font-extrabold leading-none text-white">
-                                    {totalHeadcount}
-                                    <span className="ml-0.5 text-xs font-medium text-slate-400">{tr('personsUnit')}</span>
+                                <label className="block text-[9px] text-[#94a3b8] uppercase mb-0.5">{tr('totalHeadcount')}</label>
+                                <div className="text-2xl font-extrabold leading-none">
+                                    {totalHeadcount}<span className="text-[12px] text-[#94a3b8] font-medium ml-0.5">{tr('personsUnit')}</span>
                                 </div>
                             </div>
-                            <div className="flex items-end gap-2">
-                                <div>
-                                    <div className="mb-0.5 text-[9px] text-slate-400">{tr('activeTenure')}</div>
-                                    <div className="text-2xl font-extrabold leading-none text-emerald-400">
-                                        {formatNumber(diagnosis?.average_tenure_active)}
-                                        <span className="ml-0.5 text-xs font-medium text-slate-400">{tr('yearsUnit')}</span>
-                                    </div>
-                                </div>
-                                <div className="pb-1 text-[10px] text-white/20">vs</div>
-                                <div>
-                                    <div className="mb-0.5 text-[9px] text-slate-400">{tr('exitTenure')}</div>
-                                    <div className="text-2xl font-extrabold leading-none text-slate-400">
-                                        {formatNumber(diagnosis?.average_tenure_leavers)}
-                                        <span className="ml-0.5 text-xs font-medium text-slate-400">{tr('yearsUnit')}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="h-11 w-px self-center bg-white/10" />
+                            <div className="w-px h-[44px] bg-white/10 self-center shrink-0" />
                             <div>
-                                <div className="mb-0.5 text-[9px] text-slate-400">{tr('leaderRatioLabel')}</div>
+                                <label className="block text-[9px] text-[#94a3b8] uppercase mb-0.5">{tr('leaderRatioLabel')}</label>
                                 <div className="text-2xl font-extrabold leading-none text-[#c8a84b]">{leaderRatio}%</div>
-                                <div className="mt-0.5 text-[9px] text-slate-400">
-                                    {leaderCountFromGrades}{tr('personsUnit')} / {tr('totalShort')} {totalHeadcount}{tr('personsUnit')}
-                                </div>
                             </div>
                             <div>
-                                <div className="mb-0.5 text-[9px] text-slate-400">{tr('executiveRatioLabel')}</div>
-                                <div className="text-2xl font-extrabold leading-none text-sky-300">{execRatio}%</div>
-                                <div className="mt-0.5 text-[9px] text-slate-400">
-                                    {execTotal}{tr('personsUnit')} · {execPositionsStr || '—'}
+                                <label className="block text-[9px] text-[#94a3b8] uppercase mb-0.5">{tr('avgTenureShort')}</label>
+                                <div className="text-2xl font-extrabold leading-none text-[#2aab6e]">
+                                    {formatNumber(diagnosis?.average_tenure_active)}<span className="text-[12px] text-[#94a3b8] font-medium ml-0.5">{tr('yearsUnit')}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Hero light: gender + job structure */}
-                    <div className="flex flex-wrap items-center gap-6 rounded-b-[14px] border border-t-0 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-6 py-4">
-                        <div className="flex items-center gap-3">
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">{tr('genderDistribution')}</div>
-                            <div className="relative h-20 w-20 shrink-0">
+                    {/* Hero light — ref: gender doughnut 80x80, legend with ● and "남성 46명" only (no %); job structure tags only */}
+                    <div className="flex flex-wrap items-center rounded-b-[14px] border border-t-0 mb-4" style={{ background: '#fff', borderColor: '#e2e8f0', padding: '16px 26px', gap: 24 }}>
+                        <div className="flex items-center gap-3" style={{ gap: 15 }}>
+                            <span className="text-[10px] font-bold uppercase text-[#0f2a4a]">{tr('genderDistribution')}</span>
+                            <div className="relative shrink-0" style={{ width: 80, height: 80 }}>
                                 <div
-                                    className="absolute inset-0 rounded-full border-[8px] border-transparent"
+                                    className="absolute inset-0 rounded-full"
                                     style={{
                                         background: totalHeadcount
                                             ? `conic-gradient(${GENDER_COLORS[0]} 0deg ${(Number(genderData[0].value) / totalHeadcount) * 360}deg, ${GENDER_COLORS[1]} ${(Number(genderData[0].value) / totalHeadcount) * 360}deg ${((Number(genderData[0].value) + Number(genderData[1].value)) / totalHeadcount) * 360}deg, ${GENDER_COLORS[2]} ${((Number(genderData[0].value) + Number(genderData[1].value)) / totalHeadcount) * 360}deg 360deg)`
                                             : `conic-gradient(${GENDER_COLORS[0]} 0deg 120deg, ${GENDER_COLORS[1]} 120deg 240deg, ${GENDER_COLORS[2]} 240deg 360deg)`,
-                                        mask: 'radial-gradient(farthest-side, transparent calc(100% - 14px), black calc(100% - 14px))',
-                                        WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 14px), black calc(100% - 14px))',
+                                        mask: 'radial-gradient(farthest-side, transparent 70%, black 70%)',
+                                        WebkitMask: 'radial-gradient(farthest-side, transparent 70%, black 70%)',
                                     }}
                                 />
                             </div>
-                            <div className="flex flex-col gap-1">
-                                {genderData.map((d, i) => (
-                                    <div key={`gender-${i}-${d.name ?? ''}`} className="flex items-center gap-1.5">
-                                        <span
-                                            className="inline-block h-2 w-2 shrink-0 rounded-full"
-                                            style={{ backgroundColor: GENDER_COLORS[i] }}
-                                        />
-                                        <span className="text-[11px] font-medium text-slate-600">{d.name}</span>
-                                        <span className="text-[11px] font-bold text-slate-800 dark:text-slate-100">{d.value}{tr('personsUnit')}</span>
-                                        <span className="text-[10px] text-slate-400">
-                                            ({totalHeadcount ? ((Number(d.value) / totalHeadcount) * 100).toFixed(0) : 0}%)
-                                        </span>
+                            <div className="flex flex-col text-[11px] gap-1" style={{ gap: 4 }}>
+                                {genderData.slice(0, 2).map((d, i) => (
+                                    <div key={`gender-${i}-${d.name ?? ''}`} className="flex items-center gap-1">
+                                        <span style={{ color: GENDER_COLORS[i] }}>●</span>
+                                        <span>{d.name}</span>
+                                        <span className="font-bold text-[#0f2a4a]">{d.value}{tr('personsUnit')}</span>
                                     </div>
                                 ))}
                             </div>
                         </div>
-                        <div className="h-14 w-px bg-slate-200" />
-                        <div className="flex items-center gap-5">
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">Job Structure</div>
-                            <div className="flex gap-4">
-                                <div className="text-center">
-                                    <div className="text-[28px] font-extrabold leading-none text-slate-800 dark:text-slate-100">{jobStructureForReview.length}</div>
-                                    <div className="mt-0.5 text-[10px] text-slate-400">{tr('jobCategoriesCount')}</div>
-                                </div>
-                                <div className="h-9 w-px self-center bg-slate-200" />
-                                <div className="text-center">
-                                    <div className="text-[28px] font-extrabold leading-none text-[#c8a84b]">
-                                        {jobStructureForReview.reduce((s, c) => s + c.functions.length, 0)}
-                                    </div>
-                                    <div className="mt-0.5 text-[10px] text-slate-400">{tr('jobFunctionsCount')}</div>
-                                </div>
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                {jobStructureForReview.map((cat, catIdx) => (
-                                    <div key={`jobstruct-${catIdx}-${cat.name ?? ''}`} className="flex items-center gap-1.5">
-                                        <span className="w-16 shrink-0 text-[10px] font-bold text-slate-800 dark:text-slate-100">{cat.name}</span>
-                                        <div className="flex flex-wrap gap-0.5">
-                                            {cat.functions.map((fn, fnIdx) => (
-                                                <span
-                                                    key={`${cat.name ?? catIdx}-fn-${fnIdx}-${String(fn ?? '')}`}
-                                                    className="rounded-full border border-sky-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5 text-[9px] font-semibold text-slate-800 dark:text-slate-100"
-                                                >
-                                                    {fn}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
+                        <div className="w-px h-[60px] bg-[#e2e8f0] shrink-0" />
+                        <div className="flex-1 min-w-0">
+                            <span className="text-[10px] font-bold uppercase text-[#0f2a4a]">Job Structure</span>
+                            <div className="flex flex-wrap gap-1.5 mt-2" style={{ gap: 5 }}>
+                                {jobStructureForReview.flatMap((cat) =>
+                                    cat.functions.map((fn, fnIdx) => (
+                                        <span
+                                            key={`${cat.name}-${fnIdx}-${fn}`}
+                                            className="rounded-full border font-semibold text-[#0f2a4a]"
+                                            style={{ fontSize: 9, background: '#f0f4fa', borderColor: '#c7d7f0', padding: '2px 8px', borderRadius: 20 }}
+                                        >
+                                            {fn}
+                                        </span>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </div>
 
-                    {/* Row 1: Company + Workforce */}
-                    <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+                    {/* Dashboard grid — ref: 2x2, gap 14px, margin-bottom 20px. Company, Workforce, 직급별 분포, 당면 이슈 */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 mb-5" style={{ gap: 14, marginBottom: 20 }}>
                         <ReviewCard title={tr('companyCardTitle')} icon="🏢" editUrl={getEditUrl(STEP_MAP.company)}>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-2 gap-2.5" style={{ gap: 10 }}>
                                 {[
-                                    [tr('foundedDate'), company?.foundation_date || '—'],
-                                    [tr('size'), totalHeadcount ? `${totalHeadcount} (headcount)` : '—'],
-                                    [tr('industry'), formatValue(diagnosis?.industry_category) || '—'],
-                                    [tr('listedStatus'), company?.public_listing_status ? String(company.public_listing_status) : (company?.is_public != null ? (company.is_public ? 'Yes' : 'No') : '—')],
-                                    [tr('hqLocation'), formatValue(company?.hq_location) || '—'],
+                                    [tr('foundedDate'), formatValue(company?.foundation_date) || '—'],
+                                    [tr('size'), totalHeadcount ? String(totalHeadcount) : '—'],
+                                    [tr('sector'), [diagnosis?.industry_category, diagnosis?.industry_subcategory].filter(Boolean).map((v) => formatValue(v)).join(' · ') || '—'],
+                                    [tr('listedShort'), company?.public_listing_status ? String(company.public_listing_status) : (company?.is_public != null ? (company.is_public ? 'Yes' : 'No') : '—')],
                                 ].map(([k, v], idx) => (
                                     <div key={`company-${idx}-${String(k ?? '')}`}>
-                                        <div className="mb-0.5 text-[9px] text-slate-400">{k}</div>
-                                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-100">{v}</div>
+                                        <div className="text-[9px] text-[#94a3b8] mb-0.5">{k}</div>
+                                        <div className="text-[12px] font-semibold text-[#0f2a4a]">{v}</div>
                                     </div>
                                 ))}
                             </div>
                         </ReviewCard>
                         <ReviewCard title={tr('workforceCardTitle')} icon="👥" editUrl={getEditUrl(STEP_MAP.workforce)}>
-                            <div className="flex gap-1.5">
-                                <KpiBlock label={tr('totalHeadcount')} value={totalHeadcount} unit={tr('personsUnit')} />
+                            <div className="flex gap-2.5" style={{ gap: 10 }}>
+                                <div className="flex-1 rounded-lg p-2.5" style={{ background: '#f8fafc', padding: 10, borderRadius: 8 }}>
+                                    <div className="text-[9px] text-[#94a3b8] mb-0.5">{tr('fullTime')}</div>
+                                    <div className="text-[18px] font-extrabold text-[#0f2a4a] leading-none">{totalHeadcount}</div>
+                                </div>
                                 {diagnosis?.average_age != null && (
-                                    <KpiBlock label={tr('avgAge')} value={formatNumber(diagnosis.average_age)} unit={tr('ageUnit')} accent="#2a7de8" />
+                                    <div className="flex-1 rounded-lg p-2.5" style={{ background: '#f8fafc', padding: 10, borderRadius: 8 }}>
+                                        <div className="text-[9px] text-[#94a3b8] mb-0.5">{tr('avgAgeShort')}</div>
+                                        <div className="text-[18px] font-extrabold text-[#0f2a4a] leading-none">{formatNumber(diagnosis.average_age)}</div>
+                                    </div>
                                 )}
                             </div>
                         </ReviewCard>
-                    </div>
-
-                    {/* Row 2: Grade pyramid + Org chart */}
-                    <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
                         <ReviewCard title={tr('gradePyramidTitle')} icon="📊" editUrl={getEditUrl(STEP_MAP.jobGrades)}>
                             <div className="flex flex-col gap-1">
                                 {jobGradesForPyramid.length ? (
@@ -678,145 +673,114 @@ export default function Review({
                                             const pct = (g.headcount / max) * 100;
                                             const ratio = gradeTotal ? ((g.headcount / gradeTotal) * 100).toFixed(1) : '0';
                                             return (
-                                                <div key={`grade-${i}-${String(g.name ?? '')}`} className="flex items-center gap-2">
-                                                    <div className="w-8 shrink-0 text-right text-[11px] font-bold text-slate-500">{g.name}</div>
-                                                    <div className="relative h-6 flex-1">
+                                                <div key={`grade-${i}-${String(g.name ?? '')}`} className="flex items-center gap-2" style={{ gap: 8, marginBottom: 5 }}>
+                                                    <div className="shrink-0 text-right text-[11px] font-bold text-[#64748b]" style={{ width: 35 }}>{g.name}</div>
+                                                    <div className="flex-1 relative" style={{ height: 26 }}>
                                                         <div
-                                                            className="absolute left-1/2 flex h-full min-w-[36px] -translate-x-1/2 items-center justify-center rounded text-[10px] font-bold text-white"
-                                                            style={{
-                                                                width: `${pct}%`,
-                                                                backgroundColor: GRADE_COLORS[i % GRADE_COLORS.length],
-                                                            }}
+                                                            className="absolute left-1/2 -translate-x-1/2 h-full flex items-center justify-center text-white font-bold rounded"
+                                                            style={{ width: `${pct}%`, minWidth: 36, fontSize: 10, borderRadius: 4, backgroundColor: GRADE_COLORS[i % GRADE_COLORS.length] }}
                                                         >
                                                             {g.headcount}{tr('personsUnit')}
                                                         </div>
                                                     </div>
-                                                    <div className="w-8 shrink-0 text-[9px] text-slate-400">{ratio}%</div>
+                                                    <div className="shrink-0 text-[9px] text-[#94a3b8]" style={{ width: 34 }}>{ratio}%</div>
                                                 </div>
                                             );
                                         })}
                                         <div
                                             className="mt-2 flex items-start gap-2 rounded-lg border px-3 py-2"
                                             style={{
-                                                backgroundColor: `${pyramidDiag.color}10`,
-                                                borderColor: `${pyramidDiag.color}30`,
+                                                marginTop: 8,
+                                                padding: '8px 11px',
+                                                borderRadius: 8,
+                                                backgroundColor: `${pyramidDiag.color}18`,
+                                                border: `1.5px solid ${pyramidDiag.color}50`,
                                             }}
                                         >
                                             <span className="shrink-0 text-xs font-extrabold" style={{ color: pyramidDiag.color }}>
                                                 {pyramidDiag.label}
                                             </span>
-                                            <span className="text-[10px] leading-relaxed text-slate-600">{pyramidDiag.desc}</span>
+                                            <span className="text-[10px] text-[#475569] leading-relaxed">{pyramidDiag.desc}</span>
                                         </div>
                                     </>
                                 ) : (
-                                    <p className="text-xs text-slate-500">—</p>
+                                    <p className="text-xs text-[#64748b]">—</p>
                                 )}
                             </div>
                         </ReviewCard>
+                        <ReviewCard title={tr('currentIssuesTitle')} icon="⚠️" editUrl={getEditUrl(STEP_MAP.hrIssues)}>
+                            <div className="flex flex-col gap-2">
+                                {hrIssuesByCategory.length ? (
+                                    hrIssuesByCategory.map((cat, catIdx) => (
+                                        <div key={`hr-${catIdx}-${cat.category ?? ''}`} style={{ marginBottom: 8 }}>
+                                            <span className="text-[10px] font-extrabold uppercase" style={{ color: cat.color }}>
+                                                {HR_ISSUE_CATEGORY_LABELS[cat.category] ?? cat.category}
+                                            </span>
+                                            <div className="flex flex-wrap gap-1 mt-0.5">
+                                                {cat.items.map((item, itemIdx) => (
+                                                    <span
+                                                        key={`${cat.category}-item-${itemIdx}-${String(item ?? '')}`}
+                                                        className="rounded text-[11px] text-[#475569]"
+                                                        style={{ background: '#f0f4f8', padding: '2px 6px', borderRadius: 4, marginRight: 4 }}
+                                                    >
+                                                        {item}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-xs text-[#64748b]">—</p>
+                                )}
+                            </div>
+                        </ReviewCard>
+                    </div>
+
+                    {/* Optional second row: Org chart + Org structure */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 mb-5" style={{ gap: 14, marginBottom: 20 }}>
                         <ReviewCard title={tr('currentOrgChartTitle')} icon="🗂️" editUrl={getEditUrl(STEP_MAP.orgCharts)}>
                             <div className="flex min-h-[180px] flex-col items-center justify-center">
                                 {currentOrgChartUrl ? (
-                                    <img
-                                        src={currentOrgChartUrl}
-                                        alt="Org chart"
-                                        className="max-h-[220px] max-w-full rounded-lg border border-slate-200 object-contain"
-                                    />
+                                    <img src={currentOrgChartUrl} alt="Org chart" className="max-h-[220px] max-w-full rounded-lg border border-[#e2e8f0] object-contain" />
                                 ) : (
-                                    <div className="flex min-h-[180px] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-sky-200 bg-slate-50">
+                                    <div className="flex min-h-[180px] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed bg-[#f8fafc]" style={{ borderColor: '#c7d7f0' }}>
                                         <div className="text-2xl">🖼️</div>
-                                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-100">{tr('orgChartUploadHint')}</div>
-                                        <div className="text-center text-[10px] leading-relaxed text-slate-400">
-                                            {tr('orgChartUploadDesc')}
-                                        </div>
-                                        <Link
-                                            href={getEditUrl(STEP_MAP.orgCharts)}
-                                            className="mt-1 rounded-md bg-[#0f2a4a] px-3.5 py-1.5 text-[10px] font-semibold text-white"
-                                        >
+                                        <div className="text-xs font-semibold text-[#0f2a4a]">{tr('orgChartUploadHint')}</div>
+                                        <div className="text-center text-[10px] text-[#94a3b8]">{tr('orgChartUploadDesc')}</div>
+                                        <Link href={getEditUrl(STEP_MAP.orgCharts)} className="mt-1 rounded-md bg-[#0f2a4a] px-3.5 py-1.5 text-[10px] font-semibold text-white">
                                             {tr('goToPrevStep')}
                                         </Link>
                                     </div>
                                 )}
                             </div>
                         </ReviewCard>
-                    </div>
-
-                    {/* Row 3: Org structure + HR issues */}
-                    <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
                         <ReviewCard title={tr('orgStructureCardTitle')} icon="🏗️" editUrl={getEditUrl(STEP_MAP.orgStructure)}>
                             <div className="flex flex-col gap-2">
-                                <div className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">
-                                    {tr('selectedOrgTypes')}
-                                </div>
                                 {diagnosis?.org_structure_types && diagnosis.org_structure_types.length > 0 ? (
-                                    <div className="inline-flex items-center gap-2 self-start rounded-lg border border-sky-200 bg-slate-50 px-4 py-2.5">
+                                    <div className="inline-flex items-center gap-2 self-start rounded-lg border px-4 py-2.5" style={{ background: '#f0f4fa', borderColor: '#c7d7f0' }}>
                                         <span className="text-lg">🏗️</span>
-                                        <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                                        <span className="text-sm font-bold text-[#0f2a4a]">
                                             {diagnosis.org_structure_types.map((t: string) => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')}
                                         </span>
                                     </div>
                                 ) : (
-                                    <span className="text-xs text-slate-500">—</span>
-                                )}
-                            </div>
-                        </ReviewCard>
-                        <ReviewCard title={tr('hrIssuesCardTitle')} icon="⚠️" editUrl={getEditUrl(STEP_MAP.hrIssues)}>
-                            <div className="flex flex-col gap-2">
-                                {hrIssuesByCategory.length ? (
-                                    hrIssuesByCategory.map((cat, catIdx) => (
-                                        <div key={`hr-${catIdx}-${cat.category ?? ''}`} className="flex items-start gap-2">
-                                            <div
-                                                className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
-                                                style={{ backgroundColor: cat.color }}
-                                            />
-                                            <div>
-                                                <span className="text-[10px] font-bold uppercase tracking-wide text-slate-800 dark:text-slate-100">
-                                                    {HR_ISSUE_CATEGORY_LABELS[cat.category] ?? cat.category}
-                                                </span>
-                                                <span
-                                                    className="ml-1.5 rounded-full border px-1.5 py-0 text-[9px] font-bold"
-                                                    style={{
-                                                        backgroundColor: `${cat.color}20`,
-                                                        borderColor: `${cat.color}40`,
-                                                        color: cat.color,
-                                                    }}
-                                                >
-                                                    {cat.items.length}{tr('itemsCount')}
-                                                </span>
-                                                <div className="mt-1 flex flex-wrap gap-0.5">
-                                                    {cat.items.map((item, itemIdx) => (
-                                                        <span
-                                                            key={`${cat.category}-item-${itemIdx}-${String(item ?? '')}`}
-                                                            className="rounded border px-1.5 py-0.5 text-[9px] text-slate-600"
-                                                            style={{
-                                                                backgroundColor: `${cat.color}0d`,
-                                                                borderColor: `${cat.color}25`,
-                                                            }}
-                                                        >
-                                                            {item}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-xs text-slate-500">—</p>
+                                    <span className="text-xs text-[#64748b]">—</span>
                                 )}
                             </div>
                         </ReviewCard>
                     </div>
 
-                    {/* Submit CTA */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] bg-gradient-to-br from-[#0f2a4a] to-[#1a4070] dark:from-slate-800 dark:to-slate-900 px-6 py-5">
+                    {/* Submit footer — ref: padding 22px 26px, gradient, gold button */}
+                    <footer className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] text-white" style={{ background: 'linear-gradient(135deg, #0f2a4a, #1a4070)', padding: '22px 26px' }}>
                         <div>
-                            <div className="mb-0.5 text-sm font-bold text-white">{tr('submitConfirmTitle')}</div>
-                            <div className="text-[11px] text-slate-400">{tr('submitConfirmDesc')}</div>
+                            <h3 className="m-0 text-sm font-bold text-white" style={{ fontSize: 14 }}>{tr('submitConfirmTitle')}</h3>
+                            <p className="text-[11px] text-[#94a3b8] mt-0.5" style={{ margin: '3px 0 0' }}>{tr('submitConfirmDesc')}</p>
                         </div>
                         <Button
                             onClick={handleSubmit}
                             disabled={processing || diagnosisStatus === 'submitted' || !projectId}
-                            className="whitespace-nowrap bg-[#c8a84b] font-bold text-white shadow-md hover:bg-[#b8983a]"
-                            style={{ boxShadow: '0 4px 12px rgba(200,168,75,0.4)' }}
+                            className="whitespace-nowrap border-0 font-bold text-white hover:opacity-95"
+                            style={{ background: '#c8a84b', boxShadow: '0 4px 12px rgba(200,168,75,0.4)', borderRadius: 9, padding: '11px 24px', border: 'none', fontWeight: 700, color: 'white', cursor: 'pointer' }}
                         >
                             {diagnosisStatus === 'submitted' ? (
                                 <>
@@ -829,7 +793,7 @@ export default function Review({
                                 tr('submitDiagnosisBtn')
                             )}
                         </Button>
-                    </div>
+                    </footer>
                     {submitError && (
                         <Alert variant="destructive">
                             <AlertCircle className="h-4 w-4" />
@@ -849,10 +813,12 @@ export default function Review({
                     )}
                     <div className="mt-4">
                         <Link href={getEditUrl('hr-issues')}>
-                            <Button variant="outline" size="sm" className="border-slate-200 font-semibold text-slate-600">
+                            <Button variant="outline" size="sm" className="border-[#e2e8f0] font-semibold text-[#475569] bg-white hover:bg-slate-50">
                                 {tr('backBtn')}
                             </Button>
                         </Link>
+                    </div>
+                </div>
                     </div>
                 </div>
             </FormLayout>
