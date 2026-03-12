@@ -149,14 +149,61 @@
       "button": "Get Started Free"
     },
     "header": {
-      "logo": "HR Copilot",
-      "company": "by BetterCompany",
+      "logo": "HR Pathfinder",
+      "company": "powered by BetterCompany",
       "sign_in": "Sign In",
       "get_started": "Get Started",
       "dashboard": "Dashboard"
     },
     "footer": {
-      "copyright": "© 2025 BetterCompany. All rights reserved."
+      "copyright": "© 2026 (주)Everthere. All rights reserved.",
+      "company_sub": "powered by BetterCompany"
+    },
+    "nav": {
+      "process": "Process",
+      "trust": "Expert Review",
+      "benchmark": "Compensation Benchmark",
+      "cta_label": "Contact Us"
+    },
+    "hero_revision": {
+      "badge": "The engine that drives organizational growth through HR policy design",
+      "sub": "Build internal HR capability and get full expert policy design at about one-quarter the cost of traditional consulting.",
+      "primary_button": "Contact Us",
+      "firm_sub": "SaaS by a professional consulting firm",
+      "firm_name": "Better Company →"
+    },
+    "trust_bar": {
+      "item1": "Policy design platform by Better Company, a professional HR consulting firm",
+      "item2": "Policy design completed within about one month on average",
+      "item3": "Strong cost advantage over traditional consulting",
+      "item4": "Competitor compensation index benchmark"
+    },
+    "process": {
+      "eyebrow": "HR data build-up process",
+      "description": "Each step feeds the next. When all four steps are complete, an HR consultant certifies your system with a tailored HR system report.",
+      "result_title": "HR consultant’s HR system report",
+      "result_sub": "Consultant review complete · PDF provided"
+    },
+    "trust_cards": {
+      "eyebrow": "Why you can trust us",
+      "description": "Pathfinder is not just a form tool. Your inputs become the basis for consultant design, and the result comes back as a reviewed HR system report.\n\n\"The system designs; the consultant certifies the report.\"",
+      "card1_title": "You run the diagnosis",
+      "card1_desc": "Enter organization structure, job definitions, performance framework, and compensation criteria step by step. Faster than handing materials to an external consultant.",
+      "card2_title": "HR consultants analyze",
+      "card2_desc": "A senior HR consultant designs the system to fit your industry, size, and culture using the data you provided.",
+      "card3_title": "Delivered as an HR system report",
+      "card3_desc": "A consultant-signed HR system report is delivered as a PDF, ready for immediate use in-house."
+    },
+    "benchmark_section": {
+      "eyebrow": "Compensation level benchmark",
+      "description": "Pathfinder compares your grade- and role-based pay to industry, target competitors, and similar segments. With your company at 100, you see where the market sits.\n\nThis analysis is included in the HR system report.",
+      "insight": "Your compensation level is about 78% of the overall industry and 85% of target competitors."
+    },
+    "cta_block": {
+      "eyebrow": "Get started now",
+      "title": "Design your company’s HR system today.",
+      "description": "After a short diagnosis, see your HR health score and top improvement priorities right away.",
+      "button": "Contact Us →"
     },
     "benchmark": {
       "title": "Compensation Level Relative Index",

@@ -445,3 +445,23 @@
         animation-duration: 1000ms;
     }
 }
+
+/* Landing page revision (Mohit): match HTML fonts – Source Serif 4, Source Sans 3, Noto Serif KR */
+[data-landing-revision] {
+    font-family: 'Source Sans 3', 'Noto Serif KR', sans-serif;
+}
+[data-landing-revision] .font-serif,
+[data-landing-revision] h1,
+[data-landing-revision] h2 {
+    font-family: 'Source Serif 4', 'Noto Serif KR', serif;
+}
+
+/* Auth pages (login, register): same fonts and color tokens as landing revision */
+[data-auth-revision] {
+    font-family: 'Source Sans 3', 'Noto Serif KR', sans-serif;
+}
+[data-auth-revision] .font-serif,
+[data-auth-revision] h1,
+[data-auth-revision] h2 {
+    font-family: 'Source Serif 4', 'Noto Serif KR', serif;
+}

@@ -14,6 +14,7 @@ use App\Enums\StepStatus;
 use App\Services\StepTransitionService;
 use App\Services\WorkflowStateService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -414,6 +415,8 @@ class JobAnalysisController extends Controller
 
     /**
      * Save org chart mappings to database (incremental save).
+     * Validates and sanitizes payload; invalid job_keyword_ids are filtered out.
+     * On exception returns JSON error so Inertia can show a message without breaking the app.
      */
     public function storeOrgChartMapping(Request $request, HrProject $hrProject)
     {
@@ -425,33 +428,98 @@ class JobAnalysisController extends Controller
             'org_chart_mappings' => ['required', 'array'],
             'org_chart_mappings.*.org_unit_name' => ['required', 'string'],
             'org_chart_mappings.*.job_keyword_ids' => ['nullable', 'array'],
-            'org_chart_mappings.*.job_keyword_ids.*' => ['exists:job_keywords,id'],
+            'org_chart_mappings.*.job_keyword_ids.*' => ['integer'],
             'org_chart_mappings.*.org_head_name' => ['nullable', 'string'],
             'org_chart_mappings.*.org_head_rank' => ['nullable', 'string'],
             'org_chart_mappings.*.org_head_title' => ['nullable', 'string'],
             'org_chart_mappings.*.org_head_email' => ['nullable', 'email'],
             'org_chart_mappings.*.job_specialists' => ['nullable', 'array'],
+            'org_chart_mappings.*.job_specialists.*.job_keyword_id' => ['nullable', 'integer'],
+            'org_chart_mappings.*.job_specialists.*.name' => ['nullable', 'string'],
+            'org_chart_mappings.*.job_specialists.*.rank' => ['nullable', 'string'],
+            'org_chart_mappings.*.job_specialists.*.title' => ['nullable', 'string'],
+            'org_chart_mappings.*.job_specialists.*.email' => ['nullable', 'email'],
         ]);
 
-        OrgChartMapping::where('hr_project_id', $hrProject->id)->delete();
+        $allJobIds = collect($validated['org_chart_mappings'])
+            ->pluck('job_keyword_ids')
+            ->flatten()
+            ->merge(
+                collect($validated['org_chart_mappings'])
+                    ->pluck('job_specialists')
+                    ->flatten(1)
+                    ->pluck('job_keyword_id')
+                    ->filter()
+            )
+            ->unique()
+            ->values()
+            ->all();
+        $validJobIds = $allJobIds ? JobKeyword::whereIn('id', $allJobIds)->pluck('id')->all() : [];
 
-        foreach ($validated['org_chart_mappings'] as $mapping) {
-            if (empty(trim($mapping['org_unit_name'] ?? ''))) {
+        try {
+            OrgChartMapping::where('hr_project_id', $hrProject->id)->delete();
+
+            foreach ($validated['org_chart_mappings'] as $mapping) {
+                if (empty(trim($mapping['org_unit_name'] ?? ''))) {
+                    continue;
+                }
+                $jobKeywordIds = isset($mapping['job_keyword_ids']) && is_array($mapping['job_keyword_ids'])
+                    ? array_values(array_intersect(array_map('intval', $mapping['job_keyword_ids']), $validJobIds))
+                    : [];
+                $jobSpecialists = $this->sanitizeJobSpecialists($mapping['job_specialists'] ?? [], $validJobIds);
+
+                OrgChartMapping::create([
+                    'hr_project_id' => $hrProject->id,
+                    'org_unit_name' => trim($mapping['org_unit_name']),
+                    'job_keyword_ids' => $jobKeywordIds,
+                    'org_head_name' => isset($mapping['org_head_name']) ? trim($mapping['org_head_name']) : null,
+                    'org_head_rank' => $mapping['org_head_rank'] ?? null,
+                    'org_head_title' => $mapping['org_head_title'] ?? null,
+                    'org_head_email' => ! empty(trim($mapping['org_head_email'] ?? '')) ? trim($mapping['org_head_email']) : null,
+                    'job_specialists' => $jobSpecialists,
+                ]);
+            }
+
+            return back();
+        } catch (\Throwable $e) {
+            Log::error('Job analysis org chart mapping save failed', [
+                'hr_project_id' => $hrProject->id,
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            if ($request->expectsJson() || $request->header('X-Inertia')) {
+                return response()->json([
+                    'message' => 'Failed to save org chart mapping. Please try again or contact support.',
+                    'error' => config('app.debug') ? $e->getMessage() : null,
+                ], 422);
+            }
+            return back()->withErrors(['error' => 'Failed to save org chart mapping. Please try again.']);
+        }
+    }
+
+    /**
+     * Sanitize job_specialists array: keep only valid job_keyword_id, ensure shape.
+     */
+    private function sanitizeJobSpecialists(array $raw, array $validJobIds): array
+    {
+        $out = [];
+        foreach ($raw as $item) {
+            if (! is_array($item)) {
                 continue;
             }
-            OrgChartMapping::create([
-                'hr_project_id' => $hrProject->id,
-                'org_unit_name' => $mapping['org_unit_name'],
-                'job_keyword_ids' => $mapping['job_keyword_ids'] ?? [],
-                'org_head_name' => $mapping['org_head_name'] ?? null,
-                'org_head_rank' => $mapping['org_head_rank'] ?? null,
-                'org_head_title' => $mapping['org_head_title'] ?? null,
-                'org_head_email' => $mapping['org_head_email'] ?? null,
-                'job_specialists' => $mapping['job_specialists'] ?? [],
-            ]);
+            $jobKeywordId = isset($item['job_keyword_id']) ? (int) $item['job_keyword_id'] : null;
+            if ($jobKeywordId && ! in_array($jobKeywordId, $validJobIds, true)) {
+                continue;
+            }
+            $out[] = [
+                'job_keyword_id' => $jobKeywordId,
+                'name' => isset($item['name']) ? (string) $item['name'] : '',
+                'rank' => $item['rank'] ?? null,
+                'title' => $item['title'] ?? null,
+                'email' => ! empty(trim($item['email'] ?? '')) ? trim($item['email']) : null,
+            ];
         }
-
-        return back();
+        return $out;
     }
 
     /**

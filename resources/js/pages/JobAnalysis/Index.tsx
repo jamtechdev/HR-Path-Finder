@@ -261,12 +261,18 @@ export default function JobAnalysisIndex({
         }
         const org_chart_mappings = list.map(u => ({
             org_unit_name: String(u.org_unit_name ?? '').trim(),
-            job_keyword_ids: u.job_keyword_ids,
-            org_head_name: u.org_head_name,
-            org_head_rank: u.org_head_rank,
-            org_head_title: u.org_head_title,
-            org_head_email: u.org_head_email,
-            job_specialists: u.job_specialists ?? [],
+            job_keyword_ids: Array.isArray(u.job_keyword_ids) ? u.job_keyword_ids.map(id => Number(id)).filter(Number.isInteger) : [],
+            org_head_name: u.org_head_name ?? undefined,
+            org_head_rank: u.org_head_rank ?? undefined,
+            org_head_title: u.org_head_title ?? undefined,
+            org_head_email: u.org_head_email && String(u.org_head_email).trim() ? String(u.org_head_email).trim() : undefined,
+            job_specialists: (u.job_specialists ?? []).map(s => ({
+                job_keyword_id: s.job_keyword_id != null ? Number(s.job_keyword_id) : undefined,
+                name: s.name != null ? String(s.name) : '',
+                rank: s.rank != null ? String(s.rank) : undefined,
+                title: s.title != null ? String(s.title) : undefined,
+                email: s.email && String(s.email).trim() ? String(s.email).trim() : undefined,
+            })),
         }));
         router.post(`/hr-manager/job-analysis/${project.id}/org-chart-mapping`, { org_chart_mappings }, {
             onSuccess: () => {
@@ -275,9 +281,15 @@ export default function JobAnalysisIndex({
                 handleStepChange('review-submit');
             },
             onError: (errors: Record<string, unknown>) => {
-                const msg = errors && typeof errors === 'object' && (errors.message ?? Object.values(errors)[0]);
-                const desc = Array.isArray(msg) ? msg[0] : String(msg ?? 'Failed to save.');
-                toast({ title: 'Save failed', description: desc, variant: 'destructive' });
+                const message = typeof errors?.message === 'string' ? errors.message : null;
+                const firstValue = errors && typeof errors === 'object' ? Object.values(errors)[0] : null;
+                const desc = message ?? (Array.isArray(firstValue) ? firstValue[0] : firstValue);
+                const description = typeof desc === 'string' ? desc : 'Failed to save. Please try again or contact support.';
+                toast({
+                    title: 'Save failed',
+                    description,
+                    variant: 'destructive',
+                });
             },
         });
     };

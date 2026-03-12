@@ -165,7 +165,54 @@
       "dashboard": "대시보드"
     },
     "footer": {
-      "copyright": "© 2026 Everthere.inc All rights reserved."
+      "copyright": "© 2026 Everthere.inc All rights reserved.",
+      "company_sub": "powered by BetterCompany"
+    },
+    "nav": {
+      "process": "프로세스",
+      "trust": "전문가 검수",
+      "benchmark": "보상 벤치마크",
+      "cta_label": "서비스 문의하기"
+    },
+    "hero_revision": {
+      "badge": "조직성장의 속도를 견인하는 HR정책설계 파워 엔진",
+      "sub": "일반 컨설팅의 1/4 금액으로 내부 HR 역량 육성과 전문 제도설계 서비스를 모두 받아보세요.",
+      "primary_button": "서비스 문의하기",
+      "firm_sub": "전문 컨설팅펌이 만든 SaaS",
+      "firm_name": "베러컴퍼니 →"
+    },
+    "trust_bar": {
+      "item1": "전문 HR컨설팅펌 베러컴퍼니가 만든 제도설계 플랫폼",
+      "item2": "평균 1개월 내 제도설계 완료",
+      "item3": "컨설팅펌 대비 압도적인 가격 경쟁력",
+      "item4": "경쟁사 보상지수 벤치마크"
+    },
+    "process": {
+      "eyebrow": "HR 데이터 빌드업 프로세스",
+      "description": "각 단계는 다음 단계의 인풋이 됩니다. 4단계를 완료하면 HR 컨설턴트가 맞춤 HR 시스템 리포트로 전체 체계를 보증합니다.",
+      "result_title": "HR 컨설턴트의 HR 시스템 리포트",
+      "result_sub": "컨설턴트 검수 완료 · PDF 제공"
+    },
+    "trust_cards": {
+      "eyebrow": "왜 신뢰할 수 있는가",
+      "description": "패스파인더는 단순한 폼 작성 도구가 아닙니다. 귀사의 답변이 HR 컨설턴트의 설계 기반이 되고, 그 결과가 검수된 HR 시스템 리포트로 돌아옵니다.\n\n\"시스템이 설계하고, 컨설턴트가 리포트로 보증합니다.\"",
+      "card1_title": "귀사가 직접 진단합니다",
+      "card1_desc": "조직 구조, 직무 정의, 성과 체계, 보상 기준을 단계적으로 입력합니다. 외부 컨설턴트에게 자료를 넘기는 것보다 훨씬 빠릅니다.",
+      "card2_title": "HR 컨설턴트가 분석합니다",
+      "card2_desc": "입력된 데이터를 바탕으로 12년 차 HR 컨설턴트가 귀사의 산업·규모·문화에 맞게 체계를 설계합니다.",
+      "card3_title": "HR 시스템 리포트로 납품됩니다",
+      "card3_desc": "컨설턴트가 서명한 HR 시스템 리포트가 PDF로 제공됩니다. 즉시 사내에서 실행 가능한 수준의 완성도를 보장합니다."
+    },
+    "benchmark_section": {
+      "eyebrow": "보상 수준 벤치마크",
+      "description": "Pathfinder는 귀사의 직급·직무별 연봉을 업종 전체·타깃 경쟁사·유사 제조업 기준과 비교합니다. 귀사의 보상 수준을 100으로 두고, 시장이 어느 위치에 있는지 즉시 파악할 수 있습니다.\n\n이 분석이 HR 시스템 리포트에 포함되어 납품됩니다.",
+      "insight": "귀사의 보상 수준은 업종 전체 대비 78%, 타깃 경쟁사 대비 85% 수준입니다."
+    },
+    "cta_block": {
+      "eyebrow": "지금 시작하세요",
+      "title": "우리 회사 HR 시스템, 지금 바로 설계를 시작하세요.",
+      "description": "10분 진단 후, 조직의 HR 현황 스코어와 우선 개선 포인트를 즉시 확인할 수 있습니다.",
+      "button": "서비스 문의하기 →"
     }
   },
   "dashboard": {
