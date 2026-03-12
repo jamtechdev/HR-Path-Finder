@@ -618,7 +618,8 @@ class PerformanceSystemController extends Controller
             'org_rating_scale' => ['nullable', 'in:3-level,4-level'],
             'org_rating_distribution' => ['nullable', 'array'],
             'org_evaluation_group' => ['nullable', 'in:team_level,executive_level'],
-            'org_use_of_results' => ['nullable', 'in:linked_to_org_manager,linked_to_individual'],
+            'org_use_of_results' => ['nullable', 'array'],
+            'org_use_of_results.*' => ['string', 'in:linked_to_org_manager,linked_to_individual,dist_adjust,bonus,reference,dept_head_link,other'],
             'individual_evaluation_cycle' => ['nullable', 'in:annual,semi_annual,quarterly'],
             'individual_evaluation_timing' => ['nullable', 'string'],
             'individual_evaluator_types' => ['nullable', 'array'],
@@ -628,6 +629,7 @@ class PerformanceSystemController extends Controller
             'individual_rating_distribution' => ['nullable', 'array'],
             'individual_evaluation_groups' => ['nullable', 'array'],
             'individual_use_of_results' => ['nullable', 'array'],
+            'individual_use_of_results_other' => ['nullable', 'string', 'max:1000'],
             'organization_leader_evaluation' => ['nullable', 'in:replaced_by_org,conducted_separately'],
         ]);
 
@@ -653,6 +655,7 @@ class PerformanceSystemController extends Controller
             'individual_rating_distribution' => $validated['individual_rating_distribution'] ?? null,
             'individual_evaluation_groups' => $validated['individual_evaluation_groups'] ?? null,
             'individual_use_of_results' => $validated['individual_use_of_results'] ?? null,
+            'individual_use_of_results_other' => $validated['individual_use_of_results_other'] ?? null,
             'organization_leader_evaluation' => $validated['organization_leader_evaluation'] ?? null,
         ];
 

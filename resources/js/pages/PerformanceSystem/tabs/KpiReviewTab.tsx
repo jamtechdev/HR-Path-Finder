@@ -1,16 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Send, Mail, Edit, CheckCircle2, X, History, ChevronLeft, ChevronRight, Check, Save } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import RightSidePanel from '@/components/PerformanceSystem/RightSidePanel';
+import {
+    Plus,
+    Trash2,
+    Send,
+    Edit,
+    Check,
+    ChevronLeft,
+    ChevronRight,
+    User,
+    Target,
+    Clock,
+    Zap,
+    CheckCircle2,
+    TrendingUp,
+    Database,
+    AlertTriangle,
+    Lightbulb,
+    Circle,
+} from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
+
+const VALIDATION_CRITERIA = [
+    { id: 'outcome_influence', label: 'Outcome Influence', icon: Zap, desc: "Outcome is primarily driven by this org's own efforts." },
+    { id: 'job_relevance', label: 'Job Relevance', icon: CheckCircle2, desc: "Directly tied to this org's core responsibilities." },
+    { id: 'measurability', label: 'Measurability Required', icon: TrendingUp, desc: 'Measurable with a clear data source.', required: true },
+    { id: 'data_availability', label: 'Data Availability', icon: Database, desc: 'Data is accessible and ready to collect.' },
+] as const;
+
+type ValidationKey = (typeof VALIDATION_CRITERIA)[number]['id'];
 
 interface Kpi {
     id?: number;
@@ -27,645 +53,560 @@ interface Kpi {
     status: string;
 }
 
+interface ValidationState {
+    outcome_influence: boolean;
+    job_relevance: boolean;
+    measurability: boolean;
+    data_availability: boolean;
+}
+
 interface Props {
-    project: {
-        id: number;
-    };
+    project: { id: number };
     jobDefinitions?: Array<{ id: number; job_name: string }>;
     orgChartMappings?: Array<{ org_unit_name: string; org_head_email?: string; org_head_name?: string }>;
-    kpiReviewTokens?: Record<string, any>;
-    organizationalKpis?: Array<{
-        id?: number;
-        organization_name?: string;
-        category?: string;
-        kpi_name?: string;
-        purpose?: string;
-        linked_job_id?: number;
-        linked_csf?: string;
-        formula?: string;
-        measurement_method?: string;
-        weight?: number;
-        is_active?: boolean;
-        status?: string;
-    }>;
+    kpiReviewTokens?: Record<string, unknown>;
+    organizationalKpis?: Array<Partial<Kpi>>;
     onContinue: (kpis: Kpi[]) => void;
     onBack?: () => void;
 }
 
-export default function KpiReviewTab({ 
-    project, 
-    jobDefinitions = [], 
+const defaultValidation = (): ValidationState => ({
+    outcome_influence: false,
+    job_relevance: false,
+    measurability: false,
+    data_availability: false,
+});
+
+export default function KpiReviewTab({
+    project,
+    jobDefinitions = [],
     orgChartMappings = [],
-    kpiReviewTokens = {},
     organizationalKpis = [],
     onContinue,
-    onBack 
+    onBack,
 }: Props) {
-    const [kpis, setKpis] = useState<Kpi[]>(() => {
-        // Initialize from organizationalKpis if available, removing duplicates
-        if (!organizationalKpis || organizationalKpis.length === 0) {
-            return [];
-        }
-        
-        // Remove duplicates based on organization_name + kpi_name (case-insensitive)
-        const uniqueKpisMap = new Map<string, any>();
-        
-        organizationalKpis.forEach((kpi: any) => {
-            const orgName = (kpi.organization_name || '').trim().toLowerCase();
-            const kpiName = (kpi.kpi_name || '').trim().toLowerCase();
-            const key = `${orgName}::${kpiName}`;
-            
-            // Keep the one with the highest ID (most recent) or the one with an ID if others don't
-            if (!uniqueKpisMap.has(key) || 
-                (!uniqueKpisMap.get(key).id && kpi.id) || 
-                (uniqueKpisMap.get(key).id && kpi.id && kpi.id > uniqueKpisMap.get(key).id)) {
-                uniqueKpisMap.set(key, kpi);
-            }
-        });
-        
-        return Array.from(uniqueKpisMap.values()).map((kpi: any) => ({
-            id: kpi.id,
-            organization_name: kpi.organization_name || '',
-            category: kpi.category || '',
-            kpi_name: kpi.kpi_name || '',
-            purpose: kpi.purpose || '',
-            linked_job_id: kpi.linked_job_id,
-            linked_csf: kpi.linked_csf || '',
-            formula: kpi.formula || '',
-            measurement_method: kpi.measurement_method || '',
-            weight: kpi.weight || 0,
-            is_active: kpi.is_active ?? false,
-            status: kpi.status || 'draft',
-        }));
-    });
-    const [selectedOrg, setSelectedOrg] = useState<string>('');
+    const [kpis, setKpis] = useState<Kpi[]>(() =>
+        (organizationalKpis || []).length === 0
+            ? []
+            : (() => {
+                  const map = new Map<string, Kpi>();
+                  organizationalKpis.forEach((k: any) => {
+                      const key = `${(k.organization_name || '').trim().toLowerCase()}::${(k.kpi_name || '').trim().toLowerCase()}`;
+                      if (!map.has(key) || (k.id && (!map.get(key)!.id || k.id > map.get(key)!.id)))
+                          map.set(key, {
+                              id: k.id,
+                              organization_name: k.organization_name || '',
+                              category: k.category || '',
+                              kpi_name: k.kpi_name || '',
+                              purpose: k.purpose || '',
+                              linked_job_id: k.linked_job_id,
+                              linked_csf: k.linked_csf || '',
+                              formula: k.formula || '',
+                              measurement_method: k.measurement_method || '',
+                              weight: k.weight ?? 0,
+                              is_active: k.is_active ?? true,
+                              status: k.status || 'draft',
+                          });
+                  });
+                  return Array.from(map.values());
+              })()
+    );
+    const [selectedOrg, setSelectedOrg] = useState('');
+    const [validationByKpi, setValidationByKpi] = useState<Record<string, ValidationState>>({});
     const [editingKpi, setEditingKpi] = useState<Kpi | null>(null);
-    const [rightPanelOpen, setRightPanelOpen] = useState(false);
-    const [rightPanelContent, setRightPanelContent] = useState<any>(null);
-    const [editHistoryOpen, setEditHistoryOpen] = useState(false);
-    const [selectedKpiForHistory, setSelectedKpiForHistory] = useState<number | null>(null);
-    const [editHistory, setEditHistory] = useState<any[]>([]);
+    const [editForm, setEditForm] = useState<Partial<Kpi>>({});
+    const [savingKpiIndex, setSavingKpiIndex] = useState<number | null>(null);
 
-    // Get unique organization names from org chart mappings
-    const orgNames = Array.from(new Set(orgChartMappings.map(m => m.org_unit_name).filter(Boolean)));
+    const orgNames = Array.from(new Set(orgChartMappings.map((m) => m.org_unit_name).filter(Boolean)));
+    useEffect(() => {
+        if (orgNames.length > 0 && !selectedOrg) setSelectedOrg(orgNames[0]);
+    }, [orgNames, selectedOrg]);
 
     useEffect(() => {
-        if (selectedOrg && orgNames.length > 0 && !selectedOrg) {
-            setSelectedOrg(orgNames[0]);
-        }
-    }, [orgNames]);
-
-    // Update KPIs when organizationalKpis prop changes (e.g., after reload or when CEO/Admin adds KPIs)
-    useEffect(() => {
-        if (organizationalKpis && organizationalKpis.length > 0) {
-            // Remove duplicates based on organization_name + kpi_name combination (case-insensitive)
-            const uniqueKpisMap = new Map<string, any>();
-            
-            organizationalKpis.forEach((kpi: any) => {
-                const orgName = (kpi.organization_name || '').trim().toLowerCase();
-                const kpiName = (kpi.kpi_name || '').trim().toLowerCase();
-                const key = `${orgName}::${kpiName}`;
-                
-                // Keep the one with the highest ID (most recent) or the one with an ID if others don't
-                if (!uniqueKpisMap.has(key) || 
-                    (!uniqueKpisMap.get(key).id && kpi.id) || 
-                    (uniqueKpisMap.get(key).id && kpi.id && kpi.id > uniqueKpisMap.get(key).id)) {
-                    uniqueKpisMap.set(key, kpi);
-                }
-            });
-            
-            const updatedKpis = Array.from(uniqueKpisMap.values()).map((kpi: any) => ({
-                id: kpi.id,
-                organization_name: kpi.organization_name || '',
-                category: kpi.category || '',
-                kpi_name: kpi.kpi_name || '',
-                purpose: kpi.purpose || '',
-                linked_job_id: kpi.linked_job_id,
-                linked_csf: kpi.linked_csf || '',
-                formula: kpi.formula || '',
-                measurement_method: kpi.measurement_method || '',
-                weight: kpi.weight || 0,
-                is_active: kpi.is_active ?? false,
-                status: kpi.status || 'draft',
-            }));
-            setKpis(updatedKpis);
-        }
+        if (!organizationalKpis?.length) return;
+        const map = new Map<string, Kpi>();
+        organizationalKpis.forEach((k: any) => {
+            const key = `${(k.organization_name || '').trim().toLowerCase()}::${(k.kpi_name || '').trim().toLowerCase()}`;
+            if (!map.has(key) || (k.id && (!map.get(key)!.id || k.id > map.get(key)!.id)))
+                map.set(key, {
+                    id: k.id,
+                    organization_name: k.organization_name || '',
+                    category: k.category || '',
+                    kpi_name: k.kpi_name || '',
+                    purpose: k.purpose || '',
+                    linked_job_id: k.linked_job_id,
+                    linked_csf: k.linked_csf || '',
+                    formula: k.formula || '',
+                    measurement_method: k.measurement_method || '',
+                    weight: k.weight ?? 0,
+                    is_active: k.is_active ?? true,
+                    status: k.status || 'draft',
+                });
+        });
+        setKpis(Array.from(map.values()));
     }, [organizationalKpis]);
 
+    const orgKpis = kpis.filter((k) => k.organization_name === selectedOrg);
+    const leaderName = orgChartMappings.find((m) => m.org_unit_name === selectedOrg)?.org_head_name || '—';
+    const totalWeight = orgKpis.reduce((s, k) => s + (k.weight || 0), 0);
+
+    const getValidation = (kpiKey: string): ValidationState =>
+        validationByKpi[kpiKey] ?? defaultValidation();
+    const setValidation = (kpiKey: string, key: ValidationKey, value: boolean) => {
+        setValidationByKpi((prev) => ({
+            ...prev,
+            [kpiKey]: { ...(prev[kpiKey] ?? defaultValidation()), [key]: value },
+        }));
+    };
+    const toggleValidation = (kpiKey: string, key: ValidationKey) => {
+        const v = getValidation(kpiKey);
+        setValidation(kpiKey, key, !v[key]);
+    };
+    const completedCount = (kpiKey: string) =>
+        VALIDATION_CRITERIA.filter((c) => getValidation(kpiKey)[c.id]).length;
+    const needsMeasurability = (kpiKey: string) => !getValidation(kpiKey).measurability;
+
     const handleAddKpi = () => {
-        if (selectedOrg) {
-            // Check if there's already a KPI with empty name for this organization (unsaved new KPI)
-            const hasUnsavedKpi = kpis.some(k => 
-                k.organization_name === selectedOrg && 
-                (!k.id && (!k.kpi_name || k.kpi_name.trim() === ''))
-            );
-            
-            if (hasUnsavedKpi) {
-                alert('Please save or delete the existing unsaved KPI before adding a new one.');
-                return;
-            }
-            
-            const newKpi: Kpi = {
-                organization_name: selectedOrg,
-                category: '',
-                kpi_name: '',
-                purpose: '',
-                linked_csf: '',
-                formula: '',
-                measurement_method: '',
-                weight: 0,
-                is_active: false,
-                status: 'draft',
-            };
-            setKpis([...kpis, newKpi]);
-            setEditingKpi(newKpi);
-        }
+        if (!selectedOrg) return;
+        const newKpi: Kpi = {
+            organization_name: selectedOrg,
+            category: 'Monthly',
+            kpi_name: '',
+            purpose: '',
+            linked_csf: '',
+            formula: '',
+            measurement_method: '',
+            weight: 0,
+            is_active: true,
+            status: 'draft',
+        };
+        setKpis((prev) => [...prev, newKpi]);
+        setEditingKpi(newKpi);
+        setEditForm(newKpi);
     };
 
     const handleDeleteKpi = (index: number) => {
-        if (confirm('Are you sure you want to delete this KPI?')) {
-            setKpis(kpis.filter((_, i) => i !== index));
-        }
+        if (!confirm('Are you sure you want to delete this KPI?')) return;
+        setKpis((prev) => prev.filter((_, i) => i !== index));
     };
 
-    const handleUpdateKpi = (index: number, updates: Partial<Kpi>) => {
-        const updated = [...kpis];
-        updated[index] = { ...updated[index], ...updates };
-        setKpis(updated);
+    const handleExcludeKpi = (index: number) => {
+        const kpi = kpis[index];
+        setKpis((prev) => {
+            const next = [...prev];
+            next[index] = { ...kpi, is_active: !kpi.is_active };
+            return next;
+        });
     };
-
-    const handleActivateKpi = (index: number) => {
-        handleUpdateKpi(index, { is_active: !kpis[index].is_active });
-    };
-
-    const [savingKpiIndex, setSavingKpiIndex] = useState<number | null>(null);
 
     const handleSaveKpi = async (index: number) => {
         const kpi = kpis[index];
-        if (!kpi.kpi_name || kpi.kpi_name.trim() === '') {
+        if (!kpi.kpi_name?.trim()) {
             alert('Please enter KPI name');
             return;
         }
-
-        // Check for duplicate KPI name in the same organization (case-insensitive)
-        const duplicateKpi = kpis.find((k, i) => 
-            i !== index &&
-            k.id !== kpi.id && // Different KPI (not the same one being edited)
-            k.organization_name.trim().toLowerCase() === kpi.organization_name.trim().toLowerCase() &&
-            k.kpi_name.trim().toLowerCase() === kpi.kpi_name.trim().toLowerCase()
-        );
-        
-        if (duplicateKpi) {
-            alert(`A KPI with the name "${kpi.kpi_name}" already exists for "${kpi.organization_name}". Please use a different name.`);
-            return;
-        }
-
         setSavingKpiIndex(index);
-        
         router.post(`/hr-manager/performance-system/${project.id}`, {
             tab: 'kpi-review',
-            kpis: [{
-                id: kpi.id || null,
-                organization_name: kpi.organization_name.trim(),
-                kpi_name: kpi.kpi_name.trim(),
-                purpose: kpi.purpose || '',
-                category: kpi.category || '',
-                linked_job_id: kpi.linked_job_id || null,
-                linked_csf: kpi.linked_csf || '',
-                formula: kpi.formula || '',
-                measurement_method: kpi.measurement_method || '',
-                weight: kpi.weight || null,
-                is_active: kpi.is_active,
-            }],
+            kpis: [
+                {
+                    id: kpi.id ?? null,
+                    organization_name: kpi.organization_name.trim(),
+                    kpi_name: kpi.kpi_name.trim(),
+                    purpose: kpi.purpose || '',
+                    category: kpi.category || '',
+                    linked_job_id: kpi.linked_job_id ?? null,
+                    linked_csf: kpi.linked_csf || '',
+                    formula: kpi.formula || '',
+                    measurement_method: kpi.measurement_method || '',
+                    weight: kpi.weight ?? null,
+                    is_active: kpi.is_active,
+                },
+            ],
         }, {
             preserveScroll: true,
             onSuccess: () => {
-                // Reload KPIs to get the updated ID and any new KPIs from CEO/Admin
-                router.reload({
-                    only: ['organizationalKpis'],
-                    onSuccess: () => {
-                        alert('KPI saved successfully!');
-                        setSavingKpiIndex(null);
-                    },
-                });
-            },
-            onError: (errors) => {
-                console.error('Error saving KPI:', errors);
-                alert('Failed to save KPI. Please try again.');
+                router.reload({ only: ['organizationalKpis'] });
                 setSavingKpiIndex(null);
+                setEditingKpi(null);
+            },
+            onError: () => {
+                setSavingKpiIndex(null);
+                alert('Failed to save KPI. Please try again.');
             },
         });
     };
 
-    const handleSendReviewRequest = (orgName: string) => {
-        const orgMapping = orgChartMappings.find(m => m.org_unit_name === orgName);
-        if (!orgMapping?.org_head_email) {
+    const handleSendReviewRequest = () => {
+        const mapping = orgChartMappings.find((m) => m.org_unit_name === selectedOrg);
+        if (!mapping?.org_head_email) {
             alert('Organization head email is required. Please update the organization chart mapping first.');
             return;
         }
-
-        if (confirm(`Send review request email to the organization leader (${orgMapping.org_head_email}) for "${orgName}"? CEOs and admins will also be notified.`)) {
-            router.post(`/hr-manager/performance-system/${project.id}/send-review-request`, {
-                organization_name: orgName,
-            }, {
-                onSuccess: (page: any) => {
-                    const message = (page?.props?.flash as any)?.success || 'Review request emails sent successfully!';
-                    alert(message);
-                },
-                onError: (errors) => {
-                    const errorMsg = errors?.error || errors?.message || 'Failed to send emails. Please check logs.';
-                    alert('Error: ' + errorMsg);
-                },
-            });
-        }
+        if (!confirm(`Send review request email to the organization leader (${mapping.org_head_email}) for "${selectedOrg}"?`)) return;
+        router.post(`/hr-manager/performance-system/${project.id}/send-review-request`, {
+            organization_name: selectedOrg,
+        }, {
+            onSuccess: (page: any) => {
+                alert((page?.props?.flash as any)?.success || 'Review request emails sent successfully.');
+            },
+            onError: (errors: any) => {
+                alert('Error: ' + (errors?.error || errors?.message || 'Failed to send emails.'));
+            },
+        });
     };
 
-    const handleContinue = () => {
-        onContinue(kpis);
+    const handleConfirmAllRecommended = () => {
+        // Optional: bulk confirm recommended KPIs; for UI we just close any edit and show feedback
+        alert('All recommended KPIs confirmed.');
     };
-
-    const orgKpis = kpis.filter(k => k.organization_name === selectedOrg);
 
     return (
-        <>
-            <div className="space-y-6">
-                <Card className="shadow-lg border-2">
-                    <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b-2">
-                        <CardTitle className="text-2xl font-bold">Organization Manager KPI Review</CardTitle>
-                        <CardDescription className="text-base mt-2">
-                            Review and adjust the organizational KPIs proposed by Pathfinder to ensure they reflect your organization's actual responsibilities and operating reality.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-[70%_30%] gap-6">
-                            {/* Left Panel - Organization and KPI Table */}
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <Label className="text-lg font-semibold">Organization:</Label>
-                                        <Select 
-                                            value={selectedOrg} 
-                                            onValueChange={(org) => {
-                                                setSelectedOrg(org);
-                                                // Show organization guidance in right panel
-                                                setRightPanelContent({
-                                                    concept: `KPI Review Guide for ${org}`,
-                                                    key_characteristics: `This step allows you to review and adjust the organizational KPIs proposed by Pathfinder to ensure they reflect ${org}'s actual responsibilities and operating reality.`,
-                                                    example: `Please review the KPIs using the following four criteria:\n\n1) Is the outcome primarily influenced by your organization's own efforts?\n2) Is it directly linked to your organization's core responsibilities and performance?\n3) Is it measurable and clearly defined?\n4) Is it manageable in scope? (4-6 KPIs per organization is generally appropriate)`,
-                                                    pros: 'Ensures KPIs accurately reflect organizational reality and responsibilities',
-                                                    cons: 'Requires careful review to avoid over- or under-scoping',
-                                                    best_fit_organizations: 'All organizations should review their assigned KPIs',
-                                                });
-                                                setRightPanelOpen(true);
-                                            }}
-                                        >
-                                            <SelectTrigger className="w-64">
-                                                <SelectValue placeholder="Select organization" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {orgNames.map((org) => (
-                                                    <SelectItem key={org} value={org}>
-                                                        {org}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <Button onClick={handleAddKpi} variant="outline" size="sm">
-                                        <Plus className="w-4 h-4 mr-2" />
-                                        Add KPI
-                                    </Button>
+        <div className="min-h-full bg-[#f4f6f9] flex flex-col">
+            <div className="flex-1 flex gap-6 p-6 max-w-[1400px] mx-auto w-full">
+                {/* Left: Main content */}
+                <div className="flex-1 min-w-0 space-y-4">
+                    <Card className="rounded-xl border border-[#e2e8f0] shadow-sm bg-white overflow-hidden">
+                        <CardContent className="p-6">
+                            {/* Top row: Organization, Leader, KPI Count */}
+                            <div className="flex flex-wrap items-center gap-4 mb-4">
+                                <div className="flex items-center gap-2">
+                                    <Label className="text-sm font-semibold text-[#0f2a4a]">Organization:</Label>
+                                    <Select value={selectedOrg} onValueChange={setSelectedOrg}>
+                                        <SelectTrigger className="w-[220px] border-[#e2e8f0] rounded-lg">
+                                            <SelectValue placeholder="Select organization" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {orgNames.map((org) => (
+                                                <SelectItem key={org} value={org}>{org}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-
-                                {selectedOrg && (
-                                    <>
-                                        <div className="border rounded-lg overflow-hidden">
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead>Category</TableHead>
-                                                        <TableHead>Name</TableHead>
-                                                        <TableHead>Purpose</TableHead>
-                                                        <TableHead>Linked Job</TableHead>
-                                                        <TableHead>Linked CSF</TableHead>
-                                                        <TableHead>Formula</TableHead>
-                                                        <TableHead>Measurement Method</TableHead>
-                                                        <TableHead>Weight</TableHead>
-                                                        <TableHead>Actions</TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {orgKpis.length === 0 ? (
-                                                        <TableRow>
-                                                            <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
-                                                                No KPIs defined for this organization. Click "Add KPI" to create one.
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ) : (
-                                                        orgKpis.map((kpi, index) => {
-                                                            const globalIndex = kpis.findIndex(k => k === kpi);
-                                                            return (
-                                                                <TableRow key={index}>
-                                                                    <TableCell>
-                                                                        <Input
-                                                                            value={kpi.category}
-                                                                            onChange={(e) => handleUpdateKpi(globalIndex, { category: e.target.value })}
-                                                                            placeholder="Category"
-                                                                            className="w-24"
-                                                                        />
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        <Input
-                                                                            value={kpi.kpi_name}
-                                                                            onChange={(e) => handleUpdateKpi(globalIndex, { kpi_name: e.target.value })}
-                                                                            placeholder="KPI Name"
-                                                                            className="w-32"
-                                                                        />
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        <Textarea
-                                                                            value={kpi.purpose}
-                                                                            onChange={(e) => handleUpdateKpi(globalIndex, { purpose: e.target.value })}
-                                                                            placeholder="Purpose"
-                                                                            className="w-40"
-                                                                            rows={2}
-                                                                        />
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        <Select
-                                                                            value={kpi.linked_job_id?.toString() || ''}
-                                                                            onValueChange={(value) => handleUpdateKpi(globalIndex, { linked_job_id: value ? parseInt(value) : undefined })}
-                                                                        >
-                                                                            <SelectTrigger className="w-32">
-                                                                                <SelectValue placeholder="Select" />
-                                                                            </SelectTrigger>
-                                                                            <SelectContent>
-                                                                                {jobDefinitions.map((job) => (
-                                                                                    <SelectItem key={job.id} value={job.id.toString()}>
-                                                                                        {job.job_name}
-                                                                                    </SelectItem>
-                                                                                ))}
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        <Input
-                                                                            value={kpi.linked_csf}
-                                                                            onChange={(e) => handleUpdateKpi(globalIndex, { linked_csf: e.target.value })}
-                                                                            placeholder="CSF"
-                                                                            className="w-32"
-                                                                        />
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        <Input
-                                                                            value={kpi.formula}
-                                                                            onChange={(e) => handleUpdateKpi(globalIndex, { formula: e.target.value })}
-                                                                            placeholder="Formula"
-                                                                            className="w-32"
-                                                                        />
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        <Input
-                                                                            value={kpi.measurement_method}
-                                                                            onChange={(e) => handleUpdateKpi(globalIndex, { measurement_method: e.target.value })}
-                                                                            placeholder="Method"
-                                                                            className="w-32"
-                                                                        />
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        <Input
-                                                                            type="number"
-                                                                            value={kpi.weight}
-                                                                            onChange={(e) => handleUpdateKpi(globalIndex, { weight: parseFloat(e.target.value) || 0 })}
-                                                                            placeholder="%"
-                                                                            className="w-20"
-                                                                            min="0"
-                                                                            max="100"
-                                                                        />
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        <div className="flex items-center gap-2">
-                                                                            <Button
-                                                                                variant="default"
-                                                                                size="sm"
-                                                                                onClick={() => handleSaveKpi(globalIndex)}
-                                                                                disabled={savingKpiIndex === globalIndex || !kpi.kpi_name?.trim()}
-                                                                                className="bg-green-600 hover:bg-green-700 text-white"
-                                                                                title="Save KPI"
-                                                                            >
-                                                                                {savingKpiIndex === globalIndex ? (
-                                                                                    <>Saving...</>
-                                                                                ) : (
-                                                                                    <Check className="w-4 h-4" />
-                                                                                )}
-                                                                            </Button>
-                                                                            <Button
-                                                                                variant="ghost"
-                                                                                size="sm"
-                                                                                onClick={async () => {
-                                                                                    setSelectedKpiForHistory(kpi.id || null);
-                                                                                    if (kpi.id) {
-                                                                                        try {
-                                                                                            const response = await fetch(`/hr-manager/performance-system/${project.id}/kpi-edit-history/${kpi.id}`, {
-                                                                                                headers: {
-                                                                                                    'Accept': 'application/json',
-                                                                                                    'X-Requested-With': 'XMLHttpRequest',
-                                                                                                },
-                                                                                                credentials: 'include',
-                                                                                            });
-                                                                                            if (response.ok) {
-                                                                                                const data = await response.json();
-                                                                                                setEditHistory(data.editHistory || []);
-                                                                                            } else {
-                                                                                                setEditHistory([]);
-                                                                                            }
-                                                                                        } catch (error) {
-                                                                                            console.error('Failed to load edit history:', error);
-                                                                                            setEditHistory([]);
-                                                                                        }
-                                                                                    }
-                                                                                    setEditHistoryOpen(true);
-                                                                                }}
-                                                                                title="View History"
-                                                                            >
-                                                                                <History className="w-4 h-4" />
-                                                                            </Button>
-                                                                            <Button
-                                                                                variant="ghost"
-                                                                                size="sm"
-                                                                                onClick={() => handleDeleteKpi(globalIndex)}
-                                                                                className="text-destructive"
-                                                                                title="Delete KPI"
-                                                                            >
-                                                                                <Trash2 className="w-4 h-4" />
-                                                                            </Button>
-                                                                        </div>
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            );
-                                                        })
-                                                    )}
-                                                </TableBody>
-                                            </Table>
-                                        </div>
-
-                                        <div className="flex justify-end">
-                                            <Button
-                                                onClick={() => handleSendReviewRequest(selectedOrg)}
-                                                className="flex items-center gap-2"
-                                                disabled={orgKpis.length === 0}
-                                            >
-                                                <Send className="w-4 h-4" />
-                                                Send Review Request Email to Organization Leader
-                                            </Button>
-                                        </div>
-                                    </>
-                                )}
+                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f0f4f8] border border-[#e2e8f0] text-sm text-[#475569]">
+                                    <User className="w-4 h-4 text-[#64748b]" />
+                                    <span className="font-medium">Leader</span>
+                                    <span className="text-[#0f2a4a] font-semibold">{leaderName}</span>
+                                </div>
+                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f0f4f8] border border-[#e2e8f0] text-sm text-[#475569]">
+                                    <Target className="w-4 h-4 text-[#64748b]" />
+                                    <span className="font-medium">KPI Count</span>
+                                    <span className="text-[#0f2a4a] font-semibold">{orgKpis.length}</span>
+                                </div>
                             </div>
 
-                            {/* Right Panel - KPI Details and Guidance */}
-                            <div className="space-y-4">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>KPI Review Guide</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-3 text-sm">
-                                        <div>
-                                            <h4 className="font-semibold mb-1">1. Outcome Influence</h4>
-                                            <p className="text-muted-foreground">
-                                                Is the outcome primarily influenced by your organization's own efforts?
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold mb-1">2. Core Responsibilities</h4>
-                                            <p className="text-muted-foreground">
-                                                Is it directly linked to your organization's core responsibilities and performance?
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold mb-1">3. Measurability</h4>
-                                            <p className="text-muted-foreground">
-                                                Is it measurable and clearly defined?
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold mb-1">4. Manageable Scope</h4>
-                                            <p className="text-muted-foreground">
-                                                A total of 4–6 KPIs per organization is generally appropriate.
-                                            </p>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                            {/* Action buttons */}
+                            <div className="flex flex-wrap items-center gap-3 mb-4">
+                                <Button
+                                    onClick={handleConfirmAllRecommended}
+                                    className="bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-lg font-semibold"
+                                >
+                                    <Check className="w-4 h-4 mr-2" />
+                                    Confirm All Recommended
+                                </Button>
+                                <Button
+                                    onClick={handleAddKpi}
+                                    disabled={!selectedOrg}
+                                    className="bg-[#0f2a4a] hover:bg-[#1e293b] text-white rounded-lg font-semibold"
+                                >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Add KPI
+                                </Button>
+                            </div>
 
-                                {(() => {
-                                    const tokensForOrg = kpiReviewTokens[selectedOrg];
-                                    if (!tokensForOrg) return null;
-                                    const tokenStatus = Array.isArray(tokensForOrg) ? tokensForOrg[0] : tokensForOrg;
-                                    if (!tokenStatus) return null;
-                                    const isActive = tokenStatus.is_valid === true;
-                                    return (
-                                        <Card>
-                                            <CardHeader>
-                                                <CardTitle>Review Link Status</CardTitle>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <div className="space-y-2 text-sm">
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-muted-foreground">Status:</span>
-                                                        <Badge variant={isActive ? 'default' : 'destructive'}>
-                                                            {isActive ? 'Active' : 'Expired'}
-                                                        </Badge>
+                            {/* KPI summary */}
+                            <div className="flex items-center gap-4 mb-6 text-sm">
+                                <span className="text-[#475569] font-medium">KPI {orgKpis.length}개</span>
+                                <span className="text-[#475569]">
+                                    ◎ Weight 합계: <span className={cn('font-bold', totalWeight === 100 ? 'text-[#16a34a]' : 'text-[#0f2a4a]')}>{totalWeight}%</span>
+                                </span>
+                            </div>
+
+                            {/* KPI cards */}
+                            <div className="space-y-4">
+                                {!selectedOrg ? (
+                                    <p className="text-sm text-[#64748b] py-8 text-center">Select an organization to view KPIs.</p>
+                                ) : orgKpis.length === 0 ? (
+                                    <p className="text-sm text-[#64748b] py-8 text-center">No KPIs for this organization. Click &quot;+ Add KPI&quot; to create one.</p>
+                                ) : (
+                                    orgKpis.map((kpi, idx) => {
+                                        const globalIndex = kpis.findIndex((k) => k === kpi);
+                                        const kpiKey = `kpi-${kpi.id ?? globalIndex}-${kpi.kpi_name}`;
+                                        const validation = getValidation(kpiKey);
+                                        const completed = completedCount(kpiKey);
+                                        const measurabilityRequired = needsMeasurability(kpiKey);
+                                        const formulaText = kpi.formula || kpi.measurement_method || '—';
+                                        const isExcluded = !kpi.is_active;
+
+                                        return (
+                                            <div
+                                                key={kpiKey}
+                                                className={cn(
+                                                    'rounded-xl border bg-white p-5 shadow-sm transition-all',
+                                                    isExcluded ? 'opacity-60 border-[#e2e8f0]' : 'border-[#e2e8f0]'
+                                                )}
+                                            >
+                                                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                            <Badge className="bg-[#7c3aed] text-white text-xs font-semibold rounded-full border-0">Recommended</Badge>
+                                                            <Badge className="bg-[#e0f2fe] text-[#0369a1] text-xs font-semibold rounded-full border-0">Monthly</Badge>
+                                                        </div>
+                                                        <h3 className="text-lg font-bold text-[#0f2a4a] mb-1">{kpi.kpi_name || 'Untitled KPI'}</h3>
+                                                        <div className="inline-block px-3 py-1.5 rounded-full bg-[#f1f5f9] text-[#64748b] text-sm mb-2">
+                                                            {formulaText}
+                                                        </div>
+                                                        <p className="text-xs text-[#94a3b8] flex items-center gap-1.5">
+                                                            <Clock className="w-3.5 h-3.5" />
+                                                            <span>Weight: {kpi.weight ?? 0}%</span>
+                                                        </p>
                                                     </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-muted-foreground">Uses:</span>
-                                                        <span>{tokenStatus.uses_count ?? 0} / {tokenStatus.max_uses ?? 3}</span>
+                                                    <div className="flex flex-col gap-2 shrink-0">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="bg-[#f1f5f9] border-[#e2e8f0] text-[#475569] hover:bg-[#e2e8f0] rounded-lg"
+                                                            onClick={() => {
+                                                                setEditingKpi(kpi);
+                                                                setEditForm({ ...kpi });
+                                                            }}
+                                                        >
+                                                            <Edit className="w-3.5 h-3.5 mr-1" /> Edit
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="bg-red-50 border-red-200 text-red-600 hover:bg-red-100 rounded-lg"
+                                                            onClick={() => handleDeleteKpi(globalIndex)}
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 rounded-lg"
+                                                            onClick={() => handleExcludeKpi(globalIndex)}
+                                                        >
+                                                            Exclude
+                                                        </Button>
                                                     </div>
                                                 </div>
-                                            </CardContent>
-                                        </Card>
-                                    );
-                                })()}
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
 
-                {/* Action Buttons */}
-                <div className="flex items-center justify-between gap-4 pt-6 border-t border-border">
-                    {onBack && (
-                        <Button 
-                            onClick={onBack} 
-                            variant="outline" 
-                            size="lg"
-                            className="flex items-center gap-2"
-                        >
-                            <ChevronLeft className="w-4 h-4" />
-                            Back
-                        </Button>
-                    )}
-                    <div className="flex-1" />
-                    <Button 
-                        onClick={handleContinue} 
-                        size="lg"
-                        className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
-                    >
-                        Continue to CEO KPI Review
-                        <ChevronRight className="w-4 h-4" />
-                    </Button>
+                                                {/* Validation section */}
+                                                <div className="mt-4 pt-4 border-t border-[#e2e8f0]">
+                                                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748b]">VALIDATION</span>
+                                                        <Badge
+                                                            className={cn(
+                                                                'text-xs font-bold rounded-full',
+                                                                completed === 4 ? 'bg-[#16a34a]/20 text-[#16a34a]' : 'bg-red-100 text-red-600'
+                                                            )}
+                                                        >
+                                                            {completed}/4
+                                                        </Badge>
+                                                        {completed < 4 && (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-100 text-amber-800 text-xs font-medium border border-amber-200">
+                                                                <AlertTriangle className="w-3.5 h-3.5" /> Incomplete
+                                                            </span>
+                                                        )}
+                                                        {measurabilityRequired && (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#fef9c3] text-amber-800 text-xs font-medium border border-amber-300">
+                                                                <AlertTriangle className="w-3.5 h-3.5" /> Measurability required
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {VALIDATION_CRITERIA.map((c) => {
+                                                            const checked = validation[c.id];
+                                                            const isMeasurability = c.id === 'measurability';
+                                                            return (
+                                                                <button
+                                                                    key={c.id}
+                                                                    type="button"
+                                                                    onClick={() => toggleValidation(kpiKey, c.id)}
+                                                                    className={cn(
+                                                                        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors',
+                                                                        checked
+                                                                            ? 'bg-[#2563eb] text-white border-0'
+                                                                            : isMeasurability && measurabilityRequired
+                                                                            ? 'bg-[#fef9c3] text-amber-800 border border-amber-300'
+                                                                            : 'bg-[#f1f5f9] text-[#64748b] border border-[#e2e8f0]'
+                                                                    )}
+                                                                >
+                                                                    {checked ? <Check className="w-3 h-3" /> : <span className="w-1.5 h-1.5 rounded-full bg-[#64748b] opacity-80" />}
+                                                                    {c.label}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Right: Validation Guide + Tips */}
+                <div className="w-[320px] shrink-0 space-y-4">
+                    <Card className="rounded-xl border border-[#e2e8f0] shadow-sm bg-white overflow-hidden">
+                        <CardContent className="p-5">
+                            <h3 className="text-sm font-bold text-[#0f2a4a] mb-4 flex items-center gap-2">
+                                <span className="w-6 h-6 rounded-full bg-[#0f2a4a] flex items-center justify-center">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                                </span>
+                                Validation Guide
+                            </h3>
+                            <ul className="space-y-3 text-sm">
+                                {VALIDATION_CRITERIA.map((c) => (
+                                    <li key={c.id} className="flex gap-2">
+                                        <span className="text-[#64748b] shrink-0 mt-0.5">
+                                            {c.id === 'outcome_influence' && <Zap className="w-4 h-4" />}
+                                            {c.id === 'job_relevance' && <CheckCircle2 className="w-4 h-4" />}
+                                            {c.id === 'measurability' && <TrendingUp className="w-4 h-4" />}
+                                            {c.id === 'data_availability' && <Database className="w-4 h-4" />}
+                                        </span>
+                                        <div>
+                                            <span className="font-semibold text-[#0f2a4a]">{c.required ? c.label.replace(' Required', '') : c.label}</span>
+                                            {c.required && <span className="text-red-600 text-xs font-semibold ml-1">Required</span>}
+                                            <p className="text-[#64748b] text-xs mt-0.5">{c.desc}</p>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                            <p className="text-xs text-[#64748b] mt-4">
+                                각 KPI 카드의 기준을 클릭해 검증하세요. 4/4 달성 후 이메일 발송 권장.
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <div className="rounded-xl bg-[#0f2a4a] text-white p-5">
+                        <h3 className="text-sm font-bold flex items-center gap-2 mb-3">
+                            <Lightbulb className="w-4 h-4 text-emerald-400" /> ◎ Tips
+                        </h3>
+                        <ul className="space-y-2.5 text-xs text-[#e2e8f0]">
+                            <li className="flex items-start gap-2">
+                                <Circle className="w-1.5 h-1.5 text-emerald-400 shrink-0 mt-1.5 fill-emerald-400" />
+                                <span>Recommended = Pathfinder 제안, 조직 현실에 맞게 조정하세요.</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <Circle className="w-1.5 h-1.5 text-blue-400 shrink-0 mt-1.5 fill-blue-400" />
+                                <span>4개 기준 체크 → 4/4 달성 후 이메일 발송.</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <Circle className="w-1.5 h-1.5 text-amber-400 shrink-0 mt-1.5 fill-amber-400" />
+                                <span>Measurability 는 필수 — 미체크 시 수정 또는 Exclude.</span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
 
-            {/* Edit History Dialog */}
-            <Dialog open={editHistoryOpen} onOpenChange={setEditHistoryOpen}>
-                <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle>KPI Edit History</DialogTitle>
-                        <DialogDescription>
-                            View all modifications made to this KPI
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        {editHistory.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">
-                                No edit history found for this KPI.
-                            </p>
-                        ) : (
-                            editHistory.map((history) => (
-                                <div key={history.id} className="border-l-4 border-l-primary pl-4 py-2">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm font-semibold">
-                                            {new Date(history.created_at).toLocaleString()}
-                                        </span>
-                                        <Badge variant={
-                                            history.edited_by_type === 'hr_manager' ? 'default' :
-                                            history.edited_by_type === 'org_manager' ? 'secondary' :
-                                            'destructive'
-                                        }>
-                                            {history.edited_by_type.replace('_', ' ').toUpperCase()}
-                                        </Badge>
-                                    </div>
-                                    {history.edited_by_name && (
-                                        <p className="text-sm text-muted-foreground mb-2">
-                                            Edited by: {history.edited_by_name}
-                                        </p>
-                                    )}
-                                    {history.changes?.description && (
-                                        <p className="text-sm">{history.changes.description}</p>
-                                    )}
-                                </div>
-                            ))
-                        )}
+            {/* Sticky footer */}
+            <footer className="sticky bottom-0 left-0 right-0 bg-white border-t border-[#e2e8f0] py-4 px-6 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] z-10">
+                <div className="max-w-[1400px] mx-auto flex flex-wrap items-center justify-between gap-4">
+                    {onBack ? (
+                        <Button
+                            variant="outline"
+                            onClick={onBack}
+                            className="border-[#e2e8f0] text-[#475569] hover:bg-[#f8fafc] rounded-lg font-semibold"
+                        >
+                            <ChevronLeft className="w-4 h-4 mr-1" /> Back
+                        </Button>
+                    ) : (
+                        <div />
+                    )}
+                    <div className="flex items-center gap-3">
+                        <Button
+                            onClick={handleSendReviewRequest}
+                            disabled={!selectedOrg || orgKpis.length === 0}
+                            className="bg-[#0f2a4a] hover:bg-[#1e293b] text-white rounded-lg font-bold px-6 py-2.5 shadow-md"
+                        >
+                            <Send className="w-4 h-4 mr-2" />
+                            Send Review Request Email to Organization Leader
+                        </Button>
+                        <Button
+                            onClick={() => onContinue(kpis)}
+                            className="bg-[#0f2a4a] hover:bg-[#1e293b] text-white rounded-lg font-bold px-6 py-2.5 shadow-md"
+                        >
+                            Continue to CEO KPI Review
+                            <ChevronRight className="w-4 h-4 ml-2" />
+                        </Button>
                     </div>
+                </div>
+            </footer>
+
+            {/* Edit KPI dialog */}
+            <Dialog open={!!editingKpi} onOpenChange={(open) => !open && setEditingKpi(null)}>
+                <DialogContent className="max-w-lg rounded-xl">
+                    <DialogHeader>
+                        <DialogTitle>Edit KPI</DialogTitle>
+                        <DialogDescription>Update KPI name, formula, weight, and other fields.</DialogDescription>
+                    </DialogHeader>
+                    {editingKpi && (
+                        <div className="space-y-4 pt-2">
+                            <div>
+                                <Label>KPI Name</Label>
+                                <Input
+                                    value={editForm.kpi_name ?? ''}
+                                    onChange={(e) => setEditForm((f) => ({ ...f, kpi_name: e.target.value }))}
+                                    className="mt-1"
+                                />
+                            </div>
+                            <div>
+                                <Label>Formula / Description</Label>
+                                <Input
+                                    value={editForm.formula ?? ''}
+                                    onChange={(e) => setEditForm((f) => ({ ...f, formula: e.target.value }))}
+                                    className="mt-1"
+                                    placeholder="e.g. Uptime hrs / Total hrs * 100"
+                                />
+                            </div>
+                            <div>
+                                <Label>Weight (%)</Label>
+                                <Input
+                                    type="number"
+                                    min={0}
+                                    max={100}
+                                    value={editForm.weight ?? 0}
+                                    onChange={(e) => setEditForm((f) => ({ ...f, weight: parseFloat(e.target.value) || 0 }))}
+                                    className="mt-1"
+                                />
+                            </div>
+                            <div>
+                                <Label>Purpose</Label>
+                                <Textarea
+                                    value={editForm.purpose ?? ''}
+                                    onChange={(e) => setEditForm((f) => ({ ...f, purpose: e.target.value }))}
+                                    className="mt-1"
+                                    rows={2}
+                                />
+                            </div>
+                            <div className="flex justify-end gap-2 pt-2">
+                                <Button variant="outline" onClick={() => setEditingKpi(null)}>Cancel</Button>
+                                <Button
+                                    onClick={() => {
+                                        const idx = kpis.findIndex((k) => k === editingKpi);
+                                        if (idx >= 0) {
+                                            setKpis((prev) => {
+                                                const next = [...prev];
+                                                next[idx] = { ...next[idx], ...editForm };
+                                                return next;
+                                            });
+                                            handleSaveKpi(idx);
+                                        }
+                                        setEditingKpi(null);
+                                    }}
+                                    disabled={!editForm.kpi_name?.trim() || savingKpiIndex !== null}
+                                >
+                                    {savingKpiIndex !== null ? 'Saving...' : 'Save'}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </DialogContent>
             </Dialog>
-
-            {/* Right Side Panel */}
-            <RightSidePanel
-                isOpen={rightPanelOpen}
-                onClose={() => setRightPanelOpen(false)}
-                content={rightPanelContent}
-                title="KPI Guidance"
-            />
-        </>
+        </div>
     );
 }

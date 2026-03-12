@@ -477,10 +477,12 @@ export default function PerformanceSystemIndex({
                         <EvaluationModelAssignmentTab
                             project={project}
                             jobDefinitions={jobDefinitions}
+                            organizationalKpis={organizationalKpis}
+                            evaluationModelAssignments={evaluationModelAssignments}
                             modelGuidance={modelGuidance}
                             jobRecommendations={jobRecommendations}
                             onContinue={handleModelAssignmentContinue}
-                            onBack={() => handleTabChange('ceo-kpi-review')}
+                            onBack={() => handleTabChange('kpi-review')}
                         />
                     )}
 
@@ -496,12 +498,15 @@ export default function PerformanceSystemIndex({
                     {activeTab === 'review-submit' && (
                         <ReviewSubmitTab
                             projectId={project.id}
+                            snapshotQuestions={snapshotQuestions}
                             snapshotResponses={snapshotResponses}
                             organizationalKpis={organizationalKpis}
                             evaluationModelAssignments={evaluationModelAssignments}
                             evaluationStructure={project.evaluation_structure}
+                            orgChartMappings={orgChartMappings}
                             onBack={() => handleTabChange('evaluation-structure')}
                             onSubmit={handleReviewSubmit}
+                            onGoToStep={(tab) => handleTabChange(tab)}
                         />
                     )}
                 </div>

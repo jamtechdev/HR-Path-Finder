@@ -1,47 +1,86 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
-import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
-import RightSidePanel from '@/components/PerformanceSystem/RightSidePanel';
+import { ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// Backend-aligned types; some fields support both legacy and prototype values
 interface EvaluationStructure {
-    // Organizational Evaluation
     org_evaluation_cycle?: 'annual' | 'semi_annual' | 'quarterly';
-    org_evaluation_timing?: string; // 1-12
-    org_evaluator_type?: 'top_down';
+    org_evaluation_timing?: string;
+    org_evaluator_type?: string;
     org_evaluation_method?: 'absolute' | 'relative';
     org_rating_scale?: '3-level' | '4-level';
-    org_rating_distribution?: number[]; // percentages
-    org_evaluation_group?: 'team_level' | 'executive_level';
-    org_use_of_results?: 'linked_to_org_manager' | 'linked_to_individual';
-    // Individual Evaluation
+    org_rating_distribution?: number[];
+    org_evaluation_group?: string;
+    org_use_of_results?: string[];
     individual_evaluation_cycle?: 'annual' | 'semi_annual' | 'quarterly';
-    individual_evaluation_timing?: string; // 1-12
-    individual_evaluator_types?: ('top_down' | 'multi_rater')[];
-    individual_evaluators?: ('self_evaluation' | 'primary' | 'secondary' | 'tertiary' | 'peer_same_dept' | 'peer_adjacent_dept')[];
+    individual_evaluation_timing?: string;
+    individual_evaluator_types?: string[];
+    individual_evaluators?: string[];
     individual_evaluation_method?: 'absolute' | 'relative';
     individual_rating_scale?: '3-level' | '4-level' | '5-level';
-    individual_rating_distribution?: number[]; // percentages
-    individual_evaluation_groups?: ('company_wide' | 'job_family_based' | 'organization_based' | 'job_level_based')[];
-    individual_use_of_results?: ('salary_adjustment' | 'bonus_allocation' | 'promotion' | 'position_assignment' | 'training_selection' | 'differentiated_benefits' | 'other')[];
+    individual_rating_distribution?: number[];
+    individual_evaluation_groups?: string[];
+    individual_use_of_results?: string[];
     individual_use_of_results_other?: string;
-    organization_leader_evaluation?: 'replaced_by_org' | 'conducted_separately';
+    organization_leader_evaluation?: string;
     summary_note?: string;
 }
 
 interface Props {
-    project: {
-        id: number;
-    };
-    evaluationStructure?: EvaluationStructure;
+    project: { id: number };
+    evaluationStructure?: EvaluationStructure | null;
     onContinue: (structure: EvaluationStructure) => void;
     onBack?: () => void;
+}
+
+function normalizeStructure(s: any): EvaluationStructure {
+    if (!s) return {};
+    if (s.organizational_evaluation || s.individual_evaluation) {
+        return {
+            org_evaluation_cycle: s.organizational_evaluation?.evaluation_cycle,
+            org_evaluation_timing: s.organizational_evaluation?.evaluation_timing,
+            org_evaluator_type: s.organizational_evaluation?.evaluator_type,
+            org_evaluation_method: s.organizational_evaluation?.evaluation_method,
+            org_rating_scale: s.organizational_evaluation?.rating_scale,
+            org_rating_distribution: s.organizational_evaluation?.rating_distribution,
+            org_evaluation_group: s.organizational_evaluation?.evaluation_group,
+            org_use_of_results: Array.isArray(s.organizational_evaluation?.use_of_results) ? s.organizational_evaluation.use_of_results : undefined,
+            individual_evaluation_cycle: s.individual_evaluation?.evaluation_cycle,
+            individual_evaluation_timing: s.individual_evaluation?.evaluation_timing,
+            individual_evaluator_types: s.individual_evaluation?.evaluator_types,
+            individual_evaluators: s.individual_evaluation?.evaluators,
+            individual_evaluation_method: s.individual_evaluation?.evaluation_method,
+            individual_rating_scale: s.individual_evaluation?.rating_scale,
+            individual_rating_distribution: s.individual_evaluation?.rating_distribution,
+            individual_evaluation_groups: s.individual_evaluation?.evaluation_groups,
+            individual_use_of_results: s.individual_evaluation?.use_of_results,
+            individual_use_of_results_other: s.individual_evaluation?.use_of_results_other,
+            organization_leader_evaluation: s.individual_evaluation?.organization_leader_evaluation,
+            summary_note: s.summary_note,
+        };
+    }
+    return { ...s };
+}
+
+// Map UI cycle to backend (semi -> semi_annual)
+function cycleToBackend(v: string): 'annual' | 'semi_annual' | 'quarterly' {
+    if (v === 'semi') return 'semi_annual';
+    return v as 'annual' | 'semi_annual' | 'quarterly';
+}
+function cycleFromBackend(v?: string): string {
+    if (v === 'semi_annual') return 'semi';
+    return v || '';
+}
+
+// Parse timing string "1" or "1,7" into month numbers
+function parseTiming(t?: string): number[] {
+    if (!t) return [];
+    return t.split(',').map((x) => parseInt(x.trim(), 10)).filter((n) => n >= 1 && n <= 12);
+}
+function formatTiming(months: number[]): string {
+    return [...months].sort((a, b) => a - b).join(',');
 }
 
 export default function EvaluationStructureTab({
@@ -50,772 +89,705 @@ export default function EvaluationStructureTab({
     onContinue,
     onBack,
 }: Props) {
-    // Handle null/undefined evaluationStructure and flatten nested structure from backend
-    const normalizeStructure = (structure: any): EvaluationStructure => {
-        if (!structure) return {};
-        
-        // If structure has nested organizational_evaluation and individual_evaluation (from backend)
-        if (structure.organizational_evaluation || structure.individual_evaluation) {
-            return {
-                // Organizational Evaluation
-                org_evaluation_cycle: structure.organizational_evaluation?.evaluation_cycle,
-                org_evaluation_timing: structure.organizational_evaluation?.evaluation_timing,
-                org_evaluator_type: structure.organizational_evaluation?.evaluator_type,
-                org_evaluation_method: structure.organizational_evaluation?.evaluation_method,
-                org_rating_scale: structure.organizational_evaluation?.rating_scale,
-                org_rating_distribution: structure.organizational_evaluation?.rating_distribution,
-                org_evaluation_group: structure.organizational_evaluation?.evaluation_group,
-                org_use_of_results: structure.organizational_evaluation?.use_of_results,
-                // Individual Evaluation
-                individual_evaluation_cycle: structure.individual_evaluation?.evaluation_cycle,
-                individual_evaluation_timing: structure.individual_evaluation?.evaluation_timing,
-                individual_evaluator_types: structure.individual_evaluation?.evaluator_types,
-                individual_evaluators: structure.individual_evaluation?.evaluators,
-                individual_evaluation_method: structure.individual_evaluation?.evaluation_method,
-                individual_rating_scale: structure.individual_evaluation?.rating_scale,
-                individual_rating_distribution: structure.individual_evaluation?.rating_distribution,
-                individual_evaluation_groups: structure.individual_evaluation?.evaluation_groups,
-                individual_use_of_results: structure.individual_evaluation?.use_of_results,
-                individual_use_of_results_other: structure.individual_evaluation?.use_of_results_other,
-                organization_leader_evaluation: structure.individual_evaluation?.organization_leader_evaluation,
-                summary_note: structure.summary_note,
-            };
-        }
-        
-        // Otherwise, return as-is (already flattened)
-        return structure || {};
-    };
-    
     const [structure, setStructure] = useState<EvaluationStructure>(() => normalizeStructure(initialStructure));
-    const [rightPanelOpen, setRightPanelOpen] = useState(false);
-    const [rightPanelContent, setRightPanelContent] = useState<any>(null);
+    const [orgRun, setOrgRun] = useState<boolean>(() => {
+        const s = normalizeStructure(initialStructure);
+        return !!(s.org_evaluation_cycle || s.org_evaluation_method || s.org_evaluator_type);
+    });
+    const [collapsed, setCollapsed] = useState<Record<string, boolean>>({ sec1: false, sec2: false });
+    const [orgMonths, setOrgMonths] = useState<number[]>(() => parseTiming(normalizeStructure(initialStructure).org_evaluation_timing));
+    const [indMonths, setIndMonths] = useState<number[]>(() => parseTiming(normalizeStructure(initialStructure).individual_evaluation_timing));
+    const [orgUsageOther, setOrgUsageOther] = useState(false);
+    const [indUsageOther, setIndUsageOther] = useState(!!normalizeStructure(initialStructure).individual_use_of_results_other);
 
-    // Update structure when initialStructure prop changes (e.g., after save/reload)
     useEffect(() => {
-        if (initialStructure !== undefined) {
-            setStructure(normalizeStructure(initialStructure));
+        if (initialStructure !== undefined && initialStructure !== null) {
+            const s = normalizeStructure(initialStructure);
+            setStructure(s);
+            setOrgRun(!!(s.org_evaluation_cycle || s.org_evaluation_method || s.org_evaluator_type));
+            setOrgMonths(parseTiming(s.org_evaluation_timing));
+            setIndMonths(parseTiming(s.individual_evaluation_timing));
+            setIndUsageOther(!!s.individual_use_of_results_other);
         }
     }, [initialStructure]);
 
-    const handleOptionClick = async (optionKey: string, optionValue: string) => {
-        // Fetch guidance content for this option (would be implemented with API call)
-        setRightPanelContent({
-            concept: `Guidance for: ${optionKey} - ${optionValue}`,
-            key_characteristics: 'Key characteristics will be loaded from admin configuration.',
-            example: 'Example usage will be shown here.',
-        });
-        setRightPanelOpen(true);
+    const toggleSection = (id: string) => {
+        setCollapsed((c) => ({ ...c, [id]: !c[id] }));
     };
 
-    const generateSummaryNote = (): string => {
-        let orgSummary = '';
-        let individualSummary = '';
-
-        if (structure.org_evaluation_cycle && structure.org_evaluation_method && structure.org_rating_scale) {
-            orgSummary = `Considering the organizational characteristics and management objectives of the company, the organizational evaluation will be conducted on a ${structure.org_evaluation_cycle} basis, applying a ${structure.org_evaluation_method} method, and using a ${structure.org_rating_scale} rating structure to assess performance at the organizational level.`;
+    const neededMonths = (cycle: string) => (cycle === 'annual' ? 1 : cycle === 'semi' ? 2 : 4);
+    const toggleMonth = (months: number[], setMonths: (m: number[]) => void, cycle: string, monthNum: number) => {
+        const needed = neededMonths(cycle);
+        const idx = months.indexOf(monthNum);
+        if (idx >= 0) {
+            const next = months.filter((_, i) => i !== idx);
+            setMonths(next);
+        } else {
+            let next = [...months, monthNum].sort((a, b) => a - b);
+            if (next.length > needed) next = next.slice(-needed);
+            setMonths(next);
         }
+    };
 
-        if (structure.individual_evaluation_cycle && structure.individual_evaluation_method && structure.individual_rating_scale) {
-            individualSummary = `The individual evaluation will be conducted based on the organizational evaluation framework, operating on a ${structure.individual_evaluation_cycle} basis, applying a ${structure.individual_evaluation_method} method, and using a ${structure.individual_rating_scale} rating structure to assess individual performance.`;
-        }
+    // Single-select option card
+    const pick = (group: keyof EvaluationStructure, value: string, backendValue?: string) => {
+        const v = backendValue ?? value;
+        setStructure((s) => ({ ...s, [group]: v }));
+    };
+    // Multi-select (array) option card
+    const pickMulti = (group: keyof EvaluationStructure, value: string) => {
+        setStructure((s) => {
+            const arr = (Array.isArray(s[group]) ? s[group] : []) as string[];
+            const next = arr.includes(value) ? arr.filter((x) => x !== value) : [...arr, value];
+            return { ...s, [group]: next };
+        });
+    };
 
-        return `${orgSummary}\n\n${individualSummary}`.trim();
+    // Build payload for backend
+    const buildPayload = (): EvaluationStructure => {
+        const cycleBackend = (c: string) => cycleToBackend(c || 'annual');
+        const orgCycle = structure.org_evaluation_cycle || (structure as any).org_cycle;
+        const indCycle = structure.individual_evaluation_cycle || (structure as any).ind_cycle;
+        const payload: EvaluationStructure = {
+            org_evaluation_cycle: orgRun ? cycleBackend(orgCycle || cycleFromBackend(structure.org_evaluation_cycle)) : undefined,
+            org_evaluation_timing: orgRun && orgMonths.length ? formatTiming(orgMonths) : undefined,
+            org_evaluator_type: orgRun ? (structure.org_evaluator_type || undefined) : undefined,
+            org_evaluation_method: orgRun ? structure.org_evaluation_method : undefined,
+            org_rating_scale: orgRun && structure.org_evaluation_method === 'relative' ? structure.org_rating_scale : undefined,
+            org_rating_distribution: orgRun && structure.org_evaluation_method === 'relative' ? structure.org_rating_distribution : undefined,
+            org_evaluation_group: orgRun ? structure.org_evaluation_group : undefined,
+            org_use_of_results: orgRun && Array.isArray(structure.org_use_of_results) && structure.org_use_of_results.length
+                ? structure.org_use_of_results
+                : undefined,
+            individual_evaluation_cycle: cycleBackend(indCycle || cycleFromBackend(structure.individual_evaluation_cycle)),
+            individual_evaluation_timing: indMonths.length ? formatTiming(indMonths) : undefined,
+            individual_evaluator_types: structure.individual_evaluator_types?.length ? structure.individual_evaluator_types : undefined,
+            individual_evaluators: structure.individual_evaluators?.length ? structure.individual_evaluators : undefined,
+            individual_evaluation_method: structure.individual_evaluation_method,
+            individual_rating_scale: structure.individual_evaluation_method === 'relative' ? structure.individual_rating_scale : undefined,
+            individual_rating_distribution: structure.individual_evaluation_method === 'relative' ? structure.individual_rating_distribution : undefined,
+            individual_evaluation_groups: structure.individual_evaluation_groups?.length ? structure.individual_evaluation_groups : undefined,
+            individual_use_of_results: structure.individual_use_of_results?.length ? structure.individual_use_of_results : undefined,
+            individual_use_of_results_other: structure.individual_use_of_results_other || undefined,
+            organization_leader_evaluation: structure.organization_leader_evaluation,
+            summary_note: structure.summary_note,
+        };
+        return payload;
     };
 
     const handleContinue = () => {
-        const summaryNote = generateSummaryNote();
-        onContinue({ ...structure, summary_note: summaryNote });
+        const payload = buildPayload();
+        onContinue(payload);
     };
 
-    const updateOrgRatingDistribution = (scale: '3-level' | '4-level', values: number[]) => {
-        setStructure({
-            ...structure,
-            org_rating_scale: scale,
-            org_rating_distribution: values,
-        });
+    // Section completion for progress
+    const orgFilled = orgRun
+        ? [
+            structure.org_evaluation_cycle || (structure as any).org_cycle,
+            structure.org_evaluator_type,
+            structure.org_evaluation_method,
+        ].filter(Boolean).length
+        : 3;
+    const indFilled =
+        [
+            structure.individual_evaluation_cycle || (structure as any).ind_cycle,
+            (structure.individual_evaluators?.length ?? 0) > 0,
+            structure.individual_evaluation_method,
+        ].filter(Boolean).length;
+
+    const progressFields = [
+        orgRun !== null,
+        !orgRun || !!structure.org_evaluation_cycle || !!(structure as any).org_cycle,
+        !orgRun || !!structure.org_evaluation_method,
+        !!structure.individual_evaluation_cycle || !!(structure as any).ind_cycle,
+        (structure.individual_evaluators?.length ?? 0) > 0,
+        !!structure.individual_evaluation_method,
+    ];
+    const progressDone = progressFields.filter(Boolean).length;
+    const progressTotal = progressFields.length;
+
+    const cycleMap: Record<string, string> = { annual: 'Annual', semi: 'Semi-Annual', semi_annual: 'Semi-Annual', quarterly: 'Quarterly' };
+    const methodMap: Record<string, string> = { absolute: 'Absolute (절대)', relative: 'Relative (상대)' };
+    const orgEvalMap: Record<string, string> = { ceo: 'CEO / Top Mgmt', dept: 'Dept Heads', top_down: 'Top-down' };
+    const indEvalMap: Record<string, string> = {
+        primary: 'Direct Mgr',
+        peer_same_dept: 'Peer',
+        self_evaluation: 'Self',
+    };
+    const orgUsageMap: Record<string, string> = {
+        dist_adjust: 'Adjust Ind. Distribution',
+        bonus: 'Bonus Pool',
+        reference: 'Reference Only',
+        dept_head_link: 'Link to Dept Head',
+    };
+    const indUsageMap: Record<string, string> = {
+        salary_adjustment: 'Salary',
+        bonus_allocation: 'Bonus',
+        promotion: 'Promotion',
+        training_selection: 'Development',
     };
 
-    const updateIndividualRatingDistribution = (scale: '3-level' | '4-level' | '5-level', values: number[]) => {
-        setStructure({
-            ...structure,
-            individual_rating_scale: scale,
-            individual_rating_distribution: values,
-        });
-    };
+    const orgCycleVal = structure.org_evaluation_cycle || (structure as any).org_cycle || cycleFromBackend(structure.org_evaluation_cycle);
+    const indCycleVal = structure.individual_evaluation_cycle || (structure as any).ind_cycle || cycleFromBackend(structure.individual_evaluation_cycle);
+
+    const sentenceParts: string[] = [];
+    if (orgRun && (orgCycleVal || structure.org_evaluation_method)) {
+        sentenceParts.push(
+            `Org performance is assessed <strong>${(cycleMap[orgCycleVal] || cycleMap[structure.org_evaluation_cycle || ''] || '').toLowerCase()}</strong> using <strong>${methodMap[structure.org_evaluation_method || ''] || ''}</strong> scoring`
+        );
+    }
+    if (indCycleVal && (structure.individual_evaluators?.length ?? 0) > 0 && structure.individual_evaluation_method) {
+        const evs = (structure.individual_evaluators || []).map((v) => indEvalMap[v] || v).join(' + ');
+        sentenceParts.push(
+            `Individual employees are evaluated <strong>${(cycleMap[indCycleVal] || cycleMap[structure.individual_evaluation_cycle || ''] || '').toLowerCase()}</strong> by <strong>${evs}</strong> using <strong>${methodMap[structure.individual_evaluation_method] || ''}</strong> scoring`
+        );
+    }
+    const sentenceSummary = sentenceParts.length
+        ? sentenceParts.join(', and ') + '.'
+        : '<span class="sent-blank">Select options above to generate a plain-English description of your evaluation structure.</span>';
+
+    const summaryRows = [
+        { key: 'Org Evaluation', val: orgRun ? 'Yes — Org-level' : 'Skipped' },
+        { key: 'Org Cycle', val: orgRun ? (cycleMap[orgCycleVal] || cycleMap[structure.org_evaluation_cycle || ''] || '—') : '—' },
+        { key: 'Org Method', val: orgRun ? (methodMap[structure.org_evaluation_method || ''] || '—') : '—' },
+        { key: 'Ind. Cycle', val: cycleMap[indCycleVal] || cycleMap[structure.individual_evaluation_cycle || ''] || '—' },
+        {
+            key: 'Evaluator(s)',
+            val:
+                (structure.individual_evaluators?.length ?? 0) > 0
+                    ? (structure.individual_evaluators || []).map((v) => indEvalMap[v] || v).join(', ')
+                    : '—',
+        },
+        { key: 'Ind. Method', val: methodMap[structure.individual_evaluation_method || ''] || '—' },
+    ];
 
     return (
-        <>
-            <div className="space-y-6">
-                <Card className="shadow-lg border-2">
-                    <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b-2">
-                        <CardTitle className="text-2xl font-bold">Evaluation Structure</CardTitle>
-                        <CardDescription className="text-base mt-2">
-                            This evaluation structure defines the common performance evaluation framework applied across the entire company.
-                            Regardless of the evaluation model used (such as OKR, MBO, or BSC), it establishes the foundational evaluation framework
-                            to ensure that all employees are assessed fairly and consistently using the same standards and procedures.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-6">
-                        {/* Organizational Evaluation */}
-                        <Card className="border-yellow-200 bg-yellow-50/50">
-                            <CardHeader>
-                                <CardTitle className="text-lg">Organizational Evaluation (Precedes Individual Evaluation)</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <Label className="text-sm font-semibold mb-2 block">Evaluation Cycle</Label>
-                                        <Select
-                                            value={structure.org_evaluation_cycle || ''}
-                                            onValueChange={(v) => {
-                                                setStructure({ ...structure, org_evaluation_cycle: v as any });
-                                                handleOptionClick('org_evaluation_cycle', v);
-                                            }}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select One" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="annual">Annual</SelectItem>
-                                                <SelectItem value="semi_annual">Semi-annual</SelectItem>
-                                                <SelectItem value="quarterly">Quarterly</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div>
-                                        <Label className="text-sm font-semibold mb-2 block">Evaluation Timing</Label>
-                                        <Select
-                                            value={structure.org_evaluation_timing || ''}
-                                            onValueChange={(v) => {
-                                                setStructure({ ...structure, org_evaluation_timing: v });
-                                                handleOptionClick('org_evaluation_timing', v);
-                                            }}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select One" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                                                    <SelectItem key={month} value={month.toString()}>
-                                                        {month}月
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div>
-                                        <Label className="text-sm font-semibold mb-2 block">Evaluator</Label>
-                                        <Select
-                                            value={structure.org_evaluator_type || ''}
-                                            onValueChange={(v) => {
-                                                setStructure({ ...structure, org_evaluator_type: v as any });
-                                                handleOptionClick('org_evaluator_type', v);
-                                            }}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select One" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="top_down">Top-down evaluation</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div>
-                                        <Label className="text-sm font-semibold mb-2 block">Evaluation Method</Label>
-                                        <Select
-                                            value={structure.org_evaluation_method || ''}
-                                            onValueChange={(v) => {
-                                                setStructure({ ...structure, org_evaluation_method: v as any });
-                                                handleOptionClick('org_evaluation_method', v);
-                                            }}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select One" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="absolute">Absolute evaluation</SelectItem>
-                                                <SelectItem value="relative">Relative evaluation</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div>
-                                        <Label className="text-sm font-semibold mb-2 block">Rating Scale</Label>
-                                        <Select
-                                            value={structure.org_rating_scale || ''}
-                                            onValueChange={(v) => {
-                                                const scale = v as '3-level' | '4-level';
-                                                setStructure({
-                                                    ...structure,
-                                                    org_rating_scale: scale,
-                                                    org_rating_distribution: scale === '3-level' ? [30, 40, 30] : [20, 50, 20, 10],
-                                                });
-                                                handleOptionClick('org_rating_scale', v);
-                                            }}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select One" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="3-level">3-level</SelectItem>
-                                                <SelectItem value="4-level">4-level</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    {structure.org_rating_scale && (
-                                        <div>
-                                            <Label className="text-sm font-semibold mb-2 block">Rating Distribution (%)</Label>
-                                            <div className="flex items-center gap-2">
-                                                {structure.org_rating_scale === '3-level' ? (
-                                                    <>
-                                                        <div className="flex-1">
-                                                            <Label className="text-xs">A</Label>
-                                                            <Input
-                                                                type="number"
-                                                                value={structure.org_rating_distribution?.[0] || 30}
-                                                                onChange={(e) => {
-                                                                    const dist = [...(structure.org_rating_distribution || [30, 40, 30])];
-                                                                    dist[0] = parseFloat(e.target.value) || 0;
-                                                                    updateOrgRatingDistribution('3-level', dist);
-                                                                }}
-                                                                className="w-full"
-                                                                min="0"
-                                                                max="100"
-                                                            />
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <Label className="text-xs">B</Label>
-                                                            <Input
-                                                                type="number"
-                                                                value={structure.org_rating_distribution?.[1] || 40}
-                                                                onChange={(e) => {
-                                                                    const dist = [...(structure.org_rating_distribution || [30, 40, 30])];
-                                                                    dist[1] = parseFloat(e.target.value) || 0;
-                                                                    updateOrgRatingDistribution('3-level', dist);
-                                                                }}
-                                                                className="w-full"
-                                                                min="0"
-                                                                max="100"
-                                                            />
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <Label className="text-xs">C</Label>
-                                                            <Input
-                                                                type="number"
-                                                                value={structure.org_rating_distribution?.[2] || 30}
-                                                                onChange={(e) => {
-                                                                    const dist = [...(structure.org_rating_distribution || [30, 40, 30])];
-                                                                    dist[2] = parseFloat(e.target.value) || 0;
-                                                                    updateOrgRatingDistribution('3-level', dist);
-                                                                }}
-                                                                className="w-full"
-                                                                min="0"
-                                                                max="100"
-                                                            />
-                                                        </div>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <div className="flex-1">
-                                                            <Label className="text-xs">A</Label>
-                                                            <Input
-                                                                type="number"
-                                                                value={structure.org_rating_distribution?.[0] || 20}
-                                                                onChange={(e) => {
-                                                                    const dist = [...(structure.org_rating_distribution || [20, 50, 20, 10])];
-                                                                    dist[0] = parseFloat(e.target.value) || 0;
-                                                                    updateOrgRatingDistribution('4-level', dist);
-                                                                }}
-                                                                className="w-full"
-                                                            />
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <Label className="text-xs">B</Label>
-                                                            <Input
-                                                                type="number"
-                                                                value={structure.org_rating_distribution?.[1] || 50}
-                                                                onChange={(e) => {
-                                                                    const dist = [...(structure.org_rating_distribution || [20, 50, 20, 10])];
-                                                                    dist[1] = parseFloat(e.target.value) || 0;
-                                                                    updateOrgRatingDistribution('4-level', dist);
-                                                                }}
-                                                                className="w-full"
-                                                            />
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <Label className="text-xs">C</Label>
-                                                            <Input
-                                                                type="number"
-                                                                value={structure.org_rating_distribution?.[2] || 20}
-                                                                onChange={(e) => {
-                                                                    const dist = [...(structure.org_rating_distribution || [20, 50, 20, 10])];
-                                                                    dist[2] = parseFloat(e.target.value) || 0;
-                                                                    updateOrgRatingDistribution('4-level', dist);
-                                                                }}
-                                                                className="w-full"
-                                                            />
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <Label className="text-xs">D</Label>
-                                                            <Input
-                                                                type="number"
-                                                                value={structure.org_rating_distribution?.[3] || 10}
-                                                                onChange={(e) => {
-                                                                    const dist = [...(structure.org_rating_distribution || [20, 50, 20, 10])];
-                                                                    dist[3] = parseFloat(e.target.value) || 0;
-                                                                    updateOrgRatingDistribution('4-level', dist);
-                                                                }}
-                                                                className="w-full"
-                                                            />
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </div>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                Total: {structure.org_rating_distribution?.reduce((a, b) => a + b, 0) || 0}%
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    <div>
-                                        <Label className="text-sm font-semibold mb-2 block">Evaluation Group</Label>
-                                        <Select
-                                            value={structure.org_evaluation_group || ''}
-                                            onValueChange={(v) => {
-                                                setStructure({ ...structure, org_evaluation_group: v as any });
-                                                handleOptionClick('org_evaluation_group', v);
-                                            }}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select One" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="team_level">Team-level organizational unit</SelectItem>
-                                                <SelectItem value="executive_level">Executive-level organizational unit</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div>
-                                        <Label className="text-sm font-semibold mb-2 block">Use of Evaluation Results</Label>
-                                        <Select
-                                            value={structure.org_use_of_results || ''}
-                                            onValueChange={(v) => {
-                                                setStructure({ ...structure, org_use_of_results: v as any });
-                                                handleOptionClick('org_use_of_results', v);
-                                            }}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select One" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="linked_to_org_manager">Linked to organization manager evaluation</SelectItem>
-                                                <SelectItem value="linked_to_individual">Linked to individual evaluation distribution</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Individual Evaluation */}
-                        <Card className="border-blue-200 bg-blue-50/50">
-                            <CardHeader>
-                                <CardTitle className="text-lg">Individual Evaluation (Follows Organizational Evaluation)</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <Label className="text-sm font-semibold mb-2 block">Evaluation Cycle</Label>
-                                        <Select
-                                            value={structure.individual_evaluation_cycle || ''}
-                                            onValueChange={(v) => {
-                                                setStructure({ ...structure, individual_evaluation_cycle: v as any });
-                                                handleOptionClick('individual_evaluation_cycle', v);
-                                            }}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select One" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="annual">Annual</SelectItem>
-                                                <SelectItem value="semi_annual">Semi-annual</SelectItem>
-                                                <SelectItem value="quarterly">Quarterly</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div>
-                                        <Label className="text-sm font-semibold mb-2 block">Evaluation Timing</Label>
-                                        <Select
-                                            value={structure.individual_evaluation_timing || ''}
-                                            onValueChange={(v) => {
-                                                setStructure({ ...structure, individual_evaluation_timing: v });
-                                                handleOptionClick('individual_evaluation_timing', v);
-                                            }}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select One" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                                                    <SelectItem key={month} value={month.toString()}>
-                                                        {month}月
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div>
-                                        <Label className="text-sm font-semibold mb-2 block">Evaluator</Label>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox
-                                                    id="eval-top-down"
-                                                    checked={structure.individual_evaluator_types?.includes('top_down') || false}
-                                                    onCheckedChange={(checked) => {
-                                                        const types = structure.individual_evaluator_types || [];
-                                                        if (checked) {
-                                                            setStructure({ ...structure, individual_evaluator_types: [...types, 'top_down'] });
-                                                        } else {
-                                                            setStructure({ ...structure, individual_evaluator_types: types.filter(t => t !== 'top_down') });
-                                                        }
-                                                        handleOptionClick('individual_evaluator_types', 'top_down');
-                                                    }}
-                                                />
-                                                <Label htmlFor="eval-top-down" className="cursor-pointer">Top-down evaluation</Label>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox
-                                                    id="eval-multi-rater"
-                                                    checked={structure.individual_evaluator_types?.includes('multi_rater') || false}
-                                                    onCheckedChange={(checked) => {
-                                                        const types = structure.individual_evaluator_types || [];
-                                                        if (checked) {
-                                                            setStructure({ ...structure, individual_evaluator_types: [...types, 'multi_rater'] });
-                                                        } else {
-                                                            setStructure({ ...structure, individual_evaluator_types: types.filter(t => t !== 'multi_rater') });
-                                                        }
-                                                        handleOptionClick('individual_evaluator_types', 'multi_rater');
-                                                    }}
-                                                />
-                                                <Label htmlFor="eval-multi-rater" className="cursor-pointer">Multi-rater evaluation</Label>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <Label className="text-sm font-semibold mb-2 block">Evaluators</Label>
-                                        <div className="space-y-2">
-                                            {[
-                                                { value: 'self_evaluation', label: 'Self-evaluation' },
-                                                { value: 'primary', label: 'Primary evaluator' },
-                                                { value: 'secondary', label: 'Secondary evaluator' },
-                                                { value: 'tertiary', label: 'Tertiary evaluator' },
-                                                { value: 'peer_same_dept', label: 'Peer (same department)' },
-                                                { value: 'peer_adjacent_dept', label: 'Peer (adjacent department)' },
-                                            ].map((evalOption) => (
-                                                <div key={evalOption.value} className="flex items-center space-x-2">
-                                                    <Checkbox
-                                                        id={`eval-${evalOption.value}`}
-                                                        checked={structure.individual_evaluators?.includes(evalOption.value as any) || false}
-                                                        onCheckedChange={(checked) => {
-                                                            const evaluators = structure.individual_evaluators || [];
-                                                            if (checked) {
-                                                                setStructure({ ...structure, individual_evaluators: [...evaluators, evalOption.value as any] });
-                                                            } else {
-                                                                setStructure({ ...structure, individual_evaluators: evaluators.filter(e => e !== evalOption.value) });
-                                                            }
-                                                            handleOptionClick('individual_evaluators', evalOption.value);
-                                                        }}
-                                                    />
-                                                    <Label htmlFor={`eval-${evalOption.value}`} className="cursor-pointer text-sm">
-                                                        {evalOption.label}
-                                                    </Label>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <Label className="text-sm font-semibold mb-2 block">Evaluation Method</Label>
-                                        <Select
-                                            value={structure.individual_evaluation_method || ''}
-                                            onValueChange={(v) => {
-                                                setStructure({ ...structure, individual_evaluation_method: v as any });
-                                                handleOptionClick('individual_evaluation_method', v);
-                                            }}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select One" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="absolute">Absolute evaluation</SelectItem>
-                                                <SelectItem value="relative">Relative evaluation</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div>
-                                        <Label className="text-sm font-semibold mb-2 block">Rating Scale</Label>
-                                        <Select
-                                            value={structure.individual_rating_scale || ''}
-                                            onValueChange={(v) => {
-                                                const scale = v as '3-level' | '4-level' | '5-level';
-                                                const defaultDist: Record<string, number[]> = {
-                                                    '3-level': [30, 40, 30],
-                                                    '4-level': [20, 50, 20, 10],
-                                                    '5-level': [10, 15, 60, 10, 5],
-                                                };
-                                                setStructure({
-                                                    ...structure,
-                                                    individual_rating_scale: scale,
-                                                    individual_rating_distribution: defaultDist[scale],
-                                                });
-                                                handleOptionClick('individual_rating_scale', v);
-                                            }}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select One" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="3-level">3-level</SelectItem>
-                                                <SelectItem value="4-level">4-level</SelectItem>
-                                                <SelectItem value="5-level">5-level</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    {structure.individual_rating_scale && (
-                                        <div>
-                                            <Label className="text-sm font-semibold mb-2 block">Rating Distribution (%)</Label>
-                                            <div className="flex items-center gap-2">
-                                                {structure.individual_rating_scale === '3-level' && (
-                                                    <>
-                                                        {['A', 'B', 'C'].map((label, idx) => (
-                                                            <div key={label} className="flex-1">
-                                                                <Label className="text-xs">{label}</Label>
-                                                                <Input
-                                                                    type="number"
-                                                                    value={structure.individual_rating_distribution?.[idx] || (idx === 0 ? 30 : idx === 1 ? 40 : 30)}
-                                                                    onChange={(e) => {
-                                                                        const dist = [...(structure.individual_rating_distribution || [30, 40, 30])];
-                                                                        dist[idx] = parseFloat(e.target.value) || 0;
-                                                                        updateIndividualRatingDistribution('3-level', dist);
-                                                                    }}
-                                                                    className="w-full"
-                                                                />
-                                                            </div>
-                                                        ))}
-                                                    </>
-                                                )}
-                                                {structure.individual_rating_scale === '4-level' && (
-                                                    <>
-                                                        {['A', 'B', 'C', 'D'].map((label, idx) => (
-                                                            <div key={label} className="flex-1">
-                                                                <Label className="text-xs">{label}</Label>
-                                                                <Input
-                                                                    type="number"
-                                                                    value={structure.individual_rating_distribution?.[idx] || (idx === 0 ? 20 : idx === 1 ? 50 : idx === 2 ? 20 : 10)}
-                                                                    onChange={(e) => {
-                                                                        const dist = [...(structure.individual_rating_distribution || [20, 50, 20, 10])];
-                                                                        dist[idx] = parseFloat(e.target.value) || 0;
-                                                                        updateIndividualRatingDistribution('4-level', dist);
-                                                                    }}
-                                                                    className="w-full"
-                                                                />
-                                                            </div>
-                                                        ))}
-                                                    </>
-                                                )}
-                                                {structure.individual_rating_scale === '5-level' && (
-                                                    <>
-                                                        {['S', 'A', 'B', 'C', 'D'].map((label, idx) => (
-                                                            <div key={label} className="flex-1">
-                                                                <Label className="text-xs">{label}</Label>
-                                                                <Input
-                                                                    type="number"
-                                                                    value={structure.individual_rating_distribution?.[idx] || (idx === 0 ? 10 : idx === 1 ? 15 : idx === 2 ? 60 : idx === 3 ? 10 : 5)}
-                                                                    onChange={(e) => {
-                                                                        const dist = [...(structure.individual_rating_distribution || [10, 15, 60, 10, 5])];
-                                                                        dist[idx] = parseFloat(e.target.value) || 0;
-                                                                        updateIndividualRatingDistribution('5-level', dist);
-                                                                    }}
-                                                                    className="w-full"
-                                                                />
-                                                            </div>
-                                                        ))}
-                                                    </>
-                                                )}
-                                            </div>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                Total: {structure.individual_rating_distribution?.reduce((a, b) => a + b, 0) || 0}%
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    <div>
-                                        <Label className="text-sm font-semibold mb-2 block">Evaluation Group</Label>
-                                        <div className="space-y-2">
-                                            {[
-                                                { value: 'company_wide', label: 'Company-wide single pool' },
-                                                { value: 'job_family_based', label: 'Job family-based pool' },
-                                                { value: 'organization_based', label: 'Organization-based pool' },
-                                                { value: 'job_level_based', label: 'Job level-based pool' },
-                                            ].map((groupOption) => (
-                                                <div key={groupOption.value} className="flex items-center space-x-2">
-                                                    <Checkbox
-                                                        id={`group-${groupOption.value}`}
-                                                        checked={structure.individual_evaluation_groups?.includes(groupOption.value as any) || false}
-                                                        onCheckedChange={(checked) => {
-                                                            const groups = structure.individual_evaluation_groups || [];
-                                                            if (checked) {
-                                                                setStructure({ ...structure, individual_evaluation_groups: [...groups, groupOption.value as any] });
-                                                            } else {
-                                                                setStructure({ ...structure, individual_evaluation_groups: groups.filter(g => g !== groupOption.value) });
-                                                            }
-                                                            handleOptionClick('individual_evaluation_groups', groupOption.value);
-                                                        }}
-                                                    />
-                                                    <Label htmlFor={`group-${groupOption.value}`} className="cursor-pointer text-sm">
-                                                        {groupOption.label}
-                                                    </Label>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <Label className="text-sm font-semibold mb-2 block">Use of Evaluation Results</Label>
-                                        <div className="space-y-2">
-                                            {[
-                                                { value: 'salary_adjustment', label: 'Salary adjustment' },
-                                                { value: 'bonus_allocation', label: 'Bonus allocation' },
-                                                { value: 'promotion', label: 'Promotion' },
-                                                { value: 'position_assignment', label: 'Position assignment' },
-                                                { value: 'training_selection', label: 'Training selection' },
-                                                { value: 'differentiated_benefits', label: 'Differentiated benefits' },
-                                                { value: 'other', label: 'Other' },
-                                            ].map((useOption) => (
-                                                <div key={useOption.value} className="flex items-center space-x-2">
-                                                    <Checkbox
-                                                        id={`use-${useOption.value}`}
-                                                        checked={structure.individual_use_of_results?.includes(useOption.value as any) || false}
-                                                        onCheckedChange={(checked) => {
-                                                            const uses = structure.individual_use_of_results || [];
-                                                            if (checked) {
-                                                                setStructure({ ...structure, individual_use_of_results: [...uses, useOption.value as any] });
-                                                            } else {
-                                                                setStructure({ ...structure, individual_use_of_results: uses.filter(u => u !== useOption.value) });
-                                                            }
-                                                            handleOptionClick('individual_use_of_results', useOption.value);
-                                                        }}
-                                                    />
-                                                    <Label htmlFor={`use-${useOption.value}`} className="cursor-pointer text-sm">
-                                                        {useOption.label}
-                                                    </Label>
-                                                </div>
-                                            ))}
-                                            {structure.individual_use_of_results?.includes('other') && (
-                                                <Input
-                                                    value={structure.individual_use_of_results_other || ''}
-                                                    onChange={(e) => setStructure({ ...structure, individual_use_of_results_other: e.target.value })}
-                                                    placeholder="Specify other use..."
-                                                    className="ml-6 mt-2"
-                                                />
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <Label className="text-sm font-semibold mb-2 block">Organization Leader Evaluation</Label>
-                                        <Select
-                                            value={structure.organization_leader_evaluation || ''}
-                                            onValueChange={(v) => {
-                                                setStructure({ ...structure, organization_leader_evaluation: v as any });
-                                                handleOptionClick('organization_leader_evaluation', v);
-                                            }}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select One" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="replaced_by_org">Replaced by organizational evaluation</SelectItem>
-                                                <SelectItem value="conducted_separately">Conducted separately as individual evaluation</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Consultant-Reviewed Final Report Notice */}
-                        <Card className="bg-green-50 border-green-200">
-                            <CardHeader>
-                                <CardTitle className="text-lg">Consultant-Reviewed Final Report Notice</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-muted-foreground">
-                                    Based on your inputs and organizational context, a final HR design report incorporating professional consultant review and judgment will be provided.
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        {/* Summary Note */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">Summary Note</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Textarea
-                                    value={structure.summary_note || generateSummaryNote()}
-                                    onChange={(e) => setStructure({ ...structure, summary_note: e.target.value })}
-                                    rows={6}
-                                    placeholder="Summary note will be auto-generated based on your selections..."
-                                    className="w-full"
-                                />
-                            </CardContent>
-                        </Card>
-                    </CardContent>
-                </Card>
-
-                {/* Action Buttons */}
-                <div className="flex items-center justify-between gap-4 pt-6 border-t border-border">
-                    {onBack && (
-                        <Button 
-                            onClick={onBack} 
-                            variant="outline" 
-                            size="lg"
-                            className="flex items-center gap-2"
+        <div className="eval-structure-page bg-[#eef1f7] min-h-screen pb-24">
+            <div className="es-outer">
+                <div className="main-col space-y-4">
+                    {/* Section progress */}
+                    <div className="section-progress">
+                        <button
+                            type="button"
+                            onClick={() => orgRun && document.getElementById('sec1')?.scrollIntoView({ behavior: 'smooth' })}
+                            className={cn(
+                                'sp-step',
+                                orgRun ? (orgFilled >= 3 ? 'done' : 'active') : 'done'
+                            )}
                         >
-                            <ChevronLeft className="w-4 h-4" />
-                            Back
-                        </Button>
-                    )}
-                    <div className="flex-1" />
-                    <Button 
-                        onClick={handleContinue} 
-                        size="lg"
-                        className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
-                    >
-                        Save & Next Step
-                        <ChevronRight className="w-4 h-4" />
-                    </Button>
+                            <span className="sp-dot">{orgFilled >= 3 ? '✓' : '1'}</span>
+                            Org. Evaluation
+                        </button>
+                        <span className="sp-line" />
+                        <button
+                            type="button"
+                            onClick={() => document.getElementById('sec2')?.scrollIntoView({ behavior: 'smooth' })}
+                            className={cn(
+                                'sp-step',
+                                indFilled >= 3 ? 'done' : indFilled > 0 ? 'active' : ''
+                            )}
+                        >
+                            <span className="sp-dot">{indFilled >= 3 ? '✓' : '2'}</span>
+                            Individual Evaluation
+                        </button>
+                    </div>
+
+                    {/* Org run toggle */}
+                    <div className="org-run-wrap">
+                        <div className="org-run-label">조직평가를 실시하겠습니까? — Will you conduct an organizational evaluation?</div>
+                        <div className="org-run-cards">
+                            <button
+                                type="button"
+                                onClick={() => setOrgRun(true)}
+                                className={cn('org-run-card yes', orgRun && 'selected')}
+                            >
+                                <span className="orc-radio" />
+                                <div className="orc-body">
+                                    <div className="orc-icon">🏢</div>
+                                    <div className="orc-title">Yes — Run org-level evaluation</div>
+                                    <div className="orc-desc">Company or team performance is assessed first. The result anchors and calibrates individual scores.</div>
+                                </div>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setOrgRun(false)}
+                                className={cn('org-run-card no', !orgRun && 'selected')}
+                            >
+                                <span className="orc-radio" />
+                                <div className="orc-body">
+                                    <div className="orc-icon">⏭️</div>
+                                    <div className="orc-title">No — Skip to individual evaluation</div>
+                                    <div className="orc-desc">Each employee is evaluated directly against personal goals. Simpler setup, lower overhead.</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                    {/* Section 1: Organizational Evaluation */}
+                    <div id="sec1" className={cn('section-block', !orgRun && 'org-hidden', orgFilled >= 3 && 'complete', collapsed.sec1 && 'collapsed')}>
+                        <div className="section-hd" onClick={() => toggleSection('sec1')}>
+                            <div className="s-icon org">🏢</div>
+                            <div className="s-meta">
+                                <div className="s-title">Organizational Evaluation</div>
+                                <div className="s-subtitle">Company-level baseline — precedes individual scores</div>
+                            </div>
+                            <span className={cn('s-status', orgFilled >= 3 ? 'complete' : orgFilled > 0 ? 'partial' : 'empty')}>
+                                {orgFilled >= 3 ? '✓ Complete' : orgFilled > 0 ? `${orgFilled} of 3 done` : 'Not started'}
+                            </span>
+                            {collapsed.sec1 ? <ChevronDown className="s-chevron w-3.5 h-3.5" /> : <ChevronUp className="s-chevron w-3.5 h-3.5" />}
+                        </div>
+                        {orgRun && (
+                            <div className="section-body">
+                                <div className="fg">
+                                    <div className="fg-label">Evaluation Cycle <span className="fg-label-req">● Required</span></div>
+                                    <div className="card-grid g3">
+                                        {(['annual', 'semi', 'quarterly'] as const).map((c) => (
+                                            <button
+                                                key={c}
+                                                type="button"
+                                                onClick={() => pick('org_evaluation_cycle' as keyof EvaluationStructure, c, cycleToBackend(c))}
+                                                className={cn('opt-card', (orgCycleVal === c || structure.org_evaluation_cycle === cycleToBackend(c)) && 'selected')}
+                                            >
+                                                <span className="opt-radio" />
+                                                <div className="opt-icon">{c === 'annual' ? '📅' : c === 'semi' ? '🔁' : '⚡'}</div>
+                                                <div className="opt-title">{cycleMap[c] || c}</div>
+                                                <div className="opt-desc">
+                                                    {c === 'annual' ? 'Once per year. Lowest admin burden.' : c === 'semi' ? 'Twice per year. Mid-year course correction.' : 'Every quarter. Best for OKR cultures.'}
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                {(orgCycleVal || structure.org_evaluation_cycle) && (
+                                    <div className="fg month-picker-wrap">
+                                        <div className="fg-label">Evaluation Month{neededMonths(orgCycleVal || 'annual') > 1 ? 's' : ''} — Select {neededMonths(orgCycleVal || 'annual')}</div>
+                                        <div className="month-grid">
+                                            {MONTHS.map((m, i) => {
+                                                const num = i + 1;
+                                                const sel = orgMonths.includes(num);
+                                                return (
+                                                    <button
+                                                        key={num}
+                                                        type="button"
+                                                        onClick={() => toggleMonth(orgMonths, setOrgMonths, orgCycleVal || 'annual', num)}
+                                                        className={cn('month-btn', sel && 'selected')}
+                                                    >
+                                                        <span className="m-num">{String(num).padStart(2, '0')}</span>
+                                                        <span className="m-name">{m}</span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <div className={cn('month-hint', orgMonths.length === neededMonths(orgCycleVal || 'annual') && 'filled')}>
+                                            {orgMonths.length === neededMonths(orgCycleVal || 'annual')
+                                                ? `✓ Evaluation months: ${orgMonths.sort((a, b) => a - b).map((n) => MONTHS[n - 1]).join(', ')}`
+                                                : `Select ${neededMonths(orgCycleVal || 'annual')} month${neededMonths(orgCycleVal || 'annual') > 1 ? 's' : ''} for evaluation`}
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="fg">
+                                    <div className="fg-label">Who Evaluates <span className="fg-label-req">● Required</span></div>
+                                    <div className="card-grid g2">
+                                        {[
+                                            { val: 'ceo', label: 'CEO / Top Management', desc: 'Strongest strategic signal. Evaluation is signed off at the top.', icon: '👔' },
+                                            { val: 'dept', label: 'Department Heads', desc: 'Each dept head evaluates their own area. Results consolidated company-wide.', icon: '🏗️' },
+                                        ].map(({ val, label, desc, icon }) => (
+                                            <button
+                                                key={val}
+                                                type="button"
+                                                onClick={() => pick('org_evaluator_type' as keyof EvaluationStructure, val)}
+                                                className={cn('opt-card', structure.org_evaluator_type === val && 'selected')}
+                                            >
+                                                <span className="opt-radio" />
+                                                <div className="opt-icon">{icon}</div>
+                                                <div className="opt-title">{label}</div>
+                                                <div className="opt-desc">{desc}</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="fg">
+                                    <div className="fg-label">Evaluation Method <span className="fg-label-req">● Required</span></div>
+                                    <div className="card-grid g2">
+                                        {(['absolute', 'relative'] as const).map((m) => (
+                                            <button
+                                                key={m}
+                                                type="button"
+                                                onClick={() =>
+                                                    setStructure((s) => ({
+                                                        ...s,
+                                                        org_evaluation_method: m,
+                                                        ...(m === 'relative' && !s.org_rating_scale
+                                                            ? { org_rating_scale: '3-level' as const, org_rating_distribution: [30, 40, 30] }
+                                                            : {}),
+                                                    }))
+                                                }
+                                                className={cn('opt-card', structure.org_evaluation_method === m && 'selected')}
+                                            >
+                                                <span className="opt-radio" />
+                                                <div className="opt-icon">{m === 'absolute' ? '📏' : '⚖️'}</div>
+                                                <div className="opt-title">{m === 'absolute' ? '절대평가 — Absolute' : '상대평가 — Relative'}</div>
+                                                <div className="opt-desc">
+                                                    {m === 'absolute'
+                                                        ? "Each unit is scored against pre-set targets. Results don't depend on how other departments performed."
+                                                        : 'Departments are ranked against each other. Grade distribution is fixed across the organisation.'}
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                {structure.org_evaluation_method === 'relative' && (
+                                    <div className="evaluator-sub-inner">
+                                        <div className="sub-label">Grade Distribution for Org Evaluation</div>
+                                        <div className="flex gap-2 mb-2">
+                                            {(['3-level', '4-level'] as const).map((scale) => (
+                                                <button
+                                                    key={scale}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setStructure((s) => ({
+                                                            ...s,
+                                                            org_rating_scale: scale,
+                                                            org_rating_distribution: scale === '3-level' ? [30, 40, 30] : [20, 35, 35, 10],
+                                                        }))
+                                                    }
+                                                    className={cn(
+                                                        'px-3 py-1.5 rounded-lg text-sm font-semibold border transition-colors',
+                                                        structure.org_rating_scale === scale ? 'bg-[#2ec4a0] text-white border-[#2ec4a0]' : 'bg-white border-[#e0e7ef] text-[#5a6a85]'
+                                                    )}
+                                                >
+                                                    {scale}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <div className="dist-bar flex h-9 rounded-lg overflow-hidden gap-0.5">
+                                            {(structure.org_rating_scale === '4-level' ? ['A', 'B', 'C', 'D'] : ['A', 'B', 'C']).map((label, i) => (
+                                                <div
+                                                    key={label}
+                                                    className="dist-seg flex items-center justify-center text-[10px] font-extrabold text-white"
+                                                    style={{
+                                                        width: `${structure.org_rating_distribution?.[i] ?? 0}%`,
+                                                        background: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b'][i],
+                                                    }}
+                                                >
+                                                    {label}
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <p className="text-[11.5px] text-[#5a6a85] mt-2">
+                                            Total: {(structure.org_rating_distribution || []).reduce((a, b) => a + b, 0)}%
+                                        </p>
+                                    </div>
+                                )}
+                                <div className="fg">
+                                    <div className="fg-label">How Org Score Is Used</div>
+                                    <div className="card-grid g2">
+                                        {[
+                                            { u: 'dist_adjust', icon: '⚖️', title: 'Adjust Individual Grade Distribution by Org', desc: "Each org unit's individual grade curve is calibrated based on its org-level score." },
+                                            { u: 'bonus', icon: '💰', title: 'Bonus Pool Multiplier', desc: 'Org score multiplies the bonus pool size before individual distribution.' },
+                                            { u: 'reference', icon: '📊', title: 'Reference Only', desc: 'Org score is shown for context but does not mathematically affect individual ratings.' },
+                                            { u: 'dept_head_link', icon: '👔', title: "Link to Dept Head's Individual Rating", desc: "The org-level result is directly reflected in the department head's own individual performance grade." },
+                                        ].map(({ u, icon, title, desc }) => (
+                                            <button
+                                                key={u}
+                                                type="button"
+                                                onClick={() => pickMulti('org_use_of_results' as keyof EvaluationStructure, u)}
+                                                className={cn('opt-card multi-sel', structure.org_use_of_results?.includes(u) && 'selected')}
+                                            >
+                                                <span className="opt-check" />
+                                                <div className="opt-icon">{icon}</div>
+                                                <div className="opt-title">{title}</div>
+                                                <div className="opt-desc">{desc}</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Section 2: Individual Evaluation */}
+                    <div id="sec2" className={cn('section-block', indFilled >= 3 && 'complete', collapsed.sec2 && 'collapsed')}>
+                        <div className="section-hd" onClick={() => toggleSection('sec2')}>
+                            <div className="s-icon ind">👤</div>
+                            <div className="s-meta">
+                                <div className="s-title">Individual Evaluation</div>
+                                <div className="s-subtitle">Per-employee assessment — core of the performance cycle</div>
+                            </div>
+                            <span className={cn('s-status', indFilled >= 3 ? 'complete' : indFilled > 0 ? 'partial' : 'empty')}>
+                                {indFilled >= 3 ? '✓ Complete' : indFilled > 0 ? `${indFilled} of 3 done` : 'Not started'}
+                            </span>
+                            {collapsed.sec2 ? <ChevronDown className="s-chevron w-3.5 h-3.5" /> : <ChevronUp className="s-chevron w-3.5 h-3.5" />}
+                        </div>
+                        <div className="section-body">
+                            <div className="fg">
+                                <div className="fg-label">Evaluation Cycle <span className="fg-label-req">● Required</span></div>
+                                <div className="card-grid g3">
+                                    {(['annual', 'semi', 'quarterly'] as const).map((c) => (
+                                        <button
+                                            key={c}
+                                            type="button"
+                                            onClick={() => pick('individual_evaluation_cycle' as keyof EvaluationStructure, c, cycleToBackend(c))}
+                                            className={cn('opt-card', (indCycleVal === c || structure.individual_evaluation_cycle === cycleToBackend(c)) && 'selected')}
+                                        >
+                                            <span className="opt-radio" />
+                                            <div className="opt-icon">{c === 'annual' ? '📅' : c === 'semi' ? '🔁' : '⚡'}</div>
+                                            <div className="opt-title">{cycleMap[c] || c}</div>
+                                            <div className="opt-desc">
+                                                {c === 'annual' ? 'Once per year. Standard for most companies.' : c === 'semi' ? 'Twice per year. Mid-year development check-in.' : 'Every quarter. High-velocity teams.'}
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            {(indCycleVal || structure.individual_evaluation_cycle) && (
+                                <div className="fg month-picker-wrap">
+                                    <div className="fg-label">Evaluation Month{neededMonths(indCycleVal || 'annual') > 1 ? 's' : ''} — Select {neededMonths(indCycleVal || 'annual')}</div>
+                                    <div className="month-grid">
+                                        {MONTHS.map((m, i) => {
+                                            const num = i + 1;
+                                            const sel = indMonths.includes(num);
+                                            return (
+                                                <button
+                                                    key={num}
+                                                    type="button"
+                                                    onClick={() => toggleMonth(indMonths, setIndMonths, indCycleVal || 'annual', num)}
+                                                    className={cn('month-btn', sel && 'selected')}
+                                                >
+                                                    <span className="m-num">{String(num).padStart(2, '0')}</span>
+                                                    <span className="m-name">{m}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className={cn('month-hint', indMonths.length === neededMonths(indCycleVal || 'annual') && 'filled')}>
+                                        {indMonths.length === neededMonths(indCycleVal || 'annual')
+                                            ? `✓ Evaluation months: ${indMonths.sort((a, b) => a - b).map((n) => MONTHS[n - 1]).join(', ')}`
+                                            : `Select the month(s) when individual evaluation takes place`}
+                                    </div>
+                                </div>
+                            )}
+                            <div className="fg">
+                                <div className="fg-label">Evaluator(s) <span className="fg-label-req">● Required</span></div>
+                                <div className="card-grid g4">
+                                    {[
+                                        { val: 'primary', label: 'Direct Manager', desc: 'Immediate supervisor evaluates the employee. Most common approach.', icon: '👆' },
+                                        { val: 'peer_same_dept', label: 'Peer Review', desc: 'Colleagues evaluate each other. Surfaces collaboration quality.', icon: '👥' },
+                                        { val: 'self_evaluation', label: 'Self Assessment', desc: 'Employee evaluates themselves first. Sets the tone for the review discussion.', icon: '🪞' },
+                                        { val: '360', label: '360° Feedback', desc: 'Manager + peer + self + subordinate. Most comprehensive picture.', icon: '🔄' },
+                                    ].map(({ val, label, desc, icon }) => {
+                                        const is360 = val === '360';
+                                        const selected = is360
+                                            ? (structure.individual_evaluators?.length ?? 0) >= 3
+                                            : structure.individual_evaluators?.includes(val);
+                                        const onClick = () => {
+                                            if (is360) {
+                                                const all = ['primary', 'peer_same_dept', 'self_evaluation'];
+                                                const current = structure.individual_evaluators || [];
+                                                const hasAll = all.every((e) => current.includes(e));
+                                                setStructure((s) => ({
+                                                    ...s,
+                                                    individual_evaluators: hasAll
+                                                        ? current.filter((x) => !all.includes(x))
+                                                        : [...new Set([...(s.individual_evaluators || []), ...all])],
+                                                }));
+                                            } else {
+                                                pickMulti('individual_evaluators' as keyof EvaluationStructure, val);
+                                            }
+                                        };
+                                        return (
+                                            <button
+                                                key={val}
+                                                type="button"
+                                                onClick={onClick}
+                                                className={cn('opt-card multi-sel', selected && 'selected')}
+                                            >
+                                                <span className="opt-check" />
+                                                <div className="opt-icon">{icon}</div>
+                                                <div className="opt-title">{label}</div>
+                                                <div className="opt-desc">{desc}</div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            <div className="fg">
+                                <div className="fg-label">Evaluation Method <span className="fg-label-req">● Required</span></div>
+                                <div className="card-grid g2">
+                                    {(['absolute', 'relative'] as const).map((m) => (
+                                        <button
+                                            key={m}
+                                            type="button"
+                                            onClick={() =>
+                                                setStructure((s) => ({
+                                                    ...s,
+                                                    individual_evaluation_method: m,
+                                                    ...(m === 'relative' && !s.individual_rating_scale
+                                                        ? { individual_rating_scale: '3-level' as const, individual_rating_distribution: [30, 40, 30] }
+                                                        : {}),
+                                                }))
+                                            }
+                                            className={cn('opt-card', structure.individual_evaluation_method === m && 'selected')}
+                                        >
+                                            <span className="opt-radio" />
+                                            <div className="opt-icon">{m === 'absolute' ? '📏' : '⚖️'}</div>
+                                            <div className="opt-title">{m === 'absolute' ? '절대평가 — Absolute' : '상대평가 — Relative'}</div>
+                                            <div className="opt-desc">
+                                                {m === 'absolute'
+                                                    ? 'Each employee is scored against their own goals. Grade is not influenced by peers.'
+                                                    : 'Employees are ranked within a peer group. Fixed distribution curve applied.'}
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            {structure.individual_evaluation_method === 'relative' && (
+                                <div className="evaluator-sub-inner">
+                                    <div className="sub-label">Grade Distribution for Individual Evaluation</div>
+                                    <div className="flex gap-2 mb-2">
+                                        {(['3-level', '4-level', '5-level'] as const).map((scale) => (
+                                            <button
+                                                key={scale}
+                                                type="button"
+                                                onClick={() =>
+                                                    setStructure((s) => ({
+                                                        ...s,
+                                                        individual_rating_scale: scale,
+                                                        individual_rating_distribution:
+                                                            scale === '3-level' ? [30, 40, 30] : scale === '4-level' ? [20, 35, 35, 10] : [10, 15, 50, 15, 10],
+                                                    }))
+                                                }
+                                                className={cn(
+                                                    'px-3 py-1.5 rounded-lg text-sm font-semibold border transition-colors',
+                                                    structure.individual_rating_scale === scale ? 'bg-[#2ec4a0] text-white border-[#2ec4a0]' : 'bg-white border-[#e0e7ef] text-[#5a6a85]'
+                                                )}
+                                            >
+                                                {scale}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className="dist-bar flex h-9 rounded-lg overflow-hidden gap-0.5">
+                                        {(structure.individual_rating_scale === '5-level'
+                                            ? ['S', 'A', 'B', 'C', 'D']
+                                            : structure.individual_rating_scale === '4-level'
+                                            ? ['A', 'B', 'C', 'D']
+                                            : ['A', 'B', 'C']
+                                        ).map((label, i) => (
+                                            <div
+                                                key={label}
+                                                className="dist-seg flex items-center justify-center text-[10px] font-extrabold text-white"
+                                                style={{
+                                                    width: `${structure.individual_rating_distribution?.[i] ?? 0}%`,
+                                                    background: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'][i],
+                                                }}
+                                            >
+                                                {label}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <p className="text-[11.5px] text-[#5a6a85] mt-2">
+                                        Total: {(structure.individual_rating_distribution || []).reduce((a, b) => a + b, 0)}%
+                                    </p>
+                                </div>
+                            )}
+                            <div className="fg">
+                                <div className="fg-label">How Individual Score Is Used</div>
+                                <div className="card-grid g2">
+                                    {[
+                                        { val: 'salary_adjustment', icon: '💵', title: 'Salary Increase', desc: 'Performance grade directly determines merit raise percentage.' },
+                                        { val: 'bonus_allocation', icon: '🎁', title: 'Bonus / Incentive', desc: 'Performance score sets individual bonus multiplier.' },
+                                        { val: 'promotion', icon: '🚀', title: 'Promotion Decision', desc: 'Minimum score thresholds gate eligibility for promotion.' },
+                                        { val: 'training_selection', icon: '📚', title: 'Development Planning', desc: 'Results feed into personalized growth and training plans.' },
+                                    ].map(({ val, icon, title, desc }) => (
+                                        <button
+                                            key={val}
+                                            type="button"
+                                            onClick={() => pickMulti('individual_use_of_results' as keyof EvaluationStructure, val)}
+                                            className={cn('opt-card multi-sel', structure.individual_use_of_results?.includes(val) && 'selected')}
+                                        >
+                                            <span className="opt-check" />
+                                            <div className="opt-icon">{icon}</div>
+                                            <div className="opt-title">{title}</div>
+                                            <div className="opt-desc">{desc}</div>
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="ind-usage-etc">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIndUsageOther(!indUsageOther)}
+                                        className={cn('etc-check-row', indUsageOther && 'active')}
+                                    >
+                                        <span className="etc-checkbox" />
+                                        <span className="etc-label">+ Other usage (specify)</span>
+                                    </button>
+                                    {indUsageOther && (
+                                        <input
+                                            type="text"
+                                            className="etc-input"
+                                            placeholder="Describe other usage..."
+                                            value={structure.individual_use_of_results_other || ''}
+                                            onChange={(e) => setStructure((s) => ({ ...s, individual_use_of_results_other: e.target.value }))}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Side panel */}
+                <div className="es-side-panel">
+                    <div className="summary-card">
+                        <div className="sum-label">📋 Configuration Summary</div>
+                        <div className="sum-rows">
+                            {summaryRows.map(({ key, val }) => (
+                                <div key={key} className="sum-row">
+                                    <div className="sum-key">{key}</div>
+                                    <div className={cn('sum-val', val !== '—' ? 'filled' : 'empty')}>
+                                        {val}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="sentence-card">
+                        <div className="sent-label">📝 Plain-English Summary</div>
+                        <div className="sent-txt" dangerouslySetInnerHTML={{ __html: sentenceSummary }} />
+                    </div>
+                    <div className="progress-card">
+                        <div className="prog-label">Completion</div>
+                        <div className="prog-bar-track">
+                            <div
+                                className="prog-bar-fill"
+                                style={{ width: `${Math.round((progressDone / progressTotal) * 100)}%` }}
+                            />
+                        </div>
+                        <div className="prog-nums">
+                            <span className="prog-done">{progressDone} / {progressTotal} fields</span>
+                            <span className="prog-total">{Math.round((progressDone / progressTotal) * 100)}%</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Right Side Panel */}
-            <RightSidePanel
-                isOpen={rightPanelOpen}
-                onClose={() => setRightPanelOpen(false)}
-                content={rightPanelContent}
-                title="Option Guidance"
-            />
-        </>
+            {/* Bottom bar */}
+            <div className="es-bottom-bar">
+                <div className="bb-l">
+                    <strong>Evaluation Structure</strong>
+                    <span>— Step 4 of 5</span>
+                </div>
+                <div className="bb-r">
+                    {onBack && (
+                        <button type="button" className="btn-save" onClick={onBack}>
+                            Back
+                        </button>
+                    )}
+                    <button type="button" className="btn-next" onClick={handleContinue}>
+                        Continue to Review
+                        <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            </div>
+        </div>
     );
 }

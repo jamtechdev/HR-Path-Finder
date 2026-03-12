@@ -31,6 +31,7 @@ class EvaluationStructure extends Model
         'individual_rating_distribution',
         'individual_evaluation_groups',
         'individual_use_of_results',
+        'individual_use_of_results_other',
         'organization_leader_evaluation',
     ];
 
