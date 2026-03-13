@@ -20,7 +20,7 @@ export function CTABlock({
     buttonText = '서비스 문의하기 →',
 }: CTABlockProps) {
     return (
-        <section className="bg-gradient-to-br from-[#0B1E3D] via-[#1E3A5F] to-[#0B1E3D] text-center py-[120px] px-12 md:px-20 relative overflow-hidden">
+        <section className="bg-gradient-to-br from-[#0B1E3D] via-[#1E3A5F] to-[#0B1E3D] text-center py-[120px] px-8 md:px-20 relative overflow-hidden">
             <div className="absolute top-[-300px] left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-[radial-gradient(ellipse,rgba(46,207,171,0.12)_0%,transparent_70%)] pointer-events-none" />
             <div className="relative">
                 <div className="text-[11px] font-semibold text-[#C8A84B] tracking-[0.14em] uppercase mb-5 font-sans">

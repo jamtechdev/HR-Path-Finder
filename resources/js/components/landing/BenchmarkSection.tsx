@@ -43,7 +43,7 @@ export function BenchmarkSection({
     );
 
     return (
-        <section id="benchmark" className="bg-[#FAF8F3] py-[100px] px-12 md:px-20">
+        <section id="benchmark" className="bg-[#FAF8F3] py-8 md:py-[100px] px-8 md:px-20">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-[72px] items-center">
                 <div>
                     <div className="text-[11px] font-semibold text-[#2ECFAB] tracking-[0.14em] uppercase mb-4 font-sans">
