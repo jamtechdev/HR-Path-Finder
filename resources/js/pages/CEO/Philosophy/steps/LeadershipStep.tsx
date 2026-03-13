@@ -26,18 +26,18 @@ export default function LeadershipStep({ questions, data, setData }: LeadershipS
     return (
         <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
             {/* Section header */}
-            <div className="flex flex-col sm:flex-row items-start gap-4">
-                <div className="w-[52px] h-[52px] flex-shrink-0 rounded-xl bg-[#0E1628] flex items-center justify-center text-2xl">
+            <div className="flex flex-col lg:flex-row items-start gap-3 sm:gap-4">
+                <div className="w-12 h-12 sm:w-[52px] sm:h-[52px] flex-shrink-0 rounded-xl bg-[#0E1628] flex items-center justify-center text-xl sm:text-2xl">
                     🎖️
                 </div>
                 <div className="min-w-0 flex-1">
-                    <div className="text-[10px] font-medium uppercase tracking-wider text-[#C9A84C] mb-1">
+                    <div className="text-xs sm:text-[10px] font-medium uppercase tracking-wider text-[#C9A84C] mb-1">
                         Step 5 of 8
                     </div>
-                    <h2 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#0E1628] mb-1.5">
+                    <h2 className="font-serif text-lg sm:text-[20px] sm:text-[22px] font-bold text-[#0E1628] mb-1.5 leading-tight">
                         Leadership
                     </h2>
-                    <p className="text-[13px] text-[#4A4E69] font-light leading-relaxed">
+                    <p className="text-sm sm:text-[13px] text-[#4A4E69] font-light leading-relaxed">
                         Real workplace scenarios — choose where you stand on a scale of 1 to 7. This section examines leadership style and management practices to assess how leadership impacts execution and organizational culture.
                     </p>
                 </div>
@@ -79,7 +79,7 @@ export default function LeadershipStep({ questions, data, setData }: LeadershipS
                             {/* Card top bar */}
                             <div className="px-4 sm:px-5 py-4 sm:py-5 border-b border-[#E2DDD4] flex items-start gap-3 sm:gap-4">
                                 <div
-                                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-lg flex-shrink-0 border transition-colors ${
+                                    className={`w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center text-base sm:text-lg flex-shrink-0 border transition-colors min-h-[44px] min-w-[44px] ${
                                         answered ? 'bg-[#0E1628] border-[#0E1628]' : 'bg-[#F8F4ED] border-[#E2DDD4]'
                                     }`}
                                 >
@@ -126,9 +126,9 @@ export default function LeadershipStep({ questions, data, setData }: LeadershipS
 
                                 {/* 7-point scale */}
                                 <div className="flex flex-col gap-1.5">
-                                    <div className="flex justify-between">
-                                        <span className="text-[10px] text-[#9A9EB8]">← Strongly lean left</span>
-                                        <span className="text-[10px] text-[#9A9EB8]">Strongly lean right →</span>
+                                    <div className="flex justify-between text-xs sm:text-[10px]">
+                                        <span className="text-[#9A9EB8]">← Strongly lean left</span>
+                                        <span className="text-[#9A9EB8]">Strongly lean right →</span>
                                     </div>
                                     <div className="flex gap-1">
                                         {[1, 2, 3, 4, 5, 6, 7].map((n) => (
@@ -139,12 +139,12 @@ export default function LeadershipStep({ questions, data, setData }: LeadershipS
                                                     setData('leadership', { ...data.leadership, [qId]: n })
                                                 }
                                                 className={`
-                                                    flex-1 h-9 sm:h-10 rounded-md text-sm font-normal transition-all
+                                                    flex-1 h-10 sm:h-11 lg:h-10 rounded-md text-sm font-semibold transition-all min-h-[44px]
                                                     flex items-center justify-center relative
                                                     ${n === 4 && !answered ? 'border-[1.5px] border-dashed border-[#E2DDD4]' : 'border-[1.5px] border-[#E2DDD4]'}
                                                     ${
                                                         num === n
-                                                            ? 'bg-[#0E1628] border-[#0E1628] text-white font-semibold'
+                                                            ? 'bg-[#0E1628] border-[#0E1628] text-white shadow-sm'
                                                             : 'bg-[#FAFAF8] text-[#4A4E69] hover:border-[#0E1628] hover:text-[#0E1628] hover:bg-[#F8F4ED]'
                                                     }
                                                 `}

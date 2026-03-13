@@ -210,16 +210,16 @@ export default function JobGrades({
             </div>
             <div className="rounded-[14px] border border-[#E2E6ED] bg-white overflow-hidden shadow-[0_4px_20px_rgba(27,43,91,0.09)]">
             {/* Hero strip */}
-            <div className="bg-gradient-to-br from-[#1B2B5B] to-[#243877] px-7 py-5 flex items-center gap-4">
-                <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center shrink-0 text-[#2EC4A9]">
-                    <svg className="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+            <div className="bg-gradient-to-br from-[#1B2B5B] to-[#243877] px-4 sm:px-6 lg:px-7 py-3.5 sm:py-5 flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/10 flex items-center justify-center shrink-0 text-[#2EC4A9]">
+                    <svg className="w-5 sm:w-[22px] h-5 sm:h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
                         <rect x="3" y="3" width="18" height="18" rx="2" />
                         <path d="M9 9h6M9 12h6M9 15h4" />
                     </svg>
                 </div>
-                <div>
-                    <h2 className="text-[15px] font-bold text-white">Grade Names, Promotion Duration & Expected Role</h2>
-                    <p className="text-[12px] text-white/55 mt-0.5">직급명과 승격 기간은 편집 가능하며, 기대역할 텍스트를 수정하면 저장됩니다</p>
+                <div className="min-w-0 flex-1">
+                    <h2 className="text-base sm:text-[15px] font-bold text-white leading-tight">Grade Names, Promotion Duration & Expected Role</h2>
+                    <p className="text-xs sm:text-[12px] text-white/55 mt-1 leading-relaxed">직급명과 승격 기간은 편집 가능하며, 기대역할 텍스트를 수정하면 저장됩니다</p>
                 </div>
                 <div className="ml-auto flex gap-2 items-stretch">
                     <div className="bg-white/10 rounded-lg py-1.5 px-3.5 text-center min-w-[64px] flex flex-col justify-center">
@@ -241,8 +241,8 @@ export default function JobGrades({
             </div>
 
             {/* Toolbar */}
-            <div className="py-3.5 px-7 border-b border-[#F0F2F5] flex items-center gap-2.5 flex-wrap">
-                <div className="flex items-center gap-2 py-1.5 px-3 bg-[#F0F2F5] rounded-lg text-[12px] text-[#6B7585]">
+            <div className="py-3 px-4 sm:py-3.5 sm:px-7 border-b border-[#F0F2F5] flex flex-col sm:flex-row sm:items-center gap-2.5 flex-wrap">
+                <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto py-1.5 px-3 bg-[#F0F2F5] rounded-lg text-sm sm:text-[12px] text-[#6B7585]">
                     <svg className="w-3.5 h-3.5 text-[#9AA3B2]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                         <circle cx="9" cy="7" r="4" />
                         <path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
@@ -253,7 +253,7 @@ export default function JobGrades({
                         min={1}
                         value={workforceTotal}
                         onChange={(e) => setWorkforceTotal(parseInt(e.target.value, 10) || 0)}
-                        className="w-16 h-[26px] px-2 border-[1.5px] border-[#E2E6ED] rounded-md text-[13px] font-bold text-[#1B2B5B] text-center outline-none focus:border-[#2EC4A9]"
+                        className="w-full sm:w-16 h-9 sm:h-[26px] px-2.5 border-[1.5px] border-[#E2E6ED] rounded-md text-sm sm:text-[13px] font-bold text-[#1B2B5B] text-center outline-none focus:border-[#2EC4A9] min-h-[40px]"
                     />
                     <span>명</span>
                 </div>
@@ -273,8 +273,8 @@ export default function JobGrades({
 
             {/* Table header */}
             <div
-                className="grid gap-x-3 py-2 px-7 bg-[#F8F9FB] border-b border-[#E2E6ED] items-center text-[11px] font-bold text-[#9AA3B2] uppercase tracking-wider"
-                style={{ gridTemplateColumns: GRID_COLS }}
+                className="grid gap-x-2 sm:gap-x-3 py-2 px-4 sm:px-7 bg-[#F8F9FB] border-b border-[#E2E6ED] items-center text-xs sm:text-[11px] font-bold text-[#9AA3B2] uppercase tracking-wider"
+                style={{ gridTemplateColumns: '28px 44px 100px 80px sm:100px 120px sm:minmax(120px,3.5fr) 36px' }}
             >
                 <div />
                 <div />
@@ -288,22 +288,22 @@ export default function JobGrades({
             {/* Grade list */}
             <div className="divide-y divide-[#F0F2F5]">
                 {grades.map((g, index) => (
-                    <div
-                        key={g.id}
-                        draggable={!isReadOnly}
-                        onDragStart={(e) => handleDragStart(e, g.id)}
-                        onDragEnd={handleDragEnd}
-                        onDragOver={(e) => handleDragOver(e, g.id)}
-                        onDragLeave={() => setDropTarget(null)}
-                        onDrop={(e) => handleDrop(e, g.id)}
-                        className={cn(
-                            'grid gap-x-3 py-3.5 px-7 items-start transition-colors hover:bg-[#F8F9FB]',
-                            draggingId === g.id && 'opacity-35 bg-[#F0F2F5]',
-                            dropTarget?.id === g.id && dropTarget.top && 'border-t-[2.5px] border-t-[#2EC4A9]',
-                            dropTarget?.id === g.id && !dropTarget.top && 'border-b-[2.5px] border-b-[#2EC4A9]'
-                        )}
-                        style={{ gridTemplateColumns: GRID_COLS }}
-                    >
+                        <div
+                            key={g.id}
+                            draggable={!isReadOnly}
+                            onDragStart={(e) => handleDragStart(e, g.id)}
+                            onDragEnd={handleDragEnd}
+                            onDragOver={(e) => handleDragOver(e, g.id)}
+                            onDragLeave={() => setDropTarget(null)}
+                            onDrop={(e) => handleDrop(e, g.id)}
+                            className={cn(
+                                'grid gap-x-2 sm:gap-x-3 py-3 px-4 sm:py-3.5 sm:px-7 items-start transition-colors hover:bg-[#F8F9FB]',
+                                draggingId === g.id && 'opacity-35 bg-[#F0F2F5]',
+                                dropTarget?.id === g.id && dropTarget.top && 'border-t-[2.5px] border-t-[#2EC4A9]',
+                                dropTarget?.id === g.id && !dropTarget.top && 'border-b-[2.5px] border-b-[#2EC4A9]'
+                            )}
+                            style={{ gridTemplateColumns: '28px 44px 100px 80px sm:100px 120px sm:minmax(120px,3.5fr) 36px' }}
+                        >
                         <div className="flex items-center justify-center self-center cursor-grab text-[#CBD0DA] hover:text-[#6B7585]" title="드래그하여 순서 변경">
                             <GripVertical className="w-3 h-3" />
                         </div>

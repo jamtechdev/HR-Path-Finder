@@ -147,17 +147,17 @@ export default function OrganizationalCharts({
                     </div>
 
                     {/* Timeline */}
-                    <div className="flex items-center justify-between mb-5">
-                        <div className="flex items-center gap-0">
+                    <div className="flex flex-wrap sm:flex-nowrap items-center justify-center sm:justify-between gap-2 sm:gap-0 mb-4 sm:mb-5">
+                        <div className="flex items-center gap-1 sm:gap-0 flex-wrap justify-center sm:justify-start w-full sm:w-auto">
                             {REQUIRED_YEARS.map((year, idx) => (
                                 <React.Fragment key={year}>
                                     <button
                                         type="button"
                                         onClick={() => fileInputRefs.current[year]?.click()}
                                         className={cn(
-                                            'flex items-center gap-2 px-4 py-2 rounded-lg transition-colors',
+                                            'flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg transition-colors min-h-[44px] flex-1 sm:flex-none',
                                             hasFile(year) && 'bg-[rgba(78,205,196,0.12)]',
-                                            activeYear === year && 'bg-[rgba(78,205,196,0.12)]',
+                                            activeYear === year && 'bg-[rgba(78,205,196,0.12)] shadow-sm',
                                             !hasFile(year) && activeYear !== year && 'opacity-70'
                                         )}
                                     >
@@ -200,7 +200,7 @@ export default function OrganizationalCharts({
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-center gap-1.5 text-[11.5px] text-muted-foreground mb-5">
+                    <div className="flex items-center justify-center gap-1.5 text-xs sm:text-[11.5px] text-muted-foreground mb-4 sm:mb-5">
                         {REQUIRED_YEARS.map((_, i) => (
                             <span
                                 key={i}
@@ -210,11 +210,11 @@ export default function OrganizationalCharts({
                                 )}
                             />
                         ))}
-                        <span className="ml-1">{uploadedCount} / 3 {tr('complete')}</span>
+                        <span className="ml-1 whitespace-nowrap">{uploadedCount} / 3 {tr('complete')}</span>
                     </div>
 
                     {/* 3-card grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         {REQUIRED_YEARS.map((year) => {
                             const existingPath = existingImages[year];
                             const existingUrl = existingPath ? getImageUrl(existingPath) : '';

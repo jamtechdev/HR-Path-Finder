@@ -202,65 +202,67 @@ export default function Leaders({
     const isReadOnly = readOnly || isReadOnlyStatus;
 
     const innerContent = (
-        <div className="rounded-[14px] border border-[#E2E6ED] bg-white overflow-hidden shadow-[0_4px_20px_rgba(27,43,91,0.09)] mb-5">
+        <div className="rounded-[14px] border border-[#E2E6ED] bg-white overflow-hidden shadow-[0_4px_20px_rgba(27,43,91,0.09)] mb-4 sm:mb-5">
             {/* Hero strip */}
-            <div className="bg-gradient-to-br from-[#1B2B5B] to-[#243877] px-7 py-5 flex items-center gap-4">
-                <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center shrink-0 text-[#2EC4A9]">
-                    <svg className="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+            <div className="bg-gradient-to-br from-[#1B2B5B] to-[#243877] p-3 sm:p-4 sm:px-6 lg:px-7 flex flex-col lg:flex-row items-start lg:items-center gap-3">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/10 flex items-center justify-center shrink-0 text-[#2EC4A9] flex-shrink-0">
+                    <svg className="w-5 sm:w-[22px] h-5 sm:h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26" />
                     </svg>
                 </div>
-                <div>
-                    <h2 className="text-[15px] font-bold text-white">Leaders</h2>
-                    <p className="text-[12px] text-white/55 mt-0.5">Team Leader 직급 이상, 임원 미만의 리더를 선택하고 인원수를 입력하세요</p>
+                <div className="min-w-0 flex-1">
+                    <h2 className="text-base sm:text-[15px] font-bold text-white leading-tight mb-1">Leaders</h2>
+                    <p className="text-xs sm:text-[12px] text-white/55 leading-relaxed">Team Leader 직급 이상, 임원 미만의 리더를 선택하고 인원수를 입력하세요</p>
                 </div>
-                <div className="ml-auto flex gap-2 items-stretch">
-                    <div className="bg-white/10 rounded-lg py-1.5 px-3.5 text-center min-w-[64px] flex flex-col justify-center">
-                        <div className="text-[22px] font-extrabold text-white leading-none">{totalPos}</div>
-                        <div className="text-[10px] text-white/50 mt-0.5">포지션 수</div>
+                <div className="w-full lg:ml-auto lg:w-auto mt-2 lg:mt-0 flex flex-wrap gap-1.5 lg:gap-2 items-stretch">
+                    <div className="bg-white/10 rounded-lg py-1 px-2 sm:py-1.5 sm:px-2.5 text-center min-w-[58px] flex flex-col justify-center flex-1 lg:flex-none">
+                        <div className="text-lg sm:text-xl lg:text-[22px] font-extrabold text-white leading-none">{totalPos}</div>
+                        <div className="text-xs text-white/50 mt-0.5">포지션 수</div>
                     </div>
-                    <div className="bg-white/10 rounded-lg py-1.5 px-3.5 text-center min-w-[64px] flex flex-col justify-center">
-                        <div className="text-[22px] font-extrabold text-white leading-none">{totalHead}</div>
-                        <div className="text-[10px] text-white/50 mt-0.5">총 리더</div>
+                    <div className="bg-white/10 rounded-lg py-1 px-2 sm:py-1.5 sm:px-2.5 text-center min-w-[58px] flex flex-col justify-center flex-1 lg:flex-none">
+                        <div className="text-lg sm:text-xl lg:text-[22px] font-extrabold text-white leading-none">{totalHead}</div>
+                        <div className="text-xs text-white/50 mt-0.5">총 리더</div>
                     </div>
-                    <div className="w-px bg-white/10 my-1" />
-                    <div className="bg-[rgba(46,196,169,0.18)] border border-[rgba(46,196,169,0.35)] rounded-lg py-1.5 px-3.5 text-center min-w-[80px] flex flex-col justify-center">
-                        <div className="text-[22px] font-extrabold text-[#2EC4A9] leading-none">{ratioPct ?? '—'}%</div>
-                        <div className="text-[10px] text-white/50 mt-0.5">전체 대비 비율</div>
+                    <div className="hidden lg:block w-px bg-white/10 my-auto h-6 flex-shrink-0" />
+                    <div className="bg-[rgba(46,196,169,0.18)] border border-[rgba(46,196,169,0.35)] rounded-lg py-1 px-2 sm:py-1.5 sm:px-2.5 text-center min-w-[70px] flex flex-col justify-center flex-1 lg:flex-none">
+                        <div className="text-lg sm:text-xl lg:text-[22px] font-extrabold text-[#2EC4A9] leading-none">{ratioPct ?? '—'}%</div>
+                        <div className="text-xs text-white/50 mt-0.5">전체 대비 비율</div>
                     </div>
                 </div>
             </div>
 
             {/* Workforce size */}
-            <div className="mx-7 mt-4 flex items-center gap-2.5 py-2.5 px-3.5 bg-[#F0F2F5] rounded-lg">
-                <svg className="w-3.5 h-3.5 text-[#9AA3B2]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <div className="mx-4 sm:mx-7 mt-3 sm:mt-4 flex flex-col sm:flex-row sm:items-center gap-2.5 py-2.5 px-3 bg-[#F0F2F5] rounded-lg">
+                <svg className="w-3.5 h-3.5 text-[#9AA3B2] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                     <circle cx="9" cy="7" r="4" />
                     <path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
                     <path d="M16 3.13a4 4 0 010 7.75" />
                     <path d="M21 21v-2a4 4 0 00-3-3.85" />
                 </svg>
-                <span className="text-[12px] font-semibold text-[#6B7585]">전체 재직 인원 (Workforce 단계 입력값)</span>
-                <input
-                    type="number"
-                    min={1}
-                    value={totalWorkforce}
-                    onChange={(e) => setTotalWorkforce(parseInt(e.target.value, 10) || 0)}
-                    className="w-[72px] h-7 px-2.5 border-[1.5px] border-[#E2E6ED] rounded-md text-[13px] font-bold text-[#1B2B5B] text-center outline-none focus:border-[#2EC4A9]"
-                />
-                <span className="text-[12px] text-[#9AA3B2]">명</span>
-                <span className="text-[11px] text-[#9AA3B2] ml-1">· 실제 연동 시 자동으로 불러옵니다</span>
+                <span className="text-sm sm:text-[12px] font-semibold text-[#6B7585] flex-shrink-0">전체 재직 인원 (Workforce 단계 입력값)</span>
+                <div className="flex items-center gap-1.5 sm:gap-2.5 flex-1 sm:flex-none">
+                    <input
+                        type="number"
+                        min={1}
+                        value={totalWorkforce}
+                        onChange={(e) => setTotalWorkforce(parseInt(e.target.value, 10) || 0)}
+                        className="flex-1 sm:w-[72px] h-9 sm:h-7 px-2.5 border-[1.5px] border-[#E2E6ED] rounded-md text-sm sm:text-[13px] font-bold text-[#1B2B5B] text-center outline-none focus:border-[#2EC4A9] min-h-[40px]"
+                    />
+                    <span className="text-sm sm:text-[12px] text-[#9AA3B2] whitespace-nowrap flex-shrink-0">명</span>
+                </div>
+                <span className="text-xs sm:text-[11px] text-[#9AA3B2] ml-1">· 실제 연동 시 자동으로 불러옵니다</span>
             </div>
 
             {/* Note banner */}
-            <div className="mx-7 mt-5 py-3 px-4 bg-[#E6F9F6] border border-[#B2EDE5] rounded-lg flex items-start gap-2.5 text-[12.5px] text-[#3A4356] leading-relaxed">
-                <Info className="w-4 h-4 text-[#2EC4A9] shrink-0 mt-0.5" />
-                <span>
+            <div className="mx-4 sm:mx-7 mt-4 sm:mt-5 py-2.5 sm:py-3 px-3 sm:px-4 bg-[#E6F9F6] border border-[#B2EDE5] rounded-lg flex flex-col sm:flex-row sm:items-start gap-2 text-sm sm:text-[12.5px] text-[#3A4356] leading-relaxed">
+                <Info className="w-4 h-4 text-[#2EC4A9] shrink-0 mt-0.5 sm:mt-0" />
+                <span className="text-sm sm:text-[12.5px]">
                     <strong className="text-[#1B2B5B]">Note:</strong> Leaders are defined as employees <strong>above Team Leader level</strong>, excluding executives. Select each applicable leadership title and set the headcount.
                 </span>
             </div>
 
             {/* Leader list */}
-            <div className="px-7 py-4 space-y-2">
+            <div className="px-4 sm:px-7 py-3 sm:py-4 space-y-1.5 sm:space-y-2 max-h-[400px] overflow-y-auto">
                 {order.map((key) => {
                     const preset = PRESET_LEADERS.find((l) => l.id === key);
                     const custom = customRows.find((r) => r.id === key);
@@ -270,25 +272,25 @@ export default function Leaders({
                     const count = counts[row.id] ?? 1;
                     const isCustom = !!custom;
                     return (
-                        <div
-                            key={row.id}
-                            id={`row-${row.id}`}
-                            data-key={row.id}
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, row.id)}
-                            onDragEnd={handleDragEnd}
-                            onDragOver={(e) => handleDragOver(e, row.id)}
-                            onDragLeave={handleDragLeave}
-                            onDrop={(e) => handleDrop(e, row.id)}
-                            className={cn(
-                                'leader-row flex items-center gap-3.5 py-3.5 px-4 border-2 rounded-lg bg-white cursor-pointer transition-all select-none',
-                                active ? 'border-[#2EC4A9] bg-[#E6F9F6] shadow-[0_0_0_3px_rgba(46,196,169,0.1)]' : 'border-[#E2E6ED] hover:border-[#CBD0DA] hover:shadow-[0_1px_4px_rgba(27,43,91,0.07)]',
-                                draggingKey === row.id && 'opacity-40 bg-[#F0F2F5]',
-                                dropTarget?.key === row.id && dropTarget.top && 'border-t-[2.5px] border-t-[#2EC4A9]',
-                                dropTarget?.key === row.id && !dropTarget.top && 'border-b-[2.5px] border-b-[#2EC4A9]'
-                            )}
-                            onClick={() => !isReadOnly && toggleRow(row.id)}
-                        >
+                            <div
+                                key={row.id}
+                                id={`row-${row.id}`}
+                                data-key={row.id}
+                                draggable={!isReadOnly}
+                                onDragStart={(e) => handleDragStart(e, row.id)}
+                                onDragEnd={handleDragEnd}
+                                onDragOver={(e) => handleDragOver(e, row.id)}
+                                onDragLeave={handleDragLeave}
+                                onDrop={(e) => handleDrop(e, row.id)}
+                                className={cn(
+                                    'leader-row flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3.5 py-3 sm:py-3.5 px-3 sm:px-4 border-2 rounded-lg bg-white cursor-pointer transition-all select-none touch-manipulation',
+                                    active ? 'border-[#2EC4A9] bg-[#E6F9F6] shadow-[0_0_0_3px_rgba(46,196,169,0.1)]' : 'border-[#E2E6ED] hover:border-[#CBD0DA] hover:shadow-[0_1px_4px_rgba(27,43,91,0.07)]',
+                                    draggingKey === row.id && 'opacity-40 bg-[#F0F2F5]',
+                                    dropTarget?.key === row.id && dropTarget.top && 'border-t-[2.5px] border-t-[#2EC4A9]',
+                                    dropTarget?.key === row.id && !dropTarget.top && 'border-b-[2.5px] border-b-[#2EC4A9]'
+                                )}
+                                onClick={() => !isReadOnly && toggleRow(row.id)}
+                            >
                             <div className="w-5 h-8 flex items-center justify-center cursor-grab text-[#CBD0DA] hover:text-[#6B7585] shrink-0" onClick={(e) => e.stopPropagation()}>
                                 <GripVertical className="w-3.5 h-3.5" />
                             </div>

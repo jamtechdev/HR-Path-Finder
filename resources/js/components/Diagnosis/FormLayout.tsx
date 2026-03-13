@@ -450,7 +450,7 @@ export default function FormLayout({
                         </div>
 
                         {/* Form area - scrollable content */}
-                        <div className="flex-1 overflow-y-auto py-7 px-9">
+                        <div className="flex-1 overflow-y-auto py-7 px-3 md:px-9">
                         {/* Page Title */}
                         <h2 className="text-[17px] font-bold text-[var(--hr-gray-800)] tracking-[-0.3px] mb-5">{title}</h2>
 
