@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, Upload, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -26,6 +25,7 @@ interface Diagnosis {
     industry_category?: string;
     industry_subcategory?: string;
     industry_other?: string;
+    industry_category_other?: string;
 }
 
 interface IndustryCategory {
@@ -106,6 +106,7 @@ export default function CompanyInfo({
         industry_category: string;
         industry_subcategory: string;
         industry_other: string;
+        industry_category_other: string;
         brand_name: string;
         foundation_date: string;
         logo: File | null;
@@ -117,6 +118,7 @@ export default function CompanyInfo({
         industry_category: diagnosis?.industry_category || '',
         industry_subcategory: diagnosis?.industry_subcategory || '',
         industry_other: diagnosis?.industry_other || '',
+        industry_category_other: diagnosis?.industry_category_other || '',
         brand_name: company.brand_name || '',
         foundation_date: company.foundation_date || '',
         logo: null,
@@ -173,358 +175,503 @@ export default function CompanyInfo({
         reader.readAsDataURL(file);
     };
 
+    const primaryIndustryFilled =
+        (data.industry_category && data.industry_category !== 'Others') ||
+        (data.industry_category === 'Others' && !!data.industry_category_other?.trim());
+    const subIndustryFilled =
+        !data.industry_category ||
+        data.industry_category === 'Others' ||
+        (!!data.industry_subcategory?.trim() && (data.industry_subcategory !== 'Others' || !!data.industry_other?.trim()));
+    const requiredFields = [
+        !!data.company_name?.trim(),
+        !!data.registration_number?.trim(),
+        !!data.foundation_date?.trim(),
+        primaryIndustryFilled,
+        subIndustryFilled,
+        !!data.hq_location?.trim(),
+        data.is_public !== undefined && data.is_public !== null,
+    ];
+    const requiredCount = requiredFields.filter(Boolean).length;
+    const completionPct = Math.round((requiredCount / requiredFields.length) * 100);
+
     const cardContent = (
-                <Card className="shadow-sm border">
-                    <CardContent className="p-6">
-                        {/* Two Column Layout */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Left Column */}
-                            <div className="space-y-6">
-                                {/* Company Name */}
-                                <div className="flex flex-col gap-3">
-                                    <Label htmlFor="company_name" className="text-sm font-medium text-foreground">
-                                        Company Name <span className="text-destructive">*</span>
-                                    </Label>
-                                    <Input
-                                        id="company_name"
-                                        value={data.company_name}
-                                        onChange={(e) => setData('company_name', e.target.value)}
-                                        placeholder="Enter company name"
-                                        className={cn(
-                                            "h-10 bg-background",
-                                            errors.company_name && 'border-destructive'
-                                        )}
-                                        required
-                                        disabled={readOnly}
-                                    />
-                                    {errors.company_name && (
-                                        <p className="text-sm text-destructive">{errors.company_name}</p>
-                                    )}
-                                </div>
+        <div
+            className={cn(
+                'rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm',
+                embedMode ? 'max-w-4xl mx-auto' : 'w-full'
+            )}
+        >
+            {/* Hero strip */}
+            <div className="bg-[#1e293b] px-6 py-5 flex flex-wrap items-center justify-between text-white">
+                <div className="flex items-center gap-4">
+                    <div className="bg-teal-500/20 p-3 rounded-lg text-teal-400">
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+                            <rect x="4" y="3" width="16" height="18" rx="2" />
+                            <path d="M8 7h8M8 11h8M8 15h5" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold leading-snug">Company Basic Information</h2>
+                        <p className="text-gray-400 text-sm mt-0.5">
+                            회사의 기본 정보를 입력하세요 — 모든 * 항목은 필수입니다
+                        </p>
+                    </div>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-3 md:mt-0">
+                    {data.company_name && (
+                        <span className="bg-gray-700/50 px-3 py-1 rounded-full text-xs border border-gray-600 max-w-[120px] truncate">
+                            {data.company_name}
+                        </span>
+                    )}
+                    {data.industry_category && (
+                        <span className="bg-gray-700/50 px-3 py-1 rounded-full text-xs border border-gray-600">
+                            {data.industry_category}
+                        </span>
+                    )}
+                    {data.hq_location && (
+                        <span className="bg-gray-700/50 px-3 py-1 rounded-full text-xs border border-gray-600">
+                            {data.hq_location}
+                        </span>
+                    )}
+                </div>
+            </div>
 
-                                {/* Foundation Date */}
-                                <div className="flex flex-col gap-3">
-                                    <Label htmlFor="foundation_date" className="text-sm font-medium text-foreground">
-                                        Foundation Date <span className="text-destructive">*</span>
-                                    </Label>
-                                    <div className="relative">
-                                        <Input
-                                            id="foundation_date"
-                                            type="date"
-                                            value={data.foundation_date}
-                                            onChange={(e) => setData('foundation_date', e.target.value)}
-                                            className={cn(
-                                                "h-10 bg-background pr-10",
-                                                errors.foundation_date && 'border-destructive'
-                                            )}
-                                            required
-                                            disabled={readOnly}
-                                        />
-                                        <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                                    </div>
-                                    {errors.foundation_date && (
-                                        <p className="text-sm text-destructive">{errors.foundation_date}</p>
-                                    )}
-                                </div>
+            <div className="p-8 space-y-10">
+                {/* 두 개 컬럼 영역 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                    {/* Left: 회사 식별 정보 */}
+                    <div className="space-y-6">
+                        <h3 className="text-gray-500 font-bold text-sm mb-1">회사 식별 정보</h3>
 
-                                {/* Primary Industry */}
-                                <div className="flex flex-col gap-3">
-                                    <Label htmlFor="industry_category" className="text-sm font-medium text-foreground">
-                                        Primary Industry <span className="text-destructive">*</span>
-                                    </Label>
-                                    <Select
-                                        value={data.industry_category}
-                                        onValueChange={(value) => {
-                                            setData('industry_category', value);
-                                            setData('industry_subcategory', '');
-                                            setData('industry_other', '');
-                                        }}
-                                        disabled={readOnly}
-                                    >
-                                        <SelectTrigger className={cn(
-                                            "h-10 bg-background",
-                                            errors.industry_category && 'border-destructive'
-                                        )}>
-                                            <SelectValue placeholder="Select primary industry" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {industryCategories.length > 0 ? (
-                                                industryCategories.map((category) => (
-                                                    <SelectItem key={category.id} value={category.name}>
-                                                        {category.name}
-                                                    </SelectItem>
-                                                ))
-                                            ) : (
-                                                <SelectItem value="" disabled>No industries available</SelectItem>
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.industry_category && (
-                                        <p className="text-sm text-destructive">{errors.industry_category}</p>
-                                    )}
-                                </div>
-
-                                {/* Sub Industry Category - Show only when primary industry is selected */}
-                                {data.industry_category && (() => {
-                                    const selectedCategory = industryCategories.find(
-                                        cat => cat.name === data.industry_category
-                                    );
-                                    const subCategories = selectedCategory?.subCategories || [];
-                                    
-                                    return subCategories.length > 0 ? (
-                                        <div className="flex flex-col gap-3">
-                                            <Label htmlFor="industry_subcategory" className="text-sm font-medium text-foreground">
-                                                Sub Industry Category <span className="text-destructive">*</span>
-                                            </Label>
-                                            <Select
-                                                value={data.industry_subcategory}
-                                                onValueChange={(value) => {
-                                                    setData('industry_subcategory', value);
-                                                    if (value !== 'Others') {
-                                                        setData('industry_other', '');
-                                                    }
-                                                }}
-                                                disabled={readOnly}
-                                            >
-                                                <SelectTrigger className={cn(
-                                                    "h-10 bg-background",
-                                                    errors.industry_subcategory && 'border-destructive'
-                                                )}>
-                                                    <SelectValue placeholder="Select subcategory" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {subCategories.map((sub) => (
-                                                        <SelectItem key={sub.id} value={sub.name}>
-                                                            {sub.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            {errors.industry_subcategory && (
-                                                <p className="text-sm text-destructive">{errors.industry_subcategory}</p>
-                                            )}
-                                            
-                                            {/* Show "Others" text input if "Others" is selected */}
-                                            {data.industry_subcategory === 'Others' && (
-                                                <div className="mt-2">
-                                                    <Input
-                                                        value={data.industry_other}
-                                                        onChange={(e) => setData('industry_other', e.target.value)}
-                                                        placeholder="Please specify"
-                                                        className="h-10 bg-background"
-                                                        required
-                                                        disabled={readOnly}
-                                                    />
-                                                    {errors.industry_other && (
-                                                        <p className="text-sm text-destructive mt-1">{errors.industry_other}</p>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ) : null;
-                                })()}
-                            </div>
-
-                            {/* Right Column */}
-                            <div className="space-y-6">
-                                {/* Registration Number */}
-                                <div className="flex flex-col gap-3">
-                                    <Label htmlFor="registration_number" className="text-sm font-medium text-foreground">
-                                        Registration Number <span className="text-destructive">*</span>
-                                    </Label>
-                                    <Input
-                                        id="registration_number"
-                                        value={data.registration_number}
-                                        onChange={(e) => {
-                                            const value = e.target.value;
-                                            // Auto-format: 000-00-00000
-                                            const formatted = value
-                                                .replace(/\D/g, '')
-                                                .replace(/(\d{3})(\d{2})(\d{5})/, '$1-$2-$3')
-                                                .slice(0, 13);
-                                            setData('registration_number', formatted);
-                                        }}
-                                        placeholder="000-00-00000"
-                                        className={cn(
-                                            "h-10 bg-background",
-                                            errors.registration_number && 'border-destructive'
-                                        )}
-                                        required
-                                        maxLength={13}
-                                        disabled={readOnly}
-                                    />
-                                    {errors.registration_number && (
-                                        <p className="text-sm text-destructive">{errors.registration_number}</p>
-                                    )}
-                                    {data.registration_number && !validateRegistrationNumber(data.registration_number) && (
-                                        <p className="text-sm text-amber-600">Format: 000-00-00000</p>
-                                    )}
-                                </div>
-
-                                {/* Brand Name */}
-                                <div className="flex flex-col gap-3">
-                                    <Label htmlFor="brand_name" className="text-sm font-medium text-foreground">
-                                        Brand Name
-                                    </Label>
-                                    <Input
-                                        id="brand_name"
-                                        value={data.brand_name}
-                                        onChange={(e) => setData('brand_name', e.target.value)}
-                                        placeholder="Enter brand name (if different)"
-                                        className="h-10 bg-background"
-                                        disabled={readOnly}
-                                    />
-                                </div>
-
-                                {/* HQ Location */}
-                                <div className="flex flex-col gap-3">
-                                    <Label htmlFor="hq_location" className="text-sm font-medium text-foreground">
-                                        HQ Location <span className="text-destructive">*</span>
-                                    </Label>
-                                    {hqLocations.length > 0 ? (
-                                        <Select
-                                            value={data.hq_location}
-                                            onValueChange={(value) => setData('hq_location', value)}
-                                            disabled={readOnly}
-                                        >
-                                            <SelectTrigger className={cn(
-                                                "h-10 bg-background",
-                                                errors.hq_location && 'border-destructive'
-                                            )}>
-                                                <SelectValue placeholder="City, Country" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {hqLocations.map((location) => (
-                                                    <SelectItem key={location} value={location}>
-                                                        {location}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    ) : (
-                                        <Input
-                                            id="hq_location"
-                                            value={data.hq_location}
-                                            onChange={(e) => setData('hq_location', e.target.value)}
-                                            placeholder="City, Country"
-                                            className={cn(
-                                                "h-10 bg-background",
-                                                errors.hq_location && 'border-destructive'
-                                            )}
-                                            required
-                                            disabled={readOnly}
-                                        />
-                                    )}
-                                    {errors.hq_location && (
-                                        <p className="text-sm text-destructive">{errors.hq_location}</p>
-                                    )}
-                                </div>
-
-                                {/* Public Listing Status */}
-                                <div className="flex flex-col gap-3">
-                                    <Label className="text-sm font-medium text-foreground">
-                                        Public Listing Status <span className="text-destructive">*</span>
-                                    </Label>
-                                    <RadioGroup
-                                        value={data.is_public ? 'yes' : 'no'}
-                                        onValueChange={(value) => setData('is_public', value === 'yes')}
-                                        className="flex gap-6"
-                                        disabled={readOnly}
-                                    >
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="yes" id="public-yes" />
-                                            <Label htmlFor="public-yes" className="font-normal cursor-pointer">Yes</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="no" id="public-no" />
-                                            <Label htmlFor="public-no" className="font-normal cursor-pointer">No</Label>
-                                        </div>
-                                    </RadioGroup>
-                                    {errors.is_public && (
-                                        <p className="text-sm text-destructive">{errors.is_public}</p>
-                                    )}
-                                </div>
-
-                            </div>
+                        {/* Company Name */}
+                        <div>
+                            <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="company_name">
+                                Company Name <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                                id="company_name"
+                                value={data.company_name}
+                                onChange={(e) => setData('company_name', e.target.value)}
+                                placeholder="Better Company"
+                                className={cn(
+                                    'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 px-3 text-sm focus-visible:ring-2 focus-visible:ring-teal-500',
+                                    errors.company_name && 'border-red-500'
+                                )}
+                                required
+                                disabled={readOnly}
+                            />
+                            {errors.company_name && (
+                                <p className="mt-1 text-xs text-red-500">{errors.company_name}</p>
+                            )}
                         </div>
 
-                        {/* Company Logo Upload Section */}
-                          <div className="flex flex-col gap-3">
-                            <Label className="text-sm font-medium text-foreground">
-                                Company Logo
+                        {/* Registration Number */}
+                        <div>
+                            <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="registration_number">
+                                Registration Number <span className="text-red-500">*</span>
                             </Label>
-                            <div
-                                onClick={() => !readOnly && fileInputRef.current?.click()}
-                                onDragOver={(e) => !readOnly && (e.preventDefault(), e.stopPropagation())}
-                                onDrop={(e) => {
-                                if (readOnly) return;
-                                e.preventDefault();
-                                e.stopPropagation();
-                                const files = e.dataTransfer.files;
-                                if (files.length > 0) handleFileChange(files[0]);
-                                }}
-                                className={cn(
-                                "border-2 border-dashed rounded-lg  text-center transition-all duration-200",
-                                !readOnly && "cursor-pointer hover:border-primary/50 hover:bg-muted/30",
-                                logoPreview ? "border-primary/30 bg-muted/20" : "border-border bg-muted/10 p-12"
-                                )}
-                            >
-                                <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/png,image/jpeg,image/jpg"
+                            <Input
+                                id="registration_number"
+                                value={data.registration_number}
                                 onChange={(e) => {
-                                    if (e.target.files && e.target.files[0]) {
-                                    handleFileChange(e.target.files[0]);
-                                    }
+                                    const value = e.target.value;
+                                    const formatted = value
+                                        .replace(/\D/g, '')
+                                        .replace(/(\\d{3})(\\d{2})(\\d{5})/, '$1-$2-$3')
+                                        .slice(0, 13);
+                                    setData('registration_number', formatted);
                                 }}
-                                className="hidden"
-                                />
-                                {logoPreview ? (
+                                placeholder="618-02-72032"
+                                className={cn(
+                                    'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 px-3 text-sm',
+                                    errors.registration_number && 'border-red-500'
+                                )}
+                                required
+                                maxLength={13}
+                                disabled={readOnly}
+                            />
+                            {errors.registration_number && (
+                                <p className="mt-1 text-xs text-red-500">{errors.registration_number}</p>
+                            )}
+                            {data.registration_number && !validateRegistrationNumber(data.registration_number) && (
+                                <p className="mt-1 text-xs text-amber-600">Format: 000-00-00000</p>
+                            )}
+                        </div>
+
+                        {/* Brand Name */}
+                        <div>
+                            <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="brand_name">
+                                Brand Name
+                            </Label>
+                            <Input
+                                id="brand_name"
+                                value={data.brand_name}
+                                onChange={(e) => setData('brand_name', e.target.value)}
+                                placeholder="패스파인더hr"
+                                className="w-full h-11 rounded-lg border border-gray-200 px-3 text-sm"
+                                disabled={readOnly}
+                            />
+                        </div>
+
+                        {/* Foundation Date + Public Listing row */}
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <div className="flex-1">
+                                <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="foundation_date">
+                                    Foundation Date <span className="text-red-500">*</span>
+                                </Label>
                                 <div className="relative">
-                                    <div className="flex justify-center">
+                                    <Input
+                                        id="foundation_date"
+                                        type="date"
+                                        value={data.foundation_date}
+                                        onChange={(e) => setData('foundation_date', e.target.value)}
+                                        className={cn(
+                                            'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 pr-10 text-sm',
+                                            errors.foundation_date && 'border-red-500'
+                                        )}
+                                        required
+                                        disabled={readOnly}
+                                    />
+                                    <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                </div>
+                                {errors.foundation_date && (
+                                    <p className="mt-1 text-xs text-red-500">{errors.foundation_date}</p>
+                                )}
+                            </div>
+
+                            <div className="flex-1">
+                                <Label className="block text-sm font-bold text-gray-700 mb-2">
+                                    Public Listing <span className="text-red-500">*</span>
+                                </Label>
+                                <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm font-semibold">
+                                    <button
+                                        type="button"
+                                        onClick={() => !readOnly && setData('is_public', true)}
+                                        className={cn(
+                                            'flex-1 py-2.5 flex items-center justify-center gap-2 text-gray-500 bg-white',
+                                            data.is_public && 'bg-gray-100 text-gray-800'
+                                        )}
+                                        disabled={readOnly}
+                                    >
+                                        <span className="text-xs">Listed</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => !readOnly && setData('is_public', false)}
+                                        className={cn(
+                                            'flex-1 py-2.5 flex items-center justify-center gap-2',
+                                            !data.is_public ? 'bg-[#1e293b] text-white' : 'bg-white text-gray-500'
+                                        )}
+                                        disabled={readOnly}
+                                    >
+                                        <span className="text-xs font-bold">Private</span>
+                                    </button>
+                                </div>
+                                {errors.is_public && (
+                                    <p className="mt-1 text-xs text-red-500">{errors.is_public}</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right: 산업 및 위치 + completion bar */}
+                    <div className="space-y-6">
+                        <h3 className="text-gray-500 font-bold text-sm mb-1">산업 및 위치</h3>
+
+                        {/* Primary Industry */}
+                        <div>
+                            <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="industry_category">
+                                Primary Industry <span className="text-red-500">*</span>
+                            </Label>
+                            <Select
+                                value={data.industry_category}
+                                onValueChange={(value) => {
+                                    setData('industry_category', value);
+                                    setData('industry_subcategory', '');
+                                    setData('industry_other', '');
+                                    if (value !== 'Others') setData('industry_category_other', '');
+                                }}
+                                disabled={readOnly}
+                            >
+                                <SelectTrigger
+                                    className={cn(
+                                        'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 text-sm',
+                                        errors.industry_category && 'border-red-500'
+                                    )}
+                                >
+                                    <SelectValue placeholder="Services" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {industryCategories.length > 0 ? (
+                                        industryCategories.map((category) => (
+                                            <SelectItem key={category.id} value={category.name}>
+                                                {category.name}
+                                            </SelectItem>
+                                        ))
+                                    ) : null}
+                                    <SelectItem value="Others">Others</SelectItem>
+                                    {industryCategories.length === 0 && (
+                                        <SelectItem value="" disabled>
+                                            No industries available
+                                        </SelectItem>
+                                    )}
+                                </SelectContent>
+                            </Select>
+                            {data.industry_category === 'Others' && (
+                                <div className="mt-2">
+                                    <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="industry_category_other">
+                                        Primary Industry (specify) <span className="text-red-500">*</span>
+                                    </Label>
+                                    <Input
+                                        id="industry_category_other"
+                                        value={data.industry_category_other ?? ''}
+                                        onChange={(e) => setData('industry_category_other', e.target.value)}
+                                        placeholder="Please specify"
+                                        className={cn(
+                                            'w-full h-11 rounded-lg border border-gray-200 px-3 text-sm',
+                                            errors.industry_category_other && 'border-red-500'
+                                        )}
+                                        required
+                                        disabled={readOnly}
+                                    />
+                                    {errors.industry_category_other && (
+                                        <p className="mt-1 text-xs text-red-500">{errors.industry_category_other}</p>
+                                    )}
+                                </div>
+                            )}
+                            {errors.industry_category && (
+                                <p className="mt-1 text-xs text-red-500">{errors.industry_category}</p>
+                            )}
+                        </div>
+
+                        {/* Sub Industry Category — only when Primary is not "Others" */}
+                        {data.industry_category && data.industry_category !== 'Others' && (() => {
+                            const selectedCategory = industryCategories.find(
+                                (cat) => cat.name === data.industry_category
+                            );
+                            const subCategories = selectedCategory?.subCategories || [];
+
+                            if (!subCategories.length) return null;
+
+                            return (
+                                <div>
+                                    <Label
+                                        className="block text-sm font-bold text-gray-700 mb-2"
+                                        htmlFor="industry_subcategory"
+                                    >
+                                        Sub Industry Category <span className="text-red-500">*</span>
+                                    </Label>
+                                    <Select
+                                        value={data.industry_subcategory}
+                                        onValueChange={(value) => {
+                                            setData('industry_subcategory', value);
+                                            if (value !== 'Others') setData('industry_other', '');
+                                        }}
+                                        disabled={readOnly}
+                                    >
+                                        <SelectTrigger
+                                            className={cn(
+                                                'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 text-sm',
+                                                errors.industry_subcategory && 'border-red-500'
+                                            )}
+                                        >
+                                            <SelectValue placeholder="Professional Services" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {subCategories.map((sub) => (
+                                                <SelectItem key={sub.id} value={sub.name}>
+                                                    {sub.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.industry_subcategory && (
+                                        <p className="mt-1 text-xs text-red-500">
+                                            {errors.industry_subcategory}
+                                        </p>
+                                    )}
+                                    {data.industry_subcategory === 'Others' && (
+                                        <div className="mt-2">
+                                            <Input
+                                                value={data.industry_other}
+                                                onChange={(e) => setData('industry_other', e.target.value)}
+                                                placeholder="Please specify"
+                                                className="w-full h-11 rounded-lg border border-gray-200 px-3 text-sm"
+                                                required
+                                                disabled={readOnly}
+                                            />
+                                            {errors.industry_other && (
+                                                <p className="mt-1 text-xs text-red-500">
+                                                    {errors.industry_other}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
+
+                        {/* HQ Location */}
+                        <div>
+                            <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="hq_location">
+                                HQ Location <span className="text-red-500">*</span>
+                            </Label>
+                            <div className="relative">
+                                {hqLocations.length > 0 ? (
+                                    <Select
+                                        value={data.hq_location}
+                                        onValueChange={(value) => setData('hq_location', value)}
+                                        disabled={readOnly}
+                                    >
+                                        <SelectTrigger
+                                            className={cn(
+                                                'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 text-sm pr-9',
+                                                errors.hq_location && 'border-red-500'
+                                            )}
+                                        >
+                                            <SelectValue placeholder="Seoul, Korea" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {hqLocations.map((location) => (
+                                                <SelectItem key={location} value={location}>
+                                                    {location}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                ) : (
+                                    <Input
+                                        id="hq_location"
+                                        value={data.hq_location}
+                                        onChange={(e) => setData('hq_location', e.target.value)}
+                                        placeholder="Seoul, Korea"
+                                        className={cn(
+                                            'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 pr-9 text-sm',
+                                            errors.hq_location && 'border-red-500'
+                                        )}
+                                        required
+                                        disabled={readOnly}
+                                    />
+                                )}
+                                <svg
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth={1.8}
+                                >
+                                    <path d="M12 21s-6-5.373-6-10a6 6 0 1112 0c0 4.627-6 10-6 10z" />
+                                    <circle cx="12" cy="11" r="2.5" />
+                                </svg>
+                            </div>
+                            {errors.hq_location && (
+                                <p className="mt-1 text-xs text-red-500">{errors.hq_location}</p>
+                            )}
+                        </div>
+
+                        {/* Page completion (right side, bottom) */}
+                        <div className="pt-6 mt-2">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-teal-600 font-bold text-xs">이 페이지 완성도</span>
+                                <span className="text-teal-600 font-bold text-xs">
+                                    {completionPct}%
+                                </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div
+                                    className="bg-teal-400 h-2 rounded-full transition-all duration-300"
+                                    style={{ width: `${completionPct}%` }}
+                                />
+                            </div>
+                            <p className="text-[10px] text-gray-400 mt-2">
+                                필수 항목을 모두 입력하면 다음 단계로 이동할 수 있습니다
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr className="border-gray-100" />
+
+                {/* Company logo section */}
+                <div>
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="bg-teal-50 p-2 rounded-lg">
+                            <Upload className="w-4 h-4 text-teal-500" />
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-gray-700 text-sm">Company Logo</h4>
+                            <p className="text-xs text-gray-400 font-medium">
+                                보고서 및 진단 결과서에 표시됩니다 (선택)
+                            </p>
+                        </div>
+                    </div>
+
+                    <div
+                        onClick={() => !readOnly && fileInputRef.current?.click()}
+                        onDragOver={(e) => !readOnly && (e.preventDefault(), e.stopPropagation())}
+                        onDrop={(e) => {
+                            if (readOnly) return;
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const files = e.dataTransfer.files;
+                            if (files.length > 0) handleFileChange(files[0]);
+                        }}
+                        className={cn(
+                            'border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-colors',
+                            !readOnly && 'cursor-pointer hover:border-teal-400/70 hover:bg-teal-50/30'
+                        )}
+                    >
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg"
+                            onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                    handleFileChange(e.target.files[0]);
+                                }
+                            }}
+                            className="hidden"
+                        />
+
+                        <div className="flex items-center gap-6 w-full md:w-auto">
+                            <div className="w-16 h-16 bg-[#1e293b] rounded-lg flex items-center justify-center overflow-hidden">
+                                {logoPreview ? (
                                     <img
                                         src={logoPreview}
                                         alt="Company logo"
-                                        className="w-full max-h-[184px] object-cover rounded-lg"
+                                        className="w-full h-full object-cover"
                                     />
-                                    </div>
-                                    {!readOnly && (
-                                    <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setLogoPreview(null);
-                                        setData('logo', null);
-                                        if (fileInputRef.current) {
-                                        fileInputRef.current.value = '';
-                                        }
-                                    }}
-                                    className="absolute top-2 right-2 text-sm text-destructive hover:underline inline-flex items-center gap-1"
-                                    >
-                                    <X className="w-4 h-4" />
-                                    </button>
-                                    )}
-                                </div>
                                 ) : (
-                                <div className="space-y-3">
-                                    <div className="flex justify-center">
-                                    <Upload className="w-8 h-8 text-muted-foreground" />
-                                    </div>
-                                    <div>
-                                    <p className="text-sm font-medium text-foreground mb-1">
-                                        Click to upload or drag and drop
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        PNG, JPG up to 2MB
-                                    </p>
-                                    </div>
-                                </div>
+                                    <Upload className="w-7 h-7 text-white/40" />
                                 )}
                             </div>
+                            <div className="space-y-1 text-left">
+                                <p className="font-bold text-sm text-gray-700">로고 이미지 업로드</p>
+                                <p className="text-xs text-gray-400">
+                                    드래그 앤 드롭 또는 클릭하여 파일 선택
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                    PNG · JPG · 최대 2MB · 권장 400x400px
+                                </p>
                             </div>
-                    </CardContent>
-                </Card>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (readOnly) return;
+                                fileInputRef.current?.click();
+                            }}
+                            className="px-6 py-2 border border-gray-300 rounded-lg text-sm font-bold text-gray-600 bg-white shrink-0"
+                            disabled={readOnly}
+                        >
+                            파일 선택
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 
     if (embedMode) return <>{cardContent}</>;

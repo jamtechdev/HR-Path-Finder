@@ -31,7 +31,7 @@ export function ROITableSection({
     ];
 
     return (
-        <section className="bg-[#0B1E3D] py-[100px] px-12 md:px-20">
+        <section className="bg-[#0B1E3D] py-[100px] px-5 md:px-20">
             <div className="text-center mb-14">
                 <div className="text-[11px] font-semibold text-[#2ECFAB] tracking-[0.14em] uppercase mb-4 font-sans">
                     {eyebrow}
@@ -60,7 +60,7 @@ export function ROITableSection({
                                 <td className="py-4 px-7 text-white/70 border-b border-white/5 bg-[#132847] font-semibold text-[13px]">
                                     {row.label}
                                 </td>
-                                <td className="py-4 px-7 border-b border-white/5 bg-[#2ECFAB]/[0.06] text-white font-semibold">
+                                <td className="py-4 px-3 md:px-7 border-b border-white/5 bg-[#2ECFAB]/[0.06] text-white font-semibold">
                                     {row.usGood ? (
                                         <span className="flex items-center gap-2">
                                             {checkIcon}

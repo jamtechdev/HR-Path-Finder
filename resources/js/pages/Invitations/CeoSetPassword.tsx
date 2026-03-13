@@ -8,9 +8,7 @@ import { Eye, EyeOff } from 'lucide-react';
 
 const PASSWORD_RULES = {
   len: (v: string) => v.length >= 8,
-  upper: (v: string) => /[A-Z]/.test(v),
   num: (v: string) => /[0-9]/.test(v),
-  special: (v: string) => /[^A-Za-z0-9]/.test(v),
 };
 
 type Props = {
@@ -33,9 +31,7 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
   const passwordConfirmation = form.data.password_confirmation;
   const met = {
     len: PASSWORD_RULES.len(password),
-    upper: PASSWORD_RULES.upper(password),
     num: PASSWORD_RULES.num(password),
-    special: PASSWORD_RULES.special(password),
   };
   const allMet = Object.values(met).every(Boolean);
   const match = password && password === passwordConfirmation;
@@ -159,9 +155,7 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
                 <div className="mt-2 flex flex-col gap-1 text-[11.5px]">
                   {[
                     { key: 'len', label: '8자 이상', ok: met.len },
-                    { key: 'upper', label: '대문자 포함', ok: met.upper },
                     { key: 'num', label: '숫자 포함', ok: met.num },
-                    { key: 'special', label: '특수문자 포함', ok: met.special },
                   ].map(({ key, label, ok }) => (
                     <div
                       key={key}

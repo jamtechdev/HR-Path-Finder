@@ -54,6 +54,20 @@ interface Props {
     introCompleted?: boolean;
     stepStatuses?: any;
     templates?: Record<number | string, any>;
+    /** Server-loaded org chart mappings (from backend). Hydrated into state when present. */
+    mappings?: Array<{
+        id: number;
+        parent_id?: number | null;
+        sort_order?: number | null;
+        org_unit_name: string;
+        job_keyword_ids?: number[];
+        org_head_name?: string | null;
+        org_head_rank?: string | null;
+        org_head_title?: string | null;
+        org_head_email?: string | null;
+        is_kpi_reviewer?: boolean;
+        job_specialists?: Array<{ job_keyword_id?: number; name?: string; rank?: string; title?: string; email?: string }>;
+    }>;
 }
 
 const STEPS = [
@@ -64,6 +78,40 @@ const STEPS = [
     { id: 'org-chart-mapping', name: 'Org Chart Mapping' },
     { id: 'review-submit', name: 'Review & Submit' },
 ];
+
+function normalizeServerMapping(m: {
+    id: number;
+    parent_id?: number | null;
+    sort_order?: number | null;
+    org_unit_name: string;
+    job_keyword_ids?: number[];
+    org_head_name?: string | null;
+    org_head_rank?: string | null;
+    org_head_title?: string | null;
+    org_head_email?: string | null;
+    is_kpi_reviewer?: boolean;
+    job_specialists?: Array<{ job_keyword_id?: number; name?: string; rank?: string; title?: string; email?: string }>;
+}): OrgChartMapping {
+    return {
+        id: String(m.id),
+        parentId: m.parent_id != null ? String(m.parent_id) : null,
+        sort_order: m.sort_order ?? undefined,
+        org_unit_name: m.org_unit_name ?? '',
+        job_keyword_ids: m.job_keyword_ids ?? [],
+        org_head_name: m.org_head_name ?? undefined,
+        org_head_rank: m.org_head_rank ?? undefined,
+        org_head_title: m.org_head_title ?? undefined,
+        org_head_email: m.org_head_email ?? undefined,
+        is_kpi_reviewer: m.is_kpi_reviewer ?? false,
+        job_specialists: (m.job_specialists ?? []).map((s) => ({
+            job_keyword_id: s.job_keyword_id ?? 0,
+            name: s.name ?? '',
+            rank: s.rank,
+            title: s.title,
+            email: s.email,
+        })),
+    };
+}
 
 export default function JobAnalysisIndex({
     project,
@@ -80,6 +128,7 @@ export default function JobAnalysisIndex({
     introCompleted = false,
     stepStatuses = {},
     templates = {},
+    mappings: serverMappings = [],
 }: Props) {
     const {
         state,
@@ -90,6 +139,13 @@ export default function JobAnalysisIndex({
         markStepCompleted,
         setActiveStep,
     } = useJobAnalysisState(project.id);
+
+    // Hydrate org mappings from server when present (e.g. returning to step after save)
+    useEffect(() => {
+        if (serverMappings.length > 0 && state.orgMappings.length === 0) {
+            updateOrgMappings(serverMappings.map(normalizeServerMapping));
+        }
+    }, [serverMappings.length]);
 
     const { validateStep, isStepEnabled } = useStepValidation(state);
 
@@ -259,7 +315,11 @@ export default function JobAnalysisIndex({
             });
             return;
         }
-        const org_chart_mappings = list.map(u => ({
+        const org_chart_mappings = list.map((u, idx) => ({
+            id: u.id,
+            parent_id: u.parentId ?? null,
+            sort_order: u.sort_order ?? idx,
+            is_kpi_reviewer: !!u.is_kpi_reviewer,
             org_unit_name: String(u.org_unit_name ?? '').trim(),
             job_keyword_ids: Array.isArray(u.job_keyword_ids) ? u.job_keyword_ids.map(id => Number(id)).filter(Number.isInteger) : [],
             org_head_name: u.org_head_name ?? undefined,

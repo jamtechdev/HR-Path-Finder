@@ -26,6 +26,7 @@ class DiagnosisSnapshotService
             'industry_category' => $diagnosis->industry_category,
             'industry_subcategory' => $diagnosis->industry_subcategory,
             'industry_other' => $diagnosis->industry_other,
+            'industry_category_other' => $diagnosis->industry_category_other,
             'present_headcount' => $diagnosis->present_headcount,
             'expected_headcount_1y' => $diagnosis->expected_headcount_1y,
             'expected_headcount_2y' => $diagnosis->expected_headcount_2y,
