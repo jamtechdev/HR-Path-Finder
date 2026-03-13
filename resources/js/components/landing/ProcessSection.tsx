@@ -51,7 +51,7 @@ export function ProcessSection({
     );
 
     return (
-        <section id="process" className="bg-[#0B1E3D] py-[100px] px-12 md:px-20">
+        <section id="process" className="bg-[#0B1E3D] py-[100px] px-5 md:px-20">
             <div className="text-center mb-16">
                 <div className="text-[11px] font-semibold text-[#C8A84B] tracking-[0.14em] uppercase mb-4 font-sans">
                     {eyebrow}
@@ -85,7 +85,7 @@ export function ProcessSection({
                 <div className="text-[15px] text-white/70 leading-relaxed font-sans">
                     {buildupText ?? defaultBuildup}
                 </div>
-                <div className="flex items-center gap-3 bg-[#1E3A5F] rounded-xl py-4 px-6 border border-[#2ECFAB]/20 whitespace-nowrap">
+                <div className="flex flex-col md:flex-row items-center gap-3 bg-[#1E3A5F] rounded-xl py-4 px-6 border border-[#2ECFAB]/20 whitespace-nowrap">
                     <span className="text-[28px]" aria-hidden>📄</span>
                     <div>
                         <div className="text-sm font-bold text-white">{resultTitle}</div>
