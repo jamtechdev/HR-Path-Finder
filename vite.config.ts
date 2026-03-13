@@ -25,24 +25,6 @@ export default defineConfig({
         jsx: 'automatic',
     },
     build: {
-        rollupOptions: {
-            output: {
-                manualChunks(id) {
-                    if (id.includes('node_modules')) {
-                        if (id.includes('react-dom') || id.includes('react/')) {
-                            return 'vendor-react';
-                        }
-                        if (id.includes('@inertiajs')) {
-                            return 'vendor-inertia';
-                        }
-                        if (id.includes('@radix-ui') || id.includes('lucide-react') || id.includes('recharts')) {
-                            return 'vendor-ui';
-                        }
-                        return 'vendor';
-                    }
-                },
-            },
-        },
         chunkSizeWarningLimit: 600,
     },
 });
