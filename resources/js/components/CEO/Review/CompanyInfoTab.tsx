@@ -73,9 +73,12 @@ export default function CompanyInfoTab({
                     <CardContent className="p-6 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <ReadOnlyField label="Major Industry Category" value={data.industry_category || '—'} />
+                            {data.industry_category === 'Others' && data.industry_category_other && (
+                                <ReadOnlyField label="Primary Industry (specify)" value={data.industry_category_other} />
+                            )}
                             <ReadOnlyField label="Sub Industry Category" value={data.industry_subcategory || '—'} />
                             {data.industry_subcategory === 'Others' && data.industry_other && (
-                                <ReadOnlyField label="Other (specify)" value={data.industry_other} />
+                                <ReadOnlyField label="Sub Industry (specify)" value={data.industry_other} />
                             )}
                         </div>
                     </CardContent>
@@ -205,6 +208,7 @@ export default function CompanyInfoTab({
                                 onValueChange={(value) => {
                                     setData('industry_category', value);
                                     setData('industry_subcategory', '');
+                                    if (value !== 'Others') setData('industry_category_other', '');
                                 }}
                             >
                                 <SelectTrigger className="h-11">
@@ -216,17 +220,26 @@ export default function CompanyInfoTab({
                                             {category.name}
                                         </SelectItem>
                                     ))}
+                                    <SelectItem value="Others">Others</SelectItem>
                                 </SelectContent>
                             </Select>
+                            {data.industry_category === 'Others' && (
+                                <Input
+                                    className="mt-3 h-11"
+                                    value={data.industry_category_other || ''}
+                                    onChange={(e) => setData('industry_category_other', e.target.value)}
+                                    placeholder="Please specify primary industry"
+                                />
+                            )}
                         </div>
                         <div className="space-y-2">
                             <Label className="text-sm font-semibold">Sub Industry Category</Label>
                             <Select
                                 value={data.industry_subcategory || ''}
                                 onValueChange={(value) => setData('industry_subcategory', value)}
-                                disabled={!data.industry_category}
+                                disabled={!data.industry_category || data.industry_category === 'Others'}
                             >
-                                <SelectTrigger className="h-11" disabled={!data.industry_category}>
+                                <SelectTrigger className="h-11" disabled={!data.industry_category || data.industry_category === 'Others'}>
                                     <SelectValue placeholder="Select subcategory" />
                                 </SelectTrigger>
                                 <SelectContent>

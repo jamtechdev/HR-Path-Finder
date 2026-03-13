@@ -344,6 +344,11 @@ export default function Review({
         return names.map((name) => ({ name, headcount: Number(headcounts[name]) || 0 }));
     }, [diagnosis?.job_grade_names, diagnosis?.job_grade_headcounts]);
 
+    const jobGradesForPyramidSorted = useMemo(
+        () => [...jobGradesForPyramid].sort((a, b) => a.headcount - b.headcount),
+        [jobGradesForPyramid]
+    );
+
     const gradeTotal = useMemo(() => jobGradesForPyramid.reduce((s, g) => s + g.headcount, 0), [jobGradesForPyramid]);
 
     const jobStructureForReview = useMemo(() => {
@@ -664,50 +669,63 @@ export default function Review({
                                 )}
                             </div>
                         </ReviewCard>
-                        <ReviewCard title={tr('gradePyramidTitle')} icon="📊" editUrl={getEditUrl(STEP_MAP.jobGrades)}>
-                            <div className="flex flex-col gap-1">
-                                {jobGradesForPyramid.length ? (
-                                    <>
-                                        {jobGradesForPyramid.map((g, i) => {
-                                            const max = Math.max(...jobGradesForPyramid.map((x) => x.headcount), 1);
-                                            const pct = (g.headcount / max) * 100;
-                                            const ratio = gradeTotal ? ((g.headcount / gradeTotal) * 100).toFixed(1) : '0';
-                                            return (
-                                                <div key={`grade-${i}-${String(g.name ?? '')}`} className="flex items-center gap-2" style={{ gap: 8, marginBottom: 5 }}>
-                                                    <div className="shrink-0 text-right text-[11px] font-bold text-[#64748b]" style={{ width: 35 }}>{g.name}</div>
-                                                    <div className="flex-1 relative" style={{ height: 26 }}>
-                                                        <div
-                                                            className="absolute left-1/2 -translate-x-1/2 h-full flex items-center justify-center text-white font-bold rounded"
-                                                            style={{ width: `${pct}%`, minWidth: 36, fontSize: 10, borderRadius: 4, backgroundColor: GRADE_COLORS[i % GRADE_COLORS.length] }}
-                                                        >
-                                                            {g.headcount}{tr('personsUnit')}
+                        <div className="md:col-span-2">
+                            <ReviewCard title={tr('gradePyramidTitle')} icon="📊" editUrl={getEditUrl(STEP_MAP.jobGrades)}>
+                                <div className="flex flex-col gap-1">
+                                    {jobGradesForPyramidSorted.length ? (
+                                        <>
+                                            {jobGradesForPyramidSorted.map((g, i) => {
+                                                const max = Math.max(...jobGradesForPyramidSorted.map((x) => x.headcount), 1);
+                                                const pct = max > 0 ? (g.headcount / max) * 100 : 0;
+                                                const ratio = gradeTotal ? ((g.headcount / gradeTotal) * 100).toFixed(1) : '0';
+                                                return (
+                                                    <div key={`grade-${i}-${String(g.name ?? '')}`} className="flex items-center gap-2" style={{ gap: 8, marginBottom: 5 }}>
+                                                        <div className="shrink-0 text-right text-[11px] font-bold text-[#64748b]" style={{ width: 80 }}>
+                                                            {g.name}
+                                                        </div>
+                                                        <div className="flex-1 relative" style={{ height: 26 }}>
+                                                            <div
+                                                                className="absolute left-1/2 -translate-x-1/2 h-full flex items-center justify-center text-white font-bold rounded"
+                                                                style={{
+                                                                    width: `${pct}%`,
+                                                                    minWidth: 60,
+                                                                    fontSize: 10,
+                                                                    borderRadius: 4,
+                                                                    backgroundColor: GRADE_COLORS[i % GRADE_COLORS.length],
+                                                                }}
+                                                            >
+                                                                {g.headcount}
+                                                                {tr('personsUnit')}
+                                                            </div>
+                                                        </div>
+                                                        <div className="shrink-0 text-[9px] text-[#94a3b8]" style={{ width: 40 }}>
+                                                            {ratio}%
                                                         </div>
                                                     </div>
-                                                    <div className="shrink-0 text-[9px] text-[#94a3b8]" style={{ width: 34 }}>{ratio}%</div>
-                                                </div>
-                                            );
-                                        })}
-                                        <div
-                                            className="mt-2 flex items-start gap-2 rounded-lg border px-3 py-2"
-                                            style={{
-                                                marginTop: 8,
-                                                padding: '8px 11px',
-                                                borderRadius: 8,
-                                                backgroundColor: `${pyramidDiag.color}18`,
-                                                border: `1.5px solid ${pyramidDiag.color}50`,
-                                            }}
-                                        >
-                                            <span className="shrink-0 text-xs font-extrabold" style={{ color: pyramidDiag.color }}>
-                                                {pyramidDiag.label}
-                                            </span>
-                                            <span className="text-[10px] text-[#475569] leading-relaxed">{pyramidDiag.desc}</span>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <p className="text-xs text-[#64748b]">—</p>
-                                )}
-                            </div>
-                        </ReviewCard>
+                                                );
+                                            })}
+                                            <div
+                                                className="mt-2 flex items-start gap-2 rounded-lg border px-3 py-2"
+                                                style={{
+                                                    marginTop: 8,
+                                                    padding: '8px 11px',
+                                                    borderRadius: 8,
+                                                    backgroundColor: `${pyramidDiag.color}18`,
+                                                    border: `1.5px solid ${pyramidDiag.color}50`,
+                                                }}
+                                            >
+                                                <span className="shrink-0 text-xs font-extrabold" style={{ color: pyramidDiag.color }}>
+                                                    {pyramidDiag.label}
+                                                </span>
+                                                <span className="text-[10px] text-[#475569] leading-relaxed">{pyramidDiag.desc}</span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <p className="text-xs text-[#64748b]">—</p>
+                                    )}
+                                </div>
+                            </ReviewCard>
+                        </div>
                         <ReviewCard title={tr('currentIssuesTitle')} icon="⚠️" editUrl={getEditUrl(STEP_MAP.hrIssues)}>
                             <div className="flex flex-col gap-2">
                                 {hrIssuesByCategory.length ? (

@@ -97,6 +97,13 @@ class JobAnalysisController extends Controller
                 ->withErrors(['error' => 'Job Analysis step is not yet unlocked.']);
         }
 
+        // Ensure step is in progress when HR is working on it (so final submit is allowed)
+        $hrProject->initializeStepStatuses();
+        $currentStepStatus = $hrProject->getStepStatus('job_analysis');
+        if ($currentStepStatus === null || $currentStepStatus === StepStatus::NOT_STARTED) {
+            $hrProject->setStepStatus('job_analysis', StepStatus::IN_PROGRESS);
+        }
+
         // Default to overview if no tab or overview is requested
         if (empty($tab) || $tab === 'overview') {
             $tab = 'overview';
@@ -175,8 +182,12 @@ class JobAnalysisController extends Controller
             ->with('jobKeyword')
             ->get();
 
-        // Load org chart mappings
-        $mappings = OrgChartMapping::where('hr_project_id', $hrProject->id)->get();
+        // Load org chart mappings (tree order: roots first, then by sort_order)
+        $mappings = OrgChartMapping::where('hr_project_id', $hrProject->id)
+            ->orderByRaw('CASE WHEN parent_id IS NULL THEN 0 ELSE 1 END')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
 
         // Load organizational charts from diagnosis
         $organizationalCharts = $diagnosis->organizational_charts ?? [];
@@ -426,6 +437,9 @@ class JobAnalysisController extends Controller
 
         $validated = $request->validate([
             'org_chart_mappings' => ['required', 'array'],
+            'org_chart_mappings.*.id' => ['nullable', 'string'],
+            'org_chart_mappings.*.parent_id' => ['nullable', 'string'],
+            'org_chart_mappings.*.sort_order' => ['nullable', 'integer'],
             'org_chart_mappings.*.org_unit_name' => ['required', 'string'],
             'org_chart_mappings.*.job_keyword_ids' => ['nullable', 'array'],
             'org_chart_mappings.*.job_keyword_ids.*' => ['integer'],
@@ -433,6 +447,7 @@ class JobAnalysisController extends Controller
             'org_chart_mappings.*.org_head_rank' => ['nullable', 'string'],
             'org_chart_mappings.*.org_head_title' => ['nullable', 'string'],
             'org_chart_mappings.*.org_head_email' => ['nullable', 'email'],
+            'org_chart_mappings.*.is_kpi_reviewer' => ['nullable', 'boolean'],
             'org_chart_mappings.*.job_specialists' => ['nullable', 'array'],
             'org_chart_mappings.*.job_specialists.*.job_keyword_id' => ['nullable', 'integer'],
             'org_chart_mappings.*.job_specialists.*.name' => ['nullable', 'string'],
@@ -459,7 +474,10 @@ class JobAnalysisController extends Controller
         try {
             OrgChartMapping::where('hr_project_id', $hrProject->id)->delete();
 
-            foreach ($validated['org_chart_mappings'] as $mapping) {
+            $ordered = $this->orderOrgMappingsByDepth($validated['org_chart_mappings']);
+            $clientIdToDbId = [];
+
+            foreach ($ordered as $idx => $mapping) {
                 if (empty(trim($mapping['org_unit_name'] ?? ''))) {
                     continue;
                 }
@@ -468,16 +486,26 @@ class JobAnalysisController extends Controller
                     : [];
                 $jobSpecialists = $this->sanitizeJobSpecialists($mapping['job_specialists'] ?? [], $validJobIds);
 
-                OrgChartMapping::create([
+                $parentId = null;
+                $clientId = isset($mapping['id']) ? (string) $mapping['id'] : 'unit-' . $idx;
+                if (! empty($mapping['parent_id']) && isset($clientIdToDbId[(string) $mapping['parent_id']])) {
+                    $parentId = $clientIdToDbId[(string) $mapping['parent_id']];
+                }
+
+                $created = OrgChartMapping::create([
                     'hr_project_id' => $hrProject->id,
+                    'parent_id' => $parentId,
+                    'sort_order' => isset($mapping['sort_order']) ? (int) $mapping['sort_order'] : $idx,
                     'org_unit_name' => trim($mapping['org_unit_name']),
                     'job_keyword_ids' => $jobKeywordIds,
                     'org_head_name' => isset($mapping['org_head_name']) ? trim($mapping['org_head_name']) : null,
                     'org_head_rank' => $mapping['org_head_rank'] ?? null,
                     'org_head_title' => $mapping['org_head_title'] ?? null,
                     'org_head_email' => ! empty(trim($mapping['org_head_email'] ?? '')) ? trim($mapping['org_head_email']) : null,
+                    'is_kpi_reviewer' => ! empty($mapping['is_kpi_reviewer']),
                     'job_specialists' => $jobSpecialists,
                 ]);
+                $clientIdToDbId[$clientId] = $created->id;
             }
 
             return back();
@@ -520,6 +548,53 @@ class JobAnalysisController extends Controller
             ];
         }
         return $out;
+    }
+
+    /**
+     * Order org chart mappings so parents come before children (for saving with parent_id resolution).
+     * Max depth 3 (0, 1, 2). Returns array sorted by depth then sort_order.
+     */
+    private function orderOrgMappingsByDepth(array $mappings): array
+    {
+        $withIndex = [];
+        foreach ($mappings as $i => $m) {
+            $id = isset($m['id']) && $m['id'] !== '' ? (string) $m['id'] : 'unit-' . $i;
+            $parentId = isset($m['parent_id']) && $m['parent_id'] !== '' && $m['parent_id'] !== null ? (string) $m['parent_id'] : null;
+            $withIndex[] = array_merge($m, ['_client_id' => $id, '_parent_id' => $parentId, '_idx' => $i]);
+        }
+        $byId = [];
+        foreach ($withIndex as $row) {
+            $byId[$row['_client_id']] = $row;
+        }
+        $depths = [];
+        foreach ($withIndex as $row) {
+            $depth = 0;
+            $pid = $row['_parent_id'];
+            while ($pid !== null) {
+                $depth++;
+                if ($depth > 2) {
+                    $depth = 2;
+                    break;
+                }
+                $parent = $byId[$pid] ?? null;
+                $pid = $parent['_parent_id'] ?? null;
+            }
+            $depths[$row['_client_id']] = $depth;
+        }
+        usort($withIndex, function ($a, $b) use ($depths) {
+            $da = $depths[$a['_client_id']] ?? 0;
+            $db = $depths[$b['_client_id']] ?? 0;
+            if ($da !== $db) {
+                return $da <=> $db;
+            }
+            $soa = isset($a['sort_order']) ? (int) $a['sort_order'] : $a['_idx'];
+            $sob = isset($b['sort_order']) ? (int) $b['sort_order'] : $b['_idx'];
+            return $soa <=> $sob;
+        });
+        return array_map(function ($row) {
+            unset($row['_client_id'], $row['_parent_id'], $row['_idx']);
+            return $row;
+        }, $withIndex);
     }
 
     /**
@@ -706,6 +781,9 @@ class JobAnalysisController extends Controller
             'job_definitions.*.competency_levels' => ['nullable', 'array'],
             'job_definitions.*.csfs' => ['nullable', 'array'],
             'org_chart_mappings' => ['required', 'array'],
+            'org_chart_mappings.*.id' => ['nullable', 'string'],
+            'org_chart_mappings.*.parent_id' => ['nullable', 'string'],
+            'org_chart_mappings.*.sort_order' => ['nullable', 'integer'],
             'org_chart_mappings.*.org_unit_name' => ['required', 'string'],
             'org_chart_mappings.*.job_keyword_ids' => ['nullable', 'array'],
             'org_chart_mappings.*.job_keyword_ids.*' => ['exists:job_keywords,id'],
@@ -713,6 +791,7 @@ class JobAnalysisController extends Controller
             'org_chart_mappings.*.org_head_rank' => ['nullable', 'string'],
             'org_chart_mappings.*.org_head_title' => ['nullable', 'string'],
             'org_chart_mappings.*.org_head_email' => ['nullable', 'email'],
+            'org_chart_mappings.*.is_kpi_reviewer' => ['nullable', 'boolean'],
             'org_chart_mappings.*.job_specialists' => ['nullable', 'array'],
         ]);
 
@@ -842,18 +921,30 @@ class JobAnalysisController extends Controller
         // Delete existing mappings
         OrgChartMapping::where('hr_project_id', $hrProject->id)->delete();
 
-        // Save org chart mappings
-        foreach ($validated['org_chart_mappings'] as $mappingData) {
-            OrgChartMapping::create([
+        $ordered = $this->orderOrgMappingsByDepth($validated['org_chart_mappings']);
+        $clientIdToDbId = [];
+
+        foreach ($ordered as $idx => $mappingData) {
+            $parentId = null;
+            $clientId = isset($mappingData['id']) ? (string) $mappingData['id'] : 'unit-' . $idx;
+            if (! empty($mappingData['parent_id']) && isset($clientIdToDbId[(string) $mappingData['parent_id']])) {
+                $parentId = $clientIdToDbId[(string) $mappingData['parent_id']];
+            }
+
+            $created = OrgChartMapping::create([
                 'hr_project_id' => $hrProject->id,
+                'parent_id' => $parentId,
+                'sort_order' => isset($mappingData['sort_order']) ? (int) $mappingData['sort_order'] : $idx,
                 'org_unit_name' => $mappingData['org_unit_name'],
                 'job_keyword_ids' => $mappingData['job_keyword_ids'] ?? [],
                 'org_head_name' => $mappingData['org_head_name'] ?? null,
                 'org_head_rank' => $mappingData['org_head_rank'] ?? null,
                 'org_head_title' => $mappingData['org_head_title'] ?? null,
                 'org_head_email' => $mappingData['org_head_email'] ?? null,
+                'is_kpi_reviewer' => ! empty($mappingData['is_kpi_reviewer']),
                 'job_specialists' => $mappingData['job_specialists'] ?? [],
             ]);
+            $clientIdToDbId[$clientId] = $created->id;
         }
 
         // Submit the step

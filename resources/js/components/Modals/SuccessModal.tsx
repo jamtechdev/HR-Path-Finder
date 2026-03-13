@@ -37,7 +37,7 @@ export default function SuccessModal({
                         </div>
                     </div>
                     <DialogTitle className="text-center text-2xl">{title}</DialogTitle>
-                    <DialogDescription className="text-center text-base mt-2">
+                    <DialogDescription className="text-center text-base mt-2 whitespace-pre-line">
                         {message}
                     </DialogDescription>
                 </DialogHeader>

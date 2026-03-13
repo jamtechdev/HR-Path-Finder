@@ -1,9 +1,44 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, X, Minus, ChevronDown, ChevronRight, FolderTree, Folder, Briefcase, BarChart3, Coins, Users, Building2 } from 'lucide-react';
+import { Plus, X, Minus, ChevronDown, ChevronRight, FolderTree, Folder, Briefcase, BarChart3, Coins, Users, Building2, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { OrgChartMapping, JobDefinition } from '../hooks/useJobAnalysisState';
+
+const MAX_DEPTH = 2; // 3 levels: 0, 1, 2
+
+function normalizeMapping(u: OrgChartMapping & { parent_id?: number | string | null }, index: number): OrgChartMapping {
+    const id = u.id != null ? String(u.id) : `unit-${index}`;
+    const parentId = (u.parentId ?? (u as { parent_id?: number | string | null }).parent_id) != null
+        ? String((u.parentId ?? (u as { parent_id?: number | string | null }).parent_id))
+        : null;
+    return {
+        ...u,
+        id,
+        parentId: parentId || undefined,
+        sort_order: u.sort_order ?? index,
+    };
+}
+
+function buildTreeOrder(units: OrgChartMapping[]): OrgChartMapping[] {
+    const byId = new Map<string, OrgChartMapping>();
+    units.forEach((u) => byId.set(u.id, { ...u }));
+    const depth = new Map<string, number>();
+    function getDepth(id: string): number {
+        if (depth.has(id)) return depth.get(id)!;
+        const u = byId.get(id);
+        const d = !u?.parentId ? 0 : 1 + getDepth(u.parentId);
+        depth.set(id, d);
+        return d;
+    }
+    units.forEach((u) => getDepth(u.id));
+    return [...units].sort((a, b) => {
+        const da = depth.get(a.id) ?? 0;
+        const db = depth.get(b.id) ?? 0;
+        if (da !== db) return da - db;
+        return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+    }).map((u) => ({ ...u, depth: Math.min((depth.get(u.id) ?? 0), MAX_DEPTH) as 0 | 1 | 2 }));
+}
 
 interface Step5OrgChartMappingProps {
     jobDefinitions: Record<string, JobDefinition>;
@@ -20,12 +55,19 @@ export default function Step5OrgChartMapping({
     onContinue,
     onBack,
 }: Step5OrgChartMappingProps) {
-    const [orgUnits, setOrgUnits] = useState<OrgChartMapping[]>(orgMappings);
+    const [orgUnits, setOrgUnits] = useState<OrgChartMapping[]>(() =>
+        buildTreeOrder(orgMappings.map((u, i) => normalizeMapping(u as OrgChartMapping & { parent_id?: number | string | null }, i)))
+    );
+
     const [draggedJobId, setDraggedJobId] = useState<number | null>(null);
+    const [draggedUnitId, setDraggedUnitId] = useState<string | null>(null);
     const [expandedUnits, setExpandedUnits] = useState<Set<string>>(new Set(orgMappings.map((u) => u.id)));
     const [validationError, setValidationError] = useState<string | null>(null);
     const [emptyUnitIds, setEmptyUnitIds] = useState<Set<string>>(new Set());
     const validationBannerRef = useRef<HTMLDivElement>(null);
+    const scrollRAFRef = useRef<number | null>(null);
+    const EDGE_THRESHOLD = 80;
+    const SCROLL_STEP = 14;
 
     const allJobIds = useMemo(() => {
         const ids: number[] = [];
@@ -50,6 +92,53 @@ export default function Step5OrgChartMapping({
         onMappingsChange(orgUnits);
     }, [orgUnits, onMappingsChange]);
 
+    // Auto-scroll when dragging a job near viewport top/bottom
+    useEffect(() => {
+        if (!draggedJobId) return;
+        const onDragOver = (e: DragEvent) => {
+            const y = e.clientY;
+            const viewHeight = window.innerHeight;
+            const scrollEl = document.documentElement;
+            const atBottom = y >= viewHeight - EDGE_THRESHOLD;
+            const atTop = y <= EDGE_THRESHOLD;
+            if (atBottom || atTop) {
+                e.preventDefault();
+                if (scrollRAFRef.current != null) return;
+                const run = () => {
+                    if (atBottom) {
+                        window.scrollBy(0, SCROLL_STEP);
+                    } else if (atTop) {
+                        window.scrollBy(0, -SCROLL_STEP);
+                    }
+                    scrollRAFRef.current = requestAnimationFrame(run);
+                };
+                scrollRAFRef.current = requestAnimationFrame(run);
+            } else {
+                if (scrollRAFRef.current != null) {
+                    cancelAnimationFrame(scrollRAFRef.current);
+                    scrollRAFRef.current = null;
+                }
+            }
+        };
+        const onDragEnd = () => {
+            if (scrollRAFRef.current != null) {
+                cancelAnimationFrame(scrollRAFRef.current);
+                scrollRAFRef.current = null;
+            }
+        };
+        document.addEventListener('dragover', onDragOver, false);
+        document.addEventListener('dragend', onDragEnd, false);
+        document.addEventListener('drop', onDragEnd, false);
+        return () => {
+            document.removeEventListener('dragover', onDragOver, false);
+            document.removeEventListener('dragend', onDragEnd, false);
+            document.removeEventListener('drop', onDragEnd, false);
+            if (scrollRAFRef.current != null) {
+                cancelAnimationFrame(scrollRAFRef.current);
+            }
+        };
+    }, [draggedJobId]);
+
     useEffect(() => {
         setValidationError(null);
         setEmptyUnitIds(new Set());
@@ -72,10 +161,15 @@ export default function Step5OrgChartMapping({
 
     const handleAddOrgUnit = () => {
         const id = `unit-${Date.now()}`;
+        const roots = orgUnits.filter((u) => !u.parentId);
+        const sort_order = roots.length;
         setOrgUnits([
             ...orgUnits,
             {
                 id,
+                parentId: null,
+                sort_order,
+                depth: 0,
                 org_unit_name: '',
                 job_keyword_ids: [],
                 job_specialists: [],
@@ -85,18 +179,26 @@ export default function Step5OrgChartMapping({
     };
 
     const handleAddSubUnit = (afterUnitId: string) => {
-        const index = orgUnits.findIndex((u) => u.id === afterUnitId);
-        if (index === -1) return;
+        const parent = orgUnits.find((u) => u.id === afterUnitId);
+        if (!parent) return;
+        const depth = (parent.depth ?? 0) + 1;
+        if (depth > MAX_DEPTH) return;
         const id = `unit-${Date.now()}`;
+        const siblings = orgUnits.filter((u) => u.parentId === parent.id || (u.parentId === undefined && parent.id === undefined));
+        const sort_order = siblings.length;
         const newUnit: OrgChartMapping = {
             id,
+            parentId: parent.id,
+            sort_order,
+            depth: depth as 0 | 1 | 2,
             org_unit_name: '',
             job_keyword_ids: [],
             job_specialists: [],
         };
-        const next = [...orgUnits.slice(0, index + 1), newUnit, ...orgUnits.slice(index + 1)];
-        setOrgUnits(next);
-        setExpandedUnits((prev) => new Set(prev).add(id));
+        const insertIndex = orgUnits.findIndex((u) => u.id === afterUnitId) + 1;
+        const next = [...orgUnits.slice(0, insertIndex), newUnit, ...orgUnits.slice(insertIndex)];
+        setOrgUnits(buildTreeOrder(next));
+        setExpandedUnits((prev) => new Set(prev).add(id).add(parent.id));
     };
 
     const handleRemoveUnit = (unitId: string) => {
@@ -153,6 +255,60 @@ export default function Step5OrgChartMapping({
                 job_specialists: unit.job_specialists.filter((s) => s.job_keyword_id !== jobId),
             });
         }
+    };
+
+    const handleUnitDragStart = (e: React.DragEvent, unitId: string) => {
+        e.stopPropagation();
+        setDraggedUnitId(unitId);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', `unit:${unitId}`);
+    };
+
+    const handleUnitDragEnd = (e: React.DragEvent) => {
+        e.stopPropagation();
+        setDraggedUnitId(null);
+    };
+
+    const handleUnitDragOver = (e: React.DragEvent, dropTargetId: string) => {
+        if (!draggedUnitId || draggedUnitId === dropTargetId) return;
+        const dragged = orgUnits.find((u) => u.id === draggedUnitId);
+        const target = orgUnits.find((u) => u.id === dropTargetId);
+        if (!dragged || !target || (dragged.parentId ?? null) !== (target.parentId ?? null)) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    };
+
+    const handleUnitDrop = (e: React.DragEvent, dropTargetId: string) => {
+        e.preventDefault();
+        if (!draggedUnitId || draggedUnitId === dropTargetId) {
+            setDraggedUnitId(null);
+            return;
+        }
+        const dragged = orgUnits.find((u) => u.id === draggedUnitId);
+        const target = orgUnits.find((u) => u.id === dropTargetId);
+        if (!dragged || !target || (dragged.parentId ?? null) !== (target.parentId ?? null)) {
+            setDraggedUnitId(null);
+            return;
+        }
+        const parentId = dragged.parentId ?? null;
+        const siblings = orgUnits.filter((u) => (u.parentId ?? null) === parentId);
+        const fromIdx = siblings.findIndex((u) => u.id === draggedUnitId);
+        const toIdx = siblings.findIndex((u) => u.id === dropTargetId);
+        if (fromIdx === -1 || toIdx === -1) {
+            setDraggedUnitId(null);
+            return;
+        }
+        const reordered = [...siblings];
+        const [removed] = reordered.splice(fromIdx, 1);
+        reordered.splice(toIdx, 0, removed);
+        reordered.forEach((u, i) => {
+            (u as OrgChartMapping).sort_order = i;
+        });
+        const byId = new Map(orgUnits.map((u) => [u.id, u]));
+        reordered.forEach((u) => byId.set(u.id, { ...u, sort_order: (u as OrgChartMapping).sort_order }));
+        const next = orgUnits.map((u) => byId.get(u.id) ?? u);
+        setOrgUnits(buildTreeOrder(next));
+        setDraggedUnitId(null);
     };
 
     const getJobName = (jobId: number): string => {
@@ -248,27 +404,47 @@ export default function Step5OrgChartMapping({
                                     No organizational units yet. Click &quot;+ Add Unit&quot; to create one.
                                 </div>
                             )}
-                            {orgUnits.map((unit, index) => {
+                            {buildTreeOrder(orgUnits).map((unit, index) => {
                                 const isExpanded = expandedUnits.has(unit.id);
                                 const jobCount = unit.job_keyword_ids.length;
-                                const isChild = index > 0;
+                                const depth = unit.depth ?? 0;
+                                const isChild = depth > 0;
+                                const canDropUnit = draggedUnitId && draggedUnitId !== unit.id && (() => {
+                                    const a = orgUnits.find((u) => u.id === draggedUnitId);
+                                    return a && (a.parentId ?? null) === (unit.parentId ?? null);
+                                })();
                                 return (
                                     <div
                                         key={unit.id}
                                         className={cn(
                                             'rounded-xl border overflow-hidden transition-shadow',
                                             'border-[#e5e7eb]',
-                                            isChild && 'relative ml-5 pl-4 border-l-2 border-[#e5e7eb]'
+                                            isChild && 'relative border-l-2 border-[#e5e7eb]',
+                                            depth === 1 && 'ml-6 pl-4',
+                                            depth === 2 && 'ml-12 pl-4',
+                                            canDropUnit && 'ring-2 ring-[#121431] ring-offset-2'
                                         )}
                                         style={{
                                             background: '#f5f3ef',
                                             boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
                                         }}
+                                        onDragOver={(e) => handleUnitDragOver(e, unit.id)}
+                                        onDrop={(e) => handleUnitDrop(e, unit.id)}
                                     >
                                         <div
                                             className="flex items-center gap-2 px-4 py-3.5 cursor-pointer hover:bg-[#efece8]"
                                             onClick={() => toggleUnit(unit.id)}
                                         >
+                                            <div
+                                                draggable
+                                                onDragStart={(e) => handleUnitDragStart(e, unit.id)}
+                                                onDragEnd={handleUnitDragEnd}
+                                                className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-[#e5e7eb]/60 shrink-0"
+                                                title="Drag to reorder"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <GripVertical className="w-4 h-4 text-[#64748b]" />
+                                            </div>
                                             {isExpanded ? (
                                                 <ChevronDown className="w-4 h-4 text-[#64748b] shrink-0" />
                                             ) : (
@@ -343,15 +519,34 @@ export default function Step5OrgChartMapping({
                                                             placeholder="Rank"
                                                             className="text-[13px] border-[#e5e7eb] rounded-lg text-[#6b7280] h-9 bg-white sm:col-span-2"
                                                         />
-                                                        <Input
-                                                            value={unit.org_head_email || ''}
-                                                            onChange={(e) =>
-                                                                handleUpdateOrgUnit(unit.id, { org_head_email: e.target.value })
-                                                            }
-                                                            placeholder="Email address"
-                                                            type="email"
-                                                            className="text-[13px] border-[#e5e7eb] rounded-lg text-[#6b7280] h-9 bg-white sm:col-span-2"
-                                                        />
+                                                        <div className="flex items-center gap-2 sm:col-span-2">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={`kpi-reviewer-${unit.id}`}
+                                                                checked={!!unit.is_kpi_reviewer}
+                                                                onChange={(e) =>
+                                                                    handleUpdateOrgUnit(unit.id, {
+                                                                        is_kpi_reviewer: e.target.checked,
+                                                                        ...(e.target.checked ? {} : { org_head_email: '' }),
+                                                                    })
+                                                                }
+                                                                className="h-4 w-4 rounded border-[#e5e7eb] text-[#121431] focus:ring-[#121431]"
+                                                            />
+                                                            <label htmlFor={`kpi-reviewer-${unit.id}`} className="text-[13px] font-medium text-[#121431]">
+                                                                KPI Reviewer
+                                                            </label>
+                                                        </div>
+                                                        {unit.is_kpi_reviewer && (
+                                                            <Input
+                                                                value={unit.org_head_email || ''}
+                                                                onChange={(e) =>
+                                                                    handleUpdateOrgUnit(unit.id, { org_head_email: e.target.value })
+                                                                }
+                                                                placeholder="Email address (required for KPI Reviewer)"
+                                                                type="email"
+                                                                className="text-[13px] border-[#e5e7eb] rounded-lg text-[#6b7280] h-9 bg-white sm:col-span-2"
+                                                            />
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -393,17 +588,19 @@ export default function Step5OrgChartMapping({
                                                     )}
                                                 </div>
 
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleAddSubUnit(unit.id);
-                                                    }}
-                                                    className="text-[13px] font-medium text-[#6b7280] hover:text-[#121431] hover:underline flex items-center gap-1.5"
-                                                >
-                                                    <Plus className="w-3.5 h-3.5" />
-                                                    Add Sub-Unit
-                                                </button>
+                                                {(unit.depth ?? 0) < MAX_DEPTH && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleAddSubUnit(unit.id);
+                                                        }}
+                                                        className="text-[13px] font-medium text-[#6b7280] hover:text-[#121431] hover:underline flex items-center gap-1.5"
+                                                    >
+                                                        <Plus className="w-3.5 h-3.5" />
+                                                        Add Sub-Unit
+                                                    </button>
+                                                )}
                                             </div>
                                         )}
                                     </div>

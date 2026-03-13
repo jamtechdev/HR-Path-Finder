@@ -34,6 +34,7 @@ class StoreDiagnosisRequest extends FormRequest
             'industry_category' => ['nullable', 'string', 'max:255'],
             'industry_subcategory' => ['nullable', 'string', 'max:255'],
             'industry_other' => ['nullable', 'string', 'max:255'],
+            'industry_category_other' => ['nullable', 'string', 'max:255'],
             'secondary_industries' => ['nullable', 'array'],
             'secondary_industries.*' => ['nullable', 'string', 'max:255'],
             'present_headcount' => ['nullable', 'integer', 'min:0'],
@@ -73,14 +74,31 @@ class StoreDiagnosisRequest extends FormRequest
             $genderMale = $this->input('gender_male', 0);
             $genderFemale = $this->input('gender_female', 0);
             $genderOther = $this->input('gender_other', 0);
-            
+
             $genderSum = $genderMale + $genderFemale + $genderOther;
-            
+
             if ($presentHeadcount > 0 && $genderSum > $presentHeadcount) {
                 $validator->errors()->add(
                     'gender_male',
                     "Gender sum ({$genderSum}) cannot exceed total workforce ({$presentHeadcount})"
                 );
+            }
+
+            $leadershipCount = (int) $this->input('leadership_count', 0);
+            if ($presentHeadcount > 0 && $leadershipCount > $presentHeadcount) {
+                $validator->errors()->add(
+                    'leadership_count',
+                    "Leadership count ({$leadershipCount}) cannot exceed total workforce ({$presentHeadcount})"
+                );
+            }
+
+            if (trim((string) $this->input('industry_category')) === 'Others') {
+                if (! trim((string) $this->input('industry_category_other'))) {
+                    $validator->errors()->add(
+                        'industry_category_other',
+                        'Please specify the primary industry when selecting Others.'
+                    );
+                }
             }
         });
     }

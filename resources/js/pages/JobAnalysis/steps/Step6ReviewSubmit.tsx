@@ -106,7 +106,11 @@ export default function Step6ReviewSubmit({
             })),
             org_chart_mappings: orgMappings
                 .filter((u) => (u.org_unit_name ?? '').trim())
-                .map((unit) => ({
+                .map((unit, idx) => ({
+                    id: unit.id,
+                    parent_id: unit.parentId ?? null,
+                    sort_order: unit.sort_order ?? idx,
+                    is_kpi_reviewer: !!unit.is_kpi_reviewer,
                     org_unit_name: (unit.org_unit_name ?? '').trim(),
                     job_keyword_ids: unit.job_keyword_ids ?? [],
                     org_head_name: unit.org_head_name ?? null,

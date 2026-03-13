@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
+import { Info, TrendingUp, Users, Minus, Plus } from 'lucide-react';
 
 interface Diagnosis {
     id: number;
@@ -21,10 +20,7 @@ interface Diagnosis {
 }
 
 interface Props {
-    project: {
-        id: number;
-        company: { name: string };
-    };
+    project: { id: number; company: { name: string } };
     company: { name: string };
     diagnosis?: Diagnosis;
     activeTab: string;
@@ -50,241 +46,349 @@ export default function Workforce({
     embedData,
     embedSetData,
 }: Props) {
-    const [malePercentage, setMalePercentage] = useState<number | null>(null);
-    const [femalePercentage, setFemalePercentage] = useState<number | null>(null);
-
     const internalForm = useForm({
-        present_headcount: diagnosis?.present_headcount || 0,
-        expected_headcount_1y: diagnosis?.expected_headcount_1y || 0,
-        expected_headcount_2y: diagnosis?.expected_headcount_2y || 0,
-        expected_headcount_3y: diagnosis?.expected_headcount_3y || 0,
-        average_tenure_active: diagnosis?.average_tenure_active || 0,
-        average_tenure_leavers: diagnosis?.average_tenure_leavers || 0,
-        average_age: diagnosis?.average_age ?? 18,
-        gender_male: diagnosis?.gender_male || 0,
-        gender_female: diagnosis?.gender_female || 0,
-        gender_other: diagnosis?.gender_other || 0,
+        present_headcount: diagnosis?.present_headcount ?? 0,
+        expected_headcount_1y: diagnosis?.expected_headcount_1y ?? 0,
+        expected_headcount_2y: diagnosis?.expected_headcount_2y ?? 0,
+        expected_headcount_3y: diagnosis?.expected_headcount_3y ?? 0,
+        average_tenure_active: diagnosis?.average_tenure_active ?? 0,
+        average_tenure_leavers: diagnosis?.average_tenure_leavers ?? 0,
+        average_age: diagnosis?.average_age ?? 0,
+        gender_male: diagnosis?.gender_male ?? 0,
+        gender_female: diagnosis?.gender_female ?? 0,
+        gender_other: diagnosis?.gender_other ?? 0,
     });
     const useEmbed = embedMode && embedData != null && embedSetData;
     const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
     const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
     const errors = internalForm.errors;
 
-    // Calculate gender percentages
-    useEffect(() => {
-        const total = data.gender_male + data.gender_female + (data.gender_other || 0);
-        if (total > 0) {
-            setMalePercentage(Math.round((data.gender_male / total) * 100 * 10) / 10);
-            setFemalePercentage(Math.round((data.gender_female / total) * 100 * 10) / 10);
-        } else {
-            setMalePercentage(null);
-            setFemalePercentage(null);
-        }
-    }, [data.gender_male, data.gender_female, data.gender_other]);
+    const total = data.present_headcount || 0;
+    const male = data.gender_male || 0;
+    const female = data.gender_female || 0;
+    const genderSum = male + female + (data.gender_other || 0);
+    const malePct = total > 0 && genderSum > 0 ? Math.round((male / genderSum) * 100) : 0;
+    const femalePct = total > 0 && genderSum > 0 ? Math.round((female / genderSum) * 100) : 0;
+    const genderMismatch = total > 0 && (male + female) !== total;
 
-    // Validate gender composition
-    const genderSum = data.gender_male + data.gender_female + (data.gender_other || 0);
-    const genderError = genderSum > data.present_headcount 
-        ? `Gender sum (${genderSum}) cannot exceed total workforce (${data.present_headcount})` 
-        : null;
+    const adjustHeadcount = (delta: number) => {
+        const next = Math.max(0, (data.present_headcount || 0) + delta);
+        setData('present_headcount', next);
+    };
 
-    // Removed auto-save - only save on review and submit
+    const adjustForecast = (key: 'expected_headcount_1y' | 'expected_headcount_2y' | 'expected_headcount_3y', delta: number) => {
+        const next = Math.max(0, (data[key] || 0) + delta);
+        setData(key, next);
+    };
 
     const cardContent = (
-                <Card className="shadow-sm border">
-                    <CardContent className="p-6">
-                        {/* Current Workforce Size */}
-                        <div className="flex flex-col gap-3">
-                            <Label htmlFor="present_headcount">
-                                Current Workforce Size (Active employees) <span className="text-destructive">*</span>
-                            </Label>
-                            <Input
-                                id="present_headcount"
+        <div className="rounded-[14px] border border-[#E2E6ED] bg-white overflow-hidden shadow-[0_4px_20px_rgba(27,43,91,0.09)]">
+            {/* Hero strip: Workforce Overview */}
+            <div className="bg-gradient-to-br from-[#1B2B5B] to-[#243877] px-7 py-5 flex flex-wrap items-center gap-4">
+                <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center shrink-0 text-[#2EC4A9]">
+                    <Users className="w-[22px] h-[22px]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <h2 className="text-[15px] font-bold text-white">Workforce Overview</h2>
+                    <p className="text-[12px] text-white/55 mt-0.5">
+                        현재 재직 중인 전체 인원과 성별 구성을 입력하세요
+                    </p>
+                </div>
+                <div className="bg-white/10 rounded-lg py-2 px-4 text-center min-w-[80px]">
+                    <div className="text-[22px] font-extrabold text-white leading-none">{total}</div>
+                    <div className="text-[10px] text-white/50 mt-0.5">Total Employees</div>
+                </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+                {/* 전체 재직 인원 | 성별 구성 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Left: 전체 재직 인원 */}
+                    <div>
+                        <h3 className="text-[13px] font-bold text-[#3A4356] mb-3">전체 재직 인원</h3>
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    min={0}
+                                    value={data.present_headcount || ''}
+                                    onChange={(e) => setData('present_headcount', parseInt(e.target.value, 10) || 0)}
+                                    disabled={readOnly}
+                                    className="w-24 h-12 text-center text-xl font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-lg bg-[#F8F9FB] focus:border-[#2EC4A9] focus:ring-2 focus:ring-[#2EC4A9]/20 outline-none"
+                                />
+                                <span className="text-[15px] font-bold text-[#3A4356]">명</span>
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => adjustHeadcount(-10)}
+                                    disabled={readOnly}
+                                    className="h-9 px-4 rounded-lg border border-[#E2E6ED] bg-[#F0F2F5] text-[#3A4356] font-semibold text-sm hover:bg-[#E2E6ED] disabled:opacity-50"
+                                >
+                                    -10
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => adjustHeadcount(-1)}
+                                    disabled={readOnly}
+                                    className="h-9 px-4 rounded-lg border border-[#E2E6ED] bg-[#F0F2F5] text-[#3A4356] font-semibold text-sm hover:bg-[#E2E6ED] disabled:opacity-50"
+                                >
+                                    -1
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => adjustHeadcount(1)}
+                                    disabled={readOnly}
+                                    className="h-9 px-4 rounded-lg border border-[#E2E6ED] bg-[#F0F2F5] text-[#3A4356] font-semibold text-sm hover:bg-[#E2E6ED] disabled:opacity-50"
+                                >
+                                    +1
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => adjustHeadcount(10)}
+                                    disabled={readOnly}
+                                    className="h-9 px-4 rounded-lg border border-[#E2E6ED] bg-[#F0F2F5] text-[#3A4356] font-semibold text-sm hover:bg-[#E2E6ED] disabled:opacity-50"
+                                >
+                                    +10
+                                </button>
+                            </div>
+                            <p className="text-[11px] text-[#9AA3B2] text-center">
+                                * 정규직·계약직·파견직 모두 포함한 실제 재직자 수
+                            </p>
+                        </div>
+                        {errors.present_headcount && (
+                            <p className="mt-1 text-sm text-[#E05252]">{errors.present_headcount}</p>
+                        )}
+                    </div>
+
+                    {/* Right: 성별 구성 */}
+                    <div>
+                        <h3 className="text-[13px] font-bold text-[#3A4356] mb-3">성별 구성</h3>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4">
+                                <div className="w-10 h-10 rounded-full bg-[#1B2B5B]/10 flex items-center justify-center mb-2">
+                                    <span className="text-[#1B2B5B] font-bold text-sm">M</span>
+                                </div>
+                                <p className="text-[12px] font-semibold text-[#3A4356]">남성 (Male)</p>
+                                <div className="flex items-baseline gap-1 mt-1">
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        value={data.gender_male ?? ''}
+                                        onChange={(e) => setData('gender_male', parseInt(e.target.value, 10) || 0)}
+                                        disabled={readOnly}
+                                        className="w-14 h-8 text-center text-sm font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-md bg-white"
+                                    />
+                                    <span className="text-[12px] text-[#6B7585]">명</span>
+                                </div>
+                            </div>
+                            <div className="rounded-xl border-2 border-[#2EC4A9]/40 bg-[#E6F9F6]/50 p-4">
+                                <div className="w-10 h-10 rounded-full bg-[#2EC4A9]/20 flex items-center justify-center mb-2">
+                                    <span className="text-[#25A891] font-bold text-sm">F</span>
+                                </div>
+                                <p className="text-[12px] font-semibold text-[#3A4356]">여성 (Female)</p>
+                                <div className="flex items-baseline gap-1 mt-1">
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        value={data.gender_female ?? ''}
+                                        onChange={(e) => setData('gender_female', parseInt(e.target.value, 10) || 0)}
+                                        disabled={readOnly}
+                                        className="w-14 h-8 text-center text-sm font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-md bg-white"
+                                    />
+                                    <span className="text-[12px] text-[#6B7585]">명</span>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Ratio bar */}
+                        {genderSum > 0 && (
+                            <div className="mt-4">
+                                <div className="flex h-3 rounded-full overflow-hidden bg-[#E2E6ED]">
+                                    <div
+                                        className="h-full bg-[#1B2B5B] transition-all duration-300"
+                                        style={{ width: `${malePct}%` }}
+                                    />
+                                    <div
+                                        className="h-full bg-[#2EC4A9] transition-all duration-300"
+                                        style={{ width: `${femalePct}%` }}
+                                    />
+                                </div>
+                                <div className="flex justify-between mt-1.5 text-[11px] font-semibold text-[#6B7585]">
+                                    <span>{malePct}% 남성</span>
+                                    <span>{femalePct}% 여성</span>
+                                </div>
+                                <p className="text-[11px] text-[#9AA3B2] mt-0.5">
+                                    비율 {malePct}:{femalePct}
+                                </p>
+                            </div>
+                        )}
+                        {genderMismatch && (
+                            <div className="mt-3 flex items-center gap-2 p-3 rounded-lg border border-[#E05252] bg-[#FEF2F2] text-[#E05252] text-[12px] font-semibold">
+                                <span className="shrink-0">⚠</span>
+                                <span>남성+여성 합계가 전체 재직 인원과 다릅니다</span>
+                            </div>
+                        )}
+                        {(errors.gender_male || errors.gender_female) && (
+                            <p className="mt-1 text-sm text-[#E05252]">
+                                {errors.gender_male || errors.gender_female}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Average tenure & age */}
+                <hr className="border-[#E2E6ED]" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label className="flex items-center gap-1.5 text-[12px] font-bold text-[#3A4356] mb-2">
+                            <Info className="w-3.5 h-3.5 text-[#9AA3B2]" />
+                            평균 근속 (재직자)
+                        </label>
+                        <div className="flex items-center gap-2">
+                            <input
                                 type="number"
-                                min="0"
-                                value={data.present_headcount || ''}
-                                onChange={(e) => setData('present_headcount', parseInt(e.target.value) || 0)}
-                                placeholder="Enter number of employees"
-                                className={errors.present_headcount ? 'border-destructive' : ''}
-                                required
+                                step={0.1}
+                                min={0}
+                                value={data.average_tenure_active ?? ''}
+                                onChange={(e) => setData('average_tenure_active', parseFloat(e.target.value) || 0)}
                                 disabled={readOnly}
+                                className="flex-1 h-10 px-3 border border-[#E2E6ED] rounded-lg text-sm font-bold text-[#1B2B5B] focus:border-[#2EC4A9] outline-none"
                             />
-                            {errors.present_headcount && (
-                                <p className="text-sm text-destructive">{errors.present_headcount}</p>
-                            )}
+                            <span className="text-[12px] text-[#9AA3B2] font-medium">yr</span>
                         </div>
-
-                        {/* Workforce Forecast */}
-                        <div className="space-y-4">
-                            <Label className="text-sm font-medium text-foreground block">
-                                Workforce Forecast <span className="text-destructive">*</span>
-                            </Label>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="flex flex-col gap-3">
-                                    <Label htmlFor="expected_headcount_1y">After 1 year (expected)</Label>
-                                    <Input
-                                        id="expected_headcount_1y"
-                                        type="number"
-                                        min="0"
-                                        value={data.expected_headcount_1y || ''}
-                                        onChange={(e) => setData('expected_headcount_1y', parseInt(e.target.value) || 0)}
-                                        placeholder="0"
-                                        required
-                                        disabled={readOnly}
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-3">
-                                    <Label htmlFor="expected_headcount_2y">After 2 years (expected)</Label>
-                                    <Input
-                                        id="expected_headcount_2y"
-                                        type="number"
-                                        min="0"
-                                        value={data.expected_headcount_2y || ''}
-                                        onChange={(e) => setData('expected_headcount_2y', parseInt(e.target.value) || 0)}
-                                        placeholder="0"
-                                        required
-                                        disabled={readOnly}
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-3">
-                                    <Label htmlFor="expected_headcount_3y">After 3 years (expected)</Label>
-                                    <Input
-                                        id="expected_headcount_3y"
-                                        type="number"
-                                        min="0"
-                                        value={data.expected_headcount_3y || ''}
-                                        onChange={(e) => setData('expected_headcount_3y', parseInt(e.target.value) || 0)}
-                                        placeholder="0"
-                                        required
-                                        disabled={readOnly}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Average Tenure */}
-                        <div className="space-y-4">
-                            <Label className="text-sm font-medium text-foreground block">
-                                Average Tenure (years) <span className="text-destructive">*</span>
-                            </Label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="flex flex-col gap-3">
-                                    <Label htmlFor="average_tenure_active">Active Employees</Label>
-                                    <Input
-                                        id="average_tenure_active"
-                                        type="number"
-                                        step="0.1"
-                                        min="0"
-                                        value={data.average_tenure_active || ''}
-                                        onChange={(e) => setData('average_tenure_active', parseFloat(e.target.value) || 0)}
-                                        placeholder="0.0"
-                                        required
-                                        disabled={readOnly}
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-3">
-                                    <Label htmlFor="average_tenure_leavers">Leavers</Label>
-                                    <Input
-                                        id="average_tenure_leavers"
-                                        type="number"
-                                        step="0.1"
-                                        min="0"
-                                        value={data.average_tenure_leavers || ''}
-                                        onChange={(e) => setData('average_tenure_leavers', parseFloat(e.target.value) || 0)}
-                                        placeholder="0.0"
-                                        required
-                                        disabled={readOnly}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Average Age */}
-                        <div className="flex flex-col gap-3">
-                            <Label htmlFor="average_age">
-                                Average Age of Active Employees (years) <span className="text-destructive">*</span>
-                            </Label>
-                            <Input
-                                id="average_age"
+                        {errors.average_tenure_active && (
+                            <p className="mt-1 text-xs text-[#E05252]">{errors.average_tenure_active}</p>
+                        )}
+                    </div>
+                    <div>
+                        <label className="flex items-center gap-1.5 text-[12px] font-bold text-[#3A4356] mb-2">
+                            <Info className="w-3.5 h-3.5 text-[#9AA3B2]" />
+                            평균 근속 (퇴직자)
+                        </label>
+                        <div className="flex items-center gap-2">
+                            <input
                                 type="number"
-                                step="0.1"
-                                min="18"
-                                max="100"
-                                value={data.average_age || ''}
+                                step={0.1}
+                                min={0}
+                                value={data.average_tenure_leavers ?? ''}
+                                onChange={(e) => setData('average_tenure_leavers', parseFloat(e.target.value) || 0)}
+                                disabled={readOnly}
+                                className="flex-1 h-10 px-3 border border-[#E2E6ED] rounded-lg text-sm font-bold text-[#1B2B5B] focus:border-[#2EC4A9] outline-none"
+                            />
+                            <span className="text-[12px] text-[#9AA3B2] font-medium">yr</span>
+                        </div>
+                        {errors.average_tenure_leavers && (
+                            <p className="mt-1 text-xs text-[#E05252]">{errors.average_tenure_leavers}</p>
+                        )}
+                    </div>
+                    <div>
+                        <label className="flex items-center gap-1.5 text-[12px] font-bold text-[#3A4356] mb-2">
+                            <Info className="w-3.5 h-3.5 text-[#9AA3B2]" />
+                            평균 연령
+                        </label>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="number"
+                                step={0.1}
+                                min={0}
+                                max={100}
+                                value={data.average_age ?? ''}
                                 onChange={(e) => {
-                                    const value = parseFloat(e.target.value) || 0;
-                                    if (value >= 18 && value <= 100) setData('average_age', value);
-                                    else if (value === 0 || e.target.value === '') setData('average_age', 0);
+                                    const v = parseFloat(e.target.value);
+                                    setData('average_age', isNaN(v) ? 0 : Math.min(100, Math.max(0, v)));
                                 }}
-                                placeholder="0.0"
-                                className={errors.average_age ? 'border-destructive' : ''}
-                                required
                                 disabled={readOnly}
+                                className="flex-1 h-10 px-3 border border-[#E2E6ED] rounded-lg text-sm font-bold text-[#1B2B5B] focus:border-[#2EC4A9] outline-none"
                             />
-                            <p className="text-xs text-muted-foreground">Please enter age between 18 and 100 years</p>
-                            {errors.average_age && (
-                                <p className="text-sm text-destructive">{errors.average_age}</p>
-                            )}
+                            <span className="text-[12px] text-[#9AA3B2] font-medium">yr</span>
                         </div>
+                        {errors.average_age && (
+                            <p className="mt-1 text-xs text-[#E05252]">{errors.average_age}</p>
+                        )}
+                    </div>
+                </div>
 
-                        {/* Gender Composition */}
-                        <div className="space-y-4">
-                            <Label className="text-sm font-medium text-foreground block">
-                                Gender Composition <span className="text-destructive">*</span>
-                            </Label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="flex flex-col gap-3">
-                                    <Label htmlFor="gender_male">Male (count)</Label>
-                                    <Input
-                                        id="gender_male"
-                                        type="number"
-                                        min="0"
-                                        value={data.gender_male || ''}
-                                        onChange={(e) => setData('gender_male', parseInt(e.target.value) || 0)}
-                                        placeholder="0"
-                                        required
-                                        disabled={readOnly}
-                                    />
-                                    {malePercentage !== null && (
-                                        <p className="text-xs text-muted-foreground">Male: {malePercentage}%</p>
-                                    )}
-                                </div>
-                                <div className="flex flex-col gap-3">
-                                    <Label htmlFor="gender_female">Female (count)</Label>
-                                    <Input
-                                        id="gender_female"
-                                        type="number"
-                                        min="0"
-                                        value={data.gender_female || ''}
-                                        onChange={(e) => setData('gender_female', parseInt(e.target.value) || 0)}
-                                        placeholder="0"
-                                        required
-                                        disabled={readOnly}
-                                    />
-                                    {femalePercentage !== null && (
-                                        <p className="text-xs text-muted-foreground">Female: {femalePercentage}%</p>
-                                    )}
-                                </div>
+                {/* 예상 인력 규모 */}
+                <div>
+                    <div className="flex items-center gap-2 mb-4">
+                        <span className="text-[11.5px] font-bold text-[#9AA3B2] uppercase tracking-wider">
+                            예상 인력 규모
+                        </span>
+                        <span className="flex-1 h-px bg-[#E2E6ED]" />
+                    </div>
+
+                    <div className="rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] overflow-hidden">
+                        <div className="px-5 py-4 flex items-center gap-3 border-b border-[#E2E6ED] bg-white">
+                            <div className="w-10 h-10 rounded-lg bg-[#2EC4A9]/15 flex items-center justify-center text-[#2EC4A9]">
+                                <TrendingUp className="w-5 h-5" />
                             </div>
-                            {genderError && (
-                                <p className="text-sm text-destructive">{genderError}</p>
-                            )}
-                            {errors.gender_male && (
-                                <p className="text-sm text-destructive">{errors.gender_male}</p>
-                            )}
-                            {errors.gender_female && (
-                                <p className="text-sm text-destructive">{errors.gender_female}</p>
-                            )}
+                            <div>
+                                <h4 className="text-[14px] font-bold text-[#1B2B5B]">
+                                    Workforce Forecast <span className="text-[#E05252]">*</span>
+                                </h4>
+                                <p className="text-[11px] text-[#9AA3B2]">
+                                    향후 1-3년 예상 재직 인원을 입력하세요
+                                </p>
+                            </div>
                         </div>
-                    </CardContent>
-                </Card>
+                        <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {[
+                                { key: 'expected_headcount_1y' as const, label: '1년 후' },
+                                { key: 'expected_headcount_2y' as const, label: '2년 후' },
+                                { key: 'expected_headcount_3y' as const, label: '3년 후' },
+                            ].map(({ key, label }) => (
+                                <div
+                                    key={key}
+                                    className="rounded-lg border border-[#E2E6ED] bg-white p-4 relative"
+                                >
+                                    <p className="text-[12px] font-semibold text-[#3A4356] mb-2">{label}</p>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => adjustForecast(key, -1)}
+                                            disabled={readOnly}
+                                            className="w-8 h-8 rounded-md border border-[#E2E6ED] bg-[#F8F9FB] flex items-center justify-center text-[#6B7585] hover:bg-[#E2E6ED] disabled:opacity-50"
+                                        >
+                                            <Minus className="w-3.5 h-3.5" />
+                                        </button>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            value={data[key] ?? ''}
+                                            onChange={(e) => setData(key, parseInt(e.target.value, 10) || 0)}
+                                            disabled={readOnly}
+                                            className="flex-1 h-9 text-center text-sm font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-md"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => adjustForecast(key, 1)}
+                                            disabled={readOnly}
+                                            className="w-8 h-8 rounded-md border border-[#E2E6ED] bg-[#F8F9FB] flex items-center justify-center text-[#6B7585] hover:bg-[#E2E6ED] disabled:opacity-50"
+                                        >
+                                            <Plus className="w-3.5 h-3.5" />
+                                        </button>
+                                        <span className="text-[11px] text-[#9AA3B2] font-medium">명</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    {(errors.expected_headcount_1y || errors.expected_headcount_2y || errors.expected_headcount_3y) && (
+                        <p className="mt-1 text-sm text-[#E05252]">
+                            {errors.expected_headcount_1y || errors.expected_headcount_2y || errors.expected_headcount_3y}
+                        </p>
+                    )}
+                </div>
+            </div>
+        </div>
     );
+
     if (embedMode) return <>{cardContent}</>;
     return (
         <>
-            <Head title={`Workforce Overview - ${company?.name || project?.company?.name || 'Company'}`} />
+            <Head title={`현재 인력 현황 - ${company?.name || project?.company?.name || 'Company'}`} />
             <FormLayout
-                title="Workforce Overview"
+                title="현재 인력 현황"
                 project={project}
                 diagnosis={diagnosis}
                 activeTab={activeTab}
