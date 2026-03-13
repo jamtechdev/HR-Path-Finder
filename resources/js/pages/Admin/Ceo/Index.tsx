@@ -1,25 +1,36 @@
-import React, { useState } from 'react';
-import { Head, useForm, Link } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { 
-    Building2, 
-    UserPlus, 
-    Mail, 
-    Clock, 
-    CheckCircle2, 
-    XCircle,
-    Users,
-    Calendar
-} from 'lucide-react';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Sidebar,
+    SidebarInset,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
 import {
     Table,
     TableBody,
@@ -29,6 +40,18 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Head, Link, useForm } from '@inertiajs/react';
+import {
+    Building2,
+    Calendar,
+    CheckCircle2,
+    Clock,
+    Mail,
+    UserPlus,
+    Users,
+    XCircle,
+} from 'lucide-react';
+import React, { useState } from 'react';
 
 interface Invitation {
     id: number;
@@ -78,9 +101,11 @@ interface Props {
 }
 
 export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
-    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all');
+    const [statusFilter, setStatusFilter] = useState<
+        'all' | 'pending' | 'accepted' | 'rejected'
+    >('all');
     const [showCreateCeoDialog, setShowCreateCeoDialog] = useState(false);
-    
+
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         email: '',
@@ -97,22 +122,53 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
         });
     };
 
-    const filteredInvitations = statusFilter === 'all' 
-        ? invitations 
-        : invitations.filter(inv => inv.status === statusFilter);
+    const filteredInvitations =
+        statusFilter === 'all'
+            ? invitations
+            : invitations.filter((inv) => inv.status === statusFilter);
 
-    const pendingCount = invitations.filter(inv => inv.status === 'pending').length;
-    const acceptedCount = invitations.filter(inv => inv.status === 'accepted').length;
-    const rejectedCount = invitations.filter(inv => inv.status === 'rejected').length;
+    const pendingCount = invitations.filter(
+        (inv) => inv.status === 'pending',
+    ).length;
+    const acceptedCount = invitations.filter(
+        (inv) => inv.status === 'accepted',
+    ).length;
+    const rejectedCount = invitations.filter(
+        (inv) => inv.status === 'rejected',
+    ).length;
 
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'pending':
-                return <Badge variant="outline" className="bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
+                return (
+                    <Badge
+                        variant="outline"
+                        className="border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
+                    >
+                        <Clock className="mr-1 h-3 w-3" />
+                        Pending
+                    </Badge>
+                );
             case 'accepted':
-                return <Badge variant="outline" className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />Accepted</Badge>;
+                return (
+                    <Badge
+                        variant="outline"
+                        className="border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400"
+                    >
+                        <CheckCircle2 className="mr-1 h-3 w-3" />
+                        Accepted
+                    </Badge>
+                );
             case 'rejected':
-                return <Badge variant="outline" className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
+                return (
+                    <Badge
+                        variant="outline"
+                        className="border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
+                    >
+                        <XCircle className="mr-1 h-3 w-3" />
+                        Rejected
+                    </Badge>
+                );
             default:
                 return <Badge variant="outline">{status}</Badge>;
         }
@@ -129,6 +185,14 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
         });
     };
 
+    const { delete: destroy } = useForm();
+
+    const handleDelete = (id: number) => {
+        if (confirm('Are you sure you want to delete this CEO?')) {
+            destroy(`/admin/ceos/${id}`);
+        }
+    };
+
     return (
         <SidebarProvider defaultOpen={true}>
             <Sidebar collapsible="icon" variant="sidebar">
@@ -138,85 +202,160 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
                     <Head title="CEO Management - Admin" />
-                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+                    <div className="mx-auto max-w-7xl p-6 md:p-8">
                         <div className="mb-8 flex items-center justify-between">
                             <div>
-                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 shadow-lg mb-4">
-                                    <Users className="w-8 h-8 text-white" />
+                                <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg dark:from-blue-600 dark:to-purple-700">
+                                    <Users className="h-8 w-8 text-white" />
                                 </div>
-                                <h1 className="text-3xl font-bold mb-2 text-foreground">CEO Management</h1>
+                                <h1 className="mb-2 text-3xl font-bold text-foreground">
+                                    CEO Management
+                                </h1>
                                 <p className="text-muted-foreground">
-                                    View all CEO invitations and manage CEO accounts
+                                    View all CEO invitations and manage CEO
+                                    accounts
                                 </p>
                             </div>
-                            <Dialog open={showCreateCeoDialog} onOpenChange={setShowCreateCeoDialog}>
+                            <Dialog
+                                open={showCreateCeoDialog}
+                                onOpenChange={setShowCreateCeoDialog}
+                            >
                                 <DialogTrigger asChild>
                                     <Button>
-                                        <UserPlus className="w-4 h-4 mr-2" />
+                                        <UserPlus className="mr-2 h-4 w-4" />
                                         Create CEO
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent>
                                     <DialogHeader>
-                                        <DialogTitle>Create New CEO</DialogTitle>
+                                        <DialogTitle>
+                                            Create New CEO
+                                        </DialogTitle>
                                         <DialogDescription>
-                                            Create a new CEO user account and optionally assign them to a company. A temporary password will be generated.
+                                            Create a new CEO user account and
+                                            optionally assign them to a company.
+                                            A temporary password will be
+                                            generated.
                                         </DialogDescription>
                                     </DialogHeader>
-                                    <form onSubmit={handleCreateCeo} className="space-y-4">
+                                    <form
+                                        onSubmit={handleCreateCeo}
+                                        className="space-y-4"
+                                    >
                                         <div>
-                                            <Label htmlFor="ceo-name">Name</Label>
+                                            <Label htmlFor="ceo-name">
+                                                Name
+                                            </Label>
                                             <Input
                                                 id="ceo-name"
                                                 type="text"
                                                 value={data.name}
-                                                onChange={(e) => setData('name', e.target.value)}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        'name',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 placeholder="CEO Name"
                                                 required
-                                                className={errors.name ? 'border-red-500' : ''}
+                                                className={
+                                                    errors.name
+                                                        ? 'border-red-500'
+                                                        : ''
+                                                }
                                             />
                                             {errors.name && (
-                                                <p className="text-sm text-destructive mt-1">{errors.name}</p>
+                                                <p className="mt-1 text-sm text-destructive">
+                                                    {errors.name}
+                                                </p>
                                             )}
                                         </div>
                                         <div>
-                                            <Label htmlFor="ceo-email">Email</Label>
+                                            <Label htmlFor="ceo-email">
+                                                Email
+                                            </Label>
                                             <Input
                                                 id="ceo-email"
                                                 type="email"
                                                 value={data.email}
-                                                onChange={(e) => setData('email', e.target.value)}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        'email',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 placeholder="ceo@example.com"
                                                 required
-                                                className={errors.email ? 'border-red-500' : ''}
+                                                className={
+                                                    errors.email
+                                                        ? 'border-red-500'
+                                                        : ''
+                                                }
                                             />
                                             {errors.email && (
-                                                <p className="text-sm text-destructive mt-1">{errors.email}</p>
+                                                <p className="mt-1 text-sm text-destructive">
+                                                    {errors.email}
+                                                </p>
                                             )}
                                         </div>
                                         <div>
-                                            <Label htmlFor="company_id">Assign to Company (Optional)</Label>
+                                            <Label htmlFor="company_id">
+                                                Assign to Company (Optional)
+                                            </Label>
                                             <Select
-                                                value={data.company_id ? String(data.company_id) : 'none'}
-                                                onValueChange={(value) => setData('company_id', value === 'none' ? null : Number(value))}
+                                                value={
+                                                    data.company_id
+                                                        ? String(
+                                                              data.company_id,
+                                                          )
+                                                        : 'none'
+                                                }
+                                                onValueChange={(value) =>
+                                                    setData(
+                                                        'company_id',
+                                                        value === 'none'
+                                                            ? null
+                                                            : Number(value),
+                                                    )
+                                                }
                                             >
-                                                <SelectTrigger className={errors.company_id ? 'border-red-500' : ''}>
+                                                <SelectTrigger
+                                                    className={
+                                                        errors.company_id
+                                                            ? 'border-red-500'
+                                                            : ''
+                                                    }
+                                                >
                                                     <SelectValue placeholder="Select a company" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="none">None - Create CEO without company</SelectItem>
-                                                    {companies.map((company) => (
-                                                        <SelectItem key={company.id} value={String(company.id)}>
-                                                            {company.name}
-                                                        </SelectItem>
-                                                    ))}
+                                                    <SelectItem value="none">
+                                                        None - Create CEO
+                                                        without company
+                                                    </SelectItem>
+                                                    {companies.map(
+                                                        (company) => (
+                                                            <SelectItem
+                                                                key={company.id}
+                                                                value={String(
+                                                                    company.id,
+                                                                )}
+                                                            >
+                                                                {company.name}
+                                                            </SelectItem>
+                                                        ),
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {errors.company_id && (
-                                                <p className="text-sm text-destructive mt-1">{errors.company_id}</p>
+                                                <p className="mt-1 text-sm text-destructive">
+                                                    {errors.company_id}
+                                                </p>
                                             )}
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                If you select a company, the CEO will be assigned to it and HR will see them.
+                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                If you select a company, the CEO
+                                                will be assigned to it and HR
+                                                will see them.
                                             </p>
                                         </div>
                                         <div className="flex justify-end gap-2">
@@ -224,14 +363,21 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                 type="button"
                                                 variant="outline"
                                                 onClick={() => {
-                                                    setShowCreateCeoDialog(false);
+                                                    setShowCreateCeoDialog(
+                                                        false,
+                                                    );
                                                     reset();
                                                 }}
                                             >
                                                 Cancel
                                             </Button>
-                                            <Button type="submit" disabled={processing}>
-                                                {processing ? 'Creating...' : 'Create CEO'}
+                                            <Button
+                                                type="submit"
+                                                disabled={processing}
+                                            >
+                                                {processing
+                                                    ? 'Creating...'
+                                                    : 'Create CEO'}
                                             </Button>
                                         </div>
                                     </form>
@@ -240,16 +386,20 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                         </div>
 
                         {/* Statistics Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
                             <Card>
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-sm text-muted-foreground mb-1">Total CEOs</p>
-                                            <p className="text-3xl font-bold text-foreground">{ceos.length}</p>
+                                            <p className="mb-1 text-sm text-muted-foreground">
+                                                Total CEOs
+                                            </p>
+                                            <p className="text-3xl font-bold text-foreground">
+                                                {ceos.length}
+                                            </p>
                                         </div>
-                                        <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                                            <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/20">
+                                            <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                                         </div>
                                     </div>
                                 </CardContent>
@@ -259,25 +409,15 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-sm text-muted-foreground mb-1">Pending Invitations</p>
-                                            <p className="text-3xl font-bold text-foreground">{pendingCount}</p>
+                                            <p className="mb-1 text-sm text-muted-foreground">
+                                                Pending Invitations
+                                            </p>
+                                            <p className="text-3xl font-bold text-foreground">
+                                                {pendingCount}
+                                            </p>
                                         </div>
-                                        <div className="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center">
-                                            <Clock className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm text-muted-foreground mb-1">Accepted</p>
-                                            <p className="text-3xl font-bold text-foreground">{acceptedCount}</p>
-                                        </div>
-                                        <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                                            <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-100 dark:bg-yellow-900/20">
+                                            <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
                                         </div>
                                     </div>
                                 </CardContent>
@@ -287,11 +427,33 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-sm text-muted-foreground mb-1">Rejected</p>
-                                            <p className="text-3xl font-bold text-foreground">{rejectedCount}</p>
+                                            <p className="mb-1 text-sm text-muted-foreground">
+                                                Accepted
+                                            </p>
+                                            <p className="text-3xl font-bold text-foreground">
+                                                {acceptedCount}
+                                            </p>
                                         </div>
-                                        <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-                                            <XCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 dark:bg-green-900/20">
+                                            <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardContent className="p-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="mb-1 text-sm text-muted-foreground">
+                                                Rejected
+                                            </p>
+                                            <p className="text-3xl font-bold text-foreground">
+                                                {rejectedCount}
+                                            </p>
+                                        </div>
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-100 dark:bg-red-900/20">
+                                            <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
                                         </div>
                                     </div>
                                 </CardContent>
@@ -309,20 +471,28 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                 </TabsTrigger>
                             </TabsList>
 
-                            <TabsContent value="invitations" className="space-y-4">
+                            <TabsContent
+                                value="invitations"
+                                className="space-y-4"
+                            >
                                 <Card>
                                     <CardHeader>
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <CardTitle>CEO Invitation Listings</CardTitle>
+                                                <CardTitle>
+                                                    CEO Invitation Listings
+                                                </CardTitle>
                                                 <CardDescription>
-                                                    All CEO invitations with their status and details
+                                                    All CEO invitations with
+                                                    their status and details
                                                 </CardDescription>
                                             </div>
                                             <div className="flex gap-2">
                                                 <button
-                                                    onClick={() => setStatusFilter('all')}
-                                                    className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                                                    onClick={() =>
+                                                        setStatusFilter('all')
+                                                    }
+                                                    className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
                                                         statusFilter === 'all'
                                                             ? 'bg-primary text-primary-foreground'
                                                             : 'bg-muted hover:bg-muted/80'
@@ -331,9 +501,14 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                     All ({invitations.length})
                                                 </button>
                                                 <button
-                                                    onClick={() => setStatusFilter('pending')}
-                                                    className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                                                        statusFilter === 'pending'
+                                                    onClick={() =>
+                                                        setStatusFilter(
+                                                            'pending',
+                                                        )
+                                                    }
+                                                    className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+                                                        statusFilter ===
+                                                        'pending'
                                                             ? 'bg-primary text-primary-foreground'
                                                             : 'bg-muted hover:bg-muted/80'
                                                     }`}
@@ -341,9 +516,14 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                     Pending ({pendingCount})
                                                 </button>
                                                 <button
-                                                    onClick={() => setStatusFilter('accepted')}
-                                                    className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                                                        statusFilter === 'accepted'
+                                                    onClick={() =>
+                                                        setStatusFilter(
+                                                            'accepted',
+                                                        )
+                                                    }
+                                                    className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+                                                        statusFilter ===
+                                                        'accepted'
                                                             ? 'bg-primary text-primary-foreground'
                                                             : 'bg-muted hover:bg-muted/80'
                                                     }`}
@@ -351,9 +531,14 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                     Accepted ({acceptedCount})
                                                 </button>
                                                 <button
-                                                    onClick={() => setStatusFilter('rejected')}
-                                                    className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                                                        statusFilter === 'rejected'
+                                                    onClick={() =>
+                                                        setStatusFilter(
+                                                            'rejected',
+                                                        )
+                                                    }
+                                                    className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+                                                        statusFilter ===
+                                                        'rejected'
                                                             ? 'bg-primary text-primary-foreground'
                                                             : 'bg-muted hover:bg-muted/80'
                                                     }`}
@@ -365,80 +550,138 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                     </CardHeader>
                                     <CardContent>
                                         {filteredInvitations.length === 0 ? (
-                                            <div className="text-center py-12">
-                                                <Mail className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                                                <p className="text-muted-foreground">No invitations found</p>
+                                            <div className="py-12 text-center">
+                                                <Mail className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                                                <p className="text-muted-foreground">
+                                                    No invitations found
+                                                </p>
                                             </div>
                                         ) : (
                                             <div className="overflow-x-auto">
                                                 <Table>
                                                     <TableHeader>
                                                         <TableRow>
-                                                            <TableHead>Email</TableHead>
-                                                            <TableHead>Company</TableHead>
-                                                            <TableHead>Status</TableHead>
-                                                            <TableHead>Invited By</TableHead>
-                                                            <TableHead>Invited At</TableHead>
-                                                            <TableHead>Accepted/Rejected At</TableHead>
+                                                            <TableHead>
+                                                                Email
+                                                            </TableHead>
+                                                            <TableHead>
+                                                                Company
+                                                            </TableHead>
+                                                            <TableHead>
+                                                                Status
+                                                            </TableHead>
+                                                            <TableHead>
+                                                                Invited By
+                                                            </TableHead>
+                                                            <TableHead>
+                                                                Invited At
+                                                            </TableHead>
+                                                            <TableHead>
+                                                                Accepted/Rejected
+                                                                At
+                                                            </TableHead>
                                                         </TableRow>
                                                     </TableHeader>
                                                     <TableBody>
-                                                        {filteredInvitations.map((invitation) => (
-                                                            <TableRow key={invitation.id}>
-                                                                <TableCell className="font-medium">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <Mail className="w-4 h-4 text-muted-foreground" />
-                                                                        {invitation.email}
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {invitation.company ? (
+                                                        {filteredInvitations.map(
+                                                            (invitation) => (
+                                                                <TableRow
+                                                                    key={
+                                                                        invitation.id
+                                                                    }
+                                                                >
+                                                                    <TableCell className="font-medium">
                                                                         <div className="flex items-center gap-2">
-                                                                            <Building2 className="w-4 h-4 text-muted-foreground" />
-                                                                            {invitation.company.name}
+                                                                            <Mail className="h-4 w-4 text-muted-foreground" />
+                                                                            {
+                                                                                invitation.email
+                                                                            }
                                                                         </div>
-                                                                    ) : (
-                                                                        <span className="text-muted-foreground">N/A</span>
-                                                                    )}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {getStatusBadge(invitation.status)}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {invitation.invited_by ? (
-                                                                        <div>
-                                                                            <p className="font-medium">{invitation.invited_by.name}</p>
-                                                                            <p className="text-xs text-muted-foreground">{invitation.invited_by.email}</p>
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        {invitation.company ? (
+                                                                            <div className="flex items-center gap-2">
+                                                                                <Building2 className="h-4 w-4 text-muted-foreground" />
+                                                                                {
+                                                                                    invitation
+                                                                                        .company
+                                                                                        .name
+                                                                                }
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className="text-muted-foreground">
+                                                                                N/A
+                                                                            </span>
+                                                                        )}
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        {getStatusBadge(
+                                                                            invitation.status,
+                                                                        )}
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        {invitation.invited_by ? (
+                                                                            <div>
+                                                                                <p className="font-medium">
+                                                                                    {
+                                                                                        invitation
+                                                                                            .invited_by
+                                                                                            .name
+                                                                                    }
+                                                                                </p>
+                                                                                <p className="text-xs text-muted-foreground">
+                                                                                    {
+                                                                                        invitation
+                                                                                            .invited_by
+                                                                                            .email
+                                                                                    }
+                                                                                </p>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className="text-muted-foreground">
+                                                                                N/A
+                                                                            </span>
+                                                                        )}
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                                                                            {formatDate(
+                                                                                invitation.invited_at,
+                                                                            )}
                                                                         </div>
-                                                                    ) : (
-                                                                        <span className="text-muted-foreground">N/A</span>
-                                                                    )}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                                                                        {formatDate(invitation.invited_at)}
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {invitation.status === 'accepted' && invitation.accepted_at && (
-                                                                        <div className="flex items-center gap-2 text-green-600">
-                                                                            <CheckCircle2 className="w-4 h-4" />
-                                                                            {formatDate(invitation.accepted_at)}
-                                                                        </div>
-                                                                    )}
-                                                                    {invitation.status === 'rejected' && invitation.rejected_at && (
-                                                                        <div className="flex items-center gap-2 text-red-600">
-                                                                            <XCircle className="w-4 h-4" />
-                                                                            {formatDate(invitation.rejected_at)}
-                                                                        </div>
-                                                                    )}
-                                                                    {invitation.status === 'pending' && (
-                                                                        <span className="text-muted-foreground">-</span>
-                                                                    )}
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        ))}
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        {invitation.status ===
+                                                                            'accepted' &&
+                                                                            invitation.accepted_at && (
+                                                                                <div className="flex items-center gap-2 text-green-600">
+                                                                                    <CheckCircle2 className="h-4 w-4" />
+                                                                                    {formatDate(
+                                                                                        invitation.accepted_at,
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+                                                                        {invitation.status ===
+                                                                            'rejected' &&
+                                                                            invitation.rejected_at && (
+                                                                                <div className="flex items-center gap-2 text-red-600">
+                                                                                    <XCircle className="h-4 w-4" />
+                                                                                    {formatDate(
+                                                                                        invitation.rejected_at,
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+                                                                        {invitation.status ===
+                                                                            'pending' && (
+                                                                            <span className="text-muted-foreground">
+                                                                                -
+                                                                            </span>
+                                                                        )}
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            ),
+                                                        )}
                                                     </TableBody>
                                                 </Table>
                                             </div>
@@ -452,42 +695,111 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                     <CardHeader>
                                         <CardTitle>Active CEOs</CardTitle>
                                         <CardDescription>
-                                            All users with CEO role and their associated companies
+                                            All users with CEO role and their
+                                            associated companies
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         {ceos.length === 0 ? (
-                                            <div className="text-center py-12">
-                                                <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                                                <p className="text-muted-foreground">No CEOs found</p>
+                                            <div className="py-12 text-center">
+                                                <Users className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                                                <p className="text-muted-foreground">
+                                                    No CEOs found
+                                                </p>
                                             </div>
                                         ) : (
                                             <div className="overflow-x-auto">
                                                 <Table>
                                                     <TableHeader>
                                                         <TableRow>
-                                                            <TableHead>Name</TableHead>
-                                                            <TableHead>Email</TableHead>
-                                                            <TableHead>Companies</TableHead>
+                                                            <TableHead>
+                                                                Name
+                                                            </TableHead>
+                                                            <TableHead>
+                                                                Email
+                                                            </TableHead>
+                                                            <TableHead>
+                                                                Companies
+                                                            </TableHead>
+                                                            <TableHead className="text-right">
+                                                                Action
+                                                            </TableHead>
                                                         </TableRow>
                                                     </TableHeader>
                                                     <TableBody>
                                                         {ceos.map((ceo) => (
-                                                            <TableRow key={ceo.id}>
-                                                                <TableCell className="font-medium">{ceo.name}</TableCell>
-                                                                <TableCell>{ceo.email}</TableCell>
+                                                            <TableRow
+                                                                key={ceo.id}
+                                                            >
+                                                                <TableCell className="font-medium">
+                                                                    {ceo.name}
+                                                                </TableCell>
                                                                 <TableCell>
-                                                                    {ceo.companies && ceo.companies.length > 0 ? (
+                                                                    {ceo.email}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {ceo.companies &&
+                                                                    ceo
+                                                                        .companies
+                                                                        .length >
+                                                                        0 ? (
                                                                         <div className="flex flex-wrap gap-2">
-                                                                            {ceo.companies.map((company) => (
-                                                                                <Badge key={company.id} variant="outline">
-                                                                                    {company.name}
-                                                                                </Badge>
-                                                                            ))}
+                                                                            {ceo.companies.map(
+                                                                                (
+                                                                                    company,
+                                                                                ) => (
+                                                                                    <Badge
+                                                                                        key={
+                                                                                            company.id
+                                                                                        }
+                                                                                        variant="outline"
+                                                                                    >
+                                                                                        {
+                                                                                            company.name
+                                                                                        }
+                                                                                    </Badge>
+                                                                                ),
+                                                                            )}
                                                                         </div>
                                                                     ) : (
-                                                                        <span className="text-muted-foreground">No companies</span>
+                                                                        <span className="text-muted-foreground">
+                                                                            No
+                                                                            companies
+                                                                        </span>
                                                                     )}
+                                                                </TableCell>
+                                                                <TableCell className="flex justify-end gap-2 text-right">
+                                                                    <Link
+                                                                        href={`/admin/ceos/${ceo.id}`}
+                                                                    >
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                        >
+                                                                            Show
+                                                                        </Button>
+                                                                    </Link>
+                                                                    <Link
+                                                                        href={`/admin/ceos/${ceo.id}/edit`}
+                                                                    >
+                                                                        <Button
+                                                                            variant="secondary"
+                                                                            size="sm"
+                                                                        >
+                                                                            Edit
+                                                                        </Button>
+                                                                    </Link>
+                                                                    <Button
+                                                                        variant="destructive"
+                                                                        size="sm"
+                                                                        onClick={() =>
+                                                                            handleDelete(
+                                                                                ceo.id,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        Delete
+                                                                    </Button>
                                                                 </TableCell>
                                                             </TableRow>
                                                         ))}
