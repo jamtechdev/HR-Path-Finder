@@ -151,7 +151,6 @@ export const t = {
     en: 'Review the entered content and submit if everything looks correct. You can edit by hovering over the cards.',
     ko: '입력한 내용을 검토하고 이상이 없으면 제출하세요. 카드에 마우스를 올리면 수정할 수 있습니다.',
   },
-  totalHeadcount: { en: 'Total headcount', ko: '전체 인원' },
   totalShort: { en: 'total', ko: '전체' },
   activeTenure: { en: 'Avg. tenure (active)', ko: '재직자 평균 근속' },
   exitTenure: { en: 'Avg. tenure (leavers)', ko: '퇴직자 평균 근속' },

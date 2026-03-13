@@ -168,13 +168,7 @@ class RolePermissionSeeder extends Seeder
         $this->command->info('Admin: admin@demo.com / password123');
         $this->command->info('HR Manager: hr@demo.com / password123');
         $this->command->info('CEO: ceo@demo.com / password123');
-        $this->command->info('');
-        $this->command->info('=== Demo Users Created ===');
-        $this->command->info('Admin: admin@demo.com / password123');
-        $this->command->info('HR Manager: hr@demo.com / password123');
-        $this->command->info('CEO: ceo@demo.com / password123');
-        $this->command->info('Consultant: consultant@demo.com / password123');
-        $this->command->info('');
+
         $this->command->info('Note: All users are email verified and ready to use.');
     }
 }

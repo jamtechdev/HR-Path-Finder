@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Notifications\CompanyInvitationNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -22,7 +23,7 @@ class CeoController extends Controller
     {
         $ceos = User::role('ceo')->with('companies')->get();
         $companies = Company::with('users')->get();
-        
+
         // Get all CEO invitations with status (including soft deleted/rejected ones)
         $invitations = \App\Models\CompanyInvitation::where('role', 'ceo')
             ->withTrashed()
@@ -36,7 +37,7 @@ class CeoController extends Controller
                 } elseif ($invitation->trashed()) {
                     $status = 'rejected';
                 }
-                
+
                 return [
                     'id' => $invitation->id,
                     'email' => $invitation->email,
@@ -79,7 +80,7 @@ class CeoController extends Controller
 
         // Check if user already exists
         $existingUser = User::where('email', $request->email)->first();
-        
+
         if ($existingUser) {
             // User exists, assign CEO role if not already assigned
             if (!$existingUser->hasRole('ceo')) {
@@ -105,7 +106,7 @@ class CeoController extends Controller
         // If company_id is provided, associate CEO with company
         if ($request->company_id) {
             $company = Company::findOrFail($request->company_id);
-            
+
             // Check if CEO is already associated with this company
             $isCompanyMember = $company->users->contains($ceo);
             $existingCompanyRoles = [];
@@ -134,7 +135,7 @@ class CeoController extends Controller
 
                 // Send welcome email with credentials
                 try {
-                    \Log::info('Sending CEO Welcome Email (Admin Created)', [
+                    Log::info('Sending CEO Welcome Email (Admin Created)', [
                         'invitation_id' => $invitation->id,
                         'email' => $request->email,
                         'company_id' => $company->id,
@@ -148,12 +149,12 @@ class CeoController extends Controller
                     Notification::route('mail', $request->email)
                         ->notify(new CompanyInvitationNotification($invitation));
 
-                    \Log::info('CEO Welcome Email sent successfully (Admin Created)', [
+                    Log::info('CEO Welcome Email sent successfully (Admin Created)', [
                         'invitation_id' => $invitation->id,
                         'email' => $request->email,
                     ]);
                 } catch (\Exception $e) {
-                    \Log::error('Failed to send CEO Welcome Email (Admin Created)', [
+                    Log::error('Failed to send CEO Welcome Email (Admin Created)', [
                         'invitation_id' => $invitation->id,
                         'email' => $request->email,
                         'error' => $e->getMessage(),
@@ -161,18 +162,67 @@ class CeoController extends Controller
                     ]);
                 }
 
-                $message = $existingUser 
+                $message = $existingUser
                     ? "CEO account has been successfully assigned to {$company->name}. Welcome email sent."
                     : "CEO account created and assigned to {$company->name}. Welcome email with credentials sent.";
             } else {
                 $message = "CEO is already associated with {$company->name}.";
             }
         } else {
-            $message = $existingUser 
+            $message = $existingUser
                 ? "CEO account already exists. Please assign to a company."
                 : "CEO created successfully. Please assign to a company.";
         }
 
         return back()->with('success', $message);
+    }
+
+    public function show(User $ceo)
+    {
+        $ceo->load('companies');
+
+        return Inertia::render('Admin/Ceo/Show', [
+            'ceo' => $ceo
+        ]);
+    }
+
+    public function edit(User $ceo)
+    {
+        return Inertia::render('Admin/Ceo/Edit', [
+            'ceo' => $ceo->load('companies'),
+            'companies' => Company::select('id', 'name')->get(),
+        ]);
+    }
+
+    public function update(Request $request, User $ceo)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email',
+            'company_id' => 'nullable|exists:companies,id'
+        ]);
+
+        $ceo->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
+
+        if ($request->company_id) {
+            $ceo->companies()->sync([$request->company_id]);
+        }
+
+        return redirect()->route('admin.ceo.index')
+            ->with('success', 'CEO updated successfully');
+    }
+
+    public function destroy(User $ceo)
+    {
+        // company relation detach
+        $ceo->companies()->detach();
+
+        // delete user
+        $ceo->delete();
+
+        return redirect()->back()->with('success', 'CEO deleted successfully');
     }
 }
