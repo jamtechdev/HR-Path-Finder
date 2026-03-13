@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Enums\StepStatus;
 use App\Models\CeoReviewLog;
 use App\Models\HrProject;
+use App\Notifications\CeoDiagnosisConfirmedNotification;
 use App\Services\AuditLogService;
 use App\Services\DiagnosisSnapshotService;
 use App\Services\StepTransitionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 class CeoReviewController extends Controller
 {
@@ -105,6 +107,7 @@ class CeoReviewController extends Controller
             'industry_category' => ['nullable', 'string', 'max:255'],
             'industry_subcategory' => ['nullable', 'string', 'max:255'],
             'industry_other' => ['nullable', 'string', 'max:255'],
+            'industry_category_other' => ['nullable', 'string', 'max:255'],
             'secondary_industries' => ['nullable', 'array'],
             'secondary_industries.*' => ['string'],
             'present_headcount' => ['nullable', 'integer', 'min:0'],
@@ -232,6 +235,12 @@ class CeoReviewController extends Controller
 
         // Approve and lock diagnosis step (this will unlock organization design)
         $this->stepTransitionService->approveAndLockStep($hrProject, 'diagnosis');
+
+        // Notify HR manager(s) that CEO has completed diagnosis and next step is open
+        $hrManagers = $hrProject->company->hrManagers()->get();
+        foreach ($hrManagers as $hrManager) {
+            Notification::send($hrManager, new CeoDiagnosisConfirmedNotification($hrProject));
+        }
 
         return redirect()->route('ceo.review.diagnosis', $hrProject)
             ->with('success', 'Diagnosis confirmed and locked.');

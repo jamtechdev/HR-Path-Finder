@@ -395,8 +395,14 @@ export default function CeoReviewDiagnosis({
             <SuccessModal
                 isOpen={showSuccessModal}
                 onClose={() => setShowSuccessModal(false)}
-                title="Diagnosis Confirmed!"
-                message="Diagnosis has been confirmed and locked."
+                title="Thank you"
+                message="Thank you for your time. Your part of the process is now complete.
+
+1) Next Step: Our HR Manager will now begin drafting the system design based on your responses.
+
+2) Final Report: Once the draft is finalized, a professional consultant's report will be delivered within 2 weeks.
+
+We appreciate your patience while we prepare the best results for you."
                 nextStepLabel="Go to Dashboard"
                 onNextStep={handleNextStep}
             />

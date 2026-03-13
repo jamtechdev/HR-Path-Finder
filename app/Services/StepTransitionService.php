@@ -18,22 +18,30 @@ class StepTransitionService
 
     /**
      * Transition a step to submitted status.
+     * Allows null/NOT_STARTED, IN_PROGRESS, SUBMITTED, APPROVED, or LOCKED so HR can re-submit after updates.
      */
     public function submitStep(HrProject $project, string $step): void
     {
         $currentStatus = $project->getStepStatus($step);
-        
-        if (!$currentStatus || !in_array($currentStatus, [StepStatus::NOT_STARTED, StepStatus::IN_PROGRESS])) {
+        $allowedFrom = [
+            StepStatus::NOT_STARTED,
+            StepStatus::IN_PROGRESS,
+            StepStatus::SUBMITTED,
+            StepStatus::APPROVED,
+            StepStatus::LOCKED,
+        ];
+        $isAllowed = $currentStatus === null || in_array($currentStatus, $allowedFrom);
+        if (!$isAllowed) {
             throw new \Exception("Step {$step} cannot be submitted from current status");
         }
 
         $project->setStepStatus($step, StepStatus::SUBMITTED);
-        
+        $fromValue = $currentStatus ? $currentStatus->value : StepStatus::NOT_STARTED->value;
         $this->auditLogService->logStepStatusChange(
             $project,
             Auth::user(),
             $step,
-            $currentStatus->value,
+            $fromValue,
             StepStatus::SUBMITTED->value
         );
     }

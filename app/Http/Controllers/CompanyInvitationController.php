@@ -205,9 +205,9 @@ class CompanyInvitationController extends Controller
     {
         $request->validate([
             'token' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:8', 'confirmed', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[^A-Za-z0-9]/'],
+            'password' => ['required', 'string', 'min:8', 'confirmed', 'regex:/[0-9]/'],
         ], [
-            'password.regex' => 'Password must contain at least one uppercase letter, one number, and one special character.',
+            'password.regex' => 'Password must be at least 8 characters and include at least one number.',
         ]);
 
         $invitation = CompanyInvitation::where('token', $request->token)->firstOrFail();

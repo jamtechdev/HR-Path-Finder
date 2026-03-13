@@ -39,12 +39,16 @@ export interface JobDefinition {
 
 export interface OrgChartMapping {
     id: string;
+    parentId?: string | null;
+    sort_order?: number;
+    depth?: 0 | 1 | 2;
     org_unit_name: string;
     job_keyword_ids: number[];
     org_head_name?: string;
     org_head_rank?: string;
     org_head_title?: string;
     org_head_email?: string;
+    is_kpi_reviewer?: boolean;
     job_specialists: Array<{
         job_keyword_id: number;
         name: string;

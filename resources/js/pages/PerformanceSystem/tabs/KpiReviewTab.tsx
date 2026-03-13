@@ -63,7 +63,7 @@ interface ValidationState {
 interface Props {
     project: { id: number };
     jobDefinitions?: Array<{ id: number; job_name: string }>;
-    orgChartMappings?: Array<{ org_unit_name: string; org_head_email?: string; org_head_name?: string }>;
+    orgChartMappings?: Array<{ org_unit_name: string; org_head_email?: string; org_head_name?: string; is_kpi_reviewer?: boolean }>;
     kpiReviewTokens?: Record<string, unknown>;
     organizationalKpis?: Array<Partial<Kpi>>;
     onContinue: (kpis: Kpi[]) => void;
@@ -199,10 +199,10 @@ export default function KpiReviewTab({
         });
     };
 
-    const handleSaveKpi = async (index: number) => {
-        const kpi = kpis[index];
+    const handleSaveKpi = async (index: number, override?: Partial<Kpi>) => {
+        const base = kpis[index];
+        const kpi = { ...base, ...(override ?? {}) };
         if (!kpi.kpi_name?.trim()) {
-            alert('Please enter KPI name');
             return;
         }
         setSavingKpiIndex(index);
@@ -237,10 +237,12 @@ export default function KpiReviewTab({
         });
     };
 
+    const kpiReviewRecipients = orgChartMappings.filter((m) => m.is_kpi_reviewer && m.org_head_email?.trim());
+
     const handleSendReviewRequest = () => {
         const mapping = orgChartMappings.find((m) => m.org_unit_name === selectedOrg);
-        if (!mapping?.org_head_email) {
-            alert('Organization head email is required. Please update the organization chart mapping first.');
+        if (!mapping?.is_kpi_reviewer || !mapping?.org_head_email?.trim()) {
+            alert('Only units marked as "KPI Reviewer" with a valid email receive the review request. Please go to Job Analysis → Org Chart Mapping, check "KPI Reviewer" for this unit, and enter the email address.');
             return;
         }
         if (!confirm(`Send review request email to the organization leader (${mapping.org_head_email}) for "${selectedOrg}"?`)) return;
@@ -517,22 +519,27 @@ export default function KpiReviewTab({
                     ) : (
                         <div />
                     )}
-                    <div className="flex items-center gap-3">
-                        <Button
-                            onClick={handleSendReviewRequest}
-                            disabled={!selectedOrg || orgKpis.length === 0}
-                            className="bg-[#0f2a4a] hover:bg-[#1e293b] text-white rounded-lg font-bold px-6 py-2.5 shadow-md"
-                        >
-                            <Send className="w-4 h-4 mr-2" />
-                            Send Review Request Email to Organization Leader
-                        </Button>
-                        <Button
-                            onClick={() => onContinue(kpis)}
-                            className="bg-[#0f2a4a] hover:bg-[#1e293b] text-white rounded-lg font-bold px-6 py-2.5 shadow-md"
-                        >
-                            Continue to CEO KPI Review
-                            <ChevronRight className="w-4 h-4 ml-2" />
-                        </Button>
+                    <div className="flex flex-col items-start gap-2">
+                        <p className="text-xs text-[#64748b]">
+                            Only units marked as <strong>KPI Reviewer</strong> with a valid email in Org Chart Mapping receive the request. Recipients: {kpiReviewRecipients.length > 0 ? kpiReviewRecipients.map((m) => m.org_unit_name).join(', ') : 'none designated.'}
+                        </p>
+                        <div className="flex items-center gap-3">
+                            <Button
+                                onClick={handleSendReviewRequest}
+                                disabled={!selectedOrg || orgKpis.length === 0}
+                                className="bg-[#0f2a4a] hover:bg-[#1e293b] text-white rounded-lg font-bold px-6 py-2.5 shadow-md"
+                            >
+                                <Send className="w-4 h-4 mr-2" />
+                                Send Review Request Email to Organization Leader
+                            </Button>
+                            <Button
+                                onClick={() => onContinue(kpis)}
+                                className="bg-[#0f2a4a] hover:bg-[#1e293b] text-white rounded-lg font-bold px-6 py-2.5 shadow-md"
+                            >
+                                Continue to CEO KPI Review
+                                <ChevronRight className="w-4 h-4 ml-2" />
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </footer>
@@ -585,21 +592,16 @@ export default function KpiReviewTab({
                             </div>
                             <div className="flex justify-end gap-2 pt-2">
                                 <Button variant="outline" onClick={() => setEditingKpi(null)}>Cancel</Button>
-                                <Button
-                                    onClick={() => {
-                                        const idx = kpis.findIndex((k) => k === editingKpi);
-                                        if (idx >= 0) {
-                                            setKpis((prev) => {
-                                                const next = [...prev];
-                                                next[idx] = { ...next[idx], ...editForm };
-                                                return next;
-                                            });
-                                            handleSaveKpi(idx);
-                                        }
-                                        setEditingKpi(null);
-                                    }}
-                                    disabled={!editForm.kpi_name?.trim() || savingKpiIndex !== null}
-                                >
+                                    <Button
+                                        onClick={() => {
+                                            const idx = kpis.findIndex((k) => k === editingKpi);
+                                            if (idx >= 0) {
+                                                handleSaveKpi(idx, editForm);
+                                            }
+                                            setEditingKpi(null);
+                                        }}
+                                        disabled={!editForm.kpi_name?.trim() || savingKpiIndex !== null}
+                                    >
                                     {savingKpiIndex !== null ? 'Saving...' : 'Save'}
                                 </Button>
                             </div>

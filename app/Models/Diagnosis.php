@@ -17,6 +17,7 @@ class Diagnosis extends Model
         'industry_category',
         'industry_subcategory',
         'industry_other',
+        'industry_category_other',
         'secondary_industries',
         'present_headcount',
         'expected_headcount_1y',

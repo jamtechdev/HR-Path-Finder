@@ -317,7 +317,7 @@ class KpiReviewController extends Controller
             ->whereRaw('TRIM(LOWER(org_unit_name)) = ?', [strtolower(trim($validated['organization_name']))])
             ->first();
 
-        if ($orgMapping && !empty(trim($orgMapping->org_head_email ?? ''))) {
+        if ($orgMapping && $orgMapping->is_kpi_reviewer && !empty(trim($orgMapping->org_head_email ?? ''))) {
             try {
                 $token = KpiReviewToken::generateToken();
                 $expiresAt = Carbon::now()->addDays(7);
