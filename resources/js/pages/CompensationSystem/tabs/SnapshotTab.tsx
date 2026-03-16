@@ -130,7 +130,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                             return (
                                 <Card key={question.id} className="border-2 hover:border-primary/30 transition-all shadow-sm">
                                     <CardContent className="p-6">
-                                        <div className="flex items-start gap-4 mb-4">
+                                        <div className="flex items-start flex-row sm:flex-col gap-4 mb-4">
                                             <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-base font-bold text-primary">
                                                 {idx + 1}
                                             </div>

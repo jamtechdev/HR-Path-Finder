@@ -265,7 +265,7 @@ export default function KpiReviewTab({
 
     return (
         <div className="min-h-full bg-[#f4f6f9] flex flex-col">
-            <div className="flex-1 flex gap-6 p-6 max-w-[1400px] mx-auto w-full">
+            <div className="flex-1 flex gap-6 md:p-6 flex-col md:flex-row max-w-[1400px] mx-auto w-full">
                 {/* Left: Main content */}
                 <div className="flex-1 min-w-0 space-y-4">
                     <Card className="rounded-xl border border-[#e2e8f0] shadow-sm bg-white overflow-hidden">
@@ -523,7 +523,7 @@ export default function KpiReviewTab({
                         <p className="text-xs text-[#64748b]">
                             Only units marked as <strong>KPI Reviewer</strong> with a valid email in Org Chart Mapping receive the request. Recipients: {kpiReviewRecipients.length > 0 ? kpiReviewRecipients.map((m) => m.org_unit_name).join(', ') : 'none designated.'}
                         </p>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 flex-wrap">
                             <Button
                                 onClick={handleSendReviewRequest}
                                 disabled={!selectedOrg || orgKpis.length === 0}

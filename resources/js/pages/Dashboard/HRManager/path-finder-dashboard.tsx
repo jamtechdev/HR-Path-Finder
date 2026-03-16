@@ -146,7 +146,7 @@ export default function PathFinderDashboard({
               <h3 className="text-[15px] font-bold text-slate-800 dark:text-slate-100 tracking-[-0.2px]">{t('dashboard.pathfinder.design_steps')}</h3>
               <span className="text-[11.5px] text-slate-400 dark:text-slate-500">{t('dashboard.pathfinder.completed_count', { done: 0, total: 5 })}</span>
             </div>
-            <div className="grid grid-cols-2 gap-3.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               {/* Step 1 - Active */}
               <div className="bg-white dark:bg-slate-900 border border-[#4ecdc4] rounded-xl p-5 pl-[22px] transition-all relative overflow-hidden shadow-[0_0_0_1px_#4ecdc4,0_4px_20px_rgba(78,205,196,0.12)]">
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#4ecdc4] to-[#3ab5ad]" />
@@ -204,7 +204,7 @@ export default function PathFinderDashboard({
                 </div>
               ))}
               {/* Step 5 full-width locked */}
-              <div className="col-span-2 flex items-center justify-between py-[18px] px-[22px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 opacity-70">
+              <div className="col-span-1 md:col-span-2 flex flex-col md:flex-row items-center justify-between py-[18px] px-[22px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 opacity-70">
                 <div className="flex items-center gap-4">
                   <div className="w-9 h-9 rounded-[9px] bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-base">
                     <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
@@ -269,7 +269,7 @@ export default function PathFinderDashboard({
             )}
 
             {/* STAT CARDS */}
-            <div className="grid grid-cols-4 gap-3 mb-6">
+            <div className="grid grid=cols-1 md:grid-cols-4 gap-3 mb-6">
               <div className="bg-gradient-to-br from-[var(--hr-navy)] to-[var(--hr-navy-mid)] border-0 rounded-xl p-[18px] pr-5 relative overflow-hidden hover:shadow-md transition-shadow">
                 <div className="absolute -top-5 -right-5 w-20 h-20 rounded-full bg-[rgba(78,205,196,0.1)] pointer-events-none" />
                 <div className="flex items-center justify-between mb-2.5">
@@ -362,13 +362,13 @@ export default function PathFinderDashboard({
               <h3 className="text-[15px] font-bold text-slate-800 dark:text-slate-100 tracking-[-0.2px]">{t('dashboard.pathfinder.design_steps')}</h3>
               <span className="text-[11.5px] text-slate-400 dark:text-slate-500">{t('dashboard.pathfinder.completed_count', { done: progress.completed, total: progress.total })}</span>
             </div>
-            <div className="grid grid-cols-2 gap-3.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               {stepCards.map((card) =>
                 card.fullWidth ? (
                   card.status === 'completed' ? (
                     <div
                       key={card.step}
-                      className="col-span-2 flex items-center justify-between py-[18px] px-[22px] rounded-xl border border-[var(--hr-mint)] bg-white dark:bg-slate-900"
+                      className="col-span-1 md:col-span-2 flex flex-col md:flex-row items-center justify-between py-[18px] px-[22px] rounded-xl border border-[var(--hr-mint)] bg-white dark:bg-slate-900"
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-9 h-9 rounded-[9px] bg-[rgba(78,205,196,0.15)] flex items-center justify-center text-base">
@@ -390,7 +390,7 @@ export default function PathFinderDashboard({
                       </Link>
                     </div>
                   ) : card.status === 'current' ? (
-                    <div key={card.step} className="col-span-2 flex items-center justify-between py-[18px] px-[22px] rounded-xl border border-[#4ecdc4] bg-white dark:bg-slate-900 shadow-[0_0_0_1px_#4ecdc4,0_4px_20px_rgba(78,205,196,0.12)]">
+                    <div key={card.step} className="col-span-1 md:col-span-2 flex flex-col md:flex-row items-center justify-between py-[18px] px-[22px] rounded-xl border border-[#4ecdc4] bg-white dark:bg-slate-900 shadow-[0_0_0_1px_#4ecdc4,0_4px_20px_rgba(78,205,196,0.12)]">
                       <div className="flex items-center gap-4">
                         <div className="w-9 h-9 rounded-[9px] bg-[rgba(78,205,196,0.12)] flex items-center justify-center text-base">
                           <Building2 className="w-4 h-4 text-[#4ecdc4]" />
@@ -411,7 +411,7 @@ export default function PathFinderDashboard({
                   ) : (
                   <div
                     key={card.step}
-                    className="col-span-2 flex items-center justify-between py-[18px] px-[22px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 opacity-70"
+                    className="col-span-1 md:col-span-2 flex flex-col md:flex-row items-center justify-between py-[18px] px-[22px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 opacity-70"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-9 h-9 rounded-[9px] bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-base">

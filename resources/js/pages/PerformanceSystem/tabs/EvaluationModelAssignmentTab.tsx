@@ -282,15 +282,15 @@ export default function EvaluationModelAssignmentTab({
 
     return (
         <div className="min-h-full flex flex-col bg-[#f0f3f8]">
-            <div className="flex-1 py-5 px-6 pb-[100px]">
-                <div className="max-w-[1200px] mx-auto grid gap-4 grid-cols-1 lg:grid-cols-[1fr_260px]">
+            <div className="flex-1 py-5 sm:px-6 pb-[100px]">
+                <div className="max-w-[1200px] mx-auto grid gap-4 grid-cols-1 xl:grid-cols-[1fr_260px]">
                     {/* LEFT */}
                     <div className="space-y-4">
                         <p className="text-[15px] font-bold text-[#1a2b4a] mb-0.5">Evaluation Model Assignment</p>
                         <p className="text-xs text-[#94a3b8] mb-4">Select a performance management model for each job role. Use the model cards below as reference.</p>
 
                         {/* Model reference cards */}
-                        <div className="grid gap-3 grid-cols-3">
+                        <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
                             {(['mbo', 'bsc', 'okr'] as const).map((model) => {
                                 const concept = model === 'mbo' ? mboGuidance.concept : model === 'bsc' ? bscGuidance.concept : okrGuidance.concept;
                                 const badgeClass = model === 'mbo' ? 'bg-[#fff7ed] text-[#f97316] border-[#fed7aa]' : model === 'bsc' ? 'bg-[#eff6ff] text-[#3b82f6] border-[#bfdbfe]' : 'bg-[#ede9fe] text-[#7c3aed] border-[#c4b5fd]';
@@ -311,7 +311,7 @@ export default function EvaluationModelAssignmentTab({
                             <span className="text-xs font-semibold text-[#1a2b4a]">Bulk Assign</span>
                             <div className="flex items-center gap-2 flex-1 flex-wrap">
                                 <Select value={bulkDept} onValueChange={setBulkDept}>
-                                    <SelectTrigger className="w-[140px] h-8 text-xs border-[#e2e8f0] rounded-lg bg-[#f0f3f8]"> <SelectValue placeholder="All Roles" /> </SelectTrigger>
+                                    <SelectTrigger className="w-full sm:w-[140px] h-8 text-xs border-[#e2e8f0] rounded-lg bg-[#f0f3f8]"> <SelectValue placeholder="All Roles" /> </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value={BULK_ALL}>All Roles</SelectItem>
                                         {departments.map((d) => (
@@ -321,7 +321,7 @@ export default function EvaluationModelAssignmentTab({
                                 </Select>
                                 <span className="text-[#94a3b8] text-sm">→</span>
                                 <Select value={bulkModel} onValueChange={setBulkModel}>
-                                    <SelectTrigger className="w-[140px] h-8 text-xs border-[#e2e8f0] rounded-lg bg-[#f0f3f8]"> <SelectValue placeholder="Select Model" /> </SelectTrigger>
+                                    <SelectTrigger className="w-full sm:w-[140px] h-8 text-xs border-[#e2e8f0] rounded-lg bg-[#f0f3f8]"> <SelectValue placeholder="Select Model" /> </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="mbo">MBO</SelectItem>
                                         <SelectItem value="bsc">BSC</SelectItem>
@@ -336,7 +336,7 @@ export default function EvaluationModelAssignmentTab({
 
                         {/* Job table */}
                         <div className="bg-white border border-[#e2e8f0] rounded-[14px] overflow-hidden">
-                            <div className="grid gap-3 items-center px-4 py-3 bg-[#f8fafc] border-b border-[#e2e8f0]" style={{ gridTemplateColumns: '1fr auto 180px' }}>
+                            <div className="hidden sm:grid gap-3 items-center px-4 py-3 bg-[#f8fafc] border-b border-[#e2e8f0]" style={{ gridTemplateColumns: '1fr auto 180px' }}>
                                 <span className="text-[10.5px] font-bold uppercase tracking-wider text-[#94a3b8]">Job Role</span>
                                 <span className="text-[10.5px] font-bold uppercase tracking-wider text-[#94a3b8]">Linked KPI</span>
                                 <span className="text-[10.5px] font-bold uppercase tracking-wider text-[#94a3b8]">Performance Model</span>
@@ -350,7 +350,7 @@ export default function EvaluationModelAssignmentTab({
                                         <div
                                             key={job.id}
                                             className={cn(
-                                                'grid gap-3 items-center px-4 py-3 transition-colors hover:bg-[#fafbfd]',
+                                                'flex flex-col sm:grid gap-3 sm:items-center px-4 py-3 transition-colors hover:bg-[#fafbfd]',
                                                 assigned === 'mbo' && 'border-l-[3px] border-l-[#f97316]',
                                                 assigned === 'bsc' && 'border-l-[3px] border-l-[#3b82f6]',
                                                 assigned === 'okr' && 'border-l-[3px] border-l-[#7c3aed]',
@@ -430,7 +430,7 @@ export default function EvaluationModelAssignmentTab({
                     </div>
 
                     {/* RIGHT: Guide + Note */}
-                    <div className="space-y-3 sticky top-4 self-start">
+                    <div className="space-y-3 xl:sticky xl:top-4 xl:self-start">
                         <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-[14px] overflow-hidden">
                             <div className="px-4 py-3 border-b border-[#e2e8f0] bg-[#f1f5f9] flex items-center gap-2 text-[12.5px] font-bold text-[#1a2b4a]">
                                 <Info className="w-3.5 h-3.5 text-[#2ec4a0]" /> Model Selection Guide
@@ -482,7 +482,7 @@ export default function EvaluationModelAssignmentTab({
             </div>
 
             {/* Bottom bar */}
-            <footer className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-[#e2e8f0] py-3 px-6 flex justify-between items-center z-10">
+            <footer className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-[#e2e8f0] py-3 px-4 sm:px-6 flex flex-wrap justify-between items-center gap-2 z-10">
                 <span className="text-xs text-[#94a3b8]">Assigned: <strong className="text-[#1a2b4a]">{assignedCount}</strong> / <strong className="text-[#1a2b4a]">{totalCount}</strong> roles</span>
                 <div className="flex gap-2">
                     {onBack && (
@@ -490,15 +490,17 @@ export default function EvaluationModelAssignmentTab({
                             <ChevronLeft className="w-3.5 h-3.5 mr-1" /> Back
                         </Button>
                     )}
-                    <Button onClick={handleContinue} className="bg-[#1a2b4a] hover:bg-[#2e4270] text-white rounded-lg font-semibold px-5">
-                        Continue to Evaluation Structure <ChevronRight className="w-3.5 h-3.5 ml-2" />
+                    <Button onClick={handleContinue} className="bg-[#1a2b4a] hover:bg-[#2e4270] text-white rounded-lg font-semibold px-4 sm:px-5 text-xs sm:text-sm">
+                        <span className="hidden sm:inline">Continue to Evaluation Structure</span>
+                        <span className="sm:hidden">Continue</span>
+                        <ChevronRight className="w-3.5 h-3.5 ml-2" />
                     </Button>
                 </div>
             </footer>
 
             {/* Model detail modal */}
             <Dialog open={!!modelModal} onOpenChange={() => setModelModal(null)}>
-                <DialogContent className="max-w-[520px] rounded-[18px] p-0 overflow-hidden">
+                <DialogContent className="w-full max-w-[520px] rounded-[18px] p-0 overflow-hidden">
                     {modelModal && (() => {
                         const info = MODEL_INFO[modelModal];
                         if (!info) return null;
@@ -555,7 +557,7 @@ export default function EvaluationModelAssignmentTab({
 
             {/* KPI modal */}
             <Dialog open={!!kpiModalJob} onOpenChange={() => setKpiModalJob(null)}>
-                <DialogContent className="max-w-[400px] rounded-[18px] p-0 overflow-hidden">
+                <DialogContent className="w-full max-w-[400px] rounded-[18px] p-0 overflow-hidden">
                     {kpiModalJob && (
                         <>
                             <DialogHeader className="p-5 pb-4 border-b border-[#e2e8f0] flex flex-row items-start justify-between">

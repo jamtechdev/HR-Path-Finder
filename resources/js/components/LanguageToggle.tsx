@@ -47,7 +47,7 @@ export function LanguageToggle({ iconOnly = false }: LanguageToggleProps) {
                 <Button
                     variant="ghost"
                     size={iconOnly ? 'icon' : 'sm'}
-                    className={iconOnly ? 'size-9' : 'gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'}
+                    className={iconOnly ? 'size-9' : 'gap-2 text-sm font-medium class="text-sm font-medium text-white/70 hover:text-[#2ECFAB] no-underline transition-colors" hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'}
                     title={iconOnly ? `${currentLanguage.flag} ${currentLanguage.name}` : undefined}
                 >
                     <Globe className="w-4 h-4" />
@@ -59,7 +59,7 @@ export function LanguageToggle({ iconOnly = false }: LanguageToggleProps) {
                     )}
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40 dark:bg-gray-900 dark:border-gray-700">
+            <DropdownMenuContent align="end" className="w-40 dark:bg-gray-900 dark:border-gray-700 z-9">
                 {languages.map((lang) => (
                     <DropdownMenuItem
                         key={lang.code}

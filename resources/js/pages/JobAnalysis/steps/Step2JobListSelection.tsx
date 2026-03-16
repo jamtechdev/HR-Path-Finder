@@ -215,8 +215,9 @@ export default function Step2JobListSelection({
                                 <div
                                     className="grid gap-3"
                                     style={{
-                                        gridTemplateColumns: 'repeat(3, 1fr)',
-                                        gap: 15,
+                                        gridTemplateColumns: window.innerWidth < 640
+                                        ? "1fr"
+                                        : "repeat(3, 1fr)"
                                     }}
                                 >
                                     {jobs.map((job) => {
@@ -487,13 +488,13 @@ export default function Step2JobListSelection({
             {/* Sticky footer */}
             <footer
                 className="sticky bottom-0 w-full bg-white border-t border-[#ddd] py-4 px-6 flex flex-wrap items-center justify-between gap-4 z-10 mt-auto"
-                style={{ padding: '15px 50px' }}
+                
             >
                 <p className="text-[13px] text-[#666]">
                     Select at least <strong>{MIN_JOBS_REQUIRED} jobs</strong> — {totalConfirmed} selected
                     so far
                 </p>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                     <Button
                         type="button"
                         variant="outline"

@@ -153,7 +153,7 @@ export default function PerformanceSnapshotTab({
                             Answer {totalQuestions} questions about your company's performance management philosophy and current state. All questions and options are mapped to HR system design outcomes.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="p-6 space-y-6">
+                    <CardContent className="p-3 sm:p-6 space-y-6">
                         {questions && questions.length > 0 ? (
                             questions.map((question, index) => {
                                 const selectedCount = responses[question.id]?.response?.length ?? 0;
@@ -163,10 +163,10 @@ export default function PerformanceSnapshotTab({
                                 return (
                                     <div
                                         key={question.id}
-                                        className="p-5 rounded-xl border border-[#e5e7eb] bg-white hover:border-[#d1d5db] transition-colors"
+                                        className="p-3 sm:p-5 rounded-xl border border-[#e5e7eb] bg-white hover:border-[#d1d5db] transition-colors"
                                     >
-                                        <div className="flex items-start gap-4">
-                                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#121431] text-white flex items-center justify-center text-base font-bold shadow-sm">
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#121431] text-white flex items-center justify-center text-sm sm:text-base font-bold shadow-sm">
                                                 {index + 1}
                                             </div>
                                             <div className="flex-1 min-w-0">
@@ -199,7 +199,7 @@ export default function PerformanceSnapshotTab({
                                                         {question.options.map((option) => (
                                                             <div
                                                                 key={option}
-                                                                className="flex items-center justify-between gap-3 py-2.5 px-3 rounded-lg border border-[#e5e7eb] hover:bg-[#f9fafb]"
+                                                                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-2.5 px-3 rounded-lg border border-[#e5e7eb] hover:bg-[#f9fafb]"
                                                             >
                                                                 <div className="flex items-center gap-3 flex-1 min-w-0">
                                                                     <RadioGroupItem
@@ -218,7 +218,7 @@ export default function PerformanceSnapshotTab({
                                                                     type="button"
                                                                     variant="outline"
                                                                     size="sm"
-                                                                    className="shrink-0 h-8 px-3 text-[#6b7280] border-[#d1d5db] hover:bg-[#f3f4f6]"
+                                                                    className="shrink-0 h-8 px-3 text-[#6b7280] border-[#d1d5db] hover:bg-[#f3f4f6] self-end sm:self-auto"
                                                                     onClick={(e) => handleViewClick(e, option)}
                                                                 >
                                                                     <Eye className="w-4 h-4 mr-1.5" />
@@ -242,7 +242,7 @@ export default function PerformanceSnapshotTab({
                                                             return (
                                                                 <div
                                                                     key={option}
-                                                                    className={`flex items-center justify-between gap-3 py-2.5 px-3 rounded-lg border transition-colors ${
+                                                                    className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-2.5 px-3 rounded-lg border transition-colors ${
                                                                         isChecked
                                                                             ? 'border-[#059669] bg-[#f0fdf4]'
                                                                             : 'border-[#e5e7eb] hover:bg-[#f9fafb]'
@@ -273,7 +273,7 @@ export default function PerformanceSnapshotTab({
                                                                         type="button"
                                                                         variant="outline"
                                                                         size="sm"
-                                                                        className="shrink-0 h-8 px-3 text-[#6b7280] border-[#d1d5db] hover:bg-[#f3f4f6]"
+                                                                        className="shrink-0 h-8 px-3 text-[#6b7280] border-[#d1d5db] hover:bg-[#f3f4f6] self-end sm:self-auto"
                                                                         onClick={(e) => handleViewClick(e, option)}
                                                                     >
                                                                         <Eye className="w-4 h-4 mr-1.5" />
@@ -289,7 +289,7 @@ export default function PerformanceSnapshotTab({
                                                     responses[question.id]?.response?.some((r) =>
                                                         r.toLowerCase().includes('other')
                                                     ) && (
-                                                        <div className="ml-10 mt-4 space-y-2">
+                                                        <div className="ml-0 sm:ml-8 mt-4 space-y-2">
                                                             <Label className="text-sm font-semibold text-[#374151]">
                                                                 Please specify:
                                                             </Label>
@@ -299,7 +299,7 @@ export default function PerformanceSnapshotTab({
                                                                     handleTextResponseChange(question.id, e.target.value)
                                                                 }
                                                                 placeholder="Enter details..."
-                                                                className="mt-1 max-w-md border-[#e5e7eb]"
+                                                                className="mt-1 w-full sm:max-w-md border-[#e5e7eb]"
                                                             />
                                                         </div>
                                                     )}
@@ -316,19 +316,19 @@ export default function PerformanceSnapshotTab({
                     </CardContent>
                 </Card>
 
-                <div className="flex items-center justify-between gap-4 pt-6 border-t border-[#e5e7eb]">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-6 border-t border-[#e5e7eb]">
                     {onBack && (
                         <Button
                             onClick={onBack}
                             variant="outline"
                             size="lg"
-                            className="flex items-center gap-2 border-[#e5e7eb]"
+                            className="flex items-center justify-center gap-2 border-[#e5e7eb] w-full sm:w-auto"
                         >
                             <ChevronLeft className="w-4 h-4" />
                             Back
                         </Button>
                     )}
-                    <div className="flex-1 flex items-center justify-center">
+                    <div className="flex-1 flex items-center justify-center text-center">
                         <span className="text-sm text-[#6b7280]">
                             <span className="font-semibold text-[#121431]">{answeredCount}</span>/{totalQuestions} questions
                             answered
@@ -341,7 +341,7 @@ export default function PerformanceSnapshotTab({
                         onClick={handleContinue}
                         size="lg"
                         disabled={!allQuestionsAnswered}
-                        className="flex items-center gap-2 bg-[#121431] hover:bg-[#1e2a4a] disabled:opacity-50 disabled:pointer-events-none"
+                        className="flex items-center justify-center gap-2 bg-[#121431] hover:bg-[#1e2a4a] disabled:opacity-50 disabled:pointer-events-none w-full sm:w-auto"
                     >
                         Continue to KPI Review
                         <ChevronRight className="w-4 h-4" />

@@ -210,7 +210,7 @@ export default function Step6ReviewSubmit({
                 </p>
 
                 {/* Summary cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
                     <div className="rounded-xl p-5 border border-blue-200 bg-blue-50 flex items-center justify-between">
                         <div>
                             <p className="text-xs font-semibold text-blue-900 uppercase tracking-wide mb-0.5">Jobs Defined</p>

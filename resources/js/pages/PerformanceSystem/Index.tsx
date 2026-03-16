@@ -261,7 +261,7 @@ export default function PerformanceSystemIndex({
             {/* Match Job Analysis: on overview = full-page cream bg, no tab bar. Else = header + tab bar + content */}
             {activeTab === 'overview' ? (
                 <div className="min-h-full bg-[#f5f3ef]">
-                    <div className="p-6 space-y-6">
+                    <div className="space-y-6">
                         <div className="flex items-center justify-between">
                             <Link
                                 href="/hr-manager/dashboard"

@@ -205,8 +205,8 @@ export default function JobStructure({
                     </div>
 
                     <div
-                        className="grid rounded-xl border-[1.5px] border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden min-h-[460px]"
-                        style={{ gridTemplateColumns: '260px 1fr', boxShadow: '0 1px 4px rgba(15,42,74,0.07)' }}
+                        className="grid grid-cols-1 md:grid-cols-[260px_1fr] rounded-xl border-[1.5px] border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden min-h-[460px]"
+                        style={{ boxShadow: '0 1px 4px rgba(15,42,74,0.07)' }}
                     >
                         {/* Left: Category list */}
                         <div className="flex flex-col border-r border-slate-200 dark:border-slate-700">

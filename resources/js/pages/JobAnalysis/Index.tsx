@@ -485,7 +485,7 @@ export default function JobAnalysisIndex({
             <Head title="Job Analysis" />
             <div className="min-h-full bg-[#f5f3ef]">
                 {activeStepLocal === 'overview' ? (
-                    <div className="p-6 space-y-6">
+                    <div className="space-y-6">
                         <div className="flex items-center justify-between">
                             <Link
                                 href="/hr-manager/dashboard"
@@ -514,7 +514,7 @@ export default function JobAnalysisIndex({
                             </span>
                         </header>
 
-                        <div className="p-6 space-y-6">
+                        <div className="p-0 space-y-6">
                             <div className="bg-white border-b border-[#e0ddd5] px-4 py-4 flex justify-center" style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
                                 <StepProgress
                                     steps={STEPS}

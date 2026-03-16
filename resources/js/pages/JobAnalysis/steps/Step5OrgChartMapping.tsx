@@ -420,8 +420,8 @@ export default function Step5OrgChartMapping({
                                             'rounded-xl border overflow-hidden transition-shadow',
                                             'border-[#e5e7eb]',
                                             isChild && 'relative border-l-2 border-[#e5e7eb]',
-                                            depth === 1 && 'ml-6 pl-4',
-                                            depth === 2 && 'ml-12 pl-4',
+                                            depth === 1 && 'pl-4',
+                                            depth === 2 && 'pl-4',
                                             canDropUnit && 'ring-2 ring-[#121431] ring-offset-2'
                                         )}
                                         style={{
@@ -610,7 +610,7 @@ export default function Step5OrgChartMapping({
                     </div>
 
                     {/* Right: Finalized Jobs + Progress */}
-                    <div className="space-y-4">
+                    <div className="space-y-4 sticky top-4 self-start">
                         <div
                             className="bg-white rounded-xl border border-[#e5e7eb] p-4"
                             style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}

@@ -285,7 +285,7 @@ export default function Step3JobDefinition({
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-1 mb-6 border-b border-[#e0ddd5] pb-0">
+                <div className="flex gap-1 mb-6 border-b border-[#e0ddd5] pb-0 flex-wrap">
                     {TAB_ORDER.map((tabId) => {
                         const isActive = activeTab === tabId;
                         const complete = isTabComplete(tabId);
@@ -551,7 +551,7 @@ export default function Step3JobDefinition({
                                                 <Label className="text-xs font-semibold text-[#666] block mb-2">
                                                     STRATEGIC IMPORTANCE
                                                 </Label>
-                                                <div className="flex gap-2">
+                                                <div className="flex gap-2 flex-wrap">
                                                     {(['high', 'medium', 'low'] as const).map((v) => (
                                                         <button
                                                             key={v}
@@ -575,7 +575,7 @@ export default function Step3JobDefinition({
                                                 <Label className="text-xs font-semibold text-[#666] block mb-2">
                                                     CSF CATEGORY <span className="text-red-500">*</span>
                                                 </Label>
-                                                <div className="flex gap-3">
+                                                <div className="flex gap-3 flex-wrap">
                                                     {(
                                                         [
                                                             ['strategic', 'Strategic'],
@@ -623,12 +623,11 @@ export default function Step3JobDefinition({
             {/* Sticky footer */}
             <footer
                 className="sticky bottom-0 w-full bg-white border-t border-[#e0ddd5] py-4 px-6 flex flex-wrap items-center justify-between gap-4 z-10 mt-auto"
-                style={{ padding: '15px 50px' }}
             >
                 <p className="text-sm text-[#666]">
                     Defining <strong>{currentJob.name}</strong>
                 </p>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                     <Button
                         type="button"
                         variant="outline"

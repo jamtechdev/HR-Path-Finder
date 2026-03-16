@@ -219,7 +219,7 @@ export default function Step4Finalization({
                                 <p className="opacity-90 max-w-[600px] leading-relaxed m-0 text-[15px]">
                                     {activeJob.job_description || 'No description entered.'}
                                 </p>
-                                <div className="absolute top-10 right-6 md:right-10 text-right flex flex-col gap-2 min-w-[140px]">
+                                <div className="sm:absolute top-10 right-6 md:right-10 text-right flex flex-col gap-2 min-w-[140px]">
                                     <div
                                         className="rounded px-3 py-2 text-[11px] border shrink-0"
                                         style={{

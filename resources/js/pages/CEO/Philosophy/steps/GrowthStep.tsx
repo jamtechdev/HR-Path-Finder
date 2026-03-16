@@ -146,12 +146,12 @@ function StageCard({
             type="button"
             onClick={onSelect}
             className={`
-                w-full bg-white border-2 rounded-xl py-5 px-3.5 sm:py-5 sm:px-4 flex flex-col items-center text-center relative
+                w-full  border-2 rounded-xl py-5 px-3.5 sm:py-5 sm:px-4 flex flex-col items-center text-center relative
                 transition-all duration-200 select-none touch-manipulation
                 hover:border-[#0E1628]/30 hover:shadow-[0_4px_16px_rgba(14,22,40,0.08)] hover:-translate-y-0.5
                 ${isSelected
                     ? 'border-[#0E1628] shadow-[0_6px_24px_rgba(14,22,40,0.14)] -translate-y-1 bg-[#0E1628]'
-                    : 'border-[#E2DDD4]'
+                    : 'border-[#E2DDD4] bg-white'
                 }
             `}
         >

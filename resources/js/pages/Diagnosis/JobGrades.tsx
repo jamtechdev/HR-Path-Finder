@@ -297,7 +297,7 @@ export default function JobGrades({
                             onDragLeave={() => setDropTarget(null)}
                             onDrop={(e) => handleDrop(e, g.id)}
                             className={cn(
-                                'grid gap-x-2 sm:gap-x-3 py-3 px-4 sm:py-3.5 sm:px-7 items-start transition-colors hover:bg-[#F8F9FB]',
+                                'grid gap-2 sm:gap-3 py-3 px-4 sm:py-3.5 sm:px-7 items-start transition-colors hover:bg-[#F8F9FB]',
                                 draggingId === g.id && 'opacity-35 bg-[#F0F2F5]',
                                 dropTarget?.id === g.id && dropTarget.top && 'border-t-[2.5px] border-t-[#2EC4A9]',
                                 dropTarget?.id === g.id && !dropTarget.top && 'border-b-[2.5px] border-b-[#2EC4A9]'
