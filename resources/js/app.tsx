@@ -2,6 +2,7 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Toaster } from 'sonner'; // ⭐ ADD THIS
 import '../css/app.css';
 import { initializeTheme } from './hooks/use-appearance';
 import './lib/i18n'; // Initialize i18n
@@ -21,7 +22,9 @@ createInertiaApp({
         const parts = name.split('/');
         const filePart = parts.pop() || '';
         const pascalFile = kebabToPascal(filePart) + '.tsx';
-        const pathPascal = parts.length ? `./pages/${parts.join('/')}/${pascalFile}` : `./pages/${pascalFile}`;
+        const pathPascal = parts.length
+            ? `./pages/${parts.join('/')}/${pascalFile}`
+            : `./pages/${pascalFile}`;
         const pathsToTry = path === pathPascal ? path : [path, pathPascal];
         return resolvePageComponent(pathsToTry, pageModules);
     },
@@ -30,7 +33,11 @@ createInertiaApp({
 
         root.render(
             <StrictMode>
-                <App {...props} />
+                <>
+                    <App {...props} />
+                    <Toaster position="top-right" richColors closeButton />{' '}
+                    {/* ⭐ ADD THIS */}
+                </>
             </StrictMode>,
         );
     },

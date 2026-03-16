@@ -52,6 +52,9 @@ import {
     XCircle,
 } from 'lucide-react';
 import React, { useState } from 'react';
+import { usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
 
 interface Invitation {
     id: number;
@@ -101,9 +104,26 @@ interface Props {
 }
 
 export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
+
+    const { flash } = usePage().props as any;
+
+        useEffect(() => {
+            if (flash?.success) {
+                toast.success(flash.success);
+            }
+
+            if (flash?.error) {
+                toast.error(flash.error);
+            }
+
+            if (flash?.message) {
+                toast.message(flash.message);
+            }
+        }, [flash]);
+    
     const [statusFilter, setStatusFilter] = useState<
         'all' | 'pending' | 'accepted' | 'rejected'
-    >('all');
+        >('all');
     const [showCreateCeoDialog, setShowCreateCeoDialog] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({

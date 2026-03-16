@@ -1,13 +1,24 @@
-import React from 'react';
-import { Head, Link, router } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Sidebar,
+    SidebarInset,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Edit, Plus, Trash2 } from 'lucide-react';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
 
 interface IndustryCategory {
     id: number;
@@ -28,7 +39,23 @@ interface Props {
     currentCategory?: number;
 }
 
-export default function SubcategoriesIndex({ subCategories, categories, currentCategory }: Props) {
+export default function SubcategoriesIndex({
+    subCategories,
+    categories,
+    currentCategory,
+}: Props) {
+    const { flash } = usePage().props as any;
+
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
+        }
+
+        if (flash?.error) {
+            toast.error(flash.error);
+        }
+    }, [flash]);
+
     const handleDelete = (subCategoryId: number) => {
         if (confirm('Are you sure you want to delete this sub industry?')) {
             router.delete(`/admin/subcategories/${subCategoryId}`, {
@@ -46,17 +73,19 @@ export default function SubcategoriesIndex({ subCategories, categories, currentC
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
                     <Head title="Sub Industries Management" />
-                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+                    <div className="mx-auto max-w-7xl p-6 md:p-8">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
-                                <h1 className="text-3xl font-bold mb-2 text-foreground">Sub Industries Management</h1>
+                                <h1 className="mb-2 text-3xl font-bold text-foreground">
+                                    Sub Industries Management
+                                </h1>
                                 <p className="text-muted-foreground">
                                     Manage sub industries
                                 </p>
                             </div>
                             <Link href="/admin/subcategories/create">
                                 <Button>
-                                    <Plus className="w-4 h-4 mr-2" />
+                                    <Plus className="mr-2 h-4 w-4" />
                                     Add Sub Industry
                                 </Button>
                             </Link>
@@ -67,11 +96,14 @@ export default function SubcategoriesIndex({ subCategories, categories, currentC
                                 <div className="flex items-center justify-between">
                                     <CardTitle>Filter by Industry</CardTitle>
                                     <Select
-                                        value={currentCategory?.toString() || 'all'}
+                                        value={
+                                            currentCategory?.toString() || 'all'
+                                        }
                                         onValueChange={(value) => {
-                                            router.visit(value === 'all'
-                                                ? '/admin/subcategories'
-                                                : `/admin/subcategories?category=${value}`
+                                            router.visit(
+                                                value === 'all'
+                                                    ? '/admin/subcategories'
+                                                    : `/admin/subcategories?category=${value}`,
                                             );
                                         }}
                                     >
@@ -79,9 +111,14 @@ export default function SubcategoriesIndex({ subCategories, categories, currentC
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="all">All Industries</SelectItem>
+                                            <SelectItem value="all">
+                                                All Industries
+                                            </SelectItem>
                                             {categories.map((category) => (
-                                                <SelectItem key={category.id} value={category.id.toString()}>
+                                                <SelectItem
+                                                    key={category.id}
+                                                    value={category.id.toString()}
+                                                >
                                                     {category.name}
                                                 </SelectItem>
                                             ))}
@@ -97,38 +134,58 @@ export default function SubcategoriesIndex({ subCategories, categories, currentC
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-2">
-                                    {(subCategories || []).map((subCategory) => (
-                                        <div
-                                            key={subCategory.id}
-                                            className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
-                                        >
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-3 mb-1">
-                                                    <p className="font-medium">{subCategory.name}</p>
-                                                    <Badge variant="outline">
-                                                        {subCategory.industryCategory?.name || 'Unknown Industry'}
-                                                    </Badge>
-                                                    <Badge variant="secondary">Order: {subCategory.order}</Badge>
+                                    {(subCategories || []).map(
+                                        (subCategory) => (
+                                            <div
+                                                key={subCategory.id}
+                                                className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50"
+                                            >
+                                                <div className="flex-1">
+                                                    <div className="mb-1 flex items-center gap-3">
+                                                        <p className="font-medium">
+                                                            {subCategory.name}
+                                                        </p>
+                                                        <Badge variant="outline">
+                                                            {subCategory
+                                                                .industryCategory
+                                                                ?.name ||
+                                                                'Unknown Industry'}
+                                                        </Badge>
+                                                        <Badge variant="secondary">
+                                                            Order:{' '}
+                                                            {subCategory.order}
+                                                        </Badge>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Link
+                                                        href={`/admin/subcategories/${subCategory.id}/edit`}
+                                                    >
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                        >
+                                                            <Edit className="h-4 w-4" />
+                                                        </Button>
+                                                    </Link>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                subCategory.id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                    </Button>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <Link href={`/admin/subcategories/${subCategory.id}/edit`}>
-                                                    <Button variant="ghost" size="sm">
-                                                        <Edit className="w-4 h-4" />
-                                                    </Button>
-                                                </Link>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(subCategory.id)}
-                                                >
-                                                    <Trash2 className="w-4 h-4 text-destructive" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {(!subCategories || subCategories.length === 0) && (
-                                        <p className="text-center text-muted-foreground py-8">
+                                        ),
+                                    )}
+                                    {(!subCategories ||
+                                        subCategories.length === 0) && (
+                                        <p className="py-8 text-center text-muted-foreground">
                                             No sub industries found.
                                         </p>
                                     )}

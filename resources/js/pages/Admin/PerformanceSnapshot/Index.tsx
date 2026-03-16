@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Plus, Edit, Trash2, Search, GripVertical } from 'lucide-react';
+import {
+    Sidebar,
+    SidebarInset,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Edit, GripVertical, Plus, Search, Trash2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface PerformanceSnapshotQuestion {
     id: number;
@@ -24,7 +29,22 @@ interface Props {
     answerTypes: Record<string, string>;
 }
 
-export default function PerformanceSnapshotIndex({ questions, answerTypes }: Props) {
+export default function PerformanceSnapshotIndex({
+    questions,
+    answerTypes,
+}: Props) {
+    const { flash } = usePage().props as any;
+
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
+        }
+
+        if (flash?.error) {
+            toast.error(flash.error);
+        }
+    }, [flash]);
+
     const [searchTerm, setSearchTerm] = useState('');
     const [localQuestions, setLocalQuestions] = useState(questions);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -35,8 +55,8 @@ export default function PerformanceSnapshotIndex({ questions, answerTypes }: Pro
         setLocalQuestions(questions);
     }, [questions]);
 
-    const filteredQuestions = localQuestions.filter(q =>
-        q.question_text.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredQuestions = localQuestions.filter((q) =>
+        q.question_text.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
     const handleDelete = (questionId: number) => {
@@ -85,18 +105,22 @@ export default function PerformanceSnapshotIndex({ questions, answerTypes }: Pro
         setDraggedIndex(null);
 
         // Save new order to backend
-        router.post('/admin/performance-snapshot/reorder', {
-            questions: updatedQuestions.map((q, idx) => ({
-                id: q.id,
-                order: idx + 1,
-            })),
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                // Reload to get updated data
-                router.reload({ only: ['questions'] });
+        router.post(
+            '/admin/performance-snapshot/reorder',
+            {
+                questions: updatedQuestions.map((q, idx) => ({
+                    id: q.id,
+                    order: idx + 1,
+                })),
             },
-        });
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    // Reload to get updated data
+                    router.reload({ only: ['questions'] });
+                },
+            },
+        );
     };
 
     const getAnswerTypeLabel = (type: string) => {
@@ -112,17 +136,20 @@ export default function PerformanceSnapshotIndex({ questions, answerTypes }: Pro
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
                     <Head title="Performance Snapshot Questions Management" />
-                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+                    <div className="mx-auto max-w-7xl p-6 md:p-8">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
-                                <h1 className="text-3xl font-bold mb-2 text-foreground">Performance Snapshot Questions</h1>
+                                <h1 className="mb-2 text-3xl font-bold text-foreground">
+                                    Performance Snapshot Questions
+                                </h1>
                                 <p className="text-muted-foreground">
-                                    Manage all questions for the Strategic Performance Snapshot (Stage 4-1)
+                                    Manage all questions for the Strategic
+                                    Performance Snapshot (Stage 4-1)
                                 </p>
                             </div>
                             <Link href="/admin/performance-snapshot/create">
                                 <Button>
-                                    <Plus className="w-4 h-4 mr-2" />
+                                    <Plus className="mr-2 h-4 w-4" />
                                     Add Question
                                 </Button>
                             </Link>
@@ -131,13 +158,17 @@ export default function PerformanceSnapshotIndex({ questions, answerTypes }: Pro
                         <Card>
                             <CardHeader>
                                 <div className="flex items-center justify-between">
-                                    <CardTitle>Questions ({filteredQuestions.length})</CardTitle>
+                                    <CardTitle>
+                                        Questions ({filteredQuestions.length})
+                                    </CardTitle>
                                     <div className="relative w-64">
-                                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
                                         <Input
                                             placeholder="Search questions..."
                                             value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            onChange={(e) =>
+                                                setSearchTerm(e.target.value)
+                                            }
                                             className="pl-8"
                                         />
                                     </div>
@@ -145,76 +176,170 @@ export default function PerformanceSnapshotIndex({ questions, answerTypes }: Pro
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-2">
-                                    {filteredQuestions.map((question, index) => {
-                                        const originalIndex = localQuestions.findIndex(q => q.id === question.id);
-                                        return (
-                                        <div
-                                            key={question.id}
-                                            draggable
-                                            onDragStart={(e) => handleDragStart(e, originalIndex)}
-                                            onDragOver={(e) => handleDragOver(e, originalIndex)}
-                                            onDragLeave={handleDragLeave}
-                                            onDrop={(e) => handleDrop(e, originalIndex)}
-                                            className={`flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors ${
-                                                dragOverIndex === originalIndex ? 'bg-primary/10 border-primary' : ''
-                                            } ${draggedIndex === originalIndex ? 'opacity-50' : ''}`}
-                                        >
-                                            <div className="flex items-start gap-3 flex-1">
-                                                <GripVertical className="w-5 h-5 text-muted-foreground mt-1 cursor-move" />
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <Badge variant="outline">
-                                                            {getAnswerTypeLabel(question.answer_type)}
-                                                        </Badge>
-                                                        {question.version && (
-                                                            <Badge variant="secondary">v{question.version}</Badge>
-                                                        )}
-                                                        {!question.is_active && (
-                                                            <Badge variant="destructive">Inactive</Badge>
-                                                        )}
-                                                        <span className="text-xs text-muted-foreground">
-                                                            Order: {question.order}
-                                                        </span>
-                                                    </div>
-                                                    <p className="text-sm font-medium mb-2">{question.question_text}</p>
-                                                    {question.options && question.options.length > 0 && (
-                                                        <div className="text-xs text-muted-foreground">
-                                                            <span className="font-medium">Options ({question.options.length}):</span>
-                                                            <div className="mt-1 flex flex-wrap gap-1">
-                                                                {question.options.slice(0, 5).map((option, idx) => (
-                                                                    <Badge key={idx} variant="outline" className="text-xs">
-                                                                        {option}
-                                                                    </Badge>
-                                                                ))}
-                                                                {question.options.length > 5 && (
-                                                                    <Badge variant="outline" className="text-xs">
-                                                                        +{question.options.length - 5} more
+                                    {filteredQuestions.map(
+                                        (question, index) => {
+                                            const originalIndex =
+                                                localQuestions.findIndex(
+                                                    (q) => q.id === question.id,
+                                                );
+                                            return (
+                                                <div
+                                                    key={question.id}
+                                                    draggable
+                                                    onDragStart={(e) =>
+                                                        handleDragStart(
+                                                            e,
+                                                            originalIndex,
+                                                        )
+                                                    }
+                                                    onDragOver={(e) =>
+                                                        handleDragOver(
+                                                            e,
+                                                            originalIndex,
+                                                        )
+                                                    }
+                                                    onDragLeave={
+                                                        handleDragLeave
+                                                    }
+                                                    onDrop={(e) =>
+                                                        handleDrop(
+                                                            e,
+                                                            originalIndex,
+                                                        )
+                                                    }
+                                                    className={`flex items-start justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50 ${
+                                                        dragOverIndex ===
+                                                        originalIndex
+                                                            ? 'border-primary bg-primary/10'
+                                                            : ''
+                                                    } ${draggedIndex === originalIndex ? 'opacity-50' : ''}`}
+                                                >
+                                                    <div className="flex flex-1 items-start gap-3">
+                                                        <GripVertical className="mt-1 h-5 w-5 cursor-move text-muted-foreground" />
+                                                        <div className="flex-1">
+                                                            <div className="mb-2 flex items-center gap-2">
+                                                                <Badge variant="outline">
+                                                                    {getAnswerTypeLabel(
+                                                                        question.answer_type,
+                                                                    )}
+                                                                </Badge>
+                                                                {question.version && (
+                                                                    <Badge variant="secondary">
+                                                                        v
+                                                                        {
+                                                                            question.version
+                                                                        }
                                                                     </Badge>
                                                                 )}
+                                                                {!question.is_active && (
+                                                                    <Badge variant="destructive">
+                                                                        Inactive
+                                                                    </Badge>
+                                                                )}
+                                                                <span className="text-xs text-muted-foreground">
+                                                                    Order:{' '}
+                                                                    {
+                                                                        question.order
+                                                                    }
+                                                                </span>
                                                             </div>
+                                                            <p className="mb-2 text-sm font-medium">
+                                                                {
+                                                                    question.question_text
+                                                                }
+                                                            </p>
+                                                            {question.options &&
+                                                                question.options
+                                                                    .length >
+                                                                    0 && (
+                                                                    <div className="text-xs text-muted-foreground">
+                                                                        <span className="font-medium">
+                                                                            Options
+                                                                            (
+                                                                            {
+                                                                                question
+                                                                                    .options
+                                                                                    .length
+                                                                            }
+                                                                            ):
+                                                                        </span>
+                                                                        <div className="mt-1 flex flex-wrap gap-1">
+                                                                            {question.options
+                                                                                .slice(
+                                                                                    0,
+                                                                                    5,
+                                                                                )
+                                                                                .map(
+                                                                                    (
+                                                                                        option,
+                                                                                        idx,
+                                                                                    ) => (
+                                                                                        <Badge
+                                                                                            key={
+                                                                                                idx
+                                                                                            }
+                                                                                            variant="outline"
+                                                                                            className="text-xs"
+                                                                                        >
+                                                                                            {
+                                                                                                option
+                                                                                            }
+                                                                                        </Badge>
+                                                                                    ),
+                                                                                )}
+                                                                            {question
+                                                                                .options
+                                                                                .length >
+                                                                                5 && (
+                                                                                <Badge
+                                                                                    variant="outline"
+                                                                                    className="text-xs"
+                                                                                >
+                                                                                    +
+                                                                                    {question
+                                                                                        .options
+                                                                                        .length -
+                                                                                        5}{' '}
+                                                                                    more
+                                                                                </Badge>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
                                                         </div>
-                                                    )}
+                                                    </div>
+                                                    <div className="ml-4 flex items-center gap-2">
+                                                        <Link
+                                                            href={`/admin/performance-snapshot/${question.id}/edit`}
+                                                        >
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                        </Link>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    question.id,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="flex items-center gap-2 ml-4">
-                                                <Link href={`/admin/performance-snapshot/${question.id}/edit`}>
-                                                    <Button variant="ghost" size="sm">
-                                                        <Edit className="w-4 h-4" />
-                                                    </Button>
-                                                </Link>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(question.id)}
-                                                >
-                                                    <Trash2 className="w-4 h-4 text-destructive" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    )})}
+                                            );
+                                        },
+                                    )}
                                     {filteredQuestions.length === 0 && (
-                                        <p className="text-center text-muted-foreground py-8">
-                                            {searchTerm ? 'No questions found matching your search.' : 'No questions found. Create your first question!'}
+                                        <p className="py-8 text-center text-muted-foreground">
+                                            {searchTerm
+                                                ? 'No questions found matching your search.'
+                                                : 'No questions found. Create your first question!'}
                                         </p>
                                     )}
                                 </div>

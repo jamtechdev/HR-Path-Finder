@@ -57,6 +57,7 @@ class PolicySnapshotController extends Controller
      */
     public function edit(PolicySnapshotQuestion $policySnapshotQuestion): Response
     {
+        // dd($policySnapshotQuestion);
         return Inertia::render('Admin/PolicySnapshot/Edit', [
             'question' => $policySnapshotQuestion,
         ]);

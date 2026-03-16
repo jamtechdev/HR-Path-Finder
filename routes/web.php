@@ -241,36 +241,48 @@ Route::middleware(['auth'])->group(function () {
         Route::post('kpi-review/{hrProject}', [\App\Http\Controllers\Admin\KpiReviewController::class, 'store'])->name('kpi-review.store');
 
         // CEO Questions Management
-        Route::resource('questions/ceo', \App\Http\Controllers\Admin\DiagnosisQuestionController::class)->names([
-            'index' => 'questions.ceo.index',
-            'create' => 'questions.ceo.create',
-            'store' => 'questions.ceo.store',
-            'show' => 'questions.ceo.show',
-            'edit' => 'questions.ceo.edit',
-            'update' => 'questions.ceo.update',
-            'destroy' => 'questions.ceo.destroy',
-        ]);
+        Route::resource('questions/ceo', \App\Http\Controllers\Admin\DiagnosisQuestionController::class)
+            ->parameters([
+                'ceo' => 'diagnosisQuestion'
+            ])
+            ->names([
+                'index' => 'questions.ceo.index',
+                'create' => 'questions.ceo.create',
+                'store' => 'questions.ceo.store',
+                'show' => 'questions.ceo.show',
+                'edit' => 'questions.ceo.edit',
+                'update' => 'questions.ceo.update',
+                'destroy' => 'questions.ceo.destroy',
+            ]);
         Route::post('questions/ceo/reorder', [\App\Http\Controllers\Admin\DiagnosisQuestionController::class, 'reorder'])->name('questions.ceo.reorder');
 
         // Policy Snapshot Questions
-        Route::resource('policy-snapshot', \App\Http\Controllers\Admin\PolicySnapshotController::class)->names([
-            'index' => 'policy-snapshot.index',
-            'create' => 'policy-snapshot.create',
-            'store' => 'policy-snapshot.store',
-            'edit' => 'policy-snapshot.edit',
-            'update' => 'policy-snapshot.update',
-            'destroy' => 'policy-snapshot.destroy',
-        ]);
+        Route::resource('policy-snapshot', \App\Http\Controllers\Admin\PolicySnapshotController::class)
+            ->parameters([
+                'policy-snapshot' => 'policySnapshotQuestion'
+            ])
+            ->names([
+                'index' => 'policy-snapshot.index',
+                'create' => 'policy-snapshot.create',
+                'store' => 'policy-snapshot.store',
+                'edit' => 'policy-snapshot.edit',
+                'update' => 'policy-snapshot.update',
+                'destroy' => 'policy-snapshot.destroy',
+            ]);
 
         // HR Issues Management
-        Route::resource('hr-issues', \App\Http\Controllers\Admin\HrIssueController::class)->names([
-            'index' => 'hr-issues.index',
-            'create' => 'hr-issues.create',
-            'store' => 'hr-issues.store',
-            'edit' => 'hr-issues.edit',
-            'update' => 'hr-issues.update',
-            'destroy' => 'hr-issues.destroy',
-        ]);
+        Route::resource('hr-issues', \App\Http\Controllers\Admin\HrIssueController::class)
+            ->parameters([
+                'hr-issues' => 'hrIssue'
+            ])
+            ->names([
+                'index' => 'hr-issues.index',
+                'create' => 'hr-issues.create',
+                'store' => 'hr-issues.store',
+                'edit' => 'hr-issues.edit',
+                'update' => 'hr-issues.update',
+                'destroy' => 'hr-issues.destroy',
+            ]);
 
         // Industries Management
         Route::resource('industries', \App\Http\Controllers\Admin\IndustryController::class)->names([
@@ -294,7 +306,9 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('ceos/{ceo}', [\App\Http\Controllers\Admin\CeoController::class, 'destroy'])
             ->name('ceos.destroy');
         // Industry Subcategories Management (Full CRUD)
-        Route::resource('subcategories', \App\Http\Controllers\Admin\IndustrySubCategoryController::class)->names([
+        Route::resource('subcategories', \App\Http\Controllers\Admin\IndustrySubCategoryController::class)->parameters([
+            'subcategories' => 'subCategory'
+        ])->names([
             'index' => 'subcategories.index',
             'create' => 'subcategories.create',
             'store' => 'subcategories.store',
@@ -340,15 +354,22 @@ Route::middleware(['auth'])->group(function () {
         ]);
 
         // Performance Snapshot Questions
-        Route::resource('performance-snapshot', \App\Http\Controllers\Admin\PerformanceSnapshotQuestionController::class)->names([
-            'index' => 'performance-snapshot.index',
-            'create' => 'performance-snapshot.create',
-            'store' => 'performance-snapshot.store',
-            'show' => 'performance-snapshot.show',
-            'edit' => 'performance-snapshot.edit',
-            'update' => 'performance-snapshot.update',
-            'destroy' => 'performance-snapshot.destroy',
-        ]);
+        Route::resource(
+            'performance-snapshot',
+            \App\Http\Controllers\Admin\PerformanceSnapshotQuestionController::class
+        )
+            ->parameters([
+                'performance-snapshot' => 'performanceSnapshotQuestion'
+            ])
+            ->names([
+                'index' => 'performance-snapshot.index',
+                'create' => 'performance-snapshot.create',
+                'store' => 'performance-snapshot.store',
+                'show' => 'performance-snapshot.show',
+                'edit' => 'performance-snapshot.edit',
+                'update' => 'performance-snapshot.update',
+                'destroy' => 'performance-snapshot.destroy',
+            ]);
 
         // Evaluation Model Guidance
         Route::resource('evaluation-model-guidance', \App\Http\Controllers\Admin\EvaluationModelGuidanceController::class)->names([

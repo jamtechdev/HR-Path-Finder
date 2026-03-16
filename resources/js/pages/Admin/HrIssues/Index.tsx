@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Sidebar,
+    SidebarInset,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Edit, Plus, Trash2 } from 'lucide-react';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
 
 interface HrIssue {
     id: number;
@@ -23,7 +34,23 @@ interface Props {
     currentCategory?: string;
 }
 
-export default function HrIssuesIndex({ issues, categories, currentCategory }: Props) {
+export default function HrIssuesIndex({
+    issues,
+    categories,
+    currentCategory,
+}: Props) {
+    const { flash } = usePage().props as any;
+
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
+        }
+
+        if (flash?.error) {
+            toast.error(flash.error);
+        }
+    }, [flash]);
+
     const handleDelete = (issueId: number) => {
         if (confirm('Are you sure you want to delete this issue?')) {
             router.delete(`/admin/hr-issues/${issueId}`, {
@@ -41,17 +68,20 @@ export default function HrIssuesIndex({ issues, categories, currentCategory }: P
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
                     <Head title="HR Issues Management" />
-                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+                    <div className="mx-auto max-w-7xl p-6 md:p-8">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
-                                <h1 className="text-3xl font-bold mb-2 text-foreground">HR Issues Management</h1>
+                                <h1 className="mb-2 text-3xl font-bold text-foreground">
+                                    HR Issues Management
+                                </h1>
                                 <p className="text-muted-foreground">
-                                    Manage HR issue items that can be selected by HR managers and CEOs
+                                    Manage HR issue items that can be selected
+                                    by HR managers and CEOs
                                 </p>
                             </div>
                             <Link href="/admin/hr-issues/create">
                                 <Button>
-                                    <Plus className="w-4 h-4 mr-2" />
+                                    <Plus className="mr-2 h-4 w-4" />
                                     Add Issue
                                 </Button>
                             </Link>
@@ -64,9 +94,10 @@ export default function HrIssuesIndex({ issues, categories, currentCategory }: P
                                     <Select
                                         value={currentCategory || 'all'}
                                         onValueChange={(value) => {
-                                            router.visit(value === 'all'
-                                                ? '/admin/hr-issues'
-                                                : `/admin/hr-issues?category=${value}`
+                                            router.visit(
+                                                value === 'all'
+                                                    ? '/admin/hr-issues'
+                                                    : `/admin/hr-issues?category=${value}`,
                                             );
                                         }}
                                     >
@@ -74,12 +105,19 @@ export default function HrIssuesIndex({ issues, categories, currentCategory }: P
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="all">All Categories</SelectItem>
-                                            {Object.entries(categories).map(([key, label]) => (
-                                                <SelectItem key={key} value={key}>
-                                                    {label}
-                                                </SelectItem>
-                                            ))}
+                                            <SelectItem value="all">
+                                                All Categories
+                                            </SelectItem>
+                                            {Object.entries(categories).map(
+                                                ([key, label]) => (
+                                                    <SelectItem
+                                                        key={key}
+                                                        value={key}
+                                                    >
+                                                        {label}
+                                                    </SelectItem>
+                                                ),
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -89,40 +127,53 @@ export default function HrIssuesIndex({ issues, categories, currentCategory }: P
                                     {issues.map((issue) => (
                                         <div
                                             key={issue.id}
-                                            className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
+                                            className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50"
                                         >
                                             <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-1">
+                                                <div className="mb-1 flex items-center gap-2">
                                                     <Badge variant="outline">
-                                                        {categories[issue.category] || issue.category}
+                                                        {categories[
+                                                            issue.category
+                                                        ] || issue.category}
                                                     </Badge>
                                                     {!issue.is_active && (
-                                                        <Badge variant="destructive">Inactive</Badge>
+                                                        <Badge variant="destructive">
+                                                            Inactive
+                                                        </Badge>
                                                     )}
                                                 </div>
-                                                <p className="text-sm font-medium">{issue.name}</p>
-                                                <p className="text-xs text-muted-foreground mt-1">
+                                                <p className="text-sm font-medium">
+                                                    {issue.name}
+                                                </p>
+                                                <p className="mt-1 text-xs text-muted-foreground">
                                                     Order: {issue.order}
                                                 </p>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <Link href={`/admin/hr-issues/${issue.id}/edit`}>
-                                                    <Button variant="ghost" size="sm">
-                                                        <Edit className="w-4 h-4" />
+                                                <Link
+                                                    href={`/admin/hr-issues/${issue.id}/edit`}
+                                                >
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                    >
+                                                        <Edit className="h-4 w-4" />
                                                     </Button>
                                                 </Link>
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    onClick={() => handleDelete(issue.id)}
+                                                    onClick={() =>
+                                                        handleDelete(issue.id)
+                                                    }
                                                 >
-                                                    <Trash2 className="w-4 h-4 text-destructive" />
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
                                                 </Button>
                                             </div>
                                         </div>
                                     ))}
                                     {issues.length === 0 && (
-                                        <p className="text-center text-muted-foreground py-8">
+                                        <p className="py-8 text-center text-muted-foreground">
                                             No issues found.
                                         </p>
                                     )}
