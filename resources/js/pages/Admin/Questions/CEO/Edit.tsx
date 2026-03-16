@@ -1,17 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import DynamicList from '@/components/Forms/DynamicList';
 import AppHeader from '@/components/Header/AppHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Sidebar,
+    SidebarInset,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import DynamicList from '@/components/Forms/DynamicList';
+import { Head, router, useForm } from '@inertiajs/react';
 import { ChevronLeft } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface DiagnosisQuestion {
     id: number;
@@ -30,42 +40,51 @@ interface Props {
     questionTypes: Record<string, string>;
 }
 
-export default function CEOQuestionEdit({ question, categories, questionTypes }: Props) {
-    const [questionType, setQuestionType] = useState<string>(question.question_type);
+export default function CEOQuestionEdit({
+    question,
+    categories,
+    questionTypes,
+}: Props) {
+    const [questionType, setQuestionType] = useState<string>(
+        question.question_type,
+    );
     const [options, setOptions] = useState<string[]>(question.options || []);
     const [metadata, setMetadata] = useState<any>(question.metadata || {});
 
-    const { data, setData, post, processing, errors } = useForm({
-        category: question.category,
-        question_text: question.question_text,
-        question_type: question.question_type,
-        order: question.order,
-        is_active: question.is_active,
-        options: null as string[] | null,
-        metadata: null as any,
+    const { data, setData, put, processing, errors } = useForm({
+        category: question.category || '',
+        question_text: question.question_text || '',
+        question_type: question.question_type || '',
+        order: question.order || 0,
+        is_active: question.is_active ?? true,
+        options: question.options || [],
+        metadata: question.metadata || {},
     });
 
     useEffect(() => {
         setData('question_type', questionType);
+
         if (questionType === 'select') {
             setData('options', options);
         } else {
-            setData('options', null);
+            setData('options', []);
         }
-        if (questionType === 'likert' || questionType === 'slider' || questionType === 'number') {
+
+        if (
+            questionType === 'likert' ||
+            questionType === 'slider' ||
+            questionType === 'number'
+        ) {
             setData('metadata', metadata);
         } else {
-            setData('metadata', null);
+            setData('metadata', {});
         }
     }, [questionType, options, metadata]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(`/admin/questions/ceo/${question.id}`, {
-            onSuccess: () => {
-                router.visit('/admin/questions/ceo');
-            },
-        });
+
+        put(`/admin/questions/ceo/${question.id}`);
     };
 
     return (
@@ -73,21 +92,29 @@ export default function CEOQuestionEdit({ question, categories, questionTypes }:
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
+
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
+
                 <main className="flex-1 overflow-auto bg-background">
                     <Head title="Edit CEO Question" />
-                    <div className="p-6 md:p-8 max-w-4xl mx-auto">
+
+                    <div className="mx-auto max-w-4xl p-6 md:p-8">
                         <div className="mb-6">
                             <Button
                                 variant="ghost"
-                                onClick={() => router.visit('/admin/questions/ceo')}
+                                onClick={() =>
+                                    router.visit('/admin/questions/ceo')
+                                }
                                 className="mb-4"
                             >
-                                <ChevronLeft className="w-4 h-4 mr-2" />
+                                <ChevronLeft className="mr-2 h-4 w-4" />
                                 Back to Questions
                             </Button>
-                            <h1 className="text-3xl font-bold">Edit CEO Question</h1>
+
+                            <h1 className="text-3xl font-bold">
+                                Edit CEO Question
+                            </h1>
                         </div>
 
                         <form onSubmit={handleSubmit}>
@@ -95,58 +122,118 @@ export default function CEOQuestionEdit({ question, categories, questionTypes }:
                                 <CardHeader>
                                     <CardTitle>Question Details</CardTitle>
                                 </CardHeader>
+
                                 <CardContent className="space-y-4">
-                                    <div>
-                                        <Label>Category <span className="text-destructive">*</span></Label>
-                                        <Select
-                                            value={data.category}
-                                            onValueChange={(value) => setData('category', value)}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {Object.entries(categories).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
-                                                        {label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                                    {/* Category */}
 
                                     <div>
-                                        <Label>Question Text <span className="text-destructive">*</span></Label>
+                                        <Label>
+                                            Category
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
+                                        </Label>
+
+                                        <Select
+                                            defaultValue={data.category}
+                                            onValueChange={(value) =>
+                                                setData('category', value)
+                                            }
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select category" />
+                                            </SelectTrigger>
+
+                                            <SelectContent>
+                                                {Object.entries(categories).map(
+                                                    ([key, label]) => (
+                                                        <SelectItem
+                                                            key={key}
+                                                            value={key}
+                                                        >
+                                                            {label}
+                                                        </SelectItem>
+                                                    ),
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+
+                                        {errors.category && (
+                                            <div className="text-sm text-red-500">
+                                                {errors.category}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Question Text */}
+
+                                    <div>
+                                        <Label>
+                                            Question Text
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
+                                        </Label>
+
                                         <Textarea
                                             value={data.question_text}
-                                            onChange={(e) => setData('question_text', e.target.value)}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'question_text',
+                                                    e.target.value,
+                                                )
+                                            }
                                             rows={3}
-                                            required
                                         />
+
+                                        {errors.question_text && (
+                                            <div className="text-sm text-red-500">
+                                                {errors.question_text}
+                                            </div>
+                                        )}
                                     </div>
 
+                                    {/* Question Type */}
+
                                     <div>
-                                        <Label>Question Type <span className="text-destructive">*</span></Label>
+                                        <Label>
+                                            Question Type
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
+                                        </Label>
+
                                         <Select
-                                            value={questionType}
-                                            onValueChange={setQuestionType}
+                                            defaultValue={questionType}
+                                            onValueChange={(value) =>
+                                                setQuestionType(value)
+                                            }
                                         >
                                             <SelectTrigger>
-                                                <SelectValue />
+                                                <SelectValue placeholder="Select type" />
                                             </SelectTrigger>
+
                                             <SelectContent>
-                                                {Object.entries(questionTypes).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
+                                                {Object.entries(
+                                                    questionTypes,
+                                                ).map(([key, label]) => (
+                                                    <SelectItem
+                                                        key={key}
+                                                        value={key}
+                                                    >
                                                         {label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
+
+                                    {/* SELECT OPTIONS */}
 
                                     {questionType === 'select' && (
                                         <div>
                                             <Label>Options</Label>
+
                                             <DynamicList
                                                 label=""
                                                 items={options}
@@ -157,83 +244,154 @@ export default function CEOQuestionEdit({ question, categories, questionTypes }:
                                         </div>
                                     )}
 
-                                    {(questionType === 'likert' || questionType === 'slider') && (
+                                    {/* SLIDER / LIKERT */}
+
+                                    {(questionType === 'slider' ||
+                                        questionType === 'likert') && (
                                         <div className="space-y-4">
                                             {questionType === 'slider' && (
                                                 <>
                                                     <div>
                                                         <Label>Option A</Label>
+
                                                         <Input
-                                                            value={metadata.option_a || ''}
-                                                            onChange={(e) => setMetadata({ ...metadata, option_a: e.target.value })}
+                                                            value={
+                                                                metadata.option_a ||
+                                                                ''
+                                                            }
+                                                            onChange={(e) =>
+                                                                setMetadata({
+                                                                    ...metadata,
+                                                                    option_a:
+                                                                        e.target
+                                                                            .value,
+                                                                })
+                                                            }
                                                         />
                                                     </div>
+
                                                     <div>
                                                         <Label>Option B</Label>
+
                                                         <Input
-                                                            value={metadata.option_b || ''}
-                                                            onChange={(e) => setMetadata({ ...metadata, option_b: e.target.value })}
+                                                            value={
+                                                                metadata.option_b ||
+                                                                ''
+                                                            }
+                                                            onChange={(e) =>
+                                                                setMetadata({
+                                                                    ...metadata,
+                                                                    option_b:
+                                                                        e.target
+                                                                            .value,
+                                                                })
+                                                            }
                                                         />
                                                     </div>
                                                 </>
                                             )}
+
                                             {questionType === 'likert' && (
                                                 <div>
-                                                    <Label>Scale Labels (comma-separated)</Label>
+                                                    <Label>
+                                                        Scale Labels
+                                                        (comma-separated)
+                                                    </Label>
+
                                                     <Input
-                                                        value={metadata.labels?.join(', ') || ''}
-                                                        onChange={(e) => setMetadata({
-                                                            ...metadata,
-                                                            labels: e.target.value.split(',').map(s => s.trim()),
-                                                        })}
+                                                        value={
+                                                            metadata.labels?.join(
+                                                                ', ',
+                                                            ) || ''
+                                                        }
+                                                        onChange={(e) =>
+                                                            setMetadata({
+                                                                ...metadata,
+                                                                labels: e.target.value
+                                                                    .split(',')
+                                                                    .map((s) =>
+                                                                        s.trim(),
+                                                                    ),
+                                                            })
+                                                        }
                                                     />
                                                 </div>
                                             )}
                                         </div>
                                     )}
 
+                                    {/* NUMBER TYPE */}
+
                                     {questionType === 'number' && (
                                         <div>
-                                            <Label>Unit (e.g., Billions of KRW, Years, etc.)</Label>
+                                            <Label>
+                                                Unit (Years, Billions, etc.)
+                                            </Label>
+
                                             <Input
                                                 value={metadata.unit || ''}
-                                                onChange={(e) => setMetadata({ ...metadata, unit: e.target.value })}
-                                                placeholder="Billions of KRW"
+                                                onChange={(e) =>
+                                                    setMetadata({
+                                                        ...metadata,
+                                                        unit: e.target.value,
+                                                    })
+                                                }
                                             />
                                         </div>
                                     )}
 
+                                    {/* ORDER */}
+
                                     <div>
                                         <Label>Order</Label>
+
                                         <Input
                                             type="number"
                                             value={data.order}
-                                            onChange={(e) => setData('order', parseInt(e.target.value) || 0)}
                                             min="0"
+                                            onChange={(e) =>
+                                                setData(
+                                                    'order',
+                                                    parseInt(e.target.value) ||
+                                                        0,
+                                                )
+                                            }
                                         />
                                     </div>
 
+                                    {/* ACTIVE */}
+
                                     <div className="flex items-center space-x-2">
                                         <Checkbox
-                                            id="is_active"
                                             checked={data.is_active}
-                                            onCheckedChange={(checked) => setData('is_active', checked as boolean)}
+                                            onCheckedChange={(checked) =>
+                                                setData(
+                                                    'is_active',
+                                                    checked as boolean,
+                                                )
+                                            }
                                         />
-                                        <Label htmlFor="is_active" className="cursor-pointer">
+
+                                        <Label className="cursor-pointer">
                                             Active
                                         </Label>
                                     </div>
                                 </CardContent>
                             </Card>
 
+                            {/* BUTTONS */}
+
                             <div className="mt-6 flex justify-end gap-2">
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={() => router.visit('/admin/questions/ceo')}
+                                    onClick={() =>
+                                        router.visit('/admin/questions/ceo')
+                                    }
                                 >
                                     Cancel
                                 </Button>
+
                                 <Button type="submit" disabled={processing}>
                                     Update Question
                                 </Button>

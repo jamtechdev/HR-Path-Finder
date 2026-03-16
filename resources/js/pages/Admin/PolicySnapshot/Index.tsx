@@ -1,12 +1,17 @@
-import React from 'react';
-import { Head, Link, router } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Sidebar,
+    SidebarInset,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Edit, Plus, Trash2 } from 'lucide-react';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
 
 interface PolicySnapshotQuestion {
     id: number;
@@ -21,6 +26,18 @@ interface Props {
 }
 
 export default function PolicySnapshotIndex({ questions }: Props) {
+    const { flash } = usePage().props as any;
+
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
+        }
+
+        if (flash?.error) {
+            toast.error(flash.error);
+        }
+    }, [flash]);
+
     const handleDelete = (questionId: number) => {
         if (confirm('Are you sure you want to delete this question?')) {
             router.delete(`/admin/policy-snapshot/${questionId}`, {
@@ -34,21 +51,29 @@ export default function PolicySnapshotIndex({ questions }: Props) {
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
+
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
+
                 <main className="flex-1 overflow-auto bg-background">
                     <Head title="Policy Snapshot Questions" />
-                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+
+                    <div className="mx-auto max-w-7xl p-6 md:p-8">
+                        {/* Header */}
                         <div className="mb-6 flex items-center justify-between">
                             <div>
-                                <h1 className="text-3xl font-bold mb-2 text-foreground">Policy Snapshot Questions</h1>
+                                <h1 className="mb-2 text-3xl font-bold text-foreground">
+                                    Policy Snapshot Questions
+                                </h1>
                                 <p className="text-muted-foreground">
-                                    Manage questions for the HR Job Analysis Policy Snapshot step
+                                    Manage questions for the HR Job Analysis
+                                    Policy Snapshot step
                                 </p>
                             </div>
+
                             <Link href="/admin/policy-snapshot/create">
                                 <Button>
-                                    <Plus className="w-4 h-4 mr-2" />
+                                    <Plus className="mr-2 h-4 w-4" />
                                     Add Question
                                 </Button>
                             </Link>
@@ -58,45 +83,67 @@ export default function PolicySnapshotIndex({ questions }: Props) {
                             <CardHeader>
                                 <CardTitle>Questions</CardTitle>
                             </CardHeader>
+
                             <CardContent>
                                 <div className="space-y-2">
                                     {questions.map((question) => (
                                         <div
                                             key={question.id}
-                                            className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
+                                            className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50"
                                         >
                                             <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-1">
+                                                <div className="mb-1 flex items-center gap-2">
                                                     {question.has_conditional_text && (
-                                                        <Badge variant="outline">Has Conditional Text</Badge>
+                                                        <Badge variant="outline">
+                                                            Has Conditional Text
+                                                        </Badge>
                                                     )}
+
                                                     {!question.is_active && (
-                                                        <Badge variant="destructive">Inactive</Badge>
+                                                        <Badge variant="destructive">
+                                                            Inactive
+                                                        </Badge>
                                                     )}
                                                 </div>
-                                                <p className="text-sm">{question.question_text}</p>
-                                                <p className="text-xs text-muted-foreground mt-1">
+
+                                                <p className="text-sm">
+                                                    {question.question_text}
+                                                </p>
+
+                                                <p className="mt-1 text-xs text-muted-foreground">
                                                     Order: {question.order}
                                                 </p>
                                             </div>
+
                                             <div className="flex items-center gap-2">
-                                                <Link href={`/admin/policy-snapshot/${question.id}/edit`}>
-                                                    <Button variant="ghost" size="sm">
-                                                        <Edit className="w-4 h-4" />
+                                                <Link
+                                                    href={`/admin/policy-snapshot/${question.id}/edit`}
+                                                >
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                    >
+                                                        <Edit className="h-4 w-4" />
                                                     </Button>
                                                 </Link>
+
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    onClick={() => handleDelete(question.id)}
+                                                    onClick={() =>
+                                                        handleDelete(
+                                                            question.id,
+                                                        )
+                                                    }
                                                 >
-                                                    <Trash2 className="w-4 h-4 text-destructive" />
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
                                                 </Button>
                                             </div>
                                         </div>
                                     ))}
+
                                     {questions.length === 0 && (
-                                        <p className="text-center text-muted-foreground py-8">
+                                        <p className="py-8 text-center text-muted-foreground">
                                             No questions found.
                                         </p>
                                     )}

@@ -103,6 +103,7 @@ class DiagnosisQuestionController extends Controller
      */
     public function edit(DiagnosisQuestion $diagnosisQuestion): Response
     {
+        // dd($diagnosisQuestion);
         return Inertia::render('Admin/Questions/CEO/Edit', [
             'question' => $diagnosisQuestion,
             'categories' => [
@@ -130,19 +131,22 @@ class DiagnosisQuestionController extends Controller
     public function update(Request $request, DiagnosisQuestion $diagnosisQuestion)
     {
         $validated = $request->validate([
-            'category' => ['required', 'string', 'in:management_philosophy,vision_mission,growth_stage,leadership,general,issues,concerns'],
+            'category' => ['required', 'string'],
             'question_text' => ['required', 'string'],
-            'question_type' => ['required', 'string', 'in:likert,text,select,slider,number'],
-            'order' => ['nullable', 'integer', 'min:0'],
-            'is_active' => ['nullable', 'boolean'],
+            'question_type' => ['required', 'string'],
+            'order' => ['nullable', 'integer'],
+            'is_active' => ['sometimes', 'boolean'],
             'metadata' => ['nullable', 'array'],
             'options' => ['nullable', 'array'],
         ]);
 
+        $validated['is_active'] = $request->boolean('is_active');
+
         $diagnosisQuestion->update($validated);
 
-        return redirect()->route('admin.questions.ceo.index', ['category' => $validated['category']])
-            ->with('success', 'Question updated successfully.');
+        return redirect()
+            ->route('admin.questions.ceo.index')
+            ->with('success', 'Question updated successfully');
     }
 
     /**
