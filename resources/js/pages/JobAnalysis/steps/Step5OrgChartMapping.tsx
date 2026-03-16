@@ -66,6 +66,7 @@ export default function Step5OrgChartMapping({
     const [emptyUnitIds, setEmptyUnitIds] = useState<Set<string>>(new Set());
     const validationBannerRef = useRef<HTMLDivElement>(null);
     const scrollRAFRef = useRef<number | null>(null);
+    const unitsPanelScrollRef = useRef<HTMLDivElement>(null);
     const EDGE_THRESHOLD = 80;
     const SCROLL_STEP = 14;
 
@@ -92,23 +93,39 @@ export default function Step5OrgChartMapping({
         onMappingsChange(orgUnits);
     }, [orgUnits, onMappingsChange]);
 
-    // Auto-scroll when dragging a job near viewport top/bottom
+    // Auto-scroll when dragging a job near top/bottom of the units panel (or viewport)
     useEffect(() => {
         if (!draggedJobId) return;
         const onDragOver = (e: DragEvent) => {
             const y = e.clientY;
-            const viewHeight = window.innerHeight;
-            const scrollEl = document.documentElement;
-            const atBottom = y >= viewHeight - EDGE_THRESHOLD;
-            const atTop = y <= EDGE_THRESHOLD;
-            if (atBottom || atTop) {
+            const panelEl = unitsPanelScrollRef.current;
+            let scrollTarget: { el: HTMLElement; down: boolean } | null = null;
+
+            if (panelEl) {
+                const rect = panelEl.getBoundingClientRect();
+                const canScrollDown = panelEl.scrollHeight > panelEl.clientHeight;
+                const canScrollUp = panelEl.scrollTop > 0;
+                if (y >= rect.bottom - EDGE_THRESHOLD && canScrollDown)
+                    scrollTarget = { el: panelEl, down: true };
+                else if (y <= rect.top + EDGE_THRESHOLD && canScrollUp)
+                    scrollTarget = { el: panelEl, down: false };
+            }
+            if (!scrollTarget) {
+                const viewHeight = window.innerHeight;
+                if (y >= viewHeight - EDGE_THRESHOLD) scrollTarget = { el: document.documentElement, down: true };
+                else if (y <= EDGE_THRESHOLD) scrollTarget = { el: document.documentElement, down: false };
+            }
+
+            if (scrollTarget) {
                 e.preventDefault();
                 if (scrollRAFRef.current != null) return;
                 const run = () => {
-                    if (atBottom) {
-                        window.scrollBy(0, SCROLL_STEP);
-                    } else if (atTop) {
-                        window.scrollBy(0, -SCROLL_STEP);
+                    if (scrollTarget) {
+                        if (scrollTarget.el === document.documentElement) {
+                            window.scrollBy(0, scrollTarget.down ? SCROLL_STEP : -SCROLL_STEP);
+                        } else {
+                            scrollTarget.el.scrollTop += scrollTarget.down ? SCROLL_STEP : -SCROLL_STEP;
+                        }
                     }
                     scrollRAFRef.current = requestAnimationFrame(run);
                 };
@@ -375,10 +392,10 @@ export default function Step5OrgChartMapping({
                 <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
                     {/* Left: Organizational Units — white card container */}
                     <div
-                        className="bg-white rounded-xl border border-[#e5e7eb] p-6"
-                        style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
+                        className="bg-white rounded-xl border border-[#e5e7eb] p-6 flex flex-col"
+                        style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)', maxHeight: 'min(70vh, 600px)' }}
                     >
-                        <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
+                        <div className="flex items-center justify-between flex-wrap gap-3 mb-5 shrink-0">
                             <div className="flex items-center gap-2">
                                 <FolderTree className="w-5 h-5 text-[#48b082]" aria-hidden />
                                 <span className="font-bold text-[12px] uppercase tracking-wider text-[#121431]">
@@ -395,7 +412,10 @@ export default function Step5OrgChartMapping({
                             </Button>
                         </div>
 
-                        <div className="space-y-3">
+                        <div
+                            ref={unitsPanelScrollRef}
+                            className="space-y-3 overflow-y-auto overflow-x-hidden pr-1 min-h-0 flex-1"
+                        >
                             {orgUnits.length === 0 && (
                                 <div
                                     className="rounded-xl border-2 border-dashed p-8 text-center text-[#6b7280] text-[13px]"
