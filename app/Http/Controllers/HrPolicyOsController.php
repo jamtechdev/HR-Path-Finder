@@ -30,7 +30,7 @@ class HrPolicyOsController extends Controller
         // Check if step is unlocked
         if (!$hrProject->isStepUnlocked('hr_policy_os')) {
             return redirect()->route('hr-manager.dashboard')
-                ->withErrors(['error' => 'HR Policy OS step is not yet unlocked. Please complete Step 4 first.']);
+                ->withErrors(['error' => 'Final Dashboard step is not yet unlocked. Please complete Step 4 first.']);
         }
 
         // Load all necessary data from previous steps
@@ -149,7 +149,7 @@ class HrPolicyOsController extends Controller
         // Update project step status
         $hrProject->setStepStatus('hr_policy_os', StepStatus::IN_PROGRESS);
 
-        return back()->with('success', 'HR Policy OS data saved successfully.');
+        return back()->with('success', 'Final Dashboard data saved successfully.');
     }
 
     /**
@@ -165,14 +165,14 @@ class HrPolicyOsController extends Controller
         $hrPolicyOs = \App\Models\HrPolicyOs::where('hr_project_id', $hrProject->id)->first();
         
         if (!$hrPolicyOs) {
-            return back()->withErrors(['error' => 'Please complete the HR Policy OS before submitting.']);
+            return back()->withErrors(['error' => 'Please complete the Final Dashboard before submitting.']);
         }
 
         // Submit the step
         $this->stepTransitionService->submitStep($hrProject, 'hr_policy_os');
 
         return redirect()->route('hr-manager.dashboard')
-            ->with('success', 'HR Policy OS submitted for CEO review.');
+            ->with('success', 'Final Dashboard submitted for CEO review.');
     }
 
     /**
@@ -203,7 +203,7 @@ class HrPolicyOsController extends Controller
 
         if (!$hrPolicyOs) {
             return redirect()->route('ceo.dashboard')
-                ->withErrors(['error' => 'HR Policy OS has not been submitted yet.']);
+                ->withErrors(['error' => 'Final Dashboard has not been submitted yet.']);
         }
 
         $stepStatuses = $hrProject->step_statuses ?? [];
@@ -232,7 +232,7 @@ class HrPolicyOsController extends Controller
         $currentStatus = $hrProject->getStepStatus('hr_policy_os');
 
         if (!$currentStatus || $currentStatus !== StepStatus::SUBMITTED) {
-            return back()->withErrors(['error' => 'HR Policy OS must be submitted before approval.']);
+            return back()->withErrors(['error' => 'Final Dashboard must be submitted before approval.']);
         }
 
         // Approve and lock the final step
@@ -242,7 +242,7 @@ class HrPolicyOsController extends Controller
         $hrProject->update(['status' => \App\Enums\ProjectStatus::LOCKED]);
 
         return redirect()->route('ceo.dashboard')
-            ->with('success', 'HR Policy OS approved and system locked. The Pathfinder journey is complete!');
+            ->with('success', 'Final Dashboard approved and system locked. The Pathfinder journey is complete!');
     }
 
     /**

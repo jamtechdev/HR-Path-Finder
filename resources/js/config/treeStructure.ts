@@ -99,7 +99,7 @@ export const treeStructure: TreeStep[] = [
     },
     {
         id: 'hr_policy_os',
-        name: 'HR Policy OS',
+        name: 'Final Dashboard',
         icon: Shield,
         color: 'border-teal-500 bg-teal-50',
         iconColor: 'text-teal-600',

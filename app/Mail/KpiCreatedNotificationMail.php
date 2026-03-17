@@ -28,11 +28,11 @@ class KpiCreatedNotificationMail extends Mailable
         $this->kpis = $kpis;
         $this->companyName = $hrProject->company->name ?? 'the company';
         
-        // Link to dashboard based on user role
+        // Direct link to KPI review page so the button does not 404
         if ($userRole === 'admin') {
-            $this->reviewUrl = route('admin.dashboard');
+            $this->reviewUrl = route('admin.kpi-review.index', $hrProject);
         } else {
-            $this->reviewUrl = route('ceo.dashboard');
+            $this->reviewUrl = route('ceo.kpi-review.index', $hrProject);
         }
     }
 

@@ -14,6 +14,7 @@ use App\Models\EvaluationStructure;
 use App\Models\JobDefinition;
 use App\Models\OrgChartMapping;
 use App\Models\KpiEditHistory;
+use App\Models\KpiTemplate;
 use App\Services\RecommendationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -277,6 +278,31 @@ class PerformanceSystemController extends Controller
                 ],
             ] : null,
         ]);
+    }
+
+    /**
+     * Get recommended KPI templates for the given organization (for manager KPI draft).
+     * Templates are mapped by org unit (org_unit_name) and company_id; null org_unit_name = company-wide.
+     */
+    public function getRecommendedKpis(Request $request, HrProject $hrProject)
+    {
+        if (!$request->user()->hasRole('hr_manager')) {
+            abort(403);
+        }
+        $organizationName = $request->query('organization_name', '');
+        $companyId = $hrProject->company_id ?? null;
+        $templates = KpiTemplate::where('is_active', true)
+            ->where(function ($q) use ($companyId) {
+                $q->whereNull('company_id')->orWhere('company_id', $companyId);
+            })
+            ->where(function ($q) use ($organizationName) {
+                $q->whereNull('org_unit_name')
+                    ->orWhereRaw('TRIM(LOWER(org_unit_name)) = ?', [strtolower(trim($organizationName))]);
+            })
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+        return response()->json(['templates' => $templates->toArray()]);
     }
 
     /**

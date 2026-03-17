@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { router } from '@inertiajs/react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -9,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, AlertCircle, FileText, Info } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import CompensationPageHeader from '../components/CompensationPageHeader';
 import type { CompensationSnapshotQuestion, CompensationSnapshotResponse } from '../types';
 
 interface SnapshotTabProps {
@@ -52,66 +52,28 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
         }
     };
 
-    const handleSave = () => {
-        const responseData = questions.map(q => {
-            const response = snapshotResponses[q.id];
-            if (q.answer_type === 'numeric') {
-                return {
-                    question_id: q.id,
-                    response: null,
-                    text_response: null,
-                    numeric_response: typeof response === 'object' ? null : (response as number || null),
-                    response_data: typeof response === 'object' ? response : null,
-                };
-            } else if (q.answer_type === 'text') {
-                return {
-                    question_id: q.id,
-                    response: null,
-                    text_response: response as string || null,
-                    numeric_response: null,
-                    response_data: null,
-                };
-            } else {
-                return {
-                    question_id: q.id,
-                    response: Array.isArray(response) ? response : (response ? [response] : null),
-                    text_response: null,
-                    numeric_response: null,
-                    response_data: null,
-                };
-            }
-        });
-
-        router.post(`/hr-manager/compensation-system/${projectId}`, {
-            tab: 'snapshot',
-            responses: responseData,
-        } as any, {
-            preserveScroll: true,
-            preserveState: true,
-            onSuccess: onNext,
-        });
-    };
-
     // Get Q17 response for filtering Q18 options
     const q17Question = questions.find((q, i) => i === 16);
     const q17Response = q17Question ? (snapshotResponses[q17Question.id] as string[] || []) : [];
 
-    return (
-        <div className="space-y-6">
-            {/* Header Section */}
-            <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
-                    <FileText className="w-8 h-8 text-primary" />
-                </div>
-                <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                    Strategic Compensation Snapshot
-                </h2>
-                <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                    Please answer the following questions to help us understand your current compensation approach.
-                </p>
-            </div>
+    const answeredCount = useMemo(() => questions.filter(q => {
+        const r = snapshotResponses[q.id];
+        if (q.answer_type === 'numeric') return r != null && (typeof r === 'number' || (typeof r === 'object' && r !== null));
+        if (q.answer_type === 'text') return typeof r === 'string' && r.trim() !== '';
+        return Array.isArray(r) ? r.length > 0 : r != null && r !== '';
+    }).length, [questions, snapshotResponses]);
+    const completionPct = questions.length ? Math.round((answeredCount / questions.length) * 100) : 0;
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    return (
+        <div className="space-y-0">
+            <CompensationPageHeader
+                eyebrowTag="Compensation Structure"
+                stepLabel="Stage 4-1 · Strategic Compensation Snapshot"
+                title="Strategic Compensation Snapshot"
+                description="Please answer the following questions to help us understand your current compensation approach."
+                completionPct={completionPct}
+            />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6">
                 {/* Main Questions Section */}
                 <div className="lg:col-span-2 space-y-6">
                     {questions && questions.length > 0 ? (
@@ -271,7 +233,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                     </div>
                                                 )}
                                             
-                                                {/* Regular select_one */}
+                                                {/* Regular select_one - (42) round radio consistent with checkboxes */}
                                                 {!isMultiYearNumeric && !isJobFunctions && !isYearsOfService && question.answer_type === 'select_one' && question.options && (
                                                     <RadioGroup
                                                         value={Array.isArray(snapshotResponses[question.id]) 
@@ -282,16 +244,22 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                     >
                                                         {question.options.map((option, optIdx) => (
                                                             <div key={optIdx} className="flex items-center space-x-3 p-3 rounded-lg border border-muted hover:bg-muted/50 transition-colors">
-                                                                <RadioGroupItem value={option} id={`q${question.id}-opt${optIdx}`} />
+                                                                <RadioGroupItem value={option} id={`q${question.id}-opt${optIdx}`} className="border-2 data-[state=checked]:border-[hsl(var(--primary))] data-[state=checked]:bg-[hsl(var(--primary))]" />
                                                                 <Label htmlFor={`q${question.id}-opt${optIdx}`} className="cursor-pointer flex-1 text-sm font-normal">{option}</Label>
                                                             </div>
                                                         ))}
                                                     </RadioGroup>
                                                 )}
                                             
-                                                {/* select_up_to_2 - with Q18 filtering from Q17 */}
+                                                {/* select_up_to_2 - with Q18 filtering from Q17 (43: connected to former answer) */}
                                                 {!isMultiYearNumeric && !isJobFunctions && !isYearsOfService && question.answer_type === 'select_up_to_2' && (
                                                     <div className="space-y-3">
+                                                        {isQ18 && (
+                                                            <div className="p-3 rounded-lg bg-[#f0fdf9] border border-[rgba(46,196,160,0.2)] text-sm text-[#0f1c30]">
+                                                                <span className="font-medium text-[#152540]">Based on your selection in Question 17</span>
+                                                                <span className="text-[#4b5563]"> — choose the two programs you believe are least effective.</span>
+                                                            </div>
+                                                        )}
                                                         {(isQ18 && q17Response.length > 0 
                                                             ? (question.options || []).filter(opt => q17Response.includes(opt))
                                                             : (question.options || [])
@@ -322,6 +290,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                                 updateResponses({ ...snapshotResponses, [question.id]: current.filter(v => v !== option) });
                                                                             }
                                                                         }}
+                                                                        className="rounded-full border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                                                     />
                                                                     <Label htmlFor={`q${question.id}-opt${optIdx}`} className="cursor-pointer flex-1 text-sm font-normal">{option}</Label>
                                                                 </div>
@@ -338,7 +307,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                     </div>
                                                 )}
                                             
-                                                {/* multiple (unlimited) */}
+                                                {/* multiple (unlimited) - (42) round checkbox consistent with select_up_to_2 */}
                                                 {!isMultiYearNumeric && !isJobFunctions && !isYearsOfService && question.answer_type === 'multiple' && question.options && (
                                                     <div className="space-y-2">
                                                         {question.options.map((option, optIdx) => {
@@ -364,6 +333,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                                 updateResponses({ ...snapshotResponses, [question.id]: current.filter(v => v !== option) });
                                                                             }
                                                                         }}
+                                                                        className="rounded-full border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                                                     />
                                                                     <Label htmlFor={`q${question.id}-opt${optIdx}`} className="cursor-pointer flex-1 text-sm font-normal">{option}</Label>
                                                                 </div>
@@ -415,12 +385,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                 </Card>
                             )}
                             
-                            {/* Action Buttons */}
-                            <div className="flex items-center justify-end gap-4 pt-6 border-t mt-6">
-                                <Button onClick={handleSave} size="lg" className="px-8">
-                                    Save & Next Step
-                                </Button>
-                            </div>
+                            {/* Save & Continue is in the page footer; no duplicate button here */}
                 </div>
                         
                 {/* Right Side Panel */}

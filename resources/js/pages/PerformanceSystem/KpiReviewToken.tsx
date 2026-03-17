@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Head, useForm, router, usePage } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Plus, Trash2, Save, Check, X, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react';
 
 interface OrganizationalKpi {
     id?: number;
@@ -45,35 +36,40 @@ interface Props {
     isCompleted?: boolean;
 }
 
-export default function KpiReviewToken({ token, project, organizationName: defaultOrganizationName, allOrganizations = [], kpis: initialKpis = [], reviewerName, reviewerEmail, isCompleted = false }: Props) {
+const VALIDATIONS = [
+    { icon: '🎯', title: 'Outcome Influence', question: "Do these KPIs directly influence the team's core outcomes?", hint: 'Verify they are tied to real results (revenue, quality, speed) — not just activity metrics like meeting attendance.' },
+    { icon: '📋', title: 'Job Relevance', question: 'Do these KPIs align with the responsibilities of this team?', hint: "Check that no item overlaps with another team's scope or falls outside what this team can realistically control." },
+    { icon: '📐', title: 'Measurability', question: 'Can all KPIs be measured with objective criteria or numbers?', hint: 'Ensure each KPI has a clearly defined formula, a designated measurement owner, and a set frequency.' },
+    { icon: '🗄', title: 'Data Availability', question: 'Is the data needed for measurement actually accessible?', hint: 'Confirm that data sources (systems, reports, etc.) exist and can be accessed on a regular basis.' },
+];
+
+export default function KpiReviewToken({
+    token,
+    project,
+    organizationName: defaultOrganizationName,
+    allOrganizations = [],
+    kpis: initialKpis = [],
+    reviewerName,
+    reviewerEmail,
+    isCompleted = false,
+}: Props) {
     const { props } = usePage();
-    const [selectedOrganization, setSelectedOrganization] = useState<string>(defaultOrganizationName);
-    // Use KPIs from props (which may be updated after save) or initialKpis
     const propsKpis = (props as any)?.kpis;
+    const [selectedOrganization, setSelectedOrganization] = useState<string>(defaultOrganizationName);
     const [kpis, setKpis] = useState<OrganizationalKpi[]>(() => {
-        // Initialize with initialKpis if available, otherwise empty array
-        if (propsKpis && Array.isArray(propsKpis) && propsKpis.length > 0) {
-            return propsKpis;
-        }
-        if (initialKpis && Array.isArray(initialKpis) && initialKpis.length > 0) {
-            return initialKpis;
-        }
+        if (propsKpis && Array.isArray(propsKpis) && propsKpis.length > 0) return propsKpis;
+        if (initialKpis && Array.isArray(initialKpis) && initialKpis.length > 0) return initialKpis;
         return [];
     });
     const [loading, setLoading] = useState(false);
+    const [reviewComments, setReviewComments] = useState<string>('');
+    const [completed, setCompleted] = useState<boolean>(isCompleted);
+    const [savingKpiIndex, setSavingKpiIndex] = useState<number | null>(null);
+    const [confirmed, setConfirmed] = useState<boolean[]>([false, false, false, false]);
+    const [currentValIdx, setCurrentValIdx] = useState<number | null>(null);
+    const [expandedKpiIndex, setExpandedKpiIndex] = useState<number | null>(0);
+    const [editingKpiIndex, setEditingKpiIndex] = useState<number | null>(null);
 
-    // Log initial state for debugging
-    useEffect(() => {
-        console.log('KpiReviewToken Initialized:', {
-            token,
-            organizationName: defaultOrganizationName,
-            initialKpisCount: initialKpis?.length || 0,
-            propsKpisCount: propsKpis?.length || 0,
-            currentKpisCount: kpis.length,
-        });
-    }, []);
-
-    // Reload KPIs when props change (after save/redirect)
     useEffect(() => {
         const pageKpis = (props as any)?.kpis;
         if (pageKpis && Array.isArray(pageKpis)) {
@@ -83,28 +79,18 @@ export default function KpiReviewToken({ token, project, organizationName: defau
         } else if (initialKpis && Array.isArray(initialKpis)) {
             setKpis([]);
         }
-        
-        // Log for debugging
-        console.log('KPIs loaded:', {
-            pageKpis: pageKpis?.length || 0,
-            initialKpis: initialKpis?.length || 0,
-            finalKpis: pageKpis?.length || initialKpis?.length || 0,
-        });
     }, [props, initialKpis]);
 
-    // Auto-fetch KPIs when organization changes
     useEffect(() => {
         if (selectedOrganization) {
             setLoading(true);
-            // Always fetch KPIs for selected organization
             fetch(`/kpi-review/token/${token}/organization/${encodeURIComponent(selectedOrganization)}`)
-                .then(res => res.json())
-                .then(data => {
+                .then((res) => res.json())
+                .then((data) => {
                     setKpis(data.kpis || []);
-                    // Set review history from response
                     setLoading(false);
                 })
-                .catch(err => {
+                .catch((err) => {
                     console.error('Error loading KPIs:', err);
                     setKpis([]);
                     setLoading(false);
@@ -112,15 +98,10 @@ export default function KpiReviewToken({ token, project, organizationName: defau
         }
     }, [selectedOrganization, token]);
 
-    const [reviewComments, setReviewComments] = useState<string>('');
-    const [guideOpen, setGuideOpen] = useState(false);
-    const [completed, setCompleted] = useState<boolean>(isCompleted);
-    const [savingKpiIndex, setSavingKpiIndex] = useState<number | null>(null);
-
     const { data, setData, post, processing } = useForm({
         organization_name: selectedOrganization,
         review_comments: reviewComments,
-        kpis: kpis.map(kpi => ({
+        kpis: kpis.map((kpi) => ({
             id: kpi.id,
             kpi_name: kpi.kpi_name,
             purpose: kpi.purpose || '',
@@ -134,36 +115,42 @@ export default function KpiReviewToken({ token, project, organizationName: defau
         })),
     });
 
-    // Update form data when KPIs, organization, or review comments change
     useEffect(() => {
         setData('organization_name', selectedOrganization);
         setData('review_comments', reviewComments);
-        setData('kpis', kpis.map(kpi => ({
-            id: kpi.id,
-            kpi_name: kpi.kpi_name,
-            purpose: kpi.purpose || '',
-            category: kpi.category || '',
-            linked_job_id: kpi.linked_job_id || null,
-            linked_csf: kpi.linked_csf || '',
-            formula: kpi.formula || '',
-            measurement_method: kpi.measurement_method || '',
-            weight: kpi.weight || null,
-            is_active: kpi.is_active ?? true,
-        })));
+        setData(
+            'kpis',
+            kpis.map((kpi) => ({
+                id: kpi.id,
+                kpi_name: kpi.kpi_name,
+                purpose: kpi.purpose || '',
+                category: kpi.category || '',
+                linked_job_id: kpi.linked_job_id || null,
+                linked_csf: kpi.linked_csf || '',
+                formula: kpi.formula || '',
+                measurement_method: kpi.measurement_method || '',
+                weight: kpi.weight || null,
+                is_active: kpi.is_active ?? true,
+            }))
+        );
     }, [kpis, selectedOrganization, reviewComments, setData]);
+
+    useEffect(() => {
+        const flash = (props as any)?.flash;
+        if (flash?.success) setCompleted(true);
+        if (isCompleted) setCompleted(true);
+    }, [props, isCompleted]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post(`/kpi-review/token/${token}`, {
-            preserveScroll: false, // Allow page to reload
+            preserveScroll: false,
             onSuccess: () => {
-                // The page will reload with updated KPIs from the redirect
-                // Force a reload to get fresh data
                 router.reload({
                     only: ['kpis'],
                     onSuccess: () => {
                         alert('Your KPI review has been submitted. HR will review your changes.');
-                    }
+                    },
                 });
             },
             onError: (errors) => {
@@ -182,60 +169,33 @@ export default function KpiReviewToken({ token, project, organizationName: defau
             status: 'draft',
         };
         setKpis([...kpis, newKpi]);
-        setData('kpis', [...data.kpis, {
-            id: 0,
-            kpi_name: '',
-            purpose: '',
-            category: '',
-            linked_job_id: null,
-            linked_csf: '',
-            formula: '',
-            measurement_method: '',
-            weight: null,
-            is_active: true,
-        }]);
+        setData('kpis', [
+            ...data.kpis,
+            {
+                id: 0,
+                kpi_name: '',
+                purpose: '',
+                category: '',
+                linked_job_id: null,
+                linked_csf: '',
+                formula: '',
+                measurement_method: '',
+                weight: null,
+                is_active: true,
+            },
+        ]);
+        setExpandedKpiIndex(kpis.length);
+        setEditingKpiIndex(kpis.length);
     };
 
     const removeKpi = (index: number) => {
+        if (!confirm('Are you sure you want to delete this KPI?')) return;
         const updated = kpis.filter((_, i) => i !== index);
         setKpis(updated);
-        setData('kpis', updated.map(kpi => ({
-            id: kpi.id,
-            kpi_name: kpi.kpi_name,
-            purpose: kpi.purpose || '',
-            category: kpi.category || '',
-            linked_job_id: kpi.linked_job_id || null,
-            linked_csf: kpi.linked_csf || '',
-            formula: kpi.formula || '',
-            measurement_method: kpi.measurement_method || '',
-            weight: kpi.weight || null,
-            is_active: kpi.is_active,
-        })));
-    };
-
-    const updateKpi = (index: number, field: string, value: any) => {
-        const updated = [...kpis];
-        updated[index] = { ...updated[index], [field]: value };
-        setKpis(updated);
-
-        const updatedData = [...data.kpis];
-        updatedData[index] = { ...updatedData[index], [field]: value };
-        setData('kpis', updatedData);
-    };
-
-    const handleSaveKpi = async (index: number) => {
-        const kpi = kpis[index];
-        if (!kpi.kpi_name || kpi.kpi_name.trim() === '') {
-            alert('Please enter KPI name');
-            return;
-        }
-
-        setSavingKpiIndex(index);
-        
-        router.post(`/kpi-review/token/${token}`, {
-            organization_name: selectedOrganization,
-            kpis: [{
-                id: kpi.id || null,
+        setData(
+            'kpis',
+            updated.map((kpi) => ({
+                id: kpi.id,
                 kpi_name: kpi.kpi_name,
                 purpose: kpi.purpose || '',
                 category: kpi.category || '',
@@ -245,19 +205,56 @@ export default function KpiReviewToken({ token, project, organizationName: defau
                 measurement_method: kpi.measurement_method || '',
                 weight: kpi.weight || null,
                 is_active: kpi.is_active,
-            }],
+            }))
+        );
+        if (editingKpiIndex === index) setEditingKpiIndex(null);
+        else if (editingKpiIndex !== null && editingKpiIndex > index) setEditingKpiIndex(editingKpiIndex - 1);
+        if (expandedKpiIndex === index) setExpandedKpiIndex(Math.max(0, index - 1));
+        else if (expandedKpiIndex !== null && expandedKpiIndex > index) setExpandedKpiIndex(expandedKpiIndex - 1);
+    };
+
+    const updateKpi = (index: number, field: string, value: unknown) => {
+        const updated = [...kpis];
+        updated[index] = { ...updated[index], [field]: value };
+        setKpis(updated);
+        const updatedData = [...data.kpis];
+        updatedData[index] = { ...updatedData[index], [field]: value };
+        setData('kpis', updatedData);
+    };
+
+    const handleSaveKpi = async (index: number) => {
+        const kpi = kpis[index];
+        if (!kpi.kpi_name?.trim()) {
+            alert('Please enter KPI name');
+            return;
+        }
+        setSavingKpiIndex(index);
+        router.post(`/kpi-review/token/${token}`, {
+            organization_name: selectedOrganization,
+            kpis: [
+                {
+                    id: kpi.id || null,
+                    kpi_name: kpi.kpi_name,
+                    purpose: kpi.purpose || '',
+                    category: kpi.category || '',
+                    linked_job_id: kpi.linked_job_id || null,
+                    linked_csf: kpi.linked_csf || '',
+                    formula: kpi.formula || '',
+                    measurement_method: kpi.measurement_method || '',
+                    weight: kpi.weight || null,
+                    is_active: kpi.is_active,
+                },
+            ],
         }, {
             preserveScroll: true,
             onSuccess: () => {
-                // Reload KPIs
                 fetch(`/kpi-review/token/${token}/organization/${encodeURIComponent(selectedOrganization)}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        setKpis(data.kpis || []);
-                    })
-                    .catch(err => console.error('Error reloading:', err));
+                    .then((res) => res.json())
+                    .then((data) => setKpis(data.kpis || []))
+                    .catch((err) => console.error('Error reloading:', err));
                 alert('KPI saved successfully!');
                 setSavingKpiIndex(null);
+                setEditingKpiIndex(null);
             },
             onError: (errors) => {
                 console.error('Error saving KPI:', errors);
@@ -267,308 +264,371 @@ export default function KpiReviewToken({ token, project, organizationName: defau
         });
     };
 
-    // Check for success message and completion status
-    useEffect(() => {
-        const flash = (props as any)?.flash;
-        if (flash?.success) {
-            setCompleted(true);
+    const openPopup = (idx: number) => {
+        if (confirmed[idx]) return;
+        setCurrentValIdx(idx);
+    };
+
+    const closePopup = () => setCurrentValIdx(null);
+
+    const confirmVal = () => {
+        if (currentValIdx === null) return;
+        setConfirmed((prev) => {
+            const next = [...prev];
+            next[currentValIdx] = true;
+            return next;
+        });
+        closePopup();
+    };
+
+    const toggleKpiExpand = (index: number) => {
+        setExpandedKpiIndex((prev) => (prev === index ? null : index));
+    };
+
+    const toggleEdit = (index: number) => {
+        if (editingKpiIndex === index) {
+            handleSaveKpi(index);
+            return;
         }
-        if (isCompleted) {
-            setCompleted(true);
-        }
-    }, [props, isCompleted]);
+        setEditingKpiIndex(index);
+        setExpandedKpiIndex(index);
+    };
+
+    const totalWeight = kpis.reduce((s, k) => s + (Number(k.weight) || 0), 0);
+    const allConfirmed = confirmed.every(Boolean);
+    /* Enable submit when: not done, not loading/processing, has KPIs, total weight 100%, and all 4 self-assessments confirmed. */
+    const canSubmit = !completed && !processing && !loading && kpis.length > 0 && totalWeight === 100 && allConfirmed;
 
     return (
-        <div className="min-h-screen bg-background">
-            <Head title={`KPI Review - ${selectedOrganization}`} />
-            <div className="container mx-auto py-8 px-4 max-w-7xl">
-                {/* Success Message */}
-                {completed && (
-                    <Card className="mb-6 border-green-500 bg-green-50">
-                        <CardContent className="p-6">
-                            <div className="flex items-center gap-3">
-                                <Check className="w-6 h-6 text-green-600" />
-                                <div>
-                                    <h3 className="font-semibold text-green-900">Review Submitted Successfully!</h3>
-                                    <p className="text-sm text-green-700 mt-1">
-                                        Your KPI review has been submitted. Thank you for your feedback!
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
-                <div className="space-y-6">
-                <div className="mb-8">
-                    <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-6 mb-6">
-                        <h1 className="text-3xl font-bold mb-2 text-gray-900">KPI Review Request</h1>
-                        <p className="text-muted-foreground text-lg">
-                            Please review and provide feedback on the Key Performance Indicators (KPIs) for your organization.
-                        </p>
-                    </div>
-                    
-                    <Card className="mb-6">
-                        <CardContent className="p-4">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                                <div>
-                                    <Label className="text-sm font-medium text-muted-foreground mb-1 block">Organization</Label>
-                                    <p className="text-lg font-semibold text-gray-900">{selectedOrganization}</p>
-                                </div>
-                                {reviewerName && (
-                                    <div>
-                                        <Label className="text-sm font-medium text-muted-foreground mb-1 block">Reviewer</Label>
-                                        <p className="text-sm text-gray-700">
-                                            {reviewerName}
-                                            {reviewerEmail && <span className="text-muted-foreground"> ({reviewerEmail})</span>}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                            
-                            {/* Organization Selector */}
-                            {allOrganizations.length > 1 && (
-                                <div className="mt-4 pt-4 border-t">
-                                    <Label className="mb-2 block">Switch Organization</Label>
-                                    <Select value={selectedOrganization} onValueChange={setSelectedOrganization}>
-                                        <SelectTrigger className="w-full max-w-md">
-                                            <SelectValue placeholder="Select organization" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {allOrganizations.map((org) => (
-                                                <SelectItem key={org} value={org}>
-                                                    {org}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+        <div className="leader-kpi-review-page">
+            <Head title={`Leader KPI Review - ${selectedOrganization}`} />
+
+            <header className="lkr-header">
+                <div className="lkr-header-left">
+                    <div className="lkr-header-logo">HR <span>Path-Finder</span></div>
+                    <div className="lkr-header-divider" />
+                    <div className="lkr-header-stage">Performance Management · KPI Design</div>
                 </div>
+            </header>
 
-                {/* KPI Review Guide - Collapsible */}
-                <Collapsible open={guideOpen} onOpenChange={setGuideOpen}>
-                    <Card className="border-blue-200 bg-blue-50/50">
-                        <CollapsibleTrigger asChild>
-                            <CardHeader className="cursor-pointer hover:bg-blue-100/50 transition-colors">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                        <span className="text-2xl">📋</span>
-                                        KPI Review Guide
-                                    </CardTitle>
-                                    {guideOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                                </div>
-                            </CardHeader>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                            <CardContent className="p-6 pt-0">
-                                <div className="space-y-3 text-sm text-gray-700">
-                                    <p className="font-medium">Please review the KPIs using the following four criteria:</p>
-                                    <ol className="list-decimal list-inside space-y-2 ml-2">
-                                        <li className="font-medium">Is the outcome primarily influenced by your organization's own efforts?</li>
-                                        <li className="font-medium">Is it directly linked to your organization's core responsibilities and performance?</li>
-                                        <li className="font-medium">Is it measurable and clearly defined?</li>
-                                        <li className="font-medium">Is it manageable in scope? (4-6 KPIs per organization is generally appropriate)</li>
-                                    </ol>
-                                    <p className="mt-4 pt-4 border-t border-blue-200 text-xs text-gray-600">
-                                        <strong>Note:</strong> You can edit, add, or remove KPIs as needed. Your changes will be submitted to HR for review.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </CollapsibleContent>
-                    </Card>
-                </Collapsible>
+            <div className="lkr-page">
+                {completed && (
+                    <div className="lkr-success-banner">
+                        <span className="lkr-success-icon">✓</span>
+                        <div>
+                            <div className="lkr-success-title">Review Submitted Successfully!</div>
+                            <div className="lkr-success-desc">Your KPI review has been submitted. Thank you for your feedback!</div>
+                        </div>
+                    </div>
+                )}
 
-                {loading ? (
-                    <Card>
-                        <CardContent className="p-6 text-center">
-                            <p className="text-muted-foreground">Loading KPIs...</p>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <form onSubmit={handleSubmit}>
-                        <div className="space-y-4 mb-6">
-                            {kpis.length === 0 ? (
-                                <Card className="border-yellow-200 bg-yellow-50/50">
-                                    <CardContent className="p-8 text-center">
-                                        <div className="text-4xl mb-4">📊</div>
-                                        <h3 className="text-lg font-semibold mb-2 text-gray-900">No KPIs Found</h3>
-                                        <p className="text-muted-foreground mb-4">
-                                            No KPIs have been defined yet for <strong className="text-gray-900">{selectedOrganization}</strong>.
-                                        </p>
-                                        <p className="text-sm text-muted-foreground mb-4">
-                                            You can add new KPIs using the "Add KPI" button below.
-                                        </p>
-                                        <p className="text-sm font-medium text-yellow-700">
-                                            ⚠️ Please create at least one KPI before submitting a review.
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                            ) : (
-                                kpis.map((kpi, index) => (
-                            <Card key={kpi.id || index} className="border-2 hover:border-primary/50 transition-colors">
-                                <CardContent className="p-6 space-y-4">
-                                    <div className="flex justify-between items-start border-b pb-3">
-                                        <div className="flex-1">
-                                            <h3 className="font-semibold text-lg text-gray-900">KPI #{index + 1}</h3>
-                                            {kpi.linked_job && (
-                                                <p className="text-sm text-muted-foreground mt-1">
-                                                    Linked to: <span className="font-medium">{kpi.linked_job.job_name}</span>
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                type="button"
-                                                variant="default"
-                                                size="sm"
-                                                onClick={() => handleSaveKpi(index)}
-                                                disabled={completed || savingKpiIndex === index || !kpi.kpi_name?.trim()}
-                                                className="bg-green-600 hover:bg-green-700 text-white"
-                                            >
-                                                {savingKpiIndex === index ? (
-                                                    <>Saving...</>
-                                                ) : (
-                                                    <>
-                                                        <Check className="w-4 h-4 mr-1" />
-                                                        Save
-                                                    </>
-                                                )}
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                variant="destructive"
-                                                size="sm"
-                                                disabled={completed}
-                                                onClick={() => {
-                                                    if (confirm('Are you sure you want to delete this KPI?')) {
-                                                        removeKpi(index);
-                                                    }
-                                                }}
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <Label>KPI Name *</Label>
-                                            <Input
-                                                value={kpi.kpi_name}
-                                                onChange={(e) => updateKpi(index, 'kpi_name', e.target.value)}
-                                                disabled={completed}
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label>Weight (%)</Label>
-                                            <Input
-                                                type="number"
-                                                value={kpi.weight || ''}
-                                                onChange={(e) => updateKpi(index, 'weight', parseFloat(e.target.value) || null)}
-                                                disabled={completed}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <Label>Purpose</Label>
-                                        <Textarea
-                                            value={kpi.purpose || ''}
-                                            onChange={(e) => updateKpi(index, 'purpose', e.target.value)}
-                                            disabled={completed}
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <Label>Linked CSF</Label>
-                                            <Input
-                                                value={kpi.linked_csf || ''}
-                                                onChange={(e) => updateKpi(index, 'linked_csf', e.target.value)}
-                                                disabled={completed}
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label>Category</Label>
-                                            <Input
-                                                value={kpi.category || ''}
-                                                onChange={(e) => updateKpi(index, 'category', e.target.value)}
-                                                disabled={completed}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <Label>Formula</Label>
-                                        <Input
-                                            value={kpi.formula || ''}
-                                            onChange={(e) => updateKpi(index, 'formula', e.target.value)}
-                                            disabled={completed}
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label>Measurement Method</Label>
-                                        <Textarea
-                                            value={kpi.measurement_method || ''}
-                                            onChange={(e) => updateKpi(index, 'measurement_method', e.target.value)}
-                                            disabled={completed}
-                                        />
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))
+                <div className="lkr-context-banner">
+                    <div className="lkr-context-left">
+                        <div className="lkr-context-icon">🏢</div>
+                        <div>
+                            <div className="lkr-context-label">My Organization</div>
+                            <div className="lkr-context-value">{selectedOrganization}</div>
+                            {allOrganizations.length > 1 && (
+                                <div className="lkr-org-select">
+                                    <label htmlFor="lkr-org-switcher">Switch Organization</label>
+                                    <select
+                                        id="lkr-org-switcher"
+                                        value={selectedOrganization}
+                                        onChange={(e) => setSelectedOrganization(e.target.value)}
+                                    >
+                                        {allOrganizations.map((org) => (
+                                            <option key={org} value={org}>{org}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             )}
                         </div>
+                    </div>
+                    <div className="lkr-context-meta">
+                        <span className="lkr-context-tag cycle">KPI Design in Progress</span>
+                    </div>
+                </div>
 
-                        {/* Review Comments Section */}
-                        {kpis.length > 0 && (
-                            <Card className="mb-6 border-green-200 bg-green-50/50">
-                                <CardContent className="p-6">
-                                    <h2 className="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
-                                        <span className="text-2xl">💬</span>
-                                        Overall Review Comments
-                                    </h2>
-                                    <div className="space-y-3">
-                                        <Label htmlFor="review-comments" className="text-sm font-medium text-gray-700">
-                                            Please provide any additional comments or feedback about the KPIs:
-                                        </Label>
-                                        <Textarea
-                                            id="review-comments"
-                                            value={reviewComments}
-                                            onChange={(e) => setReviewComments(e.target.value)}
-                                            placeholder="Enter your review comments, feedback, or suggestions here..."
-                                            className="min-h-[120px]"
-                                            rows={5}
-                                            disabled={completed}
-                                        />
-                                        <p className="text-xs text-muted-foreground">
-                                            Your comments will be shared with HR for consideration.
-                                        </p>
+                <div className="lkr-guide-banner">
+                    <span>💡</span>
+                    <span>Review the draft prepared by your manager and edit only what&apos;s necessary. All 4 self-assessment criteria must be confirmed before submitting to the CEO.</span>
+                </div>
+
+                {loading ? (
+                    <div className="lkr-section-header">
+                        <div className="lkr-section-title">Loading KPIs...</div>
+                    </div>
+                ) : (
+                    <form id="lkr-review-form" onSubmit={handleSubmit}>
+                        <div className="lkr-section-header">
+                            <div className="lkr-section-title">
+                                Team KPIs
+                                <span className="lkr-count" id="kpiCount">{kpis.length}</span>
+                            </div>
+                            <button type="button" className="lkr-btn-add" onClick={addKpi} disabled={completed}>
+                                + Add KPI
+                            </button>
+                        </div>
+
+                        {kpis.length === 0 ? (
+                            <div className="lkr-kpi-card" style={{ padding: '24px', textAlign: 'center' }}>
+                                <p style={{ color: 'var(--lkr-text-secondary)' }}>No KPIs yet. Add one using the button above.</p>
+                            </div>
+                        ) : (
+                            kpis.map((kpi, index) => (
+                                <div key={kpi.id ?? `new-${index}`} className="lkr-kpi-card">
+                                    <div className="lkr-kpi-card-header">
+                                        <div className="lkr-kpi-card-left">
+                                            <div
+                                                className={`lkr-kpi-number ${expandedKpiIndex === index || editingKpiIndex === index ? 'active' : ''}`}
+                                                onClick={() => toggleKpiExpand(index)}
+                                                style={{ cursor: 'pointer' }}
+                                            >
+                                                {index + 1}
+                                            </div>
+                                            <div style={{ flex: 1 }} onClick={() => toggleKpiExpand(index)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && toggleKpiExpand(index)}>
+                                                <div className="lkr-kpi-name">{kpi.kpi_name || '(Untitled KPI)'}</div>
+                                                <div className="lkr-kpi-badges">
+                                                    <span className="lkr-badge lkr-badge-cycle">{kpi.category || '—'}</span>
+                                                    <span className="lkr-badge lkr-badge-weight">Weight {kpi.weight != null ? `${kpi.weight}%` : '—'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="lkr-kpi-card-actions">
+                                            <button
+                                                type="button"
+                                                className={`lkr-icon-btn ${editingKpiIndex === index ? 'edit-active' : ''}`}
+                                                title={editingKpiIndex === index ? 'Save' : 'Edit'}
+                                                onClick={(e) => { e.stopPropagation(); toggleEdit(index); }}
+                                                disabled={completed || savingKpiIndex === index}
+                                            >
+                                                {editingKpiIndex === index ? (savingKpiIndex === index ? '…' : '✓') : '✏'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="lkr-icon-btn danger"
+                                                title="Delete"
+                                                onClick={(e) => { e.stopPropagation(); removeKpi(index); }}
+                                                disabled={completed}
+                                            >
+                                                🗑
+                                            </button>
+                                        </div>
                                     </div>
-                                </CardContent>
-                            </Card>
+
+                                    <div className={`lkr-kpi-body ${expandedKpiIndex === index || editingKpiIndex === index ? 'open' : ''}`}>
+                                        {editingKpiIndex === index ? (
+                                            <>
+                                                <div className="lkr-field-row">
+                                                    <div>
+                                                        <div className="lkr-field-label">KPI Name *</div>
+                                                        <input
+                                                            type="text"
+                                                            className="lkr-field-input"
+                                                            value={kpi.kpi_name}
+                                                            onChange={(e) => updateKpi(index, 'kpi_name', e.target.value)}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <div className="lkr-field-label">Weight (%)</div>
+                                                        <input
+                                                            type="text"
+                                                            className="lkr-field-input"
+                                                            value={kpi.weight ?? ''}
+                                                            onChange={(e) => updateKpi(index, 'weight', e.target.value === '' ? null : parseFloat(e.target.value))}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="lkr-field-row full">
+                                                    <div>
+                                                        <div className="lkr-field-label">Purpose</div>
+                                                        <textarea
+                                                            className="lkr-field-input"
+                                                            rows={2}
+                                                            value={kpi.purpose || ''}
+                                                            onChange={(e) => updateKpi(index, 'purpose', e.target.value)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="lkr-field-row">
+                                                    <div>
+                                                        <div className="lkr-field-label">Formula</div>
+                                                        <input
+                                                            type="text"
+                                                            className="lkr-field-input"
+                                                            value={kpi.formula || ''}
+                                                            onChange={(e) => updateKpi(index, 'formula', e.target.value)}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <div className="lkr-field-label">Category</div>
+                                                        <input
+                                                            type="text"
+                                                            className="lkr-field-input"
+                                                            value={kpi.category || ''}
+                                                            onChange={(e) => updateKpi(index, 'category', e.target.value)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="lkr-field-row full">
+                                                    <div>
+                                                        <div className="lkr-field-label">Measurement Method</div>
+                                                        <textarea
+                                                            className="lkr-field-input"
+                                                            rows={3}
+                                                            value={kpi.measurement_method || ''}
+                                                            onChange={(e) => updateKpi(index, 'measurement_method', e.target.value)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="lkr-field-row">
+                                                    <div>
+                                                        <div className="lkr-field-label">KPI Name</div>
+                                                        <div className="lkr-field-value">{kpi.kpi_name || '—'}</div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="lkr-field-label">Weight (%)</div>
+                                                        <div className="lkr-field-value">{kpi.weight != null ? kpi.weight : '—'}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="lkr-field-row full">
+                                                    <div>
+                                                        <div className="lkr-field-label">Purpose</div>
+                                                        <div className="lkr-field-value">{kpi.purpose || '—'}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="lkr-field-row">
+                                                    <div>
+                                                        <div className="lkr-field-label">Formula</div>
+                                                        <div className="lkr-field-value">{kpi.formula || '—'}</div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="lkr-field-label">Category</div>
+                                                        <div className="lkr-field-value">{kpi.category || '—'}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="lkr-field-row full">
+                                                    <div>
+                                                        <div className="lkr-field-label">Measurement Method</div>
+                                                        <div className="lkr-field-value">{kpi.measurement_method || '—'}</div>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            ))
                         )}
 
-                        <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={addKpi}
-                                disabled={completed || loading}
-                                className="sm:w-auto"
-                            >
-                                <Plus className="w-4 h-4 mr-2" /> Add New KPI
-                            </Button>
-                            <Button 
-                                type="submit" 
-                                disabled={completed || processing || loading || kpis.length === 0} 
-                                className="flex-1 bg-primary hover:bg-primary/90"
-                                size="lg"
-                            >
-                                <Save className="w-4 h-4 mr-2" /> Submit Review
-                            </Button>
+                        {kpis.length > 0 && (
+                            <div className="lkr-comments-card">
+                                <div className="lkr-comments-title">💬 Overall Review Comments</div>
+                                <div className="lkr-comments-desc">Please provide any additional comments or feedback about the KPIs:</div>
+                                <textarea
+                                    className="lkr-comments-textarea"
+                                    placeholder="Enter your review comments, feedback, or suggestions here..."
+                                    value={reviewComments}
+                                    onChange={(e) => setReviewComments(e.target.value)}
+                                    disabled={completed}
+                                />
+                                <div className="lkr-comments-hint">Your comments will be shared with HR for consideration.</div>
+                            </div>
+                        )}
+
+                        <div className="lkr-validation-section">
+                            <div className="lkr-validation-title">Self-Assessment Before Finalizing KPIs</div>
+                            <div className="lkr-validation-desc">All 4 criteria must be confirmed before you can submit to the CEO. Click each item to review.</div>
+                            <div className="lkr-validation-grid">
+                                {VALIDATIONS.map((v, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={`lkr-val-card ${confirmed[idx] ? 'confirmed' : ''}`}
+                                        onClick={() => openPopup(idx)}
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={(e) => e.key === 'Enter' && openPopup(idx)}
+                                    >
+                                        <div className="lkr-val-card-top">
+                                            <span className="lkr-val-tag">{v.title.replace(/\s+/g, ' ')}</span>
+                                            <div className="lkr-val-check">✓</div>
+                                        </div>
+                                        <div className="lkr-val-question">{v.question}</div>
+                                        <div className="lkr-val-hint">{v.hint}</div>
+                                        <button type="button" className="lkr-val-yes-btn" onClick={(e) => { e.stopPropagation(); confirmVal(); }}>Confirm →</button>
+                                        <div className="lkr-val-confirmed-label">✓ Confirmed</div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </form>
                 )}
+
+                <div className="lkr-bottom-bar">
+                    <div className="lkr-submit-summary">
+                        <div className="lkr-summary-chip">
+                            <span className="lkr-s-label">KPIs</span>
+                            <span className="lkr-s-value">{kpis.length}</span>
+                        </div>
+                        <div className="lkr-summary-divider" />
+                        <div className="lkr-summary-chip">
+                            <span className="lkr-s-label">Total Weight</span>
+                            <span className={`lkr-s-value ${totalWeight === 100 ? 'ok' : ''}`}>{totalWeight}%</span>
+                        </div>
+                        <div className="lkr-summary-divider" />
+                        <div className="lkr-summary-chip">
+                            <span className="lkr-s-label">Self-Assessment</span>
+                            <div className="lkr-val-dots" style={{ marginTop: 2 }}>
+                                {[0, 1, 2, 3].map((i) => (
+                                    <div key={i} className={`lkr-val-dot ${confirmed[i] ? 'done' : ''}`} />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="lkr-submit-right">
+                        <span className={`lkr-submit-hint ${allConfirmed && totalWeight === 100 ? 'hidden' : ''}`}>
+                            {!allConfirmed
+                                ? `Complete self-assessment (${confirmed.filter(Boolean).length}/4) and set total weight to 100% to enable submit`
+                                : 'Set total weight to 100% to enable submit'}
+                        </span>
+                        <button
+                            type="submit"
+                            form="lkr-review-form"
+                            className="lkr-btn-submit"
+                            disabled={!canSubmit}
+                        >
+                            Request CEO Review →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                className={`lkr-popup-overlay ${currentValIdx !== null ? 'open' : ''}`}
+                onClick={(e) => e.target === e.currentTarget && closePopup()}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="lkr-popup-title"
+            >
+                <div className="lkr-popup" onClick={(e) => e.stopPropagation()}>
+                    {currentValIdx !== null && (
+                        <>
+                            <div className="lkr-popup-icon">{VALIDATIONS[currentValIdx].icon}</div>
+                            <div className="lkr-popup-title" id="lkr-popup-title">{VALIDATIONS[currentValIdx].title}</div>
+                            <div className="lkr-popup-question">{VALIDATIONS[currentValIdx].question}</div>
+                            <div className="lkr-popup-hint">{VALIDATIONS[currentValIdx].hint}</div>
+                            <div className="lkr-popup-actions">
+                                <button type="button" className="lkr-btn-cancel" onClick={closePopup}>
+                                    No
+                                </button>
+                                <button type="button" className="lkr-btn-confirm" onClick={confirmVal}>
+                                    Yes, Confirmed
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

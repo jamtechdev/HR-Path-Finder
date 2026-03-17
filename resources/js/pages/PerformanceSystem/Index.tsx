@@ -340,7 +340,7 @@ export default function PerformanceSystemIndex({
                     </div>
                 </div>
             ) : (
-            <div className="p-6 md:p-8 max-w-7xl mx-auto bg-background">
+            <div className="p-6 md:p-8 max-w-7xl mx-auto bg-background flex flex-col min-h-full">
                 <div className="mb-0 rounded-t-xl overflow-hidden">
                     <div className="bg-[#151535] text-white px-5 py-4 md:px-6 flex items-start gap-4">
                         <button
@@ -446,9 +446,9 @@ export default function PerformanceSystemIndex({
                         </div>
                     </div>
 
-                {/* Tab Content (non-overview) */}
+                {/* Tab Content (non-overview): flex so KPI Review footer stays in content area */}
                 {activeTab !== 'overview' && (
-                <div>
+                <div className={cn(activeTab === 'kpi-review' && 'flex flex-col flex-1 min-h-0')}>
                     {activeTab === 'performance-snapshot' && (
                         <PerformanceSnapshotTab
                             project={project}

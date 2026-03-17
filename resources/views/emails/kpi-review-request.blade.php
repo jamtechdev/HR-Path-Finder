@@ -19,7 +19,7 @@
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 30px 0;">
     <tr>
         <td align="center" style="padding: 20px 0;">
-            <a href="{{ $reviewUrl }}" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px;">Review KPIs</a>
+            <a href="{{ $reviewUrl }}" style="display: inline-block; padding: 12px 28px; background: #2ec4a0; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px;">Review KPIs</a>
         </td>
     </tr>
 </table>

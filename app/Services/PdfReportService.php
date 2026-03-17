@@ -426,7 +426,7 @@ class PdfReportService
             'job_analysis' => 'Job Analysis Report',
             'performance' => 'Performance Management System Report',
             'compensation' => 'Compensation & Benefits System Report',
-            'hr_policy_os' => 'HR Policy OS Report',
+            'hr_policy_os' => 'Final Dashboard Report',
         ];
 
         $title = $stepTitles[$step] ?? ucwords(str_replace('_', ' ', $step)) . ' Report';

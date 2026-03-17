@@ -18,7 +18,7 @@ class CeoKpiReviewController extends Controller
             abort(403);
         }
 
-        // Check if CEO is associated with the company
+        $hrProject->load('company.users');
         if (!$hrProject->company->users->contains($request->user())) {
             abort(403);
         }
@@ -44,6 +44,7 @@ class CeoKpiReviewController extends Controller
             'project' => $hrProject,
             'kpis' => $kpis,
             'orgChartMappings' => $orgChartMappings,
+            'isAdmin' => false,
         ]);
     }
 
@@ -56,7 +57,7 @@ class CeoKpiReviewController extends Controller
             abort(403);
         }
 
-        // Check if CEO is associated with the company
+        $hrProject->load('company.users');
         if (!$hrProject->company->users->contains($request->user())) {
             abort(403);
         }

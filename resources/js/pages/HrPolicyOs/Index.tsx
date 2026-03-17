@@ -105,7 +105,7 @@ export default function HrPolicyOsIndex({
     };
 
     const handleFinalSubmit = () => {
-        if (confirm('Are you sure you want to submit the HR Policy OS? This will send it to the CEO for final approval.')) {
+        if (confirm('Are you sure you want to submit the Final Dashboard? This will send it to the CEO for final approval.')) {
             post(`/hr-manager/hr-policy-os/${projectId}/submit`, {
                 preserveScroll: true,
             });
@@ -136,12 +136,12 @@ export default function HrPolicyOsIndex({
             stepStatuses={stepStatuses}
             projectId={projectId}
         >
-            <Head title="Step 5: HR Policy OS" />
+            <Head title="Step 5: Final Dashboard" />
             <div className="p-6 md:p-8 max-w-7xl mx-auto bg-background">
                 {/* Header - Match Diagnosis Style */}
                 <div className="mb-6">
                     <StepHeader
-                        title="Step 5: HR Policy OS"
+                        title="Step 5: Final Dashboard"
                         description="HR Policy Manual, System Handbook, Implementation Roadmap, and Analytics Blueprint."
                         status={getStatusForHeader()}
                         backHref="/hr-manager/dashboard"

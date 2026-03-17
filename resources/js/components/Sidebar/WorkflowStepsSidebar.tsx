@@ -61,7 +61,7 @@ const MAIN_STEPS: StepConfig[] = [
     {
         id: 'hr_policy_os',
         step: 5,
-        title: 'HR Policy OS',
+        title: 'Final Dashboard',
         desc: 'HR Policy Manual, System Handbook, Implementation Roadmap, and Analytics Blueprint.',
         icon: Award,
         route: '/hr-manager/hr-policy-os',

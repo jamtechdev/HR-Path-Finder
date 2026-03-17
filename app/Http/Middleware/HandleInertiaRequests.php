@@ -75,33 +75,62 @@ class HandleInertiaRequests extends Middleware
             $shared['canSwitchToHr'] = $user->hasRole('hr_manager') && $request->session()->get('active_role') === 'ceo';
         }
         
-        // Add projects to shared data for roles that need them in sidebar
+        // Add projects to shared data for roles that need them in sidebar (with step_statuses and kpi_review_status for KPI list menu)
         if ($user) {
             $projects = [];
-            
-            // If user switched to CEO, show only CEO projects
             $activeRole = $request->session()->get('active_role');
+
             if ($user->hasRole('ceo') && ($activeRole === 'ceo' || !$user->hasRole('hr_manager'))) {
-                $projects = \App\Models\HrProject::whereHas('company', function ($query) use ($user) {
+                $collection = \App\Models\HrProject::whereHas('company', function ($query) use ($user) {
                     $query->whereHas('users', function ($q) use ($user) {
                         $q->where('users.id', $user->id)
                           ->where('company_users.role', 'ceo');
                     });
-                })->with(['company:id,name'])->select('id', 'company_id')->get()->map(function ($project) {
-                    return [
-                        'id' => $project->id,
-                        'company' => $project->company ? ['name' => $project->company->name] : null,
-                    ];
-                })->toArray();
+                })->with(['company:id,name'])->get();
             } elseif ($user->hasRole('admin')) {
-                $projects = \App\Models\HrProject::with(['company:id,name'])->select('id', 'company_id')->get()->map(function ($project) {
+                $collection = \App\Models\HrProject::with(['company:id,name'])->get();
+            } else {
+                $collection = collect();
+            }
+
+            if ($collection->isNotEmpty()) {
+                $projectIds = $collection->pluck('id')->toArray();
+                // All KPIs (old and new) – count total, approved, and revision_requested for full listing
+                $kpiCounts = \App\Models\OrganizationalKpi::whereIn('hr_project_id', $projectIds)
+                    ->selectRaw("hr_project_id, COUNT(*) as total, SUM(CASE WHEN COALESCE(ceo_approval_status, '') = 'approved' OR COALESCE(status, '') = 'approved' THEN 1 ELSE 0 END) as approved, SUM(CASE WHEN COALESCE(ceo_approval_status, '') = 'revision_requested' OR COALESCE(status, '') = 'revision_requested' THEN 1 ELSE 0 END) as revision_requested")
+                    ->groupBy('hr_project_id')
+                    ->get()
+                    ->keyBy('hr_project_id');
+
+                $projects = $collection->map(function ($project) use ($kpiCounts) {
+                    $stepStatuses = $project->step_statuses ?? [];
+                    $perfStatus = $stepStatuses['performance'] ?? 'not_started';
+                    $counts = $kpiCounts->get($project->id);
+                    $total = $counts ? (int) $counts->total : 0;
+                    $approved = $counts ? (int) $counts->approved : 0;
+                    $revisionRequested = $counts ? (int) $counts->revision_requested : 0;
+                    $kpiReviewStatus = 'none';
+                    if ($total > 0) {
+                        if ($approved >= $total) {
+                            $kpiReviewStatus = 'approved';
+                        } elseif ($revisionRequested > 0) {
+                            $kpiReviewStatus = 'revision_requested';
+                        } else {
+                            $kpiReviewStatus = in_array($perfStatus, ['in_progress', 'submitted']) ? 'pending' : 'in_progress';
+                        }
+                    }
                     return [
                         'id' => $project->id,
                         'company' => $project->company ? ['name' => $project->company->name] : null,
+                        'step_statuses' => $stepStatuses,
+                        'kpi_review_status' => $kpiReviewStatus,
+                        'kpi_total' => $total,
+                        'kpi_approved' => $approved,
+                        'kpi_revision_requested' => $revisionRequested,
                     ];
-                })->toArray();
+                })->values()->toArray();
             }
-            
+
             $shared['projects'] = $projects;
         }
         

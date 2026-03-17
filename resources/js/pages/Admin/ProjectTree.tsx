@@ -44,7 +44,7 @@ const STEP_NAMES: Record<string, string> = {
     'job_analysis': 'Step 2: Job Analysis',
     'performance': 'Step 3: Performance',
     'compensation': 'Step 4: Compensation',
-    'hr_policy_os': 'Step 5: HR Policy OS',
+    'hr_policy_os': 'Step 5: Final Dashboard',
 };
 
 const STEP_ORDER = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'hr_policy_os'];

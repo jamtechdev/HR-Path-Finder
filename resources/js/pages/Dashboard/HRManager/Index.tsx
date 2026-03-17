@@ -49,7 +49,7 @@ interface Props {
     canSwitchToCeo?: boolean;
 }
 
-// All 5 steps matching sidebar: Diagnosis, Job Analysis, Performance, Compensation, HR Policy OS
+// All 5 steps matching sidebar: Diagnosis, Job Analysis, Performance, Compensation, Final Dashboard
 const STEP_CONFIG = [
     {
         id: 'diagnosis' as StepKey,
@@ -82,7 +82,7 @@ const STEP_CONFIG = [
     {
         id: 'hr_policy_os' as StepKey,
         step: 5,
-        title: 'HR Policy OS',
+        title: 'Final Dashboard',
         desc: 'HR Policy Manual, System Handbook, Implementation Roadmap, and Analytics Blueprint.',
         icon: Award,
     },

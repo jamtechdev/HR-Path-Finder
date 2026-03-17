@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\HrProject;
+use App\Models\ReportUpload;
 use App\Services\ReportDataService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class HrReportController extends Controller
@@ -30,12 +32,71 @@ class HrReportController extends Controller
 
         $data = $this->reportDataService->getComprehensiveProjectData($hrProject);
 
+        $reportUploads = ReportUpload::where('hr_project_id', $hrProject->id)
+            ->orderByDesc('created_at')
+            ->get();
+
         return Inertia::render('HRManager/Report/Index', [
             'project' => $data['project'],
             'stepStatuses' => $data['stepStatuses'],
             'projectId' => $hrProject->id,
             'hrSystemSnapshot' => $data['hrSystemSnapshot'],
+            'reportUploads' => $reportUploads,
         ]);
+    }
+
+    /**
+     * Upload a report file (e.g. final PDF) for this project.
+     */
+    public function upload(Request $request, HrProject $hrProject)
+    {
+        $user = $request->user();
+        if (!$user->hasRole('hr_manager')) {
+            abort(403);
+        }
+
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:pdf', 'max:51200'],
+        ]);
+
+        $file = $request->file('file');
+        $dir = 'report_uploads/' . $hrProject->id;
+        $path = $file->store($dir, 'local');
+
+        ReportUpload::create([
+            'hr_project_id' => $hrProject->id,
+            'file_path' => $path,
+            'original_name' => $file->getClientOriginalName(),
+            'mime_type' => $file->getMimeType(),
+            'size' => $file->getSize(),
+            'uploaded_by' => $user->id,
+        ]);
+
+        return back()->with('success', 'Report uploaded successfully.');
+    }
+
+    /**
+     * Download an uploaded report file.
+     */
+    public function downloadUpload(Request $request, HrProject $hrProject, ReportUpload $reportUpload)
+    {
+        $user = $request->user();
+        if (!$user->hasRole('hr_manager')) {
+            abort(403);
+        }
+        if ($reportUpload->hr_project_id !== $hrProject->id) {
+            abort(404);
+        }
+
+        if (!Storage::disk('local')->exists($reportUpload->file_path)) {
+            return back()->withErrors(['error' => 'File not found.']);
+        }
+
+        return Storage::disk('local')->download(
+            $reportUpload->file_path,
+            $reportUpload->original_name,
+            ['Content-Type' => $reportUpload->mime_type ?? 'application/pdf']
+        );
     }
 
     /**
@@ -79,7 +140,7 @@ class HrReportController extends Controller
             'job_analysis' => 'Job_Analysis',
             'performance' => 'Performance',
             'compensation' => 'Compensation',
-            'hr_policy_os' => 'HR_Policy_OS',
+            'hr_policy_os' => 'Final_Dashboard',
         ];
 
         $stepName = $stepNames[$step] ?? $step;

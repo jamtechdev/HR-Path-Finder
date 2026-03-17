@@ -15,7 +15,7 @@ const MAIN_STEPS: StepConfig[] = [
     { id: 'job_analysis', step: 2, name: 'Job Analysis', icon: Building2, route: '/hr-manager/job-analysis' },
     { id: 'performance', step: 3, name: 'Performance System', icon: Target, route: '/hr-manager/performance-system' },
     { id: 'compensation', step: 4, name: 'Compensation System', icon: DollarSign, route: '/hr-manager/compensation-system' },
-    { id: 'hr_policy_os', step: 5, name: 'HR Policy OS', icon: Award, route: '/hr-manager/hr-policy-os' },
+    { id: 'hr_policy_os', step: 5, name: 'Final Dashboard', icon: Award, route: '/hr-manager/hr-policy-os' },
 ];
 
 export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?: boolean }) {

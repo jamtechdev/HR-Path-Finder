@@ -29,7 +29,7 @@ function getBreadcrumbLabel(path: string): string {
     if (path.startsWith('/hr-manager/job-analysis')) return 'Job Analysis';
     if (path.startsWith('/hr-manager/performance-system')) return 'Performance System';
     if (path.startsWith('/hr-manager/compensation-system')) return 'Compensation System';
-    if (path.startsWith('/hr-manager/hr-policy-os')) return 'HR Policy OS';
+    if (path.startsWith('/hr-manager/hr-policy-os')) return 'Final Dashboard';
     if (path.startsWith('/hr-manager/tree')) return 'Tree';
     if (path.startsWith('/hr-manager/report')) return 'Report';
     if (path.startsWith('/settings')) return 'Settings';

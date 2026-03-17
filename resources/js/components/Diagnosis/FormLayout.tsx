@@ -67,6 +67,7 @@ interface FormLayoutProps {
     validateBeforeNext?: () => boolean | string; // Returns true if valid, or error message string
     formData?: any; // Form data to save
     saveRoute?: string; // Route to save form data
+    hidePageTitle?: boolean; // e.g. Job Grades uses only section label in content
 }
 
 // Validation function for each step
@@ -162,6 +163,7 @@ export default function FormLayout({
     validateBeforeNext,
     formData,
     saveRoute,
+    hidePageTitle = false,
 }: FormLayoutProps) {
     const [validationError, setValidationError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
@@ -414,30 +416,33 @@ export default function FormLayout({
         return validateStepRequiredFields(activeTab, dataToValidate).isValid;
     }, [activeTab, formData, diagnosis, stepStatuses, validateBeforeNext]);
 
+    const statusForHeader = getStatusForHeader();
+    const progressPct = displayTabs.length ? (completedCount / displayTabs.length) * 100 : 0;
+    const badgeLabel = statusForHeader === 'in_progress' ? '진행중' : statusForHeader === 'submitted' ? '완료' : '미시작';
+
     return (
         <AppLayout>
-            <div className="flex flex-col min-h-full bg-[var(--hr-gray-50)]">
-                        {/* Step Header - white bar with back, title, badge, counter */}
-                        <div className="bg-white border-b border-[var(--hr-gray-200)] pt-4 px-9 pb-0 shrink-0">
-                            <DiagnosisHeader
-                                title="Step 1: Diagnosis"
-                                status={getStatusForHeader()}
-                                backHref={getBackHref()}
-                                stepCounter={stepCounter}
-                            />
-                            {/* Overview bar */}
-                            <div className="flex items-center gap-2.5 mt-0 mb-0">
-                                <span className="text-[11px] text-[var(--hr-gray-400)] whitespace-nowrap">Overview</span>
-                                <div className="flex-1 h-[3px] bg-[var(--hr-gray-200)] rounded-[3px] overflow-hidden">
-                                    <div
-                                        className="h-full bg-[var(--hr-mint)] rounded-[3px] transition-all duration-400 ease-out"
-                                        style={{ width: `${displayTabs.length ? (completedCount / displayTabs.length) * 100 : 0}%` }}
-                                    />
-                                </div>
+            <div className="diagnosis-step-layout flex flex-col min-h-full bg-[var(--dx-gray-50)]">
+                        {/* Top bar: back, Step 1: Diagnosis, badge, counter (pixel-perfect reference) */}
+                        <div className="dx-top-bar shrink-0">
+                            <Link href={getBackHref()} className="dx-back-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                                    <path d="M19 12H5M12 5l-7 7 7 7" />
+                                </svg>
+                            </Link>
+                            <span className="dx-step-title">Step 1: Diagnosis</span>
+                            <span className={`dx-step-badge ${statusForHeader !== 'in_progress' ? '!bg-[#F0F2F5] !text-[#6B7585] !border-[#E2E6ED]' : ''}`}>
+                                {badgeLabel}
+                            </span>
+                            <span className="dx-step-counter">{stepCounter}</span>
+                        </div>
+                        <div className="dx-progress-wrap shrink-0">
+                            <div className="dx-progress-track">
+                                <div className="dx-progress-fill" style={{ width: `${progressPct}%` }} />
                             </div>
-                            {/* Tabs - scrollable */}
-                            <div className="mt-3.5">
-                                <DiagnosisTabs
+                        </div>
+                        <div className="dx-nav-tabs shrink-0">
+                            <DiagnosisTabs
                                 tabs={diagnosisTabs}
                                 activeTab={activeTab as any}
                                 stepStatus={stepStatuses}
@@ -446,13 +451,14 @@ export default function FormLayout({
                                 diagnosisStatus={diagnosisStatus as any}
                                 diagnosis={diagnosis}
                             />
-                            </div>
                         </div>
 
                         {/* Form area - scrollable content */}
-                        <div className="flex-1 overflow-y-auto py-7 px-3 md:px-9">
-                        {/* Page Title */}
-                        <h2 className="text-[17px] font-bold text-[var(--hr-gray-800)] tracking-[-0.3px] mb-5">{title}</h2>
+                        <div className="flex-1 overflow-y-auto">
+                        <main className="dx-main">
+                        {!hidePageTitle && (
+                            <h2 className="text-[17px] font-bold text-[var(--dx-gray-900)] tracking-[-0.3px] mb-5">{title}</h2>
+                        )}
 
                         {/* Read-only Notice */}
                         {(diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked') && (
@@ -482,34 +488,42 @@ export default function FormLayout({
                         <div className="mb-6">
                             {children}
                         </div>
+                        </main>
                         </div>
 
-                        {/* Bottom Nav - white bar */}
+                        {/* Bottom bar (pixel-perfect: 68px, Back / hint / Next) */}
                         {(showBack || showNext) && (
-                            <div className="bg-white border-t border-[var(--hr-gray-200)] py-3.5 px-9 flex items-center justify-between shrink-0">
+                            <div className="dx-bottom-bar">
                                 {showBack ? (
                                     <Link
                                         href={getBackUrl()}
                                         onClick={handleBack}
-                                        className="flex items-center gap-[7px] py-2 px-[18px] border border-[var(--hr-gray-200)] rounded-lg bg-white text-[13px] font-medium text-[var(--hr-gray-600)] hover:border-[var(--hr-gray-300)] hover:bg-[var(--hr-gray-50)] transition-colors"
+                                        className="dx-btn-back"
                                     >
-                                        ← {tr('back')}
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                                            <path d="M19 12H5M12 5l-7 7 7 7" />
+                                        </svg>
+                                        {tr('back')}
                                     </Link>
                                 ) : <span />}
-                                <span className="text-[11.5px] text-[var(--hr-gray-400)]">{stepCounter}</span>
+                                <span className="dx-bottom-hint">
+                                    <strong>{title}</strong> · {stepCounter}
+                                </span>
                                 {showNext ? (
                                     <div className="relative flex flex-col items-end">
                                         <button
                                             type="button"
                                             onClick={handleNext}
                                             disabled={processing || isSaving || !canProceed}
-                                            className="flex items-center gap-[7px] py-2 px-[22px] rounded-lg bg-[var(--hr-navy)] text-[13px] font-bold text-white hover:bg-[var(--hr-navy-mid)] hover:-translate-y-px transition-all disabled:opacity-50"
+                                            className="dx-btn-next"
                                         >
                                             {isSaving ? tr('saving') : (nextLabel ?? tr('next'))}
-                                            →
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                                                <path d="M5 12h14M12 5l7 7-7 7" />
+                                            </svg>
                                         </button>
                                         {!canProceed && !processing && !isSaving && (
-                                            <p className="mt-1.5 text-[11px] text-[var(--hr-gray-400)] whitespace-nowrap">{tr('completeRequired')}</p>
+                                            <p className="mt-1.5 text-[11px] text-[var(--dx-gray-400)] whitespace-nowrap">{tr('completeRequired')}</p>
                                         )}
                                     </div>
                                 ) : (

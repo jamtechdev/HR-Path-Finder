@@ -16,5 +16,5 @@ export const STEP_LABELS: Record<StepKey, string> = {
     ceo_diagnosis: 'Step 3: CEO Diagnosis',
     performance: 'Step 4: Performance.Man.',
     compensation: 'Step 5: C&B',
-    hr_policy_os: 'Step 6: HR Policy OS',
+    hr_policy_os: 'Step 6: Final Dashboard',
 };

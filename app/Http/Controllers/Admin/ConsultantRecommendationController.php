@@ -279,7 +279,7 @@ class ConsultantRecommendationController extends Controller
         
         if (!in_array($compensationStatus, ['submitted', 'approved', 'locked'])) {
             return redirect()->route('admin.dashboard')
-                ->withErrors(['error' => 'Compensation System (Step 4) must be completed before preparing HR Policy OS recommendations.']);
+                ->withErrors(['error' => 'Compensation System (Step 4) must be completed before preparing Final Dashboard recommendations.']);
         }
 
         // Load project data
@@ -335,6 +335,6 @@ class ConsultantRecommendationController extends Controller
         ]);
 
         return redirect()->route('admin.recommendations.hr-policy-os', $hrProject)
-            ->with('success', 'HR Policy OS recommendation saved successfully.');
+            ->with('success', 'Final Dashboard recommendation saved successfully.');
     }
 }

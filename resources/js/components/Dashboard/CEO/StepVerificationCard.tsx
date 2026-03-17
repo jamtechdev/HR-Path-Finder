@@ -19,7 +19,7 @@ const STEP_LABELS: Record<string, string> = {
     ceo_diagnosis: 'CEO Diagnosis',
     performance: 'Performance System',
     compensation: 'Compensation System',
-    hr_policy_os: 'HR Policy OS',
+    hr_policy_os: 'Final Dashboard',
 };
 
 const STEP_ROUTES: Record<string, (projectId: number) => string> = {
