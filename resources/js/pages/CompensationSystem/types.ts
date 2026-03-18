@@ -98,6 +98,15 @@ export interface SalaryTable {
     performanceIncreases?: SalaryTablePerformanceIncrease[];
 }
 
+/** In-memory structure for Salary Table tab: one grade with N year rows */
+export interface SalaryTableGrade {
+    name: string;
+    years: number;
+}
+
+/** Grid state: cells[gradeIndex][yearIndex][levelIndex] = value (e.g. 만원) */
+export type SalaryTableCells = (number | null)[][][];
+
 export interface SalaryTablePerformanceIncrease {
     id: number;
     rating: 'S' | 'A' | 'B' | 'C' | 'D';
@@ -114,12 +123,17 @@ export interface BonusPoolConfiguration {
     payment_trigger_condition?: string;
     bonus_pool_determination_criteria?: string;
     bonus_pool_determination_method?: string;
+    ratio_value?: number;
+    range_min?: number;
+    range_max?: number;
+    amount_value?: number;
     eligibility_scope?: string;
     eligibility_criteria?: string;
     inclusion_of_employees_on_leave?: string;
     bonus_calculation_unit?: string;
     allocation_scope?: string;
     allocation_criteria?: string[];
+    allocation_weights?: Record<string, number>;
     bonus_pool_finalization_timing?: number;
     bonus_payment_month?: number;
     calculation_period_start?: string;
@@ -130,7 +144,9 @@ export interface BenefitsConfiguration {
     previous_year_total_salary?: number;
     previous_year_total_benefits_expense?: number;
     benefits_expense_ratio?: number;
+    /** Strategic direction: value is chip key (competitive, cost, perf_drive, safety) */
     benefits_strategic_direction?: Array<{ value: string; priority: 'primary' | 'secondary' }>;
+    /** name = benefit item id, status = maintain | expand | reduce | remove | new */
     current_benefits_programs?: Array<{ name: string; status: string }>;
     future_programs?: Array<{ name: string; status: string }>;
 }

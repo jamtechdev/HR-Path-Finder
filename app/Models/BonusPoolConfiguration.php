@@ -15,12 +15,17 @@ class BonusPoolConfiguration extends Model
         'payment_trigger_condition',
         'bonus_pool_determination_criteria',
         'bonus_pool_determination_method',
+        'ratio_value',
+        'range_min',
+        'range_max',
+        'amount_value',
         'eligibility_scope',
         'eligibility_criteria',
         'inclusion_of_employees_on_leave',
         'bonus_calculation_unit',
         'allocation_scope',
         'allocation_criteria',
+        'allocation_weights',
         'bonus_pool_finalization_timing',
         'bonus_payment_month',
         'calculation_period_start',
@@ -29,6 +34,7 @@ class BonusPoolConfiguration extends Model
 
     protected $casts = [
         'allocation_criteria' => 'array',
+        'allocation_weights' => 'array',
         'calculation_period_start' => 'date',
         'calculation_period_end' => 'date',
     ];

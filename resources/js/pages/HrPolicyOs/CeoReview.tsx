@@ -36,7 +36,7 @@ export default function HrPolicyOsCeoReview({
     const { post, processing } = useForm({});
 
     const handleApprove = () => {
-        if (confirm('Are you sure you want to approve the HR Policy OS? This will lock the entire system and complete the Pathfinder journey.')) {
+        if (confirm('Are you sure you want to approve the Final Dashboard? This will lock the entire system and complete the Pathfinder journey.')) {
             post(`/ceo/hr-policy-os/${project.id}/approve`, {
                 preserveScroll: true,
             });
@@ -47,7 +47,7 @@ export default function HrPolicyOsCeoReview({
 
     return (
         <SidebarProvider defaultOpen={true}>
-            <Head title="Review HR Policy OS" />
+            <Head title="Review Final Dashboard" />
             <div className="flex h-screen w-full">
                 <RoleBasedSidebar />
                 <SidebarInset className="flex-1 overflow-auto">
@@ -65,7 +65,7 @@ export default function HrPolicyOsCeoReview({
                                     Back to Dashboard
                                 </Button>
                                 <div>
-                                    <h1 className="text-2xl font-bold">Review HR Policy OS & Implementation Blueprint</h1>
+                                    <h1 className="text-2xl font-bold">Review Final Dashboard & Implementation Blueprint</h1>
                                     <p className="text-sm text-muted-foreground">
                                         Final Step: Review and approve the complete HR system package
                                     </p>

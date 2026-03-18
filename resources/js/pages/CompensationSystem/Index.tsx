@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Head, useForm, router, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
-import StepHeader from '@/components/StepHeader/StepHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, DollarSign, CheckCircle2, MessageSquare, ChevronDown, ChevronUp, TrendingUp, FileText, Shield, Settings, Award, Users, AlertCircle } from 'lucide-react';
+import { ArrowLeft, DollarSign, CheckCircle2, MessageSquare, ChevronDown, ChevronUp, TrendingUp, FileText, Settings, Award, Users, AlertCircle, Shield } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -29,6 +28,7 @@ import type {
 } from './types';
 
 // Import tab components
+import CompensationOverview from './CompensationOverview';
 import SnapshotTab from './tabs/SnapshotTab';
 import BaseSalaryFrameworkTab from './tabs/BaseSalaryFrameworkTab';
 import PayBandSalaryTableTab from './tabs/PayBandSalaryTableTab';
@@ -100,6 +100,63 @@ export default function CompensationSystemIndex({
     });
 
     const { post, processing } = useForm({});
+    const [saving, setSaving] = useState(false);
+
+    // Save current tab then go to next (single footer action for all forms)
+    const handleSaveAndContinue = () => {
+        const idx = TABS.findIndex(t => t.id === activeTab);
+        const nextTabId = idx < TABS.length - 1 ? TABS[idx + 1].id : activeTab;
+        const goNext = () => {
+            setSaving(false);
+            handleTabChange(nextTabId);
+        };
+        const opts = { preserveScroll: true, preserveState: true, only: ['project'], onSuccess: goNext, onError: () => setSaving(false), onFinish: () => setSaving(false) };
+
+        if (activeTab === 'snapshot') {
+            setSaving(true);
+            const responseData = (snapshotQuestions || []).map((q: { id: number; answer_type?: string }) => {
+                const response = snapshotResponses[q.id];
+                if (q.answer_type === 'numeric') {
+                    return { question_id: q.id, response: null, text_response: null, numeric_response: typeof response === 'object' ? null : (response as number ?? null), response_data: typeof response === 'object' ? response : null };
+                }
+                if (q.answer_type === 'text') {
+                    return { question_id: q.id, response: null, text_response: (response as string) ?? null, numeric_response: null, response_data: null };
+                }
+                return { question_id: q.id, response: Array.isArray(response) ? response : (response ? [response] : null), text_response: null, numeric_response: null, response_data: null };
+            });
+            router.post(`/hr-manager/compensation-system/${project.id}`, { tab: 'snapshot', responses: responseData } as any, opts);
+            return;
+        }
+        if (activeTab === 'base-salary-framework') {
+            setSaving(true);
+            router.post(`/hr-manager/compensation-system/${project.id}`, { tab: 'base-salary-framework', ...baseSalaryFramework }, opts);
+            return;
+        }
+        if (activeTab === 'pay-band-salary-table') {
+            setSaving(true);
+            router.post(`/hr-manager/compensation-system/${project.id}`, { tab: 'pay-band', pay_bands: payBands } as any, { ...opts, onSuccess: () => {
+                router.post(`/hr-manager/compensation-system/${project.id}`, { tab: 'salary-table', salary_tables: salaryTables } as any, { ...opts, onSuccess: () => {
+                    router.post(`/hr-manager/compensation-system/${project.id}`, { tab: 'operation-criteria', ...operationCriteria }, opts);
+                } });
+            } });
+            return;
+        }
+        if (activeTab === 'bonus-pool') {
+            setSaving(true);
+            router.post(`/hr-manager/compensation-system/${project.id}`, { tab: 'bonus-pool', ...bonusPool }, opts);
+            return;
+        }
+        if (activeTab === 'benefits') {
+            setSaving(true);
+            const updatedBenefits = { ...benefits };
+            if (updatedBenefits.previous_year_total_salary && updatedBenefits.previous_year_total_benefits_expense && updatedBenefits.previous_year_total_salary > 0) {
+                updatedBenefits.benefits_expense_ratio = (updatedBenefits.previous_year_total_benefits_expense / updatedBenefits.previous_year_total_salary) * 100;
+            }
+            router.post(`/hr-manager/compensation-system/${project.id}`, { tab: 'benefits', ...updatedBenefits }, opts);
+            return;
+        }
+        goNext();
+    };
 
     // Validate tab completion
     const validateTabCompletion = (tabId: string): boolean => {
@@ -285,6 +342,14 @@ export default function CompensationSystemIndex({
         return validateTabCompletion(tab.id);
     }).length;
 
+    const completedSteps = useMemo(() => {
+        const set = new Set<string>();
+        TABS.forEach(tab => {
+            if (tab.id !== 'overview' && validateTabCompletion(tab.id)) set.add(tab.id);
+        });
+        return set;
+    }, [project.compensation_snapshot_responses, project.base_salary_framework, project.pay_bands, project.salary_tables, project.bonus_pool_configuration, project.benefits_configuration]);
+
     const getStatusForHeader = (): 'not_started' | 'in_progress' | 'submitted' => {
         const status = stepStatuses?.compensation || 'not_started';
         if (status === 'submitted' || status === 'approved' || status === 'locked') {
@@ -302,43 +367,101 @@ export default function CompensationSystemIndex({
         ? (snapshotResponses[q17Question.id] as string[] || [])
         : [];
 
+    const isOverview = activeTab === 'overview';
+
     return (
-        <AppLayout 
+        <AppLayout
             showWorkflowSteps={true}
             stepStatuses={stepStatuses}
             projectId={projectId}
         >
             <Head title={`Step 4: Compensation System - ${project.company?.name || 'Compensation System'}`} />
-            <div className="p-6 md:p-8 max-w-7xl mx-auto bg-background">
+            <div className={cn('min-h-full', isOverview ? 'bg-[#f5f3ef]' : 'bg-[#f7f8fa]')}>
                 {errors?.error && (
-                    <Alert className="mb-6 border-destructive/50 bg-destructive/10 text-destructive">
+                    <Alert className="mb-6 border-destructive/50 bg-destructive/10 text-destructive mx-auto max-w-7xl px-6 pt-6">
                         <AlertCircle className="h-4 w-4" />
                         <AlertDescription>{errors.error}</AlertDescription>
                     </Alert>
                 )}
 
-                <div className="mb-6">
-                    <StepHeader
-                        title="Step 4: Compensation System"
-                        description="Define compensation structure, differentiation methods, and incentive components."
-                        status={getStatusForHeader()}
-                        backHref="/hr-manager/dashboard"
-                    />
-                </div>
-
-                <div className="mb-6">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">Progress</span>
-                        <span className="text-sm text-gray-600">{completedTabsCount} of {TABS.filter(t => t.id !== 'overview').length}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-1">
-                        <div 
-                            className="bg-primary h-1 rounded-full transition-all duration-300"
-                            style={{ width: `${(completedTabsCount / TABS.filter(t => t.id !== 'overview').length) * 100}%` }}
+                {isOverview ? (
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between px-6 pt-6 max-w-7xl mx-auto">
+                            <Link
+                                href="/hr-manager/dashboard"
+                                className="text-sm font-medium text-[#0f2a4a] hover:text-[#1a4070] flex items-center gap-1"
+                            >
+                                <ArrowLeft className="w-4 h-4" />
+                                Back to Dashboard
+                            </Link>
+                        </div>
+                        <CompensationOverview
+                            projectId={project.id}
+                            stepStatuses={stepStatuses}
+                            completedSteps={completedSteps}
+                            onStepClick={handleTabChange}
                         />
                     </div>
-                </div>
+                ) : (
+                    <>
+                        {/* Dark bar: step icon + status only (breadcrumb shows once in AppHeader) */}
+                        <header className="bg-[#0f1c30] text-white flex items-center justify-between flex-wrap gap-2 text-sm px-6 md:px-10 py-3.5">
+                            <div className="w-6 h-6 rounded bg-white flex items-center justify-center text-[#0f1c30] font-black text-xs shrink-0" aria-hidden>C</div>
+                            <span
+                                className="rounded-[20px] px-3.5 py-1 text-[11px] font-semibold text-white shrink-0"
+                                style={{ background: '#c8963e', paddingTop: 4, paddingBottom: 4, paddingLeft: 14, paddingRight: 14 }}
+                            >
+                                {getStatusForHeader().replace('_', ' ').toUpperCase()}
+                            </span>
+                        </header>
 
+                        {/* Dark stage nav - includes Overview so user can go back from any step */}
+                        <div className="bg-[#0f1c30] border-b border-white/5">
+                            <div className="max-w-7xl mx-auto px-6 overflow-x-auto scrollbar-thin">
+                                <nav className="flex items-center gap-0 min-w-max">
+                                    {TABS.map((tab, idx) => {
+                                        const Icon = tab.icon;
+                                        const isActive = activeTab === tab.id;
+                                        const isDone = tab.id === 'overview' ? false : validateTabCompletion(tab.id);
+                                        const stepNum = tab.id === 'overview' ? null : idx; // Overview = O, Snapshot = 1, ... Review = 6
+                                        return (
+                                            <button
+                                                key={tab.id}
+                                                type="button"
+                                                onClick={() => handleTabChange(tab.id)}
+                                                disabled={!isTabEnabled(tab.id, idx)}
+                                                className={cn(
+                                                    'flex items-center gap-2 px-5 py-3.5 text-xs font-medium whitespace-nowrap border-b-2 transition-colors',
+                                                    isActive && 'text-white border-[#2ec4a0] bg-white/5',
+                                                    isDone && !isActive && 'text-[#2ec4a0] border-transparent',
+                                                    !isActive && !isDone && 'text-white/40 border-transparent hover:text-white/70',
+                                                    'disabled:opacity-50 disabled:cursor-not-allowed'
+                                                )}
+                                            >
+                                                <span className={cn(
+                                                    'w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold',
+                                                    tab.id === 'overview' && 'bg-white/10 text-white',
+                                                    isDone && tab.id !== 'overview' && 'bg-[#2ec4a0] text-[#0f1c30]',
+                                                    isActive && !isDone && 'bg-white/10 text-white',
+                                                    !isDone && !isActive && tab.id !== 'overview' && 'bg-white/5 text-white/30'
+                                                )}>
+                                                    {tab.id === 'overview' ? 'O' : isDone ? '✓' : (stepNum ?? idx)}
+                                                </span>
+                                                {tab.label}
+                                            </button>
+                                        );
+                                    })}
+                                </nav>
+                                <div className="h-0.5 bg-white/5">
+                                    <div
+                                        className="h-full bg-[#2ec4a0] rounded-r transition-all duration-300"
+                                        style={{ width: `${(completedTabsCount / (TABS.length - 1)) * 100}%` }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="max-w-7xl mx-auto px-6 py-6 pb-28">
                         {consultantRecommendation && (
                             <Card className="mb-6 border-2 border-primary/20 bg-primary/5">
                                 <CardContent className="p-6">
@@ -396,56 +519,6 @@ export default function CompensationSystemIndex({
                                 </CardContent>
                             </Card>
                         )}
-
-                        <div className="flex gap-2 overflow-x-auto pb-2 scroll-smooth mb-6" style={{ scrollbarWidth: 'thin' }}>
-                            {TABS.map((tab, index) => {
-                                const Icon = tab.icon;
-                                const isActive = activeTab === tab.id;
-                                const isEnabled = isTabEnabled(tab.id, index);
-                                const isCompleted = validateTabCompletion(tab.id) && tab.id !== 'overview';
-                                const TabIcon = isCompleted ? CheckCircle2 : Icon;
-                                
-                                if (!isEnabled) {
-                                    return (
-                                        <button
-                                            key={tab.id}
-                                            disabled
-                                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all bg-muted/50 text-muted-foreground/50 cursor-not-allowed relative"
-                                        >
-                                            <TabIcon className="w-4 h-4" />
-                                            <span className="hidden sm:inline">{tab.label}</span>
-                                        </button>
-                                    );
-                                }
-                                
-                                return (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => handleTabChange(tab.id)}
-                                        className={cn(
-                                            "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all cursor-pointer relative",
-                                            isActive
-                                                ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary ring-offset-2"
-                                                : isCompleted
-                                                ? "bg-green-100 text-green-700 hover:bg-green-200 border-2 border-green-300"
-                                                : "bg-muted text-muted-foreground hover:bg-muted/80"
-                                        )}
-                                    >
-                                        {isCompleted && !isActive && (
-                                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-white shadow-sm z-10">
-                                                <CheckCircle2 className="w-3 h-3 text-white" />
-                                            </div>
-                                        )}
-                                        <TabIcon className={cn(
-                                            "w-4 h-4 flex-shrink-0",
-                                            isActive && "text-primary-foreground",
-                                            isCompleted && !isActive && "text-green-600"
-                                        )} />
-                                        <span className="hidden sm:inline">{tab.label}</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
 
                         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                             <TabsList className="hidden">
@@ -517,6 +590,7 @@ export default function CompensationSystemIndex({
 
                     <TabsContent value="review" className="mt-0">
                         <ReviewTab
+                            project={project}
                             snapshotQuestions={snapshotQuestions}
                             snapshotResponses={snapshotResponses}
                             baseSalaryFramework={baseSalaryFramework}
@@ -528,80 +602,82 @@ export default function CompensationSystemIndex({
                     </TabsContent>
                 </Tabs>
 
-                        <div className="flex items-center justify-between pt-6 border-t mt-6">
-                    <Button 
-                        variant="outline" 
-                        onClick={() => {
-                                const idx = TABS.findIndex(t => t.id === activeTab);
-                                if (idx > 0) handleTabChange(TABS[idx - 1].id);
-                        }} 
-                        disabled={activeTab === 'overview'}
-                    >
-                                <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                        </div>
+
+                        {/* Sticky footer: starts after sidebar (same as overview content area) */}
+                        <footer
+                            className="fixed bottom-0 right-0 bg-white border-t border-[#e8eaed] px-6 py-3.5 flex items-center justify-between z-50 shadow-[0_-4px_20px_rgba(15,28,48,0.06)]"
+                            style={{ left: 'var(--sidebar-width, 16rem)' }}
+                        >
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    const idx = TABS.findIndex(t => t.id === activeTab);
+                                    if (idx > 0) handleTabChange(TABS[idx - 1].id);
+                                    else if (activeTab === 'snapshot') handleTabChange('overview');
+                                }}
+                                className="border-[#d4d8de] text-[#4b5563] hover:bg-[#f7f8fa]"
+                            >
+                                <ArrowLeft className="w-4 h-4 mr-2" /> Previous
                             </Button>
                             {activeTab !== 'review' ? (
-                                <Button onClick={() => {
-                                    const idx = TABS.findIndex(t => t.id === activeTab);
-                                    if (idx < TABS.length - 1) handleTabChange(TABS[idx + 1].id);
-                                }}>Next →</Button>
+                                <Button
+                                    onClick={handleSaveAndContinue}
+                                    disabled={saving}
+                                    className="bg-[#152540] hover:bg-[#1e3a62] text-white"
+                                >
+                                    {saving ? 'Saving…' : 'Save & Continue'}
+                                    {!saving && <svg className="w-3.5 h-3.5 ml-1.5" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M7.5 3l3.5 3.5L7.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                                </Button>
                             ) : (
-                                <Button onClick={handleSubmit} disabled={processing}>
+                                <Button onClick={handleSubmit} disabled={processing} className="bg-[#152540] hover:bg-[#1e3a62] text-white">
                                     <CheckCircle2 className="w-4 h-4 mr-2" />
                                     Submit & Lock Step 4
                                 </Button>
                             )}
-                        </div>
-                    </div>
+                        </footer>
+                    </>
+                )}
+            </div>
 
-                    {/* Success Modal */}
+                    {/* Success Modal — clean, focused UI */}
                     <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-                        <DialogContent className="sm:max-w-2xl">
-                            <DialogHeader>
-                                <DialogTitle className="text-2xl font-bold text-center mb-4">
-                                    Compensation System Submitted Successfully!
-                                </DialogTitle>
-                                <DialogDescription className="text-base space-y-4">
-                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 space-y-4">
-                                        <p className="text-gray-800 leading-relaxed">
-                                            Your company now has a structured and professionally designed HR system, including performance management, compensation structure, and benefits framework.
-                                        </p>
-                                        <p className="text-gray-800 leading-relaxed">
-                                            This system can now serve as the official foundation for your organization's HR operations.
-                                        </p>
-                                        <p className="text-gray-800 leading-relaxed">
-                                            In the future, you may enhance and maintain your HR system through our optional subscription service, which includes ongoing HR policy management, organizational diagnostics, and professional HR advisory support.
-                                        </p>
-                                    </div>
-                                    <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                                        <Button 
-                                            variant="outline" 
-                                            className="flex-1"
-                                            onClick={() => window.open('https://better.odw.co.kr', '_blank')}
-                                        >
-                                            Learn About Subscription Service
-                                        </Button>
-                                        <Button 
-                                            variant="outline" 
-                                            className="flex-1"
-                                            onClick={() => window.open('https://better.odw.co.kr', '_blank')}
-                                        >
-                                            Powered By BetterCompany
-                                        </Button>
-                                        <Button 
-                                            variant="link" 
-                                            className="flex-1 text-primary"
-                                            onClick={() => window.open('https://better.odw.co.kr', '_blank')}
-                                        >
-                                            → link to 'better.odw.co.kr'
-                                        </Button>
-                                    </div>
-                                </DialogDescription>
-                            </DialogHeader>
-                            <DialogFooter>
-                                <Button onClick={() => setShowSuccessModal(false)} className="w-full sm:w-auto">
-                                    Close
-                                </Button>
-                            </DialogFooter>
+                        <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden border-0 shadow-xl rounded-2xl [&>button]:text-white [&>button]:top-6 [&>button]:right-6 [&>button]:opacity-80 hover:[&>button]:opacity-100">
+                            <div className="bg-gradient-to-b from-[#0f1c30] to-[#1a2f52] px-8 pt-10 pb-8 text-center">
+                                <div className="w-16 h-16 rounded-full bg-[#2ec4a0]/20 border-2 border-[#2ec4a0] flex items-center justify-center mx-auto mb-5">
+                                    <CheckCircle2 className="w-9 h-9 text-[#2ec4a0]" strokeWidth={2} />
+                                </div>
+                                <h2 className="text-xl font-bold text-white tracking-tight">
+                                    Compensation system submitted
+                                </h2>
+                                <p className="text-sm text-white/70 mt-1.5">
+                                    Step 4 is complete. Your consultant will review and the CEO can approve.
+                                </p>
+                            </div>
+                            <div className="px-8 py-6 space-y-5">
+                                <p className="text-sm text-[#4A5B78] leading-relaxed">
+                                    Your company now has a structured HR system: performance management, compensation, and benefits. You can enhance it later through our optional subscription—HR policy management, diagnostics, and advisory support.
+                                </p>
+                                <div className="flex flex-col gap-2">
+                                    <Button
+                                        onClick={() => {
+                                            setShowSuccessModal(false);
+                                            router.get('/hr-manager/dashboard');
+                                        }}
+                                        className="w-full h-11 font-semibold rounded-lg bg-[#152540] hover:bg-[#1e3a62] text-white"
+                                    >
+                                        Okay
+                                    </Button>
+                                    <a
+                                        href="https://better.odw.co.kr"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-[#6B82A0] hover:text-[#2ec4a0] text-center transition-colors"
+                                    >
+                                        Learn about subscription · Powered by BetterCompany
+                                    </a>
+                                </div>
+                            </div>
                         </DialogContent>
                     </Dialog>
         </AppLayout>

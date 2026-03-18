@@ -8,16 +8,18 @@ interface CEOSidebarProps {
 
 interface Project {
     id: number;
-    company?: {
-        name: string;
-    };
+    company?: { name: string } | null;
+    step_statuses?: Record<string, string>;
+    kpi_review_status?: string;
+    kpi_total?: number;
+    kpi_approved?: number;
 }
 
 export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
     const { url, props } = usePage();
     const currentPath = url.split('?')[0];
 
-    const projects = (props as any).projects || [];
+    const projects: Project[] = (props as any).projects || [];
     const currentProjectId = (props as any).project?.id || (props as any).hrProject?.id;
 
     const isActive = (path: string) => {
@@ -30,23 +32,27 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
         return currentPath === path || currentPath.startsWith(`${path}/`);
     };
 
-    const projectsWithKpiReview = projects.filter((project: Project) => {
-        const stepStatuses = (project as any).step_statuses || {};
-        const performanceStatus = stepStatuses.performance;
-        return performanceStatus && ['in_progress', 'submitted'].includes(performanceStatus);
-    });
+    const projectsWithKpis = projects.filter((p) => (p.kpi_total ?? 0) > 0);
 
     const menuItems: { href: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
         { href: '/ceo/dashboard', label: 'Dashboard', icon: LayoutGrid },
         { href: '/ceo/projects', label: 'Projects', icon: FolderOpen },
     ];
-    if (projectsWithKpiReview.length > 0 && currentProjectId) {
-        menuItems.push({ href: `/ceo/kpi-review/${currentProjectId}`, label: 'KPI Review', icon: Target });
-    }
     if (currentProjectId) {
         menuItems.push({ href: `/ceo/tree/${currentProjectId}/overview`, label: 'Tree', icon: Network });
         menuItems.push({ href: `/ceo/report/${currentProjectId}`, label: 'Report', icon: FileBarChart });
     }
+    if (isCollapsed && projectsWithKpis.length > 0) {
+        menuItems.push({ href: `/ceo/kpi-review/${projectsWithKpis[0].id}`, label: 'KPI Review', icon: Target });
+    }
+
+    const kpiStatusLabel = (status: string) => {
+        if (status === 'approved') return 'Approved';
+        if (status === 'revision_requested') return 'Revision requested';
+        if (status === 'pending') return 'Pending';
+        if (status === 'in_progress') return 'In Progress';
+        return '—';
+    };
 
     return (
         <div className="relative flex h-full w-full flex-col bg-[#111d35] min-h-0">
@@ -90,6 +96,56 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
                         </Link>
                     );
                 })}
+
+                {/* KPI Review: all projects with KPIs (old & new) – CEO review status */}
+                {!isCollapsed && projectsWithKpis.length > 0 && (
+                    <>
+                        <div className="text-[9px] font-semibold tracking-[1.2px] uppercase text-[rgba(155,165,188,0.5)] px-2 mt-4 mb-1.5">KPI Review (all)</div>
+                        <div className="space-y-0.5">
+                            {projectsWithKpis.map((project) => {
+                                const href = `/ceo/kpi-review/${project.id}`;
+                                const active = currentPath === href || currentPath.startsWith(href + '/');
+                                const status = project.kpi_review_status ?? 'none';
+                                const label = project.company?.name ?? `Project ${project.id}`;
+                                return (
+                                    <Link
+                                        key={project.id}
+                                        href={href}
+                                        className={cn(
+                                            'flex items-center justify-between gap-2 py-2 px-2.5 rounded-lg transition-colors relative',
+                                            active ? 'bg-[rgba(78,205,196,0.12)]' : 'hover:bg-white/[0.06]'
+                                        )}
+                                    >
+                                        {active && (
+                                            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-[18px] bg-[#4ecdc4] rounded-r-[2px]" />
+                                        )}
+                                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                                            <Target className={cn('w-[18px] h-[18px] flex-shrink-0', active ? 'text-[#4ecdc4]' : 'text-white/70')} />
+                                            <span className={cn('text-[12px] font-medium truncate', active ? 'text-[#4ecdc4]' : 'text-white/80')}>{label}</span>
+                                        </div>
+                                        <span
+                                            className={cn(
+                                                'flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded',
+                                                status === 'approved' && 'bg-emerald-500/20 text-emerald-400',
+                                                status === 'revision_requested' && 'bg-orange-500/20 text-orange-400',
+                                                status === 'pending' && 'bg-amber-500/20 text-amber-400',
+                                                (status === 'in_progress' || status === 'none') && 'bg-white/10 text-white/70'
+                                            )}
+                                        >
+                                            {kpiStatusLabel(status)}
+                                        </span>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </>
+                )}
+                {!isCollapsed && projectsWithKpis.length === 0 && (
+                    <>
+                        <div className="text-[9px] font-semibold tracking-[1.2px] uppercase text-[rgba(155,165,188,0.5)] px-2 mt-4 mb-1.5">KPI Review (all)</div>
+                        <p className="text-[11px] text-white/50 px-2 py-1">No KPIs yet</p>
+                    </>
+                )}
             </div>
         </div>
     );

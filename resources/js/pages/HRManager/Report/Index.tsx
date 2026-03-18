@@ -1,10 +1,12 @@
-import React from 'react';
-import { Head } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Head, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileBarChart, Download, Printer } from 'lucide-react';
+import { FileBarChart, Download, Printer, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface HrSystemSnapshot {
     company: {
@@ -36,6 +38,13 @@ interface HrSystemSnapshot {
     };
 }
 
+interface ReportUploadItem {
+    id: number;
+    original_name: string;
+    file_path: string;
+    created_at: string;
+}
+
 interface Props {
     project: {
         id: number;
@@ -46,6 +55,7 @@ interface Props {
     stepStatuses: Record<string, string>;
     projectId: number;
     hrSystemSnapshot: HrSystemSnapshot;
+    reportUploads?: ReportUploadItem[];
 }
 
 export default function HrReportIndex({
@@ -53,7 +63,19 @@ export default function HrReportIndex({
     stepStatuses,
     projectId,
     hrSystemSnapshot,
+    reportUploads = [],
 }: Props) {
+    const { data, setData, post, processing, errors } = useForm<{ file: File | null }>({ file: null });
+
+    const handleUpload = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!data.file) return;
+        post(`/hr-manager/report/${projectId}/upload`, {
+            forceFormData: true,
+            onSuccess: () => setData('file', null),
+        });
+    };
+
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'submitted':
@@ -208,6 +230,57 @@ export default function HrReportIndex({
                                 Print Report
                             </Button>
                         </div>
+                    </CardContent>
+                </Card>
+
+                {/* Upload Report */}
+                <Card className="mt-6">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Upload className="h-5 w-5" />
+                            Upload Report
+                        </CardTitle>
+                        <CardDescription>
+                            Upload a final report document (PDF, max 50MB) to attach to this project.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <form onSubmit={handleUpload} className="flex flex-wrap items-end gap-4">
+                            <div className="flex-1 min-w-[200px]">
+                                <Label htmlFor="report-file">PDF file</Label>
+                                <Input
+                                    id="report-file"
+                                    type="file"
+                                    accept=".pdf,application/pdf"
+                                    className="mt-1"
+                                    onChange={(e) => setData('file', e.target.files?.[0] ?? null)}
+                                />
+                                {errors.file && <p className="text-sm text-destructive mt-1">{errors.file}</p>}
+                            </div>
+                            <Button type="submit" disabled={!data.file || processing}>
+                                <Upload className="w-4 h-4 mr-2" />
+                                {processing ? 'Uploading...' : 'Upload'}
+                            </Button>
+                        </form>
+                        {reportUploads.length > 0 && (
+                            <div className="pt-4 border-t">
+                                <Label className="text-sm font-medium">Uploaded reports</Label>
+                                <ul className="mt-2 space-y-2">
+                                    {reportUploads.map((upload) => (
+                                        <li key={upload.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                                            <span className="text-sm truncate">{upload.original_name}</span>
+                                            <a
+                                                href={`/hr-manager/report/${projectId}/upload/${upload.id}/download`}
+                                                className="text-sm text-primary hover:underline"
+                                            >
+                                                <Download className="w-4 h-4 inline mr-1" />
+                                                Download
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>

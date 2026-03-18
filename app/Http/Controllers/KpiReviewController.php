@@ -28,27 +28,10 @@ class KpiReviewController extends Controller
         }
 
         $hrProject = $reviewToken->hrProject;
-        $defaultOrganizationName = $reviewToken->organization_name;
+        $defaultOrganizationName = trim($reviewToken->organization_name ?? '');
 
-        // Get all organizations that have KPIs
-        $allOrganizations = OrganizationalKpi::where('hr_project_id', $hrProject->id)
-            ->distinct()
-            ->pluck('organization_name')
-            ->filter()
-            ->values()
-            ->toArray();
-
-        // Also get organizations from org chart mappings
-        $orgChartOrganizations = \App\Models\OrgChartMapping::where('hr_project_id', $hrProject->id)
-            ->distinct()
-            ->pluck('org_unit_name')
-            ->filter()
-            ->values()
-            ->toArray();
-
-        // Combine and get unique organizations
-        $allOrganizations = array_unique(array_merge($allOrganizations, $orgChartOrganizations));
-        sort($allOrganizations);
+        // Data leak fix: pass only the token's assigned organization; reviewer must not see other orgs
+        $allOrganizations = $defaultOrganizationName !== '' ? [$defaultOrganizationName] : [];
 
         // Load KPIs for the default organization (from token)
         // Strictly restrict access to only the organization assigned to this token
@@ -357,99 +340,9 @@ class KpiReviewController extends Controller
             }
         }
 
-        // 2) Get CEOs and admins for the company
-        $ceos = $company->ceos()->get();
-        $admins = \App\Models\User::role('admin')->get();
-
-        // Send email to all CEOs
-        foreach ($ceos as $ceo) {
-            try {
-                // Generate token for this CEO
-                $token = KpiReviewToken::generateToken();
-                $expiresAt = Carbon::now()->addDays(7);
-
-                $reviewToken = KpiReviewToken::create([
-                    'hr_project_id' => $hrProject->id,
-                    'organization_name' => $validated['organization_name'],
-                    'token' => $token,
-                    'email' => $ceo->email,
-                    'name' => $ceo->name,
-                    'expires_at' => $expiresAt,
-                    'max_uses' => 3,
-                ]);
-
-                \Log::info('Sending KPI Review Request Email to CEO', [
-                    'ceo_id' => $ceo->id,
-                    'ceo_email' => $ceo->email,
-                    'organization_name' => $validated['organization_name'],
-                    'project_id' => $hrProject->id,
-                ]);
-
-                // Send email directly using Mail facade (no queue)
-                Mail::to($ceo->email)->send(new KpiReviewRequestMail($reviewToken, $hrProject));
-
-                \Log::info('KPI Review Request Email sent successfully to CEO', [
-                    'ceo_id' => $ceo->id,
-                    'ceo_email' => $ceo->email,
-                ]);
-
-                $emailsSent++;
-            } catch (\Exception $e) {
-                \Log::error('Failed to send KPI Review Request Email to CEO', [
-                    'ceo_id' => $ceo->id,
-                    'ceo_email' => $ceo->email,
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
-                $errors[] = "Failed to send email to CEO: {$ceo->email} - {$e->getMessage()}";
-            }
-        }
-
-        // Send email to all admins
-        foreach ($admins as $admin) {
-            try {
-                // Generate token for this admin
-                $token = KpiReviewToken::generateToken();
-                $expiresAt = Carbon::now()->addDays(7);
-
-                $reviewToken = KpiReviewToken::create([
-                    'hr_project_id' => $hrProject->id,
-                    'organization_name' => $validated['organization_name'],
-                    'token' => $token,
-                    'email' => $admin->email,
-                    'name' => $admin->name,
-                    'expires_at' => $expiresAt,
-                    'max_uses' => 3,
-                ]);
-
-                \Log::info('Sending KPI Review Request Email to Admin', [
-                    'admin_id' => $admin->id,
-                    'admin_email' => $admin->email,
-                    'organization_name' => $validated['organization_name'],
-                    'project_id' => $hrProject->id,
-                ]);
-
-                // Send email directly using Mail facade (no queue)
-                Mail::to($admin->email)->send(new KpiReviewRequestMail($reviewToken, $hrProject));
-
-                \Log::info('KPI Review Request Email sent successfully to Admin', [
-                    'admin_id' => $admin->id,
-                    'admin_email' => $admin->email,
-                ]);
-
-                $emailsSent++;
-            } catch (\Exception $e) {
-                \Log::error('Failed to send KPI Review Request Email to Admin', [
-                    'admin_id' => $admin->id,
-                    'admin_email' => $admin->email,
-                    'error' => $e->getMessage(),
-                ]);
-                $errors[] = "Failed to send email to Admin: {$admin->email}";
-            }
-        }
-
+        // Consolidated: only the organization leader receives the review request email (one clear notification)
         if ($emailsSent > 0) {
-            $message = "Review request emails sent successfully to {$emailsSent} recipient(s).";
+            $message = "Review request email sent successfully to the organization leader.";
             if (!empty($errors)) {
                 $message .= " Some errors occurred: " . implode(', ', $errors);
             }

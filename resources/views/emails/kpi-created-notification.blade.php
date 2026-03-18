@@ -23,12 +23,12 @@
     <div style="text-align: center; margin: 30px 0;">
         <a href="{{ $reviewUrl }}" 
            style="display: inline-block; background-color: #007bff; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-            Go to Dashboard
+            Review KPIs
         </a>
     </div>
     
     <p style="color: #666; line-height: 1.6; margin-top: 20px;">
-        Please login to your dashboard and review the KPIs from the "KPI Review" section. You can provide your feedback or approval there.
+        Use the button above to go directly to the KPI review page. You can provide your feedback or approval there.
     </p>
     
     <p style="color: #666; line-height: 1.6;">

@@ -9,9 +9,11 @@ interface AdminSidebarProps {
 
 interface Project {
     id: number;
-    company?: {
-        name: string;
-    };
+    company?: { name: string } | null;
+    step_statuses?: Record<string, string>;
+    kpi_review_status?: string;
+    kpi_total?: number;
+    kpi_approved?: number;
 }
 
 export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps) {
@@ -23,8 +25,8 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
     const user = (props as any).auth?.user;
     const isAdmin = user?.roles?.some((role: { name: string }) => role.name === 'admin') || false;
     
-    // Get projects from shared props or page-specific props
-    const projects = (props as any).projects || [];
+    // Get projects from shared props (with step_statuses and kpi_review_status for KPI list)
+    const projects: Project[] = (props as any).projects || [];
     const currentProjectId = (props as any).project?.id || (props as any).hrProject?.id;
 
     const translationPages = [
@@ -191,31 +193,89 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                     <Target className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
                                     {!isCollapsed && <span className="flex-1 text-left truncate">Performance Snapshot</span>}
                                 </Link>
+                                <Link
+                                    href="/admin/kpi-templates"
+                                    className={cn(
+                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                                        isActive('/admin/kpi-templates')
+                                            ? "bg-sidebar-accent text-sidebar-primary"
+                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                                        isCollapsed && "justify-center px-3"
+                                    )}
+                                >
+                                    <Target className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
+                                    {!isCollapsed && <span className="flex-1 text-left truncate">KPI Templates</span>}
+                                </Link>
                                 
-                                {/* KPI Review - Show if there are projects with KPIs */}
-                                {projects.length > 0 && (() => {
-                                    const projectsWithKpis = projects.filter((project: Project) => {
-                                        const stepStatuses = (project as any).step_statuses || {};
-                                        const performanceStatus = stepStatuses.performance;
-                                        return performanceStatus && ['in_progress', 'submitted'].includes(performanceStatus);
-                                    });
-                                    
-                                    if (projectsWithKpis.length > 0) {
-                                        const firstProjectWithKpis = projectsWithKpis[0];
+                                {/* KPI Review - all projects with KPIs (old & new), CEO review status */}
+                                {(() => {
+                                    const projectsWithKpis = projects.filter((p) => (p.kpi_total ?? 0) > 0);
+                                    const kpiStatusLabel = (status: string) => {
+                                        if (status === 'approved') return 'Approved';
+                                        if (status === 'revision_requested') return 'Revision requested';
+                                        if (status === 'pending') return 'Pending';
+                                        if (status === 'in_progress') return 'In Progress';
+                                        return '—';
+                                    };
+                                    if (isCollapsed && projectsWithKpis.length > 0) {
                                         return (
                                             <Link
-                                                href={`/admin/kpi-review/${firstProjectWithKpis.id}`}
+                                                href={`/admin/kpi-review/${projectsWithKpis[0].id}`}
                                                 className={cn(
                                                     "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                                    isActive('/admin/kpi-review')
-                                                        ? "bg-sidebar-accent text-sidebar-primary"
-                                                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                                    isCollapsed && "justify-center px-3"
+                                                    isActive('/admin/kpi-review') ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                                                    "justify-center px-3"
                                                 )}
                                             >
-                                                <Target className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                                {!isCollapsed && <span className="flex-1 text-left truncate">KPI Review</span>}
+                                                <Target className="w-6 h-6 flex-shrink-0" />
                                             </Link>
+                                        );
+                                    }
+                                    if (!isCollapsed && projectsWithKpis.length > 0) {
+                                        return (
+                                            <div className="space-y-1">
+                                                <div className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 px-4 pt-2 pb-1">KPI Review (all)</div>
+                                                {projectsWithKpis.map((project) => {
+                                                    const href = `/admin/kpi-review/${project.id}`;
+                                                    const active = currentPath === href || currentPath.startsWith(href + '/');
+                                                    const status = project.kpi_review_status ?? 'none';
+                                                    const label = project.company?.name ?? `Project ${project.id}`;
+                                                    return (
+                                                        <Link
+                                                            key={project.id}
+                                                            href={href}
+                                                            className={cn(
+                                                                "w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                                                                active ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                                                            )}
+                                                        >
+                                                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                                                                <Target className="w-4 h-4 flex-shrink-0 opacity-70" />
+                                                                <span className="truncate">{label}</span>
+                                                            </div>
+                                                            <span
+                                                                className={cn(
+                                                                    "flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded",
+                                                                    status === 'approved' && "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400",
+                                                                    status === 'revision_requested' && "bg-orange-500/20 text-orange-600 dark:text-orange-400",
+                                                                    status === 'pending' && "bg-amber-500/20 text-amber-600 dark:text-amber-400",
+                                                                    (status === 'in_progress' || status === 'none') && "bg-muted text-muted-foreground"
+                                                                )}
+                                                            >
+                                                                {kpiStatusLabel(status)}
+                                                            </span>
+                                                        </Link>
+                                                    );
+                                                })}
+                                            </div>
+                                        );
+                                    }
+                                    if (!isCollapsed) {
+                                        return (
+                                            <div className="space-y-1">
+                                                <div className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 px-4 pt-2 pb-1">KPI Review (all)</div>
+                                                <p className="text-xs text-sidebar-foreground/50 px-4 py-2">No KPIs yet</p>
+                                            </div>
                                         );
                                     }
                                     return null;
