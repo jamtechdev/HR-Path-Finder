@@ -98,27 +98,19 @@ class CeoPhilosophyController extends Controller
 
     /**
      * Store philosophy survey responses.
-     * On autosave, only management_philosophy and growth_stage are required; other sections can be empty.
      */
     public function store(Request $request, HrProject $hrProject)
     {
-        $isAutosave = $request->boolean('autosave');
         $validated = $request->validate([
             'management_philosophy' => ['required', 'array'],
-            'vision_mission' => [$isAutosave ? 'nullable' : 'required', 'array'],
-            'growth_stage' => ['nullable', 'string'],
-            'leadership' => [$isAutosave ? 'nullable' : 'required', 'array'],
-            'general' => [$isAutosave ? 'nullable' : 'required', 'array'],
-            'organizational_issues' => ['nullable', 'array'],
+            'vision_mission' => ['required', 'array'],
+            'growth_stage' => ['required', 'string'],
+            'leadership' => ['required', 'array'],
+            'general' => ['required', 'array'],
+            'organizational_issues' => ['required', 'array', 'min:1'],
             'organizational_issues_other' => ['nullable', 'string'],
-            'concerns' => ['nullable', 'string'],
+            'concerns' => ['required', 'string'],
         ]);
-        $validated['vision_mission'] = $validated['vision_mission'] ?? [];
-        $validated['leadership'] = $validated['leadership'] ?? [];
-        $validated['general'] = $validated['general'] ?? [];
-        $validated['growth_stage'] = $validated['growth_stage'] ?? '';
-        $validated['concerns'] = $validated['concerns'] ?? '';
-        $validated['organizational_issues'] = $validated['organizational_issues'] ?? [];
 
         $ceoPhilosophy = CeoPhilosophy::updateOrCreate(
             [
@@ -137,14 +129,7 @@ class CeoPhilosophyController extends Controller
             ]
         );
 
-        // Auto-save: stay on survey page so user can continue. Final submit: redirect to diagnosis review.
-        if ($request->boolean('autosave')) {
-            return redirect()->back()->with('saved', true);
-        }
-
-        // Survey completed. CEO can now verify (confirm) the diagnosis from the review page — no auto-approve.
-
         return redirect()->route('ceo.review.diagnosis', $hrProject)
-            ->with('success', 'Management Philosophy Survey completed. You can now verify and confirm the diagnosis.');
+            ->with('ceoSurveyDone', true);
     }
 }

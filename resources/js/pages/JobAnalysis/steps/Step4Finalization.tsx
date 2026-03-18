@@ -1,7 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
 import { ChevronLeft, CheckCircle2, FileDown, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import SuccessModal from '@/components/Modals/SuccessModal';
@@ -51,52 +49,10 @@ export default function Step4Finalization({
     const handleFinalize = () => {
         if (!hasJobs) return;
         setIsSubmitting(true);
-        const finalizeData = {
-            policy_answers: Object.entries(policyAnswers).map(([questionId, answer]) => ({
-                question_id: parseInt(questionId, 10),
-                answer: answer.answer,
-                conditional_text: answer.conditional_text || null,
-            })),
-            job_selections: {
-                selected_job_keyword_ids: jobSelections.selected_job_keyword_ids || [],
-                custom_jobs: jobSelections.custom_jobs || [],
-                grouped_jobs: jobSelections.grouped_jobs || [],
-            },
-            job_definitions: Object.values(jobDefinitions).map((job) => ({
-                job_keyword_id: job.job_keyword_id || null,
-                job_name: job.job_name,
-                grouped_job_keyword_ids: job.grouped_job_keyword_ids || null,
-                job_description: job.job_description || null,
-                job_specification: job.job_specification || null,
-                competency_levels: job.competency_levels || null,
-                csfs: job.csfs || null,
-            })),
-            org_chart_mappings: orgMappings.map((m) => ({
-                org_unit_name: m.org_unit_name,
-                job_keyword_ids: m.job_keyword_ids || [],
-                org_head_name: m.org_head_name || null,
-                org_head_rank: m.org_head_rank || null,
-                org_head_title: m.org_head_title || null,
-                org_head_email: m.org_head_email || null,
-                job_specialists: m.job_specialists || [],
-            })),
-        };
-
-        router.post(`/hr-manager/job-analysis/${projectId}/finalize`, finalizeData, {
-            onSuccess: () => {
-                setIsSubmitting(false);
-                setShowSuccessModal(true);
-            },
-            onError: (errors: Record<string, unknown>) => {
-                const msg =
-                    errors && typeof errors === 'object'
-                        ? (errors.message ?? Object.values(errors)[0])
-                        : null;
-                const desc = Array.isArray(msg) ? msg[0] : String(msg ?? 'Failed to finalize. Please try again.');
-                toast({ title: 'Finalization failed', description: desc, variant: 'destructive' });
-                setIsSubmitting(false);
-            },
-        });
+        setTimeout(() => {
+            setIsSubmitting(false);
+            setShowSuccessModal(true);
+        }, 300);
     };
 
     const csfMatrix = useMemo(() => {

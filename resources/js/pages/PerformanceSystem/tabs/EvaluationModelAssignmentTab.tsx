@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
+import InlineErrorSummary from '@/components/forms/InlineErrorSummary';
 
 const MBO_COLOR = '#f97316';
 const MBO_PALE = '#fff7ed';
@@ -140,7 +140,7 @@ export default function EvaluationModelAssignmentTab({
     onContinue,
     onBack,
 }: Props) {
-    const { toast } = useToast();
+    const [inlineMsg, setInlineMsg] = useState<string | null>(null);
     const [assignments, setAssignments] = useState<Record<number, 'mbo' | 'bsc' | 'okr'>>({});
     const [modelModal, setModelModal] = useState<'mbo' | 'bsc' | 'okr' | null>(null);
     const [kpiModalJob, setKpiModalJob] = useState<JobDefinition | null>(null);
@@ -219,6 +219,7 @@ export default function EvaluationModelAssignmentTab({
     const totalCount = uniqueJobDefinitions.length;
 
     const assignModel = (jobId: number, model: 'mbo' | 'bsc' | 'okr') => {
+        setInlineMsg(null);
         setAssignments((prev) => {
             const next = { ...prev };
             if (prev[jobId] === model) {
@@ -228,38 +229,31 @@ export default function EvaluationModelAssignmentTab({
             next[jobId] = model;
             return next;
         });
-        const job = uniqueJobDefinitions.find((j) => j.id === jobId);
-        const newVal = assignments[jobId] === model ? null : model;
-        toast({
-            title: newVal ? `${job?.job_name ?? 'Job'} → ${model.toUpperCase()} assigned` : `${job?.job_name ?? 'Job'} unassigned`,
-        });
     };
 
     const applyBulk = () => {
+        setInlineMsg(null);
         if (!bulkModel || bulkModel === '') {
-            toast({ title: 'Please select a model', variant: 'destructive' });
+            setInlineMsg('Please select a model for bulk assignment.');
             return;
         }
         const model = bulkModel.toLowerCase() as 'mbo' | 'bsc' | 'okr';
-        let count = 0;
         setAssignments((prev) => {
             const next = { ...prev };
             uniqueJobDefinitions.forEach((job) => {
                 const deptMatch = bulkDept === BULK_ALL || job.job_keyword?.name === bulkDept;
                 if (deptMatch) {
                     next[job.id] = model;
-                    count++;
                 }
             });
             return next;
         });
-        toast({ title: `Bulk assigned ${model.toUpperCase()} to ${count} roles` });
     };
 
     const handleContinue = () => {
         const unassigned = uniqueJobDefinitions.filter((j) => !assignments[j.id]).length;
         if (unassigned > 0) {
-            toast({ title: `${unassigned} role(s) still have no model assigned`, variant: 'destructive' });
+            setInlineMsg(`${unassigned} role(s) still have no model assigned.`);
             return;
         }
         const expanded: Record<number, 'mbo' | 'bsc' | 'okr'> = {};
@@ -286,6 +280,7 @@ export default function EvaluationModelAssignmentTab({
                 <div className="max-w-[1200px] mx-auto grid gap-4 grid-cols-1 xl:grid-cols-[1fr_260px]">
                     {/* LEFT */}
                     <div className="space-y-4">
+                        <InlineErrorSummary message={inlineMsg} className="mb-2" />
                         <p className="text-[15px] font-bold text-[#1a2b4a] mb-0.5">Evaluation Model Assignment</p>
                         <p className="text-xs text-[#94a3b8] mb-4">Select a performance management model for each job role. Use the model cards below as reference.</p>
 

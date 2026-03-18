@@ -3,6 +3,7 @@ import { Head, useForm } from '@inertiajs/react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Check, Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
 
 interface Diagnosis {
     id: number;
@@ -54,6 +55,28 @@ function parsePositions(diagnosis: Diagnosis | undefined): Array<{ id: string; r
     }));
 }
 
+function applyPositionsToUi(
+    positions: Array<{ role: string; count: number }> | Record<string, number> | undefined | null,
+    setSelected: React.Dispatch<React.SetStateAction<Set<string>>>,
+    setCounts: React.Dispatch<React.SetStateAction<Record<string, number>>>,
+    setCustomRoles: React.Dispatch<React.SetStateAction<Array<{ id: string; name: string; count: number }>>>
+): void {
+    const d: Diagnosis = { id: 0, executive_positions: positions ?? undefined };
+    const parsed = parsePositions(d);
+    setSelected(new Set(parsed.map((p) => p.id)));
+    setCounts((prev) => {
+        const next: Record<string, number> = {};
+        parsed.forEach((p) => {
+            next[p.id] = p.count;
+        });
+        PRESET_EXECUTIVES.forEach((e) => {
+            if (next[e.id] == null) next[e.id] = prev?.[e.id] ?? 1;
+        });
+        return next;
+    });
+    setCustomRoles(parsed.filter((p) => p.custom).map((p) => ({ id: p.id, name: p.role, count: p.count })));
+}
+
 export default function Executives({
     project,
     company,
@@ -99,6 +122,19 @@ export default function Executives({
     const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
     const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
 
+    // Hydrate from saved draft so Back/Next keeps selections.
+    useDiagnosisDraftHydrate(
+        projectId,
+        'executives',
+        (patch) => {
+            if (patch.total_executives != null) setData('total_executives', patch.total_executives as any);
+            if (patch.executive_positions != null) {
+                setData('executive_positions', patch.executive_positions as any);
+                applyPositionsToUi(patch.executive_positions as any, setSelected, setCounts, setCustomRoles);
+            }
+        },
+        { enabled: !embedMode && !readOnly }
+    );
     const toggleCard = useCallback(
         (roleId: string) => {
             if (readOnly) return;

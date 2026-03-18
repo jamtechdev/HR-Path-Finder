@@ -259,7 +259,7 @@ class PdfReportService
         // Diagnosis Section
         if (!empty($snapshot['diagnosis'])) {
             $html .= '<div class="section page-break">
-            <div class="section-title">2. CEO Diagnosis</div>
+            <div class="section-title">2. HR Diagnosis</div>
             <div class="section-content">';
             
             foreach ($snapshot['diagnosis'] as $key => $value) {
@@ -422,7 +422,7 @@ class PdfReportService
         $compensationDetails = $data['compensationDetails'] ?? [];
         
         $stepTitles = [
-            'diagnosis' => 'CEO Diagnosis Report',
+            'diagnosis' => 'HR Diagnosis Report',
             'job_analysis' => 'Job Analysis Report',
             'performance' => 'Performance Management System Report',
             'compensation' => 'Compensation & Benefits System Report',
@@ -653,6 +653,22 @@ class PdfReportService
                     $html .= '</tbody></table>';
                 }
                 $html .= '</div></div>';
+                break;
+
+            case 'hr_policy_os':
+                $html .= '<div class="section">
+                    <div class="section-title">Final Dashboard Summary</div>
+                    <div class="section-content">
+                        <div class="data-row">
+                            <span class="data-label">Report Status:</span>
+                            <span class="data-value">' . $this->formatValueForHtml($snapshot['hr_system_report']['status'] ?? null) . '</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Jobs Defined:</span>
+                            <span class="data-value">' . number_format($snapshot['job_architecture']['jobs_defined'] ?? 0) . '</span>
+                        </div>
+                    </div>
+                </div>';
                 break;
 
             default:

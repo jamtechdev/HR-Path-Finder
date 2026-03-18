@@ -67,6 +67,13 @@ export default function HrReportIndex({
 }: Props) {
     const { data, setData, post, processing, errors } = useForm<{ file: File | null }>({ file: null });
 
+    const isCompleted = (status: string) => ['submitted', 'approved', 'locked', 'completed'].includes(status);
+    const fullReady =
+        isCompleted(stepStatuses.diagnosis || 'not_started') &&
+        isCompleted(stepStatuses.job_analysis || 'not_started') &&
+        isCompleted(stepStatuses.performance || 'not_started') &&
+        isCompleted(stepStatuses.compensation || 'not_started');
+
     const handleUpload = (e: React.FormEvent) => {
         e.preventDefault();
         if (!data.file) return;
@@ -123,11 +130,17 @@ export default function HrReportIndex({
                             <Button 
                                 variant="outline" 
                                 className="w-full"
+                                disabled={!isCompleted(stepStatuses.diagnosis || 'not_started')}
                                 onClick={() => window.open(`/hr-manager/report/${projectId}/download/diagnosis`, '_blank')}
                             >
                                 <Download className="w-4 h-4 mr-2" />
                                 Download Report
                             </Button>
+                            {!isCompleted(stepStatuses.diagnosis || 'not_started') && (
+                                <p className="mt-2 text-xs text-muted-foreground">
+                                    Complete and submit Diagnosis to generate this report.
+                                </p>
+                            )}
                         </CardContent>
                     </Card>
 
@@ -146,11 +159,17 @@ export default function HrReportIndex({
                             <Button 
                                 variant="outline" 
                                 className="w-full"
+                                disabled={!isCompleted(stepStatuses.job_analysis || 'not_started')}
                                 onClick={() => window.open(`/hr-manager/report/${projectId}/download/job_analysis`, '_blank')}
                             >
                                 <Download className="w-4 h-4 mr-2" />
                                 Download Report
                             </Button>
+                            {!isCompleted(stepStatuses.job_analysis || 'not_started') && (
+                                <p className="mt-2 text-xs text-muted-foreground">
+                                    Complete and submit Job Analysis to generate this report.
+                                </p>
+                            )}
                         </CardContent>
                     </Card>
 
@@ -169,11 +188,17 @@ export default function HrReportIndex({
                             <Button 
                                 variant="outline" 
                                 className="w-full"
+                                disabled={!isCompleted(stepStatuses.performance || 'not_started')}
                                 onClick={() => window.open(`/hr-manager/report/${projectId}/download/performance`, '_blank')}
                             >
                                 <Download className="w-4 h-4 mr-2" />
                                 Download Report
                             </Button>
+                            {!isCompleted(stepStatuses.performance || 'not_started') && (
+                                <p className="mt-2 text-xs text-muted-foreground">
+                                    Complete and submit Performance System to generate this report.
+                                </p>
+                            )}
                         </CardContent>
                     </Card>
 
@@ -192,11 +217,46 @@ export default function HrReportIndex({
                             <Button 
                                 variant="outline" 
                                 className="w-full"
+                                disabled={!isCompleted(stepStatuses.compensation || 'not_started')}
                                 onClick={() => window.open(`/hr-manager/report/${projectId}/download/compensation`, '_blank')}
                             >
                                 <Download className="w-4 h-4 mr-2" />
                                 Download Report
                             </Button>
+                            {!isCompleted(stepStatuses.compensation || 'not_started') && (
+                                <p className="mt-2 text-xs text-muted-foreground">
+                                    Complete and submit Compensation System to generate this report.
+                                </p>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <FileBarChart className="h-5 w-5" />
+                                Final Dashboard
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-center justify-between mb-4">
+                                <span>Status:</span>
+                                {getStatusBadge(stepStatuses.hr_policy_os || 'not_started')}
+                            </div>
+                            <Button
+                                variant="outline"
+                                className="w-full"
+                                disabled={!isCompleted(stepStatuses.hr_policy_os || 'not_started')}
+                                onClick={() => window.open(`/hr-manager/report/${projectId}/download/hr_policy_os`, '_blank')}
+                            >
+                                <Download className="w-4 h-4 mr-2" />
+                                Download Report
+                            </Button>
+                            {!isCompleted(stepStatuses.hr_policy_os || 'not_started') && (
+                                <p className="mt-2 text-xs text-muted-foreground">
+                                    Final Dashboard report will be available after completion.
+                                </p>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
@@ -212,6 +272,7 @@ export default function HrReportIndex({
                     <CardContent>
                         <div className="flex gap-4">
                             <Button
+                                disabled={!fullReady}
                                 onClick={() => {
                                     window.open(`/hr-manager/report/${projectId}/download`, '_blank');
                                 }}
@@ -221,6 +282,7 @@ export default function HrReportIndex({
                             </Button>
                             <Button 
                                 variant="outline"
+                                disabled={!fullReady}
                                 onClick={() => {
                                     window.open(`/hr-manager/report/${projectId}/download`, '_blank');
                                     setTimeout(() => window.print(), 500);
@@ -230,6 +292,11 @@ export default function HrReportIndex({
                                 Print Report
                             </Button>
                         </div>
+                        {!fullReady && (
+                            <p className="mt-3 text-xs text-muted-foreground">
+                                Full report is generated after completing and submitting Diagnosis, Job Analysis, Performance, and Compensation.
+                            </p>
+                        )}
                     </CardContent>
                 </Card>
 

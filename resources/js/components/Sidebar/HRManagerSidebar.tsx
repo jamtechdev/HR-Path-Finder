@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import { Target, DollarSign, Building2, LayoutGrid, Award, TreeDeciduous, FileText } from 'lucide-react';
+import { Target, DollarSign, Building2, LayoutGrid, Award, FileText } from 'lucide-react';
 
 interface StepConfig {
     id: string;
@@ -15,7 +15,7 @@ const MAIN_STEPS: StepConfig[] = [
     { id: 'job_analysis', step: 2, name: 'Job Analysis', icon: Building2, route: '/hr-manager/job-analysis' },
     { id: 'performance', step: 3, name: 'Performance System', icon: Target, route: '/hr-manager/performance-system' },
     { id: 'compensation', step: 4, name: 'Compensation System', icon: DollarSign, route: '/hr-manager/compensation-system' },
-    { id: 'hr_policy_os', step: 5, name: 'Final Dashboard', icon: Award, route: '/hr-manager/hr-policy-os' },
+    { id: 'hr_policy_os', step: 5, name: 'Final Dashboard', icon: Award, route: '/hr-manager/tree' },
 ];
 
 export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?: boolean }) {
@@ -78,6 +78,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?
 
     const getStepRoute = (step: StepConfig): string => {
         if (!projectId) return step.id === 'diagnosis' ? step.route : '#';
+        if (step.id === 'hr_policy_os') return `/hr-manager/tree/${projectId}`;
         return `${step.route}/${projectId}/overview`;
     };
 
@@ -184,15 +185,8 @@ export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?
                 </div>
             </div>
 
-            {/* Bottom: Tree, Report */}
+            {/* Bottom: Report (Final Dashboard = Design Progress is Step 5) */}
             <div className="py-3 px-3 border-t border-white/[0.06] flex-shrink-0">
-                <Link
-                    href={projectId ? `/hr-manager/tree/${projectId}/overview` : '#'}
-                    className="flex items-center gap-[9px] py-1.5 px-2.5 rounded-[7px] mb-0.5 transition-colors hover:bg-white/[0.06]"
-                >
-                    <TreeDeciduous className="w-[18px] h-[18px] opacity-50 text-white" />
-                    {!isCollapsed && <span className="text-[12px] font-medium text-white/45">{t('sidebar.tree')}</span>}
-                </Link>
                 <Link
                     href={projectId ? `/hr-manager/report/${projectId}` : '#'}
                     className="flex items-center gap-[9px] py-1.5 px-2.5 rounded-[7px] mb-0.5 transition-colors hover:bg-white/[0.06]"

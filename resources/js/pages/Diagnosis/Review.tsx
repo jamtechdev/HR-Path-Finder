@@ -3,7 +3,13 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { toast } from '@/hooks/use-toast';
+import InlineErrorSummary, { flattenErrors } from '@/components/forms/InlineErrorSummary';
+import { mergeTabDraftsIntoDiagnosis, clearDiagnosisDrafts } from '@/lib/diagnosisDraftStorage';
+import {
+    getOrgChartDraftFiles,
+    getLogoDraftFile,
+    clearAllDiagnosisFileDrafts,
+} from '@/lib/diagnosisFileDrafts';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -185,47 +191,77 @@ export default function Review({
     const [inviteProcessing, setInviteProcessing] = useState(false);
     const [inviteError, setInviteError] = useState('');
     const [inviteSuccess, setInviteSuccess] = useState(false);
+    const [pageErrors, setPageErrors] = useState<Record<string, string>>({});
 
     const { props } = usePage<{ errors?: Record<string, string> }>();
 
-    // Show errors from server when redirected back with validation/authorization errors
+    const mergedDiagnosis = useMemo(() => {
+        if (!projectId) return diagnosis;
+        return mergeTabDraftsIntoDiagnosis(projectId, diagnosis ?? ({} as Diagnosis));
+    }, [projectId, diagnosis]);
+
     useEffect(() => {
         const errors = props.errors;
         if (errors && typeof errors === 'object') {
-            const message = (errors as Record<string, string | string[]>).error;
-            const msg = Array.isArray(message) ? message[0] : message;
-            if (msg) setSubmitError(msg);
+            const flat = flattenErrors(errors as Record<string, string | string[]>);
+            setSubmitError(flat[0] ?? '');
+            const o: Record<string, string> = {};
+            for (const [k, v] of Object.entries(errors)) {
+                const m = Array.isArray(v) ? v[0] : v;
+                if (typeof m === 'string') o[k] = m;
+            }
+            setPageErrors(o);
         }
     }, [props.errors]);
 
     const handleSubmit = () => {
         setSubmitError('');
+        setPageErrors({});
         if (!projectId) {
-            const msg = 'Project not loaded. Please refresh or go back to the dashboard.';
-            setSubmitError(msg);
-            toast({ title: 'Cannot submit', description: msg, variant: 'destructive' });
+            setSubmitError('Project not loaded. Please refresh or go back to the dashboard.');
             return;
         }
         setProcessing(true);
-        router.post(`/hr-manager/diagnosis/${projectId}/submit`, {}, {
+        const payload = mergeTabDraftsIntoDiagnosis(projectId, diagnosis ?? ({} as Diagnosis));
+        const fd = new FormData();
+        fd.append('diagnosis_payload', JSON.stringify(payload));
+
+        const chartDrafts = getOrgChartDraftFiles(projectId);
+        for (const year of ['2023.12', '2024.12', '2025.12'] as const) {
+            const f = chartDrafts[year];
+            if (f) {
+                fd.append(`org_chart_${year.replace('.', '_')}`, f);
+            }
+        }
+        const logo = getLogoDraftFile(projectId);
+        if (logo) {
+            fd.append('company_logo', logo);
+        }
+
+        router.post(`/hr-manager/diagnosis/${projectId}/submit`, fd, {
+            forceFormData: true,
             onSuccess: () => {
                 setSubmitError('');
+                setPageErrors({});
+                clearDiagnosisDrafts(projectId);
+                clearAllDiagnosisFileDrafts(projectId);
                 setShowSuccessModal(true);
                 setProcessing(false);
-                toast({ title: 'Diagnosis submitted', description: 'Your diagnosis has been submitted for CEO review.' });
             },
             onError: (payload: Record<string, unknown>) => {
                 const errors = (payload?.errors ?? payload) as Record<string, string | string[]>;
-                const message = errors?.error ?? errors?.message ?? Object.values(errors)[0];
-                const msg = Array.isArray(message) ? message[0] : message;
-                const displayMsg = typeof msg === 'string' ? msg : 'Submission failed. Please try again.';
-                setSubmitError(displayMsg);
+                const lines = flattenErrors(errors);
+                setSubmitError(lines[0] ?? 'Submission failed. Please try again.');
+                const o: Record<string, string> = {};
+                for (const [k, v] of Object.entries(errors)) {
+                    const m = Array.isArray(v) ? v[0] : v;
+                    if (typeof m === 'string') o[k] = m;
+                }
+                setPageErrors(o);
                 setProcessing(false);
-                toast({ title: 'Submission failed', description: displayMsg, variant: 'destructive' });
             },
             preserveState: true,
             preserveScroll: true,
-            only: [], // Prevent prop updates to keep modal state
         });
     };
 
@@ -249,13 +285,11 @@ export default function Review({
                 setInviteSuccess(true);
                 setInviteProcessing(false);
                 setInviteError('');
-                toast({ title: 'Invitation sent', description: `An invitation has been sent to ${inviteEmail}.` });
             },
             onError: (errors: { email?: string }) => {
                 const errMsg = errors.email || 'Failed to send invitation. Please try again.';
                 setInviteError(errMsg);
                 setInviteProcessing(false);
-                toast({ title: 'Invitation failed', description: errMsg, variant: 'destructive' });
             },
             preserveState: true,
             preserveScroll: true,
@@ -310,16 +344,17 @@ export default function Review({
         return `₩${numValue.toFixed(1)}B`;
     };
 
-    // Parse executive positions
+    const preview = mergedDiagnosis ?? ({} as Diagnosis);
+
     const getExecutivePositions = (): Array<{ position: string; count: number }> => {
-        if (!diagnosis?.executive_positions) return [];
-        
-        if (Array.isArray(diagnosis.executive_positions)) {
-            return diagnosis.executive_positions;
+        if (!preview?.executive_positions) return [];
+
+        if (Array.isArray(preview.executive_positions)) {
+            return preview.executive_positions;
         }
-        
-        if (typeof diagnosis.executive_positions === 'object') {
-            return Object.entries(diagnosis.executive_positions).map(([position, count]) => ({
+
+        if (typeof preview.executive_positions === 'object') {
+            return Object.entries(preview.executive_positions).map(([position, count]) => ({
                 position,
                 count: typeof count === 'number' ? count : parseInt(String(count), 10)
             }));
@@ -330,19 +365,18 @@ export default function Review({
 
     // Parse org structure explanations
     const getOrgStructureExplanations = (): Record<string, string> => {
-        if (!diagnosis?.org_structure_explanations) return {};
-        if (typeof diagnosis.org_structure_explanations === 'object') {
-            return diagnosis.org_structure_explanations as Record<string, string>;
+        if (!preview?.org_structure_explanations) return {};
+        if (typeof preview.org_structure_explanations === 'object') {
+            return preview.org_structure_explanations as Record<string, string>;
         }
         return {};
     };
 
-    // Derived data for dashboard
     const jobGradesForPyramid = useMemo(() => {
-        const names = diagnosis?.job_grade_names ?? [];
-        const headcounts = (diagnosis?.job_grade_headcounts ?? {}) as Record<string, number>;
+        const names = preview?.job_grade_names ?? [];
+        const headcounts = (preview?.job_grade_headcounts ?? {}) as Record<string, number>;
         return names.map((name) => ({ name, headcount: Number(headcounts[name]) || 0 }));
-    }, [diagnosis?.job_grade_names, diagnosis?.job_grade_headcounts]);
+    }, [preview?.job_grade_names, preview?.job_grade_headcounts]);
 
     const jobGradesForPyramidSorted = useMemo(
         () => [...jobGradesForPyramid].sort((a, b) => a.headcount - b.headcount),
@@ -352,8 +386,8 @@ export default function Review({
     const gradeTotal = useMemo(() => jobGradesForPyramid.reduce((s, g) => s + g.headcount, 0), [jobGradesForPyramid]);
 
     const jobStructureForReview = useMemo(() => {
-        const funcs = diagnosis?.job_functions ?? [];
-        const cats = diagnosis?.job_categories ?? [];
+        const funcs = preview?.job_functions ?? [];
+        const cats = preview?.job_categories ?? [];
         const map = new Map<string, string[]>();
         for (const c of cats) {
             const name = String(c).trim();
@@ -370,11 +404,11 @@ export default function Review({
         if (map.size === 0 && (funcs.length || cats.length)) return [];
         if (map.size === 0) return [];
         return Array.from(map.entries()).map(([name, functions]) => ({ name, functions }));
-    }, [diagnosis?.job_functions, diagnosis?.job_categories]);
+    }, [preview?.job_functions, preview?.job_categories]);
 
     const hrIssuesByCategory = useMemo(() => {
-        const issues = diagnosis?.hr_issues ?? [];
-        const custom = (diagnosis?.custom_hr_issues ?? '').trim();
+        const issues = preview?.hr_issues ?? [];
+        const custom = (preview?.custom_hr_issues ?? '').trim();
         const result: { category: string; color: string; items: string[] }[] = [];
         for (const cat of HR_ISSUE_CATEGORIES) {
             const items = issues.filter((i) => cat.issues.includes(i));
@@ -382,10 +416,10 @@ export default function Review({
         }
         if (custom) result.push({ category: 'Other', color: '#64748b', items: [custom] });
         return result;
-    }, [diagnosis?.hr_issues, diagnosis?.custom_hr_issues]);
+    }, [preview?.hr_issues, preview?.custom_hr_issues]);
 
     const currentOrgChartUrl = useMemo(() => {
-        const charts = diagnosis?.organizational_charts;
+        const charts = preview?.organizational_charts;
         if (!charts || typeof charts !== 'object' || Array.isArray(charts)) return '';
         const lastYear = DIAGNOSIS_ORG_CHART_REQUIRED_YEARS[DIAGNOSIS_ORG_CHART_REQUIRED_YEARS.length - 1];
         const path = (charts as Record<string, string>)[lastYear];
@@ -393,10 +427,10 @@ export default function Review({
         if (path.startsWith('http')) return path;
         if (path.startsWith('/storage/')) return path;
         return path.startsWith('storage/') ? `/${path}` : `/storage/${path}`;
-    }, [diagnosis?.organizational_charts]);
+    }, [preview?.organizational_charts]);
 
-    const totalHeadcount = Number(diagnosis?.present_headcount) || 0;
-    const execTotal = Number(diagnosis?.total_executives) || 0;
+    const totalHeadcount = Number(preview?.present_headcount) || 0;
+    const execTotal = Number(preview?.total_executives) || 0;
     const leaderCountFromGrades = jobGradesForPyramid.slice(0, 2).reduce((s, g) => s + g.headcount, 0);
     const leaderTotal = execTotal + leaderCountFromGrades;
     const leaderRatio = totalHeadcount ? ((leaderTotal / totalHeadcount) * 100).toFixed(1) : '0';
@@ -404,20 +438,20 @@ export default function Review({
     const pyramidDiag = pyramidShape(jobGradesForPyramid);
 
     const genderData = useMemo(() => {
-        const male = Number(diagnosis?.gender_male) || 0;
-        const female = Number(diagnosis?.gender_female) || 0;
-        const other = Number(diagnosis?.gender_other) || 0;
+        const male = Number(preview?.gender_male) || 0;
+        const female = Number(preview?.gender_female) || 0;
+        const other = Number(preview?.gender_other) || 0;
         return [
             { name: tr('male'), value: male },
             { name: tr('female'), value: female },
             { name: tr('other'), value: other || 1 },
         ];
-    }, [diagnosis?.gender_male, diagnosis?.gender_female, diagnosis?.gender_other]);
+    }, [preview?.gender_male, preview?.gender_female, preview?.gender_other]);
 
     const execPositionsStr = useMemo(() => {
         const pos = getExecutivePositions();
         return pos.map((p) => `${p.position} × ${p.count}`).join(', ');
-    }, [diagnosis?.executive_positions]);
+    }, [preview?.executive_positions]);
 
     return (
         <>
@@ -570,7 +604,7 @@ export default function Review({
                     {/* Hero dark — ref: 3 KPIs only, padding 22px 26px, divider 44px */}
                     <div className="rounded-t-[14px] text-white" style={{ background: 'linear-gradient(135deg, #0f2a4a 0%, #1a4070 100%)', padding: '22px 26px' }}>
                         <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.08em] text-[#c8a84b]">
-                            {company?.name || project?.company?.name || '—'} · {[diagnosis?.industry_category, diagnosis?.industry_subcategory].filter(Boolean).map((v) => formatValue(v)).join(' · ') || '—'}
+                            {company?.name || project?.company?.name || '—'} · {[preview?.industry_category, preview?.industry_subcategory].filter(Boolean).map((v) => formatValue(v)).join(' · ') || '—'}
                         </div>
                         <div className="flex flex-wrap items-end gap-7" style={{ gap: 28 }}>
                             <div>
@@ -587,7 +621,7 @@ export default function Review({
                             <div>
                                 <label className="block text-[9px] text-[#94a3b8] uppercase mb-0.5">{tr('avgTenureShort')}</label>
                                 <div className="text-2xl font-extrabold leading-none text-[#2aab6e]">
-                                    {formatNumber(diagnosis?.average_tenure_active)}<span className="text-[12px] text-[#94a3b8] font-medium ml-0.5">{tr('yearsUnit')}</span>
+                                    {formatNumber(preview?.average_tenure_active)}<span className="text-[12px] text-[#94a3b8] font-medium ml-0.5">{tr('yearsUnit')}</span>
                                 </div>
                             </div>
                         </div>
@@ -645,7 +679,7 @@ export default function Review({
                                 {[
                                     [tr('foundedDate'), formatValue(company?.foundation_date) || '—'],
                                     [tr('size'), totalHeadcount ? String(totalHeadcount) : '—'],
-                                    [tr('sector'), [diagnosis?.industry_category, diagnosis?.industry_subcategory].filter(Boolean).map((v) => formatValue(v)).join(' · ') || '—'],
+                                    [tr('sector'), [preview?.industry_category, preview?.industry_subcategory].filter(Boolean).map((v) => formatValue(v)).join(' · ') || '—'],
                                     [tr('listedShort'), company?.public_listing_status ? String(company.public_listing_status) : (company?.is_public != null ? (company.is_public ? 'Yes' : 'No') : '—')],
                                 ].map(([k, v], idx) => (
                                     <div key={`company-${idx}-${String(k ?? '')}`}>
@@ -661,10 +695,10 @@ export default function Review({
                                     <div className="text-[9px] text-[#94a3b8] mb-0.5">{tr('fullTime')}</div>
                                     <div className="text-[18px] font-extrabold text-[#0f2a4a] leading-none">{totalHeadcount}</div>
                                 </div>
-                                {diagnosis?.average_age != null && (
+                                {preview?.average_age != null && (
                                     <div className="flex-1 rounded-lg p-2.5" style={{ background: '#f8fafc', padding: 10, borderRadius: 8 }}>
                                         <div className="text-[9px] text-[#94a3b8] mb-0.5">{tr('avgAgeShort')}</div>
-                                        <div className="text-[18px] font-extrabold text-[#0f2a4a] leading-none">{formatNumber(diagnosis.average_age)}</div>
+                                        <div className="text-[18px] font-extrabold text-[#0f2a4a] leading-none">{formatNumber(preview.average_age)}</div>
                                     </div>
                                 )}
                             </div>
@@ -774,11 +808,11 @@ export default function Review({
                         </ReviewCard>
                         <ReviewCard title={tr('orgStructureCardTitle')} icon="🏗️" editUrl={getEditUrl(STEP_MAP.orgStructure)}>
                             <div className="flex flex-col gap-2">
-                                {diagnosis?.org_structure_types && diagnosis.org_structure_types.length > 0 ? (
+                                {preview?.org_structure_types && preview.org_structure_types.length > 0 ? (
                                     <div className="inline-flex items-center gap-2 self-start rounded-lg border px-4 py-2.5" style={{ background: '#f0f4fa', borderColor: '#c7d7f0' }}>
                                         <span className="text-lg">🏗️</span>
                                         <span className="text-sm font-bold text-[#0f2a4a]">
-                                            {diagnosis.org_structure_types.map((t: string) => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')}
+                                            {preview.org_structure_types.map((t: string) => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')}
                                         </span>
                                     </div>
                                 ) : (

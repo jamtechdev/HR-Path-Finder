@@ -3,7 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 import StepProgress from './components/StepProgress';
 import { Badge } from '@/components/ui/badge';
-import { toast } from '@/hooks/use-toast';
+import InlineErrorSummary from '@/components/forms/InlineErrorSummary';
 import { ChevronLeft } from 'lucide-react';
 import Overview from './steps/Overview';
 import Step1PolicySnapshot from './steps/Step1PolicySnapshot';
@@ -151,6 +151,7 @@ export default function JobAnalysisIndex({
 
     const [activeStepLocal, setActiveStepLocal] = useState(initialTab);
     const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
+    const [stepError, setStepError] = useState<string | null>(null);
 
     // Load initial data into state
     useEffect(() => {
@@ -236,17 +237,16 @@ export default function JobAnalysisIndex({
         if (stepIndex > currentIndex) {
             const validation = validateStep(activeStepLocal);
             if (!validation.isValid) {
-                const msg = validation.errors?.length ? validation.errors.join(' ') : 'Please complete required fields before continuing.';
-                toast({ title: 'Validation error', description: msg, variant: 'destructive' });
+                setStepError(validation.errors?.length ? validation.errors.join(' ') : 'Please complete required fields before continuing.');
                 return;
             }
         }
 
-        // Check if step is enabled
         if (!isStepEnabled(stepId, stepIndex)) {
-            toast({ title: 'Step locked', description: 'Complete the current step before continuing.', variant: 'destructive' });
+            setStepError('Complete the current step before continuing.');
             return;
         }
+        setStepError(null);
 
         setActiveStepLocal(stepId);
         setActiveStep(stepId);
@@ -260,38 +260,25 @@ export default function JobAnalysisIndex({
     };
 
     const handleStep1Continue = () => {
-        const policy_answers = Object.entries(state.policyAnswers).map(([questionId, a]) => ({
-            question_id: parseInt(questionId, 10),
-            answer: a.answer,
-            conditional_text: a.conditional_text,
-        }));
-        router.post(`/hr-manager/job-analysis/${project.id}/policy-snapshot`, { policy_answers }, {
-            onSuccess: () => {
-                toast({ title: 'Saved', description: 'Policy snapshot saved.' });
-                markStepCompleted('policy-snapshot');
-                handleStepChange('job-list-selection');
-            },
-            onError: (errors: Record<string, unknown>) => {
-                const msg = errors && typeof errors === 'object' && (errors.message ?? Object.values(errors)[0]);
-                const desc = Array.isArray(msg) ? msg[0] : String(msg ?? 'Failed to save.');
-                toast({ title: 'Save failed', description: desc, variant: 'destructive' });
-            },
-        });
+        const validation = validateStep('policy-snapshot');
+        if (!validation.isValid) {
+            setStepError(validation.errors?.join(' ') ?? 'Complete policy snapshot.');
+            return;
+        }
+        setStepError(null);
+        markStepCompleted('policy-snapshot');
+        handleStepChange('job-list-selection');
     };
 
     const handleStep2Continue = () => {
-        router.post(`/hr-manager/job-analysis/${project.id}/job-list-selection`, { job_selections: state.jobSelections }, {
-            onSuccess: () => {
-                toast({ title: 'Saved', description: 'Job list saved.' });
-                markStepCompleted('job-list-selection');
-                handleStepChange('job-definition');
-            },
-            onError: (errors: Record<string, unknown>) => {
-                const msg = errors && typeof errors === 'object' && (errors.message ?? Object.values(errors)[0]);
-                const desc = Array.isArray(msg) ? msg[0] : String(msg ?? 'Failed to save.');
-                toast({ title: 'Save failed', description: desc, variant: 'destructive' });
-            },
-        });
+        const validation = validateStep('job-list-selection');
+        if (!validation.isValid) {
+            setStepError(validation.errors?.join(' ') ?? 'Complete job list selection.');
+            return;
+        }
+        setStepError(null);
+        markStepCompleted('job-list-selection');
+        handleStepChange('job-definition');
     };
 
     const handleStep3Continue = () => {
@@ -308,50 +295,12 @@ export default function JobAnalysisIndex({
         const list = mappings ?? state.orgMappings;
         const hasEmptyName = list.some(u => !(String(u.org_unit_name ?? '').trim()));
         if (hasEmptyName) {
-            toast({
-                title: 'Validation',
-                description: 'Please enter a name for every organizational unit.',
-                variant: 'destructive',
-            });
+            setStepError('Please enter a name for every organizational unit.');
             return;
         }
-        const org_chart_mappings = list.map((u, idx) => ({
-            id: u.id,
-            parent_id: u.parentId ?? null,
-            sort_order: u.sort_order ?? idx,
-            is_kpi_reviewer: !!u.is_kpi_reviewer,
-            org_unit_name: String(u.org_unit_name ?? '').trim(),
-            job_keyword_ids: Array.isArray(u.job_keyword_ids) ? u.job_keyword_ids.map(id => Number(id)).filter(Number.isInteger) : [],
-            org_head_name: u.org_head_name ?? undefined,
-            org_head_rank: u.org_head_rank ?? undefined,
-            org_head_title: u.org_head_title ?? undefined,
-            org_head_email: u.org_head_email && String(u.org_head_email).trim() ? String(u.org_head_email).trim() : undefined,
-            job_specialists: (u.job_specialists ?? []).map(s => ({
-                job_keyword_id: s.job_keyword_id != null ? Number(s.job_keyword_id) : undefined,
-                name: s.name != null ? String(s.name) : '',
-                rank: s.rank != null ? String(s.rank) : undefined,
-                title: s.title != null ? String(s.title) : undefined,
-                email: s.email && String(s.email).trim() ? String(s.email).trim() : undefined,
-            })),
-        }));
-        router.post(`/hr-manager/job-analysis/${project.id}/org-chart-mapping`, { org_chart_mappings }, {
-            onSuccess: () => {
-                toast({ title: 'Saved', description: 'Org chart mapping saved.' });
-                markStepCompleted('org-chart-mapping');
-                handleStepChange('review-submit');
-            },
-            onError: (errors: Record<string, unknown>) => {
-                const message = typeof errors?.message === 'string' ? errors.message : null;
-                const firstValue = errors && typeof errors === 'object' ? Object.values(errors)[0] : null;
-                const desc = message ?? (Array.isArray(firstValue) ? firstValue[0] : firstValue);
-                const description = typeof desc === 'string' ? desc : 'Failed to save. Please try again or contact support.';
-                toast({
-                    title: 'Save failed',
-                    description,
-                    variant: 'destructive',
-                });
-            },
-        });
+        setStepError(null);
+        markStepCompleted('org-chart-mapping');
+        handleStepChange('review-submit');
     };
 
     const handleBack = () => {
@@ -523,6 +472,11 @@ export default function JobAnalysisIndex({
                                     onStepClick={handleStepChange}
                                 />
                             </div>
+                            {stepError && (
+                                <div className="px-6 pt-2">
+                                    <InlineErrorSummary message={stepError} />
+                                </div>
+                            )}
 
                             {['policy-snapshot', 'job-list-selection', 'job-definition', 'finalization', 'org-chart-mapping'].includes(activeStepLocal) ? (
                                 <div key={activeStepLocal} className="animate-in fade-in duration-300">

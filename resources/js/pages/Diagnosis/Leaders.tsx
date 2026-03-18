@@ -3,6 +3,7 @@ import { Head, useForm } from '@inertiajs/react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Check, GripVertical, Plus, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
 
 interface Diagnosis {
     id: number;
@@ -89,9 +90,37 @@ export default function Leaders({
     const ratioNum = totalWorkforce > 0 ? Math.min(100, parseFloat(ratioPct || '0')) : 0;
     const tooManyLeaders = totalWorkforce > 0 && totalHead > totalWorkforce;
 
+    // Hydrate UI selections from draft (UI-only keys) so Back/Next preserves selections.
+    useDiagnosisDraftHydrate(
+        projectId,
+        'leaders',
+        (patch) => {
+            const ui = (patch.__draft_leaders as any) ?? null;
+            if (!ui || typeof ui !== 'object') return;
+            if (Array.isArray(ui.selectedIds)) setSelected(new Set(ui.selectedIds.map(String)));
+            if (ui.counts && typeof ui.counts === 'object') setCounts(ui.counts as Record<string, number>);
+            if (Array.isArray(ui.customRows)) setCustomRows(ui.customRows);
+            if (Array.isArray(ui.order)) setOrder(ui.order);
+            if (typeof ui.totalWorkforce === 'number') setTotalWorkforce(ui.totalWorkforce);
+        },
+        { enabled: !embedMode && !readOnly }
+    );
+
     useEffect(() => {
         setData('leadership_count', totalHead);
     }, [totalHead]);
+
+    // Persist UI-only draft state into formData so FormLayout can save it to sessionStorage.
+    useEffect(() => {
+        if (!projectId || embedMode || readOnly) return;
+        (internalForm as any).setData('__draft_leaders', {
+            selectedIds: Array.from(selected),
+            counts,
+            customRows,
+            order,
+            totalWorkforce,
+        });
+    }, [projectId, embedMode, readOnly, selected, counts, customRows, order, totalWorkforce]);
 
     const toggleRow = useCallback(
         (key: string) => {

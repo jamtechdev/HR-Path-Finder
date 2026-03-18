@@ -10,6 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import InlineErrorSummary from '@/components/forms/InlineErrorSummary';
 
 // Import types
 import type {
@@ -73,6 +74,8 @@ export default function CompensationSystemIndex({
 }: Props) {
     const [activeTab, setActiveTab] = useState(initialTab);
     const [tabCompletions, setTabCompletions] = useState<Record<string, boolean>>({});
+    const [localTabDone, setLocalTabDone] = useState<Record<string, boolean>>({});
+    const [compError, setCompError] = useState<string | null>(null);
     const [isRationaleOpen, setIsRationaleOpen] = useState(true);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -102,60 +105,18 @@ export default function CompensationSystemIndex({
     const { post, processing } = useForm({});
     const [saving, setSaving] = useState(false);
 
-    // Save current tab then go to next (single footer action for all forms)
     const handleSaveAndContinue = () => {
+        setCompError(null);
         const idx = TABS.findIndex(t => t.id === activeTab);
         const nextTabId = idx < TABS.length - 1 ? TABS[idx + 1].id : activeTab;
-        const goNext = () => {
-            setSaving(false);
-            handleTabChange(nextTabId);
-        };
-        const opts = { preserveScroll: true, preserveState: true, only: ['project'], onSuccess: goNext, onError: () => setSaving(false), onFinish: () => setSaving(false) };
-
-        if (activeTab === 'snapshot') {
-            setSaving(true);
-            const responseData = (snapshotQuestions || []).map((q: { id: number; answer_type?: string }) => {
-                const response = snapshotResponses[q.id];
-                if (q.answer_type === 'numeric') {
-                    return { question_id: q.id, response: null, text_response: null, numeric_response: typeof response === 'object' ? null : (response as number ?? null), response_data: typeof response === 'object' ? response : null };
-                }
-                if (q.answer_type === 'text') {
-                    return { question_id: q.id, response: null, text_response: (response as string) ?? null, numeric_response: null, response_data: null };
-                }
-                return { question_id: q.id, response: Array.isArray(response) ? response : (response ? [response] : null), text_response: null, numeric_response: null, response_data: null };
-            });
-            router.post(`/hr-manager/compensation-system/${project.id}`, { tab: 'snapshot', responses: responseData } as any, opts);
+        if (activeTab !== 'overview' && activeTab !== 'review') {
+            setLocalTabDone((d) => ({ ...d, [activeTab]: true }));
+        }
+        if (activeTab === 'overview') {
+            handleTabChange('snapshot');
             return;
         }
-        if (activeTab === 'base-salary-framework') {
-            setSaving(true);
-            router.post(`/hr-manager/compensation-system/${project.id}`, { tab: 'base-salary-framework', ...baseSalaryFramework }, opts);
-            return;
-        }
-        if (activeTab === 'pay-band-salary-table') {
-            setSaving(true);
-            router.post(`/hr-manager/compensation-system/${project.id}`, { tab: 'pay-band', pay_bands: payBands } as any, { ...opts, onSuccess: () => {
-                router.post(`/hr-manager/compensation-system/${project.id}`, { tab: 'salary-table', salary_tables: salaryTables } as any, { ...opts, onSuccess: () => {
-                    router.post(`/hr-manager/compensation-system/${project.id}`, { tab: 'operation-criteria', ...operationCriteria }, opts);
-                } });
-            } });
-            return;
-        }
-        if (activeTab === 'bonus-pool') {
-            setSaving(true);
-            router.post(`/hr-manager/compensation-system/${project.id}`, { tab: 'bonus-pool', ...bonusPool }, opts);
-            return;
-        }
-        if (activeTab === 'benefits') {
-            setSaving(true);
-            const updatedBenefits = { ...benefits };
-            if (updatedBenefits.previous_year_total_salary && updatedBenefits.previous_year_total_benefits_expense && updatedBenefits.previous_year_total_salary > 0) {
-                updatedBenefits.benefits_expense_ratio = (updatedBenefits.previous_year_total_benefits_expense / updatedBenefits.previous_year_total_salary) * 100;
-            }
-            router.post(`/hr-manager/compensation-system/${project.id}`, { tab: 'benefits', ...updatedBenefits }, opts);
-            return;
-        }
-        goNext();
+        handleTabChange(nextTabId);
     };
 
     // Validate tab completion
@@ -164,18 +125,36 @@ export default function CompensationSystemIndex({
             case 'overview':
                 return false;
             case 'snapshot':
-                return !!(project.compensation_snapshot_responses && project.compensation_snapshot_responses.length > 0) ||
-                       tabCompletions['snapshot'] === true;
+                return (
+                    !!(project.compensation_snapshot_responses && project.compensation_snapshot_responses.length > 0) ||
+                    tabCompletions['snapshot'] === true ||
+                    localTabDone['snapshot'] === true
+                );
             case 'base-salary-framework':
-                return !!project.base_salary_framework || tabCompletions['base-salary-framework'] === true;
+                return (
+                    !!project.base_salary_framework ||
+                    tabCompletions['base-salary-framework'] === true ||
+                    localTabDone['base-salary-framework'] === true
+                );
             case 'pay-band-salary-table':
-                return !!(project.pay_bands && project.pay_bands.length > 0) ||
-                       !!(project.salary_tables && project.salary_tables.length > 0) ||
-                       tabCompletions['pay-band-salary-table'] === true;
+                return (
+                    !!(project.pay_bands && project.pay_bands.length > 0) ||
+                    !!(project.salary_tables && project.salary_tables.length > 0) ||
+                    tabCompletions['pay-band-salary-table'] === true ||
+                    localTabDone['pay-band-salary-table'] === true
+                );
             case 'bonus-pool':
-                return !!project.bonus_pool_configuration || tabCompletions['bonus-pool'] === true;
+                return (
+                    !!project.bonus_pool_configuration ||
+                    tabCompletions['bonus-pool'] === true ||
+                    localTabDone['bonus-pool'] === true
+                );
             case 'benefits':
-                return !!project.benefits_configuration || tabCompletions['benefits'] === true;
+                return (
+                    !!project.benefits_configuration ||
+                    tabCompletions['benefits'] === true ||
+                    localTabDone['benefits'] === true
+                );
             case 'review':
                 return validateTabCompletion('benefits');
             default:
@@ -229,111 +208,94 @@ export default function CompensationSystemIndex({
         }
     }, [initialTab]);
 
-    // Auto-save handlers
-    useEffect(() => {
-        if (activeTab !== 'base-salary-framework') return;
-        
-        const timer = setTimeout(() => {
-            if (Object.keys(baseSalaryFramework).length > 0) {
-                router.post(`/hr-manager/compensation-system/${project.id}`, {
-                    tab: 'base-salary-framework',
-                    ...baseSalaryFramework,
-                }, {
-                    preserveScroll: true,
-                    preserveState: true,
-                    only: ['project'],
-                });
-            }
-        }, 1500);
-        return () => clearTimeout(timer);
-    }, [baseSalaryFramework, activeTab, project.id]);
-
-    useEffect(() => {
-        if (activeTab !== 'pay-band-salary-table') return;
-        
-        const timer = setTimeout(() => {
-            if (payBands.length > 0) {
-                router.post(`/hr-manager/compensation-system/${project.id}`, {
-                    tab: 'pay-band',
-                    pay_bands: payBands as any,
-                }, {
-                    preserveScroll: true,
-                    preserveState: true,
-                    only: ['project'],
-                });
-            }
-            if (salaryTables.length > 0) {
-                router.post(`/hr-manager/compensation-system/${project.id}`, {
-                    tab: 'salary-table',
-                    salary_tables: salaryTables as any,
-                }, {
-                    preserveScroll: true,
-                    preserveState: true,
-                    only: ['project'],
-                });
-            }
-            if (Object.keys(operationCriteria).length > 0) {
-                router.post(`/hr-manager/compensation-system/${project.id}`, {
-                    tab: 'operation-criteria',
-                    ...operationCriteria,
-                }, {
-                    preserveScroll: true,
-                    preserveState: true,
-                    only: ['project'],
-                });
-            }
-        }, 1500);
-        return () => clearTimeout(timer);
-    }, [payBands, salaryTables, operationCriteria, activeTab, project.id]);
-
-    useEffect(() => {
-        if (activeTab !== 'bonus-pool') return;
-        
-        const timer = setTimeout(() => {
-            if (Object.keys(bonusPool).length > 0) {
-                router.post(`/hr-manager/compensation-system/${project.id}`, {
-                    tab: 'bonus-pool',
-                    ...bonusPool,
-                }, {
-                    preserveScroll: true,
-                    preserveState: true,
-                    only: ['project'],
-                });
-            }
-        }, 1500);
-        return () => clearTimeout(timer);
-    }, [bonusPool, activeTab, project.id]);
-
-    useEffect(() => {
-        if (activeTab !== 'benefits') return;
-        
-        const timer = setTimeout(() => {
-            if (Object.keys(benefits).length > 0) {
-                const updatedBenefits = { ...benefits };
-                if (updatedBenefits.previous_year_total_salary && updatedBenefits.previous_year_total_benefits_expense) {
-                    if (updatedBenefits.previous_year_total_salary > 0) {
-                        updatedBenefits.benefits_expense_ratio = (updatedBenefits.previous_year_total_benefits_expense / updatedBenefits.previous_year_total_salary) * 100;
-                    }
-                }
-                router.post(`/hr-manager/compensation-system/${project.id}`, {
-                    tab: 'benefits',
-                    ...updatedBenefits,
-                }, {
-                    preserveScroll: true,
-                    preserveState: true,
-                    only: ['project'],
-                });
-            }
-        }, 1500);
-        return () => clearTimeout(timer);
-    }, [benefits, activeTab, project.id]);
-
     const handleSubmit = () => {
-        post(`/hr-manager/compensation-system/${project.id}/submit`, {
+        setCompError(null);
+        setSaving(true);
+        const pid = project.id;
+        const opts = { preserveScroll: true, preserveState: true, only: ['project'] as const };
+        const fail = (msg: string) => {
+            setSaving(false);
+            setCompError(msg);
+        };
+
+        const responseData = (snapshotQuestions || []).map((q: { id: number; answer_type?: string }) => {
+            const response = snapshotResponses[q.id];
+            if (q.answer_type === 'numeric') {
+                return {
+                    question_id: q.id,
+                    response: null,
+                    text_response: null,
+                    numeric_response: typeof response === 'object' ? null : (response as number) ?? null,
+                    response_data: typeof response === 'object' ? response : null,
+                };
+            }
+            if (q.answer_type === 'text') {
+                return { question_id: q.id, response: null, text_response: (response as string) ?? null, numeric_response: null, response_data: null };
+            }
+            return {
+                question_id: q.id,
+                response: Array.isArray(response) ? response : response ? [response] : null,
+                text_response: null,
+                numeric_response: null,
+                response_data: null,
+            };
+        });
+
+        const updatedBenefits = { ...benefits };
+        if (updatedBenefits.previous_year_total_salary && updatedBenefits.previous_year_total_benefits_expense && updatedBenefits.previous_year_total_salary > 0) {
+            updatedBenefits.benefits_expense_ratio =
+                (updatedBenefits.previous_year_total_benefits_expense / updatedBenefits.previous_year_total_salary) * 100;
+        }
+
+        router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'snapshot', responses: responseData } as never, {
+            ...opts,
             onSuccess: () => {
-                setTabCompletions({ ...tabCompletions, review: true });
-                setShowSuccessModal(true);
+                router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'base-salary-framework', ...baseSalaryFramework } as never, {
+                    ...opts,
+                    onSuccess: () => {
+                        router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'pay-band', pay_bands: payBands } as never, {
+                            ...opts,
+                            onSuccess: () => {
+                                router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'salary-table', salary_tables: salaryTables } as never, {
+                                    ...opts,
+                                    onSuccess: () => {
+                                        router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'operation-criteria', ...operationCriteria } as never, {
+                                            ...opts,
+                                            onSuccess: () => {
+                                                router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'bonus-pool', ...bonusPool } as never, {
+                                                    ...opts,
+                                                    onSuccess: () => {
+                                                        router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'benefits', ...updatedBenefits } as never, {
+                                                            ...opts,
+                                                            onSuccess: () => {
+                                                                post(`/hr-manager/compensation-system/${pid}/submit`, {
+                                                                    onSuccess: () => {
+                                                                        setSaving(false);
+                                                                        setTabCompletions((c) => ({ ...c, review: true }));
+                                                                        setShowSuccessModal(true);
+                                                                    },
+                                                                    onError: () => fail('Submit failed. Check all sections and try again.'),
+                                                                });
+                                                            },
+                                                            onError: () => fail('Could not save benefits. Please check required fields.'),
+                                                        });
+                                                    },
+                                                    onError: () => fail('Could not save bonus pool.'),
+                                                });
+                                            },
+                                            onError: () => fail('Could not save pay structure.'),
+                                        });
+                                    },
+                                    onError: () => fail('Could not save salary tables.'),
+                                });
+                            },
+                            onError: () => fail('Could not save pay bands.'),
+                        });
+                    },
+                    onError: () => fail('Could not save base salary framework.'),
+                });
             },
+            onError: () => fail('Could not save compensation snapshot. Answer all questions.'),
         });
     };
 
@@ -589,6 +551,7 @@ export default function CompensationSystemIndex({
                     </TabsContent>
 
                     <TabsContent value="review" className="mt-0">
+                        {compError && <InlineErrorSummary message={compError} className="mb-4" />}
                         <ReviewTab
                             project={project}
                             snapshotQuestions={snapshotQuestions}
@@ -621,16 +584,12 @@ export default function CompensationSystemIndex({
                                 <ArrowLeft className="w-4 h-4 mr-2" /> Previous
                             </Button>
                             {activeTab !== 'review' ? (
-                                <Button
-                                    onClick={handleSaveAndContinue}
-                                    disabled={saving}
-                                    className="bg-[#152540] hover:bg-[#1e3a62] text-white"
-                                >
-                                    {saving ? 'Saving…' : 'Save & Continue'}
-                                    {!saving && <svg className="w-3.5 h-3.5 ml-1.5" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M7.5 3l3.5 3.5L7.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                                <Button onClick={handleSaveAndContinue} className="bg-[#152540] hover:bg-[#1e3a62] text-white">
+                                    Continue
+                                    <svg className="w-3.5 h-3.5 ml-1.5" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M7.5 3l3.5 3.5L7.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                 </Button>
                             ) : (
-                                <Button onClick={handleSubmit} disabled={processing} className="bg-[#152540] hover:bg-[#1e3a62] text-white">
+                                <Button onClick={handleSubmit} disabled={processing || saving} className="bg-[#152540] hover:bg-[#1e3a62] text-white">
                                     <CheckCircle2 className="w-4 h-4 mr-2" />
                                     Submit & Lock Step 4
                                 </Button>

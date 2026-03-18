@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { loadAllTabDrafts } from '@/lib/diagnosisDraftStorage';
+import { setLogoDraftFile } from '@/lib/diagnosisFileDrafts';
 import { Head, useForm, router } from '@inertiajs/react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Input } from '@/components/ui/input';
@@ -7,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar, Upload, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { tr } from '@/config/diagnosisTranslations';
 
 interface Company {
     id: number;
@@ -97,6 +100,7 @@ export default function CompanyInfo({
 
     const [logoPreview, setLogoPreview] = useState<string | null>(company.logo_path || null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const draftHydrated = useRef(false);
 
     const internalForm = useForm<{
         company_name: string;
@@ -143,6 +147,17 @@ export default function CompanyInfo({
         }
     }, [company.logo_path]);
 
+    useEffect(() => {
+        if (draftHydrated.current || !projectId || readOnly || embedMode) return;
+        draftHydrated.current = true;
+        const p = loadAllTabDrafts(projectId)['company-info'];
+        if (!p) return;
+        Object.entries(p).forEach(([k, v]) => {
+            if (v === undefined || v === null || k === 'logo') return;
+            setData(k as keyof typeof internalForm.data, v as never);
+        });
+    }, [projectId, readOnly, embedMode, setData]);
+
     // Validate registration number format (000-00-00000 or digits only)
     const validateRegistrationNumber = (value: string): boolean => {
         if (!value) return true; // Allow empty for optional fields
@@ -155,18 +170,19 @@ export default function CompanyInfo({
     const handleFileChange = (file: File) => {
         // Validate file type
         if (!file.type.match(/^image\/(png|jpeg|jpg)$/)) {
-            alert('Please upload a PNG or JPG image file.');
+            alert(tr('fileTypeError'));
             return;
         }
         
         // Validate file size (2MB)
         if (file.size > 2 * 1024 * 1024) {
-            alert('File size must be less than 2MB.');
+            alert(tr('fileSizeError'));
             return;
         }
 
         setData('logo', file);
-        
+        if (projectId) setLogoDraftFile(projectId, file);
+
         // Create preview
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -211,9 +227,9 @@ export default function CompanyInfo({
                         </svg>
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold leading-snug">Company Basic Information</h2>
+                        <h2 className="text-xl font-bold leading-snug">{tr('companyInfoHeroTitle')}</h2>
                         <p className="text-gray-400 text-sm mt-0.5">
-                            회사의 기본 정보를 입력하세요 — 모든 * 항목은 필수입니다
+                            {tr('companyInfoHeroDesc')}
                         </p>
                     </div>
                 </div>
@@ -241,18 +257,18 @@ export default function CompanyInfo({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                     {/* Left: 회사 식별 정보 */}
                     <div className="space-y-6">
-                        <h3 className="text-gray-500 font-bold text-sm mb-1">회사 식별 정보</h3>
+                        <h3 className="text-gray-500 font-bold text-sm mb-1">{tr('companyIdentitySection')}</h3>
 
                         {/* Company Name */}
                         <div>
                             <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="company_name">
-                                Company Name <span className="text-red-500">*</span>
+                                {tr('companyNameLabel')} <span className="text-red-500">*</span>
                             </Label>
                             <Input
                                 id="company_name"
                                 value={data.company_name}
                                 onChange={(e) => setData('company_name', e.target.value)}
-                                placeholder="Better Company"
+                                placeholder={tr('companyNamePlaceholder')}
                                 className={cn(
                                     'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 px-3 text-sm focus-visible:ring-2 focus-visible:ring-teal-500',
                                     errors.company_name && 'border-red-500'
@@ -268,7 +284,7 @@ export default function CompanyInfo({
                         {/* Registration Number */}
                         <div>
                             <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="registration_number">
-                                Registration Number <span className="text-red-500">*</span>
+                                {tr('registrationNumberLabel')} <span className="text-red-500">*</span>
                             </Label>
                             <Input
                                 id="registration_number"
@@ -294,14 +310,14 @@ export default function CompanyInfo({
                                 <p className="mt-1 text-xs text-red-500">{errors.registration_number}</p>
                             )}
                             {data.registration_number && !validateRegistrationNumber(data.registration_number) && (
-                                <p className="mt-1 text-xs text-amber-600">Format: 000-00-00000</p>
+                                <p className="mt-1 text-xs text-amber-600">{tr('registrationNumberFormatHint')}</p>
                             )}
                         </div>
 
                         {/* Brand Name */}
                         <div>
                             <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="brand_name">
-                                Brand Name
+                                {tr('brandNameLabel')}
                             </Label>
                             <Input
                                 id="brand_name"
@@ -317,7 +333,7 @@ export default function CompanyInfo({
                         <div className="flex flex-col md:flex-row gap-4">
                             <div className="flex-1">
                                 <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="foundation_date">
-                                    Foundation Date <span className="text-red-500">*</span>
+                                    {tr('foundationDateLabel')} <span className="text-red-500">*</span>
                                 </Label>
                                 <div className="relative">
                                     <Input
@@ -341,7 +357,7 @@ export default function CompanyInfo({
 
                             <div className="flex-1">
                                 <Label className="block text-sm font-bold text-gray-700 mb-2">
-                                    Public Listing <span className="text-red-500">*</span>
+                                    {tr('publicListingLabel')} <span className="text-red-500">*</span>
                                 </Label>
                                 <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm font-semibold">
                                     <button
@@ -353,7 +369,7 @@ export default function CompanyInfo({
                                         )}
                                         disabled={readOnly}
                                     >
-                                        <span className="text-xs">Listed</span>
+                                        <span className="text-xs">{tr('listedLabel')}</span>
                                     </button>
                                     <button
                                         type="button"
@@ -364,7 +380,7 @@ export default function CompanyInfo({
                                         )}
                                         disabled={readOnly}
                                     >
-                                        <span className="text-xs font-bold">Private</span>
+                                        <span className="text-xs font-bold">{tr('privateLabel')}</span>
                                     </button>
                                 </div>
                                 {errors.is_public && (
@@ -376,12 +392,12 @@ export default function CompanyInfo({
 
                     {/* Right: 산업 및 위치 + completion bar */}
                     <div className="space-y-6">
-                        <h3 className="text-gray-500 font-bold text-sm mb-1">산업 및 위치</h3>
+                        <h3 className="text-gray-500 font-bold text-sm mb-1">{tr('industryLocationSection')}</h3>
 
                         {/* Primary Industry */}
                         <div>
                             <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="industry_category">
-                                Primary Industry <span className="text-red-500">*</span>
+                                {tr('primaryIndustryLabel')} <span className="text-red-500">*</span>
                             </Label>
                             <Select
                                 value={data.industry_category}
@@ -399,7 +415,7 @@ export default function CompanyInfo({
                                         errors.industry_category && 'border-red-500'
                                     )}
                                 >
-                                    <SelectValue placeholder="Services" />
+                                    <SelectValue placeholder={tr('primaryIndustryPlaceholder')} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {industryCategories.length > 0 ? (
@@ -409,7 +425,7 @@ export default function CompanyInfo({
                                             </SelectItem>
                                         ))
                                     ) : null}
-                                    <SelectItem value="Others">Others</SelectItem>
+                                    <SelectItem value="Others">{tr('othersLabel')}</SelectItem>
                                     {industryCategories.length === 0 && (
                                         <SelectItem value="" disabled>
                                             No industries available
@@ -420,13 +436,13 @@ export default function CompanyInfo({
                             {data.industry_category === 'Others' && (
                                 <div className="mt-2">
                                     <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="industry_category_other">
-                                        Primary Industry (specify) <span className="text-red-500">*</span>
+                                        {tr('primaryIndustryLabel')} ({tr('specifyPlaceholder')}) <span className="text-red-500">*</span>
                                     </Label>
                                     <Input
                                         id="industry_category_other"
                                         value={data.industry_category_other ?? ''}
                                         onChange={(e) => setData('industry_category_other', e.target.value)}
-                                        placeholder="Please specify"
+                                        placeholder={tr('specifyPlaceholder')}
                                         className={cn(
                                             'w-full h-11 rounded-lg border border-gray-200 px-3 text-sm',
                                             errors.industry_category_other && 'border-red-500'
@@ -459,7 +475,7 @@ export default function CompanyInfo({
                                         className="block text-sm font-bold text-gray-700 mb-2"
                                         htmlFor="industry_subcategory"
                                     >
-                                        Sub Industry Category <span className="text-red-500">*</span>
+                                        {tr('subIndustryLabel')} <span className="text-red-500">*</span>
                                     </Label>
                                     <Select
                                         value={data.industry_subcategory}
@@ -475,7 +491,7 @@ export default function CompanyInfo({
                                                 errors.industry_subcategory && 'border-red-500'
                                             )}
                                         >
-                                            <SelectValue placeholder="Professional Services" />
+                                            <SelectValue placeholder={tr('subIndustryPlaceholder')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {subCategories.map((sub) => (
@@ -514,7 +530,7 @@ export default function CompanyInfo({
                         {/* HQ Location */}
                         <div>
                             <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="hq_location">
-                                HQ Location <span className="text-red-500">*</span>
+                                {tr('hqLocationLabel')} <span className="text-red-500">*</span>
                             </Label>
                             <div className="relative">
                                 {hqLocations.length > 0 ? (
@@ -529,7 +545,7 @@ export default function CompanyInfo({
                                                 errors.hq_location && 'border-red-500'
                                             )}
                                         >
-                                            <SelectValue placeholder="Seoul, Korea" />
+                                            <SelectValue placeholder={tr('hqLocationPlaceholder')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {hqLocations.map((location) => (
@@ -544,7 +560,7 @@ export default function CompanyInfo({
                                         id="hq_location"
                                         value={data.hq_location}
                                         onChange={(e) => setData('hq_location', e.target.value)}
-                                        placeholder="Seoul, Korea"
+                                        placeholder={tr('hqLocationPlaceholder')}
                                         className={cn(
                                             'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 pr-9 text-sm',
                                             errors.hq_location && 'border-red-500'
@@ -638,7 +654,7 @@ export default function CompanyInfo({
                                 {logoPreview ? (
                                     <img
                                         src={logoPreview}
-                                        alt="Company logo"
+                                        alt={tr('logoAlt')}
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
@@ -646,12 +662,12 @@ export default function CompanyInfo({
                                 )}
                             </div>
                             <div className="space-y-1 text-left">
-                                <p className="font-bold text-sm text-gray-700">로고 이미지 업로드</p>
+                                <p className="font-bold text-sm text-gray-700">{tr('logoUploadTitle')}</p>
                                 <p className="text-xs text-gray-400">
-                                    드래그 앤 드롭 또는 클릭하여 파일 선택
+                                    {tr('logoUploadHint')}
                                 </p>
                                 <p className="text-xs text-gray-400">
-                                    PNG · JPG · 최대 2MB · 권장 400x400px
+                                    {tr('logoUploadSpec')}
                                 </p>
                             </div>
                         </div>
@@ -666,7 +682,7 @@ export default function CompanyInfo({
                             className="px-6 py-2 border border-gray-300 rounded-lg text-sm font-bold text-gray-600 bg-white shrink-0"
                             disabled={readOnly}
                         >
-                            파일 선택
+                            {tr('chooseFileBtn')}
                         </button>
                     </div>
                 </div>
@@ -677,9 +693,9 @@ export default function CompanyInfo({
     if (embedMode) return <>{cardContent}</>;
     return (
         <>
-            <Head title={`Company Info - ${company?.name || project?.company?.name || 'Company'}`} />
+            <Head title={`${tr('companyInfoPageTitle')} - ${company?.name || project?.company?.name || 'Company'}`} />
             <FormLayout
-                title="Company Basic Information"
+                title={tr('companyInfoPageTitle')}
                 project={project}
                 diagnosis={diagnosis}
                 activeTab={activeTab}

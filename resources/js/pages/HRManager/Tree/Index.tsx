@@ -1,8 +1,7 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
-import { Network } from 'lucide-react';
-import D3TreeView from '@/components/Tree/D3TreeView';
+import FinalBoard from '@/components/Dashboard/HRManager/FinalBoard';
 
 interface JobDefinition {
     id: number;
@@ -73,11 +72,13 @@ export default function HrTreeIndex({
             stepStatuses={stepStatuses}
             projectId={projectId}
         >
-            <Head title={`Tree - ${project.company.name}`} />
-            {/* Full Screen HR System Tree View */}
-            <div className="h-full w-full">
-                <D3TreeView hrSystemSnapshot={hrSystemSnapshot} />
-            </div>
+            <Head title={`Final Board - ${project.company.name}`} />
+            <FinalBoard
+                projectId={projectId}
+                companyName={project.company.name}
+                stepStatuses={stepStatuses}
+                hrSystemSnapshot={hrSystemSnapshot}
+            />
         </AppLayout>
     );
 }

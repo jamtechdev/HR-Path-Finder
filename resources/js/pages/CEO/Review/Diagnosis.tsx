@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Head, useForm, router, Link } from '@inertiajs/react';
+import { Head, useForm, router, Link, usePage } from '@inertiajs/react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
@@ -18,8 +18,7 @@ import JobStructure from '@/pages/Diagnosis/JobStructure';
 import HrIssues from '@/pages/Diagnosis/HrIssues';
 import DiagnosisActions from '@/components/CEO/Review/DiagnosisActions';
 import SuccessModal from '@/components/Modals/SuccessModal';
-import { Toaster } from '@/components/ui/toaster';
-import { toast } from '@/hooks/use-toast';
+import InlineErrorSummary from '@/components/forms/InlineErrorSummary';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 
@@ -129,6 +128,11 @@ export default function CeoReviewDiagnosis({
 }: Props) {
     const [activeTab, setActiveTab] = useState('company-info');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [saveNotice, setSaveNotice] = useState<string | null>(null);
+    const [pageError, setPageError] = useState<string | null>(null);
+    const [showCeoDoneModal, setShowCeoDoneModal] = useState(false);
+    const page = usePage();
+    const flash = (page.props as any)?.flash ?? {};
     
     const { data, setData, post, processing, errors } = useForm({
         ...diagnosis,
@@ -157,6 +161,11 @@ export default function CeoReviewDiagnosis({
         setData('foundation_date', company?.foundation_date ?? '');
     }, [diagnosis, company]);
 
+    // Show completion popup after CEO submits the philosophy survey
+    useEffect(() => {
+        if (flash?.ceoSurveyDone) setShowCeoDoneModal(true);
+    }, [flash?.ceoSurveyDone]);
+
     // Calculate gender ratio
     useEffect(() => {
         const total = (data.gender_male || 0) + (data.gender_female || 0);
@@ -175,18 +184,22 @@ export default function CeoReviewDiagnosis({
     }, [data.present_headcount, data.leadership_count]);
 
     const handleSave = () => {
+        setSaveNotice(null);
+        setPageError(null);
         post(`/ceo/review/diagnosis/${project.id}/update`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast({ title: 'Saved', description: 'Your changes have been saved successfully.' });
+                setSaveNotice('Saved. Your changes have been stored.');
                 router.reload({
                     only: ['diagnosis', 'company', 'reviewLogs'],
                 });
             },
+            onError: () => setPageError('Please fix the highlighted fields and try again.'),
         });
     };
 
     const handleConfirm = () => {
+        setPageError(null);
         post(`/ceo/review/diagnosis/${project.id}/confirm`, {
             preserveScroll: true,
             onSuccess: () => {
@@ -194,6 +207,7 @@ export default function CeoReviewDiagnosis({
             },
             onError: () => {
                 // Validation/backend errors are shared via Inertia; ensure user sees feedback
+                setPageError('Unable to submit. Please review the errors and try again.');
                 router.reload({ only: ['diagnosis', 'company'] });
             },
         });
@@ -233,6 +247,12 @@ export default function CeoReviewDiagnosis({
                 <main className="flex-1 overflow-auto bg-slate-50/50 dark:bg-slate-900">
                     <Head title={`Review Diagnosis - ${project.company.name}`} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
+                        <InlineErrorSummary className="mb-6" message={pageError} errors={errors as any} />
+                        {saveNotice && (
+                            <Alert className="mb-6 border-emerald-200 bg-emerald-50 text-emerald-950 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-50">
+                                <AlertDescription>{saveNotice}</AlertDescription>
+                            </Alert>
+                        )}
                         <Link
                             href={`/ceo/projects/${project.id}/verification`}
                             className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 mb-6 transition-colors"
@@ -301,17 +321,6 @@ export default function CeoReviewDiagnosis({
                                 <AlertCircle className="h-4 w-4 text-amber-600" />
                                 <AlertDescription>
                                     Diagnosis must be submitted by HR before you can save changes or confirm. Ask your HR Manager to complete and submit the Diagnosis step, then return here to review and save.
-                                </AlertDescription>
-                            </Alert>
-                        )}
-
-                        {Object.keys(errors).length > 0 && (
-                            <Alert variant="destructive" className="mb-6">
-                                <AlertCircle className="h-4 w-4" />
-                                <AlertDescription>
-                                    {Object.entries(errors).map(([key, msg]) => (
-                                        <p key={key}>{String(msg)}</p>
-                                    ))}
                                 </AlertDescription>
                             </Alert>
                         )}
@@ -396,17 +405,19 @@ export default function CeoReviewDiagnosis({
                 isOpen={showSuccessModal}
                 onClose={() => setShowSuccessModal(false)}
                 title="Thank you"
-                message="Thank you for your time. Your part of the process is now complete.
-
-1) Next Step: Our HR Manager will now begin drafting the system design based on your responses.
-
-2) Final Report: Once the draft is finalized, a professional consultant's report will be delivered within 2 weeks.
-
-We appreciate your patience while we prepare the best results for you."
+                message="Thank you for your time. Your part of the process is now complete.\n\n1. Next Step: Our HR Manager will now begin drafting the system design based on your responses.\n2. Final Report: Once the draft is finalized, a professional consultant's report will be delivered within 2 weeks.\n\nWe appreciate your patience while we prepare the best results for you."
                 nextStepLabel="Go to Dashboard"
                 onNextStep={handleNextStep}
             />
-        <Toaster />
+
+            <SuccessModal
+                isOpen={showCeoDoneModal}
+                onClose={() => setShowCeoDoneModal(false)}
+                title="Thank you"
+                message="Thank you for your time. Your part of the process is now complete.\n\n1. Next Step: Our HR Manager will now begin drafting the system design based on your responses.\n2. Final Report: Once the draft is finalized, a professional consultant's report will be delivered within 2 weeks.\n\nWe appreciate your patience while we prepare the best results for you."
+                nextStepLabel="Go to Dashboard"
+                onNextStep={handleNextStep}
+            />
         </SidebarProvider>
     );
 }

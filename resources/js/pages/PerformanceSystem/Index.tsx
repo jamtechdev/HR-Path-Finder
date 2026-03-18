@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,6 +20,7 @@ import EvaluationStructureTab from './tabs/EvaluationStructureTab';
 import ReviewSubmitTab from './tabs/ReviewSubmitTab';
 import { cn } from '@/lib/utils';
 import { Send } from 'lucide-react';
+import InlineErrorSummary from '@/components/forms/InlineErrorSummary';
 
 interface ProjectWithResponses {
     id: number;
@@ -80,6 +81,21 @@ export default function PerformanceSystemIndex({
 }: Props) {
     const [activeTab, setActiveTab] = useState(initialTab);
     const [tabCompletions, setTabCompletions] = useState<Record<string, boolean>>({});
+    const [localDone, setLocalDone] = useState<Record<string, boolean>>({});
+    const [draftSnapshotResponses, setDraftSnapshotResponses] = useState<Props['snapshotResponses']>(() => snapshotResponses ?? {});
+    const [draftKpis, setDraftKpis] = useState<any[]>(() => organizationalKpis ?? []);
+    const [draftAssignments, setDraftAssignments] = useState<Record<number, 'mbo' | 'bsc' | 'okr'>>(() => {
+        const out: Record<number, 'mbo' | 'bsc' | 'okr'> = {};
+        (evaluationModelAssignments ?? []).forEach((a: any) => {
+            const id = Number(a?.job_definition_id ?? a?.job_definition?.id);
+            const m = String(a?.evaluation_model ?? '').toLowerCase();
+            if (!id) return;
+            if (m === 'mbo' || m === 'bsc' || m === 'okr') out[id] = m;
+        });
+        return out;
+    });
+    const [draftStructure, setDraftStructure] = useState<any>(() => project.evaluation_structure ?? null);
+    const [submitError, setSubmitError] = useState<string | null>(null);
     const [snapshotAnsweredCount, setSnapshotAnsweredCount] = useState(() => {
         const total = (snapshotQuestions as any[])?.length ?? 0;
         if (total === 0) return 0;
@@ -103,15 +119,15 @@ export default function PerformanceSystemIndex({
     const validateTabCompletion = (tabId: string): boolean => {
         switch (tabId) {
             case 'performance-snapshot':
-                return Object.keys(snapshotResponses).length > 0 || tabCompletions['performance-snapshot'] === true;
+                return Object.keys(draftSnapshotResponses ?? {}).length > 0 || localDone['performance-snapshot'] === true;
             case 'kpi-review':
-                return organizationalKpis.length > 0 || tabCompletions['kpi-review'] === true;
+                return (draftKpis?.length ?? 0) > 0 || localDone['kpi-review'] === true;
             case 'model-assignment':
-                return evaluationModelAssignments.length > 0 || tabCompletions['model-assignment'] === true;
+                return Object.keys(draftAssignments ?? {}).length > 0 || localDone['model-assignment'] === true;
             case 'evaluation-structure':
-                return !!project.evaluation_structure || tabCompletions['evaluation-structure'] === true;
+                return !!draftStructure || localDone['evaluation-structure'] === true;
             case 'review-submit':
-                return tabCompletions['evaluation-structure'] === true || !!project.evaluation_structure;
+                return validateTabCompletion('evaluation-structure');
             default:
                 return false;
         }
@@ -141,7 +157,7 @@ export default function PerformanceSystemIndex({
             completions[tab.id] = validateTabCompletion(tab.id);
         });
         setTabCompletions(completions);
-    }, [snapshotResponses, organizationalKpis, evaluationModelAssignments, project.evaluation_structure]);
+    }, [draftSnapshotResponses, draftKpis, draftAssignments, draftStructure, localDone]);
 
     const handleTabChange = (tab: string, force: boolean = false) => {
         const tabIndex = TABS.findIndex(t => t.id === tab);
@@ -184,75 +200,73 @@ export default function PerformanceSystemIndex({
 
     // Handlers for tab continue actions
     const handleSnapshotContinue = async (responses: Record<number, { response: string[]; text_response?: string }>) => {
-        const responsesArray = Object.entries(responses).map(([questionId, data]) => ({
-            question_id: parseInt(questionId),
-            response: data.response,
-            text_response: data.text_response,
-        }));
-
-        router.post(`/hr-manager/performance-system/${project.id}`, {
-            tab: 'performance-snapshot',
-            responses: responsesArray,
-        }, {
-            onSuccess: () => {
-                setTabCompletions({ ...tabCompletions, 'performance-snapshot': true });
-                // Controller will redirect to kpi-review, so we don't need to handle it here
-            },
-            onError: (errors) => {
-                console.error('Error saving performance snapshot:', errors);
-            },
-        });
+        setDraftSnapshotResponses(responses);
+        setLocalDone((d) => ({ ...d, 'performance-snapshot': true }));
+        handleTabChange('kpi-review', true);
     };
 
     const handleKpiReviewContinue = async (kpis: any[]) => {
-        router.post(`/hr-manager/performance-system/${project.id}`, {
-            tab: 'kpi-review',
-            kpis: kpis,
-        }, {
-            onSuccess: () => {
-                setTabCompletions({ ...tabCompletions, 'kpi-review': true });
-                setTimeout(() => {
-                    handleTabChange('model-assignment', true);
-                }, 200);
-            },
-        });
+        setDraftKpis(kpis);
+        setLocalDone((d) => ({ ...d, 'kpi-review': true }));
+        handleTabChange('model-assignment', true);
     };
 
     const handleModelAssignmentContinue = async (assignments: Record<number, 'mbo' | 'bsc' | 'okr'>) => {
-        router.post(`/hr-manager/performance-system/${project.id}`, {
-            tab: 'model-assignment',
-            assignments: assignments,
-        }, {
-            onSuccess: () => {
-                setTabCompletions({ ...tabCompletions, 'model-assignment': true });
-                setTimeout(() => {
-                    handleTabChange('evaluation-structure', true);
-                }, 200);
-            },
-        });
+        setDraftAssignments(assignments);
+        setLocalDone((d) => ({ ...d, 'model-assignment': true }));
+        handleTabChange('evaluation-structure', true);
     };
 
     const handleEvaluationStructureContinue = async (structure: any) => {
-        router.post(`/hr-manager/performance-system/${project.id}`, {
-            tab: 'evaluation-structure',
-            ...structure,
-        }, {
-            onSuccess: () => {
-                setTabCompletions({ ...tabCompletions, 'evaluation-structure': true });
-                handleTabChange('review-submit', true);
-            },
-        });
+        setDraftStructure(structure);
+        setLocalDone((d) => ({ ...d, 'evaluation-structure': true }));
+        handleTabChange('review-submit', true);
     };
 
     const handleReviewSubmit = async () => {
-        router.post(`/hr-manager/performance-system/${project.id}/submit`, {}, {
-            onSuccess: () => {
-                router.visit('/hr-manager/dashboard');
-            },
-            onError: (errors) => {
-                console.error('Submit error:', errors);
-            },
-        });
+        setSubmitError(null);
+
+        const postStep = (url: string, payload: any) =>
+            new Promise<void>((resolve, reject) => {
+                router.post(url, payload, {
+                    preserveScroll: true,
+                    onSuccess: () => resolve(),
+                    onError: (e) => reject(e),
+                });
+            });
+
+        try {
+            const responsesArray = Object.entries(draftSnapshotResponses ?? {}).map(([questionId, d]) => ({
+                question_id: parseInt(questionId, 10),
+                response: (d as any)?.response ?? [],
+                text_response: (d as any)?.text_response,
+            }));
+
+            await postStep(`/hr-manager/performance-system/${project.id}`, {
+                tab: 'performance-snapshot',
+                responses: responsesArray,
+            });
+
+            await postStep(`/hr-manager/performance-system/${project.id}`, {
+                tab: 'kpi-review',
+                kpis: draftKpis ?? [],
+            });
+
+            await postStep(`/hr-manager/performance-system/${project.id}`, {
+                tab: 'model-assignment',
+                assignments: draftAssignments ?? {},
+            });
+
+            await postStep(`/hr-manager/performance-system/${project.id}`, {
+                tab: 'evaluation-structure',
+                ...(draftStructure ?? {}),
+            });
+
+            await postStep(`/hr-manager/performance-system/${project.id}/submit`, {});
+            router.visit('/hr-manager/dashboard');
+        } catch {
+            setSubmitError('Submit failed. Please review each tab and try again.');
+        }
     };
 
     return (
@@ -325,10 +339,10 @@ export default function PerformanceSystemIndex({
                                     stepStatuses={stepStatuses}
                                     completedSteps={new Set(Object.keys(tabCompletions).filter(k => tabCompletions[k]))}
                                     onStepClick={handleTabChange}
-                                    snapshotResponses={snapshotResponses}
-                                    organizationalKpis={organizationalKpis}
+                                    snapshotResponses={draftSnapshotResponses}
+                                    organizationalKpis={draftKpis}
                                     evaluationModelAssignments={evaluationModelAssignments}
-                                    evaluationStructure={project.evaluation_structure}
+                                    evaluationStructure={draftStructure ?? project.evaluation_structure}
                                     jobCount={jobDefinitions?.length ?? 0}
                                     snapshotQuestionsCount={snapshotQuestions?.length ?? 10}
                                     completedTabsCount={completedTabsCount}
@@ -341,6 +355,7 @@ export default function PerformanceSystemIndex({
                 </div>
             ) : (
             <div className="p-6 md:p-8 max-w-7xl mx-auto bg-background flex flex-col min-h-full">
+                <InlineErrorSummary className="mb-4" message={submitError} />
                 <div className="mb-0 rounded-t-xl overflow-hidden">
                     <div className="bg-[#151535] text-white px-5 py-4 md:px-6 flex items-start gap-4">
                         <button
@@ -453,9 +468,9 @@ export default function PerformanceSystemIndex({
                         <PerformanceSnapshotTab
                             project={project}
                             questions={snapshotQuestions}
-                            savedResponses={snapshotResponses}
+                            savedResponses={draftSnapshotResponses}
                             onContinue={handleSnapshotContinue}
-                            onBack={activeTab !== 'overview' ? () => handleTabChange('overview') : undefined}
+                            onBack={() => handleTabChange('overview')}
                             onAnsweredChange={(answered, total) => setSnapshotAnsweredCount(answered)}
                         />
                     )}
@@ -466,7 +481,7 @@ export default function PerformanceSystemIndex({
                             jobDefinitions={jobDefinitions}
                             orgChartMappings={orgChartMappings}
                             kpiReviewTokens={kpiReviewTokens}
-                            organizationalKpis={organizationalKpis}
+                            organizationalKpis={draftKpis}
                             onContinue={handleKpiReviewContinue}
                             onBack={() => handleTabChange('performance-snapshot')}
                         />
@@ -477,7 +492,7 @@ export default function PerformanceSystemIndex({
                         <EvaluationModelAssignmentTab
                             project={project}
                             jobDefinitions={jobDefinitions}
-                            organizationalKpis={organizationalKpis}
+                            organizationalKpis={draftKpis}
                             evaluationModelAssignments={evaluationModelAssignments}
                             modelGuidance={modelGuidance}
                             jobRecommendations={jobRecommendations}
@@ -489,7 +504,7 @@ export default function PerformanceSystemIndex({
                     {activeTab === 'evaluation-structure' && (
                         <EvaluationStructureTab
                             project={project}
-                            evaluationStructure={project.evaluation_structure || null}
+                            evaluationStructure={(draftStructure ?? project.evaluation_structure) || null}
                             onContinue={handleEvaluationStructureContinue}
                             onBack={() => handleTabChange('model-assignment')}
                         />
@@ -499,10 +514,10 @@ export default function PerformanceSystemIndex({
                         <ReviewSubmitTab
                             projectId={project.id}
                             snapshotQuestions={snapshotQuestions}
-                            snapshotResponses={snapshotResponses}
-                            organizationalKpis={organizationalKpis}
+                            snapshotResponses={draftSnapshotResponses}
+                            organizationalKpis={draftKpis}
                             evaluationModelAssignments={evaluationModelAssignments}
-                            evaluationStructure={project.evaluation_structure}
+                            evaluationStructure={draftStructure ?? project.evaluation_structure}
                             orgChartMappings={orgChartMappings}
                             onBack={() => handleTabChange('evaluation-structure')}
                             onSubmit={handleReviewSubmit}

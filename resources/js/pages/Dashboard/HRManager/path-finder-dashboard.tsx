@@ -55,10 +55,11 @@ function getStepRoute(stepId: string, projectId?: number | null): string {
     job_analysis: '/hr-manager/job-analysis',
     performance: '/hr-manager/performance-system',
     compensation: '/hr-manager/compensation-system',
-    hr_policy_os: '/hr-manager/hr-policy-os',
+    hr_policy_os: '/hr-manager/tree',
   };
   const path = base[stepId];
   if (!path) return '#';
+  if (stepId === 'hr_policy_os') return `${path}/${projectId}`;
   return `${path}/${projectId}/overview`;
 }
 

@@ -1,16 +1,11 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
-import DiagnosisHeader from '@/components/Diagnosis/DiagnosisHeader';
 import DiagnosisTabs from '@/components/Diagnosis/DiagnosisTabs';
 import { diagnosisTabs } from '@/config/diagnosisTabs';
 import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
-import { Button } from '@/components/ui/button';
-import { toast, dismissAll } from '@/hooks/use-toast';
+import { saveTabDraft } from '@/lib/diagnosisDraftStorage';
 import { tr } from '@/config/diagnosisTranslations';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
-
-const AUTO_SAVE_DELAY_MS = 1800;
 
 function hasFiles(data: any): boolean {
     if (!data) return false;
@@ -32,12 +27,13 @@ function hasMeaningfulFormData(formData: any): boolean {
     });
 }
 
-function getFormDataSnapshot(formData: any): string {
-    if (!formData || typeof formData !== 'object') return '';
+function serializeDraft(formData: any): Record<string, unknown> {
+    if (!formData || typeof formData !== 'object') return {};
     try {
-        return JSON.stringify(formData, (_k, v) => (v instanceof File ? '[File]' : v));
+        const json = JSON.stringify(formData, (_k, v) => (v instanceof File ? undefined : v));
+        return JSON.parse(json) as Record<string, unknown>;
     } catch {
-        return '';
+        return {};
     }
 }
 
@@ -166,49 +162,8 @@ export default function FormLayout({
     hidePageTitle = false,
 }: FormLayoutProps) {
     const [validationError, setValidationError] = useState<string | null>(null);
-    const [isSaving, setIsSaving] = useState(false);
-    const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const lastAutoSaveSnapshotRef = useRef<string>('');
-    const initialMountRef = useRef(true);
 
     const isReadOnly = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
-
-    // Debounced auto-save: persist formData to DB so leaving the page does not reset answers
-    useEffect(() => {
-        if (!saveRoute || !projectId || !formData || !hasMeaningfulFormData(formData) || isReadOnly) {
-            return;
-        }
-        const snapshot = getFormDataSnapshot(formData);
-        if (initialMountRef.current) {
-            initialMountRef.current = false;
-            lastAutoSaveSnapshotRef.current = snapshot;
-            return;
-        }
-        if (snapshot === lastAutoSaveSnapshotRef.current) {
-            return;
-        }
-        lastAutoSaveSnapshotRef.current = snapshot;
-        if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
-        autoSaveTimeoutRef.current = setTimeout(() => {
-            autoSaveTimeoutRef.current = null;
-            router.post(saveRoute, formData, {
-                preserveScroll: true,
-                forceFormData: hasFiles(formData),
-                onSuccess: () => {
-                    lastAutoSaveSnapshotRef.current = getFormDataSnapshot(formData);
-                },
-                onError: () => {
-                    toast({ title: 'Auto-save failed', description: 'Your changes may not be saved. Try clicking Next to save.', variant: 'destructive' });
-                },
-            });
-        }, AUTO_SAVE_DELAY_MS);
-        return () => {
-            if (autoSaveTimeoutRef.current) {
-                clearTimeout(autoSaveTimeoutRef.current);
-                autoSaveTimeoutRef.current = null;
-            }
-        };
-    }, [saveRoute, projectId, formData, isReadOnly]);
 
     const getBackUrl = () => {
         if (backRoute) {
@@ -224,113 +179,53 @@ export default function FormLayout({
         return null;
     };
 
-    const handleNext = async (e: React.MouseEvent) => {
+    const handleNext = (e: React.MouseEvent) => {
         e.preventDefault();
-        dismissAll(); // Ensure only one toast shows
         setValidationError(null);
-        if (autoSaveTimeoutRef.current) {
-            clearTimeout(autoSaveTimeoutRef.current);
-            autoSaveTimeoutRef.current = null;
-        }
 
-        // Check if step is already completed - skip validation if completed
-        const stepCompleted = stepStatuses[activeTab] === 'submitted' || 
-                              stepStatuses[activeTab] === 'approved' || 
-                              stepStatuses[activeTab] === 'locked' ||
-                              stepStatuses[activeTab] === 'completed';
-        
-        // Check if formData has actual data (not just empty object)
-        const hasFormData = formData && typeof formData === 'object' && 
-                           Object.keys(formData).length > 0 &&
-                           Object.values(formData).some(val => {
-                               if (val instanceof File) return true;
-                               if (Array.isArray(val) && val.length > 0) return true;
-                               if (typeof val === 'object' && val !== null && Object.keys(val).length > 0) return true;
-                               if (typeof val === 'string' && val.trim() !== '') return true;
-                               if (typeof val === 'number' && val > 0) return true;
-                               return false;
-                           });
-        
-        // Always validate required fields before proceeding (unless step is already completed)
+        const stepCompleted = stepStatuses[activeTab] === 'submitted' ||
+            stepStatuses[activeTab] === 'approved' ||
+            stepStatuses[activeTab] === 'locked' ||
+            stepStatuses[activeTab] === 'completed';
+
         if (!stepCompleted) {
-            // Use custom validation if provided
             if (validateBeforeNext) {
                 const result = validateBeforeNext();
                 if (result !== true) {
                     const errMsg = typeof result === 'string' ? result : 'Please fill in all required fields.';
                     setValidationError(errMsg);
-                    toast({ title: tr('validationError'), description: errMsg, variant: 'destructive' });
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     return;
                 }
             } else {
-                // Use default validation - check both diagnosis data and formData
                 const dataToValidate = formData && Object.keys(formData).length > 0 ? formData : diagnosis;
                 const validation = validateStepRequiredFields(activeTab, dataToValidate);
                 if (!validation.isValid) {
                     const errMsg = validation.error || 'Please fill in all required fields.';
                     setValidationError(errMsg);
-                    toast({ title: tr('validationError'), description: errMsg, variant: 'destructive' });
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     return;
                 }
             }
         }
 
-        // If diagnosis is already submitted/approved/locked, skip save and go to next step (avoid "cannot be edited" error)
         const isSubmitted = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
         if (isSubmitted) {
-            if (onNext) {
-                onNext();
-            } else if (nextRoute && getNextUrl()) {
+            if (onNext) onNext();
+            else if (nextRoute && getNextUrl()) {
                 router.visit(getNextUrl()!, { onSuccess: () => window.scrollTo({ top: 0, behavior: 'smooth' }) });
             }
             return;
         }
 
-        // Save form data before navigating if saveRoute and formData are provided
-        if (saveRoute && formData && projectId) {
-            setIsSaving(true);
-            router.post(saveRoute, formData, {
-                preserveScroll: false,
-                forceFormData: hasFiles(formData), // Use FormData if files are present
-                onSuccess: () => {
-                    setIsSaving(false);
-                    dismissAll();
-                    toast({ title: tr('saved'), description: tr('savedDesc'), variant: 'success' });
-                    setTimeout(() => {
-                        if (onNext) {
-                            onNext();
-                        } else if (nextRoute) {
-                            router.visit(getNextUrl()!, {
-                                onSuccess: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
-                            });
-                        }
-                    }, 300);
-                },
-                onError: (errors: Record<string, string | string[]>) => {
-                    setIsSaving(false);
-                    const msg = typeof errors === 'object' && errors !== null
-                        ? (errors.message ?? Object.values(errors)[0])
-                        : 'Failed to save. Please try again.';
-                    const desc = Array.isArray(msg) ? msg[0] : String(msg ?? '');
-                    toast({ title: tr('saveFailed'), description: desc || 'Failed to save. Please try again.', variant: 'destructive' });
-                },
-            });
-            return;
+        if (projectId && formData && activeTab !== 'review') {
+            saveTabDraft(projectId, activeTab, serializeDraft(formData));
         }
 
-        // If validation passes and no save needed, show one toast then proceed
-        toast({ title: tr('saved'), description: tr('proceeding'), variant: 'success' });
-        setTimeout(() => {
-            if (onNext) {
-                onNext();
-            } else if (nextRoute) {
-                router.visit(getNextUrl()!, {
-                    onSuccess: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
-                });
-            }
-        }, 200);
+        if (onNext) onNext();
+        else if (nextRoute && getNextUrl()) {
+            router.visit(getNextUrl()!, { onSuccess: () => window.scrollTo({ top: 0, behavior: 'smooth' }) });
+        }
     };
 
     // Get status for header - same logic as Overview
@@ -361,36 +256,11 @@ export default function FormLayout({
     };
 
     const handleBack = (e: React.MouseEvent) => {
-        const backUrl = getBackUrl();
-        const hasDirtyData =
-            saveRoute &&
-            projectId &&
-            formData &&
-            hasMeaningfulFormData(formData) &&
-            !isReadOnly &&
-            getFormDataSnapshot(formData) !== lastAutoSaveSnapshotRef.current;
-        if (hasDirtyData) {
+        if (projectId && formData && !isReadOnly && activeTab !== 'review') {
             e.preventDefault();
-            if (autoSaveTimeoutRef.current) {
-                clearTimeout(autoSaveTimeoutRef.current);
-                autoSaveTimeoutRef.current = null;
-            }
-            setIsSaving(true);
-            router.post(saveRoute, formData, {
-                preserveScroll: false,
-                forceFormData: hasFiles(formData),
-                onSuccess: () => {
-                    setIsSaving(false);
-                    lastAutoSaveSnapshotRef.current = getFormDataSnapshot(formData);
-                    router.visit(backUrl);
-                },
-                onError: () => {
-                    setIsSaving(false);
-                    toast({ title: 'Save failed', description: 'Your changes may not be saved. Try again or click Next to save.', variant: 'destructive' });
-                },
-            });
+            saveTabDraft(projectId, activeTab, serializeDraft(formData));
+            router.visit(getBackUrl());
         }
-        // If !hasDirtyData, allow default (Link navigation)
     };
 
     // Calculate progress - same as Overview
@@ -514,15 +384,15 @@ export default function FormLayout({
                                         <button
                                             type="button"
                                             onClick={handleNext}
-                                            disabled={processing || isSaving || !canProceed}
+                                            disabled={processing || !canProceed}
                                             className="dx-btn-next"
                                         >
-                                            {isSaving ? tr('saving') : (nextLabel ?? tr('next'))}
+                                            {nextLabel ?? tr('next')}
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                                                 <path d="M5 12h14M12 5l7 7-7 7" />
                                             </svg>
                                         </button>
-                                        {!canProceed && !processing && !isSaving && (
+                                        {!canProceed && !processing && (
                                             <p className="mt-1.5 text-[11px] text-[var(--dx-gray-400)] whitespace-nowrap">{tr('completeRequired')}</p>
                                         )}
                                     </div>

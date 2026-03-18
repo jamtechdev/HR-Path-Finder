@@ -137,8 +137,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('review/job-analysis/{hrProject}/job-list', [\App\Http\Controllers\CeoReviewController::class, 'reviewJobListSelection'])->name('review.job-analysis.job-list');
         Route::get('review/job-analysis/{hrProject}/job-definitions', [\App\Http\Controllers\CeoReviewController::class, 'reviewJobDefinitions'])->name('review.job-analysis.job-definitions');
 
-        // HR Policy OS Review (Step 5)
-        Route::get('hr-policy-os/{hrProject}', [\App\Http\Controllers\HrPolicyOsController::class, 'ceoReview'])->name('hr-policy-os.review');
+        // Step 5 CEO view: same Final Board (tree). Approve endpoint kept for workflow.
+        Route::get('hr-policy-os/{hrProject}', function (\App\Models\HrProject $hrProject) {
+            return redirect()->route('ceo.tree.index', $hrProject);
+        })->name('hr-policy-os.review');
         Route::post('hr-policy-os/{hrProject}/approve', [\App\Http\Controllers\HrPolicyOsController::class, 'approve'])->name('hr-policy-os.approve');
 
         // Tree Management (CEO)
@@ -210,13 +212,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('compensation-system/{hrProject}', [\App\Http\Controllers\CompensationSystemController::class, 'store'])->name('compensation-system.store');
         Route::post('compensation-system/{hrProject}/submit', [\App\Http\Controllers\CompensationSystemController::class, 'submit'])->name('compensation-system.submit');
 
-        // HR Policy OS (Step 5)
-        Route::get('hr-policy-os/{hrProject}', [\App\Http\Controllers\HrPolicyOsController::class, 'index'])->name('hr-policy-os.index');
-        Route::post('hr-policy-os/{hrProject}', [\App\Http\Controllers\HrPolicyOsController::class, 'store'])->name('hr-policy-os.store');
-        Route::post('hr-policy-os/{hrProject}/submit', [\App\Http\Controllers\HrPolicyOsController::class, 'submit'])->name('hr-policy-os.submit');
+        // Final Dashboard (Step 5) = Design Progress board (tree route). Legacy HR Policy OS URL redirects here.
+        Route::get('hr-policy-os/{hrProject}', function (\App\Models\HrProject $hrProject) {
+            return redirect()->route('hr-manager.tree.index', $hrProject);
+        })->name('hr-policy-os.index');
 
-        // Tree Management (HR Manager)
+        // Tree / Final Board (HR Manager)
         Route::get('tree/{hrProject}/{tab?}', [\App\Http\Controllers\HrTreeController::class, 'index'])->name('tree.index');
+        Route::post('tree/{hrProject}/submit-final', [\App\Http\Controllers\HrTreeController::class, 'submitFinal'])->name('tree.submit-final');
 
         // Report (HR Manager)
         Route::get('report/{hrProject}', [\App\Http\Controllers\HrReportController::class, 'index'])->name('report.index');

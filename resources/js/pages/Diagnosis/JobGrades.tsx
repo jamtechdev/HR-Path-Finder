@@ -3,6 +3,7 @@ import { Head, useForm } from '@inertiajs/react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Plus, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
 
 const DragHandleIcon = () => (
     <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3">
@@ -115,6 +116,19 @@ export default function JobGrades({
     const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
     const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
 
+    // Hydrate UI draft (grade list + workforce total) so Back/Next preserves edits
+    useDiagnosisDraftHydrate(
+        projectId,
+        'job-grades',
+        (patch) => {
+            const ui = (patch.__draft_job_grades as any) ?? null;
+            if (!ui || typeof ui !== 'object') return;
+            if (Array.isArray(ui.grades)) setGrades(ui.grades);
+            if (typeof ui.workforceTotal === 'number') setWorkforceTotal(ui.workforceTotal);
+        },
+        { enabled: !embedMode && !readOnly }
+    );
+
     useEffect(() => {
         const names = grades.map((g) => g.name).filter(Boolean);
         const years: Record<string, number | null> = {};
@@ -134,6 +148,12 @@ export default function JobGrades({
             job_grade_expected_roles: expectedRoles,
         });
     }, [grades]);
+
+    // Persist UI-only draft keys into formData so FormLayout saves them to sessionStorage
+    useEffect(() => {
+        if (!projectId || embedMode || readOnly) return;
+        (internalForm as any).setData('__draft_job_grades', { grades, workforceTotal });
+    }, [projectId, embedMode, readOnly, grades, workforceTotal]);
 
     const totalHc = grades.reduce((s, g) => s + (g.count || 0), 0);
     const ratioPct = workforceTotal > 0 && totalHc > 0 ? Math.min(100, Math.round((totalHc / workforceTotal) * 100)) : 0;

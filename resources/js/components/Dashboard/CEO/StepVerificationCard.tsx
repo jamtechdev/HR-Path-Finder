@@ -27,7 +27,7 @@ const STEP_ROUTES: Record<string, (projectId: number) => string> = {
     job_analysis: (id) => `/ceo/job-analysis/${id}/intro`,
     performance: (id) => `/ceo/review/performance-system/${id}`,
     compensation: (id) => `/ceo/review/compensation/${id}`,
-    hr_policy_os: (id) => `/ceo/hr-policy-os/${id}`,
+    hr_policy_os: (id) => `/ceo/tree/${id}`,
 };
 
 export default function StepVerificationCard({ projectId, stepStatuses, surveyAvailable }: StepVerificationCardProps) {

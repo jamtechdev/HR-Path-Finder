@@ -4,6 +4,7 @@ import FormLayout from '@/components/Diagnosis/FormLayout';
 import { both, tr } from '@/config/diagnosisTranslations';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
 
 const CATEGORIES = [
     {
@@ -158,11 +159,43 @@ export default function HrIssues({
     const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
     const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
 
+    // Hydrate from draft so checkbox selections persist when navigating
+    useDiagnosisDraftHydrate(
+        projectId,
+        'hr-issues',
+        (patch) => {
+            const ui = (patch.__draft_hr_issues as any) ?? null;
+            if (ui && typeof ui === 'object') {
+                if (ui.checked && typeof ui.checked === 'object') setChecked(ui.checked);
+                if (typeof ui.activeCatIdx === 'number') setActiveCatIdx(ui.activeCatIdx);
+                if (typeof ui.customIssue === 'string') setCustomIssue(ui.customIssue);
+            } else {
+                if (Array.isArray(patch.hr_issues)) {
+                    // Best-effort: rebuild checked map from flat list
+                    const out: Record<string, string[]> = {};
+                    CATEGORIES.forEach((cat) => {
+                        const selected = (patch.hr_issues as string[]).filter((issue) => cat.issues.includes(issue));
+                        if (selected.length) out[cat.id] = selected;
+                    });
+                    if (Object.keys(out).length) setChecked(out);
+                }
+                if (typeof patch.custom_hr_issues === 'string') setCustomIssue(patch.custom_hr_issues);
+            }
+        },
+        { enabled: !embedMode && !readOnly }
+    );
+
     useEffect(() => {
         const flat = Object.entries(checked).flatMap(([, issues]) => issues);
         setData('hr_issues', flat);
         setData('custom_hr_issues', customIssue);
     }, [checked, customIssue]);
+
+    // Persist UI-only draft keys so active category index also survives navigation
+    useEffect(() => {
+        if (!projectId || embedMode || readOnly) return;
+        (internalForm as any).setData('__draft_hr_issues', { checked, activeCatIdx, customIssue });
+    }, [projectId, embedMode, readOnly, checked, activeCatIdx, customIssue]);
 
     const toggleIssue = (catId: string, issue: string) => {
         setChecked((prev) => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { router } from '@inertiajs/react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import InlineErrorSummary from '@/components/forms/InlineErrorSummary';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -86,6 +86,7 @@ export default function KpiReviewTab({
     onContinue,
     onBack,
 }: Props) {
+    const [inlineMsg, setInlineMsg] = useState<string | null>(null);
     const [kpis, setKpis] = useState<Kpi[]>(() =>
         (organizationalKpis || []).length === 0
             ? []
@@ -119,7 +120,6 @@ export default function KpiReviewTab({
     const [editingKpi, setEditingKpi] = useState<Kpi | null>(null);
     const [sendingReview, setSendingReview] = useState(false);
     const [editForm, setEditForm] = useState<Partial<Kpi>>({});
-    const [savingKpiIndex, setSavingKpiIndex] = useState<number | null>(null);
     const [recommendedTemplates, setRecommendedTemplates] = useState<Array<{ id: number; kpi_name: string; purpose?: string; category?: string; formula?: string; measurement_method?: string; weight?: number }>>([]);
     const [loadingTemplates, setLoadingTemplates] = useState(false);
 
@@ -260,68 +260,27 @@ export default function KpiReviewTab({
         const base = kpis[index];
         const kpi = { ...base, ...(override ?? {}) };
         if (!kpi.kpi_name?.trim()) {
+            setInlineMsg('KPI name is required.');
             return;
         }
-        setSavingKpiIndex(index);
-        router.post(`/hr-manager/performance-system/${project.id}`, {
-            tab: 'kpi-review',
-            kpis: [
-                {
-                    id: kpi.id ?? null,
-                    organization_name: kpi.organization_name.trim(),
-                    kpi_name: kpi.kpi_name.trim(),
-                    purpose: kpi.purpose || '',
-                    category: kpi.category || '',
-                    linked_job_id: kpi.linked_job_id ?? null,
-                    linked_csf: kpi.linked_csf || '',
-                    formula: kpi.formula || '',
-                    measurement_method: kpi.measurement_method || '',
-                    weight: kpi.weight ?? null,
-                    is_active: kpi.is_active,
-                },
-            ],
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                router.reload({ only: ['organizationalKpis'] });
-                setSavingKpiIndex(null);
-                setEditingKpi(null);
-            },
-            onError: () => {
-                setSavingKpiIndex(null);
-                alert('Failed to save KPI. Please try again.');
-            },
+        setInlineMsg(null);
+        setKpis((prev) => {
+            const next = [...prev];
+            next[index] = { ...kpi, kpi_name: kpi.kpi_name.trim(), organization_name: (kpi.organization_name || '').trim() };
+            return next;
         });
+        setEditingKpi(null);
     };
 
     const kpiReviewRecipients = orgChartMappings.filter((m) => m.is_kpi_reviewer && m.org_head_email?.trim());
 
     const handleSendReviewRequest = () => {
-        const mapping = orgChartMappings.find((m) => m.org_unit_name === selectedOrg);
-        if (!mapping?.is_kpi_reviewer || !mapping?.org_head_email?.trim()) {
-            alert('Only units marked as "KPI Reviewer" with a valid email receive the review request. Please go to Job Analysis → Org Chart Mapping, check "KPI Reviewer" for this unit, and enter the email address.');
-            return;
-        }
-        if (!confirm(`Send review request email to the organization leader (${mapping.org_head_email}) for "${selectedOrg}"?`)) return;
-        setSendingReview(true);
-        router.post(`/hr-manager/performance-system/${project.id}/send-review-request`, {
-            organization_name: selectedOrg,
-        }, {
-            onSuccess: (page: any) => {
-                setSendingReview(false);
-                alert((page?.props?.flash as any)?.success || 'Review request email sent successfully.');
-            },
-            onError: (errors: any) => {
-                setSendingReview(false);
-                alert('Error: ' + (errors?.error || errors?.message || 'Failed to send emails.'));
-            },
-            onFinish: () => setSendingReview(false),
-        });
+        setInlineMsg('Review request emails will be sent after you click “Review & Submit”.');
     };
 
     const handleConfirmAllRecommended = () => {
         // Optional: bulk confirm recommended KPIs; for UI we just close any edit and show feedback
-        alert('All recommended KPIs confirmed.');
+        setInlineMsg('All recommended KPIs confirmed (draft).');
     };
 
     const currentCriterion = validationModal ? VALIDATION_CRITERIA.find((c) => c.id === validationModal.criterion) : null;
@@ -336,6 +295,7 @@ export default function KpiReviewTab({
 
     return (
         <div className="manager-kpi-draft min-h-full flex flex-col" style={{ background: '#f8f9fb' }}>
+            <InlineErrorSummary message={inlineMsg} className="mb-3" />
             <Dialog open={!!validationModal} onOpenChange={(open) => !open && closeValidationModal()}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
@@ -771,9 +731,9 @@ export default function KpiReviewTab({
                                             }
                                             setEditingKpi(null);
                                         }}
-                                        disabled={!editForm.kpi_name?.trim() || savingKpiIndex !== null}
+                                        disabled={!editForm.kpi_name?.trim()}
                                     >
-                                    {savingKpiIndex !== null ? 'Saving...' : 'Save'}
+                                    Save
                                 </Button>
                             </div>
                         </div>

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { ISSUE_CATEGORY_META, MAX_ORGANIZATIONAL_ISSUES } from '../constants';
-import { toast } from '@/hooks/use-toast';
 import type { HrIssue, SurveyFormData } from '../types';
 
 interface IssuesStepProps {
@@ -13,6 +12,7 @@ interface IssuesStepProps {
 export default function IssuesStep({ hrIssues, data, setData }: IssuesStepProps) {
     const orderedIds = (data.organizational_issues || []).map((id) => id.toString());
     const maxReached = orderedIds.length >= MAX_ORGANIZATIONAL_ISSUES;
+    const [draggingId, setDraggingId] = React.useState<string | null>(null);
 
     const issueMap = React.useMemo(() => {
         const m: Record<string, { name: string; category: string }> = {};
@@ -48,11 +48,6 @@ export default function IssuesStep({ hrIssues, data, setData }: IssuesStepProps)
             return;
         }
         if (current.length >= MAX_ORGANIZATIONAL_ISSUES) {
-            toast({
-                title: 'Maximum 5 issues',
-                description: 'Remove one to add another.',
-                variant: 'destructive',
-            });
             return;
         }
         setData('organizational_issues', [...current, issueId]);
@@ -67,6 +62,22 @@ export default function IssuesStep({ hrIssues, data, setData }: IssuesStepProps)
 
     const getCategoryMeta = (category: string) =>
         ISSUE_CATEGORY_META[category] ?? ISSUE_CATEGORY_META.others ?? { name: category, icon: '🔧' };
+
+    const moveIssue = React.useCallback(
+        (activeId: string, overId: string) => {
+            if (!activeId || !overId || activeId === overId) return;
+            const current = [...orderedIds];
+            const from = current.indexOf(activeId);
+            const to = current.indexOf(overId);
+            if (from === -1 || to === -1) return;
+            current.splice(from, 1);
+            current.splice(to, 0, activeId);
+            setData('organizational_issues', current);
+        },
+        // orderedIds comes from data; re-create callback when it changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [orderedIds.join('|'), setData]
+    );
 
     return (
         <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -101,6 +112,11 @@ export default function IssuesStep({ hrIssues, data, setData }: IssuesStepProps)
                     </span>
                 </div>
             </div>
+            {maxReached && (
+                <div className="text-[12px] text-[#B08C2E] dark:text-[#E8C96B] -mt-3">
+                    You’ve selected the maximum of {MAX_ORGANIZATIONAL_ISSUES}. Remove one to add another.
+                </div>
+            )}
 
             {/* Selected panel */}
             <div className="bg-white dark:bg-slate-900 border-[1.5px] border-[#0E1628] dark:border-slate-700 rounded-xl p-5 sm:p-6 relative overflow-hidden animate-in fade-in duration-300">
@@ -110,7 +126,7 @@ export default function IssuesStep({ hrIssues, data, setData }: IssuesStepProps)
                         Your Top Issues (in priority order)
                     </span>
                     <span className="text-[11px] text-[#9A9EB8] dark:text-slate-400">
-                        Click × to remove · First selected = highest priority
+                        Drag to reorder · Click × to remove · First = highest priority
                     </span>
                 </div>
                 <div className="min-h-[44px] flex flex-col gap-2">
@@ -122,7 +138,34 @@ export default function IssuesStep({ hrIssues, data, setData }: IssuesStepProps)
                         selectedDetails.map((item, idx) => (
                             <div
                                 key={item.id}
-                                className="flex items-center gap-2.5 bg-[#F8F4ED] dark:bg-slate-800 border border-[#E2DDD4] dark:border-slate-600 rounded-lg py-2.5 px-3.5 animate-in fade-in duration-200"
+                                draggable
+                                onDragStart={(e) => {
+                                    setDraggingId(item.id);
+                                    e.dataTransfer.effectAllowed = 'move';
+                                    try {
+                                        e.dataTransfer.setData('text/plain', item.id);
+                                    } catch {
+                                        /* ignore */
+                                    }
+                                }}
+                                onDragOver={(e) => {
+                                    e.preventDefault();
+                                    const active = draggingId || (() => {
+                                        try {
+                                            return e.dataTransfer.getData('text/plain');
+                                        } catch {
+                                            return '';
+                                        }
+                                    })();
+                                    if (active) moveIssue(active, item.id);
+                                }}
+                                onDragEnd={() => setDraggingId(null)}
+                                onDrop={() => setDraggingId(null)}
+                                aria-grabbed={draggingId === item.id}
+                                className={`flex items-center gap-2.5 bg-[#F8F4ED] dark:bg-slate-800 border border-[#E2DDD4] dark:border-slate-600 rounded-lg py-2.5 px-3.5 animate-in fade-in duration-200 cursor-move select-none ${
+                                    draggingId === item.id ? 'ring-2 ring-[#C9A84C]/60' : ''
+                                }`}
+                                title="Drag to reorder"
                             >
                                 <div className="w-[22px] h-[22px] rounded-full bg-[#0E1628] text-[#E8C96B] flex items-center justify-center text-[10px] font-bold flex-shrink-0">
                                     {idx + 1}

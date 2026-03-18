@@ -83,7 +83,7 @@ const STEP_CONFIG = [
         id: 'hr_policy_os' as StepKey,
         step: 5,
         title: 'Final Dashboard',
-        desc: 'HR Policy Manual, System Handbook, Implementation Roadmap, and Analytics Blueprint.',
+        desc: 'Design Progress summary — review all stages and submit for CEO approval.',
         icon: Award,
     },
 ];
@@ -261,8 +261,10 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                 return `/hr-manager/performance-system/${activeProject.id}/overview`;
             case 'compensation':
                 return `/hr-manager/compensation-system/${activeProject.id}/overview`;
+            case 'hr_policy_os':
+                return `/hr-manager/tree/${activeProject.id}`;
             case 'tree':
-                return `/hr-manager/tree/${activeProject.id}/overview`;
+                return `/hr-manager/tree/${activeProject.id}`;
             case 'conclusion':
                 return `/hr-manager/conclusion/${activeProject.id}`;
             default:

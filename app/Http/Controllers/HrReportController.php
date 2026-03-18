@@ -110,6 +110,18 @@ class HrReportController extends Controller
             abort(403);
         }
 
+        // Only allow full report generation once all main steps are completed/submitted.
+        $readyStatuses = ['submitted', 'approved', 'locked', 'completed'];
+        $statuses = $hrProject->step_statuses ?? [];
+        $requiredSteps = ['diagnosis', 'job_analysis', 'performance', 'compensation'];
+        $allDone = collect($requiredSteps)->every(function ($step) use ($statuses, $readyStatuses) {
+            $s = $statuses[$step] ?? 'not_started';
+            return in_array($s, $readyStatuses, true);
+        });
+        if (!$allDone) {
+            abort(409, 'Full report is available after completing all steps (Diagnosis, Job Analysis, Performance, Compensation).');
+        }
+
         $pdfService = app(\App\Services\PdfReportService::class);
         $pdfContent = $pdfService->generateFullReport($hrProject);
 
@@ -130,6 +142,13 @@ class HrReportController extends Controller
         
         if (!$user->hasRole('hr_manager')) {
             abort(403);
+        }
+
+        $readyStatuses = ['submitted', 'approved', 'locked', 'completed'];
+        $statuses = $hrProject->step_statuses ?? [];
+        $status = $statuses[$step] ?? 'not_started';
+        if (!in_array($status, $readyStatuses, true)) {
+            abort(409, 'This step report is available after the step is completed/submitted.');
         }
 
         $pdfService = app(\App\Services\PdfReportService::class);

@@ -4,7 +4,7 @@ import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar'
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
 import { Button } from '@/components/ui/button';
-import { toast, dismissAll } from '@/hooks/use-toast';
+import InlineErrorSummary from '@/components/forms/InlineErrorSummary';
 import { CheckCircle2 } from 'lucide-react';
 import type { DiagnosisQuestion, HrIssue, IntroText, SurveyFormData, VisionMissionValue } from './types';
 import { STEPS, MAX_ORGANIZATIONAL_ISSUES } from './constants';
@@ -163,37 +163,7 @@ export default function CeoPhilosophySurvey({
         }
     }, [philosophy, initialFormData, managementPhilosophyQuestions, visionMissionQuestions, leadershipQuestions, generalQuestions]);
 
-    // Auto-save CEO survey responses so leaving the page does not lose answers.
-    const autoSaveTimeout = useRef<number | null>(null);
-    const lastSnapshot = useRef<string>('');
-
-    useEffect(() => {
-        const snapshot = JSON.stringify(data);
-        if (snapshot === lastSnapshot.current) return;
-        lastSnapshot.current = snapshot;
-
-        if (autoSaveTimeout.current !== null) {
-            window.clearTimeout(autoSaveTimeout.current);
-        }
-
-        autoSaveTimeout.current = window.setTimeout(() => {
-            router.post(`/ceo/philosophy/survey/${project.id}`, { ...data, autosave: true } as never, {
-                preserveScroll: true,
-                preserveState: true,
-                onError: () => {
-                    dismissAll();
-                    toast({ title: 'Save failed', description: 'Your answers may not be saved. Try again or use Next to save.', variant: 'destructive' });
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                },
-            });
-        }, 1500);
-
-        return () => {
-            if (autoSaveTimeout.current !== null) {
-                window.clearTimeout(autoSaveTimeout.current);
-            }
-        };
-    }, [data, project.id]);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     const progress = ((currentStep + 1) / STEPS.length) * 100;
 
@@ -287,8 +257,6 @@ export default function CeoPhilosophySurvey({
                 const result = validateVisionChunk(currentVisionChunk);
                 if (!result.valid) {
                     setValidationError(result.message ?? null);
-                    dismissAll();
-                    toast({ title: 'Answer required', description: result.message, variant: 'destructive' });
                     result.ref?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     return;
                 }
@@ -299,8 +267,6 @@ export default function CeoPhilosophySurvey({
             const result = validateCurrentStep();
             if (!result.valid) {
                 setValidationError(result.message || 'Please answer this question before continuing.');
-                dismissAll();
-                toast({ title: 'Answer required', description: result.message, variant: 'destructive' });
                 setTimeout(() => result.ref?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
                 return;
             }
@@ -310,8 +276,6 @@ export default function CeoPhilosophySurvey({
             const result = validateCurrentStep();
             if (!result.valid) {
                 setValidationError(result.message || 'Please answer this question before continuing.');
-                dismissAll();
-                toast({ title: 'Answer required', description: result.message, variant: 'destructive' });
                 setTimeout(() => {
                     result.ref?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }, 100);
@@ -340,21 +304,18 @@ export default function CeoPhilosophySurvey({
         const result = validateCurrentStep();
         if (!result.valid) {
             setValidationError(result.message || 'Please answer this question before continuing.');
-            dismissAll();
-            toast({ title: 'Answer required', description: result.message, variant: 'destructive' });
             result.ref?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             return;
         }
         setValidationError(null);
-        dismissAll();
+        setSubmitError(null);
         post(`/ceo/philosophy/survey/${project.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast({ title: 'Survey submitted', description: 'Management Philosophy Survey completed successfully.', variant: 'success' });
                 router.visit('/ceo/dashboard');
             },
             onError: () => {
-                toast({ title: 'Submit failed', description: 'Could not submit. Please try again.', variant: 'destructive' });
+                setSubmitError('Could not submit. Please check all answers and try again.');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             },
         });

@@ -60,12 +60,15 @@ interface Props {
 
 export default function CeoTreeIndex({
     project,
-    stepStatuses,
+    stepStatuses = {},
     projectId,
     jobDefinitions,
     activeTab = 'overview',
     hrSystemSnapshot,
 }: Props) {
+    const finalStepStatus = stepStatuses.hr_policy_os ?? 'not_started';
+    const canApproveFinalDashboard = finalStepStatus === 'submitted';
+    const finalAlreadyDone = ['approved', 'locked'].includes(finalStepStatus);
     return (
         <SidebarProvider defaultOpen={true}>
             <Sidebar collapsible="icon" variant="sidebar">
@@ -82,21 +85,20 @@ export default function CeoTreeIndex({
                             variant="default"
                             size="lg"
                             onClick={() => {
-                                if (confirm('Are you sure you want to approve and lock the entire HR system? This action cannot be undone.')) {
-                                    router.post(`/ceo/final-review/${projectId}/approve`, {}, {
-                                        onSuccess: () => {
-                                            alert('HR System has been approved and locked successfully!');
-                                            router.reload();
-                                        },
-                                        onError: (errors) => {
-                                            alert(errors.error || 'Failed to approve HR system. Please try again.');
-                                        },
-                                    });
-                                }
+                                if (!confirm('Approve Final Dashboard and lock the HR system? This cannot be undone.')) return;
+                                router.post(`/ceo/hr-policy-os/${projectId}/approve`, {}, {
+                                    onSuccess: () => {
+                                        alert('Final Dashboard approved. HR system is locked.');
+                                        router.reload();
+                                    },
+                                    onError: (errors) => {
+                                        alert((errors as { error?: string }).error || 'Approval failed.');
+                                    },
+                                });
                             }}
-                            disabled={hrSystemSnapshot.hr_system_report.status === 'Ready'}
+                            disabled={!canApproveFinalDashboard || finalAlreadyDone}
                         >
-                            CEO Approval
+                            {finalAlreadyDone ? 'Final Dashboard Approved' : canApproveFinalDashboard ? 'Approve Final Dashboard' : 'Awaiting HR submission'}
                         </Button>
                         <Button 
                             variant="outline"

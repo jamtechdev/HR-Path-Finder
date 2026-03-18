@@ -2,7 +2,6 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Toaster } from 'sonner'; // ⭐ ADD THIS
 import '../css/app.css';
 import { initializeTheme } from './hooks/use-appearance';
 import './lib/i18n'; // Initialize i18n
@@ -33,11 +32,7 @@ createInertiaApp({
 
         root.render(
             <StrictMode>
-                <>
-                    <App {...props} />
-                    <Toaster position="top-right" richColors closeButton />{' '}
-                    {/* ⭐ ADD THIS */}
-                </>
+                <App {...props} />
             </StrictMode>,
         );
     },

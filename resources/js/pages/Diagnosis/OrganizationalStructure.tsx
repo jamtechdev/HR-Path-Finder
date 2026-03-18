@@ -5,6 +5,7 @@ import { OrgStructureDiagram } from '@/components/Diagnosis/OrgStructureDiagrams
 import { both, tr } from '@/config/diagnosisTranslations';
 import { X, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
 
 interface Diagnosis {
     id: number;
@@ -77,6 +78,18 @@ export default function OrganizationalStructure({
     const useEmbed = embedMode && embedData != null && embedSetData;
     const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
     const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
+
+    // Hydrate from session draft so selections persist when navigating back/forward
+    useDiagnosisDraftHydrate(
+        projectId,
+        'organizational-structure',
+        (patch) => {
+            if (Array.isArray(patch.org_structure_types)) setSelectedIds(patch.org_structure_types as string[]);
+            const expl = patch.org_structure_explanations as any;
+            if (expl && typeof expl === 'object' && typeof expl.custom === 'string') setCustomNote(expl.custom);
+        },
+        { enabled: !embedMode && !readOnly }
+    );
 
     useEffect(() => {
         setData('org_structure_types', selectedIds);

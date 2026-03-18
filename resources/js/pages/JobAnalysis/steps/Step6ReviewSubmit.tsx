@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
+import InlineErrorSummary from '@/components/forms/InlineErrorSummary';
 import {
     FileText,
     Network,
@@ -47,6 +47,7 @@ export default function Step6ReviewSubmit({
     const [expandedOrg, setExpandedOrg] = useState(false);
     const [expandedMappingIds, setExpandedMappingIds] = useState<Set<string>>(new Set());
     const [submitted, setSubmitted] = useState(false);
+    const [submitErr, setSubmitErr] = useState<string | null>(null);
 
     const jobEntries = Object.entries(jobDefinitions).filter(([, def]) => def?.job_name);
     const jobsCount = jobEntries.length;
@@ -82,6 +83,7 @@ export default function Step6ReviewSubmit({
 
     const handleSubmit = () => {
         if (processing || jobsCount === 0) return;
+        setSubmitErr(null);
         setProcessing(true);
 
         const finalData = {
@@ -131,16 +133,12 @@ export default function Step6ReviewSubmit({
             onSuccess: () => {
                 setProcessing(false);
                 setSubmitted(true);
-                toast({
-                    title: 'Job Analysis submitted',
-                    description: 'Job Analysis has been completed successfully.',
-                });
             },
             onError: (errors: Record<string, unknown>) => {
                 const msg =
                     errors && typeof errors === 'object' && (errors.message ?? Object.values(errors)[0]);
                 const desc = Array.isArray(msg) ? msg[0] : String(msg ?? 'Error submitting. Please try again.');
-                toast({ title: 'Submission failed', description: desc, variant: 'destructive' });
+                setSubmitErr(desc);
                 setProcessing(false);
             },
         });
@@ -490,6 +488,7 @@ export default function Step6ReviewSubmit({
                 <p className="text-[14px] text-[#6b7280]">
                     Review all data above, then submit to complete Job Analysis.
                 </p>
+                {submitErr && <InlineErrorSummary message={submitErr} className="mb-3" />}
                 <div className="flex gap-3">
                     <Button
                         type="button"

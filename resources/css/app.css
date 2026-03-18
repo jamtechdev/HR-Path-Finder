@@ -11,7 +11,7 @@
 
 @theme {
     /* Project-wide: Source Sans 3, Noto Serif KR, Source Serif 4 (landing revision) */
-    --font-sans: 'Source Sans 3', 'Noto Serif KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-sans: 'Pretendard', 'Source Sans 3', 'Noto Serif KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     --font-serif: 'Source Serif 4', 'Noto Serif KR', Georgia, serif;
 
     --radius-lg: var(--radius);
@@ -2919,10 +2919,8 @@
     margin: 0 auto;
 }
 .diagnosis-step-layout .dx-bottom-bar {
-    position: fixed;
+    position: sticky;
     bottom: 0;
-    left: 0;
-    right: 0;
     height: 68px;
     background: var(--dx-white);
     border-top: 1px solid var(--dx-gray-200);

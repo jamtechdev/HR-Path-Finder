@@ -10,6 +10,7 @@ use App\Notifications\DiagnosisSubmittedNotification;
 use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Validator;
 
 class DiagnosisController extends Controller
 {
@@ -239,24 +240,186 @@ class DiagnosisController extends Controller
     }
 
     /**
+     * @return array<string, string>
+     */
+    protected function validateDiagnosisSubmitPayload(array $d): array
+    {
+        $e = [];
+        if (trim((string) ($d['industry_category'] ?? '')) === '') {
+            $e['industry_category'] = 'Primary industry is required.';
+        }
+        if ((int) ($d['present_headcount'] ?? 0) <= 0) {
+            $e['present_headcount'] = 'Present workforce is required.';
+        }
+        $charts = $d['organizational_charts'] ?? [];
+        if (is_string($charts)) {
+            $charts = json_decode($charts, true) ?? [];
+        }
+        if (! is_array($charts)) {
+            $charts = [];
+        }
+        foreach (['2023.12', '2024.12', '2025.12'] as $y) {
+            if (empty($charts[$y])) {
+                $e['organizational_charts'] = 'Upload organizational charts for all required years (2023.12, 2024.12, 2025.12).';
+
+                break;
+            }
+        }
+        $st = $d['org_structure_types'] ?? null;
+        if (empty($st) || (is_array($st) && count($st) === 0)) {
+            $e['org_structure_types'] = 'Select at least one organizational structure type.';
+        }
+        $jc = $d['job_categories'] ?? [];
+        $jf = $d['job_functions'] ?? [];
+        if ((! is_array($jc) || count($jc) === 0) && (! is_array($jf) || count($jf) === 0)) {
+            $e['job_structure'] = 'Add at least one job category or job function.';
+        }
+        $jg = $d['job_grade_names'] ?? [];
+        if (! is_array($jg) || count($jg) === 0) {
+            $e['job_grade_names'] = 'Add at least one job grade.';
+        }
+
+        return $e;
+    }
+
+    /**
+     * Persist diagnosis from a merged array (paths for org charts, no file uploads in $data).
+     */
+    protected function persistDiagnosisFromSubmitData(HrProject $hrProject, array $data): Diagnosis
+    {
+        $companyUpdates = [];
+        foreach (['is_public', 'registration_number', 'foundation_date', 'brand_name'] as $f) {
+            if (array_key_exists($f, $data)) {
+                if ($f === 'is_public') {
+                    $companyUpdates['is_public'] = (bool) $data[$f];
+                } else {
+                    $companyUpdates[$f] = $data[$f];
+                }
+                unset($data[$f]);
+            }
+        }
+        if (isset($data['registration_number']) && $data['registration_number']) {
+            $regNumber = preg_replace('/\D/', '', $data['registration_number']);
+            if (strlen($regNumber) >= 3) {
+                if (strlen($regNumber) >= 10) {
+                    $data['registration_number'] = substr($regNumber, 0, 3).'-'.substr($regNumber, 3, 2).'-'.substr($regNumber, 5, 5);
+                } else {
+                    $data['registration_number'] = $regNumber;
+                }
+            }
+        }
+        if (isset($data['registration_number'])) {
+            $companyUpdates['registration_number'] = $data['registration_number'];
+            unset($data['registration_number']);
+        }
+        if (isset($data['foundation_date'])) {
+            $companyUpdates['foundation_date'] = $data['foundation_date'];
+            unset($data['foundation_date']);
+        }
+        if (isset($data['brand_name'])) {
+            $companyUpdates['brand_name'] = $data['brand_name'];
+            unset($data['brand_name']);
+        }
+        if (! empty($companyUpdates)) {
+            $hrProject->company->update($companyUpdates);
+        }
+
+        $diagnosis = $hrProject->diagnosis;
+        $fillable = (new Diagnosis)->getFillable();
+        $data = array_intersect_key($data, array_flip($fillable));
+
+        if ($diagnosis) {
+            $diagnosis->update($data);
+        } else {
+            $diagnosis = Diagnosis::create(array_merge($data, [
+                'hr_project_id' => $hrProject->id,
+                'status' => StepStatus::IN_PROGRESS,
+            ]));
+        }
+
+        $hrProject->setStepStatus('diagnosis', StepStatus::IN_PROGRESS);
+        $this->updateDiagnosisStepStatuses($hrProject, $diagnosis);
+        $hrProject->refresh();
+
+        return $diagnosis->fresh();
+    }
+
+    /**
      * Submit diagnosis for CEO review.
      */
     public function submit(Request $request, HrProject $hrProject)
     {
-        // Only HR Manager can submit
-        if (!$request->user()->hasRole('hr_manager')) {
+        if (! $request->user()->hasRole('hr_manager')) {
             abort(403);
         }
 
-        $diagnosis = $hrProject->diagnosis;
-
-        if (!$diagnosis) {
-            if ($request->header('X-Inertia')) {
-                return response()->json([
-                    'errors' => ['error' => ['Please complete the diagnosis first.']],
-                ], 422);
+        $merged = [];
+        if ($request->filled('diagnosis_payload')) {
+            $decoded = json_decode($request->string('diagnosis_payload')->toString(), true);
+            $merged = is_array($decoded) ? $decoded : [];
+        } else {
+            $diag = $hrProject->diagnosis;
+            if ($diag) {
+                $merged = $diag->toArray();
             }
-            return back()->withErrors(['error' => 'Please complete the diagnosis first.']);
+        }
+
+        foreach (['2023.12', '2024.12', '2025.12'] as $year) {
+            $field = 'org_chart_'.str_replace('.', '_', $year);
+            if ($request->hasFile($field)) {
+                if (! isset($merged['organizational_charts']) || ! is_array($merged['organizational_charts'])) {
+                    $merged['organizational_charts'] = [];
+                }
+                $merged['organizational_charts'][$year] = $request->file($field)->store('organizational-charts', 'public');
+            }
+        }
+
+        if ($request->hasFile('company_logo')) {
+            $path = $request->file('company_logo')->store('company-logos', 'public');
+            $hrProject->company->update(['logo_path' => $path]);
+        }
+
+        if (count($merged) > 0) {
+            $hardErrors = $this->validateDiagnosisSubmitPayload($merged);
+            if (count($hardErrors) > 0) {
+                return back()->withErrors($hardErrors);
+            }
+
+            $validator = Validator::make($merged, (new StoreDiagnosisRequest)->rules());
+            $validator->after(function ($validator) use ($merged) {
+                $presentHeadcount = (int) ($merged['present_headcount'] ?? 0);
+                $genderMale = (int) ($merged['gender_male'] ?? 0);
+                $genderFemale = (int) ($merged['gender_female'] ?? 0);
+                $genderOther = (int) ($merged['gender_other'] ?? 0);
+                $genderSum = $genderMale + $genderFemale + $genderOther;
+                if ($presentHeadcount > 0 && $genderSum > $presentHeadcount) {
+                    $validator->errors()->add('gender_male', "Gender sum ({$genderSum}) cannot exceed total workforce ({$presentHeadcount})");
+                }
+                $leadershipCount = (int) ($merged['leadership_count'] ?? 0);
+                if ($presentHeadcount > 0 && $leadershipCount > $presentHeadcount) {
+                    $validator->errors()->add('leadership_count', "Leadership count ({$leadershipCount}) cannot exceed total workforce ({$presentHeadcount})");
+                }
+                if (trim((string) ($merged['industry_category'] ?? '')) === 'Others' && ! trim((string) ($merged['industry_category_other'] ?? ''))) {
+                    $validator->errors()->add('industry_category_other', 'Please specify the primary industry when selecting Others.');
+                }
+            });
+            try {
+                $validated = $validator->validate();
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                return back()->withErrors($e->errors());
+            }
+
+            $this->persistDiagnosisFromSubmitData($hrProject, $validated);
+        }
+
+        $diagnosis = $hrProject->fresh()->diagnosis;
+        if (! $diagnosis) {
+            return back()->withErrors(['error' => 'Complete all diagnosis steps and submit from Review & Submit.']);
+        }
+
+        $finalErrors = $this->validateDiagnosisSubmitPayload($diagnosis->toArray());
+        if (count($finalErrors) > 0) {
+            return back()->withErrors($finalErrors);
         }
 
         $diagnosis->update(['status' => StepStatus::SUBMITTED]);
@@ -268,13 +431,11 @@ class DiagnosisController extends Controller
             'diagnosis_submitted'
         );
 
-        // Notify CEO
         $ceos = $hrProject->company->ceos()->get();
         foreach ($ceos as $ceo) {
             Notification::send($ceo, new DiagnosisSubmittedNotification($hrProject));
         }
 
-        // Return back to allow frontend to show modal, then redirect
         return back()->with('success', 'Diagnosis submitted for CEO review.');
     }
 }

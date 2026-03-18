@@ -4,6 +4,7 @@ import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Eye, X, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
+import { setOrgChartDraftFile, getOrgChartDraftFiles } from '@/lib/diagnosisFileDrafts';
 import { both, tr } from '@/config/diagnosisTranslations';
 
 interface Diagnosis {
@@ -78,7 +79,22 @@ export default function OrganizationalCharts({
         setData('organizational_charts', out);
     }, [chartFiles, setData]);
 
+    useEffect(() => {
+        if (!projectId || readOnly) return;
+        const fromDraft = getOrgChartDraftFiles(projectId);
+        for (const year of REQUIRED_YEARS) {
+            const f = fromDraft[year];
+            if (f) {
+                setChartFiles((prev) => ({ ...prev, [year]: [f] }));
+                setExistingImages((prev) => ({ ...prev, [year]: '' }));
+            }
+        }
+    }, [projectId, readOnly]);
+
     const handleFileChange = (year: string, file: File | null) => {
+        if (projectId) {
+            setOrgChartDraftFile(projectId, year, file);
+        }
         if (file) {
             setChartFiles((prev) => ({ ...prev, [year]: [file] }));
             setExistingImages((prev) => ({ ...prev, [year]: '' }));

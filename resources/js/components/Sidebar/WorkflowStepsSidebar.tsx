@@ -62,9 +62,9 @@ const MAIN_STEPS: StepConfig[] = [
         id: 'hr_policy_os',
         step: 5,
         title: 'Final Dashboard',
-        desc: 'HR Policy Manual, System Handbook, Implementation Roadmap, and Analytics Blueprint.',
+        desc: 'Design Progress summary — review all stages and submit for CEO approval.',
         icon: Award,
-        route: '/hr-manager/hr-policy-os',
+        route: '/hr-manager/tree',
     },
 ];
 

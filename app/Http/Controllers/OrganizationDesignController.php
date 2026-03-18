@@ -79,19 +79,50 @@ class OrganizationDesignController extends Controller
     }
 
     /**
-     * Submit organization design.
+     * Submit organization design (persists form data then marks step submitted).
      */
     public function submit(Request $request, HrProject $hrProject)
     {
-        if (!$request->user()->hasRole('hr_manager')) {
+        if (! $request->user()->hasRole('hr_manager')) {
             abort(403);
         }
 
-        $design = $hrProject->organizationDesign;
-        
-        if (!$design) {
-            return back()->withErrors(['error' => 'Please complete the organization design first.']);
-        }
+        $validated = $request->validate([
+            'structure_type' => ['required', 'string', 'max:64'],
+            'job_grade_structure' => ['required', 'string', 'max:64'],
+            'grade_title_relationship' => ['nullable', 'string', 'max:64'],
+            'managerial_criteria' => ['nullable', 'array'],
+            'managerial_criteria.*' => ['string', 'max:64'],
+        ]);
+
+        $structureMap = [
+            'team-based' => 'team',
+            'functional' => 'functional',
+            'divisional' => 'divisional',
+            'matrix' => 'matrix',
+        ];
+        $structureType = $structureMap[$validated['structure_type']] ?? $validated['structure_type'];
+
+        $gradeMap = [
+            'single' => 'single',
+            'multi' => 'multi',
+            'integrated' => 'integrated',
+            'separated' => 'separated',
+        ];
+        $gradeStructure = $gradeMap[$validated['job_grade_structure']] ?? $validated['job_grade_structure'];
+
+        OrganizationDesign::updateOrCreate(
+            ['hr_project_id' => $hrProject->id],
+            [
+                'structure_type' => $structureType,
+                'job_grade_structure' => $gradeStructure,
+                'job_grade_details' => [
+                    'grade_title_relationship' => $validated['grade_title_relationship'] ?? null,
+                    'managerial_criteria' => $validated['managerial_criteria'] ?? [],
+                ],
+                'status' => StepStatus::IN_PROGRESS,
+            ]
+        );
 
         $this->stepTransitionService->submitStep($hrProject, 'job_analysis');
 

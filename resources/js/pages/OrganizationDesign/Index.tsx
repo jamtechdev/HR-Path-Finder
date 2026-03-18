@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Head, useForm, Link } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Head, useForm, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 import TabNavigation from '@/components/DesignSteps/TabNavigation';
 import RecommendationBadge from '@/components/DesignSteps/RecommendationBadge';
@@ -71,7 +71,7 @@ const MANAGERIAL_CRITERIA = [
     { value: 'hiring_authority', label: 'Hiring Authority', desc: 'Participates in hiring decisions' },
 ];
 
-export default function OrganizationDesignIndex({ project, organizationDesign, recommendations }: Props) {
+export default function OrganizationDesignIndex({ project, organizationDesign, recommendations, stepStatuses }: Props) {
     const [activeTab, setActiveTab] = useState('overview');
     const [completedTabs, setCompletedTabs] = useState<string[]>([]);
 
@@ -82,22 +82,15 @@ export default function OrganizationDesignIndex({ project, organizationDesign, r
         managerial_criteria: organizationDesign?.managerial_criteria || [] as string[],
     });
 
-    // Auto-save
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (data.structure_type || data.job_grade_structure) {
-                post(`/hr-manager/organization-design/${project.id}`, {
-                    preserveScroll: true,
-                });
-            }
-        }, 1000);
-        return () => clearTimeout(timer);
-    }, [data.structure_type, data.job_grade_structure, data.grade_title_relationship, data.managerial_criteria]);
-
     const handleSubmit = () => {
-        post(`/hr-manager/organization-design/${project.id}/submit`, {
+        router.post(`/hr-manager/organization-design/${project.id}/submit`, {
+            structure_type: data.structure_type,
+            job_grade_structure: data.job_grade_structure,
+            grade_title_relationship: data.grade_title_relationship,
+            managerial_criteria: data.managerial_criteria ?? [],
+        }, {
             onSuccess: () => {
-                setCompletedTabs([...TABS.map(t => t.id)]);
+                setCompletedTabs([...TABS.map((t) => t.id)]);
             },
         });
     };

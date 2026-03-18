@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { loadAllTabDrafts } from '@/lib/diagnosisDraftStorage';
 import { Head, useForm } from '@inertiajs/react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { cn } from '@/lib/utils';
 import { Info, TrendingUp, Users, Minus, Plus } from 'lucide-react';
+import { tr } from '@/config/diagnosisTranslations';
 
 interface Diagnosis {
     id: number;
@@ -63,6 +65,17 @@ export default function Workforce({
     const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
     const errors = internalForm.errors;
 
+    const wfDraft = useRef(false);
+    useEffect(() => {
+        if (wfDraft.current || !projectId || readOnly || embedMode) return;
+        wfDraft.current = true;
+        const p = loadAllTabDrafts(projectId).workforce;
+        if (!p) return;
+        (Object.keys(internalForm.data) as Array<keyof typeof internalForm.data>).forEach((k) => {
+            if (p[k as string] !== undefined) setData(k as string, p[k as string] as never);
+        });
+    }, [projectId, readOnly, embedMode, setData]);
+
     const total = data.present_headcount || 0;
     const male = data.gender_male || 0;
     const female = data.gender_female || 0;
@@ -89,14 +102,14 @@ export default function Workforce({
                     <Users className="w-[22px] h-[22px]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <h2 className="text-[15px] font-bold text-white">Workforce Overview</h2>
+                    <h2 className="text-[15px] font-bold text-white">{tr('workforceHeroTitle')}</h2>
                     <p className="text-[12px] text-white/55 mt-0.5">
-                        현재 재직 중인 전체 인원과 성별 구성을 입력하세요
+                        {tr('workforceHeroDesc')}
                     </p>
                 </div>
                 <div className="bg-white/10 rounded-lg py-2 px-4 text-center min-w-[80px]">
                     <div className="text-[22px] font-extrabold text-white leading-none">{total}</div>
-                    <div className="text-[10px] text-white/50 mt-0.5">Total Employees</div>
+                    <div className="text-[10px] text-white/50 mt-0.5">{tr('totalEmployees')}</div>
                 </div>
             </div>
 
@@ -105,7 +118,7 @@ export default function Workforce({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Left: 전체 재직 인원 */}
                     <div>
-                        <h3 className="text-[13px] font-bold text-[#3A4356] mb-3">전체 재직 인원</h3>
+                        <h3 className="text-[13px] font-bold text-[#3A4356] mb-3">{tr('presentHeadcountTitle')}</h3>
                         <div className="flex flex-col items-center gap-3">
                             <div className="flex items-center gap-2">
                                 <input
@@ -116,7 +129,7 @@ export default function Workforce({
                                     disabled={readOnly}
                                     className="w-24 h-12 text-center text-xl font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-lg bg-[#F8F9FB] focus:border-[#2EC4A9] focus:ring-2 focus:ring-[#2EC4A9]/20 outline-none"
                                 />
-                                <span className="text-[15px] font-bold text-[#3A4356]">명</span>
+                                <span className="text-[15px] font-bold text-[#3A4356]">{tr('persons')}</span>
                             </div>
                             <div className="flex gap-2">
                                 <button
@@ -152,9 +165,7 @@ export default function Workforce({
                                     +10
                                 </button>
                             </div>
-                            <p className="text-[11px] text-[#9AA3B2] text-center">
-                                * 정규직·계약직·파견직 모두 포함한 실제 재직자 수
-                            </p>
+                            <p className="text-[11px] text-[#9AA3B2] text-center">{tr('includeAllHint')}</p>
                         </div>
                         {errors.present_headcount && (
                             <p className="mt-1 text-sm text-[#E05252]">{errors.present_headcount}</p>
@@ -163,13 +174,13 @@ export default function Workforce({
 
                     {/* Right: 성별 구성 */}
                     <div>
-                        <h3 className="text-[13px] font-bold text-[#3A4356] mb-3">성별 구성</h3>
+                        <h3 className="text-[13px] font-bold text-[#3A4356] mb-3">{tr('genderCompositionTitle')}</h3>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4">
                                 <div className="w-10 h-10 rounded-full bg-[#1B2B5B]/10 flex items-center justify-center mb-2">
                                     <span className="text-[#1B2B5B] font-bold text-sm">M</span>
                                 </div>
-                                <p className="text-[12px] font-semibold text-[#3A4356]">남성 (Male)</p>
+                                <p className="text-[12px] font-semibold text-[#3A4356]">{tr('maleWithEn')}</p>
                                 <div className="flex items-baseline gap-1 mt-1">
                                     <input
                                         type="number"
@@ -179,14 +190,14 @@ export default function Workforce({
                                         disabled={readOnly}
                                         className="w-14 h-8 text-center text-sm font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-md bg-white"
                                     />
-                                    <span className="text-[12px] text-[#6B7585]">명</span>
+                                    <span className="text-[12px] text-[#6B7585]">{tr('persons')}</span>
                                 </div>
                             </div>
                             <div className="rounded-xl border-2 border-[#2EC4A9]/40 bg-[#E6F9F6]/50 p-4">
                                 <div className="w-10 h-10 rounded-full bg-[#2EC4A9]/20 flex items-center justify-center mb-2">
                                     <span className="text-[#25A891] font-bold text-sm">F</span>
                                 </div>
-                                <p className="text-[12px] font-semibold text-[#3A4356]">여성 (Female)</p>
+                                <p className="text-[12px] font-semibold text-[#3A4356]">{tr('femaleWithEn')}</p>
                                 <div className="flex items-baseline gap-1 mt-1">
                                     <input
                                         type="number"
@@ -196,7 +207,7 @@ export default function Workforce({
                                         disabled={readOnly}
                                         className="w-14 h-8 text-center text-sm font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-md bg-white"
                                     />
-                                    <span className="text-[12px] text-[#6B7585]">명</span>
+                                    <span className="text-[12px] text-[#6B7585]">{tr('persons')}</span>
                                 </div>
                             </div>
                         </div>
@@ -214,18 +225,18 @@ export default function Workforce({
                                     />
                                 </div>
                                 <div className="flex justify-between mt-1.5 text-[11px] font-semibold text-[#6B7585]">
-                                    <span>{malePct}% 남성</span>
-                                    <span>{femalePct}% 여성</span>
+                                    <span>{tr('ratioMale').replace('{{pct}}', String(malePct))}</span>
+                                    <span>{tr('ratioFemale').replace('{{pct}}', String(femalePct))}</span>
                                 </div>
                                 <p className="text-[11px] text-[#9AA3B2] mt-0.5">
-                                    비율 {malePct}:{femalePct}
+                                    {tr('ratioText').replace('{{m}}', String(malePct)).replace('{{f}}', String(femalePct))}
                                 </p>
                             </div>
                         )}
                         {genderMismatch && (
                             <div className="mt-3 flex items-center gap-2 p-3 rounded-lg border border-[#E05252] bg-[#FEF2F2] text-[#E05252] text-[12px] font-semibold">
                                 <span className="shrink-0">⚠</span>
-                                <span>남성+여성 합계가 전체 재직 인원과 다릅니다</span>
+                                <span>{tr('genderMismatchWarn')}</span>
                             </div>
                         )}
                         {(errors.gender_male || errors.gender_female) && (
@@ -242,7 +253,7 @@ export default function Workforce({
                     <div>
                         <label className="flex items-center gap-1.5 text-[12px] font-bold text-[#3A4356] mb-2">
                             <Info className="w-3.5 h-3.5 text-[#9AA3B2]" />
-                            평균 근속 (재직자)
+                            {tr('avgTenureActiveLabel')}
                         </label>
                         <div className="flex items-center gap-2">
                             <input
@@ -254,7 +265,7 @@ export default function Workforce({
                                 disabled={readOnly}
                                 className="flex-1 h-10 px-3 border border-[#E2E6ED] rounded-lg text-sm font-bold text-[#1B2B5B] focus:border-[#2EC4A9] outline-none"
                             />
-                            <span className="text-[12px] text-[#9AA3B2] font-medium">yr</span>
+                            <span className="text-[12px] text-[#9AA3B2] font-medium">{tr('unitYrShort')}</span>
                         </div>
                         {errors.average_tenure_active && (
                             <p className="mt-1 text-xs text-[#E05252]">{errors.average_tenure_active}</p>
@@ -263,7 +274,7 @@ export default function Workforce({
                     <div>
                         <label className="flex items-center gap-1.5 text-[12px] font-bold text-[#3A4356] mb-2">
                             <Info className="w-3.5 h-3.5 text-[#9AA3B2]" />
-                            평균 근속 (퇴직자)
+                            {tr('avgTenureLeaversLabel')}
                         </label>
                         <div className="flex items-center gap-2">
                             <input
@@ -275,7 +286,7 @@ export default function Workforce({
                                 disabled={readOnly}
                                 className="flex-1 h-10 px-3 border border-[#E2E6ED] rounded-lg text-sm font-bold text-[#1B2B5B] focus:border-[#2EC4A9] outline-none"
                             />
-                            <span className="text-[12px] text-[#9AA3B2] font-medium">yr</span>
+                            <span className="text-[12px] text-[#9AA3B2] font-medium">{tr('unitYrShort')}</span>
                         </div>
                         {errors.average_tenure_leavers && (
                             <p className="mt-1 text-xs text-[#E05252]">{errors.average_tenure_leavers}</p>
@@ -284,7 +295,7 @@ export default function Workforce({
                     <div>
                         <label className="flex items-center gap-1.5 text-[12px] font-bold text-[#3A4356] mb-2">
                             <Info className="w-3.5 h-3.5 text-[#9AA3B2]" />
-                            평균 연령
+                            {tr('avgAgeLabel')}
                         </label>
                         <div className="flex items-center gap-2">
                             <input
@@ -300,7 +311,7 @@ export default function Workforce({
                                 disabled={readOnly}
                                 className="flex-1 h-10 px-3 border border-[#E2E6ED] rounded-lg text-sm font-bold text-[#1B2B5B] focus:border-[#2EC4A9] outline-none"
                             />
-                            <span className="text-[12px] text-[#9AA3B2] font-medium">yr</span>
+                            <span className="text-[12px] text-[#9AA3B2] font-medium">{tr('unitYrShort')}</span>
                         </div>
                         {errors.average_age && (
                             <p className="mt-1 text-xs text-[#E05252]">{errors.average_age}</p>
@@ -312,7 +323,7 @@ export default function Workforce({
                 <div>
                     <div className="flex items-center gap-2 mb-4">
                         <span className="text-[11.5px] font-bold text-[#9AA3B2] uppercase tracking-wider">
-                            예상 인력 규모
+                            {tr('forecastSectionLabel')}
                         </span>
                         <span className="flex-1 h-px bg-[#E2E6ED]" />
                     </div>
@@ -324,18 +335,18 @@ export default function Workforce({
                             </div>
                             <div>
                                 <h4 className="text-[14px] font-bold text-[#1B2B5B]">
-                                    Workforce Forecast <span className="text-[#E05252]">*</span>
+                                    {tr('forecastCardTitle')} <span className="text-[#E05252]">*</span>
                                 </h4>
                                 <p className="text-[11px] text-[#9AA3B2]">
-                                    향후 1-3년 예상 재직 인원을 입력하세요
+                                    {tr('forecastCardDesc')}
                                 </p>
                             </div>
                         </div>
                         <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
                             {[
-                                { key: 'expected_headcount_1y' as const, label: '1년 후' },
-                                { key: 'expected_headcount_2y' as const, label: '2년 후' },
-                                { key: 'expected_headcount_3y' as const, label: '3년 후' },
+                                { key: 'expected_headcount_1y' as const, label: tr('after1y') },
+                                { key: 'expected_headcount_2y' as const, label: tr('after2y') },
+                                { key: 'expected_headcount_3y' as const, label: tr('after3y') },
                             ].map(({ key, label }) => (
                                 <div
                                     key={key}
@@ -367,7 +378,7 @@ export default function Workforce({
                                         >
                                             <Plus className="w-3.5 h-3.5" />
                                         </button>
-                                        <span className="text-[11px] text-[#9AA3B2] font-medium">명</span>
+                                        <span className="text-[11px] text-[#9AA3B2] font-medium">{tr('persons')}</span>
                                     </div>
                                 </div>
                             ))}
@@ -386,9 +397,9 @@ export default function Workforce({
     if (embedMode) return <>{cardContent}</>;
     return (
         <>
-            <Head title={`현재 인력 현황 - ${company?.name || project?.company?.name || 'Company'}`} />
+            <Head title={`${tr('workforcePageTitle')} - ${company?.name || project?.company?.name || 'Company'}`} />
             <FormLayout
-                title="현재 인력 현황"
+                title={tr('workforcePageTitle')}
                 project={project}
                 diagnosis={diagnosis}
                 activeTab={activeTab}
