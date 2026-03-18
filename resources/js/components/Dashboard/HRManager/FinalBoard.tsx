@@ -36,6 +36,7 @@ interface FinalBoardProps {
   companyName: string;
   stepStatuses: Record<string, StepStatus | string>;
   hrSystemSnapshot: HrSystemSnapshot;
+  viewerRole?: 'hr_manager' | 'ceo';
 }
 
 function toStageStatus(stepStatus?: string): StageUiStatus {
@@ -45,7 +46,25 @@ function toStageStatus(stepStatus?: string): StageUiStatus {
   return 'locked';
 }
 
-function getStageRoute(stageId: 'diagnosis' | 'job_analysis' | 'performance' | 'compensation', projectId: number) {
+function getStageRoute(
+  stageId: 'diagnosis' | 'job_analysis' | 'performance' | 'compensation',
+  projectId: number,
+  viewerRole: 'hr_manager' | 'ceo'
+) {
+  if (viewerRole === 'ceo') {
+    switch (stageId) {
+      case 'diagnosis':
+        return `/ceo/review/diagnosis/${projectId}`;
+      case 'job_analysis':
+        return `/ceo/job-analysis/${projectId}/intro`;
+      case 'performance':
+        return `/ceo/review/performance-system/${projectId}`;
+      case 'compensation':
+        return `/ceo/review/compensation/${projectId}`;
+    }
+  }
+
+  // hr_manager
   switch (stageId) {
     case 'diagnosis':
       return `/hr-manager/diagnosis/${projectId}/overview`;
@@ -64,7 +83,13 @@ function fmt(v: unknown) {
   return String(v);
 }
 
-export default function FinalBoard({ projectId, companyName, stepStatuses, hrSystemSnapshot }: FinalBoardProps) {
+export default function FinalBoard({
+  projectId,
+  companyName,
+  stepStatuses,
+  hrSystemSnapshot,
+  viewerRole = 'hr_manager',
+}: FinalBoardProps) {
   const [toastMsg, setToastMsg] = useState('');
   const toastTimer = useRef<number | null>(null);
 
@@ -268,7 +293,8 @@ export default function FinalBoard({ projectId, companyName, stepStatuses, hrSys
           <p>Key outputs summarized from input data at each stage.</p>
         </div>
 
-        {(() => {
+        {viewerRole === 'hr_manager' &&
+          (() => {
           const finalSt = String(stepStatuses.hr_policy_os ?? 'not_started');
           const canSubmit = ['not_started', 'in_progress'].includes(finalSt);
           if (!canSubmit) return null;
@@ -340,7 +366,7 @@ export default function FinalBoard({ projectId, companyName, stepStatuses, hrSys
                         showToast('Available after completing the previous stage.');
                         return;
                       }
-                      router.visit(getStageRoute(s.id, projectId));
+                      router.visit(getStageRoute(s.id, projectId, viewerRole));
                     }}
                   >
                     <div className="cbar" />

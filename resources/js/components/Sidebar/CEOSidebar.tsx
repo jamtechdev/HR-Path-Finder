@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Building2, Target, Network, FileBarChart, ClipboardList, FileText, BadgeCheck } from 'lucide-react';
+import { LayoutGrid, Building2, Target, FileBarChart, ClipboardList, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CEOSidebarProps {
@@ -26,9 +26,15 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
     const isActive = (path: string) => {
         if (path === '/') return currentPath === '/';
         if (path === '/ceo/dashboard') return currentPath === '/ceo/dashboard' || currentPath.startsWith('/ceo/dashboard/');
-        if (path === '/ceo/projects') return currentPath === '/ceo/projects' || currentPath.startsWith('/ceo/projects/') || currentPath.startsWith('/ceo/review/') || currentPath.startsWith('/ceo/philosophy/') || currentPath.startsWith('/ceo/final-review/');
+        if (path === '/ceo/projects') {
+            return (
+                currentPath === '/ceo/projects' ||
+                currentPath.startsWith('/ceo/projects/') ||
+                currentPath.startsWith('/ceo/review/') ||
+                currentPath.startsWith('/ceo/philosophy/')
+            );
+        }
         if (path === '/ceo/kpi-review') return currentPath.startsWith('/ceo/kpi-review/');
-        if (path.startsWith('/ceo/tree/')) return currentPath.startsWith('/ceo/tree/');
         if (path.startsWith('/ceo/report/')) return currentPath.startsWith('/ceo/report/');
         return currentPath === path || currentPath.startsWith(`${path}/`);
     };
@@ -40,14 +46,18 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
         // CEO "Projects" is effectively the company list.
         { href: '/ceo/projects', label: 'Companies', icon: Building2 },
     ];
+    void activeProjectId;
+
+    // Keep all CEO menus, but hide ONLY these two:
+    // - /ceo/tree/*
+    // - /ceo/final-review/*
     if (activeProjectId) {
         menuItems.push({ href: `/ceo/review/diagnosis/${activeProjectId}`, label: 'Diagnosis Review', icon: ClipboardList });
         menuItems.push({ href: `/ceo/philosophy/survey/${activeProjectId}`, label: 'CEO Survey', icon: FileText });
-        menuItems.push({ href: `/ceo/tree/${activeProjectId}/overview`, label: 'Final Dashboard (Tree)', icon: Network });
         menuItems.push({ href: `/ceo/report/${activeProjectId}`, label: 'Report', icon: FileBarChart });
-        menuItems.push({ href: `/ceo/final-review/${activeProjectId}`, label: 'Final Review', icon: BadgeCheck });
     }
-    if (isCollapsed && projectsWithKpis.length > 0) {
+    // Always keep KPI Review reachable even in collapsed sidebar.
+    if (projectsWithKpis.length > 0) {
         menuItems.push({ href: `/ceo/kpi-review/${projectsWithKpis[0].id}`, label: 'KPI Review', icon: Target });
     }
 
@@ -102,7 +112,7 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
                     );
                 })}
 
-                {/* Quick company switch (shows on dashboard too) */}
+                {/* Company quick switch (goes to companies page, not tree) */}
                 {!isCollapsed && projects.length > 0 && (
                     <>
                         <div className="text-[9px] font-semibold tracking-[1.2px] uppercase text-[rgba(155,165,188,0.5)] px-2 mt-4 mb-1.5">
@@ -111,8 +121,8 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
                         <div className="space-y-0.5">
                             {projects.map((project) => {
                                 const label = project.company?.name ?? `Project ${project.id}`;
-                                const href = `/ceo/tree/${project.id}/overview`;
-                                const active = currentPath.startsWith(`/ceo/tree/${project.id}`) || (activeProjectId === project.id && currentPath === '/ceo/dashboard');
+                                const href = '/ceo/projects';
+                                const active = currentPath.startsWith('/ceo/projects') && activeProjectId === project.id;
                                 return (
                                     <Link
                                         key={project.id}

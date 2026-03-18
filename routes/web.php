@@ -143,7 +143,7 @@ Route::middleware(['auth'])->group(function () {
         })->name('hr-policy-os.review');
         Route::post('hr-policy-os/{hrProject}/approve', [\App\Http\Controllers\HrPolicyOsController::class, 'approve'])->name('hr-policy-os.approve');
 
-        // Tree Management (CEO)
+        // Tree / Final Dashboard (CEO)
         Route::get('tree/{hrProject}/{tab?}', [\App\Http\Controllers\CeoTreeController::class, 'index'])->name('tree.index');
 
         // Report (CEO)
@@ -155,10 +155,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('kpi-review/{hrProject}', [\App\Http\Controllers\CeoKpiReviewController::class, 'index'])->name('kpi-review.index');
         Route::post('kpi-review/{hrProject}', [\App\Http\Controllers\CeoKpiReviewController::class, 'store'])->name('kpi-review.store');
 
-        // Final Review
-        Route::get('final-review/{hrProject}', [\App\Http\Controllers\FinalReviewController::class, 'index'])->name('final-review.index');
-        Route::post('final-review/{hrProject}/approve', [\App\Http\Controllers\FinalReviewController::class, 'approve'])->name('final-review.approve');
-        Route::post('final-review/{hrProject}/revision', [\App\Http\Controllers\FinalReviewController::class, 'requestRevision'])->name('final-review.revision');
+        // Final Review (CEO) - removed per requirement
+        Route::get('final-review/{hrProject}', function () {
+            return redirect()->route('ceo.dashboard');
+        })->name('final-review.index');
+        Route::post('final-review/{hrProject}/approve', function () {
+            return redirect()->route('ceo.dashboard');
+        })->name('final-review.approve');
+        Route::post('final-review/{hrProject}/revision', function () {
+            return redirect()->route('ceo.dashboard');
+        })->name('final-review.revision');
     });
 
     // ========== HR Manager Routes ==========

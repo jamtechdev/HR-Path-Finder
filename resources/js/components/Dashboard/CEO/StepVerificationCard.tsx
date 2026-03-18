@@ -3,7 +3,7 @@ import { router } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Clock, Lock, Eye, X, ClipboardList } from 'lucide-react';
+import { CheckCircle2, Clock, Lock, Eye, X, ClipboardList, Network } from 'lucide-react';
 import SuccessModal from '@/components/Modals/SuccessModal';
 
 interface StepVerificationCardProps {
@@ -19,7 +19,6 @@ const STEP_LABELS: Record<string, string> = {
     ceo_diagnosis: 'CEO Diagnosis',
     performance: 'Performance System',
     compensation: 'Compensation System',
-    hr_policy_os: 'Final Dashboard',
 };
 
 const STEP_ROUTES: Record<string, (projectId: number) => string> = {
@@ -27,7 +26,6 @@ const STEP_ROUTES: Record<string, (projectId: number) => string> = {
     job_analysis: (id) => `/ceo/job-analysis/${id}/intro`,
     performance: (id) => `/ceo/review/performance-system/${id}`,
     compensation: (id) => `/ceo/review/compensation/${id}`,
-    hr_policy_os: (id) => `/ceo/tree/${id}`,
 };
 
 export default function StepVerificationCard({ projectId, stepStatuses, surveyAvailable }: StepVerificationCardProps) {
@@ -44,7 +42,7 @@ export default function StepVerificationCard({ projectId, stepStatuses, surveyAv
             onSuccess: () => {
                 setSuccessMessage(`${STEP_LABELS[step] || step} has been verified successfully!`);
                 // Find next step that needs verification
-                const steps = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'hr_policy_os'];
+                const steps = ['diagnosis', 'job_analysis', 'performance', 'compensation'];
                 const currentIndex = steps.indexOf(step);
                 const nextStep = steps.find((s, idx) => idx > currentIndex && stepStatuses[s] === 'submitted');
                 if (nextStep && STEP_ROUTES[nextStep]) {
@@ -114,7 +112,7 @@ export default function StepVerificationCard({ projectId, stepStatuses, surveyAv
         }
     };
 
-    const steps = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'hr_policy_os'];
+    const steps = ['diagnosis', 'job_analysis', 'performance', 'compensation'];
     const diagnosisVerified = ['approved', 'locked', 'completed'].includes(getStepStatus('diagnosis'));
     const showSurveyRow = surveyAvailable ?? diagnosisVerified;
 
@@ -214,6 +212,29 @@ export default function StepVerificationCard({ projectId, stepStatuses, surveyAv
                         </Button>
                     </div>
                 )}
+
+                {/* Final Dashboard is Tree only (not a separate verification step) */}
+                <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3 flex-1">
+                        <Network className="w-4 h-4 text-teal-600" />
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                                <span className="font-medium">Final Dashboard (Tree)</span>
+                                <Badge variant="outline" className="text-xs">Tree</Badge>
+                            </div>
+                        </div>
+                    </div>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                            window.location.href = `/ceo/hr-policy-os/${projectId}`;
+                        }}
+                    >
+                        <Eye className="w-4 h-4 mr-1" />
+                        View
+                    </Button>
+                </div>
             </CardContent>
             
             <SuccessModal
