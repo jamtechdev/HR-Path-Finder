@@ -39,6 +39,7 @@ class AdminReviewController extends Controller
      */
     public function addComment(Request $request, HrProject $hrProject)
     {
+        // dd($request->comment, $request->step);
         if (!$request->user()->hasRole('admin')) {
             abort(403);
         }
