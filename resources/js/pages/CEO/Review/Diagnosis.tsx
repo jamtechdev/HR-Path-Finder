@@ -18,7 +18,7 @@ import JobStructure from '@/pages/Diagnosis/JobStructure';
 import HrIssues from '@/pages/Diagnosis/HrIssues';
 import DiagnosisActions from '@/components/CEO/Review/DiagnosisActions';
 import SuccessModal from '@/components/Modals/SuccessModal';
-import InlineErrorSummary from '@/components/forms/InlineErrorSummary';
+import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 

@@ -3,7 +3,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import InlineErrorSummary, { flattenErrors } from '@/components/forms/InlineErrorSummary';
+import InlineErrorSummary, { flattenErrors } from '@/components/Forms/InlineErrorSummary';
 import { mergeTabDraftsIntoDiagnosis, clearDiagnosisDrafts } from '@/lib/diagnosisDraftStorage';
 import {
     getOrgChartDraftFiles,

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import InlineErrorSummary from '@/components/forms/InlineErrorSummary';
+import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
 import {
     FileText,
     Network,

@@ -3,7 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 import StepProgress from './components/StepProgress';
 import { Badge } from '@/components/ui/badge';
-import InlineErrorSummary from '@/components/forms/InlineErrorSummary';
+import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
 import { ChevronLeft } from 'lucide-react';
 import Overview from './steps/Overview';
 import Step1PolicySnapshot from './steps/Step1PolicySnapshot';

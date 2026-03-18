@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import InlineErrorSummary from '@/components/forms/InlineErrorSummary';
+import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
 
 const MBO_COLOR = '#f97316';
 const MBO_PALE = '#fff7ed';

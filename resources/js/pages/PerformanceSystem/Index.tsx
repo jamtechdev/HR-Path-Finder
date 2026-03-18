@@ -20,7 +20,7 @@ import EvaluationStructureTab from './tabs/EvaluationStructureTab';
 import ReviewSubmitTab from './tabs/ReviewSubmitTab';
 import { cn } from '@/lib/utils';
 import { Send } from 'lucide-react';
-import InlineErrorSummary from '@/components/forms/InlineErrorSummary';
+import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
 
 interface ProjectWithResponses {
     id: number;
