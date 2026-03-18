@@ -32,6 +32,12 @@ function getBreadcrumbLabel(path: string): string {
     if (path.startsWith('/hr-manager/hr-policy-os')) return 'Final Dashboard';
     if (path.startsWith('/hr-manager/tree')) return 'Final Dashboard';
     if (path.startsWith('/hr-manager/report')) return 'Report';
+    if (path.startsWith('/ceo/hr-policy-os')) return 'Final Dashboard';
+    if (path.startsWith('/ceo/tree')) return 'Final Dashboard';
+    if (path.startsWith('/ceo/report')) return 'Report';
+    if (path.startsWith('/admin/hr-policy-os')) return 'Final Dashboard';
+    if (path.startsWith('/admin/tree')) return 'Final Dashboard';
+    if (path.startsWith('/admin/report')) return 'Report';
     if (path.startsWith('/settings')) return 'Settings';
     return 'Dashboard';
 }

@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, FolderOpen, Target, Network, FileBarChart } from 'lucide-react';
+import { LayoutGrid, Building2, Target, Network, FileBarChart, ClipboardList, FileText, BadgeCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CEOSidebarProps {
@@ -21,6 +21,7 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
 
     const projects: Project[] = (props as any).projects || [];
     const currentProjectId = (props as any).project?.id || (props as any).hrProject?.id;
+    const activeProjectId = currentProjectId ?? projects?.[0]?.id;
 
     const isActive = (path: string) => {
         if (path === '/') return currentPath === '/';
@@ -36,11 +37,15 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
 
     const menuItems: { href: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
         { href: '/ceo/dashboard', label: 'Dashboard', icon: LayoutGrid },
-        { href: '/ceo/projects', label: 'Projects', icon: FolderOpen },
+        // CEO "Projects" is effectively the company list.
+        { href: '/ceo/projects', label: 'Companies', icon: Building2 },
     ];
-    if (currentProjectId) {
-        menuItems.push({ href: `/ceo/tree/${currentProjectId}/overview`, label: 'Tree', icon: Network });
-        menuItems.push({ href: `/ceo/report/${currentProjectId}`, label: 'Report', icon: FileBarChart });
+    if (activeProjectId) {
+        menuItems.push({ href: `/ceo/review/diagnosis/${activeProjectId}`, label: 'Diagnosis Review', icon: ClipboardList });
+        menuItems.push({ href: `/ceo/philosophy/survey/${activeProjectId}`, label: 'CEO Survey', icon: FileText });
+        menuItems.push({ href: `/ceo/tree/${activeProjectId}/overview`, label: 'Final Dashboard (Tree)', icon: Network });
+        menuItems.push({ href: `/ceo/report/${activeProjectId}`, label: 'Report', icon: FileBarChart });
+        menuItems.push({ href: `/ceo/final-review/${activeProjectId}`, label: 'Final Review', icon: BadgeCheck });
     }
     if (isCollapsed && projectsWithKpis.length > 0) {
         menuItems.push({ href: `/ceo/kpi-review/${projectsWithKpis[0].id}`, label: 'KPI Review', icon: Target });
@@ -96,6 +101,42 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
                         </Link>
                     );
                 })}
+
+                {/* Quick company switch (shows on dashboard too) */}
+                {!isCollapsed && projects.length > 0 && (
+                    <>
+                        <div className="text-[9px] font-semibold tracking-[1.2px] uppercase text-[rgba(155,165,188,0.5)] px-2 mt-4 mb-1.5">
+                            Companies
+                        </div>
+                        <div className="space-y-0.5">
+                            {projects.map((project) => {
+                                const label = project.company?.name ?? `Project ${project.id}`;
+                                const href = `/ceo/tree/${project.id}/overview`;
+                                const active = currentPath.startsWith(`/ceo/tree/${project.id}`) || (activeProjectId === project.id && currentPath === '/ceo/dashboard');
+                                return (
+                                    <Link
+                                        key={project.id}
+                                        href={href}
+                                        className={cn(
+                                            'flex items-center justify-between gap-2 py-2 px-2.5 rounded-lg transition-colors relative',
+                                            active ? 'bg-[rgba(78,205,196,0.12)]' : 'hover:bg-white/[0.06]'
+                                        )}
+                                    >
+                                        {active && (
+                                            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-[18px] bg-[#4ecdc4] rounded-r-[2px]" />
+                                        )}
+                                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                                            <Building2 className={cn('w-[18px] h-[18px] flex-shrink-0', active ? 'text-[#4ecdc4]' : 'text-white/70')} />
+                                            <span className={cn('text-[12px] font-medium truncate', active ? 'text-[#4ecdc4]' : 'text-white/80')}>
+                                                {label}
+                                            </span>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </>
+                )}
 
                 {/* KPI Review: all projects with KPIs (old & new) – CEO review status */}
                 {!isCollapsed && projectsWithKpis.length > 0 && (

@@ -472,6 +472,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('recommendations/hr-policy-os/{hrProject}', [\App\Http\Controllers\Admin\ConsultantRecommendationController::class, 'storeHrPolicyOsRecommendation'])
             ->name('recommendations.hr-policy-os.store');
 
+        // Final Dashboard (Step 5): legacy URL redirects to Tree view
+        Route::get('hr-policy-os/{hrProject}', function (\App\Models\HrProject $hrProject) {
+            return redirect()->route('admin.tree.index', $hrProject);
+        })->name('hr-policy-os.index');
+
         // Tree Management (Admin Only)
         Route::get('tree/{hrProject}/{tab?}', [\App\Http\Controllers\Admin\TreeManagementController::class, 'index'])->name('tree.index');
         Route::post('tree/{hrProject}', [\App\Http\Controllers\Admin\TreeManagementController::class, 'store'])->name('tree.store');
