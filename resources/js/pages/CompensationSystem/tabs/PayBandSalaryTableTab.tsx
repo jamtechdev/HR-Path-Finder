@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Trash2 } from 'lucide-react';
 import CompensationPageHeader from '../components/CompensationPageHeader';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import type {
     PayBand,
     SalaryTable,
@@ -131,6 +132,7 @@ interface PayBandSalaryTableTabProps {
     onPayBandsUpdate: (bands: PayBand[]) => void;
     onSalaryTablesUpdate: (tables: SalaryTable[]) => void;
     onOperationCriteriaUpdate: (criteria: PayBandOperationCriteria) => void;
+    fieldErrors?: FieldErrors;
 }
 
 export default function PayBandSalaryTableTab({
@@ -142,6 +144,7 @@ export default function PayBandSalaryTableTab({
     onPayBandsUpdate,
     onSalaryTablesUpdate,
     onOperationCriteriaUpdate,
+    fieldErrors = {},
 }: PayBandSalaryTableTabProps) {
     const [activeType, setActiveType] = useState<'pay_band' | 'salary_table'>(
         salaryDeterminationStandard === 'salary_table' ? 'salary_table' : 'pay_band'
@@ -280,6 +283,7 @@ export default function PayBandSalaryTableTab({
                 }
                 completionPct={filledCount}
             />
+            <FieldErrorMessage fieldKey="comp-pay-band" errors={fieldErrors} className="mt-4 px-1" />
             <div className="pt-6 space-y-6">
                 <Tabs
                     value={activeType}

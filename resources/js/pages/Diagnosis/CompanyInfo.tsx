@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar, Upload, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { tr } from '@/config/diagnosisTranslations';
+import { DiagnosisFieldShell } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 
 interface Company {
     id: number;
@@ -395,6 +396,8 @@ export default function CompanyInfo({
                         <h3 className="text-gray-500 font-bold text-sm mb-1">{tr('industryLocationSection')}</h3>
 
                         {/* Primary Industry */}
+                        <DiagnosisFieldShell fieldKey="industry_category" inertiaError={errors.industry_category}>
+                            {({ borderCn, ErrorLine }) => (
                         <div>
                             <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="industry_category">
                                 {tr('primaryIndustryLabel')} <span className="text-red-500">*</span>
@@ -412,7 +415,7 @@ export default function CompanyInfo({
                                 <SelectTrigger
                                     className={cn(
                                         'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 text-sm',
-                                        errors.industry_category && 'border-red-500'
+                                        borderCn
                                     )}
                                 >
                                     <SelectValue placeholder={tr('primaryIndustryPlaceholder')} />
@@ -455,10 +458,10 @@ export default function CompanyInfo({
                                     )}
                                 </div>
                             )}
-                            {errors.industry_category && (
-                                <p className="mt-1 text-xs text-red-500">{errors.industry_category}</p>
-                            )}
+                            {ErrorLine}
                         </div>
+                            )}
+                        </DiagnosisFieldShell>
 
                         {/* Sub Industry Category — only when Primary is not "Others" */}
                         {data.industry_category && data.industry_category !== 'Others' && (() => {

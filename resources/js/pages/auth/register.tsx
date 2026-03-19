@@ -7,6 +7,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { login, home } from '@/routes';
 import { store } from '@/routes/register';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -140,7 +141,10 @@ export default function Register({ status }: Props) {
                                                 type="text"
                                                 name="name"
                                                 value={form.data.name}
-                                                onChange={(e) => form.setData('name', e.target.value)}
+                                                onChange={(e) => {
+                                                    form.setData('name', e.target.value);
+                                                    clearInertiaFieldError(form.clearErrors, 'name');
+                                                }}
                                                 required
                                                 autoFocus
                                                 tabIndex={1}
@@ -160,7 +164,10 @@ export default function Register({ status }: Props) {
                                                 type="email"
                                                 name="email"
                                                 value={form.data.email}
-                                                onChange={(e) => form.setData('email', e.target.value)}
+                                                onChange={(e) => {
+                                                    form.setData('email', e.target.value);
+                                                    clearInertiaFieldError(form.clearErrors, 'email');
+                                                }}
                                                 required
                                                 tabIndex={2}
                                                 autoComplete="email"
@@ -179,7 +186,10 @@ export default function Register({ status }: Props) {
                                                 type="password"
                                                 name="password"
                                                 value={form.data.password}
-                                                onChange={(e) => form.setData('password', e.target.value)}
+                                                onChange={(e) => {
+                                                    form.setData('password', e.target.value);
+                                                    clearInertiaFieldError(form.clearErrors, 'password');
+                                                }}
                                                 required
                                                 tabIndex={3}
                                                 autoComplete="new-password"
@@ -198,7 +208,10 @@ export default function Register({ status }: Props) {
                                                 type="password"
                                                 name="password_confirmation"
                                                 value={form.data.password_confirmation}
-                                                onChange={(e) => form.setData('password_confirmation', e.target.value)}
+                                                onChange={(e) => {
+                                                    form.setData('password_confirmation', e.target.value);
+                                                    clearInertiaFieldError(form.clearErrors, 'password_confirmation');
+                                                }}
                                                 required
                                                 tabIndex={4}
                                                 autoComplete="new-password"

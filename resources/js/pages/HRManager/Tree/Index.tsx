@@ -1,7 +1,7 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
-import FinalBoard from '@/components/Dashboard/HRManager/FinalBoard';
+import FinalBoard, { type StageProgressPercent } from '@/components/Dashboard/HRManager/FinalBoard';
 
 interface JobDefinition {
     id: number;
@@ -52,6 +52,7 @@ interface Props {
         };
     };
     stepStatuses: Record<string, string>;
+    stageProgressPercent?: StageProgressPercent;
     projectId: number;
     jobDefinitions: JobDefinition[];
     activeTab?: string;
@@ -61,6 +62,7 @@ interface Props {
 export default function HrTreeIndex({
     project,
     stepStatuses,
+    stageProgressPercent,
     projectId,
     jobDefinitions,
     activeTab = 'overview',
@@ -77,6 +79,7 @@ export default function HrTreeIndex({
                 projectId={projectId}
                 companyName={project.company.name}
                 stepStatuses={stepStatuses}
+                stageProgressPercent={stageProgressPercent}
                 hrSystemSnapshot={hrSystemSnapshot}
             />
         </AppLayout>

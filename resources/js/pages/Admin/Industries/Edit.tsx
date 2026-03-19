@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, useForm, Link, router } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
@@ -31,7 +32,7 @@ export default function IndustriesEdit({ category }: Props) {
     const [showAddSubCategory, setShowAddSubCategory] = useState(false);
     const [editingSubCategory, setEditingSubCategory] = useState<number | null>(null);
 
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, clearErrors } = useForm({
         name: category?.name || '',
         order: category?.order?.toString() || '0',
     });
@@ -127,7 +128,10 @@ export default function IndustriesEdit({ category }: Props) {
                                             <Input
                                                 id="name"
                                                 value={data.name}
-                                                onChange={(e) => setData('name', e.target.value)}
+                                                onChange={(e) => {
+                                                    setData('name', e.target.value);
+                                                    clearInertiaFieldError(clearErrors, 'name');
+                                                }}
                                                 className={errors.name ? 'border-destructive' : ''}
                                             />
                                             {errors.name && (
@@ -141,7 +145,10 @@ export default function IndustriesEdit({ category }: Props) {
                                                 id="order"
                                                 type="number"
                                                 value={data.order}
-                                                onChange={(e) => setData('order', e.target.value)}
+                                                onChange={(e) => {
+                                                    setData('order', e.target.value);
+                                                    clearInertiaFieldError(clearErrors, 'order');
+                                                }}
                                                 min="0"
                                             />
                                             {errors.order && (
@@ -180,7 +187,10 @@ export default function IndustriesEdit({ category }: Props) {
                                                 <Input
                                                     id="sub_name"
                                                     value={subCategoryForm.data.name}
-                                                    onChange={(e) => subCategoryForm.setData('name', e.target.value)}
+                                                    onChange={(e) => {
+                                                        subCategoryForm.setData('name', e.target.value);
+                                                        clearInertiaFieldError(subCategoryForm.clearErrors, 'name');
+                                                    }}
                                                     placeholder="e.g., Automotive"
                                                 />
                                             </div>
@@ -190,7 +200,10 @@ export default function IndustriesEdit({ category }: Props) {
                                                     id="sub_order"
                                                     type="number"
                                                     value={subCategoryForm.data.order}
-                                                    onChange={(e) => subCategoryForm.setData('order', e.target.value)}
+                                                    onChange={(e) => {
+                                                        subCategoryForm.setData('order', e.target.value);
+                                                        clearInertiaFieldError(subCategoryForm.clearErrors, 'order');
+                                                    }}
                                                     placeholder="Leave empty for auto-order"
                                                     min="0"
                                                 />
@@ -227,17 +240,19 @@ export default function IndustriesEdit({ category }: Props) {
                                                     >
                                                         <Input
                                                             value={editSubCategoryForm.data.name}
-                                                            onChange={(e) =>
-                                                                editSubCategoryForm.setData('name', e.target.value)
-                                                            }
+                                                            onChange={(e) => {
+                                                                editSubCategoryForm.setData('name', e.target.value);
+                                                                clearInertiaFieldError(editSubCategoryForm.clearErrors, 'name');
+                                                            }}
                                                             className="flex-1"
                                                         />
                                                         <Input
                                                             type="number"
                                                             value={editSubCategoryForm.data.order}
-                                                            onChange={(e) =>
-                                                                editSubCategoryForm.setData('order', e.target.value)
-                                                            }
+                                                            onChange={(e) => {
+                                                                editSubCategoryForm.setData('order', e.target.value);
+                                                                clearInertiaFieldError(editSubCategoryForm.clearErrors, 'order');
+                                                            }}
                                                             className="w-24"
                                                             min="0"
                                                         />

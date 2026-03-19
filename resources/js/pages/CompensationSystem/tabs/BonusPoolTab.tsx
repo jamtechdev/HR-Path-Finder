@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import CompensationPageHeader from '../components/CompensationPageHeader';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import type { BonusPoolConfiguration } from '../types';
 
 const CRITERIA_MAP: Record<string, string[]> = {
@@ -156,9 +157,10 @@ const CONCEPTS: Record<string, Record<string, ConceptData>> = {
 interface BonusPoolTabProps {
     configuration: BonusPoolConfiguration;
     onUpdate: (config: BonusPoolConfiguration) => void;
+    fieldErrors?: FieldErrors;
 }
 
-export default function BonusPoolTab({ configuration, onUpdate }: BonusPoolTabProps) {
+export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {} }: BonusPoolTabProps) {
     const trigger = configuration.payment_trigger_condition || '';
     const method = configuration.bonus_pool_determination_method || '';
     const criteriaOptions = trigger ? CRITERIA_MAP[trigger] || [] : [];
@@ -268,6 +270,7 @@ export default function BonusPoolTab({ configuration, onUpdate }: BonusPoolTabPr
                 description="성과급 운영 원칙과 배분 기준을 설계합니다."
                 completionPct={completionPct}
             />
+            <FieldErrorMessage fieldKey="comp-bonus-pool" errors={fieldErrors} className="mt-4 px-1" />
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_296px] gap-5 pt-6 max-w-[1060px]">
                 <div className="flex flex-col gap-4">
                     {/* 1. Bonus Pool Determination */}

@@ -41,6 +41,7 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import {
     Building2,
     Calendar,
@@ -126,7 +127,7 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
         >('all');
     const [showCreateCeoDialog, setShowCreateCeoDialog] = useState(false);
 
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         name: '',
         email: '',
         company_id: null as number | null,
@@ -270,12 +271,10 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                 id="ceo-name"
                                                 type="text"
                                                 value={data.name}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        'name',
-                                                        e.target.value,
-                                                    )
-                                                }
+                                                onChange={(e) => {
+                                                    setData('name', e.target.value);
+                                                    clearInertiaFieldError(clearErrors, 'name');
+                                                }}
                                                 placeholder="CEO Name"
                                                 required
                                                 className={
@@ -298,12 +297,10 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                 id="ceo-email"
                                                 type="email"
                                                 value={data.email}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        'email',
-                                                        e.target.value,
-                                                    )
-                                                }
+                                                onChange={(e) => {
+                                                    setData('email', e.target.value);
+                                                    clearInertiaFieldError(clearErrors, 'email');
+                                                }}
                                                 placeholder="ceo@example.com"
                                                 required
                                                 className={
@@ -330,14 +327,15 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                           )
                                                         : 'none'
                                                 }
-                                                onValueChange={(value) =>
+                                                onValueChange={(value) => {
                                                     setData(
                                                         'company_id',
                                                         value === 'none'
                                                             ? null
                                                             : Number(value),
-                                                    )
-                                                }
+                                                    );
+                                                    clearInertiaFieldError(clearErrors, 'company_id');
+                                                }}
                                             >
                                                 <SelectTrigger
                                                     className={
@@ -383,9 +381,7 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                 type="button"
                                                 variant="outline"
                                                 onClick={() => {
-                                                    setShowCreateCeoDialog(
-                                                        false,
-                                                    );
+                                                    setShowCreateCeoDialog(false);
                                                     reset();
                                                 }}
                                             >

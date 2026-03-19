@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import RightSidePanel from '@/components/PerformanceSystem/RightSidePanel';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import { cn } from '@/lib/utils';
 
 interface Question {
     id: number;
@@ -23,8 +25,10 @@ interface Props {
     questions?: Question[];
     savedResponses?: Record<number, { response: string[]; text_response?: string }>;
     onContinue: (responses: Record<number, { response: string[]; text_response?: string }>) => void;
+    onResponsesChange?: (responses: Record<number, { response: string[]; text_response?: string }>) => void;
     onBack?: () => void;
     onAnsweredChange?: (answered: number, total: number) => void;
+    fieldErrors?: FieldErrors;
 }
 
 function isQuestionFullyAnswered(
@@ -48,8 +52,10 @@ export default function PerformanceSnapshotTab({
     questions = [],
     savedResponses = {},
     onContinue,
+    onResponsesChange,
     onBack,
     onAnsweredChange,
+    fieldErrors = {},
 }: Props) {
     const [responses, setResponses] = useState<Record<number, { response: string[]; text_response?: string }>>(savedResponses);
     const [rightPanelOpen, setRightPanelOpen] = useState(false);
@@ -68,6 +74,10 @@ export default function PerformanceSnapshotTab({
     useEffect(() => {
         onAnsweredChange?.(answeredCount, totalQuestions);
     }, [answeredCount, totalQuestions, onAnsweredChange]);
+
+    useEffect(() => {
+        onResponsesChange?.(responses);
+    }, [responses, onResponsesChange]);
 
     const handleResponseChange = (questionId: number, option: string, checked: boolean) => {
         const question = questions.find((q) => q.id === questionId);
@@ -137,7 +147,6 @@ export default function PerformanceSnapshotTab({
     };
 
     const handleContinue = () => {
-        if (!allQuestionsAnswered) return;
         onContinue(responses);
     };
 
@@ -163,7 +172,12 @@ export default function PerformanceSnapshotTab({
                                 return (
                                     <div
                                         key={question.id}
-                                        className="p-3 sm:p-5 rounded-xl border border-[#e5e7eb] bg-white hover:border-[#d1d5db] transition-colors"
+                                        className={cn(
+                                            'p-3 sm:p-5 rounded-xl border bg-white hover:border-[#d1d5db] transition-colors',
+                                            fieldErrors[`ps-${question.id}`]
+                                                ? 'border-destructive border-2'
+                                                : 'border-[#e5e7eb]'
+                                        )}
                                     >
                                         <div className="flex items-start gap-3">
                                             <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#121431] text-white flex items-center justify-center text-sm sm:text-base font-bold shadow-sm">
@@ -303,6 +317,11 @@ export default function PerformanceSnapshotTab({
                                                             />
                                                         </div>
                                                     )}
+                                                <FieldErrorMessage
+                                                    fieldKey={`ps-${question.id}`}
+                                                    errors={fieldErrors}
+                                                    className="mt-2"
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -316,13 +335,12 @@ export default function PerformanceSnapshotTab({
                     </CardContent>
                 </Card>
 
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-6 border-t border-[#e5e7eb]">
+                <footer className="sticky bottom-0 w-full bg-white border-t border-[#e0ddd5] py-[18px] px-6 md:px-[60px] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 z-10">
                     {onBack && (
                         <Button
                             onClick={onBack}
                             variant="outline"
-                            size="lg"
-                            className="flex items-center justify-center gap-2 border-[#e5e7eb] w-full sm:w-auto"
+                            className="flex items-center justify-center gap-2 border-[#e0ddd5] font-bold px-8 py-6 rounded-lg w-full sm:w-auto"
                         >
                             <ChevronLeft className="w-4 h-4" />
                             Back
@@ -339,14 +357,12 @@ export default function PerformanceSnapshotTab({
                     </div>
                     <Button
                         onClick={handleContinue}
-                        size="lg"
-                        disabled={!allQuestionsAnswered}
-                        className="flex items-center justify-center gap-2 bg-[#121431] hover:bg-[#1e2a4a] disabled:opacity-50 disabled:pointer-events-none w-full sm:w-auto"
+                        className="flex items-center justify-center gap-2 bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white font-bold px-9 py-6 rounded-lg w-full sm:w-auto"
                     >
                         Continue to KPI Review
                         <ChevronRight className="w-4 h-4" />
                     </Button>
-                </div>
+                </footer>
             </div>
 
             <RightSidePanel

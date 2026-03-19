@@ -1,5 +1,6 @@
 import React from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
@@ -12,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ChevronLeft } from 'lucide-react';
 
 export default function PolicySnapshotCreate() {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, clearErrors } = useForm({
         question_text: '',
         order: 0,
         is_active: true,

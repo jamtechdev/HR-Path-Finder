@@ -4,6 +4,7 @@ import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Plus, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
+import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 
 const DragHandleIcon = () => (
     <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3">
@@ -113,8 +114,32 @@ export default function JobGrades({
         job_grade_expected_roles: {} as Record<string, string>,
     });
     const useEmbed = embedMode && embedData != null && embedSetData;
-    const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
-    const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
+    const setFormData = useCallback(
+        (payload: {
+            job_grade_names: string[];
+            promotion_years: Record<string, number | null>;
+            job_grade_headcounts: Record<string, number>;
+            job_grade_expected_roles: Record<string, string>;
+        }) => {
+            if (useEmbed) {
+                embedSetData('job_grade_names', payload.job_grade_names);
+                embedSetData('promotion_years', payload.promotion_years);
+                embedSetData('job_grade_headcounts', payload.job_grade_headcounts);
+                embedSetData('job_grade_expected_roles', payload.job_grade_expected_roles);
+                return;
+            }
+            internalForm.setData(payload);
+        },
+        [useEmbed, embedSetData, internalForm]
+    );
+    const { errors: jobGradesErrors } = internalForm;
+    const rawJgErr = jobGradesErrors.job_grade_names;
+    const inertiaJobGradeNamesErr =
+        typeof rawJgErr === 'string'
+            ? rawJgErr
+            : Array.isArray(rawJgErr) && rawJgErr[0]
+              ? String(rawJgErr[0])
+              : undefined;
 
     // Hydrate UI draft (grade list + workforce total) so Back/Next preserves edits
     useDiagnosisDraftHydrate(
@@ -141,13 +166,13 @@ export default function JobGrades({
                 if (g.role?.trim()) expectedRoles[g.name] = g.role;
             }
         });
-        setData({
+        setFormData({
             job_grade_names: names,
             promotion_years: years,
             job_grade_headcounts: headcounts,
             job_grade_expected_roles: expectedRoles,
         });
-    }, [grades]);
+    }, [grades, setFormData]);
 
     // Persist UI-only draft keys into formData so FormLayout saves them to sessionStorage
     useEffect(() => {
@@ -179,8 +204,10 @@ export default function JobGrades({
         );
     }, []);
 
-    const handleDragStart = useCallback((_e: React.DragEvent, id: string) => {
+    const handleDragStart = useCallback((e: React.DragEvent, id: string) => {
         setDraggingId(id);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', id);
     }, []);
 
     const handleDragEnd = useCallback(() => {
@@ -198,9 +225,15 @@ export default function JobGrades({
     const handleDrop = useCallback(
         (e: React.DragEvent, targetId: string) => {
             e.preventDefault();
-            if (!draggingId || draggingId === targetId) return;
+            e.stopPropagation();
+            const srcId = e.dataTransfer.getData('text/plain') || draggingId;
+            if (!srcId || srcId === targetId) {
+                setDraggingId(null);
+                setDropTarget(null);
+                return;
+            }
             setGrades((prev) => {
-                const fromIndex = prev.findIndex((g) => g.id === draggingId);
+                const fromIndex = prev.findIndex((g) => g.id === srcId);
                 const toIndex = prev.findIndex((g) => g.id === targetId);
                 if (fromIndex === -1 || toIndex === -1) return prev;
                 const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -301,6 +334,9 @@ export default function JobGrades({
                     Add Grade
                 </button>
             </div>
+            <div className="px-7 pt-1">
+                <DiagnosisFieldErrorMessage fieldKey="job_grade_names" inertiaError={inertiaJobGradeNamesErr} />
+            </div>
 
             {/* Table header: 9px 28px, grid from reference */}
             <div
@@ -326,7 +362,12 @@ export default function JobGrades({
                             onDragEnd={handleDragEnd}
                             onDragOver={(e) => handleDragOver(e, g.id)}
                             onDragLeave={() => setDropTarget(null)}
-                            onDrop={(e) => handleDrop(e, g.id)}
+                            onDragOverCapture={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+                            onDropCapture={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleDrop(e, g.id);
+                            }}
                             className={cn(
                                 'grid gap-x-3 py-3.5 px-7 items-start transition-colors hover:bg-[#F8F9FB] border-b border-transparent last:border-b-0',
                                 draggingId === g.id && 'opacity-35 bg-[#F0F2F5]',
@@ -502,6 +543,13 @@ export default function JobGrades({
                 }}
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
                 hidePageTitle
+                liveValidationError={!isReadOnly && workforceTotal > 0 && totalHc > workforceTotal ? `Total headcount (${totalHc}) cannot exceed workforce (${workforceTotal}). Please reduce headcount per grade.` : null}
+                validateBeforeNext={() => {
+                    if (workforceTotal > 0 && totalHc > workforceTotal) {
+                        return `Total headcount (${totalHc}) cannot exceed workforce (${workforceTotal}).`;
+                    }
+                    return true;
+                }}
             >
                 {innerContent}
             </FormLayout>

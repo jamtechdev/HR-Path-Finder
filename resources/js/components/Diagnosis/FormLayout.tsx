@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 import DiagnosisTabs from '@/components/Diagnosis/DiagnosisTabs';
@@ -6,6 +6,9 @@ import { diagnosisTabs } from '@/config/diagnosisTabs';
 import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
 import { saveTabDraft } from '@/lib/diagnosisDraftStorage';
 import { tr } from '@/config/diagnosisTranslations';
+import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import { DiagnosisFieldErrorsProvider } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
+import { mergeDiagnosisWithFormData, pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
 
 function hasFiles(data: any): boolean {
     if (!data) return false;
@@ -64,78 +67,102 @@ interface FormLayoutProps {
     formData?: any; // Form data to save
     saveRoute?: string; // Route to save form data
     hidePageTitle?: boolean; // e.g. Job Grades uses only section label in content
+    /** When set, shown as validation error so user sees it as soon as form becomes invalid (e.g. on change) */
+    liveValidationError?: string | null;
 }
 
-// Validation function for each step
-const validateStepRequiredFields = (tabId: string, diagnosis: any): { isValid: boolean; error?: string } => {
+// Validation function for each step — returns field-level keys for red under-field messages
+const validateStepRequiredFields = (
+    tabId: string,
+    diagnosis: any
+): { isValid: boolean; error?: string; fieldErrors: FieldErrors } => {
+    const fieldErrors: FieldErrors = {};
+
     if (!diagnosis) {
-        return { isValid: false, error: 'Please fill in all required fields.' };
+        return {
+            isValid: false,
+            error: 'Please fill in all required fields.',
+            fieldErrors: { _form: 'Please fill in all required fields.' },
+        };
     }
 
     switch (tabId) {
         case 'company-info':
             if (!diagnosis.industry_category || diagnosis.industry_category.trim() === '') {
-                return { isValid: false, error: 'Primary Industry is required. Please select an industry category.' };
+                fieldErrors.industry_category = 'Primary Industry is required. Please select an industry category.';
             }
             break;
-        
+
         case 'workforce':
             if (!diagnosis.present_headcount || diagnosis.present_headcount <= 0) {
-                return { isValid: false, error: 'Present Workforce (people) is required. Please enter the number of employees.' };
+                fieldErrors.present_headcount =
+                    'Present Workforce (people) is required. Please enter the number of employees.';
             }
             break;
-        
+
         case 'organizational-charts': {
             const charts = diagnosis.organizational_charts;
             const chartKeys = typeof charts === 'object' && charts !== null && !Array.isArray(charts) ? Object.keys(charts) : [];
             const hasAllYears = DIAGNOSIS_ORG_CHART_REQUIRED_YEARS.every((year) => chartKeys.includes(year));
             if (!hasAllYears) {
-                return { isValid: false, error: 'Upload organizational charts for all required years (2023.12, 2024.12, 2025.12).' };
+                fieldErrors.organizational_charts =
+                    'Upload organizational charts for all required years (2023.12, 2024.12, 2025.12).';
             }
             break;
         }
-        
-        case 'organizational-structure':
+
+        case 'organizational-structure': {
             const structure = diagnosis.org_structure_types || diagnosis.organizational_structure;
-            if (!structure || 
+            if (
+                !structure ||
                 (Array.isArray(structure) && structure.length === 0) ||
-                (typeof structure === 'object' && Object.keys(structure).length === 0)) {
-                return { isValid: false, error: 'At least one organizational structure type is required. Please select a structure type.' };
+                (typeof structure === 'object' && Object.keys(structure).length === 0)
+            ) {
+                fieldErrors.organizational_structure =
+                    'At least one organizational structure type is required. Please select a structure type.';
             }
             break;
-        
+        }
+
         case 'job-structure':
-            if ((!diagnosis.job_categories || diagnosis.job_categories.length === 0) &&
-                (!diagnosis.job_functions || diagnosis.job_functions.length === 0)) {
-                return { isValid: false, error: 'At least one Job Category or Job Function is required.' };
+            if (
+                (!diagnosis.job_categories || diagnosis.job_categories.length === 0) &&
+                (!diagnosis.job_functions || diagnosis.job_functions.length === 0)
+            ) {
+                fieldErrors.job_structure = 'At least one Job Category or Job Function is required.';
             }
             break;
 
         case 'hr-issues':
-            // Optional step: user can skip if none apply
             break;
 
         case 'executives':
             if (typeof diagnosis.total_executives === 'number' && diagnosis.total_executives < 0) {
-                return { isValid: false, error: 'Number of executives cannot be negative.' };
+                fieldErrors.total_executives = 'Number of executives cannot be negative.';
             }
             break;
 
         case 'leaders':
             if (typeof diagnosis.leadership_count === 'number' && diagnosis.leadership_count < 0) {
-                return { isValid: false, error: 'Leadership count cannot be negative.' };
+                fieldErrors.leadership_count = 'Leadership count cannot be negative.';
             }
             break;
 
-        case 'job-grades':
+        case 'job-grades': {
             const grades = diagnosis.job_grade_names;
             if (grades == null || !Array.isArray(grades) || grades.length === 0) {
-                return { isValid: false, error: 'Add at least one job grade or skip this step.' };
+                fieldErrors.job_grade_names = 'Add at least one job grade or skip this step.';
             }
             break;
+        }
     }
 
-    return { isValid: true };
+    if (Object.keys(fieldErrors).length > 0) {
+        const first = Object.values(fieldErrors)[0];
+        return { isValid: false, error: first, fieldErrors };
+    }
+
+    return { isValid: true, fieldErrors: {} };
 };
 
 export default function FormLayout({
@@ -160,8 +187,43 @@ export default function FormLayout({
     formData,
     saveRoute,
     hidePageTitle = false,
+    liveValidationError = null,
 }: FormLayoutProps) {
     const [validationError, setValidationError] = useState<string | null>(null);
+    const [diagnosisFieldErrors, setDiagnosisFieldErrors] = useState<FieldErrors>({});
+    const validateBeforeNextRef = useRef(validateBeforeNext);
+    validateBeforeNextRef.current = validateBeforeNext;
+
+    useEffect(() => {
+        setDiagnosisFieldErrors({});
+        setValidationError(null);
+    }, [activeTab]);
+
+    // Live: drop field errors and top banner as soon as each field / step becomes valid.
+    useEffect(() => {
+        setDiagnosisFieldErrors((prev) => {
+            if (Object.keys(prev).length === 0) return prev;
+            const custom = validateBeforeNextRef.current;
+            if (custom) {
+                const ok = custom() === true;
+                if (ok) return {};
+                return prev;
+            }
+            const merged = mergeDiagnosisWithFormData(diagnosis, formData);
+            const v = validateStepRequiredFields(activeTab, merged);
+            return pruneFieldErrorsToValidator(prev, v.fieldErrors);
+        });
+        setValidationError((ve) => {
+            if (!ve) return null;
+            const custom = validateBeforeNextRef.current;
+            if (custom) {
+                return custom() === true ? null : ve;
+            }
+            const merged = mergeDiagnosisWithFormData(diagnosis, formData);
+            const v = validateStepRequiredFields(activeTab, merged);
+            return v.isValid ? null : ve;
+        });
+    }, [activeTab, formData, diagnosis]);
 
     const isReadOnly = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
 
@@ -182,6 +244,7 @@ export default function FormLayout({
     const handleNext = (e: React.MouseEvent) => {
         e.preventDefault();
         setValidationError(null);
+        setDiagnosisFieldErrors({});
 
         const stepCompleted = stepStatuses[activeTab] === 'submitted' ||
             stepStatuses[activeTab] === 'approved' ||
@@ -194,6 +257,7 @@ export default function FormLayout({
                 if (result !== true) {
                     const errMsg = typeof result === 'string' ? result : 'Please fill in all required fields.';
                     setValidationError(errMsg);
+                    setDiagnosisFieldErrors({ _form: errMsg });
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     return;
                 }
@@ -203,6 +267,7 @@ export default function FormLayout({
                 if (!validation.isValid) {
                     const errMsg = validation.error || 'Please fill in all required fields.';
                     setValidationError(errMsg);
+                    setDiagnosisFieldErrors(validation.fieldErrors);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     return;
                 }
@@ -222,6 +287,7 @@ export default function FormLayout({
             saveTabDraft(projectId, activeTab, serializeDraft(formData));
         }
 
+        setDiagnosisFieldErrors({});
         if (onNext) onNext();
         else if (nextRoute && getNextUrl()) {
             router.visit(getNextUrl()!, { onSuccess: () => window.scrollTo({ top: 0, behavior: 'smooth' }) });
@@ -278,13 +344,14 @@ export default function FormLayout({
             stepStatuses[activeTab] === 'locked' ||
             stepStatuses[activeTab] === 'completed';
         if (stepCompleted) return true;
+        if (liveValidationError) return false;
         if (validateBeforeNext) {
             const result = validateBeforeNext();
             return result === true;
         }
         const dataToValidate = formData && typeof formData === 'object' && Object.keys(formData).length > 0 ? formData : diagnosis;
         return validateStepRequiredFields(activeTab, dataToValidate).isValid;
-    }, [activeTab, formData, diagnosis, stepStatuses, validateBeforeNext]);
+    }, [activeTab, formData, diagnosis, stepStatuses, validateBeforeNext, liveValidationError]);
 
     const statusForHeader = getStatusForHeader();
     const progressPct = displayTabs.length ? (completedCount / displayTabs.length) * 100 : 0;
@@ -339,8 +406,8 @@ export default function FormLayout({
                             </div>
                         )}
 
-                        {/* Validation Error */}
-                        {validationError && (
+                        {/* Validation Error (from Next click or live from step when form becomes invalid) */}
+                        {(validationError || liveValidationError) && (
                             <div className="mb-4 p-4 bg-destructive/10 border-2 border-destructive/50 rounded-lg shadow-sm animate-in slide-in-from-top-2">
                                 <div className="flex items-start gap-3">
                                     <div className="flex-shrink-0 w-5 h-5 rounded-full bg-destructive/20 flex items-center justify-center mt-0.5">
@@ -348,16 +415,16 @@ export default function FormLayout({
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-sm font-semibold text-destructive mb-1">Validation Error</p>
-                                        <p className="text-sm text-destructive/90">{validationError}</p>
+                                        <p className="text-sm text-destructive/90">{validationError || liveValidationError}</p>
                                     </div>
                                 </div>
                             </div>
                         )}
 
                         {/* Form Content */}
-                        <div className="mb-6">
-                            {children}
-                        </div>
+                        <DiagnosisFieldErrorsProvider value={diagnosisFieldErrors}>
+                            <div className="mb-6">{children}</div>
+                        </DiagnosisFieldErrorsProvider>
                         </main>
                         </div>
 
@@ -384,7 +451,7 @@ export default function FormLayout({
                                         <button
                                             type="button"
                                             onClick={handleNext}
-                                            disabled={processing || !canProceed}
+                                            disabled={processing}
                                             className="dx-btn-next"
                                         >
                                             {nextLabel ?? tr('next')}

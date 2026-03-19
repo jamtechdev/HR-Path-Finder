@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
@@ -18,7 +19,7 @@ interface Props {
 }
 
 export default function EvaluationModelGuidanceCreate({ modelTypes, jobKeywords }: Props) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, clearErrors } = useForm({
         model_type: '',
         concept: '',
         key_characteristics: '',
@@ -40,8 +41,10 @@ export default function EvaluationModelGuidanceCreate({ modelTypes, jobKeywords 
         const current = data.recommended_job_keyword_ids || [];
         if (current.includes(jobKeywordId)) {
             setData('recommended_job_keyword_ids', current.filter(id => id !== jobKeywordId));
+                clearInertiaFieldError(clearErrors, 'recommended_job_keyword_ids');
         } else {
             setData('recommended_job_keyword_ids', [...current, jobKeywordId]);
+                clearInertiaFieldError(clearErrors, 'recommended_job_keyword_ids');
         }
     };
 

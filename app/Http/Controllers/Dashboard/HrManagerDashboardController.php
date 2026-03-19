@@ -3,12 +3,17 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Services\ProjectStageProgressService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class HrManagerDashboardController extends Controller
 {
+    public function __construct(
+        protected ProjectStageProgressService $projectStageProgressService
+    ) {}
+
     public function index(Request $request): Response
     {
         $user = $request->user();
@@ -102,6 +107,17 @@ class HrManagerDashboardController extends Controller
             $canSwitchToCeo = $company->users()->where('users.id', $user->id)->wherePivot('role', 'ceo')->exists();
         }
 
+        $stageProgressPercent = [
+            'diagnosis' => 0,
+            'job_analysis' => 0,
+            'performance' => 0,
+            'compensation' => 0,
+            'hr_policy_os' => 0,
+        ];
+        if ($activeProject) {
+            $stageProgressPercent = $this->projectStageProgressService->compute($activeProject)['stageProgressPercent'];
+        }
+
         return Inertia::render('Dashboard/HRManager/path-finder-dashboard', [
             'workspaceDone' => $workspaceDone,
             'user' => [
@@ -133,6 +149,7 @@ class HrManagerDashboardController extends Controller
             'stepStatuses' => $stepStatuses,
             'projectId' => $activeProject?->id,
             'canSwitchToCeo' => $canSwitchToCeo,
+            'stageProgressPercent' => $stageProgressPercent,
         ]);
     }
 }

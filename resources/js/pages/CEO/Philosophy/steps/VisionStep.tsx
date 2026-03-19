@@ -9,6 +9,7 @@ interface VisionStepProps {
     getChunkQuestions: (chunkIndex: number) => DiagnosisQuestion[];
     data: SurveyFormData;
     setData: (key: 'vision_mission', value: SurveyFormData['vision_mission']) => void;
+    showErrors?: boolean;
 }
 
 export default function VisionStep({
@@ -17,6 +18,7 @@ export default function VisionStep({
     getChunkQuestions,
     data,
     setData,
+    showErrors = false,
 }: VisionStepProps) {
     const chunk = VISION_CHUNKS[currentChunk];
     const questions = getChunkQuestions(currentChunk);
@@ -60,6 +62,7 @@ export default function VisionStep({
                     const qId = question.id.toString();
                     const val = data.vision_mission[qId];
                     const answered = val !== undefined && val !== null && (typeof val !== 'string' || val.trim() !== '') && (!Array.isArray(val) || (val as unknown[]).some((x) => String(x).trim()));
+                    const hasError = showErrors && !answered;
                     const isSegment = question.question_type === 'select' && (question.options?.length ?? 0) <= 4;
                     const isRevenue = question.question_type === 'number';
                     const isKeyword = question.question_type === 'text' && question.question_text.toLowerCase().includes('keyword');
@@ -68,7 +71,7 @@ export default function VisionStep({
                     return (
                         <div
                             key={question.id}
-                            className={`bg-white dark:bg-slate-800 border rounded-[10px] px-4 sm:px-6 py-4 sm:py-5 ${answered ? 'border-[#0E1628]/20 dark:border-slate-600' : 'border-[#E2DDD4] dark:border-slate-600'}`}
+                            className={`bg-white dark:bg-slate-800 border rounded-[10px] px-4 sm:px-6 py-4 sm:py-5 ${hasError ? 'border-red-300 bg-red-50/40 dark:border-red-500/60 dark:bg-red-950/20' : answered ? 'border-[#0E1628]/20 dark:border-slate-600' : 'border-[#E2DDD4] dark:border-slate-600'}`}
                         >
                             <div className="text-[10px] font-medium uppercase tracking-widest text-[#9A9EB8] dark:text-slate-400 mb-2">
                                 Q{qNum}
@@ -78,7 +81,7 @@ export default function VisionStep({
                                 {question.question_text}<span className="text-red-500 ml-0.5">*</span>
                             </p>
                             {isSegment && (
-                                <div className="flex gap-0 rounded-lg overflow-hidden border border-[#E2DDD4] dark:border-slate-600">
+                                <div className={`flex gap-0 rounded-lg overflow-hidden border ${hasError ? 'border-red-300 dark:border-red-500/60' : 'border-[#E2DDD4] dark:border-slate-600'}`}>
                                     {(question.options || []).map((opt) => (
                                         <button
                                             key={opt}
@@ -104,7 +107,7 @@ export default function VisionStep({
                                         placeholder="e.g. 50,000"
                                         value={val != null ? String(val) : ''}
                                         onChange={(e) => setData('vision_mission', { ...data.vision_mission, [qId]: e.target.value })}
-                                        className="rounded-l-none border-[#E2DDD4] dark:border-slate-600 bg-[#FAFAF8] dark:bg-slate-700 text-[#1A1A2E] dark:text-slate-200 focus:bg-white dark:focus:bg-slate-600 placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500"
+                                        className={`${hasError ? 'border-red-300 focus-visible:ring-red-200 dark:border-red-500/60' : 'border-[#E2DDD4] dark:border-slate-600'} rounded-l-none bg-[#FAFAF8] dark:bg-slate-700 text-[#1A1A2E] dark:text-slate-200 focus:bg-white dark:focus:bg-slate-600 placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500`}
                                     />
                                 </div>
                             )}
@@ -129,7 +132,7 @@ export default function VisionStep({
                                         placeholder="Or type your own keyword..."
                                         value={typeof val === 'string' && !KEYWORD_PRESETS.includes(val) ? val : ''}
                                         onChange={(e) => setData('vision_mission', { ...data.vision_mission, [qId]: e.target.value })}
-                                        className="border-[#E2DDD4] dark:border-slate-600 bg-[#FAFAF8] dark:bg-slate-700 text-[#1A1A2E] dark:text-slate-200 placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500"
+                                        className={`${hasError ? 'border-red-300 focus-visible:ring-red-200 dark:border-red-500/60' : 'border-[#E2DDD4] dark:border-slate-600'} bg-[#FAFAF8] dark:bg-slate-700 text-[#1A1A2E] dark:text-slate-200 placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500`}
                                     />
                                 </>
                             )}
@@ -140,17 +143,18 @@ export default function VisionStep({
                                         onChange={(e) => setData('vision_mission', { ...data.vision_mission, [qId]: e.target.value })}
                                         rows={3}
                                         placeholder="Type your answer..."
-                                        className="w-full border border-[#E2DDD4] dark:border-slate-600 rounded-lg px-3 py-2.5 text-sm bg-[#FAFAF8] dark:bg-slate-700 text-[#1A1A2E] dark:text-slate-200 focus:bg-white dark:focus:bg-slate-600 focus:border-[#0E1628] dark:focus:border-slate-400 outline-none resize-y min-h-[80px] placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500"
+                                        className={`w-full border rounded-lg px-3 py-2.5 text-sm bg-[#FAFAF8] dark:bg-slate-700 text-[#1A1A2E] dark:text-slate-200 focus:bg-white dark:focus:bg-slate-600 outline-none resize-y min-h-[80px] placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500 ${hasError ? 'border-red-300 focus:border-red-500 dark:border-red-500/60' : 'border-[#E2DDD4] dark:border-slate-600 focus:border-[#0E1628] dark:focus:border-slate-400'}`}
                                     />
                                 ) : (
                                     <Input
                                         value={typeof val === 'string' ? val : (val != null ? String(val) : '')}
                                         onChange={(e) => setData('vision_mission', { ...data.vision_mission, [qId]: e.target.value })}
                                         placeholder="Type your answer..."
-                                        className="border-[#E2DDD4] dark:border-slate-600 bg-[#FAFAF8] dark:bg-slate-700 text-[#1A1A2E] dark:text-slate-200 focus:bg-white dark:focus:bg-slate-600 placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500"
+                                        className={`${hasError ? 'border-red-300 focus-visible:ring-red-200 dark:border-red-500/60' : 'border-[#E2DDD4] dark:border-slate-600'} bg-[#FAFAF8] dark:bg-slate-700 text-[#1A1A2E] dark:text-slate-200 focus:bg-white dark:focus:bg-slate-600 placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500`}
                                     />
                                 )
                             )}
+                            {hasError && <p className="mt-2 text-sm font-medium text-red-600 dark:text-red-400">Please answer this question.</p>}
                         </div>
                     );
                 })}

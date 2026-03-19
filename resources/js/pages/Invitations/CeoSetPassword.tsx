@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -139,7 +140,10 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
                   <Input
                     type={showPassword ? 'text' : 'password'}
                     value={form.data.password}
-                    onChange={(e) => form.setData('password', e.target.value)}
+                    onChange={(e) => {
+                      form.setData('password', e.target.value);
+                      clearInertiaFieldError(form.clearErrors, 'password');
+                    }}
                     placeholder="비밀번호를 입력하세요"
                     className="pr-10"
                     autoComplete="new-password"
@@ -179,7 +183,10 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
                   <Input
                     type={showConfirm ? 'text' : 'password'}
                     value={form.data.password_confirmation}
-                    onChange={(e) => form.setData('password_confirmation', e.target.value)}
+                    onChange={(e) => {
+                      form.setData('password_confirmation', e.target.value);
+                      clearInertiaFieldError(form.clearErrors, 'password_confirmation');
+                    }}
                     placeholder="비밀번호를 한 번 더 입력하세요"
                     className="pr-10"
                     autoComplete="new-password"

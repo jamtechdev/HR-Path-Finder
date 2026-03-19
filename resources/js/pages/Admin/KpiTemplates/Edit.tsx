@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Sidebar, SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import React from 'react';
 
 interface Company {
@@ -35,7 +36,7 @@ interface Props {
 }
 
 export default function KpiTemplatesEdit({ template, companies }: Props) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, clearErrors } = useForm({
         company_id: template.company_id ?? '',
         org_unit_name: template.org_unit_name ?? '',
         kpi_name: template.kpi_name,

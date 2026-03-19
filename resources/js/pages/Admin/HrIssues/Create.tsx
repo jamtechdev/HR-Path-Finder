@@ -11,6 +11,7 @@ import {
     SidebarProvider,
 } from '@/components/ui/sidebar';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import React from 'react';
 
 export default function Create({
@@ -18,7 +19,7 @@ export default function Create({
 }: {
     categories: Record<string, string>;
 }) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, clearErrors } = useForm({
         name: '',
         order: '',
         category: Object.keys(categories)[0] || '',

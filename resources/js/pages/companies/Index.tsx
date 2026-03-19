@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Building2, UserPlus, Mail, Users, CheckCircle2, XCircle, Clock, ChevronDown, ChevronRight, Plus, FileText, RefreshCw, Trash2 } from 'lucide-react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 interface CEO {
     id: number;
@@ -59,7 +60,7 @@ export default function CompaniesIndex({ companies }: Props) {
     const [expandedCompanies, setExpandedCompanies] = useState<Set<number>>(new Set());
     
     const { flash } = usePage().props as any;
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         email: '',
         hr_project_id: null as number | null,
     });
@@ -422,7 +423,10 @@ export default function CompaniesIndex({ companies }: Props) {
                                         id="ceo-email"
                                         type="email"
                                         value={data.email}
-                                        onChange={(e) => setData('email', e.target.value)}
+                                        onChange={(e) => {
+                                            setData('email', e.target.value);
+                                            clearInertiaFieldError(clearErrors, 'email');
+                                        }}
                                         placeholder="ceo@example.com"
                                         required
                                         className={errors.email ? 'border-red-500' : ''}

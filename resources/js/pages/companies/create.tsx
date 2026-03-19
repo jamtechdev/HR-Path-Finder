@@ -10,12 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, Upload, MapPin, FileText, X, CheckCircle2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 export default function CreateCompany() {
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, clearErrors } = useForm({
         name: '',
         registration_number: '',
         hq_location: '',
@@ -48,6 +49,7 @@ export default function CreateCompany() {
             }
             
             setData('logo', file);
+            clearInertiaFieldError(clearErrors, 'logo');
             
             // Create preview
             const reader = new FileReader();
@@ -57,12 +59,14 @@ export default function CreateCompany() {
             reader.readAsDataURL(file);
         } else {
             setData('logo', null);
+            clearInertiaFieldError(clearErrors, 'logo');
             setLogoPreview(null);
         }
     };
 
     const removeLogo = () => {
         setData('logo', null);
+        clearInertiaFieldError(clearErrors, 'logo');
         setLogoPreview(null);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
@@ -129,7 +133,10 @@ export default function CreateCompany() {
                                         <Input
                                             id="name"
                                             value={data.name}
-                                            onChange={(e) => setData('name', e.target.value)}
+                                            onChange={(e) => {
+                                                setData('name', e.target.value);
+                                                clearInertiaFieldError(clearErrors, 'name');
+                                            }}
                                             placeholder="Enter your company name"
                                             className={cn(
                                                 "h-11",
@@ -155,7 +162,10 @@ export default function CreateCompany() {
                                             <Input
                                                 id="registration_number"
                                                 value={data.registration_number}
-                                                onChange={(e) => setData('registration_number', e.target.value)}
+                                                onChange={(e) => {
+                                                    setData('registration_number', e.target.value);
+                                                    clearInertiaFieldError(clearErrors, 'registration_number');
+                                                }}
                                                 placeholder="e.g., 123-45-67890"
                                                 className={cn(
                                                     "h-11",
@@ -181,7 +191,10 @@ export default function CreateCompany() {
                                             <Input
                                                 id="hq_location"
                                                 value={data.hq_location}
-                                                onChange={(e) => setData('hq_location', e.target.value)}
+                                                onChange={(e) => {
+                                                    setData('hq_location', e.target.value);
+                                                    clearInertiaFieldError(clearErrors, 'hq_location');
+                                                }}
                                                 placeholder="e.g., New York, USA"
                                                 className={cn(
                                                     "h-11",
@@ -207,7 +220,10 @@ export default function CreateCompany() {
                                         </Label>
                                         <Select
                                             value={data.public_listing_status}
-                                            onValueChange={(value) => setData('public_listing_status', value)}
+                                            onValueChange={(value) => {
+                                                setData('public_listing_status', value);
+                                                clearInertiaFieldError(clearErrors, 'public_listing_status');
+                                            }}
                                         >
                                             <SelectTrigger className="h-11">
                                                 <SelectValue />

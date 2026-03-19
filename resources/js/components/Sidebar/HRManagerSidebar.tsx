@@ -41,6 +41,16 @@ export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?
         const diagnosisStatus = stepStatuses['diagnosis'];
         const diagnosisOk = diagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(diagnosisStatus);
 
+        if (stepId === 'hr_policy_os' && projectId) {
+            if (status && ['approved', 'locked', 'completed'].includes(status)) {
+                return 'completed';
+            }
+            if (status === 'submitted') {
+                return 'current';
+            }
+            return 'current';
+        }
+
         if (stepId === 'diagnosis') {
             if (status && ['approved', 'locked', 'completed'].includes(status)) return 'completed';
             if (status === 'submitted') return 'current';
@@ -62,6 +72,10 @@ export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?
     };
 
     const isStepActuallyLocked = (stepId: string): boolean => {
+        // Final Dashboard (step 5) is always reachable when a project exists
+        if (stepId === 'hr_policy_os' && projectId) {
+            return false;
+        }
         const status = stepStatuses[stepId] ?? 'not_started';
         const stepIndex = MAIN_STEPS.findIndex((s) => s.id === stepId);
         if (stepIndex === 0) return false;

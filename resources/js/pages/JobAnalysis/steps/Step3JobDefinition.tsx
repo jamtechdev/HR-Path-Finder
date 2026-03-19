@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { FileText, User, CheckSquare, Settings, ChevronLeft, ArrowRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { JobDefinition, JobSelection } from '../hooks/useJobAnalysisState';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 
 interface JobKeyword {
     id: number;
@@ -32,6 +33,7 @@ interface Step3JobDefinitionProps {
     onDefinitionsChange: (definitions: Record<string, JobDefinition>) => void;
     onContinue: () => void;
     onBack: () => void;
+    fieldErrors?: FieldErrors;
 }
 
 const TAB_ORDER = ['description', 'specification', 'competency', 'csfs'] as const;
@@ -63,6 +65,7 @@ export default function Step3JobDefinition({
     onDefinitionsChange,
     onContinue,
     onBack,
+    fieldErrors = {},
 }: Step3JobDefinitionProps) {
     const [activeJobKey, setActiveJobKey] = useState<string>('');
     const [activeTab, setActiveTab] = useState<TabId>('description');
@@ -257,11 +260,13 @@ export default function Step3JobDefinition({
                 {/* Job selector */}
                 <div className="mb-6">
                     <div className="font-bold text-sm mb-3">SELECT JOB TO DEFINE</div>
+                    <FieldErrorMessage fieldKey="job-definition" errors={fieldErrors} className="mb-2" />
                     <div className="flex flex-wrap gap-2">
                         {allJobs.map((job) => {
                             const def = localDefinitions[job.key];
                             const done = def ? countSectionsComplete(def) : 0;
                             const active = activeJobKey === job.key;
+                            const defErr = fieldErrors[`def-${job.key}`];
                             return (
                                 <button
                                     key={job.key}
@@ -274,7 +279,8 @@ export default function Step3JobDefinition({
                                         'rounded-full px-5 py-2.5 text-sm font-medium',
                                         active
                                             ? 'bg-[#1a1a3d] text-white'
-                                            : 'bg-[#e0ddd5]/50 text-[#666] border border-[#e0ddd5]'
+                                            : 'bg-[#e0ddd5]/50 text-[#666] border border-[#e0ddd5]',
+                                        defErr && 'ring-2 ring-destructive border-destructive'
                                     )}
                                 >
                                     {job.name} {done}/4
@@ -341,8 +347,12 @@ export default function Step3JobDefinition({
                                 value={currentDef.job_description || ''}
                                 onChange={(e) => updateDef({ job_description: e.target.value })}
                                 placeholder="Enter job description..."
-                                className="min-h-[200px] border-[#e0ddd5]"
+                                className={cn(
+                                    'min-h-[200px] border-[#e0ddd5]',
+                                    fieldErrors[`def-${activeJobKey}`] && 'border-destructive ring-1 ring-destructive/30'
+                                )}
                             />
+                            <FieldErrorMessage fieldKey={`def-${activeJobKey}`} errors={fieldErrors} />
                             <div className="mt-4 flex justify-end">
                                 <Button
                                     onClick={goNextTab}

@@ -246,6 +246,26 @@ export default function CeoPhilosophySurvey({
         return { valid: true };
     };
 
+    // Clear step validation banner as soon as the current step / vision chunk becomes valid.
+    useEffect(() => {
+        if (!validationError) return;
+        if (currentStep === 0) {
+            if (hasAgreed) setValidationError(null);
+            return;
+        }
+        if (currentStep === 2) {
+            if (currentVisionChunk < 2) {
+                if (validateVisionChunk(currentVisionChunk).valid) {
+                    setValidationError(null);
+                }
+                return;
+            }
+        }
+        if (validateCurrentStep().valid) {
+            setValidationError(null);
+        }
+    }, [data, currentStep, currentVisionChunk, hasAgreed, validationError]);
+
     const handleNext = () => {
         if (currentStep === 0) {
             if (!hasAgreed) {
@@ -321,6 +341,8 @@ export default function CeoPhilosophySurvey({
         });
     };
 
+    const showStepErrors = Boolean(validationError) || Object.keys(errors).length > 0;
+
     const renderStepContent = () => {
         const stepId = STEPS[currentStep].id;
         switch (stepId) {
@@ -341,6 +363,7 @@ export default function CeoPhilosophySurvey({
                         questions={managementPhilosophyQuestions}
                         data={data}
                         setData={setData}
+                        showErrors={showStepErrors}
                     />
                 );
             case 'vision':
@@ -351,6 +374,7 @@ export default function CeoPhilosophySurvey({
                         getChunkQuestions={visionChunkQuestions}
                         data={data}
                         setData={setData}
+                        showErrors={showStepErrors}
                     />
                 );
             case 'growth':
@@ -358,6 +382,7 @@ export default function CeoPhilosophySurvey({
                     <GrowthStep
                         value={data.growth_stage}
                         onChange={(value) => setData('growth_stage', value)}
+                        showError={showStepErrors}
                     />
                 );
             case 'leadership':
@@ -366,6 +391,7 @@ export default function CeoPhilosophySurvey({
                         questions={leadershipQuestions}
                         data={data}
                         setData={setData}
+                        showErrors={showStepErrors}
                     />
                 );
             case 'general':
@@ -374,6 +400,7 @@ export default function CeoPhilosophySurvey({
                         questions={generalQuestions}
                         data={data}
                         setData={setData}
+                        showErrors={showStepErrors}
                     />
                 );
             case 'issues':
@@ -382,6 +409,7 @@ export default function CeoPhilosophySurvey({
                         hrIssues={hrIssues}
                         data={data}
                         setData={setData}
+                        showError={showStepErrors}
                     />
                 );
             case 'concerns':
@@ -390,6 +418,7 @@ export default function CeoPhilosophySurvey({
                         question={concernsQuestion}
                         value={data.concerns}
                         onChange={(value) => setData('concerns', value)}
+                        showError={showStepErrors}
                     />
                 );
             default:
@@ -487,16 +516,11 @@ export default function CeoPhilosophySurvey({
                 <main className="flex-1 overflow-auto">
                     <Head title={`Management Philosophy Survey - ${project?.company?.name || 'Company'}`} />
                     <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-10 pb-28 sm:pb-32">
-                        {Object.keys(errors).length > 0 && (
-                            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/30 dark:text-red-200">
-                                <ul className="list-disc list-inside space-y-0.5">
-                                    {Object.entries(errors).map(([field, message]) => (
-                                        <li key={field}>{String(message)}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-
+                        <InlineErrorSummary
+                            className="mb-4"
+                            message={validationError || submitError}
+                            errors={errors}
+                        />
                         <div ref={(el) => { stepRefs.current[currentStep] = el; }}>
                             {renderStepContent()}
                         </div>

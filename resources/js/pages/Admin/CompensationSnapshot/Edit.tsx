@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
@@ -34,7 +35,7 @@ export default function CompensationSnapshotEdit({ question, answerTypes }: Prop
     const [options, setOptions] = useState<string[]>(question.options || []);
     const [explanation, setExplanation] = useState<string>(question.metadata?.explanation || '');
 
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, clearErrors } = useForm({
         question_text: question.question_text,
         answer_type: question.answer_type,
         options: question.options || [],

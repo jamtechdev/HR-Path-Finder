@@ -38,6 +38,7 @@ class CeoTreeController extends Controller
         return Inertia::render('CEO/Tree/Index', [
             'project' => $data['project'],
             'stepStatuses' => $data['stepStatuses'],
+            'stageProgressPercent' => $data['stageProgressPercent'],
             'activeTab' => $tab,
             'projectId' => $hrProject->id,
             'jobDefinitions' => $data['jobDefinitions'],

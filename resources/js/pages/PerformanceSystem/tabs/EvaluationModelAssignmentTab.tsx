@@ -20,6 +20,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 
 const MBO_COLOR = '#f97316';
 const MBO_PALE = '#fff7ed';
@@ -128,6 +129,7 @@ interface Props {
     jobRecommendations?: Record<number, 'mbo' | 'bsc' | 'okr'>;
     onContinue: (assignments: Record<number, 'mbo' | 'bsc' | 'okr'>) => void;
     onBack?: () => void;
+    fieldErrors?: FieldErrors;
 }
 
 export default function EvaluationModelAssignmentTab({
@@ -139,6 +141,7 @@ export default function EvaluationModelAssignmentTab({
     jobRecommendations = {},
     onContinue,
     onBack,
+    fieldErrors = {},
 }: Props) {
     const [inlineMsg, setInlineMsg] = useState<string | null>(null);
     const [assignments, setAssignments] = useState<Record<number, 'mbo' | 'bsc' | 'okr'>>({});
@@ -251,11 +254,7 @@ export default function EvaluationModelAssignmentTab({
     };
 
     const handleContinue = () => {
-        const unassigned = uniqueJobDefinitions.filter((j) => !assignments[j.id]).length;
-        if (unassigned > 0) {
-            setInlineMsg(`${unassigned} role(s) still have no model assigned.`);
-            return;
-        }
+        setInlineMsg(null);
         const expanded: Record<number, 'mbo' | 'bsc' | 'okr'> = {};
         jobDefinitions.forEach((j) => {
             if (j?.id == null) return;
@@ -394,6 +393,11 @@ export default function EvaluationModelAssignmentTab({
                                                     </button>
                                                 ))}
                                             </div>
+                                            <FieldErrorMessage
+                                                fieldKey={`model-job-${job.id}`}
+                                                errors={fieldErrors}
+                                                className="sm:col-span-3 pl-0 sm:px-4"
+                                            />
                                         </div>
                                     );
                                 })}

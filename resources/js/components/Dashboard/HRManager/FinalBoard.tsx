@@ -31,11 +31,47 @@ interface HrSystemSnapshot {
   hr_system_report: { status: string };
 }
 
+/** Per-stage completion % from backend (ProjectStageProgressService). */
+export interface StageProgressPercent {
+  diagnosis: number;
+  job_analysis: number;
+  performance: number;
+  compensation: number;
+  hr_policy_os?: number;
+}
+
+function pctFromBackend(
+  stageProgressPercent: StageProgressPercent | undefined,
+  stageKey: keyof Pick<StageProgressPercent, 'diagnosis' | 'job_analysis' | 'performance' | 'compensation'>,
+  uiStatus: StageUiStatus
+): number {
+  const raw = stageProgressPercent?.[stageKey];
+  if (typeof raw === 'number' && !Number.isNaN(raw)) {
+    return Math.min(100, Math.max(0, Math.round(raw)));
+  }
+  if (uiStatus === 'done') {
+    return 100;
+  }
+  return 0;
+}
+
+function progressLabel(pct: number, uiStatus: StageUiStatus): string {
+  if (uiStatus === 'done') {
+    return 'Complete';
+  }
+  if (uiStatus === 'active') {
+    return `${pct}% · In progress`;
+  }
+  return pct > 0 ? `${pct}% · Pending` : 'Pending';
+}
+
 interface FinalBoardProps {
   projectId: number;
   companyName: string;
   stepStatuses: Record<string, StepStatus | string>;
   hrSystemSnapshot: HrSystemSnapshot;
+  /** Real stage %; without it, done→100% and other states→0% (no fake 87/72). */
+  stageProgressPercent?: StageProgressPercent;
   viewerRole?: 'hr_manager' | 'ceo';
 }
 
@@ -88,6 +124,7 @@ export default function FinalBoard({
   companyName,
   stepStatuses,
   hrSystemSnapshot,
+  stageProgressPercent,
   viewerRole = 'hr_manager',
 }: FinalBoardProps) {
   const [toastMsg, setToastMsg] = useState('');
@@ -111,6 +148,11 @@ export default function FinalBoard({
     const perfStatus = toStageStatus(stepStatuses.performance as string | undefined);
     const compStatus = toStageStatus(stepStatuses.compensation as string | undefined);
 
+    const diagnosisPct = pctFromBackend(stageProgressPercent, 'diagnosis', diagnosisStatus);
+    const jobPct = pctFromBackend(stageProgressPercent, 'job_analysis', jobStatus);
+    const perfPct = pctFromBackend(stageProgressPercent, 'performance', perfStatus);
+    const compPct = pctFromBackend(stageProgressPercent, 'compensation', compStatus);
+
     return [
       {
         id: 'diagnosis' as const,
@@ -119,7 +161,7 @@ export default function FinalBoard({
         tag: 'Organizational Diagnosis',
         title: 'Diagnosis Results',
         status: diagnosisStatus,
-        pct: diagnosisStatus === 'done' ? 100 : diagnosisStatus === 'active' ? 87 : 72,
+        pct: diagnosisPct,
         badgeText: diagnosisStatus === 'done' ? 'Complete' : diagnosisStatus === 'active' ? 'In Progress' : 'Pending',
         items: [
           { icon: '🏢', bg: '#EEF3FC', label: 'Industry · Growth Stage', val: fmt(hrSystemSnapshot.diagnosis?.industry_category ?? hrSystemSnapshot.company.industry), sub: hrSystemSnapshot.diagnosis?.industry_subcategory ? fmt(hrSystemSnapshot.diagnosis.industry_subcategory) : '' },
@@ -127,7 +169,7 @@ export default function FinalBoard({
           { icon: '🧭', bg: '#E8F9F1', label: 'CEO Management Philosophy', val: fmt(hrSystemSnapshot.ceo_philosophy.main_trait), sub: hrSystemSnapshot.ceo_philosophy.secondary_trait ? `Secondary: ${hrSystemSnapshot.ceo_philosophy.secondary_trait}` : '' },
           { icon: '🏗️', bg: '#F3EEFF', label: 'Org Structure', val: fmt(hrSystemSnapshot.job_architecture.structure_type), sub: hrSystemSnapshot.job_architecture.job_grade_structure ? `Grade: ${hrSystemSnapshot.job_architecture.job_grade_structure}` : '' },
         ],
-        progLabel: diagnosisStatus === 'done' ? 'Complete' : diagnosisStatus === 'active' ? 'In Progress' : 'Pending',
+        progLabel: progressLabel(diagnosisPct, diagnosisStatus),
         navHint: diagnosisStatus === 'done' ? 'Go to Diagnosis Detail' : null,
       },
       {
@@ -137,13 +179,13 @@ export default function FinalBoard({
         tag: 'Job Analysis Framework',
         title: 'Job Analysis',
         status: jobStatus,
-        pct: jobStatus === 'done' ? 94 : jobStatus === 'active' ? 87 : 72,
+        pct: jobPct,
         badgeText: jobStatus === 'done' ? 'Complete' : jobStatus === 'active' ? 'In Progress' : 'Pending',
         items: [
           { icon: '📊', bg: '#E8F9F1', label: 'Job Families · Job Count', val: `${hrSystemSnapshot.job_architecture.jobs_defined} Jobs`, sub: 'Finalized job definitions' },
           { icon: '📝', bg: '#FEF4E2', label: 'Job Description Status', val: '—', sub: '' },
         ],
-        progLabel: jobStatus === 'done' ? '94% · In Review' : jobStatus === 'active' ? 'In Progress' : 'Pending',
+        progLabel: progressLabel(jobPct, jobStatus),
         navHint: jobStatus === 'done' ? 'Go to Job Analysis' : null,
       },
       {
@@ -153,7 +195,7 @@ export default function FinalBoard({
         tag: 'Performance Management',
         title: 'Performance System',
         status: perfStatus,
-        pct: perfStatus === 'done' ? 100 : perfStatus === 'active' ? 87 : 72,
+        pct: perfPct,
         badgeText: perfStatus === 'done' ? 'Complete' : perfStatus === 'active' ? 'In Progress' : 'Pending',
         items: [
           { icon: '📈', bg: '#EBF2FD', label: 'Evaluation Unit', val: fmt(hrSystemSnapshot.performance_management.model), sub: hrSystemSnapshot.performance_management.cycle ? `Cycle: ${hrSystemSnapshot.performance_management.cycle}` : '' },
@@ -161,7 +203,7 @@ export default function FinalBoard({
           { icon: '🔄', bg: '#EBF2FD', label: 'Rating Structure', val: fmt(hrSystemSnapshot.performance_management.rating_scale), sub: '' },
           { icon: '⏳', bg: '#FEF4E2', label: 'Result Utilization', val: fmt(hrSystemSnapshot.performance_management.evaluation_logic), sub: '' },
         ],
-        progLabel: perfStatus === 'active' ? '87% · Under Review' : perfStatus === 'done' ? 'Complete' : 'Pending',
+        progLabel: progressLabel(perfPct, perfStatus),
         navHint: null,
       },
       {
@@ -171,7 +213,7 @@ export default function FinalBoard({
         tag: 'Compensation System',
         title: 'Compensation Design',
         status: compStatus,
-        pct: compStatus === 'done' ? 100 : compStatus === 'active' ? 87 : 72,
+        pct: compPct,
         badgeText: compStatus === 'done' ? 'Complete' : compStatus === 'active' ? 'In Progress' : 'Pending',
         items: [
           { icon: '💵', bg: '#F4F6FB', label: 'Salary System', val: fmt(hrSystemSnapshot.compensation_benefits.salary_system), sub: hrSystemSnapshot.compensation_benefits.salary_structure_type ? `Structure: ${hrSystemSnapshot.compensation_benefits.salary_structure_type}` : '' },
@@ -179,11 +221,14 @@ export default function FinalBoard({
           { icon: '🏆', bg: '#F4F6FB', label: 'Bonus Metric', val: fmt(hrSystemSnapshot.compensation_benefits.bonus_metric), sub: '' },
           { icon: '🎁', bg: '#F4F6FB', label: 'Benefits Program', val: fmt(hrSystemSnapshot.compensation_benefits.welfare_program), sub: hrSystemSnapshot.compensation_benefits.benefits_level != null ? `Benefits ratio: ${hrSystemSnapshot.compensation_benefits.benefits_level}%` : '' },
         ],
-        progLabel: compStatus === 'locked' ? 'Activates after Performance Stage' : compStatus === 'active' ? 'In Progress' : 'Complete',
+        progLabel:
+          compStatus === 'locked'
+            ? 'Activates after Performance Stage'
+            : progressLabel(compPct, compStatus),
         navHint: null,
       },
     ];
-  }, [hrSystemSnapshot, stepStatuses]);
+  }, [hrSystemSnapshot, stepStatuses, stageProgressPercent]);
 
   const completedCount = stages.filter((s) => s.status === 'done').length;
   const totalCount = stages.length;

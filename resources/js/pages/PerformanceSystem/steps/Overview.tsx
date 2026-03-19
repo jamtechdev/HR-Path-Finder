@@ -119,9 +119,9 @@ export default function PerformanceSystemOverview({
     };
 
     return (
-        <div className="space-y-6 pb-8 px-2">
+        <div className="flex flex-col flex-1 min-h-0 w-full">
             {!hideProgressCard && (
-            <Card className="rounded-xl border border-[#e5e7eb] shadow-sm overflow-hidden bg-white">
+            <Card className="shrink-0 mb-6 rounded-xl border border-[#e5e7eb] shadow-sm overflow-hidden bg-white max-w-[1000px] mx-auto w-full">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-lg font-semibold text-[#121431]">
                         Progress Summary
@@ -142,8 +142,8 @@ export default function PerformanceSystemOverview({
             </Card>
             )}
 
-            {/* Timeline — same as Job Analysis: vertical line + numbered circles + step cards */}
-            <div className="flex-1 relative w-full">
+            {/* Timeline — flex-1 so footer sits at bottom of viewport when used inside overview layout */}
+            <div className="flex-1 min-h-0 relative w-full max-w-[1000px] mx-auto space-y-6 px-2 pb-4">
                 <div className="absolute left-8 top-0 bottom-0 w-px bg-[#d1d5db] z-[1]" aria-hidden />
                 <div className="space-y-6 relative z-[2]">
                     {STEPS.map((step, index) => {
@@ -240,14 +240,20 @@ export default function PerformanceSystemOverview({
                 </div>
             </div>
 
-            {/* Footer — same as Job Analysis */}
-            <footer className="sticky bottom-0 w-full bg-white py-4 px-5 md:px-[10%] flex flex-wrap items-center justify-between gap-4 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-10 mt-auto border-t border-[#e2e8f0]">
-                <p className="text-sm text-[#64748b]">
-                    <b>{completedCount}</b> of {totalSteps} steps completed
+            {/* Footer — match Job Analysis org-chart / policy step bar */}
+            <footer
+                className="sticky bottom-0 shrink-0 w-full bg-white border-t border-[#e0ddd5] py-[18px] px-6 md:px-[60px] flex flex-wrap items-center justify-between gap-4 z-10"
+                style={{
+                    boxShadow: '0 -4px 6px -1px rgba(0,0,0,0.05)',
+                }}
+            >
+                <p className="text-[13px] text-[#94a3b8] font-medium">
+                    <strong className="text-[#121431]">{completedCount}</strong> of{' '}
+                    <strong className="text-[#121431]">{totalSteps}</strong> steps completed
                 </p>
                 <Button
                     onClick={() => handleStart(STEPS[0], 0)}
-                    className="bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold px-8 py-3 rounded-lg"
+                    className="bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white font-bold px-9 py-6 rounded-lg"
                 >
                     <Rocket className="w-4 h-4 mr-2" />
                     Start Performance System

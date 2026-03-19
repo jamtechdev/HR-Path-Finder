@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, AlertCircle, FileText, Info } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import CompensationPageHeader from '../components/CompensationPageHeader';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import { cn } from '@/lib/utils';
 import type { CompensationSnapshotQuestion, CompensationSnapshotResponse } from '../types';
 
 interface SnapshotTabProps {
@@ -18,9 +20,10 @@ interface SnapshotTabProps {
     snapshotResponses?: Record<number, string[] | string | number | object | null>;
     onSnapshotResponsesChange?: (responses: Record<number, string[] | string | number | object | null>) => void;
     onNext: () => void;
+    fieldErrors?: FieldErrors;
 }
 
-export default function SnapshotTab({ projectId, questions = [], responses: initialResponses, snapshotResponses: externalResponses, onSnapshotResponsesChange, onNext }: SnapshotTabProps) {
+export default function SnapshotTab({ projectId, questions = [], responses: initialResponses, snapshotResponses: externalResponses, onSnapshotResponsesChange, onNext, fieldErrors = {} }: SnapshotTabProps) {
     // Initialize responses state from existing data or external state
     const [snapshotResponses, setSnapshotResponses] = useState<Record<number, string[] | string | number | object | null>>(() => {
         if (externalResponses) return externalResponses;
@@ -90,7 +93,13 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                 question.question_text?.toLowerCase().includes('average salary by years of service');
 
                             return (
-                                <Card key={question.id} className="border-2 hover:border-primary/30 transition-all shadow-sm">
+                                <Card
+                                    key={question.id}
+                                    className={cn(
+                                        'border-2 hover:border-primary/30 transition-all shadow-sm',
+                                        fieldErrors[`comp-q-${question.id}`] && 'border-destructive'
+                                    )}
+                                >
                                     <CardContent className="p-6">
                                         <div className="flex items-start flex-row sm:flex-col gap-4 mb-4">
                                             <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-base font-bold text-primary">
@@ -365,6 +374,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                 )}
                                             </div>
                                         </div>
+                                        <FieldErrorMessage fieldKey={`comp-q-${question.id}`} errors={fieldErrors} className="mt-3" />
                                     </CardContent>
                                 </Card>
                             );

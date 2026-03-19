@@ -1,136 +1,213 @@
 import { useMemo } from 'react';
 import type { JobAnalysisState } from './useJobAnalysisState';
+import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
 
-interface ValidationResult {
-    isValid: boolean;
-    errors: string[];
+const MIN_JOBS_REQUIRED = 3;
+
+export interface PolicyQuestionMeta {
+    id: number;
+    order: number;
+    has_conditional_text: boolean;
 }
 
-export function useStepValidation(state: JobAnalysisState) {
+export interface StepValidationResult {
+    isValid: boolean;
+    errors: string[];
+    fieldErrors: FieldErrors;
+}
+
+function sortedPolicyQuestions(questions: PolicyQuestionMeta[]): PolicyQuestionMeta[] {
+    return [...questions].sort((a, b) => a.order - b.order);
+}
+
+export function useStepValidation(state: JobAnalysisState, policyQuestions: PolicyQuestionMeta[] = []) {
     const validateStep = useMemo(() => {
-        return (stepId: string): ValidationResult => {
+        return (stepId: string): StepValidationResult => {
+            const empty = (): StepValidationResult => ({ isValid: true, errors: [], fieldErrors: {} });
+
             switch (stepId) {
-                case 'policy-snapshot':
-                    const unansweredQuestions = Object.keys(state.policyAnswers).length === 0;
-                    if (unansweredQuestions) {
+                case 'policy-snapshot': {
+                    const fieldErrors: FieldErrors = {};
+                    const errors: string[] = [];
+                    const sorted = sortedPolicyQuestions(policyQuestions);
+
+                    if (sorted.length === 0) {
+                        return { isValid: true, errors: [], fieldErrors: {} };
+                    }
+
+                    for (const q of sorted) {
+                        const a = state.policyAnswers[q.id];
+                        const key = `q-${q.id}`;
+                        if (!a?.answer) {
+                            fieldErrors[key] = 'Please select an answer.';
+                            errors.push(`Question ${q.id}: an answer is required.`);
+                            continue;
+                        }
+                        if (q.has_conditional_text && a.answer === 'yes') {
+                            const t = (a.conditional_text ?? '').trim();
+                            if (!t) {
+                                fieldErrors[`${key}-conditional`] = 'Please specify which job(s).';
+                                errors.push(`Question ${q.id}: conditional details are required when you answer Yes.`);
+                            }
+                        }
+                    }
+
+                    if (Object.keys(fieldErrors).length > 0) {
                         return {
                             isValid: false,
-                            errors: ['Please answer all policy snapshot questions.'],
+                            errors: errors.length ? errors : ['Please complete all policy snapshot questions.'],
+                            fieldErrors,
                         };
                     }
-                    return { isValid: true, errors: [] };
+                    return empty();
+                }
 
-                case 'job-list-selection':
-                    const hasSelectedJobs = state.jobSelections.selected_job_keyword_ids.length > 0;
-                    const hasCustomJobs = state.jobSelections.custom_jobs.length > 0;
-                    const hasGroupedJobs = state.jobSelections.grouped_jobs.length > 0;
+                case 'job-list-selection': {
+                    const nSel = state.jobSelections.selected_job_keyword_ids.length;
+                    const nCustom = state.jobSelections.custom_jobs.length;
+                    const nGroup = state.jobSelections.grouped_jobs.length;
+                    const total = nSel + nCustom + nGroup;
 
-                    if (!hasSelectedJobs && !hasCustomJobs && !hasGroupedJobs) {
+                    if (total < 1) {
                         return {
                             isValid: false,
                             errors: ['Please select at least one job, add a custom job, or create a grouped job.'],
+                            fieldErrors: {
+                                'job-selection': 'Select at least one job or add a custom / grouped job.',
+                            },
                         };
                     }
-                    return { isValid: true, errors: [] };
 
-                case 'job-definition':
-                    // First check if there are any jobs selected
-                    const hasAnyJobs = state.jobSelections.selected_job_keyword_ids.length > 0 ||
-                                      state.jobSelections.custom_jobs.length > 0 ||
-                                      state.jobSelections.grouped_jobs.length > 0;
-                    
+                    if (total < MIN_JOBS_REQUIRED) {
+                        return {
+                            isValid: false,
+                            errors: [`Please select at least ${MIN_JOBS_REQUIRED} jobs (selected + custom + grouped).`],
+                            fieldErrors: {
+                                'job-selection': `Select at least ${MIN_JOBS_REQUIRED} jobs — you have ${total} so far.`,
+                            },
+                        };
+                    }
+
+                    return empty();
+                }
+
+                case 'job-definition': {
+                    const hasAnyJobs =
+                        state.jobSelections.selected_job_keyword_ids.length > 0 ||
+                        state.jobSelections.custom_jobs.length > 0 ||
+                        state.jobSelections.grouped_jobs.length > 0;
+
                     if (!hasAnyJobs) {
                         return {
                             isValid: false,
                             errors: ['Please select jobs first before defining them.'],
+                            fieldErrors: { 'job-definition': 'Go back and select jobs first.' },
                         };
                     }
 
-                    // Check if all selected jobs have definitions
-                    const missingDefinitions: string[] = [];
-                    
-                    // Check individual jobs
+                    const fieldErrors: FieldErrors = {};
+                    const errors: string[] = [];
+
                     for (const jobId of state.jobSelections.selected_job_keyword_ids) {
                         const key = `job-${jobId}`;
                         const def = state.jobDefinitions[key];
-                        if (!def || !def.job_description) {
-                            missingDefinitions.push(`Job ID ${jobId}`);
+                        if (!def || !(def.job_description || '').trim()) {
+                            fieldErrors[`def-${key}`] = 'Job description is required.';
+                            errors.push(`Complete definition for job ID ${jobId}.`);
                         }
                     }
 
-                    // Check custom jobs
                     for (let i = 0; i < state.jobSelections.custom_jobs.length; i++) {
-                        const key = `custom-${i}-${state.jobSelections.custom_jobs[i]}`;
+                        const name = state.jobSelections.custom_jobs[i];
+                        const key = `custom-${i}-${name}`;
                         const def = state.jobDefinitions[key];
-                        if (!def || !def.job_description) {
-                            missingDefinitions.push(state.jobSelections.custom_jobs[i]);
+                        if (!def || !(def.job_description || '').trim()) {
+                            fieldErrors[`def-${key}`] = 'Job description is required.';
+                            errors.push(`Complete definition for "${name}".`);
                         }
                     }
 
-                    // Check grouped jobs
                     for (let i = 0; i < state.jobSelections.grouped_jobs.length; i++) {
                         const group = state.jobSelections.grouped_jobs[i];
                         const sortedIds = [...group.job_keyword_ids].sort((a, b) => a - b).join('-');
                         const key = `group-${sortedIds}-${i}`;
                         const def = state.jobDefinitions[key];
-                        if (!def || !def.job_description) {
-                            missingDefinitions.push(group.name);
+                        if (!def || !(def.job_description || '').trim()) {
+                            fieldErrors[`def-${key}`] = 'Job description is required.';
+                            errors.push(`Complete definition for grouped job "${group.name}".`);
                         }
                     }
 
-                    if (missingDefinitions.length > 0) {
+                    if (Object.keys(fieldErrors).length > 0) {
                         return {
                             isValid: false,
-                            errors: [`Please complete job definitions for: ${missingDefinitions.join(', ')}`],
+                            errors: errors.length ? errors : ['Please complete all job descriptions.'],
+                            fieldErrors,
                         };
                     }
-                    return { isValid: true, errors: [] };
+                    return empty();
+                }
 
-                case 'finalization':
-                    // Check if at least one job is finalized
-                    const hasJobDefinitions = Object.keys(state.jobDefinitions).length > 0;
-                    if (!hasJobDefinitions) {
+                case 'finalization': {
+                    const jd = validateStep('job-definition');
+                    if (!jd.isValid) {
                         return {
                             isValid: false,
-                            errors: ['Please complete at least one job definition before finalizing.'],
+                            errors: jd.errors.length ? jd.errors : ['Please complete job definitions before finalizing.'],
+                            fieldErrors: { finalization: 'Complete all job definitions on the previous step.' },
                         };
                     }
-                    return { isValid: true, errors: [] };
+                    return empty();
+                }
 
-                case 'org-chart-mapping':
-                    // Optional step - but should only be marked complete if user has actually visited it
-                    // Check if there are any mappings or if step was explicitly completed
+                case 'org-chart-mapping': {
                     if (state.stepCompletions['org-chart-mapping']) {
-                        return { isValid: true, errors: [] };
+                        return empty();
                     }
-                    // If no mappings exist, it's not completed yet (even though it's optional)
                     if (state.orgMappings.length === 0) {
-                        return { isValid: false, errors: [] }; // Optional but not completed
+                        return empty();
                     }
-                    return { isValid: true, errors: [] };
+                    const fieldErrors: FieldErrors = {};
+                    const errors: string[] = [];
+                    for (const u of state.orgMappings) {
+                        if (!(String(u.org_unit_name ?? '').trim())) {
+                            fieldErrors[`unit-${u.id}`] = 'Organizational unit name is required.';
+                            errors.push('Every organizational unit needs a name.');
+                        }
+                    }
+                    if (Object.keys(fieldErrors).length > 0) {
+                        return {
+                            isValid: false,
+                            errors: errors.length ? errors : ['Please name every organizational unit.'],
+                            fieldErrors,
+                        };
+                    }
+                    return empty();
+                }
 
-                case 'review-submit':
-                    // Check if finalization is completed
+                case 'review-submit': {
                     if (!state.stepCompletions.finalization) {
                         return {
                             isValid: false,
                             errors: ['Please complete finalization before submitting.'],
+                            fieldErrors: {
+                                'review-submit': 'Complete the Finalization step before submitting.',
+                            },
                         };
                     }
-                    return { isValid: true, errors: [] };
+                    return empty();
+                }
 
                 default:
-                    return { isValid: true, errors: [] };
+                    return empty();
             }
         };
-    }, [state]);
+    }, [state, policyQuestions]);
 
     const isStepEnabled = useMemo(() => {
         return (stepId: string, stepIndex: number): boolean => {
-            // First step is always enabled
             if (stepIndex === 0) return true;
 
-            // Check if previous steps are completed
             const steps = [
                 'policy-snapshot',
                 'job-list-selection',

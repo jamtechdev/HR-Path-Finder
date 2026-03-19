@@ -35,12 +35,14 @@ interface ConcernsStepProps {
     question?: DiagnosisQuestion | null;
     value: string;
     onChange: (value: string) => void;
+    showError?: boolean;
 }
 
-export default function ConcernsStep({ question, value, onChange }: ConcernsStepProps) {
+export default function ConcernsStep({ question, value, onChange, showError = false }: ConcernsStepProps) {
     const [selectedCat, setSelectedCat] = useState<string | null>(null);
     const charCount = value.length;
     const scaffoldText = selectedCat ? (SCAFFOLDS[selectedCat] ?? '') : '';
+    const hasError = showError && !value.trim();
 
     const handleSelectCat = (catId: string) => {
         if (selectedCat === catId) {
@@ -175,12 +177,15 @@ export default function ConcernsStep({ question, value, onChange }: ConcernsStep
 
                 {/* Textarea */}
                 <div className="p-4 sm:p-5">
+                    {hasError && (
+                        <p className="mb-2 text-sm font-medium text-red-600">Please describe your biggest concern before submitting.</p>
+                    )}
                     <Textarea
                         value={value}
                         onChange={(e) => onChange(e.target.value)}
                         placeholder="e.g. We are struggling with [talent acquisition] due to [compensation limits]. The most urgent pressure point is [senior manager attrition], which puts our [2025 growth plan] at risk."
                         rows={6}
-                        className="min-h-[140px] rounded-lg border-[1.5px] border-[#E2DDD4] bg-[#F8F4ED] text-[13.5px] font-light text-[#1A1A2E] leading-relaxed focus:border-[#0E1628] focus:bg-white resize-y"
+                        className={`min-h-[140px] rounded-lg border-[1.5px] bg-[#F8F4ED] text-[13.5px] font-light text-[#1A1A2E] leading-relaxed focus:bg-white resize-y ${hasError ? 'border-red-300 focus:border-red-500' : 'border-[#E2DDD4] focus:border-[#0E1628]'}`}
                     />
                     <div className="flex flex-wrap justify-between items-center gap-2 mt-2">
                         <span className={`text-[11px] ${charCount >= 100 ? 'text-[#2E9E6B]' : 'text-[#9A9EB8]'}`}>

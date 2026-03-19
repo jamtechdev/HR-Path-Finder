@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { login, home } from '@/routes';
 import { Head, Link, useForm, router } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { ArrowRight, Mail, Shield, ArrowLeft } from 'lucide-react';
 
 export default function ForgotPassword({ status }: { status?: string }) {
@@ -101,7 +102,10 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     id="email"
                                     type="email"
                                 value={form.data.email}
-                                onChange={(e) => form.setData('email', e.target.value)}
+                                onChange={(e) => {
+                                    form.setData('email', e.target.value);
+                                    clearInertiaFieldError(form.clearErrors, 'email');
+                                }}
                                 autoComplete="email"
                                     autoFocus
                                         placeholder="you@company.com"

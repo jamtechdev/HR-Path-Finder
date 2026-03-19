@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Building2, Stethoscope, Settings, Link2, Search, ChevronLeft, ArrowRight, X, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { JobSelection } from '../hooks/useJobAnalysisState';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 
 const MIN_JOBS_REQUIRED = 3;
 
@@ -31,6 +32,7 @@ interface Step2JobListSelectionProps {
     industry?: string;
     sizeRange?: string;
     diagnosisContext?: DiagnosisContext | null;
+    fieldErrors?: FieldErrors;
 }
 
 const FAMILY_ICONS: Record<string, React.ReactNode> = {
@@ -49,6 +51,7 @@ export default function Step2JobListSelection({
     industry,
     sizeRange,
     diagnosisContext,
+    fieldErrors = {},
 }: Step2JobListSelectionProps) {
     const [selectedJobIds, setSelectedJobIds] = useState<number[]>(
         jobSelections.selected_job_keyword_ids || []
@@ -128,7 +131,6 @@ export default function Step2JobListSelection({
     ];
 
     const totalConfirmed = selectedJobIds.length + customJobs.length;
-    const hasEnough = totalConfirmed >= MIN_JOBS_REQUIRED;
     const confirmedNames: string[] = [
         ...selectedJobIds
             .map((id) => suggestedJobs.find((j) => j.id === id)?.name)
@@ -490,10 +492,13 @@ export default function Step2JobListSelection({
                 className="sticky bottom-0 w-full bg-white border-t border-[#ddd] py-4 px-6 flex flex-wrap items-center justify-between gap-4 z-10 mt-auto"
                 
             >
-                <p className="text-[13px] text-[#666]">
-                    Select at least <strong>{MIN_JOBS_REQUIRED} jobs</strong> — {totalConfirmed} selected
-                    so far
-                </p>
+                <div className="flex flex-col gap-1 min-w-0 flex-1">
+                    <p className="text-[13px] text-[#666]">
+                        Select at least <strong>{MIN_JOBS_REQUIRED} jobs</strong> — {totalConfirmed} selected
+                        so far
+                    </p>
+                    <FieldErrorMessage fieldKey="job-selection" errors={fieldErrors} className="!mt-0" />
+                </div>
                 <div className="flex gap-2 flex-wrap">
                     <Button
                         type="button"
@@ -508,13 +513,7 @@ export default function Step2JobListSelection({
                     <Button
                         type="button"
                         onClick={onContinue}
-                        disabled={!hasEnough}
-                        className={cn(
-                            'rounded-md font-bold',
-                            hasEnough
-                                ? 'bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white'
-                                : 'bg-[#b8b8c0] text-white cursor-not-allowed'
-                        )}
+                        className="rounded-md font-bold bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white"
                         style={{ padding: '12px 30px' }}
                     >
                         Continue to Job Definition

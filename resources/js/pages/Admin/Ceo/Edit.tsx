@@ -6,6 +6,7 @@ import {
     SidebarProvider,
 } from '@/components/ui/sidebar';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,7 +40,7 @@ interface Props {
 }
 
 export default function Edit({ ceo, companies }: Props) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, clearErrors } = useForm({
         name: ceo.name,
         email: ceo.email,
         company_id: ceo.companies?.[0]?.id ?? null,

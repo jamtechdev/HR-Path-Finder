@@ -8,6 +8,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { request } from '@/routes/password';
 import { home } from '@/routes';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { ArrowRight, Shield, Lock, CheckCircle2, Zap, ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -169,7 +170,10 @@ export default function AdminLogin({
                                     id="email"
                                     type="email"
                                     value={form.data.email}
-                                    onChange={(e) => form.setData('email', e.target.value)}
+                                    onChange={(e) => {
+                                        form.setData('email', e.target.value);
+                                        clearInertiaFieldError(form.clearErrors, 'email');
+                                    }}
                                     required
                                     autoFocus
                                     tabIndex={1}
@@ -199,7 +203,10 @@ export default function AdminLogin({
                                     id="password"
                                     type="password"
                                     value={form.data.password}
-                                    onChange={(e) => form.setData('password', e.target.value)}
+                                    onChange={(e) => {
+                                        form.setData('password', e.target.value);
+                                        clearInertiaFieldError(form.clearErrors, 'password');
+                                    }}
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"

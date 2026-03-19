@@ -13,6 +13,7 @@ import {
     Building2, Users, FileText, UserPlus, Mail, CheckCircle2, XCircle, 
     Clock, RefreshCw, ArrowLeft, MapPin, Hash, Globe, Trash2
 } from 'lucide-react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 interface Invitation {
     id: number;
@@ -66,7 +67,7 @@ export default function ShowCompany({ company }: Props) {
     const [resendingInvitation, setResendingInvitation] = useState<number | null>(null);
     const [deletingInvitation, setDeletingInvitation] = useState<number | null>(null);
     
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         email: '',
         hr_project_id: company.hrProjects?.find(p => p.status === 'active')?.id || null,
     });
@@ -361,7 +362,10 @@ export default function ShowCompany({ company }: Props) {
                                     id="ceo-email"
                                     type="email"
                                     value={data.email}
-                                    onChange={(e) => setData('email', e.target.value)}
+                                    onChange={(e) => {
+                                        setData('email', e.target.value);
+                                        clearInertiaFieldError(clearErrors, 'email');
+                                    }}
                                     placeholder="ceo@example.com"
                                     required
                                     className={errors.email ? 'border-red-500' : ''}

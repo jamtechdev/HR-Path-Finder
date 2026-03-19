@@ -8,6 +8,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { request } from '@/routes/password';
 import { register, home } from '@/routes';
 import { Form, Head, Link, useForm } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { ArrowRight, Sparkles, CheckCircle2, Shield, Zap, ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -126,7 +127,10 @@ export default function Login({
                                     id="email"
                                     type="email"
                                     value={form.data.email}
-                                    onChange={(e) => form.setData('email', e.target.value)}
+                                    onChange={(e) => {
+                                        form.setData('email', e.target.value);
+                                        clearInertiaFieldError(form.clearErrors, 'email');
+                                    }}
                                     required
                                     autoFocus
                                     tabIndex={1}
@@ -152,7 +156,10 @@ export default function Login({
                                     id="password"
                                     type="password"
                                     value={form.data.password}
-                                    onChange={(e) => form.setData('password', e.target.value)}
+                                    onChange={(e) => {
+                                        form.setData('password', e.target.value);
+                                        clearInertiaFieldError(form.clearErrors, 'password');
+                                    }}
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"

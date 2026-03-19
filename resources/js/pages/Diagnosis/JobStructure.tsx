@@ -4,6 +4,7 @@ import FormLayout from '@/components/Diagnosis/FormLayout';
 import { both, tr } from '@/config/diagnosisTranslations';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 
 const SEP = '|';
 
@@ -131,6 +132,14 @@ export default function JobStructure({
     const useEmbed = embedMode && embedData != null && embedSetData;
     const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
     const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
+    const inertiaJobStructureErr =
+        typeof internalForm.errors.job_categories === 'string'
+            ? internalForm.errors.job_categories
+            : typeof internalForm.errors.job_functions === 'string'
+              ? internalForm.errors.job_functions
+              : typeof (internalForm.errors as Record<string, string>).job_structure === 'string'
+                ? (internalForm.errors as Record<string, string>).job_structure
+                : undefined;
 
     useEffect(() => {
         setData(
@@ -396,6 +405,7 @@ export default function JobStructure({
                             )}
                         </div>
                     </div>
+                    <DiagnosisFieldErrorMessage fieldKey="job_structure" inertiaError={inertiaJobStructureErr} />
 
                     {/* Headcount per Job Grade - from Job Grades step */}
                     {diagnosis?.job_grade_names?.length ? (() => {

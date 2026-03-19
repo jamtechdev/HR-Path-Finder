@@ -6,6 +6,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/password/confirm';
 import { home } from '@/routes';
 import { Form, Head, Link } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { Lock, ArrowRight, ArrowLeft } from 'lucide-react';
 
 export default function ConfirmPassword() {
@@ -76,7 +77,7 @@ export default function ConfirmPassword() {
                     </div>
 
                     <Form {...store.form()} resetOnSuccess={['password']} className="space-y-4">
-                {({ processing, errors }) => (
+                {({ processing, errors, clearErrors }) => (
                             <>
                                 <div className="space-y-2">
                                     <Label htmlFor="password" className="text-sm font-medium leading-none">
@@ -90,6 +91,7 @@ export default function ConfirmPassword() {
                                 autoComplete="current-password"
                                 autoFocus
                                         className="h-10 w-full"
+                                onChange={() => clearInertiaFieldError(clearErrors, 'password')}
                             />
                             <InputError message={errors.password} />
                         </div>

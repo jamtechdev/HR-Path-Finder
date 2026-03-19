@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import CompensationPageHeader from '../components/CompensationPageHeader';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import type { BenefitsConfiguration } from '../types';
 
 interface BenefitItem {
@@ -185,6 +186,7 @@ interface BenefitsTabProps {
     configuration: BenefitsConfiguration;
     onUpdate: (config: BenefitsConfiguration) => void;
     snapshotBenefitsPrograms?: string[];
+    fieldErrors?: FieldErrors;
 }
 
 function getItemState(
@@ -204,6 +206,7 @@ export default function BenefitsTab({
     configuration,
     onUpdate,
     snapshotBenefitsPrograms = [],
+    fieldErrors = {},
 }: BenefitsTabProps) {
     const [selectedConcept, setSelectedConcept] = useState<
         { type: 'item'; item: BenefitItem } | { type: 'strat'; key: string } | null
@@ -421,6 +424,7 @@ export default function BenefitsTab({
                 description="Diagnose current benefits and design future strategy based on industry benchmarking data."
                 completionPct={completionPct}
             />
+            <FieldErrorMessage fieldKey="comp-benefits" errors={fieldErrors} className="mt-4 px-1" />
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5 pt-6 max-w-[1100px]">
                 <div className="flex flex-col gap-4">
                     {/* Budget Overview */}

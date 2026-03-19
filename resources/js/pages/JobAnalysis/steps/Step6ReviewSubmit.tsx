@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
+import InlineErrorSummary, { flattenErrors } from '@/components/Forms/InlineErrorSummary';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import {
     FileText,
     Network,
@@ -29,6 +30,7 @@ interface Step6ReviewSubmitProps {
     orgMappings: OrgChartMapping[];
     questions?: Question[];
     onBack: () => void;
+    fieldErrors?: FieldErrors;
 }
 
 export default function Step6ReviewSubmit({
@@ -39,6 +41,7 @@ export default function Step6ReviewSubmit({
     orgMappings,
     questions = [],
     onBack,
+    fieldErrors = {},
 }: Step6ReviewSubmitProps) {
     const [processing, setProcessing] = useState(false);
     const [expandedPolicy, setExpandedPolicy] = useState(false);
@@ -48,6 +51,7 @@ export default function Step6ReviewSubmit({
     const [expandedMappingIds, setExpandedMappingIds] = useState<Set<string>>(new Set());
     const [submitted, setSubmitted] = useState(false);
     const [submitErr, setSubmitErr] = useState<string | null>(null);
+    const [submitFieldErrors, setSubmitFieldErrors] = useState<FieldErrors>({});
 
     const jobEntries = Object.entries(jobDefinitions).filter(([, def]) => def?.job_name);
     const jobsCount = jobEntries.length;
@@ -82,8 +86,13 @@ export default function Step6ReviewSubmit({
     };
 
     const handleSubmit = () => {
-        if (processing || jobsCount === 0) return;
+        if (processing) return;
         setSubmitErr(null);
+        setSubmitFieldErrors({});
+        if (jobsCount === 0) {
+            setSubmitErr('Add at least one job definition before submitting.');
+            return;
+        }
         setProcessing(true);
 
         const finalData = {
@@ -134,11 +143,18 @@ export default function Step6ReviewSubmit({
                 setProcessing(false);
                 setSubmitted(true);
             },
-            onError: (errors: Record<string, unknown>) => {
-                const msg =
-                    errors && typeof errors === 'object' && (errors.message ?? Object.values(errors)[0]);
-                const desc = Array.isArray(msg) ? msg[0] : String(msg ?? 'Error submitting. Please try again.');
-                setSubmitErr(desc);
+            onError: (errors: Record<string, string | string[]>) => {
+                const fe: FieldErrors = {};
+                if (errors && typeof errors === 'object') {
+                    for (const [k, v] of Object.entries(errors)) {
+                        if (k === 'message') continue;
+                        const m = Array.isArray(v) ? v[0] : v;
+                        if (typeof m === 'string' && m) fe[k] = m;
+                    }
+                }
+                setSubmitFieldErrors(fe);
+                const lines = flattenErrors(errors);
+                setSubmitErr(lines.length ? lines.join(' ') : 'Error submitting. Please try again.');
                 setProcessing(false);
             },
         });
@@ -195,8 +211,8 @@ export default function Step6ReviewSubmit({
     }
 
     return (
-        <div className="min-h-full flex flex-col bg-[#f9f7f2] text-[#121431] pb-28">
-            <div className="max-w-[1000px] mx-auto w-full py-10 px-5">
+        <div className="min-h-full flex flex-col bg-[#f9f7f2] text-[#121431]">
+            <div className="flex-1 min-h-0 max-w-[1000px] mx-auto w-full py-10 px-5 pb-8">
                 <div className="mb-2" style={{ color: '#b88a44', fontSize: 11, fontWeight: 700, letterSpacing: 1.2 }}>
                     STEP 6 OF 6 – JOB ANALYSIS
                 </div>
@@ -206,6 +222,13 @@ export default function Step6ReviewSubmit({
                 <p className="text-[#6b7280] text-[15px] mb-8 leading-relaxed">
                     Review all collected data before final submission. Once submitted, the Job Analysis step will be completed.
                 </p>
+
+                <FieldErrorMessage fieldKey="review-submit" errors={fieldErrors} className="mb-4" />
+                {(submitErr || Object.keys(submitFieldErrors).length > 0) && (
+                    <div className="mb-6">
+                        <InlineErrorSummary message={submitErr} errors={submitFieldErrors} />
+                    </div>
+                )}
 
                 {/* Summary cards */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
@@ -476,34 +499,35 @@ export default function Step6ReviewSubmit({
                 )}
             </div>
 
-            {/* Footer */}
+            {/* Footer — same bar as Org Chart Mapping / Policy Snapshot steps */}
             <footer
-                className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-between items-center z-[100]"
+                className="sticky bottom-0 w-full bg-white border-t border-[#e0ddd5] py-[18px] px-6 md:px-[60px] flex flex-wrap items-center justify-between gap-4 z-10 mt-auto"
                 style={{
-                    borderColor: '#e5e7eb',
-                    padding: '16px 24px',
                     boxShadow: '0 -4px 6px -1px rgba(0,0,0,0.05)',
                 }}
             >
-                <p className="text-[14px] text-[#6b7280]">
-                    Review all data above, then submit to complete Job Analysis.
+                <p className="text-[13px] text-[#94a3b8] font-medium">
+                    Jobs: <strong className="text-[#121431]">{jobsCount}</strong>
+                    {' · '}
+                    Org units: <strong className="text-[#121431]">{orgUnitsCount}</strong>
+                    {' · '}
+                    Review above, then submit.
                 </p>
-                {submitErr && <InlineErrorSummary message={submitErr} className="mb-3" />}
                 <div className="flex gap-3">
                     <Button
                         type="button"
                         variant="outline"
                         onClick={onBack}
                         disabled={processing}
-                        className="rounded-lg border-[#e5e7eb] font-semibold px-5 py-2.5 hover:bg-[#f9fafb]"
+                        className="border-[#e0ddd5] font-bold px-8 py-6 rounded-lg"
                     >
                         ← Back
                     </Button>
                     <Button
                         type="button"
                         onClick={handleSubmit}
-                        disabled={processing || jobsCount === 0}
-                        className="rounded-lg bg-[#121431] hover:bg-[#1e2a4a] text-white font-semibold px-5 py-2.5 shadow-sm"
+                        disabled={processing}
+                        className="bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white font-bold px-9 py-6 rounded-lg"
                     >
                         {processing ? 'Submitting...' : 'Submit Job Analysis'}
                     </Button>

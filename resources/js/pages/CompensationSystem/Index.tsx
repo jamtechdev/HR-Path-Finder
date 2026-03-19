@@ -11,6 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
+import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import { validateCompensationStep } from './compensationTabValidation';
+import { pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
 
 // Import types
 import type {
@@ -76,6 +79,7 @@ export default function CompensationSystemIndex({
     const [tabCompletions, setTabCompletions] = useState<Record<string, boolean>>({});
     const [localTabDone, setLocalTabDone] = useState<Record<string, boolean>>({});
     const [compError, setCompError] = useState<string | null>(null);
+    const [compFieldErrors, setCompFieldErrors] = useState<FieldErrors>({});
     const [isRationaleOpen, setIsRationaleOpen] = useState(true);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -105,16 +109,38 @@ export default function CompensationSystemIndex({
     const { post, processing } = useForm({});
     const [saving, setSaving] = useState(false);
 
+    const validationCtx = () => ({
+        snapshotQuestions: snapshotQuestions || [],
+        snapshotResponses,
+        baseSalaryFramework,
+        payBands,
+        salaryTables,
+        bonusPool,
+        benefits,
+    });
+
     const handleSaveAndContinue = () => {
         setCompError(null);
+        setCompFieldErrors({});
+
+        if (activeTab === 'overview') {
+            handleTabChange('snapshot');
+            return;
+        }
+
+        if (activeTab !== 'review') {
+            const v = validateCompensationStep(activeTab, validationCtx());
+            if (!v.ok) {
+                setCompError(v.message);
+                setCompFieldErrors(v.fieldErrors);
+                return;
+            }
+        }
+
         const idx = TABS.findIndex(t => t.id === activeTab);
         const nextTabId = idx < TABS.length - 1 ? TABS[idx + 1].id : activeTab;
         if (activeTab !== 'overview' && activeTab !== 'review') {
             setLocalTabDone((d) => ({ ...d, [activeTab]: true }));
-        }
-        if (activeTab === 'overview') {
-            handleTabChange('snapshot');
-            return;
         }
         handleTabChange(nextTabId);
     };
@@ -188,11 +214,24 @@ export default function CompensationSystemIndex({
     const handleTabChange = (newTab: string) => {
         const tabIndex = TABS.findIndex(t => t.id === newTab);
         if (tabIndex === -1) return;
-        
+
         if (!isTabEnabled(newTab, tabIndex)) {
+            let blocker = 'the previous step';
+            for (let i = 0; i < tabIndex; i++) {
+                const prev = TABS[i];
+                if (prev.id === 'overview') continue;
+                if (!validateTabCompletion(prev.id)) {
+                    blocker = prev.label;
+                    break;
+                }
+            }
+            setCompError(`Complete "${blocker}" before opening this tab.`);
+            setCompFieldErrors({});
             return;
         }
-        
+
+        setCompError(null);
+        setCompFieldErrors({});
         setActiveTab(newTab);
         router.get(`/hr-manager/compensation-system/${project.id}/${newTab}`, {}, {
             preserveState: true,
@@ -208,14 +247,71 @@ export default function CompensationSystemIndex({
         }
     }, [initialTab]);
 
+    // Live: prune keyed field errors as the user fixes fields on the active tab.
+    useEffect(() => {
+        if (activeTab === 'overview' || activeTab === 'review') return;
+        setCompFieldErrors((prev) => {
+            if (Object.keys(prev).length === 0) return prev;
+            const v = validateCompensationStep(activeTab, validationCtx());
+            return pruneFieldErrorsToValidator(prev, v.fieldErrors);
+        });
+    }, [
+        activeTab,
+        snapshotResponses,
+        baseSalaryFramework,
+        payBands,
+        salaryTables,
+        bonusPool,
+        benefits,
+        snapshotQuestions,
+    ]);
+
+    useEffect(() => {
+        if (!compError) return;
+        if (compError.startsWith('Complete "')) return;
+        if (Object.keys(compFieldErrors).length === 0) {
+            setCompError(null);
+        }
+    }, [compError, compFieldErrors]);
+
     const handleSubmit = () => {
         setCompError(null);
+        setCompFieldErrors({});
+
+        const preTabs = ['snapshot', 'base-salary-framework', 'pay-band-salary-table', 'bonus-pool', 'benefits'] as const;
+        const ctx = validationCtx();
+        for (const tid of preTabs) {
+            const v = validateCompensationStep(tid, ctx);
+            if (!v.ok) {
+                setCompError(v.message);
+                setCompFieldErrors(v.fieldErrors);
+                setActiveTab(tid);
+                router.get(`/hr-manager/compensation-system/${project.id}/${tid}`, {}, {
+                    preserveState: true,
+                    preserveScroll: true,
+                    only: ['activeTab'],
+                    replace: true,
+                });
+                return;
+            }
+        }
+
         setSaving(true);
         const pid = project.id;
         const opts = { preserveScroll: true, preserveState: true, only: ['project'] as const };
-        const fail = (msg: string) => {
+        const fail = (msg: string, inertiaErrors?: Record<string, string | string[]>) => {
             setSaving(false);
             setCompError(msg);
+            if (inertiaErrors && typeof inertiaErrors === 'object') {
+                const fe: FieldErrors = {};
+                for (const [k, val] of Object.entries(inertiaErrors)) {
+                    const m = Array.isArray(val) ? val[0] : val;
+                    if (typeof m === 'string' && m) fe[k] = m;
+                }
+                setCompFieldErrors(fe);
+            } else {
+                setCompFieldErrors({});
+            }
         };
 
         const responseData = (snapshotQuestions || []).map((q: { id: number; answer_type?: string }) => {
@@ -274,28 +370,28 @@ export default function CompensationSystemIndex({
                                                                         setTabCompletions((c) => ({ ...c, review: true }));
                                                                         setShowSuccessModal(true);
                                                                     },
-                                                                    onError: () => fail('Submit failed. Check all sections and try again.'),
+                                                                    onError: (e) => fail('Submit failed. Check all sections and try again.', e),
                                                                 });
                                                             },
-                                                            onError: () => fail('Could not save benefits. Please check required fields.'),
+                                                            onError: (e) => fail('Could not save benefits. Please check required fields.', e),
                                                         });
                                                     },
-                                                    onError: () => fail('Could not save bonus pool.'),
+                                                    onError: (e) => fail('Could not save bonus pool.', e),
                                                 });
                                             },
-                                            onError: () => fail('Could not save pay structure.'),
+                                            onError: (e) => fail('Could not save pay structure.', e),
                                         });
                                     },
-                                    onError: () => fail('Could not save salary tables.'),
+                                    onError: (e) => fail('Could not save salary tables.', e),
                                 });
                             },
-                            onError: () => fail('Could not save pay bands.'),
+                            onError: (e) => fail('Could not save pay bands.', e),
                         });
                     },
-                    onError: () => fail('Could not save base salary framework.'),
+                    onError: (e) => fail('Could not save base salary framework.', e),
                 });
             },
-            onError: () => fail('Could not save compensation snapshot. Answer all questions.'),
+            onError: (e) => fail('Could not save compensation snapshot. Answer all questions.', e),
         });
     };
 
@@ -391,13 +487,12 @@ export default function CompensationSystemIndex({
                                                 key={tab.id}
                                                 type="button"
                                                 onClick={() => handleTabChange(tab.id)}
-                                                disabled={!isTabEnabled(tab.id, idx)}
                                                 className={cn(
                                                     'flex items-center gap-2 px-5 py-3.5 text-xs font-medium whitespace-nowrap border-b-2 transition-colors',
                                                     isActive && 'text-white border-[#2ec4a0] bg-white/5',
                                                     isDone && !isActive && 'text-[#2ec4a0] border-transparent',
                                                     !isActive && !isDone && 'text-white/40 border-transparent hover:text-white/70',
-                                                    'disabled:opacity-50 disabled:cursor-not-allowed'
+                                                    !isTabEnabled(tab.id, idx) && 'opacity-60'
                                                 )}
                                             >
                                                 <span className={cn(
@@ -424,6 +519,13 @@ export default function CompensationSystemIndex({
                         </div>
 
                         <div className="max-w-7xl mx-auto px-6 py-6 pb-28">
+                        {(compError || Object.keys(compFieldErrors).length > 0) && (
+                            <InlineErrorSummary
+                                className="mb-4"
+                                message={compError}
+                                errors={compFieldErrors}
+                            />
+                        )}
                         {consultantRecommendation && (
                             <Card className="mb-6 border-2 border-primary/20 bg-primary/5">
                                 <CardContent className="p-6">
@@ -512,6 +614,7 @@ export default function CompensationSystemIndex({
                             snapshotResponses={snapshotResponses}
                             onSnapshotResponsesChange={setSnapshotResponses}
                             onNext={() => handleTabChange('base-salary-framework')}
+                            fieldErrors={compFieldErrors}
                         />
                             </TabsContent>
 
@@ -519,6 +622,7 @@ export default function CompensationSystemIndex({
                         <BaseSalaryFrameworkTab
                             framework={baseSalaryFramework}
                             onUpdate={setBaseSalaryFramework}
+                            fieldErrors={compFieldErrors}
                         />
                     </TabsContent>
 
@@ -532,6 +636,7 @@ export default function CompensationSystemIndex({
                             onPayBandsUpdate={setPayBands}
                             onSalaryTablesUpdate={setSalaryTables}
                             onOperationCriteriaUpdate={setOperationCriteria}
+                            fieldErrors={compFieldErrors}
                         />
                                                 </TabsContent>
 
@@ -539,6 +644,7 @@ export default function CompensationSystemIndex({
                         <BonusPoolTab
                             configuration={bonusPool}
                             onUpdate={setBonusPool}
+                            fieldErrors={compFieldErrors}
                         />
                                                 </TabsContent>
 
@@ -547,11 +653,11 @@ export default function CompensationSystemIndex({
                             configuration={benefits}
                             onUpdate={setBenefits}
                             snapshotBenefitsPrograms={snapshotBenefitsPrograms}
+                            fieldErrors={compFieldErrors}
                         />
                     </TabsContent>
 
                     <TabsContent value="review" className="mt-0">
-                        {compError && <InlineErrorSummary message={compError} className="mb-4" />}
                         <ReviewTab
                             project={project}
                             snapshotQuestions={snapshotQuestions}

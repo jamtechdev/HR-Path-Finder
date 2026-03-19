@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -33,6 +34,7 @@ interface Props {
     evaluationStructure?: EvaluationStructure | null;
     onContinue: (structure: EvaluationStructure) => void;
     onBack?: () => void;
+    fieldErrors?: FieldErrors;
 }
 
 function normalizeStructure(s: any): EvaluationStructure {
@@ -88,6 +90,7 @@ export default function EvaluationStructureTab({
     evaluationStructure: initialStructure,
     onContinue,
     onBack,
+    fieldErrors = {},
 }: Props) {
     const [structure, setStructure] = useState<EvaluationStructure>(() => normalizeStructure(initialStructure));
     const [orgRun, setOrgRun] = useState<boolean>(() => {
@@ -291,6 +294,13 @@ export default function EvaluationStructureTab({
                             Individual Evaluation
                         </button>
                     </div>
+
+                    {(fieldErrors['eval-ind-evaluators'] || fieldErrors['eval-ind-method']) && (
+                        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 space-y-1">
+                            <FieldErrorMessage fieldKey="eval-ind-evaluators" errors={fieldErrors} className="!mt-0" />
+                            <FieldErrorMessage fieldKey="eval-ind-method" errors={fieldErrors} className="!mt-0" />
+                        </div>
+                    )}
 
                     {/* Org run toggle */}
                     <div className="org-run-wrap">

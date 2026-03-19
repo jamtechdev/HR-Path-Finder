@@ -6,6 +6,7 @@ interface LeadershipStepProps {
     questions: DiagnosisQuestion[];
     data: SurveyFormData;
     setData: (key: 'leadership', value: SurveyFormData['leadership']) => void;
+    showErrors?: boolean;
 }
 
 function getScenarioMeta(index: number, question: DiagnosisQuestion) {
@@ -22,7 +23,7 @@ function getScenarioMeta(index: number, question: DiagnosisQuestion) {
     };
 }
 
-export default function LeadershipStep({ questions, data, setData }: LeadershipStepProps) {
+export default function LeadershipStep({ questions, data, setData, showErrors = false }: LeadershipStepProps) {
     return (
         <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
             {/* Section header */}
@@ -64,6 +65,7 @@ export default function LeadershipStep({ questions, data, setData }: LeadershipS
                     const value = data.leadership[qId];
                     const num = typeof value === 'number' && value >= 1 && value <= 7 ? value : null;
                     const answered = num !== null;
+                    const hasError = showErrors && !answered;
                     const meta = getScenarioMeta(qi, question);
                     const optionA = ((question.metadata as { option_a?: string }) || {}).option_a || '';
                     const optionB = ((question.metadata as { option_b?: string }) || {}).option_b || '';
@@ -72,7 +74,7 @@ export default function LeadershipStep({ questions, data, setData }: LeadershipS
                         <div
                             key={question.id}
                             className={`bg-white border-[1.5px] rounded-xl overflow-hidden transition-colors ${
-                                answered ? 'border-[#0E1628]/20' : 'border-[#E2DDD4]'
+                                hasError ? 'border-red-300 bg-red-50/40' : answered ? 'border-[#0E1628]/20' : 'border-[#E2DDD4]'
                             }`}
                             style={{ animationDelay: `${qi * 0.06}s` }}
                         >
@@ -126,6 +128,7 @@ export default function LeadershipStep({ questions, data, setData }: LeadershipS
 
                                 {/* 7-point scale */}
                                 <div className="flex flex-col gap-1.5">
+                                    {hasError && <p className="text-sm font-medium text-red-600">Please answer this scenario.</p>}
                                     <div className="flex justify-between text-xs sm:text-[10px]">
                                         <span className="text-[#9A9EB8]">← Strongly lean left</span>
                                         <span className="text-[#9A9EB8]">Strongly lean right →</span>

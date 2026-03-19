@@ -6,6 +6,7 @@ import { both, tr } from '@/config/diagnosisTranslations';
 import { X, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
+import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 
 interface Diagnosis {
     id: number;
@@ -78,6 +79,12 @@ export default function OrganizationalStructure({
     const useEmbed = embedMode && embedData != null && embedSetData;
     const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
     const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
+    const inertiaOrgStructureErr =
+        typeof internalForm.errors.org_structure_types === 'string'
+            ? internalForm.errors.org_structure_types
+            : typeof (internalForm.errors as Record<string, string>).organizational_structure === 'string'
+              ? (internalForm.errors as Record<string, string>).organizational_structure
+              : undefined;
 
     // Hydrate from session draft so selections persist when navigating back/forward
     useDiagnosisDraftHydrate(
@@ -198,6 +205,10 @@ export default function OrganizationalStructure({
                             )}
                         </div>
                     </div>
+                    <DiagnosisFieldErrorMessage
+                        fieldKey="organizational_structure"
+                        inertiaError={inertiaOrgStructureErr}
+                    />
                 </div>
     );
     if (embedMode) return <>{innerContent}</>;

@@ -29,16 +29,12 @@ class HrTreeController extends Controller
             abort(403);
         }
 
-        if (! $hrProject->isStepUnlocked('hr_policy_os')) {
-            return redirect()->route('hr-manager.dashboard')
-                ->withErrors(['error' => 'Final Dashboard is not yet unlocked. Please complete Step 4 first.']);
-        }
-
         $data = $this->reportDataService->getComprehensiveProjectData($hrProject);
 
         return Inertia::render('HRManager/Tree/Index', [
             'project' => $data['project'],
             'stepStatuses' => $data['stepStatuses'],
+            'stageProgressPercent' => $data['stageProgressPercent'],
             'activeTab' => $tab,
             'projectId' => $hrProject->id,
             'jobDefinitions' => $data['jobDefinitions'],

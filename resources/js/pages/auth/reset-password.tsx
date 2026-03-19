@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { home } from '@/routes';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { ArrowRight, Lock, ArrowLeft } from 'lucide-react';
 
 type Props = {
@@ -121,7 +122,10 @@ export default function ResetPassword({ email, status }: Props) {
                                 id="password"
                                 type="password"
                         value={form.data.password}
-                        onChange={(e) => form.setData('password', e.target.value)}
+                        onChange={(e) => {
+                            form.setData('password', e.target.value);
+                            clearInertiaFieldError(form.clearErrors, 'password');
+                        }}
                                 autoComplete="new-password"
                                 autoFocus
                                         placeholder="••••••••"
@@ -139,7 +143,10 @@ export default function ResetPassword({ email, status }: Props) {
                                 id="password_confirmation"
                                 type="password"
                         value={form.data.password_confirmation}
-                        onChange={(e) => form.setData('password_confirmation', e.target.value)}
+                        onChange={(e) => {
+                            form.setData('password_confirmation', e.target.value);
+                            clearInertiaFieldError(form.clearErrors, 'password_confirmation');
+                        }}
                                 autoComplete="new-password"
                                         placeholder="••••••••"
                                         className="h-10 w-full"

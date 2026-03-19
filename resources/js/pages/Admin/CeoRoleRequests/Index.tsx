@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
@@ -298,6 +299,7 @@ export default function CeoRoleRequestsIndex({ requests }: Props) {
                                             variant="outline"
                                             onClick={() => {
                                                 setShowRejectDialog(false);
+                clearInertiaFieldError(clearErrors, 'rejection_reason');
                                                 setSelectedRequest(null);
                                                 rejectForm.reset();
                                             }}

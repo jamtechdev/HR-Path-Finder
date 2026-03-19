@@ -4,6 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ChevronLeft, ArrowRight, HelpCircle } from 'lucide-react';
 import type { PolicyAnswer } from '../hooks/useJobAnalysisState';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import { cn } from '@/lib/utils';
 
 interface Question {
     id: number;
@@ -18,6 +20,7 @@ interface Step1PolicySnapshotProps {
     onAnswersChange: (answers: Record<number, PolicyAnswer>) => void;
     onContinue: () => void;
     onBack: () => void;
+    fieldErrors?: FieldErrors;
 }
 
 const OPTIONS = [
@@ -32,6 +35,7 @@ export default function Step1PolicySnapshot({
     onAnswersChange,
     onContinue,
     onBack,
+    fieldErrors = {},
 }: Step1PolicySnapshotProps) {
     const [answers, setAnswers] = useState<Record<number, PolicyAnswer>>(savedAnswers);
     const prevAnswersRef = useRef<Record<number, PolicyAnswer>>({});
@@ -121,7 +125,12 @@ export default function Step1PolicySnapshot({
                             return (
                                 <div
                                     key={question.id}
-                                    className="bg-white border border-[#e0ddd5] relative"
+                                    className={cn(
+                                        'bg-white border relative',
+                                        fieldErrors[`q-${question.id}`] || fieldErrors[`q-${question.id}-conditional`]
+                                            ? 'border-destructive border-2'
+                                            : 'border-[#e0ddd5]'
+                                    )}
                                     style={{
                                         borderRadius: 16,
                                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
@@ -198,6 +207,8 @@ export default function Step1PolicySnapshot({
                                         })}
                                     </div>
 
+                                    <FieldErrorMessage fieldKey={`q-${question.id}`} errors={fieldErrors} />
+
                                     {question.has_conditional_text && currentAnswer === 'yes' && (
                                         <div className="border-t border-[#f1f5f9]" style={{ padding: '16px 35px' }}>
                                             <Label className="text-sm font-semibold text-[#475569] block mb-2">
@@ -211,6 +222,7 @@ export default function Step1PolicySnapshot({
                                                 placeholder="Enter job names"
                                                 className="max-w-md border-[#e0ddd5] rounded-lg"
                                             />
+                                            <FieldErrorMessage fieldKey={`q-${question.id}-conditional`} errors={fieldErrors} />
                                         </div>
                                     )}
                                 </div>
@@ -242,12 +254,7 @@ export default function Step1PolicySnapshot({
                     <Button
                         type="button"
                         onClick={onContinue}
-                        disabled={!allAnswered}
-                        className={
-                            allAnswered
-                                ? 'bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white font-bold px-9 py-6 rounded-lg'
-                                : 'bg-[#b8b8c0] text-white font-bold px-9 py-6 rounded-lg pointer-events-none opacity-90'
-                        }
+                        className="bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white font-bold px-9 py-6 rounded-lg"
                     >
                         Save & Continue
                         <ArrowRight className="w-4 h-4 ml-1" />

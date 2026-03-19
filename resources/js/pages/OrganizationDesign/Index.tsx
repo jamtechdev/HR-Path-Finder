@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Building2, Target, Users, CheckCircle2 } from 'lucide-react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 interface CeoPhilosophy {
     main_trait?: string;
@@ -75,7 +76,7 @@ export default function OrganizationDesignIndex({ project, organizationDesign, r
     const [activeTab, setActiveTab] = useState('overview');
     const [completedTabs, setCompletedTabs] = useState<string[]>([]);
 
-    const { data, setData, post, processing } = useForm({
+    const { data, setData, post, processing, errors, clearErrors } = useForm({
         structure_type: organizationDesign?.structure_type || '',
         job_grade_structure: organizationDesign?.job_grade_structure || '',
         grade_title_relationship: organizationDesign?.grade_title_relationship || '',
@@ -102,6 +103,7 @@ export default function OrganizationDesignIndex({ project, organizationDesign, r
         } else {
             setData('managerial_criteria', [...current, value]);
         }
+        clearInertiaFieldError(clearErrors, 'managerial_criteria');
     };
 
     return (
@@ -177,7 +179,10 @@ export default function OrganizationDesignIndex({ project, organizationDesign, r
                                         </div>
                                         <RadioGroup
                                             value={data.structure_type}
-                                            onValueChange={(value) => setData('structure_type', value)}
+                                            onValueChange={(value) => {
+                                                setData('structure_type', value);
+                                                clearInertiaFieldError(clearErrors, 'structure_type');
+                                            }}
                                             className="grid grid-cols-1 md:grid-cols-2 gap-4"
                                         >
                                             {STRUCTURE_OPTIONS.map((option) => {
@@ -212,7 +217,10 @@ export default function OrganizationDesignIndex({ project, organizationDesign, r
                                         </div>
                                         <RadioGroup
                                             value={data.job_grade_structure}
-                                            onValueChange={(value) => setData('job_grade_structure', value)}
+                                            onValueChange={(value) => {
+                                                setData('job_grade_structure', value);
+                                                clearInertiaFieldError(clearErrors, 'job_grade_structure');
+                                            }}
                                             className="grid grid-cols-1 md:grid-cols-2 gap-4"
                                         >
                                             {GRADE_OPTIONS.map((option) => (
@@ -238,7 +246,10 @@ export default function OrganizationDesignIndex({ project, organizationDesign, r
                                         </div>
                                         <RadioGroup
                                             value={data.grade_title_relationship}
-                                            onValueChange={(value) => setData('grade_title_relationship', value)}
+                                            onValueChange={(value) => {
+                                                setData('grade_title_relationship', value);
+                                                clearInertiaFieldError(clearErrors, 'grade_title_relationship');
+                                            }}
                                             className="grid grid-cols-1 md:grid-cols-2 gap-4"
                                         >
                                             {RELATIONSHIP_OPTIONS.map((option) => (

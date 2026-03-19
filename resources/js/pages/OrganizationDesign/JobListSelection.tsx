@@ -54,7 +54,7 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
     const [draggedJobId, setDraggedJobId] = useState<number | null>(null);
     const [dragOverGroupId, setDragOverGroupId] = useState<string | null>(null);
 
-    const { data, setData, errors } = useForm({
+    const { data, setData, errors, clearErrors } = useForm({
         selected_job_keyword_ids: [] as number[],
         custom_jobs: [] as string[],
         grouped_jobs: [] as Array<{ name: string; job_keyword_ids: number[] }>,
@@ -81,6 +81,7 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
         } else {
             setSelectedJobIds([...selectedJobIds, jobId]);
         }
+        clearErrors();
     };
 
     const handleAddCustomJob = () => {
@@ -89,6 +90,7 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
             const currentCustomJobs = data.custom_jobs || [];
             setData('custom_jobs', [...currentCustomJobs, customJob.trim()]);
             setCustomJob('');
+            clearErrors();
         }
     };
 
@@ -140,12 +142,14 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
         }
 
         setDraggedJobId(null);
+        clearErrors();
     };
 
     const handleUpdateGroupName = (groupId: string, newName: string) => {
         setGroupedJobs(groupedJobs.map(g => 
             g.id === groupId ? { ...g, name: newName } : g
         ));
+        clearErrors();
     };
 
     const handleRemoveFromGroup = (groupId: string, jobId: number) => {
@@ -159,10 +163,12 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
             }
             return g;
         }).filter(Boolean) as Array<{ id: string; name: string; jobIds: number[] }>);
+        clearErrors();
     };
 
     const handleDeleteGroup = (groupId: string) => {
         setGroupedJobs(groupedJobs.filter(g => g.id !== groupId));
+        clearErrors();
     };
 
     const [navigating, setNavigating] = useState(false);

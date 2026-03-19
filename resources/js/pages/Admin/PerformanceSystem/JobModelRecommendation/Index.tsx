@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
@@ -30,7 +31,7 @@ interface Props {
 
 export default function JobModelRecommendationIndex({ recommendations, jobKeywords, modelTypes }: Props) {
     const [showAddDialog, setShowAddDialog] = useState(false);
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         job_keyword_id: '',
         recommended_model: '',
         is_active: true,

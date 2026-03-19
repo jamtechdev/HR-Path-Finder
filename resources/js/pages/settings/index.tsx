@@ -26,6 +26,7 @@ import AppHeader from '@/components/Header/AppHeader';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import InputError from '@/components/input-error';
 import { Form, Link } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import PasswordController from '@/actions/App/Http/Controllers/Settings/PasswordController';
 import AppearanceToggleTab from '@/components/appearance-tabs';
@@ -267,7 +268,10 @@ export default function SettingsIndex({
                                                     id="name"
                                                     name="name"
                                                     value={profileForm.data.name}
-                                                    onChange={(e) => profileForm.setData('name', e.target.value)}
+                                                    onChange={(e) => {
+                                                        profileForm.setData('name', e.target.value);
+                                                        clearInertiaFieldError(profileForm.clearErrors, 'name');
+                                                    }}
                                                     required
                                                 />
                                                 <InputError message={profileForm.errors.name} />
@@ -279,7 +283,10 @@ export default function SettingsIndex({
                                                     type="email"
                                                     name="email"
                                                     value={profileForm.data.email}
-                                                    onChange={(e) => profileForm.setData('email', e.target.value)}
+                                                    onChange={(e) => {
+                                                        profileForm.setData('email', e.target.value);
+                                                        clearInertiaFieldError(profileForm.clearErrors, 'email');
+                                                    }}
                                                     required
                                                 />
                                                 <InputError message={profileForm.errors.email} />
@@ -351,7 +358,7 @@ export default function SettingsIndex({
                                             }}
                                             className="space-y-6"
                                         >
-                                            {({ errors, processing, recentlySuccessful }) => (
+                                            {({ errors, processing, recentlySuccessful, clearErrors }) => (
                                                 <>
                                                     <div className="grid gap-2">
                                                         <Label htmlFor="current_password">Current password</Label>
@@ -363,6 +370,7 @@ export default function SettingsIndex({
                                                             className="mt-1 block w-full"
                                                             autoComplete="current-password"
                                                             placeholder="Current password"
+                                                            onChange={() => clearInertiaFieldError(clearErrors, 'current_password')}
                                                         />
                                                         <InputError message={errors.current_password} />
                                                     </div>
@@ -377,6 +385,7 @@ export default function SettingsIndex({
                                                             className="mt-1 block w-full"
                                                             autoComplete="new-password"
                                                             placeholder="New password"
+                                                            onChange={() => clearInertiaFieldError(clearErrors, 'password')}
                                                         />
                                                         <InputError message={errors.password} />
                                                     </div>
@@ -390,6 +399,7 @@ export default function SettingsIndex({
                                                             className="mt-1 block w-full"
                                                             autoComplete="new-password"
                                                             placeholder="Confirm password"
+                                                            onChange={() => clearInertiaFieldError(clearErrors, 'password_confirmation')}
                                                         />
                                                         <InputError message={errors.password_confirmation} />
                                                     </div>
@@ -466,7 +476,10 @@ export default function SettingsIndex({
                                                     <select
                                                         id="mailer"
                                                         value={smtpForm.data.mailer}
-                                                        onChange={(e) => smtpForm.setData('mailer', e.target.value)}
+                                                        onChange={(e) => {
+                                                            smtpForm.setData('mailer', e.target.value);
+                                                            clearInertiaFieldError(smtpForm.clearErrors, 'mailer');
+                                                        }}
                                                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                                     >
                                                         <option value="smtp">SMTP</option>
@@ -483,7 +496,10 @@ export default function SettingsIndex({
                                                             <Input
                                                                 id="host"
                                                                 value={smtpForm.data.host}
-                                                                onChange={(e) => smtpForm.setData('host', e.target.value)}
+                                                                onChange={(e) => {
+                                                                    smtpForm.setData('host', e.target.value);
+                                                                    clearInertiaFieldError(smtpForm.clearErrors, 'host');
+                                                                }}
                                                                 placeholder="smtp.mailtrap.io"
                                                                 required
                                                             />
@@ -495,7 +511,10 @@ export default function SettingsIndex({
                                                                 id="port"
                                                                 type="number"
                                                                 value={smtpForm.data.port}
-                                                                onChange={(e) => smtpForm.setData('port', parseInt(e.target.value))}
+                                                                onChange={(e) => {
+                                                                    smtpForm.setData('port', parseInt(e.target.value));
+                                                                    clearInertiaFieldError(smtpForm.clearErrors, 'port');
+                                                                }}
                                                                 placeholder="587"
                                                                 required
                                                             />
@@ -506,7 +525,10 @@ export default function SettingsIndex({
                                                             <Input
                                                                 id="username"
                                                                 value={smtpForm.data.username}
-                                                                onChange={(e) => smtpForm.setData('username', e.target.value)}
+                                                                onChange={(e) => {
+                                                                    smtpForm.setData('username', e.target.value);
+                                                                    clearInertiaFieldError(smtpForm.clearErrors, 'username');
+                                                                }}
                                                                 placeholder="SMTP username"
                                                             />
                                                         </div>
@@ -517,7 +539,10 @@ export default function SettingsIndex({
                                                                 id="password"
                                                                 type="password"
                                                                 value={smtpForm.data.password}
-                                                                onChange={(e) => smtpForm.setData('password', e.target.value)}
+                                                                onChange={(e) => {
+                                                                    smtpForm.setData('password', e.target.value);
+                                                                    clearInertiaFieldError(smtpForm.clearErrors, 'password');
+                                                                }}
                                                                 placeholder="Leave empty to keep current"
                                                             />
                                                         </div>
@@ -527,7 +552,10 @@ export default function SettingsIndex({
                                                             <select
                                                                 id="encryption"
                                                                 value={smtpForm.data.encryption}
-                                                                onChange={(e) => smtpForm.setData('encryption', e.target.value)}
+                                                                onChange={(e) => {
+                                                                    smtpForm.setData('encryption', e.target.value);
+                                                                    clearInertiaFieldError(smtpForm.clearErrors, 'encryption');
+                                                                }}
                                                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                                             >
                                                                 <option value="tls">TLS</option>
@@ -545,7 +573,10 @@ export default function SettingsIndex({
                                                         id="from_address"
                                                         type="email"
                                                         value={smtpForm.data.from_address}
-                                                        onChange={(e) => smtpForm.setData('from_address', e.target.value)}
+                                                        onChange={(e) => {
+                                                            smtpForm.setData('from_address', e.target.value);
+                                                            clearInertiaFieldError(smtpForm.clearErrors, 'from_address');
+                                                        }}
                                                         placeholder="noreply@example.com"
                                                         required
                                                     />
@@ -556,7 +587,10 @@ export default function SettingsIndex({
                                                     <Input
                                                         id="from_name"
                                                         value={smtpForm.data.from_name}
-                                                        onChange={(e) => smtpForm.setData('from_name', e.target.value)}
+                                                        onChange={(e) => {
+                                                            smtpForm.setData('from_name', e.target.value);
+                                                            clearInertiaFieldError(smtpForm.clearErrors, 'from_name');
+                                                        }}
                                                         placeholder="HR Path-Finder"
                                                         required
                                                     />
@@ -601,7 +635,10 @@ export default function SettingsIndex({
                                                     id="test_email"
                                                     type="email"
                                                     value={testEmailForm.data.test_email}
-                                                    onChange={(e) => testEmailForm.setData('test_email', e.target.value)}
+                                                    onChange={(e) => {
+                                                        testEmailForm.setData('test_email', e.target.value);
+                                                        clearInertiaFieldError(testEmailForm.clearErrors, 'test_email');
+                                                    }}
                                                     placeholder="your@email.com"
                                                     required
                                                 />
@@ -641,7 +678,10 @@ export default function SettingsIndex({
                                                 <Input
                                                     id="app_name"
                                                     value={appForm.data.name}
-                                                    onChange={(e) => appForm.setData('name', e.target.value)}
+                                                    onChange={(e) => {
+                                                        appForm.setData('name', e.target.value);
+                                                        clearInertiaFieldError(appForm.clearErrors, 'name');
+                                                    }}
                                                     placeholder="HR Path-Finder"
                                                     required
                                                 />
@@ -665,6 +705,7 @@ export default function SettingsIndex({
                                                             const file = e.target.files?.[0];
                                                             if (file) {
                                                                 appForm.setData('logo', file);
+                                                                clearInertiaFieldError(appForm.clearErrors, 'logo');
                                                             }
                                                         }}
                                                         className="flex-1"

@@ -6,6 +6,7 @@ interface GeneralStepProps {
     questions: DiagnosisQuestion[];
     data: SurveyFormData;
     setData: (key: 'general', value: SurveyFormData['general']) => void;
+    showErrors?: boolean;
 }
 
 function getQuestionMeta(index: number, question: DiagnosisQuestion) {
@@ -22,7 +23,7 @@ function getQuestionMeta(index: number, question: DiagnosisQuestion) {
     };
 }
 
-export default function GeneralStep({ questions, data, setData }: GeneralStepProps) {
+export default function GeneralStep({ questions, data, setData, showErrors = false }: GeneralStepProps) {
     const total = questions.length;
 
     return (
@@ -66,6 +67,7 @@ export default function GeneralStep({ questions, data, setData }: GeneralStepPro
                     const value = data.general[qId];
                     const num = typeof value === 'number' && value >= 1 && value <= 7 ? value : null;
                     const answered = num !== null;
+                    const hasError = showErrors && !answered;
                     const meta = getQuestionMeta(qi, question);
                     const optionA = ((question.metadata as { option_a?: string }) || {}).option_a || '';
                     const optionB = ((question.metadata as { option_b?: string }) || {}).option_b || '';
@@ -74,7 +76,7 @@ export default function GeneralStep({ questions, data, setData }: GeneralStepPro
                         <div
                             key={question.id}
                             className={`bg-white border-[1.5px] rounded-xl overflow-hidden transition-colors ${
-                                answered ? 'border-[#0E1628]/20' : 'border-[#E2DDD4]'
+                                hasError ? 'border-red-300 bg-red-50/40' : answered ? 'border-[#0E1628]/20' : 'border-[#E2DDD4]'
                             }`}
                             style={{ animationDelay: `${qi * 0.05}s` }}
                         >
@@ -127,6 +129,7 @@ export default function GeneralStep({ questions, data, setData }: GeneralStepPro
 
                                 {/* 7-point scale */}
                                 <div className="flex flex-col gap-1.5">
+                                    {hasError && <p className="text-sm font-medium text-red-600">Please answer this question.</p>}
                                     <div className="flex justify-between">
                                         <span className="text-[10px] text-[#9A9EB8]">← {meta.leftLabel}</span>
                                         <span className="text-[10px] text-[#9A9EB8]">{meta.rightLabel} →</span>

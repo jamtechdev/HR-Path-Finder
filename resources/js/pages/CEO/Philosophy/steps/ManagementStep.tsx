@@ -9,6 +9,7 @@ interface ManagementStepProps {
     questions: DiagnosisQuestion[];
     data: SurveyFormData;
     setData: (key: keyof SurveyFormData, value: SurveyFormData['management_philosophy']) => void;
+    showErrors?: boolean;
 }
 
 export default function ManagementStep({
@@ -18,6 +19,7 @@ export default function ManagementStep({
     questions,
     data,
     setData,
+    showErrors = false,
 }: ManagementStepProps) {
     return (
         <div className="w-full space-y-6 sm:space-y-7">
@@ -49,10 +51,11 @@ export default function ManagementStep({
                 {questions.map((question, qi) => {
                     const val = data.management_philosophy[question.id.toString()];
                     const answered = val != null && !Number.isNaN(Number(val));
+                    const hasError = showErrors && !answered;
                     return (
                         <div
                             key={question.id}
-                            className={`w-full bg-white border rounded-[10px] px-4 sm:px-6 py-4 sm:py-5 animate-in fade-in slide-in-from-bottom-4 duration-300 ${answered ? 'border-[#0E1628]/20' : 'border-[#E2DDD4]'}`}
+                            className={`w-full bg-white border rounded-[10px] px-4 sm:px-6 py-4 sm:py-5 animate-in fade-in slide-in-from-bottom-4 duration-300 ${hasError ? 'border-red-300 bg-red-50/40' : answered ? 'border-[#0E1628]/20' : 'border-[#E2DDD4]'}`}
                             style={{ animationDelay: `${(qi + 2) * 40}ms` }}
                         >
                             <div className="text-[10px] font-medium uppercase tracking-widest text-[#9A9EB8] mb-2">
@@ -72,6 +75,7 @@ export default function ManagementStep({
                                     rightLabel="매우\n그렇다"
                                     variant="survey"
                                     required
+                                    error={hasError ? 'Please answer this question.' : undefined}
                                 />
                             </div>
                         </div>

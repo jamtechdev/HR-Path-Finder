@@ -7,11 +7,13 @@ interface IssuesStepProps {
     hrIssues: HrIssue[];
     data: SurveyFormData;
     setData: <K extends keyof SurveyFormData>(key: K, value: SurveyFormData[K]) => void;
+    showError?: boolean;
 }
 
-export default function IssuesStep({ hrIssues, data, setData }: IssuesStepProps) {
+export default function IssuesStep({ hrIssues, data, setData, showError = false }: IssuesStepProps) {
     const orderedIds = (data.organizational_issues || []).map((id) => id.toString());
     const maxReached = orderedIds.length >= MAX_ORGANIZATIONAL_ISSUES;
+    const hasError = showError && orderedIds.length === 0;
     const [draggingId, setDraggingId] = React.useState<string | null>(null);
 
     const issueMap = React.useMemo(() => {
@@ -117,9 +119,14 @@ export default function IssuesStep({ hrIssues, data, setData }: IssuesStepProps)
                     You’ve selected the maximum of {MAX_ORGANIZATIONAL_ISSUES}. Remove one to add another.
                 </div>
             )}
+            {hasError && (
+                <div className="text-sm font-medium text-red-600 dark:text-red-400 -mt-3">
+                    Please select at least one organizational issue before continuing.
+                </div>
+            )}
 
             {/* Selected panel */}
-            <div className="bg-white dark:bg-slate-900 border-[1.5px] border-[#0E1628] dark:border-slate-700 rounded-xl p-5 sm:p-6 relative overflow-hidden animate-in fade-in duration-300">
+            <div className={`bg-white dark:bg-slate-900 border-[1.5px] rounded-xl p-5 sm:p-6 relative overflow-hidden animate-in fade-in duration-300 ${hasError ? 'border-red-300 dark:border-red-500/60 bg-red-50/40 dark:bg-red-950/20' : 'border-[#0E1628] dark:border-slate-700'}`}>
                 <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#0E1628] to-[#C9A84C]" />
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                     <span className="font-serif text-sm font-bold text-[#0E1628] dark:text-slate-100">

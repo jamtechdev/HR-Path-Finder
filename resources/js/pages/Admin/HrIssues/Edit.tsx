@@ -11,6 +11,7 @@ import {
     SidebarProvider,
 } from '@/components/ui/sidebar';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import React from 'react';
 
 export default function Edit({
@@ -20,7 +21,7 @@ export default function Edit({
     issue: any;
     categories: Record<string, string>;
 }) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, clearErrors } = useForm({
         name: issue.name,
         order: issue.order,
         category: issue.category,

@@ -73,49 +73,32 @@ function ReviewCard({
     editUrl: string;
     children: React.ReactNode;
 }) {
-    const [hov, setHov] = useState(false);
     return (
-        <div
-            onMouseEnter={() => setHov(true)}
-            onMouseLeave={() => setHov(false)}
-            className="overflow-hidden rounded-[14px] border-[1.5px] bg-white transition-shadow"
-            style={{
-                borderColor: '#e2e8f0',
-                boxShadow: hov ? '0 4px 18px rgba(15,42,74,0.1)' : '0 1px 4px rgba(15,42,74,0.05)',
-            }}
-        >
-            <div className="flex items-center justify-between border-b" style={{ borderColor: '#f0f4f8', background: '#f8fafc', padding: '12px 16px' }}>
-                <div className="flex items-center gap-1.5">
-                    <span className="text-sm">{icon}</span>
-                    <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#0f2a4a]">{title}</span>
+        <div className="group overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:shadow-md hover:border-slate-300/80">
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-4 py-3">
+                <div className="flex items-center gap-2.5">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-base shadow-sm ring-1 ring-slate-200/80">
+                        {icon}
+                    </span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        {title}
+                    </span>
                 </div>
                 <Link
                     href={editUrl}
-                    className="inline-flex items-center gap-1 rounded-[5px] border px-2 py-0.5 text-[10px] font-semibold transition-opacity hover:bg-slate-50"
-                    style={{ opacity: hov ? 1 : 0, borderColor: '#e2e8f0', color: '#64748b' }}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300"
                 >
-                    <svg width="9" height="9" viewBox="0 0 11 11" fill="none" className="shrink-0">
-                        <path d="M7.5 1.5L9.5 3.5L3.5 9.5H1.5V7.5L7.5 1.5Z" stroke="#64748b" strokeWidth="1.3" strokeLinejoin="round" />
+                    <svg width="10" height="10" viewBox="0 0 11 11" fill="none" className="shrink-0" aria-hidden>
+                        <path d="M7.5 1.5L9.5 3.5L3.5 9.5H1.5V7.5L7.5 1.5Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
                     </svg>
                     {tr('editBtn')}
                 </Link>
             </div>
-            <div style={{ padding: '14px 16px' }}>{children}</div>
+            <div className="p-4">{children}</div>
         </div>
     );
 }
 
-function KpiBlock({ label, value, unit, accent }: { label: string; value: number | string; unit: string; accent?: string }) {
-    return (
-        <div className="min-w-[80px] flex-1 rounded-[9px] p-3" style={{ background: '#f8fafc', padding: '11px 13px' }}>
-            <div className="mb-0.5 text-[9px] font-semibold uppercase tracking-[0.05em] text-[#94a3b8]">{label}</div>
-            <div className="text-xl font-extrabold leading-none text-[#0f2a4a]" style={accent ? { color: accent } : undefined}>
-                {value}
-                <span className="ml-0.5 text-[11px] font-medium text-[#94a3b8]">{unit}</span>
-            </div>
-        </div>
-    );
-}
 
 interface Diagnosis {
     id: number;
@@ -564,313 +547,319 @@ export default function Review({
                 stepStatuses={stepStatuses}
                 projectId={projectId}
                 backRoute="hr-issues"
+                showBack={false}
                 showNext={false}
             >
-                <div className="-mx-9 -mt-7 bg-[#f4f6f9] min-h-full pb-6">
-                    {/* Step nav bar — ref: gap 8px, padding 4px 11px, sticky, 52px */}
-                    <div className="bg-white border-b border-[#e2e8f0] px-5 flex items-center gap-2 h-[52px] overflow-x-auto shrink-0 sticky top-0 z-[100]" style={{ gap: 8 }}>
-                        {diagnosisTabs
-                            .filter((tab) => tab.id !== 'overview')
-                            .map((tab) => {
-                                const isCurrent = tab.id === 'review';
-                                const isDone = tab.id !== 'review';
-                                const href = projectId ? `/hr-manager/diagnosis/${projectId}/${tab.id}` : `/hr-manager/diagnosis/${tab.id}`;
-                                return (
-                                    <Link
-                                        key={tab.id}
-                                        href={href}
-                                        className="flex items-center gap-1 py-1 px-[11px] rounded-[20px] text-[11.5px] font-medium whitespace-nowrap shrink-0 transition-colors"
-                                        style={{
-                                            background: isCurrent ? '#0f2a4a' : isDone ? '#e8f8ef' : 'transparent',
-                                            color: isCurrent ? '#fff' : isDone ? '#1a9e55' : '#94a3b8',
-                                            border: isCurrent ? 'none' : isDone ? '1.5px solid #a7efcc' : '1.5px solid #e2e8f0',
-                                            fontWeight: isCurrent ? 700 : 500,
-                                        }}
-                                    >
-                                        {isDone && !isCurrent && <span className="shrink-0">✓</span>}
-                                        {tab.name}
-                                    </Link>
-                                );
-                            })}
-                    </div>
-                    <div className="max-w-[960px] mx-auto px-5 pt-7 pb-12" style={{ padding: '28px 20px 50px' }}>
-                <div className="space-y-4">
-                    {/* Page header — ref: margin-bottom 20px */}
-                    <header className="mb-5" style={{ marginBottom: 20 }}>
-                        <h1 className="m-0 text-xl font-extrabold text-[#0f2a4a]" style={{ fontSize: 20, fontWeight: 800 }}>{tr('reviewDashboardTitle')}</h1>
-                        <p className="mt-1 text-[12px] text-[#94a3b8]" style={{ marginTop: 4 }}>{tr('reviewDashboardDescShort')}</p>
-                    </header>
-
-                    {/* Hero dark — ref: 3 KPIs only, padding 22px 26px, divider 44px */}
-                    <div className="rounded-t-[14px] text-white" style={{ background: 'linear-gradient(135deg, #0f2a4a 0%, #1a4070 100%)', padding: '22px 26px' }}>
-                        <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.08em] text-[#c8a84b]">
-                            {company?.name || project?.company?.name || '—'} · {[preview?.industry_category, preview?.industry_subcategory].filter(Boolean).map((v) => formatValue(v)).join(' · ') || '—'}
-                        </div>
-                        <div className="flex flex-wrap items-end gap-7" style={{ gap: 28 }}>
-                            <div>
-                                <label className="block text-[9px] text-[#94a3b8] uppercase mb-0.5">{tr('totalHeadcount')}</label>
-                                <div className="text-2xl font-extrabold leading-none">
-                                    {totalHeadcount}<span className="text-[12px] text-[#94a3b8] font-medium ml-0.5">{tr('personsUnit')}</span>
-                                </div>
-                            </div>
-                            <div className="w-px h-[44px] bg-white/10 self-center shrink-0" />
-                            <div>
-                                <label className="block text-[9px] text-[#94a3b8] uppercase mb-0.5">{tr('leaderRatioLabel')}</label>
-                                <div className="text-2xl font-extrabold leading-none text-[#c8a84b]">{leaderRatio}%</div>
-                            </div>
-                            <div>
-                                <label className="block text-[9px] text-[#94a3b8] uppercase mb-0.5">{tr('avgTenureShort')}</label>
-                                <div className="text-2xl font-extrabold leading-none text-[#2aab6e]">
-                                    {formatNumber(preview?.average_tenure_active)}<span className="text-[12px] text-[#94a3b8] font-medium ml-0.5">{tr('yearsUnit')}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Hero light — ref: gender doughnut 80x80, legend with ● and "남성 46명" only (no %); job structure tags only */}
-                    <div className="flex flex-wrap items-center rounded-b-[14px] border border-t-0 mb-4" style={{ background: '#fff', borderColor: '#e2e8f0', padding: '16px 26px', gap: 24 }}>
-                        <div className="flex items-center gap-3" style={{ gap: 15 }}>
-                            <span className="text-[10px] font-bold uppercase text-[#0f2a4a]">{tr('genderDistribution')}</span>
-                            <div className="relative shrink-0" style={{ width: 80, height: 80 }}>
-                                <div
-                                    className="absolute inset-0 rounded-full"
-                                    style={{
-                                        background: totalHeadcount
-                                            ? `conic-gradient(${GENDER_COLORS[0]} 0deg ${(Number(genderData[0].value) / totalHeadcount) * 360}deg, ${GENDER_COLORS[1]} ${(Number(genderData[0].value) / totalHeadcount) * 360}deg ${((Number(genderData[0].value) + Number(genderData[1].value)) / totalHeadcount) * 360}deg, ${GENDER_COLORS[2]} ${((Number(genderData[0].value) + Number(genderData[1].value)) / totalHeadcount) * 360}deg 360deg)`
-                                            : `conic-gradient(${GENDER_COLORS[0]} 0deg 120deg, ${GENDER_COLORS[1]} 120deg 240deg, ${GENDER_COLORS[2]} 240deg 360deg)`,
-                                        mask: 'radial-gradient(farthest-side, transparent 70%, black 70%)',
-                                        WebkitMask: 'radial-gradient(farthest-side, transparent 70%, black 70%)',
-                                    }}
-                                />
-                            </div>
-                            <div className="flex flex-col text-[11px] gap-1" style={{ gap: 4 }}>
-                                {genderData.slice(0, 2).map((d, i) => (
-                                    <div key={`gender-${i}-${d.name ?? ''}`} className="flex items-center gap-1">
-                                        <span style={{ color: GENDER_COLORS[i] }}>●</span>
-                                        <span>{d.name}</span>
-                                        <span className="font-bold text-[#0f2a4a]">{d.value}{tr('personsUnit')}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="w-px h-[60px] bg-[#e2e8f0] shrink-0" />
-                        <div className="flex-1 min-w-0">
-                            <span className="text-[10px] font-bold uppercase text-[#0f2a4a]">Job Structure</span>
-                            <div className="flex flex-wrap gap-1.5 mt-2" style={{ gap: 5 }}>
-                                {jobStructureForReview.flatMap((cat) =>
-                                    cat.functions.map((fn, fnIdx) => (
-                                        <span
-                                            key={`${cat.name}-${fnIdx}-${fn}`}
-                                            className="rounded-full border font-semibold text-[#0f2a4a]"
-                                            style={{ fontSize: 9, background: '#f0f4fa', borderColor: '#c7d7f0', padding: '2px 8px', borderRadius: 20 }}
+                <div className="min-h-full bg-slate-50/70 pb-10">
+                    {/* Step nav — sticky */}
+                    <div className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-sm">
+                        <div className="mx-auto flex max-w-4xl items-center gap-2 px-4 py-3 overflow-x-auto">
+                            {diagnosisTabs
+                                .filter((tab) => tab.id !== 'overview')
+                                .map((tab) => {
+                                    const isCurrent = tab.id === 'review';
+                                    const isDone = tab.id !== 'review';
+                                    const href = projectId ? `/hr-manager/diagnosis/${projectId}/${tab.id}` : `/hr-manager/diagnosis/${tab.id}`;
+                                    return (
+                                        <Link
+                                            key={tab.id}
+                                            href={href}
+                                            className={`
+                                                flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap shrink-0 transition-all duration-200
+                                                ${isCurrent
+                                                    ? 'bg-slate-800 text-white shadow-md'
+                                                    : isDone
+                                                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100/80'
+                                                        : 'bg-slate-100 text-slate-500 border border-slate-200'
+                                                }
+                                            `}
                                         >
-                                            {fn}
-                                        </span>
-                                    ))
-                                )}
-                            </div>
+                                            {isDone && !isCurrent && <span className="text-emerald-500">✓</span>}
+                                            {tab.name}
+                                        </Link>
+                                    );
+                                })}
                         </div>
                     </div>
 
-                    {/* Dashboard grid — ref: 2x2, gap 14px, margin-bottom 20px. Company, Workforce, 직급별 분포, 당면 이슈 */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 mb-5" style={{ gap: 14, marginBottom: 20 }}>
-                        <ReviewCard title={tr('companyCardTitle')} icon="🏢" editUrl={getEditUrl(STEP_MAP.company)}>
-                            <div className="grid grid-cols-2 gap-2.5" style={{ gap: 10 }}>
-                                {[
-                                    [tr('foundedDate'), formatValue(company?.foundation_date) || '—'],
-                                    [tr('size'), totalHeadcount ? String(totalHeadcount) : '—'],
-                                    [tr('sector'), [preview?.industry_category, preview?.industry_subcategory].filter(Boolean).map((v) => formatValue(v)).join(' · ') || '—'],
-                                    [tr('listedShort'), company?.public_listing_status ? String(company.public_listing_status) : (company?.is_public != null ? (company.is_public ? 'Yes' : 'No') : '—')],
-                                ].map(([k, v], idx) => (
-                                    <div key={`company-${idx}-${String(k ?? '')}`}>
-                                        <div className="text-[9px] text-[#94a3b8] mb-0.5">{k}</div>
-                                        <div className="text-[12px] font-semibold text-[#0f2a4a]">{v}</div>
-                                    </div>
-                                ))}
+                    <div className="mx-auto max-w-4xl px-4 py-8">
+                        {/* Alerts — above fold */}
+                        {submitError && (
+                            <Alert variant="destructive" className="mb-6">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertTitle>Submission failed</AlertTitle>
+                                <AlertDescription>{submitError}</AlertDescription>
+                            </Alert>
+                        )}
+                        {!projectId && diagnosisStatus !== 'submitted' && (
+                            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-800">
+                                <p className="text-sm font-medium">Project not loaded. Please refresh or go back to the dashboard.</p>
                             </div>
-                        </ReviewCard>
-                        <ReviewCard title={tr('workforceCardTitle')} icon="👥" editUrl={getEditUrl(STEP_MAP.workforce)}>
-                            <div className="flex gap-2.5" style={{ gap: 10 }}>
-                                <div className="flex-1 rounded-lg p-2.5" style={{ background: '#f8fafc', padding: 10, borderRadius: 8 }}>
-                                    <div className="text-[9px] text-[#94a3b8] mb-0.5">{tr('fullTime')}</div>
-                                    <div className="text-[18px] font-extrabold text-[#0f2a4a] leading-none">{totalHeadcount}</div>
+                        )}
+                        {diagnosisStatus === 'submitted' && (
+                            <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-blue-800">
+                                <p className="text-sm font-medium">Diagnosis has been submitted and is awaiting CEO review.</p>
+                            </div>
+                        )}
+
+                        {/* Page header */}
+                        <header className="mb-8">
+                            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                                {tr('reviewDashboardTitle')}
+                            </h1>
+                            <p className="mt-1.5 text-sm text-slate-500">
+                                {tr('reviewDashboardDescShort')}
+                            </p>
+                        </header>
+
+                        {/* Hero — company + 3 KPIs */}
+                        <div className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 text-white shadow-xl">
+                            <div className="px-6 pt-5 pb-6">
+                                <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-amber-400/90">
+                                    {company?.name || project?.company?.name || '—'} · {[preview?.industry_category, preview?.industry_subcategory].filter(Boolean).map((v) => formatValue(v)).join(' · ') || '—'}
+                                </p>
+                                <div className="flex flex-wrap items-end gap-8 sm:gap-10">
+                                    <div>
+                                        <p className="text-xs font-medium uppercase tracking-wider text-slate-400">{tr('totalHeadcount')}</p>
+                                        <p className="mt-0.5 text-3xl font-bold tracking-tight">
+                                            {totalHeadcount}
+                                            <span className="ml-1 text-base font-medium text-slate-400">{tr('personsUnit')}</span>
+                                        </p>
+                                    </div>
+                                    <div className="h-12 w-px bg-white/15" />
+                                    <div>
+                                        <p className="text-xs font-medium uppercase tracking-wider text-slate-400">{tr('leaderRatioLabel')}</p>
+                                        <p className="mt-0.5 text-3xl font-bold tracking-tight text-amber-400">{leaderRatio}%</p>
+                                    </div>
+                                    <div className="h-12 w-px bg-white/15" />
+                                    <div>
+                                        <p className="text-xs font-medium uppercase tracking-wider text-slate-400">{tr('avgTenureShort')}</p>
+                                        <p className="mt-0.5 text-3xl font-bold tracking-tight text-emerald-400">
+                                            {formatNumber(preview?.average_tenure_active)}
+                                            <span className="ml-1 text-base font-medium text-slate-400">{tr('yearsUnit')}</span>
+                                        </p>
+                                    </div>
                                 </div>
-                                {preview?.average_age != null && (
-                                    <div className="flex-1 rounded-lg p-2.5" style={{ background: '#f8fafc', padding: 10, borderRadius: 8 }}>
-                                        <div className="text-[9px] text-[#94a3b8] mb-0.5">{tr('avgAgeShort')}</div>
-                                        <div className="text-[18px] font-extrabold text-[#0f2a4a] leading-none">{formatNumber(preview.average_age)}</div>
-                                    </div>
-                                )}
                             </div>
-                        </ReviewCard>
-                        <div className="md:col-span-2">
-                            <ReviewCard title={tr('gradePyramidTitle')} icon="📊" editUrl={getEditUrl(STEP_MAP.jobGrades)}>
-                                <div className="flex flex-col gap-1">
-                                    {jobGradesForPyramidSorted.length ? (
-                                        <>
-                                            {jobGradesForPyramidSorted.map((g, i) => {
-                                                const max = Math.max(...jobGradesForPyramidSorted.map((x) => x.headcount), 1);
-                                                const pct = max > 0 ? (g.headcount / max) * 100 : 0;
-                                                const ratio = gradeTotal ? ((g.headcount / gradeTotal) * 100).toFixed(1) : '0';
-                                                return (
-                                                    <div key={`grade-${i}-${String(g.name ?? '')}`} className="flex items-center gap-2" style={{ gap: 8, marginBottom: 5 }}>
-                                                        <div className="shrink-0 text-right text-[11px] font-bold text-[#64748b]" style={{ width: 80 }}>
-                                                            {g.name}
-                                                        </div>
-                                                        <div className="flex-1 relative" style={{ height: 26 }}>
-                                                            <div
-                                                                className="absolute left-1/2 -translate-x-1/2 h-full flex items-center justify-center text-white font-bold rounded"
-                                                                style={{
-                                                                    width: `${pct}%`,
-                                                                    minWidth: 60,
-                                                                    fontSize: 10,
-                                                                    borderRadius: 4,
-                                                                    backgroundColor: GRADE_COLORS[i % GRADE_COLORS.length],
-                                                                }}
-                                                            >
-                                                                {g.headcount}
-                                                                {tr('personsUnit')}
-                                                            </div>
-                                                        </div>
-                                                        <div className="shrink-0 text-[9px] text-[#94a3b8]" style={{ width: 40 }}>
-                                                            {ratio}%
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                            <div
-                                                className="mt-2 flex items-start gap-2 rounded-lg border px-3 py-2"
-                                                style={{
-                                                    marginTop: 8,
-                                                    padding: '8px 11px',
-                                                    borderRadius: 8,
-                                                    backgroundColor: `${pyramidDiag.color}18`,
-                                                    border: `1.5px solid ${pyramidDiag.color}50`,
-                                                }}
+                        </div>
+
+                        {/* Gender + Job structure strip */}
+                        <div className="mb-8 flex flex-wrap items-center gap-6 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+                            <div className="flex items-center gap-5">
+                                <span className="text-xs font-bold uppercase tracking-wider text-slate-600">{tr('genderDistribution')}</span>
+                                <div className="relative h-20 w-20 shrink-0">
+                                    <div
+                                        className="absolute inset-0 rounded-full"
+                                        style={{
+                                            background: totalHeadcount
+                                                ? `conic-gradient(${GENDER_COLORS[0]} 0deg ${(Number(genderData[0].value) / totalHeadcount) * 360}deg, ${GENDER_COLORS[1]} ${(Number(genderData[0].value) / totalHeadcount) * 360}deg ${((Number(genderData[0].value) + Number(genderData[1].value)) / totalHeadcount) * 360}deg, ${GENDER_COLORS[2]} ${((Number(genderData[0].value) + Number(genderData[1].value)) / totalHeadcount) * 360}deg 360deg)`
+                                                : `conic-gradient(${GENDER_COLORS[0]} 0deg 120deg, ${GENDER_COLORS[1]} 120deg 240deg, ${GENDER_COLORS[2]} 240deg 360deg)`,
+                                            mask: 'radial-gradient(farthest-side, transparent 70%, black 70%)',
+                                            WebkitMask: 'radial-gradient(farthest-side, transparent 70%, black 70%)',
+                                        }}
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-1.5 text-sm">
+                                    {genderData.slice(0, 2).map((d, i) => (
+                                        <div key={`gender-${i}-${d.name ?? ''}`} className="flex items-center gap-2">
+                                            <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: GENDER_COLORS[i] }} />
+                                            <span className="text-slate-600">{d.name}</span>
+                                            <span className="font-semibold text-slate-900">{d.value}{tr('personsUnit')}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="h-14 w-px bg-slate-200 shrink-0 hidden sm:block" />
+                            <div className="min-w-0 flex-1">
+                                <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Job Structure</span>
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                    {jobStructureForReview.flatMap((cat) =>
+                                        cat.functions.map((fn, fnIdx) => (
+                                            <span
+                                                key={`${cat.name}-${fnIdx}-${fn}`}
+                                                className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
                                             >
-                                                <span className="shrink-0 text-xs font-extrabold" style={{ color: pyramidDiag.color }}>
-                                                    {pyramidDiag.label}
+                                                {fn}
+                                            </span>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Dashboard grid — Company, Workforce, Grade pyramid, HR issues */}
+                        <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2">
+                            <ReviewCard title={tr('companyCardTitle')} icon="🏢" editUrl={getEditUrl(STEP_MAP.company)}>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                                    {[
+                                        [tr('foundedDate'), formatValue(company?.foundation_date) || '—'],
+                                        [tr('size'), totalHeadcount ? String(totalHeadcount) : '—'],
+                                        [tr('sector'), [preview?.industry_category, preview?.industry_subcategory].filter(Boolean).map((v) => formatValue(v)).join(' · ') || '—'],
+                                        [tr('listedShort'), company?.public_listing_status ? String(company.public_listing_status) : (company?.is_public != null ? (company.is_public ? 'Yes' : 'No') : '—')],
+                                    ].map(([k, v], idx) => (
+                                        <div key={`company-${idx}-${String(k ?? '')}`}>
+                                            <p className="text-xs font-medium text-slate-500">{k}</p>
+                                            <p className="mt-0.5 text-sm font-semibold text-slate-900">{v}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </ReviewCard>
+                            <ReviewCard title={tr('workforceCardTitle')} icon="👥" editUrl={getEditUrl(STEP_MAP.workforce)}>
+                                <div className="flex gap-4">
+                                    <div className="flex-1 rounded-xl bg-slate-50 p-4">
+                                        <p className="text-xs font-medium text-slate-500">{tr('fullTime')}</p>
+                                        <p className="mt-1 text-2xl font-bold text-slate-900">{totalHeadcount}</p>
+                                    </div>
+                                    {preview?.average_age != null && (
+                                        <div className="flex-1 rounded-xl bg-slate-50 p-4">
+                                            <p className="text-xs font-medium text-slate-500">{tr('avgAgeShort')}</p>
+                                            <p className="mt-1 text-2xl font-bold text-slate-900">{formatNumber(preview.average_age)}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </ReviewCard>
+                            <div className="md:col-span-2">
+                                <ReviewCard title={tr('gradePyramidTitle')} icon="📊" editUrl={getEditUrl(STEP_MAP.jobGrades)}>
+                                    <div className="space-y-3">
+                                        {jobGradesForPyramidSorted.length ? (
+                                            <>
+                                                {jobGradesForPyramidSorted.map((g, i) => {
+                                                    const max = Math.max(...jobGradesForPyramidSorted.map((x) => x.headcount), 1);
+                                                    const pct = max > 0 ? (g.headcount / max) * 100 : 0;
+                                                    const ratio = gradeTotal ? ((g.headcount / gradeTotal) * 100).toFixed(1) : '0';
+                                                    return (
+                                                        <div key={`grade-${i}-${String(g.name ?? '')}`} className="flex items-center gap-3">
+                                                            <div className="w-24 shrink-0 text-right text-sm font-semibold text-slate-600">
+                                                                {g.name}
+                                                            </div>
+                                                            <div className="relative h-8 flex-1 min-w-0">
+                                                                <div
+                                                                    className="absolute left-1/2 flex h-full min-w-[4rem] -translate-x-1/2 items-center justify-center rounded-lg text-xs font-bold text-white"
+                                                                    style={{
+                                                                        width: `${Math.max(pct, 15)}%`,
+                                                                        backgroundColor: GRADE_COLORS[i % GRADE_COLORS.length],
+                                                                    }}
+                                                                >
+                                                                    {g.headcount}{tr('personsUnit')}
+                                                                </div>
+                                                            </div>
+                                                            <div className="w-12 shrink-0 text-right text-xs font-medium text-slate-500">{ratio}%</div>
+                                                        </div>
+                                                    );
+                                                })}
+                                                <div
+                                                    className="mt-4 flex items-start gap-3 rounded-xl border px-4 py-3"
+                                                    style={{
+                                                        backgroundColor: `${pyramidDiag.color}15`,
+                                                        borderColor: `${pyramidDiag.color}40`,
+                                                    }}
+                                                >
+                                                    <span className="shrink-0 text-sm font-bold" style={{ color: pyramidDiag.color }}>
+                                                        {pyramidDiag.label}
+                                                    </span>
+                                                    <span className="text-sm text-slate-600 leading-relaxed">{pyramidDiag.desc}</span>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <p className="text-sm text-slate-500">—</p>
+                                        )}
+                                    </div>
+                                </ReviewCard>
+                            </div>
+                            <ReviewCard title={tr('currentIssuesTitle')} icon="⚠️" editUrl={getEditUrl(STEP_MAP.hrIssues)}>
+                                <div className="space-y-3">
+                                    {hrIssuesByCategory.length ? (
+                                        hrIssuesByCategory.map((cat, catIdx) => (
+                                            <div key={`hr-${catIdx}-${cat.category ?? ''}`}>
+                                                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: cat.color }}>
+                                                    {HR_ISSUE_CATEGORY_LABELS[cat.category] ?? cat.category}
                                                 </span>
-                                                <span className="text-[10px] text-[#475569] leading-relaxed">{pyramidDiag.desc}</span>
+                                                <div className="mt-1.5 flex flex-wrap gap-2">
+                                                    {cat.items.map((item, itemIdx) => (
+                                                        <span
+                                                            key={`${cat.category}-item-${itemIdx}-${String(item ?? '')}`}
+                                                            className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs text-slate-700"
+                                                        >
+                                                            {item}
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </>
+                                        ))
                                     ) : (
-                                        <p className="text-xs text-[#64748b]">—</p>
+                                        <p className="text-sm text-slate-500">—</p>
                                     )}
                                 </div>
                             </ReviewCard>
                         </div>
-                        <ReviewCard title={tr('currentIssuesTitle')} icon="⚠️" editUrl={getEditUrl(STEP_MAP.hrIssues)}>
-                            <div className="flex flex-col gap-2">
-                                {hrIssuesByCategory.length ? (
-                                    hrIssuesByCategory.map((cat, catIdx) => (
-                                        <div key={`hr-${catIdx}-${cat.category ?? ''}`} style={{ marginBottom: 8 }}>
-                                            <span className="text-[10px] font-extrabold uppercase" style={{ color: cat.color }}>
-                                                {HR_ISSUE_CATEGORY_LABELS[cat.category] ?? cat.category}
-                                            </span>
-                                            <div className="flex flex-wrap gap-1 mt-0.5">
-                                                {cat.items.map((item, itemIdx) => (
-                                                    <span
-                                                        key={`${cat.category}-item-${itemIdx}-${String(item ?? '')}`}
-                                                        className="rounded text-[11px] text-[#475569]"
-                                                        style={{ background: '#f0f4f8', padding: '2px 6px', borderRadius: 4, marginRight: 4 }}
-                                                    >
-                                                        {item}
-                                                    </span>
-                                                ))}
-                                            </div>
+
+                        {/* Org chart + Org structure */}
+                        <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2">
+                            <ReviewCard title={tr('currentOrgChartTitle')} icon="🗂️" editUrl={getEditUrl(STEP_MAP.orgCharts)}>
+                                <div className="flex min-h-[200px] flex-col items-center justify-center">
+                                    {currentOrgChartUrl ? (
+                                        <img src={currentOrgChartUrl} alt="Org chart" className="max-h-[240px] max-w-full rounded-xl border border-slate-200 object-contain shadow-inner" />
+                                    ) : (
+                                        <div className="flex min-h-[200px] w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-6">
+                                            <div className="text-3xl opacity-70">🖼️</div>
+                                            <p className="text-center text-sm font-medium text-slate-700">{tr('orgChartUploadHint')}</p>
+                                            <p className="text-center text-xs text-slate-500">{tr('orgChartUploadDesc')}</p>
+                                            <Link
+                                                href={getEditUrl(STEP_MAP.orgCharts)}
+                                                className="mt-1 rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-700"
+                                            >
+                                                {tr('goToPrevStep')}
+                                            </Link>
                                         </div>
-                                    ))
-                                ) : (
-                                    <p className="text-xs text-[#64748b]">—</p>
-                                )}
-                            </div>
-                        </ReviewCard>
-                    </div>
+                                    )}
+                                </div>
+                            </ReviewCard>
+                            <ReviewCard title={tr('orgStructureCardTitle')} icon="🏗️" editUrl={getEditUrl(STEP_MAP.orgStructure)}>
+                                <div className="flex flex-col gap-2">
+                                    {preview?.org_structure_types && preview.org_structure_types.length > 0 ? (
+                                        <div className="inline-flex items-center gap-3 self-start rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                            <span className="text-xl">🏗️</span>
+                                            <span className="text-sm font-bold text-slate-800">
+                                                {preview.org_structure_types.map((t: string) => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <span className="text-sm text-slate-500">—</span>
+                                    )}
+                                </div>
+                            </ReviewCard>
+                        </div>
 
-                    {/* Optional second row: Org chart + Org structure */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 mb-5" style={{ gap: 14, marginBottom: 20 }}>
-                        <ReviewCard title={tr('currentOrgChartTitle')} icon="🗂️" editUrl={getEditUrl(STEP_MAP.orgCharts)}>
-                            <div className="flex min-h-[180px] flex-col items-center justify-center">
-                                {currentOrgChartUrl ? (
-                                    <img src={currentOrgChartUrl} alt="Org chart" className="max-h-[220px] max-w-full rounded-lg border border-[#e2e8f0] object-contain" />
-                                ) : (
-                                    <div className="flex min-h-[180px] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed bg-[#f8fafc]" style={{ borderColor: '#c7d7f0' }}>
-                                        <div className="text-2xl">🖼️</div>
-                                        <div className="text-xs font-semibold text-[#0f2a4a]">{tr('orgChartUploadHint')}</div>
-                                        <div className="text-center text-[10px] text-[#94a3b8]">{tr('orgChartUploadDesc')}</div>
-                                        <Link href={getEditUrl(STEP_MAP.orgCharts)} className="mt-1 rounded-md bg-[#0f2a4a] px-3.5 py-1.5 text-[10px] font-semibold text-white">
-                                            {tr('goToPrevStep')}
-                                        </Link>
-                                    </div>
-                                )}
+                        {/* Submit footer */}
+                        <footer className="flex flex-wrap items-center justify-between gap-6 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 px-6 py-6 text-white shadow-xl">
+                            <div>
+                                <h3 className="text-base font-bold text-white">{tr('submitConfirmTitle')}</h3>
+                                <p className="mt-1 text-sm text-slate-400">{tr('submitConfirmDesc')}</p>
                             </div>
-                        </ReviewCard>
-                        <ReviewCard title={tr('orgStructureCardTitle')} icon="🏗️" editUrl={getEditUrl(STEP_MAP.orgStructure)}>
-                            <div className="flex flex-col gap-2">
-                                {preview?.org_structure_types && preview.org_structure_types.length > 0 ? (
-                                    <div className="inline-flex items-center gap-2 self-start rounded-lg border px-4 py-2.5" style={{ background: '#f0f4fa', borderColor: '#c7d7f0' }}>
-                                        <span className="text-lg">🏗️</span>
-                                        <span className="text-sm font-bold text-[#0f2a4a]">
-                                            {preview.org_structure_types.map((t: string) => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')}
-                                        </span>
-                                    </div>
-                                ) : (
-                                    <span className="text-xs text-[#64748b]">—</span>
-                                )}
+                            <div className="flex items-center gap-4">
+                                <Link href={getEditUrl('hr-issues')}>
+                                    <Button variant="outline" size="sm" className="border-slate-500/60 bg-transparent font-medium text-slate-300 hover:bg-white/10 hover:text-white">
+                                        {tr('backBtn')}
+                                    </Button>
+                                </Link>
+                                <Button
+                                    onClick={handleSubmit}
+                                    disabled={processing || diagnosisStatus === 'submitted' || !projectId}
+                                    className="rounded-xl bg-amber-500 px-6 py-2.5 font-bold text-slate-900 shadow-lg transition-all hover:bg-amber-400 disabled:opacity-60"
+                                >
+                                    {diagnosisStatus === 'submitted' ? (
+                                        <>
+                                            <CheckCircle2 className="mr-2 h-4 w-4" />
+                                            Submitted
+                                        </>
+                                    ) : processing ? (
+                                        'Submitting…'
+                                    ) : (
+                                        tr('submitDiagnosisBtn')
+                                    )}
+                                </Button>
                             </div>
-                        </ReviewCard>
-                    </div>
-
-                    {/* Submit footer — ref: padding 22px 26px, gradient, gold button */}
-                    <footer className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] text-white" style={{ background: 'linear-gradient(135deg, #0f2a4a, #1a4070)', padding: '22px 26px' }}>
-                        <div>
-                            <h3 className="m-0 text-sm font-bold text-white" style={{ fontSize: 14 }}>{tr('submitConfirmTitle')}</h3>
-                            <p className="text-[11px] text-[#94a3b8] mt-0.5" style={{ margin: '3px 0 0' }}>{tr('submitConfirmDesc')}</p>
-                        </div>
-                        <Button
-                            onClick={handleSubmit}
-                            disabled={processing || diagnosisStatus === 'submitted' || !projectId}
-                            className="whitespace-nowrap border-0 font-bold text-white hover:opacity-95"
-                            style={{ background: '#c8a84b', boxShadow: '0 4px 12px rgba(200,168,75,0.4)', borderRadius: 9, padding: '11px 24px', border: 'none', fontWeight: 700, color: 'white', cursor: 'pointer' }}
-                        >
-                            {diagnosisStatus === 'submitted' ? (
-                                <>
-                                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                                    Submitted
-                                </>
-                            ) : processing ? (
-                                'Submitting…'
-                            ) : (
-                                tr('submitDiagnosisBtn')
-                            )}
-                        </Button>
-                    </footer>
-                    {submitError && (
-                        <Alert variant="destructive">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle>Submission failed</AlertTitle>
-                            <AlertDescription>{submitError}</AlertDescription>
-                        </Alert>
-                    )}
-                    {!projectId && diagnosisStatus !== 'submitted' && (
-                        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-                            <p className="text-sm text-amber-800">Project not loaded. Please refresh or go back to the dashboard.</p>
-                        </div>
-                    )}
-                    {diagnosisStatus === 'submitted' && (
-                        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                            <p className="text-sm text-blue-800">Diagnosis has been submitted and is awaiting CEO review.</p>
-                        </div>
-                    )}
-                    <div className="mt-4">
-                        <Link href={getEditUrl('hr-issues')}>
-                            <Button variant="outline" size="sm" className="border-[#e2e8f0] font-semibold text-[#475569] bg-white hover:bg-slate-50">
-                                {tr('backBtn')}
-                            </Button>
-                        </Link>
-                    </div>
-                </div>
+                        </footer>
                     </div>
                 </div>
             </FormLayout>

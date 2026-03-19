@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
 import { Head, router, useForm } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { ChevronLeft } from 'lucide-react';
 import React from 'react';
 
@@ -28,7 +29,7 @@ interface Props {
 }
 
 export default function Edit({ question }: Props) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, clearErrors } = useForm({
         question_text: question.question_text || '',
         order: question.order || 0,
         is_active: question.is_active ?? true,
@@ -96,12 +97,10 @@ export default function Edit({ question }: Props) {
 
                                         <Textarea
                                             value={data.question_text}
-                                            onChange={(e) =>
-                                                setData(
-                                                    'question_text',
-                                                    e.target.value,
-                                                )
-                                            }
+                                            onChange={(e) => {
+                                                setData('question_text', e.target.value);
+                                                clearInertiaFieldError(clearErrors, 'question_text');
+                                            }}
                                             rows={3}
                                             required
                                         />

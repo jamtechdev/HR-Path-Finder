@@ -1,5 +1,6 @@
 import React from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
@@ -17,7 +18,7 @@ interface Props {
 }
 
 export default function EvaluationOptionGuidanceCreate({ optionKeys }: Props) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, clearErrors } = useForm({
         option_key: '',
         option_value: '',
         concept: '',

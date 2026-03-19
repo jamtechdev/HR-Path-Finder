@@ -4,6 +4,7 @@ import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Check, Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
+import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 
 interface Diagnosis {
     id: number;
@@ -119,17 +120,38 @@ export default function Executives({
         executive_positions: [] as Array<{ role: string; count: number }>,
     });
     const useEmbed = embedMode && embedData != null && embedSetData;
-    const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
-    const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
+    const data = useEmbed ? ({ ...internalForm.data, ...embedData } as typeof internalForm.data) : internalForm.data;
+    const setFieldData = useCallback(
+        (k: string, v: unknown) => {
+            if (useEmbed) {
+                embedSetData(k, v);
+                return;
+            }
+            internalForm.setData(k as 'total_executives' | 'executive_positions', v as any);
+        },
+        [useEmbed, embedSetData, internalForm]
+    );
+    const setFormData = useCallback(
+        (payload: { total_executives: number; executive_positions: Array<{ role: string; count: number }> }) => {
+            if (useEmbed) {
+                embedSetData('total_executives', payload.total_executives);
+                embedSetData('executive_positions', payload.executive_positions);
+                return;
+            }
+            internalForm.setData(payload);
+        },
+        [useEmbed, embedSetData, internalForm]
+    );
+    const { errors: executivesErrors } = internalForm;
 
     // Hydrate from saved draft so Back/Next keeps selections.
     useDiagnosisDraftHydrate(
         projectId,
         'executives',
         (patch) => {
-            if (patch.total_executives != null) setData('total_executives', patch.total_executives as any);
+            if (patch.total_executives != null) setFieldData('total_executives', patch.total_executives as any);
             if (patch.executive_positions != null) {
-                setData('executive_positions', patch.executive_positions as any);
+                setFieldData('executive_positions', patch.executive_positions as any);
                 applyPositionsToUi(patch.executive_positions as any, setSelected, setCounts, setCustomRoles);
             }
         },
@@ -191,7 +213,7 @@ export default function Executives({
 
     useEffect(() => {
         const positionsArray = allSelected.map((r) => ({ role: r.name, count: r.count }));
-        setData({ executive_positions: positionsArray, total_executives: totalHead });
+        setFormData({ executive_positions: positionsArray, total_executives: totalHead });
     }, [totalHead, allSelected.map((r) => `${r.name}:${r.count}`).join(',')]);
 
     const isReadOnlyStatus = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
@@ -436,6 +458,16 @@ export default function Executives({
                         ))
                     )}
                 </div>
+            </div>
+            <div className="px-7 pb-4">
+                <DiagnosisFieldErrorMessage
+                    fieldKey="total_executives"
+                    inertiaError={
+                        typeof executivesErrors.total_executives === 'string'
+                            ? executivesErrors.total_executives
+                            : undefined
+                    }
+                />
             </div>
         </div>
     );

@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { Label } from '@/components/ui/label';
 import type { BaseSalaryFramework } from '../types';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { cn } from '@/lib/utils';
 
 interface BaseSalaryFrameworkTabProps {
     framework: BaseSalaryFramework;
     onUpdate: (framework: BaseSalaryFramework) => void;
+    fieldErrors?: FieldErrors;
 }
 
 const STRUCTURE_TYPE_OPTIONS = [
@@ -50,7 +52,7 @@ function Tip({ text }: { text: string }) {
     );
 }
 
-export default function BaseSalaryFrameworkTab({ framework, onUpdate }: BaseSalaryFrameworkTabProps) {
+export default function BaseSalaryFrameworkTab({ framework, onUpdate, fieldErrors = {} }: BaseSalaryFrameworkTabProps) {
     const [purposeOpen, setPurposeOpen] = useState(true);
 
     const KEYS = ['salary_structure_type', 'salary_adjustment_unit', 'salary_determination_standard', 'salary_adjustment_grouping', 'salary_adjustment_timing', 'common_salary_increase_rate', 'performance_based_increase_differentiation'] as const;
@@ -128,6 +130,8 @@ export default function BaseSalaryFrameworkTab({ framework, onUpdate }: BaseSala
                             )}>{g1Count} / 3 selected</span>
                         </div>
                         <div className="p-5 flex flex-col gap-4">
+                            <FieldErrorMessage fieldKey="comp-salary-structure-type" errors={fieldErrors} className="!mt-0" />
+                            <FieldErrorMessage fieldKey="comp-salary-determination" errors={fieldErrors} className="!mt-0" />
                             <div className="grid grid-cols-1 gap-4">
                                 <div className="flex flex-col gap-1">
                                     <Label className="text-xs font-medium text-[#6b7280] flex items-center gap-1">

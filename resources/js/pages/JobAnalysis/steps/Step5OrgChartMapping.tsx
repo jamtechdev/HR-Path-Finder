@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Plus, X, Minus, ChevronDown, ChevronRight, FolderTree, Folder, Briefcase, BarChart3, Coins, Users, Building2, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { OrgChartMapping, JobDefinition } from '../hooks/useJobAnalysisState';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 
 const MAX_DEPTH = 2; // 3 levels: 0, 1, 2
 
@@ -46,6 +47,7 @@ interface Step5OrgChartMappingProps {
     onMappingsChange: (mappings: OrgChartMapping[]) => void;
     onContinue: (mappings?: OrgChartMapping[]) => void;
     onBack: () => void;
+    fieldErrors?: FieldErrors;
 }
 
 export default function Step5OrgChartMapping({
@@ -54,6 +56,7 @@ export default function Step5OrgChartMapping({
     onMappingsChange,
     onContinue,
     onBack,
+    fieldErrors = {},
 }: Step5OrgChartMappingProps) {
     const [orgUnits, setOrgUnits] = useState<OrgChartMapping[]>(() =>
         buildTreeOrder(orgMappings.map((u, i) => normalizeMapping(u as OrgChartMapping & { parent_id?: number | string | null }, i)))
@@ -363,8 +366,8 @@ export default function Step5OrgChartMapping({
     };
 
     return (
-        <div className="min-h-full flex flex-col bg-[#f9f7f2] text-[#121431] pb-28">
-            <div className="max-w-[1200px] mx-auto w-full py-10 px-5" style={{ padding: '0 20px' }}>
+        <div className="min-h-full flex flex-col bg-[#f9f7f2] text-[#121431]">
+            <div className="flex-1 min-h-0 max-w-[1200px] mx-auto w-full py-10 px-5 pb-8" style={{ padding: '0 20px' }}>
                 <div className="mb-2" style={{ color: '#b88a44', fontSize: 11, fontWeight: 700, letterSpacing: 1.2 }}>
                     STEP 5 OF 6 – ORG CHART MAPPING
                 </div>
@@ -480,12 +483,15 @@ export default function Step5OrgChartMapping({
                                                 placeholder="Unit name (e.g. Division A, Finance Team)"
                                                 className={cn(
                                                     'flex-1 min-w-0 font-semibold text-[#121431] focus-visible:ring-0 h-auto py-0 text-[14px] bg-transparent rounded transition-colors',
-                                                    emptyUnitIds.has(unit.id)
+                                                    emptyUnitIds.has(unit.id) || fieldErrors[`unit-${unit.id}`]
                                                         ? 'border-2 border-red-500 shadow-none'
                                                         : 'border-0 shadow-none'
                                                 )}
                                             />
                                             <span className="text-[13px] text-[#9ca3af] shrink-0">{jobCount} jobs</span>
+                                        </div>
+                                        <div className="px-4 pb-1">
+                                            <FieldErrorMessage fieldKey={`unit-${unit.id}`} errors={fieldErrors} />
                                         </div>
 
                                         {isExpanded && (
@@ -703,14 +709,12 @@ export default function Step5OrgChartMapping({
             </div>
 
             <footer
-                className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-between items-center z-[100]"
+                className="sticky bottom-0 w-full bg-white border-t border-[#e0ddd5] py-[18px] px-6 md:px-[60px] flex flex-wrap items-center justify-between gap-4 z-10 mt-auto"
                 style={{
-                    borderColor: '#e5e7eb',
-                    padding: '16px 24px',
                     boxShadow: '0 -4px 6px -1px rgba(0,0,0,0.05)',
                 }}
             >
-                <p className="text-[14px] text-[#6b7280]">
+                <p className="text-[13px] text-[#94a3b8] font-medium">
                     Units: <strong className="text-[#121431]">{orgUnits.length}</strong>
                     {' · '}
                     Jobs mapped: <strong className="text-[#121431]">{mappedCount} / {totalJobs}</strong>
@@ -720,7 +724,7 @@ export default function Step5OrgChartMapping({
                         type="button"
                         variant="outline"
                         onClick={onBack}
-                        className="rounded-lg border-[#e5e7eb] text-sm font-semibold px-5 py-2.5 hover:bg-[#f9fafb]"
+                        className="border-[#e0ddd5] font-bold px-8 py-6 rounded-lg"
                     >
                         ← Back
                     </Button>
@@ -738,7 +742,7 @@ export default function Step5OrgChartMapping({
                             setValidationError(null);
                             onContinue(orgUnits);
                         }}
-                        className="rounded-lg bg-[#121431] hover:bg-[#1e2a4a] text-white text-sm font-semibold px-5 py-2.5 shadow-sm"
+                        className="bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white font-bold px-9 py-6 rounded-lg"
                     >
                         Continue to Review & Submit →
                     </Button>

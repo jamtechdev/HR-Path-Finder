@@ -12,6 +12,10 @@ use App\Models\BonusPoolConfiguration;
 
 class ReportDataService
 {
+    public function __construct(
+        private ProjectStageProgressService $projectStageProgressService
+    ) {}
+
     /**
      * Get comprehensive project data for reports and tree views.
      */
@@ -84,9 +88,12 @@ class ReportDataService
             $bonusPoolConfig
         );
 
+        $stageProgress = $this->projectStageProgressService->compute($hrProject);
+
         return [
             'project' => $hrProject,
             'stepStatuses' => $mainStepStatuses,
+            'stageProgressPercent' => $stageProgress['stageProgressPercent'],
             'jobDefinitions' => $jobDefinitions,
             'hrSystemSnapshot' => $hrSystemSnapshot,
             'compensationDetails' => [

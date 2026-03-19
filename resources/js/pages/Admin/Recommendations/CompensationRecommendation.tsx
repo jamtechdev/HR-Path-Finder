@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
@@ -72,7 +73,7 @@ export default function CompensationRecommendation({
     existingRecommendation,
     algorithmRecommendations 
 }: Props) {
-    const { data, setData, post, processing } = useForm({
+    const { data, setData, post, processing, clearErrors } = useForm({
         recommended_option: existingRecommendation?.recommended_option || '',
         rationale: existingRecommendation?.rationale || '',
     });
@@ -83,6 +84,7 @@ export default function CompensationRecommendation({
         const value = e.target.value;
         setCharCount(value.length);
         setData('rationale', value);
+                clearInertiaFieldError(clearErrors, 'rationale');
     };
 
     const handleSubmit = (e: React.FormEvent) => {

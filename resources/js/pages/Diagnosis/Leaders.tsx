@@ -4,6 +4,7 @@ import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Check, GripVertical, Plus, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
+import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 
 interface Diagnosis {
     id: number;
@@ -72,6 +73,7 @@ export default function Leaders({
     const [order, setOrder] = useState<string[]>(() => [...PRESET_LEADERS.map((l) => l.id)]);
     const [draggingKey, setDraggingKey] = useState<string | null>(null);
     const [dropTarget, setDropTarget] = useState<{ key: string; top: boolean } | null>(null);
+    const justDraggedRef = useRef(false);
 
     const internalForm = useForm({
         leadership_count: diagnosis?.leadership_count ?? 0,
@@ -79,6 +81,7 @@ export default function Leaders({
     const useEmbed = embedMode && embedData != null && embedSetData;
     const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
     const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
+    const { errors: leadersErrors } = internalForm;
 
     const allSelected = [
         ...PRESET_LEADERS.filter((l) => selected.has(l.id)).map((l) => ({ label: l.label, korean: l.korean, count: counts[l.id] ?? 1 })),
@@ -185,11 +188,9 @@ export default function Leaders({
         setDraggingKey(key);
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', key);
-    }, []);
-
-    const handleDragEnd = useCallback(() => {
-        setDraggingKey(null);
-        setDropTarget(null);
+        try {
+            e.dataTransfer.setData('application/json', key);
+        } catch (_) {}
     }, []);
 
     const handleDragOver = useCallback((e: React.DragEvent, key: string) => {
@@ -208,8 +209,15 @@ export default function Leaders({
     const handleDrop = useCallback(
         (e: React.DragEvent, key: string) => {
             e.preventDefault();
-            const srcKey = draggingKey;
-            if (!srcKey || srcKey === key) return;
+            e.stopPropagation();
+            const srcKey = (e.dataTransfer.getData('text/plain') || draggingKey) as string;
+            if (!srcKey || srcKey === key) {
+                setDropTarget(null);
+                setDraggingKey(null);
+                return;
+            }
+            justDraggedRef.current = true;
+            setTimeout(() => { justDraggedRef.current = false; }, 150);
             setDropTarget(null);
             setDraggingKey(null);
             setOrder((prev) => {
@@ -219,7 +227,8 @@ export default function Leaders({
                 const next = [...prev];
                 const [removed] = next.splice(i, 1);
                 const newJ = next.indexOf(key);
-                const top = e.clientY < (e.currentTarget as HTMLElement).getBoundingClientRect().top + (e.currentTarget as HTMLElement).getBoundingClientRect().height / 2;
+                const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                const top = e.clientY < rect.top + rect.height / 2;
                 next.splice(top ? newJ : newJ + 1, 0, removed);
                 return next;
             });
@@ -307,10 +316,15 @@ export default function Leaders({
                                 data-key={row.id}
                                 draggable={!isReadOnly}
                                 onDragStart={(e) => handleDragStart(e, row.id)}
-                                onDragEnd={handleDragEnd}
+                                onDragEnd={() => { setDraggingKey(null); setDropTarget(null); }}
                                 onDragOver={(e) => handleDragOver(e, row.id)}
                                 onDragLeave={handleDragLeave}
-                                onDrop={(e) => handleDrop(e, row.id)}
+                                onDragOverCapture={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+                                onDropCapture={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleDrop(e, row.id);
+                                }}
                                 className={cn(
                                     'leader-row flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3.5 py-3 sm:py-3.5 px-3 sm:px-4 border-2 rounded-lg bg-white cursor-pointer transition-all select-none touch-manipulation',
                                     active ? 'border-[#2EC4A9] bg-[#E6F9F6] shadow-[0_0_0_3px_rgba(46,196,169,0.1)]' : 'border-[#E2E6ED] hover:border-[#CBD0DA] hover:shadow-[0_1px_4px_rgba(27,43,91,0.07)]',
@@ -318,7 +332,10 @@ export default function Leaders({
                                     dropTarget?.key === row.id && dropTarget.top && 'border-t-[2.5px] border-t-[#2EC4A9]',
                                     dropTarget?.key === row.id && !dropTarget.top && 'border-b-[2.5px] border-b-[#2EC4A9]'
                                 )}
-                                onClick={() => !isReadOnly && toggleRow(row.id)}
+                                onClick={() => {
+                                    if (isReadOnly || justDraggedRef.current) return;
+                                    toggleRow(row.id);
+                                }}
                             >
                             <div className="w-5 h-8 flex items-center justify-center cursor-grab text-[#CBD0DA] hover:text-[#6B7585] shrink-0" onClick={(e) => e.stopPropagation()}>
                                 <GripVertical className="w-3.5 h-3.5" />
@@ -447,6 +464,16 @@ export default function Leaders({
                     </span>
                 </div>
             </div>
+            <div className="mx-7 mb-2">
+                <DiagnosisFieldErrorMessage
+                    fieldKey="leadership_count"
+                    inertiaError={
+                        typeof leadersErrors.leadership_count === 'string'
+                            ? leadersErrors.leadership_count
+                            : undefined
+                    }
+                />
+            </div>
 
             {/* Summary bar */}
             <div className="mx-7 mb-6 py-3 px-4 bg-[#F8F9FB] border border-[#E2E6ED] rounded-lg flex items-center gap-3 flex-wrap">
@@ -487,6 +514,7 @@ export default function Leaders({
                 nextRoute="job-grades"
                 formData={data}
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
+                liveValidationError={tooManyLeaders && !isReadOnly ? `Leadership count (${totalHead}) cannot exceed total workforce (${totalWorkforce}). Please reduce headcount or increase workforce.` : null}
                 validateBeforeNext={() => {
                     if (tooManyLeaders) {
                         return `Leadership count (${totalHead}) cannot exceed total workforce (${totalWorkforce}).`;

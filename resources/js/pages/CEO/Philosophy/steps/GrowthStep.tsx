@@ -5,6 +5,7 @@ import type { GrowthStageConfig } from '../types';
 interface GrowthStepProps {
     value: string;
     onChange: (value: string) => void;
+    showError?: boolean;
 }
 
 /** Normalize saved value (id or full option text) to stage id */
@@ -19,12 +20,13 @@ function valueToStageId(value: string): string | null {
     return byTitle ? byTitle.id : null;
 }
 
-export default function GrowthStep({ value, onChange }: GrowthStepProps) {
+export default function GrowthStep({ value, onChange, showError = false }: GrowthStepProps) {
     const selectedId = useMemo(() => valueToStageId(value), [value]);
     const selectedStage = useMemo(
         () => GROWTH_STAGES.find((s) => s.id === selectedId),
         [selectedId]
     );
+    const hasError = showError && !selectedId;
 
     const trackFillPercent =
         selectedId === null
@@ -64,6 +66,9 @@ export default function GrowthStep({ value, onChange }: GrowthStepProps) {
                 <p className="text-xs text-[#9A9EB8] italic mt-1">
                     Choose the most similar stage even if it doesn't match perfectly.
                 </p>
+                {hasError && (
+                    <p className="text-sm font-medium text-red-600">Please select your company&apos;s growth stage.</p>
+                )}
             </div>
 
             {/* Timeline + Cards */}
@@ -88,6 +93,7 @@ export default function GrowthStep({ value, onChange }: GrowthStepProps) {
                             stepNumber={i + 1}
                             isSelected={selectedId === stage.id}
                             onSelect={() => handleSelect(stage.id)}
+                            hasError={hasError}
                         />
                     ))}
                 </div>
@@ -135,23 +141,27 @@ function StageCard({
     stepNumber,
     isSelected,
     onSelect,
+    hasError = false,
 }: {
     stage: GrowthStageConfig;
     stepNumber: number;
     isSelected: boolean;
     onSelect: () => void;
+    hasError?: boolean;
 }) {
     return (
         <button
             type="button"
             onClick={onSelect}
             className={`
-                w-full  border-2 rounded-xl py-5 px-3.5 sm:py-5 sm:px-4 flex flex-col items-center text-center relative
+                w-full border-2 rounded-xl py-5 px-3.5 sm:py-5 sm:px-4 flex flex-col items-center text-center relative
                 transition-all duration-200 select-none touch-manipulation
                 hover:border-[#0E1628]/30 hover:shadow-[0_4px_16px_rgba(14,22,40,0.08)] hover:-translate-y-0.5
                 ${isSelected
                     ? 'border-[#0E1628] shadow-[0_6px_24px_rgba(14,22,40,0.14)] -translate-y-1 bg-[#0E1628]'
-                    : 'border-[#E2DDD4] bg-white'
+                    : hasError
+                        ? 'border-red-300 bg-red-50/40'
+                        : 'border-[#E2DDD4] bg-white'
                 }
             `}
         >

@@ -12,6 +12,14 @@ const STEP_CONFIG = [
   { id: 'hr_policy_os', num: 5, name: 'Final Dashboard', title: 'Final Dashboard', desc: 'HR 정책 매뉴얼, 시스템 핸드북, 실행 로드맵, 분석 보고서', fullWidth: true },
 ];
 
+interface StageProgressPercentMap {
+  diagnosis: number;
+  job_analysis: number;
+  performance: number;
+  compensation: number;
+  hr_policy_os: number;
+}
+
 interface PathFinderDashboardProps {
   workspaceDone?: boolean;
   user?: { name: string; email: string };
@@ -21,17 +29,30 @@ interface PathFinderDashboardProps {
   stepStatuses?: Record<string, string>;
   projectId?: number | null;
   ceoPhilosophyStatus?: string;
+  /** Real per-stage % (ProjectStageProgressService) — fixes showing overall 1/5 as step progress */
+  stageProgressPercent?: StageProgressPercentMap;
 }
+
+type StepUiState = 'completed' | 'current' | 'locked' | 'available';
 
 function getStepState(
   stepId: string,
   stepIndex: number,
   stepStatuses: Record<string, string>,
   currentStepKey: string | null,
-  ceoPhilosophyStatus?: string
-): 'completed' | 'current' | 'locked' {
+  ceoPhilosophyStatus?: string,
+  projectId?: number | null
+): StepUiState {
   const status = stepStatuses[stepId];
   const isStepComplete = status && ['submitted', 'approved', 'locked', 'completed'].includes(status);
+
+  // Final Dashboard: always reachable when project exists (sidebar + cards)
+  if (stepId === 'hr_policy_os' && projectId) {
+    if (isStepComplete) {
+      return 'completed';
+    }
+    return 'available';
+  }
 
   if (isStepComplete) return 'completed';
 
@@ -46,6 +67,12 @@ function getStepState(
     if (!prevStatus || !['submitted', 'approved', 'locked', 'completed'].includes(prevStatus)) return 'locked';
   }
   return currentStepKey === stepId ? 'current' : 'locked';
+}
+
+function stagePctFor(stepId: string, stageProgressPercent?: StageProgressPercentMap): number {
+  if (!stageProgressPercent) return 0;
+  const v = stageProgressPercent[stepId as keyof StageProgressPercentMap];
+  return typeof v === 'number' ? Math.min(100, Math.max(0, Math.round(v))) : 0;
 }
 
 function getStepRoute(stepId: string, projectId?: number | null): string {
@@ -72,9 +99,9 @@ export default function PathFinderDashboard({
   stepStatuses = {},
   projectId = null,
   ceoPhilosophyStatus = 'not_started',
+  stageProgressPercent,
 }: PathFinderDashboardProps) {
   const { t } = useTranslation();
-  const percent = progress.total > 0 ? Math.round((progress.completed / progress.total) * 100) : 0;
   const currentStepKey = progress.currentStepKey ?? 'diagnosis';
   const currentStepTitle = STEP_CONFIG.find((s) => s.id === currentStepKey)?.title ?? 'Diagnosis';
   const companyName = company?.name ?? activeProject?.company?.name ?? null;
@@ -82,14 +109,17 @@ export default function PathFinderDashboard({
   const diagnosisStatus = stepStatuses['diagnosis'];
   const isDiagnosisSubmitted = diagnosisStatus === 'submitted';
 
-  const steps = STEP_CONFIG.map((s, i) => ({
-    ...s,
-    active: getStepState(s.id, i, stepStatuses, currentStepKey, ceoPhilosophyStatus) === 'current',
-  }));
-
   const stepCards = STEP_CONFIG.map((s, i) => {
-    const state = getStepState(s.id, i, stepStatuses, currentStepKey, ceoPhilosophyStatus);
-    const stepProgress = state === 'current' && s.id === currentStepKey ? percent : 0;
+    const state = getStepState(s.id, i, stepStatuses, currentStepKey, ceoPhilosophyStatus, projectId);
+    const sp = stagePctFor(s.id, stageProgressPercent);
+    let stepProgress = 0;
+    if (state === 'completed') {
+      stepProgress = 100;
+    } else if (state === 'available') {
+      stepProgress = sp;
+    } else if (state === 'current' && s.id === currentStepKey) {
+      stepProgress = sp;
+    }
     return {
       ...s,
       step: s.num,
@@ -325,7 +355,8 @@ export default function PathFinderDashboard({
               {STEP_CONFIG.map((step, index) => {
                 const isActive = step.id === currentStepKey;
                 const isDone = progress.completed > index;
-                const isLocked = !isActive && !isDone;
+                const isLocked =
+                  !(step.id === 'hr_policy_os' && projectId) && !isActive && !isDone;
                 const hasLine = index < STEP_CONFIG.length - 1;
                 const lineDone = isDone;
                 const lineActive = isActive && !isDone;
@@ -407,6 +438,47 @@ export default function PathFinderDashboard({
                       </div>
                       <Link href={getStepRoute(card.id, projectId)} className="bg-[var(--hr-navy)] text-white py-2 px-4 rounded-[7px] text-xs font-semibold hover:bg-[var(--hr-navy-mid)]">
                         {t('dashboard.pathfinder.continue')} →
+                      </Link>
+                    </div>
+                  ) : card.status === 'available' ? (
+                    <div
+                      key={card.step}
+                      className="col-span-1 md:col-span-2 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-[18px] px-[22px] rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900"
+                    >
+                      <div className="flex items-start gap-4 min-w-0">
+                        <div className="w-9 h-9 rounded-[9px] bg-[rgba(78,205,196,0.12)] flex items-center justify-center text-base flex-shrink-0">
+                          <BarChart3 className="w-4 h-4 text-[#4ecdc4]" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap gap-1.5 mb-1.5">
+                            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">
+                              Step {card.step}
+                            </span>
+                            <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px]">
+                              {t('dashboard.pathfinder.always_open', 'Always open')}
+                            </span>
+                          </div>
+                          <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">{card.title}</h4>
+                          <p className="text-[11.5px] text-slate-600 dark:text-slate-300 mb-3">{card.desc}</p>
+                          <div className="mb-1 max-w-md">
+                            <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 mb-1">
+                              <span>{t('dashboard.pathfinder.progress_label')}</span>
+                              <span>{card.progress}%</span>
+                            </div>
+                            <div className="h-1 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-[#4ecdc4] to-[#3ab5ad] rounded transition-[width] duration-500 ease-out"
+                                style={{ width: `${card.progress}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <Link
+                        href={getStepRoute(card.id, projectId)}
+                        className="bg-[var(--hr-navy)] text-white py-2 px-4 rounded-[7px] text-xs font-semibold hover:bg-[var(--hr-navy-mid)] flex-shrink-0"
+                      >
+                        {t('buttons.view', 'View')} →
                       </Link>
                     </div>
                   ) : (

@@ -14,6 +14,8 @@ import Step5OrgChartMapping from './steps/Step5OrgChartMapping';
 import Step6ReviewSubmit from './steps/Step6ReviewSubmit';
 import { useJobAnalysisState, type OrgChartMapping } from './hooks/useJobAnalysisState';
 import { useStepValidation } from './hooks/useStepValidation';
+import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import { pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
 
 interface Project {
     id: number;
@@ -147,11 +149,41 @@ export default function JobAnalysisIndex({
         }
     }, [serverMappings.length]);
 
-    const { validateStep, isStepEnabled } = useStepValidation(state);
+    const { validateStep, isStepEnabled } = useStepValidation(state, questions);
 
     const [activeStepLocal, setActiveStepLocal] = useState(initialTab);
     const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
     const [stepError, setStepError] = useState<string | null>(null);
+    const [stepFieldErrors, setStepFieldErrors] = useState<FieldErrors>({});
+
+    const applyStepValidation = (stepId: string): boolean => {
+        const v = validateStep(stepId);
+        if (!v.isValid) {
+            setStepFieldErrors(v.fieldErrors);
+            setStepError(
+                v.errors.length ? v.errors.join(' ') : 'Please complete required fields before continuing.'
+            );
+            return false;
+        }
+        setStepFieldErrors({});
+        setStepError(null);
+        return true;
+    };
+
+    // Live: remove each field's error as soon as that field passes validation again.
+    useEffect(() => {
+        if (activeStepLocal === 'overview') return;
+        setStepFieldErrors((prev) => pruneFieldErrorsToValidator(prev, validateStep(activeStepLocal).fieldErrors));
+    }, [state, activeStepLocal, validateStep]);
+
+    useEffect(() => {
+        if (!stepError) return;
+        if (stepError === 'Complete the current step before continuing.') return;
+        if (stepError.startsWith('Complete "')) return;
+        if (Object.keys(stepFieldErrors).length === 0) {
+            setStepError(null);
+        }
+    }, [stepError, stepFieldErrors]);
 
     // Load initial data into state
     useEffect(() => {
@@ -235,18 +267,18 @@ export default function JobAnalysisIndex({
 
         // If going forward, validate current step
         if (stepIndex > currentIndex) {
-            const validation = validateStep(activeStepLocal);
-            if (!validation.isValid) {
-                setStepError(validation.errors?.length ? validation.errors.join(' ') : 'Please complete required fields before continuing.');
+            if (!applyStepValidation(activeStepLocal)) {
                 return;
             }
         }
 
         if (!isStepEnabled(stepId, stepIndex)) {
+            setStepFieldErrors({});
             setStepError('Complete the current step before continuing.');
             return;
         }
         setStepError(null);
+        setStepFieldErrors({});
 
         setActiveStepLocal(stepId);
         setActiveStep(stepId);
@@ -260,44 +292,43 @@ export default function JobAnalysisIndex({
     };
 
     const handleStep1Continue = () => {
-        const validation = validateStep('policy-snapshot');
-        if (!validation.isValid) {
-            setStepError(validation.errors?.join(' ') ?? 'Complete policy snapshot.');
-            return;
-        }
-        setStepError(null);
+        if (!applyStepValidation('policy-snapshot')) return;
         markStepCompleted('policy-snapshot');
         handleStepChange('job-list-selection');
     };
 
     const handleStep2Continue = () => {
-        const validation = validateStep('job-list-selection');
-        if (!validation.isValid) {
-            setStepError(validation.errors?.join(' ') ?? 'Complete job list selection.');
-            return;
-        }
-        setStepError(null);
+        if (!applyStepValidation('job-list-selection')) return;
         markStepCompleted('job-list-selection');
         handleStepChange('job-definition');
     };
 
     const handleStep3Continue = () => {
+        if (!applyStepValidation('job-definition')) return;
         markStepCompleted('job-definition');
         handleStepChange('finalization');
     };
 
     const handleStep4Continue = () => {
+        if (!applyStepValidation('finalization')) return;
         markStepCompleted('finalization');
         handleStepChange('org-chart-mapping');
     };
 
     const handleStep5Continue = (mappings?: OrgChartMapping[]) => {
         const list = mappings ?? state.orgMappings;
-        const hasEmptyName = list.some(u => !(String(u.org_unit_name ?? '').trim()));
-        if (hasEmptyName) {
+        const fieldErrors: FieldErrors = {};
+        for (const u of list) {
+            if (!(String(u.org_unit_name ?? '').trim())) {
+                fieldErrors[`unit-${u.id}`] = 'Organizational unit name is required.';
+            }
+        }
+        if (Object.keys(fieldErrors).length > 0) {
+            setStepFieldErrors(fieldErrors);
             setStepError('Please enter a name for every organizational unit.');
             return;
         }
+        setStepFieldErrors({});
         setStepError(null);
         markStepCompleted('org-chart-mapping');
         handleStepChange('review-submit');
@@ -335,6 +366,7 @@ export default function JobAnalysisIndex({
                         onAnswersChange={updatePolicyAnswers}
                         onContinue={handleStep1Continue}
                         onBack={handleBack}
+                        fieldErrors={stepFieldErrors}
                     />
                 );
 
@@ -349,6 +381,7 @@ export default function JobAnalysisIndex({
                         industry={industry}
                         sizeRange={sizeRange}
                         diagnosisContext={diagnosisContext}
+                        fieldErrors={stepFieldErrors}
                     />
                 );
 
@@ -362,6 +395,7 @@ export default function JobAnalysisIndex({
                         onDefinitionsChange={updateJobDefinitions}
                         onContinue={handleStep3Continue}
                         onBack={handleBack}
+                        fieldErrors={stepFieldErrors}
                     />
                 );
 
@@ -375,6 +409,7 @@ export default function JobAnalysisIndex({
                         jobSelections={state.jobSelections}
                         onContinue={handleStep4Continue}
                         onBack={handleBack}
+                        fieldErrors={stepFieldErrors}
                     />
                 );
 
@@ -386,6 +421,7 @@ export default function JobAnalysisIndex({
                         onMappingsChange={updateOrgMappings}
                         onContinue={handleStep5Continue}
                         onBack={handleBack}
+                        fieldErrors={stepFieldErrors}
                     />
                 );
 
@@ -399,6 +435,7 @@ export default function JobAnalysisIndex({
                         orgMappings={state.orgMappings}
                         questions={questions}
                         onBack={handleBack}
+                        fieldErrors={stepFieldErrors}
                     />
                 );
 

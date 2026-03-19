@@ -79,6 +79,13 @@ export default function WorkflowStepsSidebar({
     const getStepState = (stepId: string): 'current' | 'locked' | 'completed' => {
         const status = stepStatuses[stepId];
         const stepIndex = MAIN_STEPS.findIndex(s => s.id === stepId);
+
+        if (stepId === 'hr_policy_os' && projectId) {
+            if (status && ['submitted', 'approved', 'locked', 'completed'].includes(status)) {
+                return 'completed';
+            }
+            return 'current';
+        }
         
         if (status && ['submitted', 'approved', 'locked'].includes(status)) {
             return 'completed';

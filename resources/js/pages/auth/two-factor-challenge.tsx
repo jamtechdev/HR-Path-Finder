@@ -10,6 +10,7 @@ import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
 import AuthLayout from '@/layouts/auth-layout';
 import { store } from '@/routes/two-factor/login';
 import { Form, Head } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { useMemo, useState } from 'react';
 
@@ -69,6 +70,7 @@ export default function TwoFactorChallenge() {
                                         placeholder="Enter recovery code"
                                         autoFocus={showRecoveryInput}
                                         required
+                                        onChange={() => clearInertiaFieldError(clearErrors, 'recovery_code')}
                                     />
                                     <InputError
                                         message={errors.recovery_code}
@@ -81,7 +83,10 @@ export default function TwoFactorChallenge() {
                                             name="code"
                                             maxLength={OTP_MAX_LENGTH}
                                             value={code}
-                                            onChange={(value) => setCode(value)}
+                                            onChange={(value) => {
+                                                setCode(value);
+                                                clearInertiaFieldError(clearErrors, 'code');
+                                            }}
                                             disabled={processing}
                                             pattern={REGEXP_ONLY_DIGITS}
                                         >

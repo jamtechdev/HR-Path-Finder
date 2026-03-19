@@ -21,6 +21,14 @@ import ReviewSubmitTab from './tabs/ReviewSubmitTab';
 import { cn } from '@/lib/utils';
 import { Send } from 'lucide-react';
 import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
+import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import {
+    validatePerformanceSnapshotTab,
+    validateKpiReviewTab,
+    validateModelAssignmentTab,
+    validateEvaluationStructureTab,
+} from './performanceTabValidation';
+import { pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
 
 interface ProjectWithResponses {
     id: number;
@@ -96,6 +104,8 @@ export default function PerformanceSystemIndex({
     });
     const [draftStructure, setDraftStructure] = useState<any>(() => project.evaluation_structure ?? null);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [tabValidationMessage, setTabValidationMessage] = useState<string | null>(null);
+    const [perfFieldErrors, setPerfFieldErrors] = useState<FieldErrors>({});
     const [snapshotAnsweredCount, setSnapshotAnsweredCount] = useState(() => {
         const total = (snapshotQuestions as any[])?.length ?? 0;
         if (total === 0) return 0;
@@ -160,13 +170,36 @@ export default function PerformanceSystemIndex({
     }, [draftSnapshotResponses, draftKpis, draftAssignments, draftStructure, localDone]);
 
     const handleTabChange = (tab: string, force: boolean = false) => {
-        const tabIndex = TABS.findIndex(t => t.id === tab);
-        if (tabIndex === -1) return;
-        
-        if (!force && !isTabEnabled(tab, tabIndex)) {
+        if (tab === 'overview') {
+            setTabValidationMessage(null);
+            setPerfFieldErrors({});
+            setActiveTab('overview');
+            router.get(`/hr-manager/performance-system/${project.id}/overview`, {}, {
+                preserveState: true,
+                preserveScroll: false,
+            });
             return;
         }
-        
+
+        const tabIndex = TABS.findIndex(t => t.id === tab);
+        if (tabIndex === -1) return;
+
+        if (!force && !isTabEnabled(tab, tabIndex)) {
+            let blockerLabel = 'the previous step';
+            for (let i = 0; i < tabIndex; i++) {
+                const prevTab = TABS[i];
+                if (!validateTabCompletion(prevTab.id)) {
+                    blockerLabel = prevTab.label;
+                    break;
+                }
+            }
+            setPerfFieldErrors({});
+            setTabValidationMessage(`Complete "${blockerLabel}" before opening this tab.`);
+            return;
+        }
+
+        setTabValidationMessage(null);
+        setPerfFieldErrors({});
         setActiveTab(tab);
         router.get(`/hr-manager/performance-system/${project.id}/${tab}`, {}, {
             preserveState: true,
@@ -187,6 +220,48 @@ export default function PerformanceSystemIndex({
         setActiveTab(initialTab);
     }, [initialTab]);
 
+    // Live: drop field-level errors as the user fixes each field on the active tab.
+    useEffect(() => {
+        if (activeTab === 'overview' || activeTab === 'review-submit') return;
+        setPerfFieldErrors((prev) => {
+            if (Object.keys(prev).length === 0) return prev;
+            let latest: FieldErrors = {};
+            switch (activeTab) {
+                case 'performance-snapshot':
+                    latest = validatePerformanceSnapshotTab(snapshotQuestions as any[], draftSnapshotResponses ?? {}).fieldErrors;
+                    break;
+                case 'kpi-review':
+                    latest = validateKpiReviewTab(draftKpis ?? []).fieldErrors;
+                    break;
+                case 'model-assignment':
+                    latest = validateModelAssignmentTab(jobDefinitions ?? [], draftAssignments ?? {}).fieldErrors;
+                    break;
+                case 'evaluation-structure':
+                    latest = validateEvaluationStructureTab(draftStructure).fieldErrors;
+                    break;
+                default:
+                    return prev;
+            }
+            return pruneFieldErrorsToValidator(prev, latest);
+        });
+    }, [
+        activeTab,
+        draftSnapshotResponses,
+        draftKpis,
+        draftAssignments,
+        draftStructure,
+        snapshotQuestions,
+        jobDefinitions,
+    ]);
+
+    useEffect(() => {
+        if (!tabValidationMessage) return;
+        if (tabValidationMessage.startsWith('Complete "')) return;
+        if (Object.keys(perfFieldErrors).length === 0) {
+            setTabValidationMessage(null);
+        }
+    }, [tabValidationMessage, perfFieldErrors]);
+
     const getStatusForHeader = (): 'not_started' | 'in_progress' | 'submitted' => {
         const status = stepStatuses?.performance || 'not_started';
         if (status === 'submitted' || status === 'approved' || status === 'locked') {
@@ -200,24 +275,56 @@ export default function PerformanceSystemIndex({
 
     // Handlers for tab continue actions
     const handleSnapshotContinue = async (responses: Record<number, { response: string[]; text_response?: string }>) => {
+        const v = validatePerformanceSnapshotTab(snapshotQuestions as any[], responses);
+        if (!v.valid) {
+            setTabValidationMessage(v.message);
+            setPerfFieldErrors(v.fieldErrors);
+            return;
+        }
+        setTabValidationMessage(null);
+        setPerfFieldErrors({});
         setDraftSnapshotResponses(responses);
         setLocalDone((d) => ({ ...d, 'performance-snapshot': true }));
         handleTabChange('kpi-review', true);
     };
 
     const handleKpiReviewContinue = async (kpis: any[]) => {
+        const v = validateKpiReviewTab(kpis ?? []);
+        if (!v.valid) {
+            setTabValidationMessage(v.message);
+            setPerfFieldErrors(v.fieldErrors);
+            return;
+        }
+        setTabValidationMessage(null);
+        setPerfFieldErrors({});
         setDraftKpis(kpis);
         setLocalDone((d) => ({ ...d, 'kpi-review': true }));
         handleTabChange('model-assignment', true);
     };
 
     const handleModelAssignmentContinue = async (assignments: Record<number, 'mbo' | 'bsc' | 'okr'>) => {
+        const v = validateModelAssignmentTab(jobDefinitions ?? [], assignments ?? {});
+        if (!v.valid) {
+            setTabValidationMessage(v.message);
+            setPerfFieldErrors(v.fieldErrors);
+            return;
+        }
+        setTabValidationMessage(null);
+        setPerfFieldErrors({});
         setDraftAssignments(assignments);
         setLocalDone((d) => ({ ...d, 'model-assignment': true }));
         handleTabChange('evaluation-structure', true);
     };
 
     const handleEvaluationStructureContinue = async (structure: any) => {
+        const v = validateEvaluationStructureTab(structure);
+        if (!v.valid) {
+            setTabValidationMessage(v.message);
+            setPerfFieldErrors(v.fieldErrors);
+            return;
+        }
+        setTabValidationMessage(null);
+        setPerfFieldErrors({});
         setDraftStructure(structure);
         setLocalDone((d) => ({ ...d, 'evaluation-structure': true }));
         handleTabChange('review-submit', true);
@@ -225,6 +332,54 @@ export default function PerformanceSystemIndex({
 
     const handleReviewSubmit = async () => {
         setSubmitError(null);
+        setTabValidationMessage(null);
+
+        const snapV = validatePerformanceSnapshotTab(snapshotQuestions as any[], draftSnapshotResponses ?? {});
+        if (!snapV.valid) {
+            setTabValidationMessage(snapV.message);
+            setPerfFieldErrors(snapV.fieldErrors);
+            setActiveTab('performance-snapshot');
+            router.get(`/hr-manager/performance-system/${project.id}/performance-snapshot`, {}, {
+                preserveState: true,
+                preserveScroll: false,
+            });
+            return;
+        }
+        const kpiV = validateKpiReviewTab(draftKpis ?? []);
+        if (!kpiV.valid) {
+            setTabValidationMessage(kpiV.message);
+            setPerfFieldErrors(kpiV.fieldErrors);
+            setActiveTab('kpi-review');
+            router.get(`/hr-manager/performance-system/${project.id}/kpi-review`, {}, {
+                preserveState: true,
+                preserveScroll: false,
+            });
+            return;
+        }
+        const modelV = validateModelAssignmentTab(jobDefinitions ?? [], draftAssignments ?? {});
+        if (!modelV.valid) {
+            setTabValidationMessage(modelV.message);
+            setPerfFieldErrors(modelV.fieldErrors);
+            setActiveTab('model-assignment');
+            router.get(`/hr-manager/performance-system/${project.id}/model-assignment`, {}, {
+                preserveState: true,
+                preserveScroll: false,
+            });
+            return;
+        }
+        const structV = validateEvaluationStructureTab(draftStructure);
+        if (!structV.valid) {
+            setTabValidationMessage(structV.message);
+            setPerfFieldErrors(structV.fieldErrors);
+            setActiveTab('evaluation-structure');
+            router.get(`/hr-manager/performance-system/${project.id}/evaluation-structure`, {}, {
+                preserveState: true,
+                preserveScroll: false,
+            });
+            return;
+        }
+
+        setPerfFieldErrors({});
 
         const postStep = (url: string, payload: any) =>
             new Promise<void>((resolve, reject) => {
@@ -274,20 +429,18 @@ export default function PerformanceSystemIndex({
             <Head title={`Performance System - ${project?.company?.name || 'HR Manager'}`} />
             {/* Match Job Analysis: on overview = full-page cream bg, no tab bar. Else = header + tab bar + content */}
             {activeTab === 'overview' ? (
-                <div className="min-h-full bg-[#f5f3ef]">
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <Link
-                                href="/hr-manager/dashboard"
-                                className="text-sm font-medium text-[#0f2a4a] hover:text-[#1a4070] flex items-center gap-1"
-                            >
-                                <ChevronLeft className="w-4 h-4" />
-                                Back to Dashboard
-                            </Link>
-                        </div>
-                        {/* Full-page overview: hero + progress + cards (same structure as Job Analysis Overview) */}
-                        <div className="flex flex-col min-h-full">
-                            <section className="bg-[#0f172a] text-white px-6 py-10 pb-20 md:px-[10%] rounded-xl overflow-hidden">
+                <div className="min-h-full flex flex-col bg-[#f5f3ef]">
+                    <div className="shrink-0 px-6 pt-6 pb-2">
+                        <Link
+                            href="/hr-manager/dashboard"
+                            className="text-sm font-medium text-[#0f2a4a] hover:text-[#1a4070] flex items-center gap-1"
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                            Back to Dashboard
+                        </Link>
+                    </div>
+                    {/* Same flex shell as Job Analysis Overview: hero + flex-1 step column + sticky footer */}
+                    <section className="shrink-0 bg-[#0f172a] text-white px-6 py-10 pb-16 md:px-[10%]">
                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
                                     <div className="font-bold text-lg">
                                         HR Path-Finder <span className="font-normal text-[#64748b] ml-2">/ Performance System</span>
@@ -332,30 +485,34 @@ export default function PerformanceSystemIndex({
                                         </div>
                                     </div>
                                 </div>
-                            </section>
-                            <div className="flex-1 max-w-[1000px] mx-auto px-5 -mt-10 relative w-full pb-8">
-                                <Overview
-                                    projectId={project.id}
-                                    stepStatuses={stepStatuses}
-                                    completedSteps={new Set(Object.keys(tabCompletions).filter(k => tabCompletions[k]))}
-                                    onStepClick={handleTabChange}
-                                    snapshotResponses={draftSnapshotResponses}
-                                    organizationalKpis={draftKpis}
-                                    evaluationModelAssignments={evaluationModelAssignments}
-                                    evaluationStructure={draftStructure ?? project.evaluation_structure}
-                                    jobCount={jobDefinitions?.length ?? 0}
-                                    snapshotQuestionsCount={snapshotQuestions?.length ?? 10}
-                                    completedTabsCount={completedTabsCount}
-                                    tabsLength={TABS.length}
-                                    hideProgressCard
-                                />
-                            </div>
-                        </div>
+                    </section>
+                    <div className="flex-1 flex flex-col min-h-0 w-full px-5 -mt-10 pb-8 relative z-[2]">
+                        <Overview
+                            projectId={project.id}
+                            stepStatuses={stepStatuses}
+                            completedSteps={new Set(Object.keys(tabCompletions).filter(k => tabCompletions[k]))}
+                            onStepClick={handleTabChange}
+                            snapshotResponses={draftSnapshotResponses}
+                            organizationalKpis={draftKpis}
+                            evaluationModelAssignments={evaluationModelAssignments}
+                            evaluationStructure={draftStructure ?? project.evaluation_structure}
+                            jobCount={jobDefinitions?.length ?? 0}
+                            snapshotQuestionsCount={snapshotQuestions?.length ?? 10}
+                            completedTabsCount={completedTabsCount}
+                            tabsLength={TABS.length}
+                            hideProgressCard
+                        />
                     </div>
                 </div>
             ) : (
             <div className="p-6 md:p-8 max-w-7xl mx-auto bg-background flex flex-col min-h-full">
-                <InlineErrorSummary className="mb-4" message={submitError} />
+                {activeTab === 'review-submit' && (tabValidationMessage || submitError) && (
+                    <InlineErrorSummary
+                        className="mb-4"
+                        message={tabValidationMessage || submitError}
+                        errors={perfFieldErrors}
+                    />
+                )}
                 <div className="mb-0 rounded-t-xl overflow-hidden">
                     <div className="bg-[#151535] text-white px-5 py-4 md:px-6 flex items-start gap-4">
                         <button
@@ -420,8 +577,9 @@ export default function PerformanceSystemIndex({
                                         return (
                                             <button
                                                 key={tab.id}
-                                                disabled
-                                                className="flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap bg-[#f9fafb] text-[#9ca3af] cursor-not-allowed border-b-2 border-transparent -mb-[9px]"
+                                                type="button"
+                                                onClick={() => handleTabChange(tab.id)}
+                                                className="flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap bg-[#f9fafb] text-[#9ca3af] cursor-pointer border-b-2 border-transparent -mb-[9px] hover:bg-[#f3f4f6]"
                                             >
                                                 <TabIcon className="w-4 h-4" />
                                                 <span className="hidden sm:inline">{tab.label}</span>
@@ -469,9 +627,11 @@ export default function PerformanceSystemIndex({
                             project={project}
                             questions={snapshotQuestions}
                             savedResponses={draftSnapshotResponses}
+                            onResponsesChange={setDraftSnapshotResponses}
                             onContinue={handleSnapshotContinue}
                             onBack={() => handleTabChange('overview')}
                             onAnsweredChange={(answered, total) => setSnapshotAnsweredCount(answered)}
+                            fieldErrors={perfFieldErrors}
                         />
                     )}
 
@@ -482,8 +642,10 @@ export default function PerformanceSystemIndex({
                             orgChartMappings={orgChartMappings}
                             kpiReviewTokens={kpiReviewTokens}
                             organizationalKpis={draftKpis}
+                            onKpisChange={setDraftKpis}
                             onContinue={handleKpiReviewContinue}
                             onBack={() => handleTabChange('performance-snapshot')}
+                            fieldErrors={perfFieldErrors}
                         />
                     )}
 
@@ -498,6 +660,7 @@ export default function PerformanceSystemIndex({
                             jobRecommendations={jobRecommendations}
                             onContinue={handleModelAssignmentContinue}
                             onBack={() => handleTabChange('kpi-review')}
+                            fieldErrors={perfFieldErrors}
                         />
                     )}
 
@@ -507,6 +670,7 @@ export default function PerformanceSystemIndex({
                             evaluationStructure={(draftStructure ?? project.evaluation_structure) || null}
                             onContinue={handleEvaluationStructureContinue}
                             onBack={() => handleTabChange('model-assignment')}
+                            fieldErrors={perfFieldErrors}
                         />
                     )}
 

@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { useState } from 'react';
 
 interface Project {
@@ -43,7 +44,7 @@ export default function AdminReview({
         project?.id || null,
     );
 
-    const { data, setData, post, processing } = useForm({
+    const { data, setData, post, processing, clearErrors } = useForm({
         comment: '',
         step: '', // ✅ IMPORTANT
     });
@@ -53,7 +54,9 @@ export default function AdminReview({
             post(`/admin/review/${selectedProjectId}/comment`, {
                 onSuccess: () => {
                     setData('comment', '');
+                    clearInertiaFieldError(clearErrors, 'comment');
                     setData('step', '');
+                    clearInertiaFieldError(clearErrors, 'step');
                 },
             });
         }
@@ -180,12 +183,10 @@ export default function AdminReview({
                                                     <select
                                                         id="step"
                                                         value={data.step}
-                                                        onChange={(e) =>
-                                                            setData(
-                                                                'step',
-                                                                e.target.value,
-                                                            )
-                                                        }
+                                                        onChange={(e) => {
+                                                            setData('step', e.target.value);
+                                                            clearInertiaFieldError(clearErrors, 'step');
+                                                        }}
                                                         className="w-full rounded-md border p-2"
                                                     >
                                                         <option value="">
@@ -217,12 +218,10 @@ export default function AdminReview({
                                                     <Textarea
                                                         id="comment"
                                                         value={data.comment}
-                                                        onChange={(e) =>
-                                                            setData(
-                                                                'comment',
-                                                                e.target.value,
-                                                            )
-                                                        }
+                                                        onChange={(e) => {
+                                                            setData('comment', e.target.value);
+                                                            clearInertiaFieldError(clearErrors, 'comment');
+                                                        }}
                                                         placeholder="Add your comment..."
                                                         rows={4}
                                                     />

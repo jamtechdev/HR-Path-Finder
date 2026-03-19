@@ -1,5 +1,6 @@
 import React from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
@@ -29,7 +30,7 @@ interface Props {
 }
 
 export default function SubcategoriesEdit({ subCategory, categories }: Props) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, clearErrors } = useForm({
         industry_category_id: subCategory?.industry_category_id?.toString() || '',
         name: subCategory?.name || '',
         order: subCategory?.order?.toString() || '0',

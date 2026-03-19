@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { login, home } from '@/routes';
 import { Head, Link, useForm, router } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { ArrowRight, Shield, RotateCcw, Mail, ArrowLeft } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
@@ -43,6 +44,7 @@ export default function VerifyOtp({ email, status }: PageProps) {
 
         // Update form data
         form.setData('otp', newOtpDigits.join(''));
+        clearInertiaFieldError(form.clearErrors, 'otp');
     };
 
     const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -58,6 +60,7 @@ export default function VerifyOtp({ email, status }: PageProps) {
             const digits = pastedData.split('');
             setOtpDigits(digits);
             form.setData('otp', pastedData);
+            clearInertiaFieldError(form.clearErrors, 'otp');
             inputRefs.current[5]?.focus();
         }
     };

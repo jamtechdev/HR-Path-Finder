@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
 import { Head, router, useForm } from '@inertiajs/react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { ChevronLeft } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
@@ -51,7 +52,7 @@ export default function CEOQuestionEdit({
     const [options, setOptions] = useState<string[]>(question.options || []);
     const [metadata, setMetadata] = useState<any>(question.metadata || {});
 
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, clearErrors } = useForm({
         category: question.category || '',
         question_text: question.question_text || '',
         question_type: question.question_type || '',

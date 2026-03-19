@@ -4,6 +4,7 @@ import { ChevronLeft, CheckCircle2, FileDown, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import SuccessModal from '@/components/Modals/SuccessModal';
 import type { JobDefinition, OrgChartMapping } from '../hooks/useJobAnalysisState';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 
 interface Step4FinalizationProps {
     projectId: number;
@@ -17,6 +18,7 @@ interface Step4FinalizationProps {
     };
     onContinue: () => void;
     onBack: () => void;
+    fieldErrors?: FieldErrors;
 }
 
 export default function Step4Finalization({
@@ -31,6 +33,7 @@ export default function Step4Finalization({
     },
     onContinue,
     onBack,
+    fieldErrors = {},
 }: Step4FinalizationProps) {
     const [activeJobKey, setActiveJobKey] = useState<string>('');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -96,8 +99,8 @@ export default function Step4Finalization({
             : '—';
 
     return (
-        <div className="min-h-full flex flex-col bg-[#f9f7f2] text-[#121431] pb-[100px]">
-            <div className="max-w-[1100px] mx-auto w-full py-10 px-5" style={{ padding: '0 20px', margin: '40px auto' }}>
+        <div className="min-h-full flex flex-col bg-[#f9f7f2] text-[#121431]">
+            <div className="flex-1 min-h-0 max-w-[1100px] mx-auto w-full py-10 px-5 pb-8" style={{ padding: '0 20px', margin: '40px auto' }}>
                 <div className="flex items-start justify-between gap-4 flex-wrap mb-2">
                     <div>
                         <div className="step-label mb-2" style={{ color: '#b88a44', fontSize: 12, fontWeight: 700, letterSpacing: 1 }}>
@@ -130,6 +133,8 @@ export default function Step4Finalization({
                         card carefully before proceeding.
                     </div>
                 </div>
+
+                <FieldErrorMessage fieldKey="finalization" errors={fieldErrors} className="mb-4" />
 
                 <div className="flex gap-2 mb-6 flex-wrap">
                     {jobEntries.map(([key]) => {
@@ -397,14 +402,12 @@ export default function Step4Finalization({
             </div>
 
             <footer
-                className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-between items-center z-[100]"
+                className="sticky bottom-0 w-full bg-white border-t border-[#e0ddd5] py-[18px] px-6 md:px-[60px] flex flex-wrap items-center justify-between gap-4 z-10 mt-auto"
                 style={{
-                    borderColor: '#e5e7eb',
-                    padding: '16px 24px 16px 24px',
                     boxShadow: '0 -4px 6px -1px rgba(0,0,0,0.05)',
                 }}
             >
-                <div className="text-[14px] text-[#6b7280]">
+                <div className="text-[13px] text-[#94a3b8] font-medium">
                     Job Definitions: <strong className="text-[#121431]">{jobCount}</strong> roles ready for finalization
                 </div>
                 <div className="flex gap-3 flex-wrap justify-end">
@@ -413,7 +416,7 @@ export default function Step4Finalization({
                         variant="outline"
                         onClick={onBack}
                         disabled={isSubmitting}
-                        className="rounded-lg font-semibold text-sm border-[#e5e7eb] px-5 py-2.5 hover:bg-[#f9fafb]"
+                        className="border-[#e0ddd5] font-bold px-8 py-6 rounded-lg"
                     >
                         ← Back to Edit
                     </Button>
@@ -421,7 +424,7 @@ export default function Step4Finalization({
                         type="button"
                         onClick={handleFinalize}
                         disabled={isSubmitting}
-                        className="rounded-lg font-semibold text-sm bg-[#121431] hover:bg-[#1e2a4a] text-white border-0 px-5 py-2.5 shadow-sm"
+                        className="bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white font-bold px-9 py-6 rounded-lg"
                     >
                         {isSubmitting ? (
                             'Finalizing...'

@@ -5,6 +5,7 @@ import FormLayout from '@/components/Diagnosis/FormLayout';
 import { cn } from '@/lib/utils';
 import { Info, TrendingUp, Users, Minus, Plus } from 'lucide-react';
 import { tr } from '@/config/diagnosisTranslations';
+import { DiagnosisFieldShell } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 
 interface Diagnosis {
     id: number;
@@ -117,6 +118,8 @@ export default function Workforce({
                 {/* 전체 재직 인원 | 성별 구성 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Left: 전체 재직 인원 */}
+                    <DiagnosisFieldShell fieldKey="present_headcount" inertiaError={errors.present_headcount}>
+                        {({ borderCn, ErrorLine }) => (
                     <div>
                         <h3 className="text-[13px] font-bold text-[#3A4356] mb-3">{tr('presentHeadcountTitle')}</h3>
                         <div className="flex flex-col items-center gap-3">
@@ -127,7 +130,10 @@ export default function Workforce({
                                     value={data.present_headcount || ''}
                                     onChange={(e) => setData('present_headcount', parseInt(e.target.value, 10) || 0)}
                                     disabled={readOnly}
-                                    className="w-24 h-12 text-center text-xl font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-lg bg-[#F8F9FB] focus:border-[#2EC4A9] focus:ring-2 focus:ring-[#2EC4A9]/20 outline-none"
+                                    className={cn(
+                                        'w-24 h-12 text-center text-xl font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-lg bg-[#F8F9FB] focus:border-[#2EC4A9] focus:ring-2 focus:ring-[#2EC4A9]/20 outline-none',
+                                        borderCn
+                                    )}
                                 />
                                 <span className="text-[15px] font-bold text-[#3A4356]">{tr('persons')}</span>
                             </div>
@@ -167,10 +173,10 @@ export default function Workforce({
                             </div>
                             <p className="text-[11px] text-[#9AA3B2] text-center">{tr('includeAllHint')}</p>
                         </div>
-                        {errors.present_headcount && (
-                            <p className="mt-1 text-sm text-[#E05252]">{errors.present_headcount}</p>
-                        )}
+                        {ErrorLine}
                     </div>
+                        )}
+                    </DiagnosisFieldShell>
 
                     {/* Right: 성별 구성 */}
                     <div>

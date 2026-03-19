@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
 import { setOrgChartDraftFile, getOrgChartDraftFiles } from '@/lib/diagnosisFileDrafts';
 import { both, tr } from '@/config/diagnosisTranslations';
+import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 
 interface Diagnosis {
     id: number;
@@ -70,6 +71,10 @@ export default function OrganizationalCharts({
     const useEmbed = embedMode && embedData != null && embedSetData;
     const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
     const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
+    const inertiaOrgChartErr =
+        typeof internalForm.errors.organizational_charts === 'string'
+            ? internalForm.errors.organizational_charts
+            : undefined;
 
     useEffect(() => {
         const out: Record<string, File> = {};
@@ -370,6 +375,7 @@ export default function OrganizationalCharts({
                             );
                         })}
                     </div>
+                    <DiagnosisFieldErrorMessage fieldKey="organizational_charts" inertiaError={inertiaOrgChartErr} />
                 </div>
             );
     if (embedMode) return <>{innerContent}</>;

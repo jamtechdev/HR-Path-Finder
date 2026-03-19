@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -66,8 +66,10 @@ interface Props {
     orgChartMappings?: Array<{ org_unit_name: string; org_head_email?: string; org_head_name?: string; is_kpi_reviewer?: boolean }>;
     kpiReviewTokens?: Record<string, unknown>;
     organizationalKpis?: Array<Partial<Kpi>>;
+    onKpisChange?: (kpis: Kpi[]) => void;
     onContinue: (kpis: Kpi[]) => void;
     onBack?: () => void;
+    fieldErrors?: FieldErrors;
 }
 
 const defaultValidation = (): ValidationState => ({
@@ -82,9 +84,11 @@ export default function KpiReviewTab({
     jobDefinitions = [],
     orgChartMappings = [],
     organizationalKpis = [],
+    onKpisChange,
     kpiReviewTokens = {},
     onContinue,
     onBack,
+    fieldErrors = {},
 }: Props) {
     const [inlineMsg, setInlineMsg] = useState<string | null>(null);
     const [kpis, setKpis] = useState<Kpi[]>(() =>
@@ -166,6 +170,10 @@ export default function KpiReviewTab({
         });
         setKpis(Array.from(map.values()));
     }, [organizationalKpis]);
+
+    useEffect(() => {
+        onKpisChange?.(kpis);
+    }, [kpis, onKpisChange]);
 
     const orgKpis = kpis.filter((k) => k.organization_name === selectedOrg);
     const leaderName = orgChartMappings.find((m) => m.org_unit_name === selectedOrg)?.org_head_name || '—';
@@ -295,7 +303,6 @@ export default function KpiReviewTab({
 
     return (
         <div className="manager-kpi-draft min-h-full flex flex-col" style={{ background: '#f8f9fb' }}>
-            <InlineErrorSummary message={inlineMsg} className="mb-3" />
             <Dialog open={!!validationModal} onOpenChange={(open) => !open && closeValidationModal()}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
@@ -637,7 +644,7 @@ export default function KpiReviewTab({
             </div>
 
             {/* Footer: in flow so it starts after sidebar/header (no full-width under sidebar) */}
-            <footer className="shrink-0 bg-white border-t border-[#e2e8f0] py-4 px-6 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] z-10">
+            <footer className="sticky bottom-0 shrink-0 bg-white border-t border-[#e0ddd5] py-[18px] px-6 md:px-[60px] shadow-[0_-4px_12px_rgba(0,0,0,0.06)] z-10">
                 <div className="max-w-[1400px] mx-auto flex flex-wrap items-center justify-between gap-4">
                     {onBack ? (
                         <Button
@@ -651,13 +658,15 @@ export default function KpiReviewTab({
                         <div />
                     )}
                     <div className="flex flex-col items-start gap-2">
+                        {inlineMsg && <p className="text-xs text-[#6b7685]">{inlineMsg}</p>}
                         <p className="text-xs text-[#6b7685]">
                             Only units marked as <strong>KPI Reviewer</strong> with a valid email in Org Chart Mapping receive the request. Recipients: {kpiReviewRecipients.length > 0 ? kpiReviewRecipients.map((m) => m.org_unit_name).join(', ') : 'none designated.'}
                         </p>
+                        <FieldErrorMessage fieldKey="kpi-list" errors={fieldErrors} className="w-full" />
                         <div className="flex items-center gap-3 flex-wrap">
                             <Button
                                 onClick={handleSendReviewRequest}
-                                disabled={!canSendReviewRequest || sendingReview}
+                                disabled={sendingReview}
                                 className="bg-[#1a2b4a] hover:bg-[#2e4570] text-white rounded-lg font-bold px-6 py-2.5 shadow-md disabled:opacity-60"
                             >
                                 <Send className="w-4 h-4 mr-2" />
