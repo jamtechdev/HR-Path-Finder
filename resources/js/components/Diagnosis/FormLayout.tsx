@@ -283,15 +283,53 @@ export default function FormLayout({
             return;
         }
 
+        const doNavigate = () => {
+            setDiagnosisFieldErrors({});
+            if (onNext) onNext();
+            else if (nextRoute && getNextUrl()) {
+                router.visit(getNextUrl()!, { onSuccess: () => window.scrollTo({ top: 0, behavior: 'smooth' }) });
+            }
+        };
+
+        // Persist current step to backend so step completion/status updates.
+        if (projectId && saveRoute && formData && activeTab !== 'review' && !isReadOnly) {
+            if (projectId) {
+                saveTabDraft(projectId, activeTab, serializeDraft(formData));
+            }
+
+            router.post(saveRoute, formData, {
+                forceFormData: true,
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    if (projectId) {
+                        saveTabDraft(projectId, activeTab, serializeDraft(formData));
+                    }
+                    doNavigate();
+                },
+                onError: (payload: unknown) => {
+                    const raw = (payload as any)?.errors ?? payload;
+                    const mappedErrors: Record<string, string> = {};
+                    if (raw && typeof raw === 'object') {
+                        for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+                            const vv = Array.isArray(v) ? v[0] : v;
+                            if (typeof vv === 'string' && vv) mappedErrors[k] = vv;
+                        }
+                    }
+                    const first = Object.values(mappedErrors)[0];
+                    setValidationError(first ?? 'Failed to save. Please try again.');
+                    setDiagnosisFieldErrors(mappedErrors as FieldErrors);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+            });
+            return;
+        }
+
         if (projectId && formData && activeTab !== 'review') {
             saveTabDraft(projectId, activeTab, serializeDraft(formData));
         }
 
-        setDiagnosisFieldErrors({});
-        if (onNext) onNext();
-        else if (nextRoute && getNextUrl()) {
-            router.visit(getNextUrl()!, { onSuccess: () => window.scrollTo({ top: 0, behavior: 'smooth' }) });
-        }
+        doNavigate();
     };
 
     // Get status for header - same logic as Overview

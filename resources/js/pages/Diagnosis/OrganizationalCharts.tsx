@@ -50,11 +50,29 @@ export default function OrganizationalCharts({
 }: Props) {
     const [existingImages, setExistingImages] = useState<Record<string, string>>(() => {
         const images: Record<string, string> = {};
-        if (diagnosis?.organizational_charts && typeof diagnosis.organizational_charts === 'object' && !Array.isArray(diagnosis.organizational_charts)) {
-            Object.entries(diagnosis.organizational_charts).forEach(([year, path]) => {
-                if (REQUIRED_YEARS.includes(year) && typeof path === 'string' && path) images[year] = path;
-            });
+        const orgCharts = diagnosis?.organizational_charts;
+
+        // Current format: { "2023.12": "storage/path", ... }
+        if (orgCharts && typeof orgCharts === 'object') {
+            if (Array.isArray(orgCharts)) {
+                // Legacy format (older implementations): [{ year, file_url }, ...]
+                orgCharts.forEach((item: any) => {
+                    if (!item || typeof item !== 'object') return;
+                    const year = item.year;
+                    const path = item.file_url ?? item.path ?? item.filePath;
+                    if (REQUIRED_YEARS.includes(year) && typeof path === 'string' && path) {
+                        images[year] = path;
+                    }
+                });
+            } else {
+                Object.entries(orgCharts as Record<string, unknown>).forEach(([year, path]) => {
+                    if (REQUIRED_YEARS.includes(year) && typeof path === 'string' && path) {
+                        images[year] = path;
+                    }
+                });
+            }
         }
+
         return images;
     });
 
