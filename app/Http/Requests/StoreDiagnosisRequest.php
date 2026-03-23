@@ -38,6 +38,8 @@ class StoreDiagnosisRequest extends FormRequest
             'secondary_industries' => ['nullable', 'array'],
             'secondary_industries.*' => ['nullable', 'string', 'max:255'],
             'present_headcount' => ['nullable', 'integer', 'min:0'],
+            'full_time_headcount' => ['nullable', 'integer', 'min:0'],
+            'contract_headcount' => ['nullable', 'integer', 'min:0'],
             'expected_headcount_1y' => ['nullable', 'integer', 'min:0'],
             'expected_headcount_2y' => ['nullable', 'integer', 'min:0'],
             'expected_headcount_3y' => ['nullable', 'integer', 'min:0'],
@@ -97,6 +99,18 @@ class StoreDiagnosisRequest extends FormRequest
                     $validator->errors()->add(
                         'industry_category_other',
                         'Please specify the primary industry when selecting Others.'
+                    );
+                }
+            }
+
+            $present = (int) $this->input('present_headcount', 0);
+            if ($this->filled('full_time_headcount') && $this->filled('contract_headcount') && $present > 0) {
+                $ft = (int) $this->input('full_time_headcount');
+                $ct = (int) $this->input('contract_headcount');
+                if (($ft + $ct) !== $present) {
+                    $validator->errors()->add(
+                        'present_headcount',
+                        'Total headcount must equal full-time plus contract ('.($ft + $ct).' vs '.$present.').'
                     );
                 }
             }

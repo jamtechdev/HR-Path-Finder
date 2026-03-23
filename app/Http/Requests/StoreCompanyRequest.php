@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Company;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class StoreCompanyRequest extends FormRequest
 {
@@ -40,5 +42,36 @@ class StoreCompanyRequest extends FormRequest
             'logo.mimes' => 'The logo must be a file of type: jpeg, jpg, png, gif, or webp.',
             'logo.max' => 'The logo may not be greater than 5MB.',
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $v): void {
+            $user = $this->user();
+            if (! $user) {
+                return;
+            }
+
+            $name = trim((string) $this->input('name', ''));
+            if ($name === '' || $v->errors()->has('name')) {
+                return;
+            }
+
+            $minutes = max(1, (int) config('company.duplicate_name_window_minutes', 5));
+            $normalized = mb_strtolower($name, 'UTF-8');
+
+            $duplicate = Company::query()
+                ->where('created_by', $user->id)
+                ->where('created_at', '>=', now()->subMinutes($minutes))
+                ->get()
+                ->contains(fn (Company $c) => mb_strtolower(trim($c->name), 'UTF-8') === $normalized);
+
+            if ($duplicate) {
+                $v->errors()->add(
+                    'name',
+                    'A company with this name was created just now. If you already clicked Create, open your dashboard—otherwise wait a moment before trying again.'
+                );
+            }
+        });
     }
 }

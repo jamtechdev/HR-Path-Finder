@@ -194,7 +194,7 @@ class PasswordResetController extends Controller
 
         $validated = $request->validate([
             'email' => 'required|email|exists:users,email',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:10|confirmed',
         ]);
 
         // Verify email matches session

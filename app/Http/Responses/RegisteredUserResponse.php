@@ -67,6 +67,8 @@ class RegisteredUserResponse implements RegisterResponseContract
         // Check email verification for HR Manager - redirect to verification page if not verified
         if ($role === 'hr_manager' && !$user->hasVerifiedEmail()) {
             return redirect()->route('verification.notice')
+                ->with('registration_created', true)
+                ->with('success', 'Your account was created. We sent a verification link to your email — open it to continue.')
                 ->with('warning', 'Please verify your email address before accessing the dashboard.');
         }
 

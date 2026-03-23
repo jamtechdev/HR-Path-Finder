@@ -106,6 +106,8 @@ export default function JobGrades({
     const [draggingId, setDraggingId] = useState<string | null>(null);
     const [dropTarget, setDropTarget] = useState<{ id: string; top: boolean } | null>(null);
     const idSeqRef = useRef(grades.length + 1);
+    /** Some browsers omit getData on drop; keep source id in a ref. */
+    const dragSourceIdRef = useRef<string | null>(null);
 
     const internalForm = useForm({
         job_grade_names: [] as string[],
@@ -154,6 +156,14 @@ export default function JobGrades({
         { enabled: !embedMode && !readOnly }
     );
 
+    // Keep toolbar total aligned with Workforce step when server diagnosis updates
+    useEffect(() => {
+        const ph = diagnosis?.present_headcount;
+        if (typeof ph === 'number' && ph > 0 && !embedMode) {
+            setWorkforceTotal(ph);
+        }
+    }, [diagnosis?.present_headcount, embedMode]);
+
     useEffect(() => {
         const names = grades.map((g) => g.name).filter(Boolean);
         const years: Record<string, number | null> = {};
@@ -193,6 +203,23 @@ export default function JobGrades({
         setGrades((prev) => prev.filter((g) => g.id !== id));
     }, []);
 
+    const distributeHeadcountEvenly = useCallback(() => {
+        setGrades((prev) => {
+            if (prev.length === 0 || workforceTotal <= 0) return prev;
+            const n = prev.length;
+            const base = Math.floor(workforceTotal / n);
+            let rem = workforceTotal - base * n;
+            return prev.map((g) => {
+                let c = base;
+                if (rem > 0) {
+                    c += 1;
+                    rem -= 1;
+                }
+                return { ...g, count: c };
+            });
+        });
+    }, [workforceTotal]);
+
     const updateGrade = useCallback((id: string, updates: Partial<JobGrade>) => {
         setGrades((prev) =>
             prev.map((g) => {
@@ -205,12 +232,19 @@ export default function JobGrades({
     }, []);
 
     const handleDragStart = useCallback((e: React.DragEvent, id: string) => {
+        dragSourceIdRef.current = id;
         setDraggingId(id);
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', id);
+        // Avoid dragging a large ghost (reduces odd browser behavior / "page" glitches)
+        const img = new Image();
+        img.src =
+            'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        e.dataTransfer.setDragImage(img, 0, 0);
     }, []);
 
     const handleDragEnd = useCallback(() => {
+        dragSourceIdRef.current = null;
         setDraggingId(null);
         setDropTarget(null);
     }, []);
@@ -222,40 +256,40 @@ export default function JobGrades({
         setDropTarget({ id, top: e.clientY < rect.top + rect.height / 2 });
     }, [draggingId]);
 
-    const handleDrop = useCallback(
-        (e: React.DragEvent, targetId: string) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const srcId = e.dataTransfer.getData('text/plain') || draggingId;
-            if (!srcId || srcId === targetId) {
-                setDraggingId(null);
-                setDropTarget(null);
-                return;
-            }
-            setGrades((prev) => {
-                const fromIndex = prev.findIndex((g) => g.id === srcId);
-                const toIndex = prev.findIndex((g) => g.id === targetId);
-                if (fromIndex === -1 || toIndex === -1) return prev;
-                const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                const insertIndex = e.clientY < rect.top + rect.height / 2 ? toIndex : toIndex + 1;
-                const next = [...prev];
-                const [removed] = next.splice(fromIndex, 1);
-                const insertAt = insertIndex > fromIndex ? insertIndex - 1 : insertIndex;
-                next.splice(insertAt, 0, removed);
-                return next;
-            });
+    const handleDrop = useCallback((e: React.DragEvent, targetId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const srcId = e.dataTransfer.getData('text/plain') || dragSourceIdRef.current || draggingId;
+        if (!srcId || srcId === targetId) {
+            dragSourceIdRef.current = null;
             setDraggingId(null);
             setDropTarget(null);
-        },
-        [draggingId]
-    );
+            return;
+        }
+        setGrades((prev) => {
+            const fromIndex = prev.findIndex((g) => g.id === srcId);
+            const toIndex = prev.findIndex((g) => g.id === targetId);
+            if (fromIndex === -1 || toIndex === -1) return prev;
+            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+            const insertIndex = e.clientY < rect.top + rect.height / 2 ? toIndex : toIndex + 1;
+            const next = [...prev];
+            const [removed] = next.splice(fromIndex, 1);
+            let insertAt = insertIndex > fromIndex ? insertIndex - 1 : insertIndex;
+            insertAt = Math.max(0, Math.min(next.length, insertAt));
+            next.splice(insertAt, 0, removed);
+            return next;
+        });
+        dragSourceIdRef.current = null;
+        setDraggingId(null);
+        setDropTarget(null);
+    }, [draggingId]);
 
     const statusAlert = (() => {
         if (workforceTotal === 0 || totalHc === 0) {
             return { type: 'idle' as const, msg: '인원수를 입력하면 Workforce 인원과 비교됩니다' };
         }
         if (totalHc < workforceTotal) {
-            return { type: 'warn' as const, msg: `${totalHc} / ${workforceTotal} — Total headcount is less than workforce. Adjust headcount per grade.` };
+            return { type: 'warn' as const, msg: `${totalHc} / ${workforceTotal} — Total headcount is less than workforce. Adjust headcount per grade or use Distribute evenly.` };
         }
         if (totalHc > workforceTotal) {
             return { type: 'warn' as const, msg: `${totalHc} / ${workforceTotal} — Total headcount exceeds workforce. Please reduce.` };
@@ -265,6 +299,8 @@ export default function JobGrades({
 
     const isReadOnlyStatus = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
     const isReadOnly = readOnly || isReadOnlyStatus;
+
+    const headcountMismatch = workforceTotal > 0 && totalHc !== workforceTotal;
 
     const innerContent = (
         <div className="space-y-5">
@@ -326,6 +362,14 @@ export default function JobGrades({
                 </span>
                 <button
                     type="button"
+                    onClick={distributeHeadcountEvenly}
+                    disabled={isReadOnly || workforceTotal <= 0 || grades.length === 0}
+                    className="py-[9px] px-[14px] rounded-lg text-[13px] font-bold border border-[#E2E6ED] bg-white text-[#1B2B5B] hover:bg-[#F8F9FB] disabled:opacity-50 disabled:pointer-events-none"
+                >
+                    Distribute evenly
+                </button>
+                <button
+                    type="button"
                     onClick={addGrade}
                     disabled={isReadOnly}
                     className="ml-auto flex items-center gap-[7px] py-[9px] px-[18px] bg-[#1B2B5B] text-white rounded-lg text-[13px] font-bold hover:bg-[#243570] hover:-translate-y-px transition-all shadow-[0_2px_6px_rgba(27,43,91,0.18)] disabled:opacity-50 disabled:pointer-events-none"
@@ -357,17 +401,13 @@ export default function JobGrades({
                 {grades.map((g, index) => (
                         <div
                             key={g.id}
-                            draggable={!isReadOnly}
-                            onDragStart={(e) => handleDragStart(e, g.id)}
-                            onDragEnd={handleDragEnd}
                             onDragOver={(e) => handleDragOver(e, g.id)}
                             onDragLeave={() => setDropTarget(null)}
-                            onDragOverCapture={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
-                            onDropCapture={(e) => {
+                            onDragOverCapture={(e) => {
                                 e.preventDefault();
-                                e.stopPropagation();
-                                handleDrop(e, g.id);
+                                e.dataTransfer.dropEffect = 'move';
                             }}
+                            onDrop={(e) => handleDrop(e, g.id)}
                             className={cn(
                                 'grid gap-x-3 py-3.5 px-7 items-start transition-colors hover:bg-[#F8F9FB] border-b border-transparent last:border-b-0',
                                 draggingId === g.id && 'opacity-35 bg-[#F0F2F5]',
@@ -376,7 +416,17 @@ export default function JobGrades({
                             )}
                             style={{ gridTemplateColumns: GRADE_GRID }}
                         >
-                        <div className="w-5 h-9 flex items-center justify-center self-center cursor-grab text-[#CBD0DA] hover:text-[#6B7585] shrink-0" title="드래그하여 순서 변경">
+                        <div
+                            draggable={!isReadOnly}
+                            onDragStart={(e) => handleDragStart(e, g.id)}
+                            onDragEnd={handleDragEnd}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            className="w-5 h-9 flex items-center justify-center self-center cursor-grab active:cursor-grabbing text-[#CBD0DA] hover:text-[#6B7585] shrink-0 touch-none"
+                            title="드래그하여 순서 변경"
+                            role="button"
+                            tabIndex={0}
+                            aria-label="Drag to reorder grade"
+                        >
                             <DragHandleIcon />
                         </div>
                         <div
@@ -527,6 +577,7 @@ export default function JobGrades({
                 backRoute="leaders"
                 nextRoute="organizational-charts"
                 formData={{
+                    present_headcount: workforceTotal > 0 ? workforceTotal : undefined,
                     job_grade_names: grades.map((g) => g.name).filter(Boolean),
                     promotion_years: grades.reduce((acc, g) => {
                         if (g.name) acc[g.name] = g.noFixed ? null : g.years;
@@ -543,10 +594,14 @@ export default function JobGrades({
                 }}
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
                 hidePageTitle
-                liveValidationError={!isReadOnly && workforceTotal > 0 && totalHc > workforceTotal ? `Total headcount (${totalHc}) cannot exceed workforce (${workforceTotal}). Please reduce headcount per grade.` : null}
+                liveValidationError={
+                    headcountMismatch
+                        ? `Sum of headcounts by grade (${totalHc}) must equal total workforce (${workforceTotal}). Adjust counts or use Distribute evenly.`
+                        : null
+                }
                 validateBeforeNext={() => {
-                    if (workforceTotal > 0 && totalHc > workforceTotal) {
-                        return `Total headcount (${totalHc}) cannot exceed workforce (${workforceTotal}).`;
+                    if (headcountMismatch) {
+                        return `Sum of headcounts by grade (${totalHc}) must equal total workforce (${workforceTotal}).`;
                     }
                     return true;
                 }}

@@ -88,10 +88,12 @@ class DiagnosisController extends Controller
 
         if ($diagnosis) {
             $oldAttributes = $diagnosis->toArray();
-            
-            // Handle file uploads for organizational charts
+
+            $existingCharts = is_array($diagnosis->organizational_charts) ? $diagnosis->organizational_charts : [];
+
+            // Handle file uploads for organizational charts (merge years, never wipe other slots)
             if ($request->hasFile('organizational_charts')) {
-                $charts = [];
+                $charts = $existingCharts;
                 foreach ($request->file('organizational_charts') as $year => $file) {
                     if ($file) {
                         $path = $file->store('organizational-charts', 'public');
@@ -99,6 +101,14 @@ class DiagnosisController extends Controller
                     }
                 }
                 $data['organizational_charts'] = $charts;
+            } elseif (array_key_exists('organizational_charts', $data)) {
+                // Do not persist empty JSON from other tabs overwriting stored paths
+                $incoming = $data['organizational_charts'];
+                if (! is_array($incoming) || ! $this->organizationalChartsHasAnyPath($incoming)) {
+                    unset($data['organizational_charts']);
+                } else {
+                    $data['organizational_charts'] = array_merge($existingCharts, $incoming);
+                }
             }
             
             $diagnosis->update($data);
@@ -114,6 +124,18 @@ class DiagnosisController extends Controller
                 );
             }
         } else {
+            if ($request->hasFile('organizational_charts')) {
+                $charts = [];
+                foreach ($request->file('organizational_charts') as $year => $file) {
+                    if ($file) {
+                        $charts[$year] = $file->store('organizational-charts', 'public');
+                    }
+                }
+                $data['organizational_charts'] = $charts;
+            } elseif (array_key_exists('organizational_charts', $data) && (! is_array($data['organizational_charts']) || ! $this->organizationalChartsHasAnyPath($data['organizational_charts']))) {
+                unset($data['organizational_charts']);
+            }
+
             $diagnosis = Diagnosis::create(array_merge($data, [
                 'hr_project_id' => $hrProject->id,
                 'status' => StepStatus::IN_PROGRESS,
@@ -240,6 +262,20 @@ class DiagnosisController extends Controller
     }
 
     /**
+     * @param  array<mixed>  $charts
+     */
+    protected function organizationalChartsHasAnyPath(array $charts): bool
+    {
+        foreach ($charts as $value) {
+            if (is_string($value) && trim($value) !== '') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function validateDiagnosisSubmitPayload(array $d): array
@@ -327,6 +363,16 @@ class DiagnosisController extends Controller
         $diagnosis = $hrProject->diagnosis;
         $fillable = (new Diagnosis)->getFillable();
         $data = array_intersect_key($data, array_flip($fillable));
+
+        if (array_key_exists('organizational_charts', $data)) {
+            $incoming = $data['organizational_charts'];
+            if (! is_array($incoming) || ! $this->organizationalChartsHasAnyPath($incoming)) {
+                unset($data['organizational_charts']);
+            } elseif ($diagnosis) {
+                $existing = is_array($diagnosis->organizational_charts) ? $diagnosis->organizational_charts : [];
+                $data['organizational_charts'] = array_merge($existing, $incoming);
+            }
+        }
 
         if ($diagnosis) {
             $diagnosis->update($data);

@@ -2,14 +2,51 @@ import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Toaster } from '@/components/ui/toaster';
+import { toast } from '@/hooks/use-toast';
+import type { SharedData } from '@/types';
 import { logout, home } from '@/routes';
-import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Mail, ArrowRight, AlertCircle, Settings, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Mail, AlertCircle, Settings, CheckCircle, ArrowLeft } from 'lucide-react';
 import React from 'react';
 
 export default function VerifyEmail({ status, smtpConfigured = true }: { status?: string; smtpConfigured?: boolean }) {
+    const { flash } = usePage<SharedData>().props;
+    const [welcomeOpen, setWelcomeOpen] = React.useState(false);
     const [isVerifying, setIsVerifying] = React.useState(false);
     const form = useForm({});
+    const flashToastSig = React.useRef<string>('');
+
+    React.useEffect(() => {
+        if (flash?.registration_created) {
+            setWelcomeOpen(true);
+        }
+    }, [flash?.registration_created]);
+
+    React.useEffect(() => {
+        const sig = `${flash?.warning ?? ''}|${flash?.success ?? ''}`;
+        if (!sig.replace(/\|/g, '')) {
+            return;
+        }
+        if (flashToastSig.current === sig) {
+            return;
+        }
+        flashToastSig.current = sig;
+        if (flash?.warning) {
+            toast({ title: flash.warning, variant: 'default' });
+        }
+        if (flash?.success) {
+            toast({ title: flash.success, variant: 'success' });
+        }
+    }, [flash?.warning, flash?.success]);
     
     const handleManualVerify = () => {
         if (confirm('Are you sure you want to manually verify your email? This option is only available when SMTP is not configured.')) {
@@ -27,6 +64,23 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
     
     return (
         <div className="min-h-screen gradient-hero flex flex-nowrap relative overflow-hidden">
+            <Dialog open={welcomeOpen} onOpenChange={setWelcomeOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Welcome — you&apos;re registered</DialogTitle>
+                        <DialogDescription className="text-left pt-2">
+                            {flash?.success ??
+                                'We sent a verification link to your email. Open it to verify your address, then you can use the dashboard.'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button type="button" className="w-full sm:w-auto" onClick={() => setWelcomeOpen(false)}>
+                            Continue
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            <Toaster />
             {/* Animated Background Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
@@ -136,6 +190,24 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                             </p>
                         </div>
 
+                        {flash?.warning && (
+                            <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/30">
+                                <AlertCircle className="h-4 w-4 text-amber-600" />
+                                <AlertDescription className="text-amber-900 dark:text-amber-100 text-sm font-medium">
+                                    {flash.warning}
+                                </AlertDescription>
+                            </Alert>
+                        )}
+
+                        {flash?.success && (
+                            <Alert className="border-green-600/40 bg-green-50 dark:bg-green-950/30">
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                                <AlertDescription className="text-green-900 dark:text-green-100 text-sm font-medium">
+                                    {flash.success}
+                                </AlertDescription>
+                            </Alert>
+                        )}
+
                         {/* Success Message */}
                         {status === 'verification-link-sent' && (
                             <div className="p-4 rounded-lg bg-success/10 border border-success/20 text-center text-sm font-medium text-success animate-in fade-in slide-in-from-top-4">
@@ -147,6 +219,9 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                         {/* Info Box */}
                         <div className="rounded-lg bg-muted/40 p-5 border border-border">
                             <p className="text-sm font-semibold mb-2">What happens next?</p>
+                            <p className="text-sm text-muted-foreground mb-3">
+                                If you do not see the message within a few minutes, check your spam or promotions folder. The subject line usually mentions verifying your email address.
+                            </p>
                             <ul className="space-y-2 text-sm text-muted-foreground">
                                 <li className="flex items-start gap-2">
                                     <CheckCircle className="w-4 h-4 mt-0.5 text-success flex-shrink-0" />

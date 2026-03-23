@@ -10,6 +10,8 @@ import { DiagnosisFieldShell } from '@/components/Diagnosis/DiagnosisFieldErrors
 interface Diagnosis {
     id: number;
     present_headcount?: number;
+    full_time_headcount?: number;
+    contract_headcount?: number;
     expected_headcount_1y?: number;
     expected_headcount_2y?: number;
     expected_headcount_3y?: number;
@@ -51,6 +53,9 @@ export default function Workforce({
 }: Props) {
     const internalForm = useForm({
         present_headcount: diagnosis?.present_headcount ?? 0,
+        full_time_headcount:
+            diagnosis?.full_time_headcount ?? diagnosis?.present_headcount ?? 0,
+        contract_headcount: diagnosis?.contract_headcount ?? 0,
         expected_headcount_1y: diagnosis?.expected_headcount_1y ?? 0,
         expected_headcount_2y: diagnosis?.expected_headcount_2y ?? 0,
         expected_headcount_3y: diagnosis?.expected_headcount_3y ?? 0,
@@ -77,7 +82,19 @@ export default function Workforce({
         });
     }, [projectId, readOnly, embedMode, setData]);
 
-    const total = data.present_headcount || 0;
+    useEffect(() => {
+        if (embedMode) return;
+        const ft = Number(data.full_time_headcount) || 0;
+        const ct = Number(data.contract_headcount) || 0;
+        const sum = ft + ct;
+        if (sum !== (Number(data.present_headcount) || 0)) {
+            setData('present_headcount', sum);
+        }
+    }, [data.full_time_headcount, data.contract_headcount, data.present_headcount, embedMode, setData]);
+
+    const ft = Number(data.full_time_headcount) || 0;
+    const ct = Number(data.contract_headcount) || 0;
+    const total = ft + ct;
     const male = data.gender_male || 0;
     const female = data.gender_female || 0;
     const genderSum = male + female + (data.gender_other || 0);
@@ -85,9 +102,14 @@ export default function Workforce({
     const femalePct = total > 0 && genderSum > 0 ? Math.round((female / genderSum) * 100) : 0;
     const genderMismatch = total > 0 && (male + female) !== total;
 
-    const adjustHeadcount = (delta: number) => {
-        const next = Math.max(0, (data.present_headcount || 0) + delta);
-        setData('present_headcount', next);
+    const adjustFullTime = (delta: number) => {
+        const next = Math.max(0, ft + delta);
+        setData('full_time_headcount', next);
+    };
+
+    const adjustContract = (delta: number) => {
+        const next = Math.max(0, ct + delta);
+        setData('contract_headcount', next);
     };
 
     const adjustForecast = (key: 'expected_headcount_1y' | 'expected_headcount_2y' | 'expected_headcount_3y', delta: number) => {
@@ -122,57 +144,76 @@ export default function Workforce({
                         {({ borderCn, ErrorLine }) => (
                     <div>
                         <h3 className="text-[13px] font-bold text-[#3A4356] mb-3">{tr('presentHeadcountTitle')}</h3>
-                        <div className="flex flex-col items-center gap-3">
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="number"
-                                    min={0}
-                                    value={data.present_headcount || ''}
-                                    onChange={(e) => setData('present_headcount', parseInt(e.target.value, 10) || 0)}
-                                    disabled={readOnly}
-                                    className={cn(
-                                        'w-24 h-12 text-center text-xl font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-lg bg-[#F8F9FB] focus:border-[#2EC4A9] focus:ring-2 focus:ring-[#2EC4A9]/20 outline-none',
-                                        borderCn
-                                    )}
-                                />
-                                <span className="text-[15px] font-bold text-[#3A4356]">{tr('persons')}</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-stretch">
+                            <div className={cn('rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4', borderCn)}>
+                                <p className="text-[12px] font-bold text-[#3A4356] mb-2">{tr('workforceFullTimeLabel')}</p>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        value={data.full_time_headcount ?? ''}
+                                        onChange={(e) =>
+                                            setData('full_time_headcount', parseInt(e.target.value, 10) || 0)
+                                        }
+                                        disabled={readOnly}
+                                        className="w-full h-10 text-center text-lg font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-lg bg-white"
+                                    />
+                                    <span className="text-[13px] font-bold text-[#3A4356] shrink-0">{tr('persons')}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {([-10, -1, 1, 10] as const).map((d) => (
+                                        <button
+                                            key={`ft-${d}`}
+                                            type="button"
+                                            onClick={() => adjustFullTime(d)}
+                                            disabled={readOnly}
+                                            className="h-8 px-3 rounded-lg border border-[#E2E6ED] bg-white text-[#3A4356] font-semibold text-xs hover:bg-[#E2E6ED] disabled:opacity-50"
+                                        >
+                                            {d > 0 ? `+${d}` : d}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => adjustHeadcount(-10)}
-                                    disabled={readOnly}
-                                    className="h-9 px-4 rounded-lg border border-[#E2E6ED] bg-[#F0F2F5] text-[#3A4356] font-semibold text-sm hover:bg-[#E2E6ED] disabled:opacity-50"
-                                >
-                                    -10
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => adjustHeadcount(-1)}
-                                    disabled={readOnly}
-                                    className="h-9 px-4 rounded-lg border border-[#E2E6ED] bg-[#F0F2F5] text-[#3A4356] font-semibold text-sm hover:bg-[#E2E6ED] disabled:opacity-50"
-                                >
-                                    -1
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => adjustHeadcount(1)}
-                                    disabled={readOnly}
-                                    className="h-9 px-4 rounded-lg border border-[#E2E6ED] bg-[#F0F2F5] text-[#3A4356] font-semibold text-sm hover:bg-[#E2E6ED] disabled:opacity-50"
-                                >
-                                    +1
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => adjustHeadcount(10)}
-                                    disabled={readOnly}
-                                    className="h-9 px-4 rounded-lg border border-[#E2E6ED] bg-[#F0F2F5] text-[#3A4356] font-semibold text-sm hover:bg-[#E2E6ED] disabled:opacity-50"
-                                >
-                                    +10
-                                </button>
+                            <div className="rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4">
+                                <p className="text-[12px] font-bold text-[#3A4356] mb-2">{tr('workforceContractLabel')}</p>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        value={data.contract_headcount ?? ''}
+                                        onChange={(e) =>
+                                            setData('contract_headcount', parseInt(e.target.value, 10) || 0)
+                                        }
+                                        disabled={readOnly}
+                                        className="w-full h-10 text-center text-lg font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-lg bg-white"
+                                    />
+                                    <span className="text-[13px] font-bold text-[#3A4356] shrink-0">{tr('persons')}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {([-10, -1, 1, 10] as const).map((d) => (
+                                        <button
+                                            key={`ct-${d}`}
+                                            type="button"
+                                            onClick={() => adjustContract(d)}
+                                            disabled={readOnly}
+                                            className="h-8 px-3 rounded-lg border border-[#E2E6ED] bg-white text-[#3A4356] font-semibold text-xs hover:bg-[#E2E6ED] disabled:opacity-50"
+                                        >
+                                            {d > 0 ? `+${d}` : d}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                            <p className="text-[11px] text-[#9AA3B2] text-center">{tr('includeAllHint')}</p>
+                            <div className="rounded-xl border-2 border-[#1B2B5B] bg-[#1B2B5B]/[0.04] p-4 flex flex-col items-center justify-center text-center">
+                                <p className="text-[12px] font-bold uppercase tracking-wide text-[#6B7585] mb-1">
+                                    {tr('workforceTotalLabel')}
+                                </p>
+                                <p className="text-[32px] font-extrabold text-[#1B2B5B] leading-none">{total}</p>
+                                <p className="text-[11px] font-semibold text-[#9AA3B2] mt-1">{tr('persons')}</p>
+                            </div>
                         </div>
+                        <p className="mt-4 text-[13px] font-bold text-[#3A4356] leading-snug text-center sm:text-left">
+                            {tr('includeAllHint')}
+                        </p>
                         {ErrorLine}
                     </div>
                         )}

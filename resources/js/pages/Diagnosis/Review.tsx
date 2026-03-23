@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Button } from '@/components/ui/button';
@@ -106,6 +106,8 @@ interface Diagnosis {
     industry_subcategory?: string;
     industry_other?: string;
     present_headcount?: number;
+    full_time_headcount?: number;
+    contract_headcount?: number;
     expected_headcount_1y?: number;
     expected_headcount_2y?: number;
     expected_headcount_3y?: number;
@@ -175,6 +177,7 @@ export default function Review({
     const [inviteError, setInviteError] = useState('');
     const [inviteSuccess, setInviteSuccess] = useState(false);
     const [pageErrors, setPageErrors] = useState<Record<string, string>>({});
+    const submitErrorRef = useRef<HTMLDivElement>(null);
 
     const { props } = usePage<{ errors?: Record<string, string> }>();
 
@@ -196,6 +199,14 @@ export default function Review({
             setPageErrors(o);
         }
     }, [props.errors]);
+
+    useEffect(() => {
+        if (!submitError) return;
+        const t = window.setTimeout(() => {
+            submitErrorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+        return () => window.clearTimeout(t);
+    }, [submitError]);
 
     const handleSubmit = () => {
         setSubmitError('');
@@ -242,6 +253,9 @@ export default function Review({
                 }
                 setPageErrors(o);
                 setProcessing(false);
+                window.setTimeout(() => {
+                    submitErrorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
             },
             preserveState: true,
             preserveScroll: true,
@@ -361,11 +375,6 @@ export default function Review({
         return names.map((name) => ({ name, headcount: Number(headcounts[name]) || 0 }));
     }, [preview?.job_grade_names, preview?.job_grade_headcounts]);
 
-    const jobGradesForPyramidSorted = useMemo(
-        () => [...jobGradesForPyramid].sort((a, b) => a.headcount - b.headcount),
-        [jobGradesForPyramid]
-    );
-
     const gradeTotal = useMemo(() => jobGradesForPyramid.reduce((s, g) => s + g.headcount, 0), [jobGradesForPyramid]);
 
     const jobStructureForReview = useMemo(() => {
@@ -414,10 +423,7 @@ export default function Review({
 
     const totalHeadcount = Number(preview?.present_headcount) || 0;
     const execTotal = Number(preview?.total_executives) || 0;
-    const leaderCountFromGrades = jobGradesForPyramid.slice(0, 2).reduce((s, g) => s + g.headcount, 0);
-    const leaderTotal = execTotal + leaderCountFromGrades;
-    const leaderRatio = totalHeadcount ? ((leaderTotal / totalHeadcount) * 100).toFixed(1) : '0';
-    const execRatio = totalHeadcount ? ((execTotal / totalHeadcount) * 100).toFixed(1) : '0';
+    const leaderHeadcount = Number(preview?.leadership_count) || 0;
     const pyramidDiag = pyramidShape(jobGradesForPyramid);
 
     const genderData = useMemo(() => {
@@ -585,11 +591,13 @@ export default function Review({
                     <div className="mx-auto max-w-4xl px-4 py-8">
                         {/* Alerts — above fold */}
                         {submitError && (
-                            <Alert variant="destructive" className="mb-6">
-                                <AlertCircle className="h-4 w-4" />
-                                <AlertTitle>Submission failed</AlertTitle>
-                                <AlertDescription>{submitError}</AlertDescription>
-                            </Alert>
+                            <div ref={submitErrorRef}>
+                                <Alert variant="destructive" className="mb-6">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <AlertTitle>Submission failed</AlertTitle>
+                                    <AlertDescription>{submitError}</AlertDescription>
+                                </Alert>
+                            </div>
                         )}
                         {!projectId && diagnosisStatus !== 'submitted' && (
                             <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-800">
@@ -628,8 +636,19 @@ export default function Review({
                                     </div>
                                     <div className="h-12 w-px bg-white/15" />
                                     <div>
-                                        <p className="text-xs font-medium uppercase tracking-wider text-slate-400">{tr('leaderRatioLabel')}</p>
-                                        <p className="mt-0.5 text-3xl font-bold tracking-tight text-amber-400">{leaderRatio}%</p>
+                                        <p className="text-xs font-medium uppercase tracking-wider text-slate-400">{tr('executiveHeadcountLabel')}</p>
+                                        <p className="mt-0.5 text-3xl font-bold tracking-tight text-amber-400">
+                                            {execTotal}
+                                            <span className="ml-1 text-base font-medium text-slate-400">{tr('personsUnit')}</span>
+                                        </p>
+                                    </div>
+                                    <div className="h-12 w-px bg-white/15" />
+                                    <div>
+                                        <p className="text-xs font-medium uppercase tracking-wider text-slate-400">{tr('leaderHeadcountLabel')}</p>
+                                        <p className="mt-0.5 text-3xl font-bold tracking-tight text-amber-400">
+                                            {leaderHeadcount}
+                                            <span className="ml-1 text-base font-medium text-slate-400">{tr('personsUnit')}</span>
+                                        </p>
                                     </div>
                                     <div className="h-12 w-px bg-white/15" />
                                     <div>
@@ -705,13 +724,25 @@ export default function Review({
                                 </div>
                             </ReviewCard>
                             <ReviewCard title={tr('workforceCardTitle')} icon="👥" editUrl={getEditUrl(STEP_MAP.workforce)}>
-                                <div className="flex gap-4">
-                                    <div className="flex-1 rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs font-medium text-slate-500">{tr('fullTime')}</p>
+                                <div className="flex flex-wrap gap-4">
+                                    <div className="min-w-[100px] flex-1 rounded-xl bg-slate-50 p-4">
+                                        <p className="text-xs font-medium text-slate-500">{tr('workforceFullTimeLabel')}</p>
+                                        <p className="mt-1 text-2xl font-bold text-slate-900">
+                                            {formatNumber(preview?.full_time_headcount ?? totalHeadcount)}
+                                        </p>
+                                    </div>
+                                    <div className="min-w-[100px] flex-1 rounded-xl bg-slate-50 p-4">
+                                        <p className="text-xs font-medium text-slate-500">{tr('workforceContractLabel')}</p>
+                                        <p className="mt-1 text-2xl font-bold text-slate-900">
+                                            {formatNumber(preview?.contract_headcount ?? 0)}
+                                        </p>
+                                    </div>
+                                    <div className="min-w-[100px] flex-1 rounded-xl border border-slate-200 bg-white p-4">
+                                        <p className="text-xs font-medium text-slate-500">{tr('workforceTotalLabel')}</p>
                                         <p className="mt-1 text-2xl font-bold text-slate-900">{totalHeadcount}</p>
                                     </div>
                                     {preview?.average_age != null && (
-                                        <div className="flex-1 rounded-xl bg-slate-50 p-4">
+                                        <div className="min-w-[100px] flex-1 rounded-xl bg-slate-50 p-4">
                                             <p className="text-xs font-medium text-slate-500">{tr('avgAgeShort')}</p>
                                             <p className="mt-1 text-2xl font-bold text-slate-900">{formatNumber(preview.average_age)}</p>
                                         </div>
@@ -721,10 +752,10 @@ export default function Review({
                             <div className="md:col-span-2">
                                 <ReviewCard title={tr('gradePyramidTitle')} icon="📊" editUrl={getEditUrl(STEP_MAP.jobGrades)}>
                                     <div className="space-y-3">
-                                        {jobGradesForPyramidSorted.length ? (
+                                        {jobGradesForPyramid.length ? (
                                             <>
-                                                {jobGradesForPyramidSorted.map((g, i) => {
-                                                    const max = Math.max(...jobGradesForPyramidSorted.map((x) => x.headcount), 1);
+                                                {jobGradesForPyramid.map((g, i) => {
+                                                    const max = Math.max(...jobGradesForPyramid.map((x) => x.headcount), 1);
                                                     const pct = max > 0 ? (g.headcount / max) * 100 : 0;
                                                     const ratio = gradeTotal ? ((g.headcount / gradeTotal) * 100).toFixed(1) : '0';
                                                     return (
@@ -757,7 +788,12 @@ export default function Review({
                                                     <span className="shrink-0 text-sm font-bold" style={{ color: pyramidDiag.color }}>
                                                         {pyramidDiag.label}
                                                     </span>
-                                                    <span className="text-sm text-slate-600 leading-relaxed">{pyramidDiag.desc}</span>
+                                                    <div className="min-w-0 space-y-1">
+                                                        <span className="text-sm text-slate-600 leading-relaxed block">{pyramidDiag.desc}</span>
+                                                        <p className="text-[13px] font-bold text-slate-800 leading-snug">
+                                                            {tr('includeAllHint')}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </>
                                         ) : (
@@ -803,7 +839,7 @@ export default function Review({
                                         <div className="flex min-h-[200px] w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-6">
                                             <div className="text-3xl opacity-70">🖼️</div>
                                             <p className="text-center text-sm font-medium text-slate-700">{tr('orgChartUploadHint')}</p>
-                                            <p className="text-center text-xs text-slate-500">{tr('orgChartUploadDesc')}</p>
+                                            <p className="text-center text-sm text-slate-500">{tr('orgChartUploadDesc')}</p>
                                             <Link
                                                 href={getEditUrl(STEP_MAP.orgCharts)}
                                                 className="mt-1 rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-700"

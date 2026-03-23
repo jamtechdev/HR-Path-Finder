@@ -46,7 +46,7 @@ class EmailVerificationController extends Controller
             // Always redirect HR Manager to dashboard after email verification
             // Status will remain "not_started" until they click "Start" from overview page
             if ($role === 'hr_manager') {
-                return redirect()->route('dashboard.hr-manager')
+                return redirect()->route('hr-manager.dashboard')
                     ->with('success', 'Your email has been verified successfully!');
             }
             
@@ -94,9 +94,8 @@ class EmailVerificationController extends Controller
         $role = $user->roles->first()?->name;
         
         $redirectRoute = match ($role) {
-            'ceo' => 'dashboard.ceo',
-            'hr_manager' => 'dashboard.hr-manager',
-            'consultant' => 'dashboard.consultant',
+            'ceo' => 'ceo.dashboard',
+            'hr_manager' => 'hr-manager.dashboard',
             default => 'dashboard',
         };
         

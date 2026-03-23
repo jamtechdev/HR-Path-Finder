@@ -52,7 +52,7 @@ class StepUnlockedNotification extends Notification
             ->subject("{$previousStepDisplayName} Verified – {$stepDisplayName} Unlocked")
             ->line("Great news! The CEO has verified {$previousStepDisplayName} for {$this->hrProject->company->name}.")
             ->line("You can now proceed with {$stepDisplayName}.")
-            ->action('View Dashboard', route('dashboard.hr-manager'))
+            ->action('View Dashboard', route('hr-manager.dashboard'))
             ->line('Thank you for using our application!');
     }
 

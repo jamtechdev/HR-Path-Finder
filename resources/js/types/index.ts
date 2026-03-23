@@ -10,7 +10,10 @@ export type SharedData = {
     sidebarOpen: boolean;
     flash?: {
         success?: string;
+        registration_created?: boolean;
         error?: string;
+        warning?: string;
+        info?: string;
         message?: string;
         nextStep?: string;
         nextStepRoute?: string;

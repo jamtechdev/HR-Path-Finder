@@ -196,6 +196,7 @@ export default function Register({ status }: Props) {
                                                 placeholder={t('auth.register.password_placeholder')}
                                                 className="h-11 w-full border-[#EEF0F4] focus:ring-2 focus:ring-[#2ECFAB]/30 focus:border-[#2ECFAB]/50"
                                             />
+                                            <p className="text-xs text-[#3D5068]">{t('auth.register.password_hint')}</p>
                                             <InputError message={errors.password} />
                                         </div>
 

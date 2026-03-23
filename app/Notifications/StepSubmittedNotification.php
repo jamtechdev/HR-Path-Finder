@@ -50,7 +50,7 @@ class StepSubmittedNotification extends Notification
             ->subject("HR has completed {$stepDisplayName}")
             ->line("The HR Manager has completed and submitted {$stepDisplayName} for {$this->hrProject->company->name}.")
             ->line('Please review and verify the submission from your dashboard.')
-            ->action('View Dashboard', route('dashboard.ceo'))
+            ->action('View Dashboard', route('ceo.dashboard'))
             ->line('Thank you for using our application!');
     }
 

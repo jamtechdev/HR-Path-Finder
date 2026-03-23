@@ -1,4 +1,5 @@
 import React from 'react';
+import { FlashToasts } from '@/components/FlashToasts';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
@@ -27,6 +28,7 @@ export default function AppLayout({
                 <RoleBasedSidebar />
             </Sidebar>
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
+                <FlashToasts />
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
                     {children}

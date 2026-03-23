@@ -69,6 +69,8 @@ Route::get('invitations/set-password/{token}', [\App\Http\Controllers\CompanyInv
 Route::post('invitations/set-password', [\App\Http\Controllers\CompanyInvitationController::class, 'submitSetPassword'])->name('ceo.set-password.submit');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('pending-approval', [\App\Http\Controllers\BetaPendingController::class, 'show'])->name('beta.pending');
+
     // Main dashboard with role-based redirect
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
@@ -78,7 +80,9 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:hr_manager')->group(function () {
         Route::get('companies', [\App\Http\Controllers\CompanyController::class, 'index'])->name('companies.index');
         Route::get('companies/create', [\App\Http\Controllers\CompanyController::class, 'create'])->name('companies.create');
-        Route::post('companies', [\App\Http\Controllers\CompanyController::class, 'store'])->name('companies.store');
+        Route::post('companies', [\App\Http\Controllers\CompanyController::class, 'store'])
+            ->middleware('throttle:20,1')
+            ->name('companies.store');
         Route::get('companies/{company}', [\App\Http\Controllers\CompanyController::class, 'show'])->name('companies.show');
     });
 
@@ -175,7 +179,9 @@ Route::middleware(['auth'])->group(function () {
         // Companies (HR Manager)
         Route::get('companies', [\App\Http\Controllers\CompanyController::class, 'index'])->name('companies.index');
         Route::get('companies/create', [\App\Http\Controllers\CompanyController::class, 'create'])->name('companies.create');
-        Route::post('companies', [\App\Http\Controllers\CompanyController::class, 'store'])->name('companies.store');
+        Route::post('companies', [\App\Http\Controllers\CompanyController::class, 'store'])
+            ->middleware('throttle:20,1')
+            ->name('companies.store');
         Route::get('companies/{company}', [\App\Http\Controllers\CompanyController::class, 'show'])->name('companies.show');
 
         // Diagnosis Wizard - More specific routes first
@@ -238,6 +244,8 @@ Route::middleware(['auth'])->group(function () {
     // ========== Admin Routes ==========
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('beta-access', [\App\Http\Controllers\Admin\BetaAccessController::class, 'index'])->name('beta-access.index');
+        Route::post('beta-access/{user}/approve', [\App\Http\Controllers\Admin\BetaAccessController::class, 'approve'])->name('beta-access.approve');
         Route::get('project-tree', [\App\Http\Controllers\Admin\DashboardController::class, 'projectTree'])->name('project-tree');
 
         // HR Projects (Admin can view all projects)

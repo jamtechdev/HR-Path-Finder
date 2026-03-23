@@ -4,6 +4,9 @@ import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar'
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
+import { Toaster } from '@/components/ui/toaster';
+import { toast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,6 +18,7 @@ import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 export default function CreateCompany() {
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const submitInFlight = useRef(false);
     
     const { data, setData, post, processing, errors, clearErrors } = useForm({
         name: '',
@@ -75,17 +79,23 @@ export default function CreateCompany() {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
+        if (processing || submitInFlight.current) {
+            return;
+        }
+        submitInFlight.current = true;
+        toast({ title: 'Creating your company…' });
         post('/hr-manager/companies', {
             forceFormData: true,
             onSuccess: () => {
-                // Reset preview on success
                 setLogoPreview(null);
             },
-            onError: (errors) => {
-                // Handle 413 error specifically
-                if (errors.logo && errors.logo.includes('too large')) {
+            onError: (errs) => {
+                if (errs.logo && String(errs.logo).includes('too large')) {
                     alert('File size is too large. Please upload an image smaller than 5MB.');
                 }
+            },
+            onFinish: () => {
+                submitInFlight.current = false;
             },
         });
     };
@@ -96,6 +106,7 @@ export default function CreateCompany() {
                 <RoleBasedSidebar />
             </Sidebar>
             <SidebarInset className="flex flex-col overflow-hidden">
+                <Toaster />
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-muted/30">
                     <Head title="Create Company Workspace" />
@@ -338,7 +349,7 @@ export default function CreateCompany() {
                                         >
                                             {processing ? (
                                                 <>
-                                                    <span className="animate-spin mr-2">⏳</span>
+                                                    <Spinner className="mr-2 h-4 w-4" />
                                                     Creating...
                                                 </>
                                             ) : (

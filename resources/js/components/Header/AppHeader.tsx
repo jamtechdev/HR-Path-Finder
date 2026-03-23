@@ -60,10 +60,6 @@ export default function AppHeader() {
             .slice(0, 2);
     };
     
-    const handleLogout = () => {
-        router.post('/logout');
-    };
-    
     const handleSwitchToHr = () => {
         switchForm.post('/role/switch-to-hr', {
             onSuccess: () => {
@@ -163,12 +159,19 @@ export default function AppHeader() {
                                 </>
                             )}
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                                onClick={handleLogout} 
-                                className="cursor-pointer"
-                            >
-                                <LogOut className="mr-2 h-4 w-4" />
-                                Logout
+                            <DropdownMenuItem asChild>
+                                <Link
+                                    href="/logout"
+                                    method="post"
+                                    as="button"
+                                    className="flex w-full cursor-pointer items-center text-destructive focus:text-destructive"
+                                    onClick={() => {
+                                        router.flushAll();
+                                    }}
+                                >
+                                    <LogOut className="mr-2 h-4 w-4" />
+                                    Logout
+                                </Link>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

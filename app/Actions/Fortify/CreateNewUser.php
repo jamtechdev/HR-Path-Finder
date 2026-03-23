@@ -22,16 +22,25 @@ class CreateNewUser implements CreatesNewUsers
         // Remove role from input if present (we assign it automatically)
         unset($input['role']);
         
-        Validator::make($input, [
-            ...$this->profileRules(),
-            'password' => $this->passwordRules(),
-        ])->validate();
+        Validator::make(
+            $input,
+            [
+                ...$this->profileRules(),
+                'password' => $this->passwordRules(),
+            ],
+            [
+                'email.unique' => 'This email is already in use.',
+            ]
+        )->validate();
 
         try {
+            $accessGrantedAt = config('beta.require_admin_approval', false) ? null : now();
+
             $user = User::create([
                 'name' => $input['name'],
                 'email' => $input['email'],
                 'password' => $input['password'],
+                'access_granted_at' => $accessGrantedAt,
             ]);
         } catch (\Exception $e) {
             \Log::error('User creation failed', [

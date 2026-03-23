@@ -169,6 +169,18 @@ export default function Login({
                                 <InputError message={form.errors.password} />
                             </div>
 
+                            {canResetPassword && (
+                                <p className="text-center text-sm">
+                                    <TextLink
+                                        href="/forgot-password"
+                                        className="text-[#2ECFAB] font-semibold hover:underline"
+                                        tabIndex={4}
+                                    >
+                                        {t('auth.login.forgot_password_help')}
+                                    </TextLink>
+                                </p>
+                            )}
+
                             <Button
                                 type="submit"
                                 className="w-full h-11 bg-[#2ECFAB] hover:bg-[#7EE8D0] text-[#0B1E3D] font-bold shadow-lg hover:shadow-xl transition-all"
