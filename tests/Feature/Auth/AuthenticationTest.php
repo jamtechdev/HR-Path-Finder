@@ -82,3 +82,20 @@ test('users are rate limited', function () {
 
     $response->assertTooManyRequests();
 });
+
+test('inertia login throttle redirects with friendly email error instead of raw 429', function () {
+    $user = User::factory()->create();
+
+    RateLimiter::increment(md5('login'.implode('|', [$user->email, '127.0.0.1'])), amount: 5);
+
+    $response = $this->withHeaders([
+        'X-Inertia' => 'true',
+    ])->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'wrong-password',
+    ]);
+
+    $response->assertRedirect(route('login'));
+    $response->assertSessionHasErrors('email');
+    expect(session('errors')->get('email')[0])->toContain('Too many login attempts');
+});
