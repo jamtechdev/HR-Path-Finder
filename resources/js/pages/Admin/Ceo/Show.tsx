@@ -1,18 +1,18 @@
 import { Head, Link } from '@inertiajs/react';
 
+import { ArrowLeft, Building2, Mail, User } from 'lucide-react';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Sidebar,
     SidebarInset,
     SidebarProvider,
 } from '@/components/ui/sidebar';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-import { ArrowLeft, Building2, Mail, User } from 'lucide-react';
 
 interface Company {
     id: number;

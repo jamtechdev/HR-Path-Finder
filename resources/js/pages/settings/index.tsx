@@ -1,5 +1,6 @@
+import { Transition } from '@headlessui/react';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { Form, Link } from '@inertiajs/react';
 import { 
     Settings, 
     User, 
@@ -14,30 +15,29 @@ import {
     ShieldBan,
     ShieldCheck
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useRef } from 'react';
+import PasswordController from '@/actions/App/Http/Controllers/Settings/PasswordController';
+import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
+import AppearanceToggleTab from '@/components/appearance-tabs';
+import AppHeader from '@/components/Header/AppHeader';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import InputError from '@/components/input-error';
-import { Form, Link } from '@inertiajs/react';
+import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
-import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import PasswordController from '@/actions/App/Http/Controllers/Settings/PasswordController';
-import AppearanceToggleTab from '@/components/appearance-tabs';
 import TwoFactorRecoveryCodes from '@/components/two-factor-recovery-codes';
 import TwoFactorSetupModal from '@/components/two-factor-setup-modal';
-import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
 import { disable, enable } from '@/routes/two-factor';
 import { send } from '@/routes/verification';
 import DeleteUser from '@/components/delete-user';
-import { Transition } from '@headlessui/react';
-import { useRef } from 'react';
 
 interface PageProps {
     smtpConfigured: boolean;

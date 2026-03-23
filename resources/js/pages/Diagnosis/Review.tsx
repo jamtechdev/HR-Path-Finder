@@ -1,22 +1,22 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { CheckCircle2, AlertCircle, Mail } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import InlineErrorSummary, { flattenErrors } from '@/components/Forms/InlineErrorSummary';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
+import { diagnosisTabs } from '@/config/diagnosisTabs';
+import { tr } from '@/config/diagnosisTranslations';
 import { mergeTabDraftsIntoDiagnosis, clearDiagnosisDrafts } from '@/lib/diagnosisDraftStorage';
 import {
     getOrgChartDraftFiles,
     getLogoDraftFile,
     clearAllDiagnosisFileDrafts,
 } from '@/lib/diagnosisFileDrafts';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { CheckCircle2, AlertCircle, Mail } from 'lucide-react';
-import { tr } from '@/config/diagnosisTranslations';
-import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
-import { diagnosisTabs } from '@/config/diagnosisTabs';
 
 // HR issue categories for grouping on review (id, color, issue strings)
 const HR_ISSUE_CATEGORIES = [

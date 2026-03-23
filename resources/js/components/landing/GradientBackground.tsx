@@ -1,5 +1,5 @@
+import type { HTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
-import { HTMLAttributes } from 'react';
 
 interface GradientBackgroundProps extends HTMLAttributes<HTMLDivElement> {
     variant?: 'primary' | 'hero' | 'accent' | 'success';

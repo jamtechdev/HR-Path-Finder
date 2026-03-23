@@ -1,20 +1,21 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import ReactFlow, {
+import type {
     Node,
     Edge,
+    Connection,
+    NodeTypes} from 'reactflow';
+import ReactFlow, {
     addEdge,
     Background,
     Controls,
     MiniMap,
     useNodesState,
     useEdgesState,
-    Connection,
-    NodeTypes,
     BackgroundVariant,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import OrgNode from './OrgNode';
 import { Button } from '@/components/ui/button';
+import OrgNode from './OrgNode';
 import { Plus, Save } from 'lucide-react';
 
 interface DiagramNode extends Node {

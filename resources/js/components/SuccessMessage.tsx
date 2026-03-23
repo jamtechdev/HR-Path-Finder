@@ -1,7 +1,7 @@
-import { Button } from '@/components/ui/button';
-import { CheckCircle2, ArrowRight, X } from 'lucide-react';
 import { Link } from '@inertiajs/react';
+import { CheckCircle2, ArrowRight, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 interface SuccessMessageProps {
     message?: string;

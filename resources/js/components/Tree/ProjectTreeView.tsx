@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Network, Building2, FileText, CheckCircle2, Users, Target, DollarSign, Award, ChevronRight, ChevronDown } from 'lucide-react';
-import { treeStructure, TreeStep } from '@/config/treeStructure';
+import React, { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import type { TreeStep } from '@/config/treeStructure';
+import { treeStructure } from '@/config/treeStructure';
 import { cn } from '@/lib/utils';
 
 interface HrSystemSnapshot {

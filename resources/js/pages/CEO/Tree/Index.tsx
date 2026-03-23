@@ -1,7 +1,7 @@
-import React from 'react';
 import { Head } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
+import React from 'react';
 import FinalBoard, { type StageProgressPercent } from '@/components/Dashboard/HRManager/FinalBoard';
+import AppLayout from '@/layouts/AppLayout';
 
 interface JobDefinition {
     id: number;

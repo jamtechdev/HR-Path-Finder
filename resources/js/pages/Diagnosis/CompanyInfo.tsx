@@ -1,16 +1,16 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { loadAllTabDrafts } from '@/lib/diagnosisDraftStorage';
-import { setLogoDraftFile } from '@/lib/diagnosisFileDrafts';
 import { Head, useForm, router } from '@inertiajs/react';
+import { Calendar, Upload, X } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { DiagnosisFieldShell } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Calendar, Upload, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { tr } from '@/config/diagnosisTranslations';
-import { DiagnosisFieldShell } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
+import { loadAllTabDrafts } from '@/lib/diagnosisDraftStorage';
+import { setLogoDraftFile } from '@/lib/diagnosisFileDrafts';
+import { cn } from '@/lib/utils';
 
 interface Company {
     id: number;

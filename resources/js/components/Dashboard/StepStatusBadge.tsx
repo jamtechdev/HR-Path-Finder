@@ -1,5 +1,5 @@
-import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Clock, Lock } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import type { StepStatus } from '@/types/workflow';
 
 interface StepStatusBadgeProps {

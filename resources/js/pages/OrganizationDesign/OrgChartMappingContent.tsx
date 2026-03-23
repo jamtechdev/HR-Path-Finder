@@ -1,22 +1,22 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useForm, router } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, X, GripVertical, Layout, List, Info, HelpCircle, CheckCircle2 } from 'lucide-react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import type { Node, Edge } from 'reactflow';
+import ChartGallery from '@/components/CEO/Review/ChartGallery';
+import DiagramEditor from '@/components/OrgChart/DiagramEditor';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, X, GripVertical, Layout, List, Info, HelpCircle, CheckCircle2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import DiagramEditor from '@/components/OrgChart/DiagramEditor';
-import ChartGallery from '@/components/CEO/Review/ChartGallery';
-import type { Node, Edge } from 'reactflow';
+import { useToast } from '@/hooks/use-toast';
 import { mergeJobAnalysisState, buildSubmitPayload } from '@/pages/JobAnalysis/utils/jobAnalysisStorage';
 
 interface JobDefinition {

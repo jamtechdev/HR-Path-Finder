@@ -1,10 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Link } from '@inertiajs/react';
 import { FileText, ArrowRight } from 'lucide-react';
-import StepVerificationItem from './StepVerificationItem';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { StepStatuses, VerifiedSteps, HrProject } from '@/types/dashboard';
 import { STEP_LABELS, STEP_ORDER } from '@/types/workflow';
+import StepVerificationItem from './StepVerificationItem';
 
 interface HRSystemProgressCardProps {
     stepStatuses: StepStatuses;

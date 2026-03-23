@@ -1,8 +1,4 @@
-import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
-import InlineErrorSummary, { flattenErrors } from '@/components/Forms/InlineErrorSummary';
-import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import {
     FileText,
     Network,
@@ -14,6 +10,10 @@ import {
     User,
     Briefcase,
 } from 'lucide-react';
+import React, { useState } from 'react';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import InlineErrorSummary, { flattenErrors } from '@/components/Forms/InlineErrorSummary';
+import { Button } from '@/components/ui/button';
 import type { PolicyAnswer, JobSelection, JobDefinition, OrgChartMapping } from '../hooks/useJobAnalysisState';
 
 interface Question {

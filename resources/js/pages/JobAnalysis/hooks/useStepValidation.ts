@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import type { JobAnalysisState } from './useJobAnalysisState';
 import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import type { JobAnalysisState } from './useJobAnalysisState';
 
 const MIN_JOBS_REQUIRED = 3;
 

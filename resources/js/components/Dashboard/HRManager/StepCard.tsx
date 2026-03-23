@@ -1,8 +1,8 @@
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Lock, CheckCircle2 } from 'lucide-react';
-import type { StepKey, StepStatus } from '@/types/workflow';
-import type { VerifiedSteps } from '@/types/dashboard';
 import { cn } from '@/lib/utils';
+import type { VerifiedSteps } from '@/types/dashboard';
+import type { StepKey, StepStatus } from '@/types/workflow';
 
 interface StepCardProps {
     step: {

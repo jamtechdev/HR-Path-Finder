@@ -1,11 +1,11 @@
+import { ChevronLeft, ArrowRight, HelpCircle } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ChevronLeft, ArrowRight, HelpCircle } from 'lucide-react';
-import type { PolicyAnswer } from '../hooks/useJobAnalysisState';
-import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { cn } from '@/lib/utils';
+import type { PolicyAnswer } from '../hooks/useJobAnalysisState';
 
 interface Question {
     id: number;

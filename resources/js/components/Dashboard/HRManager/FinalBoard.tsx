@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 type StepStatus = 'not_started' | 'in_progress' | 'submitted' | 'approved' | 'locked' | 'completed';
 type StageUiStatus = 'done' | 'active' | 'locked';

@@ -1,15 +1,15 @@
-import React from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
-import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import { ArrowLeft } from 'lucide-react';
+import React from 'react';
 import AppHeader from '@/components/Header/AppHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft } from 'lucide-react';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 interface IndustryCategory {
     id: number;

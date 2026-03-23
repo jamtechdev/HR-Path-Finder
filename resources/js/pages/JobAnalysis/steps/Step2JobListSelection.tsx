@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Building2, Stethoscope, Settings, Link2, Search, ChevronLeft, ArrowRight, X, ClipboardList } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import type { JobSelection } from '../hooks/useJobAnalysisState';
-import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 
 const MIN_JOBS_REQUIRED = 3;
 

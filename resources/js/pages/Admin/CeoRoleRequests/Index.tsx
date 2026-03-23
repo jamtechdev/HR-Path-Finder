@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import { Building2, UserCheck, X, CheckCircle2, Clock, Mail } from 'lucide-react';
+import React, { useState } from 'react';
 import AppHeader from '@/components/Header/AppHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Building2, UserCheck, X, CheckCircle2, Clock, Mail } from 'lucide-react';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 interface CeoRoleRequest {
     id: number;

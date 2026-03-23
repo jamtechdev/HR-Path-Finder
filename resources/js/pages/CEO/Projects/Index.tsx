@@ -1,10 +1,4 @@
-import React from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
     FolderKanban,
     CheckCircle2,
@@ -15,6 +9,12 @@ import {
     ClipboardList,
     Eye,
 } from 'lucide-react';
+import React from 'react';
+import AppHeader from '@/components/Header/AppHeader';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 
 interface Project {
     id: number;

@@ -1,7 +1,7 @@
-import { Button } from '@/components/ui/button';
-import { logout, home } from '@/routes';
 import { Head, Link } from '@inertiajs/react';
 import { Clock, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { logout, home } from '@/routes';
 
 export default function PendingApproval() {
     return (

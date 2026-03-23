@@ -1,3 +1,7 @@
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Edit, Plus, Search, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
@@ -16,10 +20,6 @@ import {
     SidebarInset,
     SidebarProvider,
 } from '@/components/ui/sidebar';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Edit, Plus, Search, Trash2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { toast } from 'sonner';
 
 interface DiagnosisQuestion {
     id: number;

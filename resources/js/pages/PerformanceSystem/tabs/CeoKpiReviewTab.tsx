@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight, CheckCircle2, XCircle, Send, Save } from 'lucide-react';
+import React, { useState } from 'react';
+import RightSidePanel from '@/components/PerformanceSystem/RightSidePanel';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ChevronLeft, ChevronRight, CheckCircle2, XCircle, Send, Save } from 'lucide-react';
-import RightSidePanel from '@/components/PerformanceSystem/RightSidePanel';
 
 interface Kpi {
     id?: number;

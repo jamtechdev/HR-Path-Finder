@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
-import { FileText, Users, Target, BarChart3, Check, LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { FileText, Users, Target, BarChart3, Check } from 'lucide-react';
 
 export type TabId = 'overview' | 'evaluation-unit' | 'performance-method' | 'evaluation-structure' | 'review';
 

@@ -1,8 +1,8 @@
-import React from 'react';
 import { Head, Link } from '@inertiajs/react';
+import { Building2, Lock, AlertTriangle, BarChart3, ClipboardList, Target, Unlock, CheckCircle2 } from 'lucide-react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/AppLayout';
-import { Building2, Lock, AlertTriangle, BarChart3, ClipboardList, Target, Unlock, CheckCircle2 } from 'lucide-react';
 
 const STEP_CONFIG = [
   { id: 'diagnosis', num: 1, name: 'Diagnosis', title: 'Diagnosis', desc: '회사 기본 정보, 업종, 인력 현황, 조직 구조, 핵심 HR 이슈를 입력합니다.' },

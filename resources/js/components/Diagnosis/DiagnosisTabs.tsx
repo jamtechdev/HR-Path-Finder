@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react';
 import { Link } from '@inertiajs/react';
-import { Building2, Briefcase, Users, Settings, MessageSquare, FileText, Check, LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Building2, Briefcase, Users, Settings, MessageSquare, FileText, Check } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 export type TabId = 'overview' | 'company-info' | 'workforce' | 'executives' | 'leaders' | 'job-grades' | 'organizational-charts' | 'organizational-structure' | 'job-structure' | 'hr-issues' | 'review';

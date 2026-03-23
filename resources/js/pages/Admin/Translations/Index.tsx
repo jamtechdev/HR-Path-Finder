@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import { Edit, Trash2, Search, Languages, FileText } from 'lucide-react';
+import React, { useState } from 'react';
 import AppHeader from '@/components/Header/AppHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Edit, Trash2, Search, Languages, FileText } from 'lucide-react';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 
 interface Props {
     translations: Record<string, string>;

@@ -1,10 +1,10 @@
 import React, { useMemo, useCallback, useState } from 'react';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import CompensationPageHeader from '../components/CompensationPageHeader';
-import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import type { BenefitsConfiguration } from '../types';
 
 interface BenefitItem {
@@ -283,8 +283,8 @@ export default function BenefitsTab({
             const future = configuration.future_programs || [];
             const inCurrent = current.findIndex((p) => p.name === itemId);
             const inFuture = future.findIndex((p) => p.name === itemId);
-            let nextCurrent = current.filter((p) => p.name !== itemId);
-            let nextFuture = future.filter((p) => p.name !== itemId);
+            const nextCurrent = current.filter((p) => p.name !== itemId);
+            const nextFuture = future.filter((p) => p.name !== itemId);
             if (status === 'new') {
                 nextFuture.push({ name: itemId, status: 'new' });
             } else {

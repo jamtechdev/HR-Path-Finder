@@ -1,5 +1,5 @@
-import React from 'react';
 import { Link } from '@inertiajs/react';
+import React from 'react';
 import { login, register, dashboard } from '@/routes';
 
 interface CTABlockProps {

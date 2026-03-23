@@ -1,7 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
-import { Card, CardContent } from '@/components/ui/card';
 import { 
     FileText, 
     Target, 
@@ -12,23 +9,26 @@ import {
     ChevronLeft,
     LayoutGrid,
 } from 'lucide-react';
-import Overview from './steps/Overview';
-import PerformanceSnapshotTab from './tabs/PerformanceSnapshotTab';
-import KpiReviewTab from './tabs/KpiReviewTab';
-import EvaluationModelAssignmentTab from './tabs/EvaluationModelAssignmentTab';
-import EvaluationStructureTab from './tabs/EvaluationStructureTab';
-import ReviewSubmitTab from './tabs/ReviewSubmitTab';
-import { cn } from '@/lib/utils';
 import { Send } from 'lucide-react';
-import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
+import React, { useMemo, useState, useEffect } from 'react';
 import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
+import { Card, CardContent } from '@/components/ui/card';
+import AppLayout from '@/layouts/AppLayout';
+import { pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
+import { cn } from '@/lib/utils';
 import {
     validatePerformanceSnapshotTab,
     validateKpiReviewTab,
     validateModelAssignmentTab,
     validateEvaluationStructureTab,
 } from './performanceTabValidation';
-import { pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
+import Overview from './steps/Overview';
+import EvaluationModelAssignmentTab from './tabs/EvaluationModelAssignmentTab';
+import EvaluationStructureTab from './tabs/EvaluationStructureTab';
+import KpiReviewTab from './tabs/KpiReviewTab';
+import PerformanceSnapshotTab from './tabs/PerformanceSnapshotTab';
+import ReviewSubmitTab from './tabs/ReviewSubmitTab';
 
 interface ProjectWithResponses {
     id: number;

@@ -1,9 +1,9 @@
-import React from 'react';
 import { Link } from '@inertiajs/react';
-import { login, register, dashboard } from '@/routes';
-import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import React from 'react';
 import { LanguageToggle } from '@/components/LanguageToggle';
+import { Button } from '@/components/ui/button';
+import { login, register, dashboard } from '@/routes';
 
 interface LandingNavProps {
     isAuthenticated?: boolean;

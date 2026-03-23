@@ -1,12 +1,12 @@
+import { FileText, User, CheckSquare, Settings, ChevronLeft, ArrowRight, X } from 'lucide-react';
 import React, { useState, useEffect, useMemo } from 'react';
-import { Label } from '@/components/ui/label';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { FileText, User, CheckSquare, Settings, ChevronLeft, ArrowRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { JobDefinition, JobSelection } from '../hooks/useJobAnalysisState';
-import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 
 interface JobKeyword {
     id: number;

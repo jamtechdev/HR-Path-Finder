@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Search, FileText, CheckCircle2, MessageSquare, ArrowRight, Send } from 'lucide-react';
+import React, { useState } from 'react';
+import JobMatrixCard from '@/components/JobMatrix/JobMatrixCard';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import JobMatrixCard from '@/components/JobMatrix/JobMatrixCard';
-import { Search, FileText, CheckCircle2, MessageSquare, ArrowRight, Send } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AppLayout from '@/layouts/AppLayout';
 
 interface JobDefinition {
     id: number;

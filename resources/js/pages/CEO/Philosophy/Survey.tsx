@@ -1,12 +1,11 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
-import { Button } from '@/components/ui/button';
-import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
 import { CheckCircle2 } from 'lucide-react';
-import type { DiagnosisQuestion, HrIssue, IntroText, SurveyFormData, VisionMissionValue } from './types';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
+import AppHeader from '@/components/Header/AppHeader';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import { Button } from '@/components/ui/button';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { STEPS, MAX_ORGANIZATIONAL_ISSUES } from './constants';
 import {
     IntroStep,
@@ -18,6 +17,7 @@ import {
     IssuesStep,
     ConcernsStep,
 } from './steps';
+import type { DiagnosisQuestion, HrIssue, IntroText, SurveyFormData, VisionMissionValue } from './types';
 
 interface Props {
     project: { id: number; company: { name: string } };

@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
 import { Head } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Building2, User, Briefcase, Target, TrendingUp } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import AppLayout from '@/layouts/AppLayout';
 
 interface JobDefinition {
     id: number;

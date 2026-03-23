@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import { Upload, X, File } from 'lucide-react';
+import React, { useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
 interface FileUploadProps {

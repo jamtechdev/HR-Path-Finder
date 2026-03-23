@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Plus, Edit, Trash2, Search, GripVertical } from 'lucide-react';
+import React, { useState } from 'react';
+import AppHeader from '@/components/Header/AppHeader';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 
 interface CompensationSnapshotQuestion {
     id: number;

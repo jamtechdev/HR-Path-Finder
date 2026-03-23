@@ -1,17 +1,25 @@
-import React, { useState, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
-import StepHeader from '@/components/StepHeader/StepHeader';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, DollarSign, CheckCircle2, MessageSquare, ChevronDown, ChevronUp, TrendingUp, FileText, Shield, Settings, Award, Users, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import StepHeader from '@/components/StepHeader/StepHeader';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AppLayout from '@/layouts/AppLayout';
 import { cn } from '@/lib/utils';
 
 // Import types
+
+// Import tab components
+import BaseSalaryFrameworkTab from './tabs/BaseSalaryFrameworkTab';
+import BenefitsTab from './tabs/BenefitsTab';
+import BonusPoolTab from './tabs/BonusPoolTab';
+import PayBandSalaryTableTab from './tabs/PayBandSalaryTableTab';
+import ReviewTab from './tabs/ReviewTab';
+import SnapshotTab from './tabs/SnapshotTab';
 import type {
     HrProject,
     CompensationSystem,
@@ -26,14 +34,6 @@ import type {
     BonusPoolConfiguration,
     BenefitsConfiguration,
 } from './types';
-
-// Import tab components
-import SnapshotTab from './tabs/SnapshotTab';
-import BaseSalaryFrameworkTab from './tabs/BaseSalaryFrameworkTab';
-import PayBandSalaryTableTab from './tabs/PayBandSalaryTableTab';
-import BonusPoolTab from './tabs/BonusPoolTab';
-import BenefitsTab from './tabs/BenefitsTab';
-import ReviewTab from './tabs/ReviewTab';
 
 interface Props {
     project: HrProject;

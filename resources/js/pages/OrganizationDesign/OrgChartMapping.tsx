@@ -1,23 +1,23 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, X, GripVertical, Layout, List, Info, HelpCircle, CheckCircle2, AlertCircle } from 'lucide-react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import type { Node, Edge } from 'reactflow';
+import ChartGallery from '@/components/CEO/Review/ChartGallery';
+import DiagramEditor from '@/components/OrgChart/DiagramEditor';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, X, GripVertical, Layout, List, Info, HelpCircle, CheckCircle2, AlertCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import DiagramEditor from '@/components/OrgChart/DiagramEditor';
-import ChartGallery from '@/components/CEO/Review/ChartGallery';
-import type { Node, Edge } from 'reactflow';
+import { useToast } from '@/hooks/use-toast';
+import AppLayout from '@/layouts/AppLayout';
 import { mergeJobAnalysisState, buildSubmitPayload } from '@/pages/JobAnalysis/utils/jobAnalysisStorage';
 
 interface JobDefinition {

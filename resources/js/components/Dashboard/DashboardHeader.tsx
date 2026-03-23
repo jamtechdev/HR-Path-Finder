@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { Home } from 'lucide-react';
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -7,7 +8,6 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Home } from 'lucide-react';
 
 interface BreadcrumbItem {
     title: string;

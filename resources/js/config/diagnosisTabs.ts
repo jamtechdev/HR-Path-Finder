@@ -1,5 +1,6 @@
-import { Building2, Briefcase, Users, Settings, MessageSquare, FileText, Check, UserCog, BriefcaseBusiness, Upload, Network, AlertTriangle, LucideIcon, UserCheck, Layers } from 'lucide-react';
-import { TabId } from '@/components/Diagnosis/DiagnosisTabs';
+import type { LucideIcon} from 'lucide-react';
+import { Building2, Briefcase, Users, Settings, MessageSquare, FileText, Check, UserCog, BriefcaseBusiness, Upload, Network, AlertTriangle, UserCheck, Layers } from 'lucide-react';
+import type { TabId } from '@/components/Diagnosis/DiagnosisTabs';
 
 export interface DiagnosisTab {
     id: TabId;

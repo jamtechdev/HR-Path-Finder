@@ -1,12 +1,7 @@
+import { Head, Link, useForm } from '@inertiajs/react';
+import { ArrowLeft, Save } from 'lucide-react';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import {
-    Sidebar,
-    SidebarInset,
-    SidebarProvider,
-} from '@/components/ui/sidebar';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,8 +14,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import {
+    Sidebar,
+    SidebarInset,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
-import { ArrowLeft, Save } from 'lucide-react';
 
 interface Company {
     id: number;

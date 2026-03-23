@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
+import { TrendingUp, Users, Calendar, CheckCircle2, Target, DollarSign, Building2, UserPlus, Mail, X, Award, Sparkles, Clock, ArrowRight, Lock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import ProgressTracker from '@/components/Dashboard/HRManager/ProgressTracker';
+import StepCard from '@/components/Dashboard/HRManager/StepCard';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
-import { TrendingUp, Users, Calendar, CheckCircle2, Target, DollarSign, Building2, UserPlus, Mail, X, Award, Sparkles, Clock, ArrowRight, Lock } from 'lucide-react';
-import ProgressTracker from '@/components/Dashboard/HRManager/ProgressTracker';
-import StepCard from '@/components/Dashboard/HRManager/StepCard';
 import ProfessionalWorkflow from '@/components/Workflow/ProfessionalWorkflow';
+import AppLayout from '@/layouts/AppLayout';
+import { cn } from '@/lib/utils';
 import type { StepKey, StepStatus } from '@/types/workflow';
 
 interface User {

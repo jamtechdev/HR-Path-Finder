@@ -1,7 +1,7 @@
-import { Button } from '@/components/ui/button';
-import { register } from '@/routes';
 import { Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { register } from '@/routes';
 
 export function CTASection({ canRegister = true }: { canRegister?: boolean }) {
     return (

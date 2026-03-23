@@ -1,5 +1,3 @@
-import React from 'react';
-import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Building2,
     Users,
@@ -12,6 +10,8 @@ import {
     AlertTriangle,
     History,
 } from 'lucide-react';
+import React from 'react';
+import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
 // Same tab order and labels as HR diagnosis (company-info through hr-issues), plus Change History for CEO

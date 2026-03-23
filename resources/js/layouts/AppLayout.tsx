@@ -1,9 +1,9 @@
 import React from 'react';
 import { FlashToasts } from '@/components/FlashToasts';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import AppHeader from '@/components/Header/AppHeader';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import TranslationLoader from '@/components/TranslationLoader';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/toaster';
 
 interface AppLayoutProps {

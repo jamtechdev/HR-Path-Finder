@@ -1,5 +1,3 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
 import {
     CheckCircle2,
     ArrowRight,
@@ -12,6 +10,8 @@ import {
     Lock,
     DollarSign,
 } from 'lucide-react';
+import React from 'react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface StepConfig {

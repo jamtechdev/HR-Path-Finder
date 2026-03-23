@@ -1,5 +1,6 @@
-import React from 'react';
 import { Link, usePage } from '@inertiajs/react';
+import { CheckCircle2, Lock, FileText, Briefcase, Settings, DollarSign, TrendingUp, Award } from 'lucide-react';
+import React from 'react';
 import { 
     SidebarGroup, 
     SidebarGroupLabel, 
@@ -7,7 +8,6 @@ import {
     SidebarMenuItem, 
     SidebarMenuButton,
 } from '@/components/ui/sidebar';
-import { CheckCircle2, Lock, FileText, Briefcase, Settings, DollarSign, TrendingUp, Award } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface WorkflowStepsSidebarProps {

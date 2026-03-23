@@ -1,13 +1,13 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
-import DiagnosisTabs from '@/components/Diagnosis/DiagnosisTabs';
-import { diagnosisTabs } from '@/config/diagnosisTabs';
-import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
-import { saveTabDraft } from '@/lib/diagnosisDraftStorage';
-import { tr } from '@/config/diagnosisTranslations';
-import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { DiagnosisFieldErrorsProvider } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
+import DiagnosisTabs from '@/components/Diagnosis/DiagnosisTabs';
+import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
+import { diagnosisTabs } from '@/config/diagnosisTabs';
+import { tr } from '@/config/diagnosisTranslations';
+import AppLayout from '@/layouts/AppLayout';
+import { saveTabDraft } from '@/lib/diagnosisDraftStorage';
 import { mergeDiagnosisWithFormData, pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
 
 function hasFiles(data: any): boolean {

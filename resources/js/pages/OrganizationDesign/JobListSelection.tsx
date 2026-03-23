@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
-import { mergeJobAnalysisState } from '@/pages/JobAnalysis/utils/jobAnalysisStorage';
-import { toast } from '@/hooks/use-toast';
-import AppLayout from '@/layouts/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Plus, X, GripVertical, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, X, GripVertical, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { toast } from '@/hooks/use-toast';
+import AppLayout from '@/layouts/AppLayout';
+import { mergeJobAnalysisState } from '@/pages/JobAnalysis/utils/jobAnalysisStorage';
 
 interface JobKeyword {
     id: number;

@@ -1,7 +1,7 @@
+import { Link } from '@inertiajs/react';
+import { Save, CheckCircle2, ClipboardList } from 'lucide-react';
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Save, CheckCircle2, ClipboardList } from 'lucide-react';
-import { Link } from '@inertiajs/react';
 
 interface DiagnosisActionsProps {
     onSave: () => void;

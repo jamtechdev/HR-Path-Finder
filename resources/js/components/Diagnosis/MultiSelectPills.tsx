@@ -1,6 +1,6 @@
 import React from 'react';
-import { OptionPill } from './OptionPill';
 import { cn } from '@/lib/utils';
+import { OptionPill } from './OptionPill';
 
 interface MultiSelectPillsProps {
     label: string;

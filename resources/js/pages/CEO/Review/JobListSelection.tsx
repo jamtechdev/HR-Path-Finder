@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
 import { Head } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Users, FolderTree } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { router } from '@inertiajs/react';
+import { CheckCircle2, Users, FolderTree } from 'lucide-react';
+import React, { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import AppLayout from '@/layouts/AppLayout';
 
 interface JobKeyword {
     id: number;

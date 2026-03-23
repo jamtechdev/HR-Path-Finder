@@ -1,8 +1,8 @@
-import React from 'react';
 import { Check, Circle } from 'lucide-react';
+import React from 'react';
 import { diagnosisTabs } from '@/config/diagnosisTabs';
-import { TabId } from './DiagnosisTabs';
 import { cn } from '@/lib/utils';
+import type { TabId } from './DiagnosisTabs';
 
 interface DiagnosisProgressBarProps {
     activeTab: TabId;

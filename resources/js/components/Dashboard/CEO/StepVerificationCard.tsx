@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Clock, Lock, Eye, X, ClipboardList, Network } from 'lucide-react';
+import React, { useState } from 'react';
 import SuccessModal from '@/components/Modals/SuccessModal';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface StepVerificationCardProps {
     projectId: number;

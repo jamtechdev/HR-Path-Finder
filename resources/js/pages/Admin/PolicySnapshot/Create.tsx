@@ -1,16 +1,16 @@
-import React from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
-import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import { ChevronLeft } from 'lucide-react';
+import React from 'react';
 import AppHeader from '@/components/Header/AppHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronLeft } from 'lucide-react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 export default function PolicySnapshotCreate() {
     const { data, setData, post, processing, errors, clearErrors } = useForm({

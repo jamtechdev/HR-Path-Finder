@@ -1,5 +1,6 @@
-import React from 'react';
 import { Link } from '@inertiajs/react';
+import { Check, Circle, Lock } from 'lucide-react';
+import React from 'react';
 import { 
     SidebarGroup, 
     SidebarGroupLabel, 
@@ -8,9 +9,8 @@ import {
     SidebarMenuButton,
 } from '@/components/ui/sidebar';
 import { diagnosisTabs } from '@/config/diagnosisTabs';
-import { TabId } from './DiagnosisTabs';
-import { Check, Circle, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { TabId } from './DiagnosisTabs';
 
 interface DiagnosisStepsSidebarProps {
     activeTab: TabId;

@@ -1,5 +1,5 @@
 import { CheckCircle2 } from 'lucide-react';
-import { HTMLAttributes } from 'react';
+import type { HTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
 interface AnimatedFeatureListProps extends HTMLAttributes<HTMLDivElement> {

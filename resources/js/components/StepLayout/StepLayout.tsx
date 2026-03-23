@@ -1,6 +1,6 @@
 import React from 'react';
-import AppLayout from '@/layouts/AppLayout';
 import StepHeader from '@/components/StepHeader/StepHeader';
+import AppLayout from '@/layouts/AppLayout';
 
 interface StepLayoutProps {
     title: string;

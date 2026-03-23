@@ -1,5 +1,4 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
+import { router } from '@inertiajs/react';
 import {
     CheckCircle2,
     ArrowRight,
@@ -11,7 +10,8 @@ import {
     Rocket,
     Lock,
 } from 'lucide-react';
-import { router } from '@inertiajs/react';
+import React from 'react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface StepConfig {

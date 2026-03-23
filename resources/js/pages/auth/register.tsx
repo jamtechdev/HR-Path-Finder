@@ -1,16 +1,16 @@
+import { Head, Link, useForm } from '@inertiajs/react';
+import { ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { login, home } from '@/routes';
 import { store } from '@/routes/register';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
-import { ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
-import React from 'react';
-import { useTranslation } from 'react-i18next';
 
 type Props = {
     status?: string;

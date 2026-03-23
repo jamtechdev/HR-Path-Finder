@@ -1,7 +1,7 @@
-import { toast } from '@/hooks/use-toast';
-import type { SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import { useEffect, useRef } from 'react';
+import { toast } from '@/hooks/use-toast';
+import type { SharedData } from '@/types';
 
 /**
  * Shows session flash messages as toasts once per distinct flash payload (AppLayout / HR shell).

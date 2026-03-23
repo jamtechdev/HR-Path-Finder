@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
+import { X, Check } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { OrgStructureDiagram } from '@/components/Diagnosis/OrgStructureDiagrams';
 import { both, tr } from '@/config/diagnosisTranslations';
-import { X, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
-import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
+import { cn } from '@/lib/utils';
 
 interface Diagnosis {
     id: number;

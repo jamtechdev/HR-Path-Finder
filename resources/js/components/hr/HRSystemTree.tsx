@@ -1,6 +1,6 @@
 import { Building2, Target, DollarSign, Users, Lock, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface HRSystemTreeProps {
     ceoPhilosophy?: {

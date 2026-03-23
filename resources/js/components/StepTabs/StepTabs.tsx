@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react';
 import { Link } from '@inertiajs/react';
-import { Check, LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Check } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface StepTab {

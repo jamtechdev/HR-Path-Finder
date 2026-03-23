@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
-import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import { ArrowLeft, DollarSign, CheckCircle2, Info } from 'lucide-react';
+import React, { useState } from 'react';
 import AppHeader from '@/components/Header/AppHeader';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, DollarSign, CheckCircle2, Info } from 'lucide-react';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import { Textarea } from '@/components/ui/textarea';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 interface Project {
     id: number;

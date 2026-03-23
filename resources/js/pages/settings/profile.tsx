@@ -1,20 +1,20 @@
+import { Transition } from '@headlessui/react';
+import { Form, Head, Link, usePage } from '@inertiajs/react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
+import AppHeader from '@/components/Header/AppHeader';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import type { BreadcrumbItem, SharedData } from '@/types';
-import { Transition } from '@headlessui/react';
-import { Form, Head, Link, usePage } from '@inertiajs/react';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Profile settings',

@@ -1,9 +1,10 @@
-import React, { useState, useCallback } from 'react';
-import { Handle, Position, NodeProps } from 'reactflow';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import type { NodeProps } from 'reactflow';
+import { Handle, Position } from 'reactflow';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface OrgNodeData {
     label: string;

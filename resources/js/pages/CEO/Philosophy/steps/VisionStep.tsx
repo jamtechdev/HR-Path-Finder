@@ -1,7 +1,7 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import type { DiagnosisQuestion, SurveyFormData, VisionChunkConfig } from '../types';
 import { VISION_CHUNKS, KEYWORD_PRESETS } from '../constants';
+import type { DiagnosisQuestion, SurveyFormData, VisionChunkConfig } from '../types';
 
 interface VisionStepProps {
     currentChunk: number;

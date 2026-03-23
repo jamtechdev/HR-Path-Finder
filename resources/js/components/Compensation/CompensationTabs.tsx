@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
-import { FileText, Building2, TrendingUp, Gift, Check, LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { FileText, Building2, TrendingUp, Gift, Check } from 'lucide-react';
 
 export type TabId = 'overview' | 'compensation-structure' | 'differentiation-method' | 'incentive-components' | 'review';
 

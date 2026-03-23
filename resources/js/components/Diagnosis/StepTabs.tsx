@@ -1,5 +1,5 @@
-import type { ComponentType } from 'react';
 import { Check } from 'lucide-react';
+import type { ComponentType } from 'react';
 import { cn } from '@/lib/utils';
 
 interface StepTabItem {

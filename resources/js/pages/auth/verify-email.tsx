@@ -1,7 +1,9 @@
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Mail, AlertCircle, Settings, CheckCircle, ArrowLeft } from 'lucide-react';
+import React from 'react';
 import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -10,13 +12,11 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Spinner } from '@/components/ui/spinner';
 import { Toaster } from '@/components/ui/toaster';
 import { toast } from '@/hooks/use-toast';
-import type { SharedData } from '@/types';
 import { logout, home } from '@/routes';
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { Mail, AlertCircle, Settings, CheckCircle, ArrowLeft } from 'lucide-react';
-import React from 'react';
+import type { SharedData } from '@/types';
 
 export default function VerifyEmail({ status, smtpConfigured = true }: { status?: string; smtpConfigured?: boolean }) {
     const { flash } = usePage<SharedData>().props;

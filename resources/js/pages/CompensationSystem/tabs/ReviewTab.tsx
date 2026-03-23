@@ -140,7 +140,7 @@ export default function ReviewTab({
         if (!hasSnapshot) return [];
         return snapshotQuestions.slice(0, 3).map((q) => {
             const r = snapshotResponses[q.id];
-            let label = q.question_text?.slice(0, 30) || `Q${q.id}`;
+            const label = q.question_text?.slice(0, 30) || `Q${q.id}`;
             let val: string;
             if (Array.isArray(r)) val = r.join(', ');
             else if (typeof r === 'number') val = r.toLocaleString();

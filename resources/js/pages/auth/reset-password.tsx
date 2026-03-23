@@ -1,12 +1,12 @@
+import { Head, Link, useForm } from '@inertiajs/react';
+import { ArrowRight, Lock, ArrowLeft } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { home } from '@/routes';
-import { Head, Link, useForm } from '@inertiajs/react';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
-import { ArrowRight, Lock, ArrowLeft } from 'lucide-react';
+import { home } from '@/routes';
 
 type Props = {
     email: string;

@@ -1,7 +1,7 @@
-import React from 'react';
 import { Link } from '@inertiajs/react';
-import { login, register, dashboard } from '@/routes';
 import { ArrowRight } from 'lucide-react';
+import React from 'react';
+import { login, register, dashboard } from '@/routes';
 
 interface HeroRevisionProps {
     canRegister?: boolean;

@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
 import { Link } from '@inertiajs/react';
 import { User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
-import { Badge } from '@/components/ui/badge';
 
 interface UserDropdownProps {
     user: {

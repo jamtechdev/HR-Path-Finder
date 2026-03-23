@@ -1,7 +1,7 @@
 import { Check, Lock, CheckCircle2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { StepStatuses } from '@/types/dashboard';
 import type { StepKey } from '@/types/workflow';
-import { cn } from '@/lib/utils';
 
 interface StepCard {
     id: StepKey;

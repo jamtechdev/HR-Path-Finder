@@ -1,7 +1,7 @@
-import { Button } from '@/components/ui/button';
-import { login, register } from '@/routes';
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { login, register } from '@/routes';
 
 export function HeroSection({ canRegister = true }: { canRegister?: boolean }) {
     return (

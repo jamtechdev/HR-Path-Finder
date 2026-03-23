@@ -1,9 +1,9 @@
-import React from 'react';
 import { Link } from '@inertiajs/react';
 import { CheckCircle2, Lock, Circle, ArrowRight, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Card, CardContent } from '@/components/ui/card';
+import React from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import type { StepKey } from '@/types/workflow';
 
 interface Step {

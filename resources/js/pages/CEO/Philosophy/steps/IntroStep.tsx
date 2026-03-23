@@ -1,7 +1,7 @@
+import { CheckCircle2 } from 'lucide-react';
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CheckCircle2 } from 'lucide-react';
 import type { IntroText } from '../types';
 
 const defaultIntroContent = `This diagnostic is not an evaluation of your leadership or performance.

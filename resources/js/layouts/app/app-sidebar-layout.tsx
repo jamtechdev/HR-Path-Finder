@@ -1,7 +1,7 @@
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Sidebar } from '@/components/ui/sidebar';
 import type { AppLayoutProps } from '@/types';
 

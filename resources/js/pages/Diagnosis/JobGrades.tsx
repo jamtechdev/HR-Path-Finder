@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Head, useForm } from '@inertiajs/react';
-import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Plus, Info } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
+import FormLayout from '@/components/Diagnosis/FormLayout';
+import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
+import { cn } from '@/lib/utils';
 
 const DragHandleIcon = () => (
     <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3">

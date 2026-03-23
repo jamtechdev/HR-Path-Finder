@@ -1,3 +1,7 @@
+import { Head, router, usePage } from '@inertiajs/react';
+import { CheckCircle2, Clock, UserCheck } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { Toaster, toast } from 'sonner';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
@@ -16,10 +20,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Head, router, usePage } from '@inertiajs/react';
-import { CheckCircle2, Clock, UserCheck } from 'lucide-react';
-import { useEffect, useRef } from 'react';
-import { Toaster, toast } from 'sonner';
 
 interface PendingUser {
     id: number;

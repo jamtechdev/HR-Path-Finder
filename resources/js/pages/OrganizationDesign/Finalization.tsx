@@ -1,13 +1,4 @@
-import React, { useState } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
-import { buildFinalizePayload } from '@/pages/JobAnalysis/utils/jobAnalysisStorage';
-import AppLayout from '@/layouts/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
     CheckCircle2, 
     ChevronLeft, 
@@ -22,7 +13,16 @@ import {
     Lock,
     Unlock
 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import AppLayout from '@/layouts/AppLayout';
 import { cn } from '@/lib/utils';
+import { buildFinalizePayload } from '@/pages/JobAnalysis/utils/jobAnalysisStorage';
 
 interface JobDefinition {
     id: number;

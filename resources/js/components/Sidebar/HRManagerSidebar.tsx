@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
-import { useTranslation } from 'react-i18next';
 import { Target, DollarSign, Building2, LayoutGrid, Award, FileText } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface StepConfig {
     id: string;

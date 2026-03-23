@@ -1,13 +1,3 @@
-import AppHeader from '@/components/Header/AppHeader';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    Sidebar,
-    SidebarInset,
-    SidebarProvider,
-} from '@/components/ui/sidebar';
 import { Head, Link } from '@inertiajs/react';
 import {
     ArrowRight,
@@ -21,6 +11,16 @@ import {
     Target,
     TrendingUp,
 } from 'lucide-react';
+import AppHeader from '@/components/Header/AppHeader';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Sidebar,
+    SidebarInset,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
 
 interface Project {
     id: number;

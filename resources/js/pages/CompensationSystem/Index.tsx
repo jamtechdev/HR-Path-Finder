@@ -1,21 +1,30 @@
-import React, { useState, useEffect, useMemo } from 'react';
 import { Head, useForm, router, Link } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, DollarSign, CheckCircle2, MessageSquare, ChevronDown, ChevronUp, TrendingUp, FileText, Settings, Award, Users, AlertCircle, Shield } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
-import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
-import { validateCompensationStep } from './compensationTabValidation';
+import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AppLayout from '@/layouts/AppLayout';
 import { pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
+import { cn } from '@/lib/utils';
 
 // Import types
+
+// Import tab components
+import CompensationOverview from './CompensationOverview';
+import { validateCompensationStep } from './compensationTabValidation';
+import BaseSalaryFrameworkTab from './tabs/BaseSalaryFrameworkTab';
+import BenefitsTab from './tabs/BenefitsTab';
+import BonusPoolTab from './tabs/BonusPoolTab';
+import PayBandSalaryTableTab from './tabs/PayBandSalaryTableTab';
+import ReviewTab from './tabs/ReviewTab';
+import SnapshotTab from './tabs/SnapshotTab';
 import type {
     HrProject,
     CompensationSystem,
@@ -30,15 +39,6 @@ import type {
     BonusPoolConfiguration,
     BenefitsConfiguration,
 } from './types';
-
-// Import tab components
-import CompensationOverview from './CompensationOverview';
-import SnapshotTab from './tabs/SnapshotTab';
-import BaseSalaryFrameworkTab from './tabs/BaseSalaryFrameworkTab';
-import PayBandSalaryTableTab from './tabs/PayBandSalaryTableTab';
-import BonusPoolTab from './tabs/BonusPoolTab';
-import BenefitsTab from './tabs/BenefitsTab';
-import ReviewTab from './tabs/ReviewTab';
 
 interface Props {
     project: HrProject;

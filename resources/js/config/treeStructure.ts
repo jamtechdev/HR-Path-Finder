@@ -3,7 +3,7 @@ import {
     AlertTriangle, Check, FileText, Target, BarChart3, Shield, Settings, TrendingUp, 
     Award, DollarSign, History
 } from 'lucide-react';
-import { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 export interface TreeTab {
     id: string;

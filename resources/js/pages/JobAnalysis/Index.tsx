@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
-import StepProgress from './components/StepProgress';
-import { Badge } from '@/components/ui/badge';
-import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
 import { ChevronLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
+import { Badge } from '@/components/ui/badge';
+import AppLayout from '@/layouts/AppLayout';
+import { pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
+import StepProgress from './components/StepProgress';
+import { useJobAnalysisState, type OrgChartMapping } from './hooks/useJobAnalysisState';
+import { useStepValidation } from './hooks/useStepValidation';
 import Overview from './steps/Overview';
 import Step1PolicySnapshot from './steps/Step1PolicySnapshot';
 import Step2JobListSelection from './steps/Step2JobListSelection';
@@ -12,10 +16,6 @@ import Step3JobDefinition from './steps/Step3JobDefinition';
 import Step4Finalization from './steps/Step4Finalization';
 import Step5OrgChartMapping from './steps/Step5OrgChartMapping';
 import Step6ReviewSubmit from './steps/Step6ReviewSubmit';
-import { useJobAnalysisState, type OrgChartMapping } from './hooks/useJobAnalysisState';
-import { useStepValidation } from './hooks/useStepValidation';
-import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
-import { pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
 
 interface Project {
     id: number;

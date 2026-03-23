@@ -1,3 +1,5 @@
+import { Head, Link, useForm } from '@inertiajs/react';
+import React from 'react';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
@@ -5,11 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Sidebar, SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Textarea } from '@/components/ui/textarea';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
-import React from 'react';
 
 interface Company {
     id: number;

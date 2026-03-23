@@ -1,7 +1,7 @@
-import React, { useRef, useState } from 'react';
 import { Upload, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface FileUploadProps {
     label?: string;

@@ -7,6 +7,7 @@ import {
     Bell,
     Repeat,
 } from 'lucide-react';
+import { LanguageToggle } from '@/components/LanguageToggle';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -17,7 +18,6 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { LanguageToggle } from '@/components/LanguageToggle';
 import { cn } from '@/lib/utils';
 
 function getBreadcrumbLabel(path: string): string {

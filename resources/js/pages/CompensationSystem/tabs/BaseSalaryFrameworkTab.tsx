@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { Label } from '@/components/ui/label';
-import type { BaseSalaryFramework } from '../types';
 import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import type { BaseSalaryFramework } from '../types';
 
 interface BaseSalaryFrameworkTabProps {
     framework: BaseSalaryFramework;

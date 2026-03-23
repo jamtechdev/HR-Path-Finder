@@ -1,7 +1,4 @@
-import React, { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
     FileText, 
     Target, 
@@ -10,11 +7,14 @@ import {
     Settings,
     Shield
 } from 'lucide-react';
-import PerformanceSnapshotTab from './tabs/PerformanceSnapshotTab';
-import KpiReviewTab from './tabs/KpiReviewTab';
+import React, { useState, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AppLayout from '@/layouts/AppLayout';
 import CeoKpiReviewTab from './tabs/CeoKpiReviewTab';
 import EvaluationModelAssignmentTab from './tabs/EvaluationModelAssignmentTab';
 import EvaluationStructureTab from './tabs/EvaluationStructureTab';
+import KpiReviewTab from './tabs/KpiReviewTab';
+import PerformanceSnapshotTab from './tabs/PerformanceSnapshotTab';
 
 // Fix for missing performance_snapshot_responses property
 interface ProjectWithResponses {

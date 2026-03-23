@@ -1,8 +1,8 @@
+import { Link } from '@inertiajs/react';
+import { ArrowRight } from 'lucide-react';
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { login, register } from '@/routes';
-import { Link } from '@inertiajs/react';
-import { ArrowRight } from 'lucide-react';
 import { CompensationBenchmarkPreview } from './CompensationBenchmarkPreview';
 
 interface HeroSectionKoProps {

@@ -1,12 +1,12 @@
-import React from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
-import WorkflowStepsSidebar from '@/components/Sidebar/WorkflowStepsSidebar';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { CheckCircle2, Award } from 'lucide-react';
+import React from 'react';
+import AppHeader from '@/components/Header/AppHeader';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import WorkflowStepsSidebar from '@/components/Sidebar/WorkflowStepsSidebar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 
 interface Props {
     project: {

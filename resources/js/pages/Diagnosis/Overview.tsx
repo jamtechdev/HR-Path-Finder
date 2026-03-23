@@ -1,7 +1,4 @@
-import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
-import { Button } from '@/components/ui/button';
 import {
     CheckCircle2,
     ArrowRight,
@@ -18,6 +15,9 @@ import {
     AlertTriangle,
     Check,
 } from 'lucide-react';
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/AppLayout';
 import { cn } from '@/lib/utils';
 
 interface Diagnosis {

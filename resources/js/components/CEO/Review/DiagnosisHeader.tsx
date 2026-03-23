@@ -1,6 +1,6 @@
+import { CheckCircle2, Clock, Lock } from 'lucide-react';
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Clock, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DiagnosisHeaderProps {

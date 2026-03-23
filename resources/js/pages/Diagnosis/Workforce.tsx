@@ -1,11 +1,11 @@
-import React, { useEffect, useRef } from 'react';
-import { loadAllTabDrafts } from '@/lib/diagnosisDraftStorage';
 import { Head, useForm } from '@inertiajs/react';
-import FormLayout from '@/components/Diagnosis/FormLayout';
-import { cn } from '@/lib/utils';
 import { Info, TrendingUp, Users, Minus, Plus } from 'lucide-react';
-import { tr } from '@/config/diagnosisTranslations';
+import React, { useEffect, useRef } from 'react';
 import { DiagnosisFieldShell } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
+import FormLayout from '@/components/Diagnosis/FormLayout';
+import { tr } from '@/config/diagnosisTranslations';
+import { loadAllTabDrafts } from '@/lib/diagnosisDraftStorage';
+import { cn } from '@/lib/utils';
 
 interface Diagnosis {
     id: number;

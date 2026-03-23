@@ -1,14 +1,14 @@
+import { Head, Link, useForm, router } from '@inertiajs/react';
+import { ArrowRight, Shield, RotateCcw, Mail, ArrowLeft } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { login, home } from '@/routes';
-import { Head, Link, useForm, router } from '@inertiajs/react';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
-import { ArrowRight, Shield, RotateCcw, Mail, ArrowLeft } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { login, home } from '@/routes';
 
 interface PageProps {
     email: string;

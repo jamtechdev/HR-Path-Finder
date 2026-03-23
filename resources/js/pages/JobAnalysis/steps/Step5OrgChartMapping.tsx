@@ -1,10 +1,10 @@
+import { Plus, X, Minus, ChevronDown, ChevronRight, FolderTree, Folder, Briefcase, BarChart3, Coins, Users, Building2, GripVertical } from 'lucide-react';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, X, Minus, ChevronDown, ChevronRight, FolderTree, Folder, Briefcase, BarChart3, Coins, Users, Building2, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { OrgChartMapping, JobDefinition } from '../hooks/useJobAnalysisState';
-import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 
 const MAX_DEPTH = 2; // 3 levels: 0, 1, 2
 

@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
 import { Head, useForm, Link, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
-import TabNavigation from '@/components/DesignSteps/TabNavigation';
-import RecommendationBadge from '@/components/DesignSteps/RecommendationBadge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Building2, Target, Users, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import RecommendationBadge from '@/components/DesignSteps/RecommendationBadge';
+import TabNavigation from '@/components/DesignSteps/TabNavigation';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import AppLayout from '@/layouts/AppLayout';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 interface CeoPhilosophy {

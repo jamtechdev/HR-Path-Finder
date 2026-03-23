@@ -1,8 +1,8 @@
-import { SidebarProvider } from '@/components/ui/sidebar';
-import SuccessMessage from '@/components/SuccessMessage';
-import type { SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import SuccessMessage from '@/components/SuccessMessage';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import type { SharedData } from '@/types';
 
 type Props = {
     children: ReactNode;

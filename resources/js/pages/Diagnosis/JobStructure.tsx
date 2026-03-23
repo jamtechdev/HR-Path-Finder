@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
+import { X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { both, tr } from '@/config/diagnosisTranslations';
-import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 
 const SEP = '|';
 

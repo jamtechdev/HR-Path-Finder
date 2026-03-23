@@ -1,7 +1,7 @@
+import type { LucideIcon } from 'lucide-react';
+import type { HTMLAttributes, ReactNode } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { LucideIcon } from 'lucide-react';
-import { HTMLAttributes, ReactNode } from 'react';
 
 interface AnimatedCardProps extends HTMLAttributes<HTMLDivElement> {
     icon?: LucideIcon;

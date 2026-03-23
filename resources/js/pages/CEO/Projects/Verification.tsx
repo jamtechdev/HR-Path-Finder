@@ -1,14 +1,14 @@
-import React from 'react';
 import { Head, router } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import AppHeader from '@/components/Header/AppHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import StepVerificationCard from '@/components/Dashboard/CEO/StepVerificationCard';
-import { ArrowLeft, ArrowRight, CheckCircle2, Clock, Lock, Eye, ClipboardList } from 'lucide-react';
 import { Link } from '@inertiajs/react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Clock, Lock, Eye, ClipboardList } from 'lucide-react';
+import React from 'react';
+import StepVerificationCard from '@/components/Dashboard/CEO/StepVerificationCard';
+import AppHeader from '@/components/Header/AppHeader';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 
 interface Props {
     project: {

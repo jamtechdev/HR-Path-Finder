@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
+import { Check } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { both, tr } from '@/config/diagnosisTranslations';
-import { Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
+import { cn } from '@/lib/utils';
 
 const CATEGORIES = [
     {

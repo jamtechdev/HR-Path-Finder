@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
-import { FileText, Building2, Layers, Link2, Users, Check, LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { FileText, Building2, Layers, Link2, Users, Check } from 'lucide-react';
 
 export type TabId = 'overview' | 'organization-structure' | 'job-grade-structure' | 'grade-title-relationship' | 'managerial-definition' | 'review';
 

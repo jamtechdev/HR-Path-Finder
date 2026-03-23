@@ -1,8 +1,8 @@
 import { usePage } from '@inertiajs/react';
-import HRManagerSidebar from './HRManagerSidebar';
-import CEOSidebar from './CEOSidebar';
-import AdminSidebar from './AdminSidebar';
 import { useSidebar } from '@/components/ui/sidebar';
+import AdminSidebar from './AdminSidebar';
+import CEOSidebar from './CEOSidebar';
+import HRManagerSidebar from './HRManagerSidebar';
 
 interface User {
     id: number;

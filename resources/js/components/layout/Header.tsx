@@ -1,10 +1,10 @@
-import { Button } from '@/components/ui/button';
-import { dashboard, login, register } from '@/routes';
-import type { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowRight, ChevronDown, Menu, Moon, Sun, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { useAppearance } from '@/hooks/use-appearance';
+import { dashboard, login, register } from '@/routes';
+import type { SharedData } from '@/types';
 
 interface HeaderProps {
     canRegister?: boolean;

@@ -1,6 +1,6 @@
+import { Sparkles } from 'lucide-react';
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles } from 'lucide-react';
 
 interface RecommendationBadgeProps {
     className?: string;

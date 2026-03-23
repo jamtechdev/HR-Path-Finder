@@ -1,16 +1,16 @@
+import { Plus, Trash2, AlertCircle, FileText, Info } from 'lucide-react';
 import React, { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, AlertCircle, FileText, Info } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
-import CompensationPageHeader from '../components/CompensationPageHeader';
-import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import CompensationPageHeader from '../components/CompensationPageHeader';
 import type { CompensationSnapshotQuestion, CompensationSnapshotResponse } from '../types';
 
 interface SnapshotTabProps {

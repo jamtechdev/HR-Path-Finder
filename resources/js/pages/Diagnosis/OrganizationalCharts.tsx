@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useRef } from 'react';
 import { Head, useForm } from '@inertiajs/react';
-import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Eye, X, Upload } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
-import { setOrgChartDraftFile, getOrgChartDraftFiles } from '@/lib/diagnosisFileDrafts';
-import { both, tr } from '@/config/diagnosisTranslations';
+import React, { useEffect, useState, useRef } from 'react';
 import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
+import FormLayout from '@/components/Diagnosis/FormLayout';
+import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
+import { both, tr } from '@/config/diagnosisTranslations';
+import { setOrgChartDraftFile, getOrgChartDraftFiles } from '@/lib/diagnosisFileDrafts';
+import { cn } from '@/lib/utils';
 
 interface Diagnosis {
     id: number;

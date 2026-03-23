@@ -1,3 +1,6 @@
+import { Head, router, useForm } from '@inertiajs/react';
+import { ChevronLeft } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import DynamicList from '@/components/Forms/DynamicList';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -19,10 +22,7 @@ import {
     SidebarProvider,
 } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
-import { Head, router, useForm } from '@inertiajs/react';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
-import { ChevronLeft } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
 
 interface DiagnosisQuestion {
     id: number;

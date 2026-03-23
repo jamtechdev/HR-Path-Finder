@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
 import { Head, useForm, router, usePage } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
 
 interface OrganizationalKpi {
     id?: number;

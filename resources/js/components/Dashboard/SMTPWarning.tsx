@@ -1,6 +1,6 @@
-import { Button } from '@/components/ui/button';
-import { AlertCircle, Mail } from 'lucide-react';
 import { router } from '@inertiajs/react';
+import { AlertCircle, Mail } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface SMTPWarningProps {
     onConfigure?: () => void;

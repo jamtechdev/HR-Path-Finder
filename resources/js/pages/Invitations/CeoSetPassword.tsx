@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
+import { Eye, EyeOff } from 'lucide-react';
+import React, { useState } from 'react';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
-import { Eye, EyeOff } from 'lucide-react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 const PASSWORD_RULES = {
   len: (v: string) => v.length >= 8,

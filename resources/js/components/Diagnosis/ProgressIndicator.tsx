@@ -1,5 +1,5 @@
-import React from 'react';
 import { CheckCircle2, Circle } from 'lucide-react';
+import React from 'react';
 import { cn } from '@/lib/utils';
 
 interface Step {

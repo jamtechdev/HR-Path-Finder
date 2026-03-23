@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useCallback } from 'react';
 import { Head, useForm } from '@inertiajs/react';
-import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Check, Plus, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
+import React, { useEffect, useState, useCallback } from 'react';
 import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
+import FormLayout from '@/components/Diagnosis/FormLayout';
+import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
+import { cn } from '@/lib/utils';
 
 interface Diagnosis {
     id: number;

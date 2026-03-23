@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
 import { ChevronLeft, CheckCircle2, FileDown, Info } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import SuccessModal from '@/components/Modals/SuccessModal';
-import type { JobDefinition, OrgChartMapping } from '../hooks/useJobAnalysisState';
+import React, { useState, useMemo } from 'react';
 import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import SuccessModal from '@/components/Modals/SuccessModal';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import type { JobDefinition, OrgChartMapping } from '../hooks/useJobAnalysisState';
 
 interface Step4FinalizationProps {
     projectId: number;

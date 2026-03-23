@@ -1,19 +1,20 @@
-import React, { FormEventHandler, useState, useRef } from 'react';
 import { Head, useForm } from '@inertiajs/react';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import { Building2, Upload, MapPin, FileText, X, CheckCircle2, AlertCircle } from 'lucide-react';
+import type { FormEventHandler} from 'react';
+import React, { useState, useRef } from 'react';
 import AppHeader from '@/components/Header/AppHeader';
+import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
-import { Toaster } from '@/components/ui/toaster';
-import { toast } from '@/hooks/use-toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Upload, MapPin, FileText, X, CheckCircle2, AlertCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import { Spinner } from '@/components/ui/spinner';
+import { Toaster } from '@/components/ui/toaster';
+import { toast } from '@/hooks/use-toast';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
+import { cn } from '@/lib/utils';
 
 export default function CreateCompany() {
     const [logoPreview, setLogoPreview] = useState<string | null>(null);

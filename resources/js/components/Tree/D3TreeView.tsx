@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as d3 from 'd3';
 import { Network, X } from 'lucide-react';
-import { treeStructure } from '@/config/treeStructure';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { treeStructure } from '@/config/treeStructure';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface HrSystemSnapshot {
