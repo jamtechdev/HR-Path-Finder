@@ -37,6 +37,7 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        $path = $request->path();
         
         // Ensure session is started for CSRF token
         if (!$request->hasSession()) {
@@ -69,6 +70,24 @@ class HandleInertiaRequests extends Middleware
                 'ceo_email' => $request->session()->get('ceo_email'),
                 'ceo_name' => $request->session()->get('ceo_name'),
             ],
+            'notifications' => $user
+                ? [
+                    'unread_count' => $user->unreadNotifications()->count(),
+                    'items' => $user->notifications()
+                        ->latest()
+                        ->limit(20)
+                        ->get()
+                        ->map(fn ($n) => [
+                            'id' => $n->id,
+                            'type' => class_basename($n->type),
+                            'data' => $n->data,
+                            'read_at' => $n->read_at?->toIso8601String(),
+                            'created_at' => $n->created_at?->toIso8601String(),
+                        ])
+                        ->values()
+                        ->all(),
+                ]
+                : ['unread_count' => 0, 'items' => []],
             // Translations are now loaded directly from JSON files in the frontend
         ];
         
@@ -83,7 +102,8 @@ class HandleInertiaRequests extends Middleware
             $projects = [];
             $activeRole = $request->session()->get('active_role');
 
-            if ($user->hasRole('ceo') && ($activeRole === 'ceo' || !$user->hasRole('hr_manager'))) {
+            // For any /ceo/* route, always provide CEO projects for sidebar/menu consistency.
+            if ($user->hasRole('ceo') && ($activeRole === 'ceo' || !$user->hasRole('hr_manager') || str_starts_with($path, 'ceo/'))) {
                 $collection = \App\Models\HrProject::whereHas('company', function ($query) use ($user) {
                     $query->whereHas('users', function ($q) use ($user) {
                         $q->where('users.id', $user->id)

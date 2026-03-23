@@ -8,11 +8,13 @@ use App\Models\OrganizationalKpi;
 use App\Models\KpiEditHistory;
 use App\Models\OrgChartMapping;
 use App\Mail\KpiReviewRequestMail;
+use App\Notifications\CeoKpiReviewRequestedNotification;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 
 class KpiReviewController extends Controller
 {
@@ -23,8 +25,11 @@ class KpiReviewController extends Controller
     {
         $reviewToken = KpiReviewToken::where('token', $token)->first();
 
-        if (!$reviewToken || !$reviewToken->isValid()) {
+        if (!$reviewToken) {
             abort(404, 'Invalid or expired review link.');
+        }
+        if ($reviewToken->expires_at && $reviewToken->expires_at->isPast()) {
+            abort(404, 'This review link has expired.');
         }
 
         $hrProject = $reviewToken->hrProject;
@@ -38,7 +43,7 @@ class KpiReviewController extends Controller
         // Use trim and case-insensitive matching to handle any whitespace issues
         // Load KPIs and remove duplicates
         $allKpis = OrganizationalKpi::where('hr_project_id', $hrProject->id)
-            ->whereRaw('TRIM(organization_name) = ?', [trim($defaultOrganizationName)])
+            ->whereRaw('TRIM(LOWER(organization_name)) = ?', [strtolower(trim($defaultOrganizationName))])
             ->with('linkedJob')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -60,7 +65,7 @@ class KpiReviewController extends Controller
         ]);
 
         // Verify access scope - ensure token can only access its assigned organization
-        if ($reviewToken->organization_name !== $defaultOrganizationName) {
+        if (strtolower(trim((string) $reviewToken->organization_name)) !== strtolower(trim((string) $defaultOrganizationName))) {
             abort(403, 'Access denied. This token is restricted to a specific organization.');
         }
 
@@ -86,14 +91,25 @@ class KpiReviewController extends Controller
     {
         $reviewToken = KpiReviewToken::where('token', $token)->first();
 
-        if (!$reviewToken || !$reviewToken->isValid()) {
+        if (!$reviewToken) {
             abort(404, 'Invalid or expired review link.');
         }
+        if ($reviewToken->expires_at && $reviewToken->expires_at->isPast()) {
+            abort(404, 'This review link has expired.');
+        }
+        if ($reviewToken->uses_count >= $reviewToken->max_uses) {
+            abort(404, 'This review link has already reached its usage limit.');
+        }
+
+        $isFinalSubmit = (bool) $request->boolean('final_submit', false);
 
         $validated = $request->validate([
+            'final_submit' => ['nullable', 'boolean'],
             'kpis' => ['required', 'array'],
             'organization_name' => ['required', 'string'],
             'review_comments' => ['nullable', 'string', 'max:5000'],
+            'self_assessment' => ['nullable', 'array'],
+            'self_assessment.*' => ['boolean'],
             'kpis.*.id' => ['nullable', 'exists:organizational_kpis,id'],
             'kpis.*.kpi_name' => ['required', 'string'],
             'kpis.*.purpose' => ['nullable', 'string'],
@@ -106,11 +122,28 @@ class KpiReviewController extends Controller
             'kpis.*.is_active' => ['nullable', 'boolean'],
         ]);
 
+        if ($isFinalSubmit) {
+            $selfAssessment = collect($validated['self_assessment'] ?? []);
+            if ($selfAssessment->count() < 4 || $selfAssessment->contains(fn ($v) => $v !== true)) {
+                return back()->withErrors([
+                    'self_assessment' => 'Please complete all 4 self-assessment checks before requesting CEO review.',
+                ]);
+            }
+
+            $kpis = collect($validated['kpis']);
+            $totalWeight = (float) $kpis->sum(fn ($k) => (float) ($k['weight'] ?? 0));
+            if ($kpis->isEmpty() || round($totalWeight, 2) !== 100.0) {
+                return back()->withErrors([
+                    'kpis' => 'Total KPI weight must be exactly 100% before final submission.',
+                ]);
+            }
+        }
+
         $hrProject = $reviewToken->hrProject;
         $organizationName = $validated['organization_name'] ?? $reviewToken->organization_name;
 
         // Strictly enforce access scope - token can only access its assigned organization
-        if ($reviewToken->organization_name !== $organizationName) {
+        if (strtolower(trim((string) $reviewToken->organization_name)) !== strtolower(trim((string) $organizationName))) {
             abort(403, 'Access denied. This token is restricted to a specific organization.');
         }
 
@@ -219,9 +252,29 @@ class KpiReviewController extends Controller
             ]);
         }
 
-        // Mark token as used after review submission
-        $reviewToken->update(['is_used' => true]);
-        $reviewToken->increment('uses_count');
+        if (!$isFinalSubmit) {
+            return back()->with('success', 'KPI draft saved successfully.');
+        }
+
+        // Final submit only: lock token usage and notify CEO.
+        $reviewToken->incrementUse();
+
+        $hrProject->load('company');
+        $ceos = $hrProject->company?->ceos()->get() ?? collect();
+        if ($ceos->isNotEmpty()) {
+            try {
+                Notification::send(
+                    $ceos,
+                    new CeoKpiReviewRequestedNotification($hrProject, $organizationName)
+                );
+            } catch (\Exception $e) {
+                \Log::error('Failed to notify CEO after leader KPI submission', [
+                    'project_id' => $hrProject->id,
+                    'organization_name' => $organizationName,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         // Log submission
         \Log::info('KPI Review Submitted', [
@@ -233,7 +286,7 @@ class KpiReviewController extends Controller
 
         // Redirect back to the review page - Inertia will call show() method which reloads fresh KPIs
         return redirect()->route('kpi-review.token', ['token' => $token])
-            ->with('success', 'Your KPI review has been submitted successfully. Thank you for your feedback!');
+            ->with('success', 'Your KPI review has been submitted successfully. CEO has been notified by email.');
     }
 
     /**
@@ -243,12 +296,15 @@ class KpiReviewController extends Controller
     {
         $reviewToken = KpiReviewToken::where('token', $token)->first();
 
-        if (!$reviewToken || !$reviewToken->isValid()) {
+        if (!$reviewToken) {
             abort(404, 'Invalid or expired review link.');
+        }
+        if ($reviewToken->expires_at && $reviewToken->expires_at->isPast()) {
+            abort(404, 'This review link has expired.');
         }
 
         // Strictly enforce access scope - token can only access its assigned organization
-        if ($reviewToken->organization_name !== $organizationName) {
+        if (strtolower(trim((string) $reviewToken->organization_name)) !== strtolower(trim((string) $organizationName))) {
             abort(403, 'Access denied. This token is restricted to a specific organization.');
         }
 
@@ -258,7 +314,7 @@ class KpiReviewController extends Controller
         // Use trim and case-insensitive matching
         // Load KPIs and remove duplicates
         $allKpis = OrganizationalKpi::where('hr_project_id', $hrProject->id)
-            ->whereRaw('TRIM(organization_name) = ?', [trim($organizationName)])
+            ->whereRaw('TRIM(LOWER(organization_name)) = ?', [strtolower(trim($organizationName))])
             ->with('linkedJob')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -287,68 +343,221 @@ class KpiReviewController extends Controller
 
         $validated = $request->validate([
             'organization_name' => ['required', 'string'],
+            'recipient_target' => ['nullable', 'in:leader,ceo,both'],
+            'kpis' => ['nullable', 'array'],
+            'kpis.*.id' => ['nullable', 'exists:organizational_kpis,id'],
+            'kpis.*.kpi_name' => ['required_with:kpis', 'string'],
+            'kpis.*.purpose' => ['nullable', 'string'],
+            'kpis.*.category' => ['nullable', 'string'],
+            'kpis.*.linked_job_id' => ['nullable', 'exists:job_definitions,id'],
+            'kpis.*.linked_csf' => ['nullable', 'string'],
+            'kpis.*.formula' => ['nullable', 'string'],
+            'kpis.*.measurement_method' => ['nullable', 'string'],
+            'kpis.*.weight' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'kpis.*.is_active' => ['nullable', 'boolean'],
         ]);
 
         $hrProject->load('company');
-        $company = $hrProject->company;
+        $recipientTarget = $validated['recipient_target'] ?? 'leader';
+        $ceos = $hrProject->company?->ceos()->get() ?? collect();
 
         $emailsSent = 0;
         $errors = [];
 
-        // 1) Send to the organization leader (org head) from org chart mapping for this organization
-        $orgMapping = OrgChartMapping::where('hr_project_id', $hrProject->id)
-            ->whereRaw('TRIM(LOWER(org_unit_name)) = ?', [strtolower(trim($validated['organization_name']))])
-            ->first();
+        // Persist latest KPI draft before sending email, so token page always shows current KPIs.
+        // Full sync for selected organization: create/update provided rows and remove missing rows.
+        if (!empty($validated['kpis']) && is_array($validated['kpis'])) {
+            $selectedOrg = trim((string) $validated['organization_name']);
+            $incoming = collect($validated['kpis'])
+                ->map(function ($kpiData) use ($selectedOrg) {
+                    return [
+                        'id' => $kpiData['id'] ?? null,
+                        'organization_name' => trim((string) ($kpiData['organization_name'] ?? $selectedOrg)),
+                        'kpi_name' => trim((string) ($kpiData['kpi_name'] ?? '')),
+                        'purpose' => $kpiData['purpose'] ?? null,
+                        'category' => $kpiData['category'] ?? null,
+                        'linked_job_id' => $kpiData['linked_job_id'] ?? null,
+                        'linked_csf' => $kpiData['linked_csf'] ?? null,
+                        'formula' => $kpiData['formula'] ?? null,
+                        'measurement_method' => $kpiData['measurement_method'] ?? null,
+                        'weight' => $kpiData['weight'] ?? null,
+                        'is_active' => $kpiData['is_active'] ?? true,
+                    ];
+                })
+                ->filter(function ($row) use ($selectedOrg) {
+                    return strtolower($row['organization_name']) === strtolower($selectedOrg) && $row['kpi_name'] !== '';
+                })
+                ->values();
 
-        if ($orgMapping && $orgMapping->is_kpi_reviewer && !empty(trim($orgMapping->org_head_email ?? ''))) {
-            try {
-                $token = KpiReviewToken::generateToken();
-                $expiresAt = Carbon::now()->addDays(7);
-                $leaderEmail = trim($orgMapping->org_head_email);
-                $leaderName = trim($orgMapping->org_head_name ?? '') ?: $leaderEmail;
+            \DB::transaction(function () use ($hrProject, $selectedOrg, $incoming) {
+                $orgQuery = OrganizationalKpi::where('hr_project_id', $hrProject->id)
+                    ->whereRaw('TRIM(LOWER(organization_name)) = ?', [strtolower($selectedOrg)]);
+                $existingOrgIds = $orgQuery->pluck('id')->all();
+                $keptIds = [];
 
-                $reviewToken = KpiReviewToken::create([
-                    'hr_project_id' => $hrProject->id,
-                    'organization_name' => $validated['organization_name'],
-                    'token' => $token,
-                    'email' => $leaderEmail,
-                    'name' => $leaderName,
-                    'expires_at' => $expiresAt,
-                    'max_uses' => 3,
-                ]);
+                foreach ($incoming as $row) {
+                    $kpi = null;
+                    if (!empty($row['id'])) {
+                        $kpi = OrganizationalKpi::where('id', $row['id'])
+                            ->where('hr_project_id', $hrProject->id)
+                            ->first();
+                    }
 
-                \Log::info('Sending KPI Review Request Email to Organization Leader', [
-                    'organization_name' => $validated['organization_name'],
-                    'org_head_email' => $leaderEmail,
-                    'project_id' => $hrProject->id,
-                ]);
+                    if (!$kpi) {
+                        $kpi = OrganizationalKpi::where('hr_project_id', $hrProject->id)
+                            ->whereRaw('TRIM(LOWER(organization_name)) = ?', [strtolower($row['organization_name'])])
+                            ->whereRaw('TRIM(LOWER(kpi_name)) = ?', [strtolower($row['kpi_name'])])
+                            ->first();
+                    }
 
-                Mail::to($leaderEmail)->send(new KpiReviewRequestMail($reviewToken, $hrProject));
+                    if ($kpi) {
+                        $kpi->update([
+                            'organization_name' => $row['organization_name'],
+                            'kpi_name' => $row['kpi_name'],
+                            'purpose' => $row['purpose'],
+                            'category' => $row['category'],
+                            'linked_job_id' => $row['linked_job_id'],
+                            'linked_csf' => $row['linked_csf'],
+                            'formula' => $row['formula'],
+                            'measurement_method' => $row['measurement_method'],
+                            'weight' => $row['weight'],
+                            'is_active' => $row['is_active'],
+                            'status' => 'draft',
+                        ]);
+                    } else {
+                        $kpi = OrganizationalKpi::create([
+                            'hr_project_id' => $hrProject->id,
+                            'organization_name' => $row['organization_name'],
+                            'kpi_name' => $row['kpi_name'],
+                            'purpose' => $row['purpose'],
+                            'category' => $row['category'],
+                            'linked_job_id' => $row['linked_job_id'],
+                            'linked_csf' => $row['linked_csf'],
+                            'formula' => $row['formula'],
+                            'measurement_method' => $row['measurement_method'],
+                            'weight' => $row['weight'],
+                            'is_active' => $row['is_active'],
+                            'status' => 'draft',
+                        ]);
+                    }
 
-                \Log::info('KPI Review Request Email sent successfully to Organization Leader', [
-                    'org_head_email' => $leaderEmail,
-                ]);
+                    $keptIds[] = $kpi->id;
+                }
 
-                $emailsSent++;
-            } catch (\Exception $e) {
-                \Log::error('Failed to send KPI Review Request Email to Organization Leader', [
-                    'org_head_email' => $orgMapping->org_head_email ?? null,
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
-                $errors[] = "Failed to send email to organization leader: " . ($orgMapping->org_head_email ?? '') . " - {$e->getMessage()}";
+                $deleteIds = array_values(array_diff($existingOrgIds, $keptIds));
+                if (!empty($deleteIds)) {
+                    OrganizationalKpi::whereIn('id', $deleteIds)->delete();
+                }
+            });
+        }
+
+        if (in_array($recipientTarget, ['leader', 'both'], true)) {
+            // 1) Send to the organization leader (org head) from org chart mapping for this organization
+            $orgMapping = OrgChartMapping::where('hr_project_id', $hrProject->id)
+                ->whereRaw('TRIM(LOWER(org_unit_name)) = ?', [strtolower(trim($validated['organization_name']))])
+                ->first();
+
+            if ($orgMapping && $orgMapping->is_kpi_reviewer && !empty(trim($orgMapping->org_head_email ?? ''))) {
+                try {
+                    $token = KpiReviewToken::generateToken();
+                    $expiresAt = Carbon::now()->addDays(7);
+                    $leaderEmail = trim($orgMapping->org_head_email);
+                    $leaderName = trim($orgMapping->org_head_name ?? '') ?: $leaderEmail;
+
+                    $reviewToken = KpiReviewToken::create([
+                        'hr_project_id' => $hrProject->id,
+                        'organization_name' => $validated['organization_name'],
+                        'token' => $token,
+                        'email' => $leaderEmail,
+                        'name' => $leaderName,
+                        'expires_at' => $expiresAt,
+                        'max_uses' => 1,
+                    ]);
+
+                    \Log::info('Sending KPI Review Request Email to Organization Leader', [
+                        'organization_name' => $validated['organization_name'],
+                        'org_head_email' => $leaderEmail,
+                        'project_id' => $hrProject->id,
+                    ]);
+
+                    Mail::to($leaderEmail)->send(new KpiReviewRequestMail($reviewToken, $hrProject));
+
+                    \Log::info('KPI Review Request Email sent successfully to Organization Leader', [
+                        'org_head_email' => $leaderEmail,
+                    ]);
+
+                    $emailsSent++;
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send KPI Review Request Email to Organization Leader', [
+                        'org_head_email' => $orgMapping->org_head_email ?? null,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
+                    $errors[] = "Failed to send email to organization leader: " . ($orgMapping->org_head_email ?? '') . " - {$e->getMessage()}";
+                }
+            } else {
+                $errors[] = 'No valid KPI reviewer leader email found for selected organization.';
             }
         }
 
-        // Consolidated: only the organization leader receives the review request email (one clear notification)
+        if (in_array($recipientTarget, ['ceo', 'both'], true)) {
+            if ($ceos->isEmpty()) {
+                $errors[] = 'No CEO is assigned to this company.';
+            } else {
+                try {
+                    Notification::send(
+                        $ceos,
+                        new CeoKpiReviewRequestedNotification($hrProject, $validated['organization_name'])
+                    );
+                    $emailsSent += $ceos->count();
+                } catch (\Exception $e) {
+                    $errors[] = 'Failed to send CEO review email: ' . $e->getMessage();
+                }
+            }
+        }
+
         if ($emailsSent > 0) {
-            $message = "Review request email sent successfully to the organization leader.";
+            $message = "Review request email sent successfully.";
             if (!empty($errors)) {
                 $message .= " Some errors occurred: " . implode(', ', $errors);
             }
-            return back()->with('success', $message);
+            // Avoid global flash toast here; HR UI already shows its own success modal.
+            if (!empty($errors)) {
+                return back()->withErrors(['error' => $message]);
+            }
+            return back();
         } else {
             return back()->withErrors(['error' => 'Failed to send any emails. ' . implode(', ', $errors)]);
         }
+    }
+
+    /**
+     * Notify company CEO by email that KPI review is ready.
+     */
+    public function notifyCeoKpiReview(Request $request, HrProject $hrProject)
+    {
+        if (! $request->user()->hasRole('hr_manager')) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'organization_name' => ['required', 'string'],
+        ]);
+
+        $hrProject->load('company');
+        $ceos = $hrProject->company?->ceos()->get() ?? collect();
+
+        if ($ceos->isEmpty()) {
+            return back()->withErrors([
+                'error' => 'No CEO is assigned to this company.',
+            ]);
+        }
+
+        Notification::send(
+            $ceos,
+            new CeoKpiReviewRequestedNotification($hrProject, $validated['organization_name'])
+        );
+
+        return back()->with('success', 'CEO notified by email for KPI review.');
     }
 }

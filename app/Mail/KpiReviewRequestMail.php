@@ -38,7 +38,7 @@ class KpiReviewRequestMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "KPI Review Request - {$this->organizationName} - {$this->companyName}",
+            subject: "<KPI Review Request from Manager> {$this->organizationName} - {$this->companyName}",
         );
     }
 
@@ -48,13 +48,22 @@ class KpiReviewRequestMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.kpi-review-request',
+            view: 'emails.kpi-workflow-notification',
             with: [
-                'reviewToken' => $this->reviewToken,
-                'hrProject' => $this->hrProject,
-                'reviewUrl' => $this->reviewUrl,
+                'companyLogo' => $this->hrProject->company->logo_path ?? null,
                 'companyName' => $this->companyName,
                 'organizationName' => $this->organizationName,
+                'recipientName' => $this->reviewToken->name,
+                'emailSubject' => "<KPI Review Request from Manager> {$this->organizationName} - {$this->companyName}",
+                'messageLine1' => "You have been requested to review the Key Performance Indicators (KPIs) for <strong>{$this->organizationName}</strong> in {$this->companyName}.",
+                'messageLine2' => 'Please review the proposed KPIs and provide your feedback.',
+                'actionUrl' => $this->reviewUrl,
+                'actionText' => 'Review KPIs',
+                'details' => [
+                    "This review link will expire on <strong>{$this->reviewToken->expires_at->format('F d, Y')}</strong>",
+                    'You can submit your review up to <strong>3 times</strong> using this link',
+                ],
+                'footerNote' => 'If you did not expect this request, please ignore this email.',
             ],
         );
     }

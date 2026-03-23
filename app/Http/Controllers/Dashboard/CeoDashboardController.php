@@ -75,6 +75,11 @@ class CeoDashboardController extends Controller
             return $hasKpis && ($performanceStatus && in_array($performanceStatus->value, ['in_progress', 'submitted']));
         });
 
+        // Keep KPI Review module visible on dashboard even after completion.
+        $kpiReviewProjects = $projects->filter(function ($project) {
+            return \App\Models\OrganizationalKpi::where('hr_project_id', $project->id)->exists();
+        })->values();
+
         // Get projects needing attention
         $needsAttention = $projects->filter(function ($project) {
             $diagnosisStatus = $project->getStepStatus('diagnosis');
@@ -151,6 +156,7 @@ class CeoDashboardController extends Controller
             'projects' => $projectsWithProgress,
             'pendingReviews' => $pendingReviews->values(),
             'pendingKpiReviews' => $pendingKpiReviews->values(),
+            'kpiReviewProjects' => $kpiReviewProjects,
             'surveyAvailableProjects' => $surveyAvailableProjects->map(fn ($p) => [
                 'id' => $p->id,
                 'company' => $p->company ? ['id' => $p->company->id, 'name' => $p->company->name] : null,

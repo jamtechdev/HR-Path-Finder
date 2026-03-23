@@ -2623,6 +2623,45 @@
     background: var(--ckr-gray-50);
 }
 .ceo-kpi-review-page .ckr-td-name { font-weight: 500; color: var(--ckr-navy); }
+.ceo-kpi-review-page .ckr-kpi-detail-cell {
+    min-width: 280px;
+    color: var(--ckr-gray-700);
+    font-size: 12px;
+    line-height: 1.55;
+}
+.ceo-kpi-review-page .ckr-kpi-detail-cell div + div {
+    margin-top: 2px;
+}
+.ceo-kpi-review-page .ckr-leader-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 12px 0;
+}
+.ceo-kpi-review-page .ckr-leader-detail-card {
+    background: var(--ckr-gray-50);
+    border: 1px solid var(--ckr-gray-200);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+.ceo-kpi-review-page .ckr-leader-detail-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: var(--ckr-gray-400);
+    font-weight: 700;
+}
+.ceo-kpi-review-page .ckr-leader-detail-value {
+    margin-top: 4px;
+    font-size: 14px;
+    color: var(--ckr-navy);
+    font-weight: 700;
+}
+.ceo-kpi-review-page .ckr-leader-detail-sub {
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--ckr-gray-500);
+}
 .ceo-kpi-review-page .ckr-revision-input-wrap { margin-top: 12px; }
 .ceo-kpi-review-page .ckr-field-label {
     font-size: 11px;
@@ -2715,10 +2754,11 @@
 }
 /* Bottom bar: same as reference */
 .ceo-kpi-review-page .ckr-bottom-bar {
-    position: fixed;
+    position: sticky;
     bottom: 0;
-    left: 0;
-    right: 0;
+    left: auto;
+    right: auto;
+    width: 100%;
     height: 68px;
     background: var(--ckr-white);
     border-top: 1px solid var(--ckr-gray-200);
@@ -2727,7 +2767,7 @@
     justify-content: space-between;
     padding: 0 32px;
     box-shadow: 0 -4px 16px rgba(27,43,91,0.05);
-    z-index: 50;
+    z-index: 20;
 }
 .ceo-kpi-review-page .ckr-btn-back {
     display: flex;
@@ -2790,6 +2830,11 @@
     background: var(--ckr-navy-light);
     transform: translateY(-1px);
     box-shadow: 0 4px 16px rgba(27,43,91,0.28);
+}
+@media (max-width: 1024px) {
+    .ceo-kpi-review-page .ckr-leader-detail-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* ========== Diagnosis Step Layout (Job Grades reference: pixel-perfect) ========== */

@@ -214,8 +214,10 @@ Route::middleware(['auth'])->group(function () {
         // Performance System
         Route::get('performance-system/{hrProject}/{tab?}', [\App\Http\Controllers\PerformanceSystemController::class, 'index'])->name('performance-system.index');
         Route::post('performance-system/{hrProject}', [\App\Http\Controllers\PerformanceSystemController::class, 'store'])->name('performance-system.store');
+        Route::delete('performance-system/{hrProject}/kpis/{organizationalKpi}', [\App\Http\Controllers\PerformanceSystemController::class, 'destroyKpi'])->name('performance-system.kpi.destroy');
         Route::post('performance-system/{hrProject}/submit', [\App\Http\Controllers\PerformanceSystemController::class, 'submit'])->name('performance-system.submit');
         Route::post('performance-system/{hrProject}/send-review-request', [\App\Http\Controllers\KpiReviewController::class, 'sendReviewRequest'])->name('performance-system.send-review-request');
+        Route::post('performance-system/{hrProject}/notify-ceo-kpi-review', [\App\Http\Controllers\KpiReviewController::class, 'notifyCeoKpiReview'])->name('performance-system.notify-ceo-kpi-review');
         Route::get('performance-system/{hrProject}/recommended-kpis', [\App\Http\Controllers\PerformanceSystemController::class, 'getRecommendedKpis'])->name('performance-system.recommended-kpis');
         Route::get('performance-system/{hrProject}/kpi-edit-history/{organizationalKpi}', [\App\Http\Controllers\Admin\KpiEditHistoryController::class, 'show'])->name('performance-system.kpi-edit-history.show');
 

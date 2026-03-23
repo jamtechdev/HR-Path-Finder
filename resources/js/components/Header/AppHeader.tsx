@@ -44,8 +44,10 @@ function getBreadcrumbLabel(path: string): string {
 
 export default function AppHeader() {
     const page = usePage<any>();
-    const { auth, activeRole, canSwitchToHr } = page.props;
+    const { auth, activeRole, canSwitchToHr, notifications } = page.props;
     const user = auth?.user;
+    const notificationItems = Array.isArray(notifications?.items) ? notifications.items : [];
+    const unreadCount = Number(notifications?.unread_count ?? 0);
     const path = (page as { url?: string }).url?.split('?')[0] ?? '';
     const breadcrumbLabel = getBreadcrumbLabel(path);
     
@@ -96,13 +98,56 @@ export default function AppHeader() {
 
                 <div className="flex items-center gap-4">
                     <LanguageToggle iconOnly />
-                    <Button variant="ghost" size="icon" className={cn(
-                        'relative w-8 h-8 rounded-lg',
-                        headerDark ? 'bg-white/10 hover:bg-white/20' : 'bg-[var(--hr-gray-100)] hover:bg-[var(--hr-gray-200)]'
-                    )}>
-                        <Bell className={cn('h-4 w-4', headerDark ? 'text-white' : 'text-[var(--hr-gray-800)]')} />
-                        <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-[var(--hr-mint)]" />
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className={cn(
+                                'relative w-8 h-8 rounded-lg',
+                                headerDark ? 'bg-white/10 hover:bg-white/20' : 'bg-[var(--hr-gray-100)] hover:bg-[var(--hr-gray-200)]'
+                            )}>
+                                <Bell className={cn('h-4 w-4', headerDark ? 'text-white' : 'text-[var(--hr-gray-800)]')} />
+                                {unreadCount > 0 && <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-[var(--hr-mint)]" />}
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-96 max-h-[70vh] overflow-auto">
+                            <DropdownMenuLabel className="flex items-center justify-between">
+                                <span>Email / Notification Logs</span>
+                                <span className="text-xs text-muted-foreground">{unreadCount} unread</span>
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {notificationItems.length === 0 ? (
+                                <div className="px-3 py-6 text-sm text-muted-foreground text-center">No logs yet.</div>
+                            ) : (
+                                notificationItems.map((item: any) => {
+                                    const orgName = item?.data?.organization_name;
+                                    const companyName = item?.data?.company_name;
+                                    const hrProjectId = item?.data?.hr_project_id;
+                                    const createdAt = item?.created_at ? new Date(item.created_at).toLocaleString() : '';
+                                    const isCeoKpi = item?.type === 'CeoKpiReviewRequestedNotification';
+                                    const href = isCeoKpi && hrProjectId ? `/ceo/kpi-review/${hrProjectId}` : undefined;
+                                    return (
+                                        <DropdownMenuItem key={item.id} asChild={!!href}>
+                                            {href ? (
+                                                <Link href={href} className="flex flex-col items-start gap-0.5 py-2 cursor-pointer">
+                                                    <div className="text-xs font-semibold">
+                                                        {isCeoKpi ? 'KPI Review Email Sent' : item?.type}
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground">
+                                                        {companyName ? `${companyName}` : 'Company'}{orgName ? ` - ${orgName}` : ''}
+                                                    </div>
+                                                    <div className="text-[11px] text-muted-foreground">{createdAt}</div>
+                                                </Link>
+                                            ) : (
+                                                <div className="flex flex-col items-start gap-0.5 py-2">
+                                                    <div className="text-xs font-semibold">{item?.type}</div>
+                                                    <div className="text-[11px] text-muted-foreground">{createdAt}</div>
+                                                </div>
+                                            )}
+                                        </DropdownMenuItem>
+                                    );
+                                })
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>

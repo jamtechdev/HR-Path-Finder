@@ -53,6 +53,7 @@ interface Props {
     projects: Project[];
     pendingReviews: Project[];
     pendingKpiReviews?: Project[];
+    kpiReviewProjects?: Project[];
     surveyAvailableProjects?: SurveyAvailableProject[];
     stats: {
         total_projects: number;
@@ -65,7 +66,15 @@ interface Props {
     needsAttention: Project[];
 }
 
-export default function CeoDashboard({ projects, pendingReviews, pendingKpiReviews = [], surveyAvailableProjects = [], stats, needsAttention }: Props) {
+export default function CeoDashboard({
+    projects,
+    pendingReviews,
+    pendingKpiReviews = [],
+    kpiReviewProjects = [],
+    surveyAvailableProjects = [],
+    stats,
+    needsAttention,
+}: Props) {
     const getStatusBadge = (status: string) => {
         const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
             'not_started': { label: 'Not Started', variant: 'outline' },
@@ -203,47 +212,55 @@ export default function CeoDashboard({ projects, pendingReviews, pendingKpiRevie
                             </Card>
                         )}
 
-                        {/* KPI Review Section */}
-                        {pendingKpiReviews.length > 0 && (
-                            <Card className="mb-8 border-blue-200 dark:border-blue-800">
-                                <CardHeader>
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-                                            <Target className="w-5 h-5" />
-                                            Action Required: KPI Review
-                                        </CardTitle>
-                                        <Badge variant="secondary">{pendingKpiReviews.length}</Badge>
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-sm text-muted-foreground mb-4">
-                                        You have {pendingKpiReviews.length} project{pendingKpiReviews.length > 1 ? 's' : ''} with KPIs waiting for your review
-                                    </p>
-                                    <div className="space-y-2 mb-4">
-                                        {pendingKpiReviews.slice(0, 3).map((project) => (
-                                            <Link
-                                                key={project.id}
-                                                href={`/ceo/kpi-review/${project.id}`}
-                                                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                                            >
-                                                <span className="font-medium">
-                                                    {project.company?.name || `Project #${project.id}`}
-                                                </span>
-                                                <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                        {/* KPI Review Section - always visible once KPI exists */}
+                        <Card className="mb-8 border-blue-200 dark:border-blue-800">
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                                        <Target className="w-5 h-5" />
+                                        KPI Review
+                                    </CardTitle>
+                                    <Badge variant="secondary">{kpiReviewProjects.length}</Badge>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                {kpiReviewProjects.length > 0 ? (
+                                    <>
+                                        <p className="text-sm text-muted-foreground mb-4">
+                                            {pendingKpiReviews.length > 0
+                                                ? `${pendingKpiReviews.length} project${pendingKpiReviews.length > 1 ? 's' : ''} waiting for your review`
+                                                : 'All KPI reviews are completed. You can still open any project to view details.'}
+                                        </p>
+                                        <div className="space-y-2 mb-4">
+                                            {kpiReviewProjects.slice(0, 3).map((project) => (
+                                                <Link
+                                                    key={project.id}
+                                                    href={`/ceo/kpi-review/${project.id}`}
+                                                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                                                >
+                                                    <span className="font-medium">
+                                                        {project.company?.name || `Project #${project.id}`}
+                                                    </span>
+                                                    <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                                                </Link>
+                                            ))}
+                                        </div>
+                                        {kpiReviewProjects.length > 3 && (
+                                            <Link href="/ceo/dashboard">
+                                                <Button variant="outline" className="w-full">
+                                                    View All KPI Reviews ({kpiReviewProjects.length})
+                                                    <ArrowRight className="w-4 h-4 ml-2" />
+                                                </Button>
                                             </Link>
-                                        ))}
-                                    </div>
-                                    {pendingKpiReviews.length > 3 && (
-                                        <Link href="/ceo/dashboard">
-                                            <Button variant="outline" className="w-full">
-                                                View All KPI Reviews ({pendingKpiReviews.length})
-                                                <ArrowRight className="w-4 h-4 ml-2" />
-                                            </Button>
-                                        </Link>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        )}
+                                        )}
+                                    </>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">
+                                        KPI review will appear here after HR sends KPI draft to Leader/CEO flow.
+                                    </p>
+                                )}
+                            </CardContent>
+                        </Card>
 
                         {/* Projects Needing Attention */}
                         {needsAttention.length > 0 && (

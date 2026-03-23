@@ -149,17 +149,18 @@ class PerformanceSystemController extends Controller
             ->toArray();
 
         // Load organizational KPIs
-        // Load KPIs and remove duplicates based on organization_name + kpi_name (case-insensitive, trimmed)
-        $allKpis = OrganizationalKpi::where('hr_project_id', $hrProject->id)
+        $organizationalKpis = OrganizationalKpi::where('hr_project_id', $hrProject->id)
             ->with('linkedJob')
             ->get();
-        
-        // Remove duplicates - keep the one with highest ID (most recent)
-        $uniqueKpis = collect($allKpis)->unique(function ($kpi) {
-            return strtolower(trim($kpi->organization_name)) . '::' . strtolower(trim($kpi->kpi_name));
-        })->values();
-        
-        $organizationalKpis = $uniqueKpis;
+        $kpiVerificationNotice = null;
+        if ($mappedTab === 'kpi-review' && $organizationalKpis->count() > 0) {
+            $allApproved = $organizationalKpis->every(function ($kpi) {
+                return ($kpi->ceo_approval_status ?? null) === 'approved' || ($kpi->status ?? null) === 'approved';
+            });
+            if ($allApproved) {
+                $kpiVerificationNotice = 'KPI has been verified by CEO. You can continue to the next step.';
+            }
+        }
 
         // Load evaluation model assignments
         $evaluationModelAssignments = EvaluationModelAssignment::where('hr_project_id', $hrProject->id)
@@ -199,6 +200,7 @@ class PerformanceSystemController extends Controller
             'organizationalKpis' => $organizationalKpis->toArray(),
             'orgChartMappings' => $orgChartMappings,
             'kpiReviewTokens' => $kpiReviewTokens,
+            'kpiVerificationNotice' => $kpiVerificationNotice,
             'evaluationModelAssignments' => $evaluationModelAssignments,
             'evaluationStructure' => $hrProject->evaluationStructure ? [
                 // Flatten structure for frontend (maintain backward compatibility)
@@ -303,6 +305,40 @@ class PerformanceSystemController extends Controller
             ->orderBy('id')
             ->get();
         return response()->json(['templates' => $templates->toArray()]);
+    }
+
+    /**
+     * Permanently delete one KPI from the project.
+     */
+    public function destroyKpi(Request $request, HrProject $hrProject, OrganizationalKpi $organizationalKpi)
+    {
+        if (!$request->user()->hasRole('hr_manager')) {
+            abort(403);
+        }
+
+        if ((int) $organizationalKpi->hr_project_id !== (int) $hrProject->id) {
+            abort(404);
+        }
+
+        DB::transaction(function () use ($organizationalKpi, $request) {
+            $oldValues = $organizationalKpi->toArray();
+
+            KpiEditHistory::create([
+                'organizational_kpi_id' => $organizationalKpi->id,
+                'edited_by_type' => 'hr_manager',
+                'edited_by_id' => $request->user()->id,
+                'edited_by_name' => $request->user()->name,
+                'changes' => [
+                    'old_values' => $oldValues,
+                    'new_values' => null,
+                    'description' => 'HR Manager deleted KPI',
+                ],
+            ]);
+
+            $organizationalKpi->delete();
+        });
+
+        return back()->with('success', 'KPI deleted successfully.');
     }
 
     /**

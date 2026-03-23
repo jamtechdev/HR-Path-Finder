@@ -54,11 +54,11 @@ class PasswordResetController extends Controller
             ->where('used', false)
             ->delete();
 
-        // Create new OTP (valid for 10 minutes)
+        // Create new OTP (valid for 5 minutes)
         $otpRecord = PasswordResetOtp::create([
             'email' => $email,
             'otp' => $otp,
-            'expires_at' => now()->addMinutes(10),
+            'expires_at' => now()->addMinutes(5),
             'ip_address' => $request->ip(),
         ]);
 
@@ -71,7 +71,7 @@ class PasswordResetController extends Controller
                 
                 $html = view('emails.password-reset-otp', [
                     'otp' => $otp,
-                    'expiresIn' => 10,
+                    'expiresIn' => 5,
                 ])->render();
                 
                 $message->html($html);

@@ -52,6 +52,7 @@ interface Kpi {
     weight: number;
     is_active: boolean;
     status: string;
+    ceo_approval_status?: string | null;
 }
 
 interface ValidationState {
@@ -71,7 +72,47 @@ interface Props {
     onContinue: (kpis: Kpi[]) => void;
     onBack?: () => void;
     fieldErrors?: FieldErrors;
+    kpiVerificationNotice?: string | null;
 }
+
+const normalizeKpis = (source: Array<Partial<Kpi>> = []): Kpi[] =>
+    source.map((k: any) => ({
+        id: k.id,
+        organization_name: k.organization_name || '',
+        category: k.category || '',
+        kpi_name: k.kpi_name || '',
+        purpose: k.purpose || '',
+        linked_job_id: k.linked_job_id,
+        linked_csf: k.linked_csf || '',
+        formula: k.formula || '',
+        measurement_method: k.measurement_method || '',
+        weight: k.weight ?? 0,
+        is_active: k.is_active ?? true,
+        status: k.status || 'draft',
+        ceo_approval_status: k.ceo_approval_status ?? null,
+    }));
+
+const areKpisEqual = (a: Kpi[], b: Kpi[]): boolean => {
+    if (a.length !== b.length) return false;
+    return a.every((item, i) => {
+        const other = b[i];
+        return (
+            item.id === other.id &&
+            item.organization_name === other.organization_name &&
+            item.category === other.category &&
+            item.kpi_name === other.kpi_name &&
+            item.purpose === other.purpose &&
+            item.linked_job_id === other.linked_job_id &&
+            item.linked_csf === other.linked_csf &&
+            item.formula === other.formula &&
+            item.measurement_method === other.measurement_method &&
+            item.weight === other.weight &&
+            item.is_active === other.is_active &&
+            item.status === other.status &&
+            item.ceo_approval_status === other.ceo_approval_status
+        );
+    });
+};
 
 const defaultValidation = (): ValidationState => ({
     outcome_influence: false,
@@ -90,43 +131,30 @@ export default function KpiReviewTab({
     onContinue,
     onBack,
     fieldErrors = {},
+    kpiVerificationNotice = null,
 }: Props) {
     const [inlineMsg, setInlineMsg] = useState<string | null>(null);
-    const [kpis, setKpis] = useState<Kpi[]>(() =>
-        (organizationalKpis || []).length === 0
-            ? []
-            : (() => {
-                  const map = new Map<string, Kpi>();
-                  organizationalKpis.forEach((k: any) => {
-                      const key = `${(k.organization_name || '').trim().toLowerCase()}::${(k.kpi_name || '').trim().toLowerCase()}`;
-                      if (!map.has(key) || (k.id && (!map.get(key)!.id || k.id > map.get(key)!.id)))
-                          map.set(key, {
-                              id: k.id,
-                              organization_name: k.organization_name || '',
-                              category: k.category || '',
-                              kpi_name: k.kpi_name || '',
-                              purpose: k.purpose || '',
-                              linked_job_id: k.linked_job_id,
-                              linked_csf: k.linked_csf || '',
-                              formula: k.formula || '',
-                              measurement_method: k.measurement_method || '',
-                              weight: k.weight ?? 0,
-                              is_active: k.is_active ?? true,
-                              status: k.status || 'draft',
-                          });
-                  });
-                  return Array.from(map.values());
-              })()
-    );
+    const [kpis, setKpis] = useState<Kpi[]>(() => normalizeKpis(organizationalKpis || []));
     const [selectedOrg, setSelectedOrg] = useState('');
     const [validationByKpi, setValidationByKpi] = useState<Record<string, ValidationState>>({});
     const [validationModal, setValidationModal] = useState<{ kpiKey: string; criterion: ValidationKey } | null>(null);
     const [validationModalNoHint, setValidationModalNoHint] = useState<string | null>(null);
     const [editingKpi, setEditingKpi] = useState<Kpi | null>(null);
+    const [editingKpiIndex, setEditingKpiIndex] = useState<number | null>(null);
     const [sendingReview, setSendingReview] = useState(false);
+    const [sendSuccessModalOpen, setSendSuccessModalOpen] = useState(false);
     const [editForm, setEditForm] = useState<Partial<Kpi>>({});
     const [recommendedTemplates, setRecommendedTemplates] = useState<Array<{ id: number; kpi_name: string; purpose?: string; category?: string; formula?: string; measurement_method?: string; weight?: number }>>([]);
     const [loadingTemplates, setLoadingTemplates] = useState(false);
+
+    useEffect(() => {
+        if (!kpiVerificationNotice || !project?.id) return;
+
+        const key = `kpi-verified-popup-shown:${project.id}`;
+        if (window.sessionStorage.getItem(key) === '1') return;
+        window.sessionStorage.setItem(key, '1');
+        alert(kpiVerificationNotice);
+    }, [kpiVerificationNotice, project?.id]);
 
     const orgNames = Array.from(new Set(orgChartMappings.map((m) => m.org_unit_name).filter(Boolean)));
     useEffect(() => {
@@ -149,32 +177,13 @@ export default function KpiReviewTab({
     }, [selectedOrg, project?.id]);
 
     useEffect(() => {
-        if (!organizationalKpis?.length) return;
-        const map = new Map<string, Kpi>();
-        organizationalKpis.forEach((k: any) => {
-            const key = `${(k.organization_name || '').trim().toLowerCase()}::${(k.kpi_name || '').trim().toLowerCase()}`;
-            if (!map.has(key) || (k.id && (!map.get(key)!.id || k.id > map.get(key)!.id)))
-                map.set(key, {
-                    id: k.id,
-                    organization_name: k.organization_name || '',
-                    category: k.category || '',
-                    kpi_name: k.kpi_name || '',
-                    purpose: k.purpose || '',
-                    linked_job_id: k.linked_job_id,
-                    linked_csf: k.linked_csf || '',
-                    formula: k.formula || '',
-                    measurement_method: k.measurement_method || '',
-                    weight: k.weight ?? 0,
-                    is_active: k.is_active ?? true,
-                    status: k.status || 'draft',
-                });
-        });
-        setKpis(Array.from(map.values()));
+        const next = normalizeKpis(organizationalKpis || []);
+        setKpis((prev) => (areKpisEqual(prev, next) ? prev : next));
     }, [organizationalKpis]);
 
     useEffect(() => {
         onKpisChange?.(kpis);
-    }, [kpis, onKpisChange]);
+    }, [kpis]);
 
     const orgKpis = kpis.filter((k) => k.organization_name === selectedOrg);
     const leaderName = orgChartMappings.find((m) => m.org_unit_name === selectedOrg)?.org_head_name || '—';
@@ -229,6 +238,7 @@ export default function KpiReviewTab({
         };
         setKpis((prev) => [...prev, newKpi]);
         setEditingKpi(newKpi);
+        setEditingKpiIndex(kpis.length);
         setEditForm(newKpi);
     };
 
@@ -248,12 +258,44 @@ export default function KpiReviewTab({
         };
         setKpis((prev) => [...prev, newKpi]);
         setEditingKpi(newKpi);
+        setEditingKpiIndex(kpis.length);
         setEditForm(newKpi);
     };
 
     const handleDeleteKpi = (index: number) => {
         if (!confirm('Are you sure you want to delete this KPI?')) return;
-        setKpis((prev) => prev.filter((_, i) => i !== index));
+        const target = kpis[index];
+        if (!target) return;
+
+        const removeLocally = () => {
+            setKpis((prev) => prev.filter((_, i) => i !== index));
+            if (editingKpiIndex !== null) {
+                if (editingKpiIndex === index) {
+                    setEditingKpi(null);
+                    setEditingKpiIndex(null);
+                } else if (editingKpiIndex > index) {
+                    setEditingKpiIndex(editingKpiIndex - 1);
+                }
+            }
+        };
+
+        // Unsaved KPI exists only in local state.
+        if (!target.id || !project?.id) {
+            removeLocally();
+            return;
+        }
+
+        router.delete(`/hr-manager/performance-system/${project.id}/kpis/${target.id}`, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                removeLocally();
+                setInlineMsg('KPI deleted successfully.');
+            },
+            onError: () => {
+                setInlineMsg('Failed to delete KPI. Please try again.');
+            },
+        });
     };
 
     const handleExcludeKpi = (index: number) => {
@@ -292,15 +334,32 @@ export default function KpiReviewTab({
 
         router.post(
             `/hr-manager/performance-system/${project.id}/send-review-request`,
-            { organization_name: selectedOrg },
+            {
+                organization_name: selectedOrg,
+                recipient_target: 'leader',
+                kpis: orgKpis.map((kpi) => ({
+                    id: kpi.id ?? null,
+                    organization_name: kpi.organization_name,
+                    kpi_name: kpi.kpi_name,
+                    purpose: kpi.purpose,
+                    category: kpi.category,
+                    linked_job_id: kpi.linked_job_id ?? null,
+                    linked_csf: kpi.linked_csf,
+                    formula: kpi.formula,
+                    measurement_method: kpi.measurement_method,
+                    weight: kpi.weight ?? null,
+                    is_active: kpi.is_active,
+                })),
+            },
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    setInlineMsg('Review request email sent successfully to the organization leader.');
+                    setInlineMsg('Review request email sent successfully to Leader.');
+                    setSendSuccessModalOpen(true);
                     setSendingReview(false);
                 },
                 onError: () => {
-                    setInlineMsg('Failed to send review request. Please check the leader email configuration and try again.');
+                    setInlineMsg('Failed to send review request. Please check recipient configuration and try again.');
                     setSendingReview(false);
                 },
             },
@@ -313,6 +372,13 @@ export default function KpiReviewTab({
     };
 
     const currentCriterion = validationModal ? VALIDATION_CRITERIA.find((c) => c.id === validationModal.criterion) : null;
+    const allKpisCeoApproved =
+        kpis.length > 0 &&
+        kpis.every((k) => {
+            const ceo = (k.ceo_approval_status ?? '').toLowerCase();
+            const status = (k.status ?? '').toLowerCase();
+            return ceo === 'approved' || status === 'approved';
+        });
     const canSendReviewRequest =
         !!selectedOrg &&
         orgKpis.length > 0 &&
@@ -349,6 +415,19 @@ export default function KpiReviewTab({
                                 <Button onClick={confirmValidationYes}>Yes</Button>
                             </>
                         )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+            <Dialog open={sendSuccessModalOpen} onOpenChange={setSendSuccessModalOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Success</DialogTitle>
+                        <DialogDescription>
+                            Review request sent to Leader successfully.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex justify-end mt-4">
+                        <Button onClick={() => setSendSuccessModalOpen(false)}>OK</Button>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -442,9 +521,23 @@ export default function KpiReviewTab({
                                     <h4 className="text-sm font-bold text-[#1a2b4a] mb-3">Team Progress Status</h4>
                                     <div className="space-y-2">
                                         {orgNames.map((orgName) => {
-                                            const orgKpiCount = kpis.filter((k) => k.organization_name === orgName).length;
+                                            const orgKpisForStatus = kpis.filter((k) => k.organization_name === orgName);
+                                            const orgKpiCount = orgKpisForStatus.length;
                                             const tokens = (kpiReviewTokens as Record<string, unknown[]>)[orgName];
                                             const hasReviewSent = Array.isArray(tokens) && tokens.length > 0;
+                                            const hasLeaderSubmitted = orgKpisForStatus.some((k) => (k.status ?? '').toLowerCase() === 'proposed');
+                                            const hasCeoRevisionRequested = orgKpisForStatus.some((k) => {
+                                                const ceo = (k.ceo_approval_status ?? '').toLowerCase();
+                                                const status = (k.status ?? '').toLowerCase();
+                                                return ceo === 'revision_requested' || status === 'revision_requested';
+                                            });
+                                            const allCeoApproved =
+                                                orgKpisForStatus.length > 0 &&
+                                                orgKpisForStatus.every((k) => {
+                                                    const ceo = (k.ceo_approval_status ?? '').toLowerCase();
+                                                    const status = (k.status ?? '').toLowerCase();
+                                                    return ceo === 'approved' || status === 'approved';
+                                                });
                                             return (
                                                 <div
                                                     key={orgName}
@@ -457,6 +550,15 @@ export default function KpiReviewTab({
                                                         </Badge>
                                                         {hasReviewSent && (
                                                             <Badge className="bg-[#1a2b4a] text-white text-xs">Review sent</Badge>
+                                                        )}
+                                                        {hasLeaderSubmitted && (
+                                                            <Badge className="bg-[#2563eb] text-white text-xs">Leader submitted</Badge>
+                                                        )}
+                                                        {hasCeoRevisionRequested && (
+                                                            <Badge className="bg-[#f59e0b] text-white text-xs">CEO revision</Badge>
+                                                        )}
+                                                        {allCeoApproved && (
+                                                            <Badge className="bg-[#16a34a] text-white text-xs">CEO approved</Badge>
                                                         )}
                                                     </div>
                                                 </div>
@@ -474,11 +576,7 @@ export default function KpiReviewTab({
                                 </span>
                                 {orgKpis.length > 0 && (
                                     <span className="text-xs text-[#6b7685]">
-                                        {canSendReviewRequest ? (
-                                            <span className="text-[#2ec4a0] font-medium">✓ Ready to send — use <strong>Send Review Request</strong> in the bar below.</span>
-                                        ) : (
-                                            <span>Complete 4/4 validation per KPI, fill Measurement method, and set total weight to 100% to enable <strong>Send Review Request</strong> (bottom bar).</span>
-                                        )}
+                                        <span>Send to Leader first. Continue unlocks after CEO completes and approves KPI review.</span>
                                     </span>
                                 )}
                             </div>
@@ -529,6 +627,7 @@ export default function KpiReviewTab({
                                                             className="bg-[#f1f5f9] border-[#e2e8f0] text-[#475569] hover:bg-[#e2e8f0] rounded-lg"
                                                             onClick={() => {
                                                                 setEditingKpi(kpi);
+                                                                setEditingKpiIndex(globalIndex);
                                                                 setEditForm({ ...kpi });
                                                             }}
                                                         >
@@ -691,28 +790,42 @@ export default function KpiReviewTab({
                                 className="bg-[#1a2b4a] hover:bg-[#2e4570] text-white rounded-lg font-bold px-6 py-2.5 shadow-md disabled:opacity-60"
                             >
                                 <Send className="w-4 h-4 mr-2" />
-                                {sendingReview ? 'Sending...' : 'Send Review Request Email to Organization Leader'}
+                                {sendingReview ? 'Sending...' : 'Send Review Request'}
                             </Button>
                             <Button
                                 onClick={() => onContinue(kpis)}
+                                disabled={!allKpisCeoApproved}
                                 className="bg-[#1a2b4a] hover:bg-[#2e4570] text-white rounded-lg font-bold px-6 py-2.5 shadow-md"
                             >
-                                Continue to CEO KPI Review
+                                Continue
                                 <ChevronRight className="w-4 h-4 ml-2" />
                             </Button>
+                            {!allKpisCeoApproved && (
+                                <p className="text-xs text-amber-700">
+                                    Continue will unlock after CEO completes KPI review approval.
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
             </footer>
 
             {/* Edit KPI dialog */}
-            <Dialog open={!!editingKpi} onOpenChange={(open) => !open && setEditingKpi(null)}>
+            <Dialog
+                open={editingKpiIndex !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setEditingKpi(null);
+                        setEditingKpiIndex(null);
+                    }
+                }}
+            >
                 <DialogContent className="max-w-lg rounded-xl">
                     <DialogHeader>
                         <DialogTitle>Edit KPI</DialogTitle>
                         <DialogDescription>Update KPI name, formula, weight, and other fields.</DialogDescription>
                     </DialogHeader>
-                    {editingKpi && (
+                    {editingKpiIndex !== null && (
                         <div className="space-y-4 pt-2">
                             <div>
                                 <Label>KPI Name</Label>
@@ -752,14 +865,22 @@ export default function KpiReviewTab({
                                 />
                             </div>
                             <div className="flex justify-end gap-2 pt-2">
-                                <Button variant="outline" onClick={() => setEditingKpi(null)}>Cancel</Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setEditingKpi(null);
+                                        setEditingKpiIndex(null);
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
                                     <Button
                                         onClick={() => {
-                                            const idx = kpis.findIndex((k) => k === editingKpi);
-                                            if (idx >= 0) {
-                                                handleSaveKpi(idx, editForm);
+                                            if (editingKpiIndex !== null && editingKpiIndex >= 0) {
+                                                handleSaveKpi(editingKpiIndex, editForm);
                                             }
                                             setEditingKpi(null);
+                                            setEditingKpiIndex(null);
                                         }}
                                         disabled={!editForm.kpi_name?.trim()}
                                     >

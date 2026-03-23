@@ -1,5 +1,6 @@
-import { Head, useForm, Link } from '@inertiajs/react';
-import React, { useState } from 'react';
+import { Head, useForm, Link, usePage } from '@inertiajs/react';
+import React, { useEffect, useState } from 'react';
+import AppLayout from '@/layouts/AppLayout';
 
 interface OrganizationalKpi {
     id: number;
@@ -16,10 +17,13 @@ interface OrganizationalKpi {
     ceo_approval_status?: string;
     ceo_revision_comment?: string;
     revision_comment?: string;
+    updated_at?: string;
     linked_job?: {
         id: number;
         job_name: string;
     };
+    hr_draft?: Partial<OrganizationalKpi> | null;
+    leader_latest?: Partial<OrganizationalKpi> | null;
 }
 
 interface OrgChartMapping {
@@ -41,8 +45,11 @@ interface Props {
 }
 
 export default function CeoKpiReview({ project, kpis = [], orgChartMappings = [], isAdmin = false }: Props) {
+    const { props } = usePage();
     const [revisionRequests, setRevisionRequests] = useState<Record<string, string>>({});
     const [expandedOrg, setExpandedOrg] = useState<string | null>(null);
+    const [successModalOpen, setSuccessModalOpen] = useState(false);
+    const [successModalMessage, setSuccessModalMessage] = useState('');
 
     const kpisByOrganization = kpis.reduce((acc, kpi) => {
         const orgName = kpi.organization_name || '';
@@ -58,16 +65,46 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
     const pendingCount = totalKpis - approvedCount;
     const totalWeight = kpis.reduce((s, k) => s + (Number(k.weight) || 0), 0);
     const teamCount = organizations.length;
+    const allApproved = totalKpis > 0 && approvedCount === totalKpis;
 
     const { data, setData, post, processing } = useForm({
         action: 'approve',
         revision_requests: [] as Array<{ organization_name: string; comment: string }>,
     });
 
+    useEffect(() => {
+        const flash = (props as any)?.flash;
+        if (flash?.ceo_modal_success) {
+            setSuccessModalMessage(String(flash.ceo_modal_success));
+            setSuccessModalOpen(true);
+        }
+    }, [props]);
+
+    useEffect(() => {
+        // Preload previously submitted CEO revision comments as selected values.
+        const next: Record<string, string> = {};
+        Object.entries(kpisByOrganization).forEach(([orgName, orgKpis]) => {
+            const saved =
+                orgKpis.find((k) => (k.ceo_revision_comment ?? '').trim())?.ceo_revision_comment ||
+                orgKpis.find((k) => (k.revision_comment ?? '').trim())?.revision_comment ||
+                '';
+            if (saved.trim()) next[orgName] = saved;
+        });
+        if (Object.keys(next).length > 0) {
+            setRevisionRequests((prev) => ({ ...next, ...prev }));
+        }
+    }, [kpisByOrganization]);
+
     const handleApprove = () => {
         const route = isAdmin ? `/admin/kpi-review/${project.id}` : `/ceo/kpi-review/${project.id}`;
         setData({ action: 'approve', revision_requests: [] });
-        post(route);
+        post(route, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setSuccessModalMessage('Company-wide KPIs have been finalized and approved.');
+                setSuccessModalOpen(true);
+            },
+        });
     };
 
     const handleRequestRevision = () => {
@@ -80,7 +117,13 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
         }
         const route = isAdmin ? `/admin/kpi-review/${project.id}` : `/ceo/kpi-review/${project.id}`;
         setData({ action: 'request_revision', revision_requests: requests });
-        post(route);
+        post(route, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setSuccessModalMessage('Revision requests have been sent to organization leaders.');
+                setSuccessModalOpen(true);
+            },
+        });
     };
 
     const getStatusBadge = (status: string, ceoStatus?: string) => {
@@ -103,8 +146,53 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
     const statusAlertType = totalWeight === 100 ? 'ok' : totalWeight > 0 ? 'warn' : 'idle';
 
     return (
-        <div className="ceo-kpi-review-page">
+        <AppLayout>
             <Head title={`CEO KPI Review - ${project?.company?.name || 'Company'}`} />
+            {successModalOpen && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        backgroundColor: 'rgba(15, 23, 42, 0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 9999,
+                    }}
+                >
+                    <div
+                        style={{
+                            width: 'min(92vw, 460px)',
+                            background: '#ffffff',
+                            borderRadius: 14,
+                            border: '1px solid #dbe3ef',
+                            boxShadow: '0 18px 45px rgba(15, 23, 42, 0.22)',
+                            padding: '18px 20px',
+                        }}
+                    >
+                        <div style={{ fontWeight: 700, color: '#0f2a4a', marginBottom: 8 }}>Submission Status</div>
+                        <div style={{ color: '#334155', fontSize: 14, lineHeight: 1.5 }}>{successModalMessage}</div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
+                            <button
+                                type="button"
+                                onClick={() => setSuccessModalOpen(false)}
+                                style={{
+                                    background: '#0f2a4a',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: 10,
+                                    padding: '8px 16px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            <div className="ceo-kpi-review-page w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
 
             {/* Top bar: same as Job Grades reference (white, 56px, back + title + badge + counter) */}
             <div className="ckr-top-bar">
@@ -201,6 +289,12 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                 const step = getOrgStepStatus(orgKpis);
                                 const isExpanded = expandedOrg === orgName;
                                 const revComment = orgKpis[0]?.ceo_revision_comment || orgKpis[0]?.revision_comment;
+                                const orgWeight = orgKpis.reduce((sum, item) => sum + (Number(item.weight) || 0), 0);
+                                const lastUpdated = orgKpis
+                                    .map((item) => item.updated_at)
+                                    .filter(Boolean)
+                                    .sort()
+                                    .at(-1);
 
                                 return (
                                     <div key={orgName} className="ckr-org-card">
@@ -238,6 +332,32 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                                 </div>
                                             )}
 
+                                            <div className="ckr-leader-detail-grid">
+                                                <div className="ckr-leader-detail-card">
+                                                    <div className="ckr-leader-detail-label">Leader</div>
+                                                    <div className="ckr-leader-detail-value">{leader?.org_head_name || 'N/A'}</div>
+                                                    <div className="ckr-leader-detail-sub">{leader?.org_head_email || 'No email configured'}</div>
+                                                </div>
+                                                <div className="ckr-leader-detail-card">
+                                                    <div className="ckr-leader-detail-label">Leader Review Status</div>
+                                                    <div className="ckr-leader-detail-value">
+                                                        {orgKpis.some((k) => (k.status ?? '').toLowerCase() === 'proposed')
+                                                            ? 'Submitted to CEO'
+                                                            : 'Draft in progress'}
+                                                    </div>
+                                                    <div className="ckr-leader-detail-sub">
+                                                        {lastUpdated ? `Last update: ${new Date(lastUpdated).toLocaleString()}` : 'No update timestamp'}
+                                                    </div>
+                                                </div>
+                                                <div className="ckr-leader-detail-card">
+                                                    <div className="ckr-leader-detail-label">Total Team Weight</div>
+                                                    <div className="ckr-leader-detail-value">{orgWeight.toFixed(1)}%</div>
+                                                    <div className="ckr-leader-detail-sub">
+                                                        {orgWeight === 100 ? 'Balanced (100%)' : 'Needs adjustment to 100%'}
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             <div className="ckr-kpi-table-wrap">
                                                 <table className="ckr-kpi-table">
                                                     <thead>
@@ -246,6 +366,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                                             <th>Name</th>
                                                             <th>Category</th>
                                                             <th>Weight</th>
+                                                            <th>Details</th>
                                                             <th>Status</th>
                                                         </tr>
                                                     </thead>
@@ -256,6 +377,14 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                                                 <td className="ckr-td-name">{kpi.kpi_name}</td>
                                                                 <td>{kpi.category || '—'}</td>
                                                                 <td>{kpi.weight != null ? `${kpi.weight}%` : '—'}</td>
+                                                                <td className="ckr-kpi-detail-cell">
+                                                                    <div><strong>HR Draft:</strong> {kpi.hr_draft?.kpi_name || kpi.kpi_name || '—'}</div>
+                                                                    <div><strong>Leader Update:</strong> {kpi.leader_latest?.kpi_name || kpi.kpi_name || '—'}</div>
+                                                                    <div><strong>Purpose:</strong> {kpi.purpose || '—'}</div>
+                                                                    <div><strong>Formula:</strong> {kpi.formula || '—'}</div>
+                                                                    <div><strong>Measure:</strong> {kpi.measurement_method || '—'}</div>
+                                                                    <div><strong>Job:</strong> {kpi.linked_job?.job_name || '—'}</div>
+                                                                </td>
                                                                 <td>{getStatusBadge(kpi.status, kpi.ceo_approval_status)}</td>
                                                             </tr>
                                                         ))}
@@ -264,7 +393,12 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                             </div>
 
                                             <div className="ckr-revision-input-wrap">
-                                                <label className="ckr-field-label">Revision comment (if needed)</label>
+                                                <label className="ckr-field-label">
+                                                    Revision comment (if needed)
+                                                    {revisionRequests[orgName]?.trim() && (
+                                                        <span style={{ marginLeft: 8, color: '#16a34a', fontWeight: 700 }}>Selected</span>
+                                                    )}
+                                                </label>
                                                 <textarea
                                                     className="ckr-field-input"
                                                     rows={2}
@@ -333,12 +467,15 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                         >
                             Request Revision
                         </button>
-                        <button type="button" className="ckr-btn ckr-btn-primary" onClick={handleApprove} disabled={processing}>
-                            ✓ Finalize Company-wide KPIs
-                        </button>
+                        {!allApproved && (
+                            <button type="button" className="ckr-btn ckr-btn-primary" onClick={handleApprove} disabled={processing}>
+                                ✓ Finalize Company-wide KPIs
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
+        </AppLayout>
     );
 }

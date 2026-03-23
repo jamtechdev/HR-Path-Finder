@@ -69,6 +69,9 @@ export default function KpiReviewToken({
     const [currentValIdx, setCurrentValIdx] = useState<number | null>(null);
     const [expandedKpiIndex, setExpandedKpiIndex] = useState<number | null>(0);
     const [editingKpiIndex, setEditingKpiIndex] = useState<number | null>(null);
+    const [submitPopupOpen, setSubmitPopupOpen] = useState(false);
+    const [submitPopupMessage, setSubmitPopupMessage] = useState('');
+    const [validationMessage, setValidationMessage] = useState<string | null>(null);
 
     useEffect(() => {
         const pageKpis = (props as any)?.kpis;
@@ -99,6 +102,8 @@ export default function KpiReviewToken({
     }, [selectedOrganization, token]);
 
     const { data, setData, post, processing } = useForm({
+        final_submit: false,
+        self_assessment: [false, false, false, false] as boolean[],
         organization_name: selectedOrganization,
         review_comments: reviewComments,
         kpis: kpis.map((kpi) => ({
@@ -143,19 +148,27 @@ export default function KpiReviewToken({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        setValidationMessage(null);
+        setData('final_submit', true);
+        setData('self_assessment', confirmed);
         post(`/kpi-review/token/${token}`, {
             preserveScroll: false,
             onSuccess: () => {
                 router.reload({
                     only: ['kpis'],
                     onSuccess: () => {
-                        alert('Your KPI review has been submitted. HR will review your changes.');
+                        setSubmitPopupMessage('Org KPI review submitted successfully. CEO has been notified by email.');
+                        setSubmitPopupOpen(true);
+                        setCompleted(true);
                     },
                 });
             },
             onError: (errors) => {
                 console.error('Submit error:', errors);
-                alert('Failed to submit review. Please try again.');
+                const firstError = Object.values(errors || {})[0];
+                const msg = typeof firstError === 'string' ? firstError : 'Failed to submit review. Please try again.';
+                setValidationMessage(msg);
+                setData('final_submit', false);
             },
         });
     };
@@ -230,6 +243,7 @@ export default function KpiReviewToken({
         }
         setSavingKpiIndex(index);
         router.post(`/kpi-review/token/${token}`, {
+            final_submit: false,
             organization_name: selectedOrganization,
             kpis: [
                 {
@@ -252,13 +266,16 @@ export default function KpiReviewToken({
                     .then((res) => res.json())
                     .then((data) => setKpis(data.kpis || []))
                     .catch((err) => console.error('Error reloading:', err));
-                alert('KPI saved successfully!');
+                setSubmitPopupMessage('KPI draft saved successfully.');
+                setSubmitPopupOpen(true);
                 setSavingKpiIndex(null);
                 setEditingKpiIndex(null);
             },
             onError: (errors) => {
                 console.error('Error saving KPI:', errors);
-                alert('Failed to save KPI. Please try again.');
+                const firstError = Object.values(errors || {})[0];
+                setSubmitPopupMessage(typeof firstError === 'string' ? firstError : 'Failed to save KPI. Please try again.');
+                setSubmitPopupOpen(true);
                 setSavingKpiIndex(null);
             },
         });
@@ -296,12 +313,72 @@ export default function KpiReviewToken({
 
     const totalWeight = kpis.reduce((s, k) => s + (Number(k.weight) || 0), 0);
     const allConfirmed = confirmed.every(Boolean);
+    const invalidKpiIndices = kpis.reduce<number[]>((acc, kpi, index) => {
+        const nameInvalid = !String(kpi.kpi_name ?? '').trim();
+        const weightNum = Number(kpi.weight);
+        const weightInvalid = Number.isNaN(weightNum) || weightNum < 0 || weightNum > 100;
+        if (nameInvalid || weightInvalid) acc.push(index + 1);
+        return acc;
+    }, []);
+    const hasInvalidKpis = invalidKpiIndices.length > 0;
     /* Enable submit when: not done, not loading/processing, has KPIs, total weight 100%, and all 4 self-assessments confirmed. */
-    const canSubmit = !completed && !processing && !loading && kpis.length > 0 && totalWeight === 100 && allConfirmed;
+    const canSubmit =
+        !completed &&
+        !processing &&
+        !loading &&
+        kpis.length > 0 &&
+        totalWeight === 100 &&
+        allConfirmed &&
+        !hasInvalidKpis;
 
     return (
         <div className="leader-kpi-review-page">
             <Head title={`Leader KPI Review - ${selectedOrganization}`} />
+
+            {submitPopupOpen && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        backgroundColor: 'rgba(15, 23, 42, 0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 9999,
+                    }}
+                >
+                    <div
+                        style={{
+                            width: 'min(92vw, 460px)',
+                            background: '#ffffff',
+                            borderRadius: 14,
+                            border: '1px solid #dbe3ef',
+                            boxShadow: '0 18px 45px rgba(15, 23, 42, 0.22)',
+                            padding: '18px 20px',
+                        }}
+                    >
+                        <div style={{ fontWeight: 700, color: '#0f2a4a', marginBottom: 8 }}>Submission Status</div>
+                        <div style={{ color: '#334155', fontSize: 14, lineHeight: 1.5 }}>{submitPopupMessage}</div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
+                            <button
+                                type="button"
+                                onClick={() => setSubmitPopupOpen(false)}
+                                style={{
+                                    background: '#0f2a4a',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: 10,
+                                    padding: '8px 16px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <header className="lkr-header">
                 <div className="lkr-header-left">
@@ -546,10 +623,6 @@ export default function KpiReviewToken({
                                     <div
                                         key={idx}
                                         className={`lkr-val-card ${confirmed[idx] ? 'confirmed' : ''}`}
-                                        onClick={() => openPopup(idx)}
-                                        role="button"
-                                        tabIndex={0}
-                                        onKeyDown={(e) => e.key === 'Enter' && openPopup(idx)}
                                     >
                                         <div className="lkr-val-card-top">
                                             <span className="lkr-val-tag">{v.title.replace(/\s+/g, ' ')}</span>
@@ -557,12 +630,20 @@ export default function KpiReviewToken({
                                         </div>
                                         <div className="lkr-val-question">{v.question}</div>
                                         <div className="lkr-val-hint">{v.hint}</div>
-                                        <button type="button" className="lkr-val-yes-btn" onClick={(e) => { e.stopPropagation(); confirmVal(); }}>Confirm →</button>
+                                        <button type="button" className="lkr-val-yes-btn" onClick={() => openPopup(idx)}>
+                                            {confirmed[idx] ? 'Selected' : 'Select →'}
+                                        </button>
                                         <div className="lkr-val-confirmed-label">✓ Confirmed</div>
                                     </div>
                                 ))}
                             </div>
                         </div>
+                        {validationMessage && (
+                            <div className="lkr-comments-card" style={{ borderColor: '#fecaca', background: '#fff1f2' }}>
+                                <div className="lkr-comments-title" style={{ color: '#991b1b' }}>Validation Required</div>
+                                <div className="lkr-comments-desc" style={{ color: '#b91c1c' }}>{validationMessage}</div>
+                            </div>
+                        )}
                     </form>
                 )}
 
@@ -593,6 +674,11 @@ export default function KpiReviewToken({
                                 ? `Complete self-assessment (${confirmed.filter(Boolean).length}/4) and set total weight to 100% to enable submit`
                                 : 'Set total weight to 100% to enable submit'}
                         </span>
+                        {hasInvalidKpis && (
+                            <span className="lkr-submit-hint" style={{ color: '#dc2626' }}>
+                                Fix KPI #{invalidKpiIndices.join(', ')}: KPI Name is required and Weight must be 0-100.
+                            </span>
+                        )}
                         <button
                             type="submit"
                             form="lkr-review-form"

@@ -61,6 +61,7 @@ interface Props {
     jobRecommendations?: Record<number, 'mbo' | 'bsc' | 'okr'>;
     stepStatuses?: any;
     projectId?: number;
+    kpiVerificationNotice?: string | null;
 }
 
 const TABS = [
@@ -86,6 +87,7 @@ export default function PerformanceSystemIndex({
     jobRecommendations = {},
     stepStatuses = {},
     projectId,
+    kpiVerificationNotice = null,
 }: Props) {
     const [activeTab, setActiveTab] = useState(initialTab);
     const [tabCompletions, setTabCompletions] = useState<Record<string, boolean>>({});
@@ -129,15 +131,20 @@ export default function PerformanceSystemIndex({
     const validateTabCompletion = (tabId: string): boolean => {
         switch (tabId) {
             case 'performance-snapshot':
-                return Object.keys(draftSnapshotResponses ?? {}).length > 0 || localDone['performance-snapshot'] === true;
+                return validatePerformanceSnapshotTab(snapshotQuestions as any[], draftSnapshotResponses ?? {}).valid || localDone['performance-snapshot'] === true;
             case 'kpi-review':
-                return (draftKpis?.length ?? 0) > 0 || localDone['kpi-review'] === true;
+                return validateKpiReviewTab(draftKpis ?? []).valid || localDone['kpi-review'] === true;
             case 'model-assignment':
-                return Object.keys(draftAssignments ?? {}).length > 0 || localDone['model-assignment'] === true;
+                return validateModelAssignmentTab(jobDefinitions ?? [], draftAssignments ?? {}).valid || localDone['model-assignment'] === true;
             case 'evaluation-structure':
-                return !!draftStructure || localDone['evaluation-structure'] === true;
+                return validateEvaluationStructureTab(draftStructure).valid || localDone['evaluation-structure'] === true;
             case 'review-submit':
-                return validateTabCompletion('evaluation-structure');
+                return (
+                    validateTabCompletion('performance-snapshot') &&
+                    validateTabCompletion('kpi-review') &&
+                    validateTabCompletion('model-assignment') &&
+                    validateTabCompletion('evaluation-structure')
+                );
             default:
                 return false;
         }
@@ -145,13 +152,17 @@ export default function PerformanceSystemIndex({
 
     // Check if tab is enabled (previous tabs completed)
     const isTabEnabled = (tabId: string, tabIndex: number): boolean => {
-        // Overview and review-submit are always enabled
-        if (tabId === 'overview' || tabId === 'review-submit') return true;
+        // Overview is always enabled
+        if (tabId === 'overview') return true;
         if (tabIndex === 0) return true;
+
+        const currentIndex = TABS.findIndex((t) => t.id === activeTab);
+        // Always allow moving to same/previous tab (back navigation must never be blocked)
+        if (currentIndex !== -1 && tabIndex <= currentIndex) return true;
         
         for (let i = 0; i < tabIndex; i++) {
             const prevTab = TABS[i];
-            if (prevTab.id === 'overview' || prevTab.id === 'review-submit') continue;
+            if (prevTab.id === 'overview') continue;
             if (!validateTabCompletion(prevTab.id)) {
                 return false;
             }
@@ -646,6 +657,7 @@ export default function PerformanceSystemIndex({
                             onContinue={handleKpiReviewContinue}
                             onBack={() => handleTabChange('performance-snapshot')}
                             fieldErrors={perfFieldErrors}
+                            kpiVerificationNotice={kpiVerificationNotice}
                         />
                     )}
 
