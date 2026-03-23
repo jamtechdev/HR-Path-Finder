@@ -8,11 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import { Textarea } from '@/components/ui/textarea';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 interface Props {
     categories: Record<string, string>;

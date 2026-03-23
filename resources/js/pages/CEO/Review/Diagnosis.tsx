@@ -9,6 +9,7 @@ import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
 import AppHeader from '@/components/Header/AppHeader';
 import SuccessModal from '@/components/Modals/SuccessModal';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import CompanyInfo from '@/pages/Diagnosis/CompanyInfo';
@@ -18,9 +19,8 @@ import JobGrades from '@/pages/Diagnosis/JobGrades';
 import JobStructure from '@/pages/Diagnosis/JobStructure';
 import Leaders from '@/pages/Diagnosis/Leaders';
 import OrganizationalCharts from '@/pages/Diagnosis/OrganizationalCharts';
-import Workforce from '@/pages/Diagnosis/Workforce';
 import OrganizationalStructure from '@/pages/Diagnosis/OrganizationalStructure';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import Workforce from '@/pages/Diagnosis/Workforce';
 
 const formatValue = (value: unknown): string => {
     if (value === null || value === undefined || value === '') return '—';

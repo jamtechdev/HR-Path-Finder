@@ -1,3 +1,4 @@
+import { router } from '@inertiajs/react';
 import {
     Plus,
     Trash2,
@@ -283,7 +284,27 @@ export default function KpiReviewTab({
     const kpiReviewRecipients = orgChartMappings.filter((m) => m.is_kpi_reviewer && m.org_head_email?.trim());
 
     const handleSendReviewRequest = () => {
-        setInlineMsg('Review request emails will be sent after you click “Review & Submit”.');
+        if (!selectedOrg || !project?.id) return;
+        if (sendingReview) return;
+
+        setInlineMsg(null);
+        setSendingReview(true);
+
+        router.post(
+            `/hr-manager/performance-system/${project.id}/send-review-request`,
+            { organization_name: selectedOrg },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setInlineMsg('Review request email sent successfully to the organization leader.');
+                    setSendingReview(false);
+                },
+                onError: () => {
+                    setInlineMsg('Failed to send review request. Please check the leader email configuration and try again.');
+                    setSendingReview(false);
+                },
+            },
+        );
     };
 
     const handleConfirmAllRecommended = () => {
