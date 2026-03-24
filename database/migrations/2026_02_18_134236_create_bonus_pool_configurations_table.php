@@ -17,12 +17,17 @@ return new class extends Migration
             $table->string('payment_trigger_condition')->nullable();
             $table->string('bonus_pool_determination_criteria')->nullable();
             $table->string('bonus_pool_determination_method')->nullable();
+            $table->decimal('ratio_value', 8, 2)->nullable();
+            $table->decimal('range_min', 15, 2)->nullable();
+            $table->decimal('range_max', 15, 2)->nullable();
+            $table->decimal('amount_value', 15, 2)->nullable();
             $table->string('eligibility_scope')->nullable();
             $table->string('eligibility_criteria')->nullable();
             $table->string('inclusion_of_employees_on_leave')->nullable();
             $table->string('bonus_calculation_unit')->nullable()->comment('percentage, fixed_amount');
             $table->string('allocation_scope')->nullable();
             $table->json('allocation_criteria')->nullable()->comment('JSON array of criteria');
+            $table->json('allocation_weights')->nullable();
             $table->integer('bonus_pool_finalization_timing')->nullable()->comment('Month 1-12');
             $table->integer('bonus_payment_month')->nullable()->comment('Month 1-12');
             $table->date('calculation_period_start')->nullable();

@@ -35,6 +35,7 @@ return new class extends Migration
             $table->json('individual_rating_distribution')->nullable();
             $table->json('individual_evaluation_groups')->nullable()->comment('JSON array');
             $table->json('individual_use_of_results')->nullable()->comment('JSON array');
+            $table->text('individual_use_of_results_other')->nullable();
             $table->string('organization_leader_evaluation')->nullable()->comment('replaced_by_org, separate_individual');
             
             $table->timestamps();

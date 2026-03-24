@@ -20,9 +20,13 @@ return new class extends Migration
             $table->string('industry_category')->nullable();
             $table->string('industry_subcategory')->nullable();
             $table->string('industry_other')->nullable();
+            $table->string('industry_category_other')->nullable();
+            $table->json('secondary_industries')->nullable();
             
             // Workforce Data
             $table->integer('present_headcount')->nullable();
+            $table->integer('full_time_headcount')->nullable();
+            $table->integer('contract_headcount')->nullable();
             $table->integer('expected_headcount_1y')->nullable();
             $table->integer('expected_headcount_2y')->nullable();
             $table->integer('expected_headcount_3y')->nullable();
@@ -43,6 +47,8 @@ return new class extends Migration
             // Job Grade System
             $table->json('job_grade_names')->nullable();
             $table->json('promotion_years')->nullable()->comment('JSON: {grade_name: years}');
+            $table->json('job_grade_headcounts')->nullable()->comment('JSON: {grade_name: headcount}');
+            $table->json('job_grade_expected_roles')->nullable()->comment('JSON: {grade_name: expected_role_text}');
             
             // Organizational Structure
             $table->json('organizational_charts')->nullable()->comment('JSON: {year: file_path}');
@@ -52,6 +58,8 @@ return new class extends Migration
             // HR Issues
             $table->json('hr_issues')->nullable();
             $table->text('custom_hr_issues')->nullable();
+            $table->json('job_categories')->nullable()->comment('JSON array of job categories');
+            $table->json('job_functions')->nullable()->comment('JSON array of job functions');
             
             $table->timestamps();
             

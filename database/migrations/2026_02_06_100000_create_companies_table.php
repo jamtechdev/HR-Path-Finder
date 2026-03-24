@@ -14,9 +14,12 @@ return new class extends Migration
         Schema::create('companies', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->date('foundation_date')->nullable();
+            $table->string('brand_name')->nullable();
             $table->string('registration_number')->nullable();
             $table->string('hq_location')->nullable();
             $table->enum('public_listing_status', ['public', 'private', 'not_applicable'])->default('private');
+            $table->boolean('is_public')->default(false);
             $table->string('logo_path')->nullable();
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->timestamps();

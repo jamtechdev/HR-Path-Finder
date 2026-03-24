@@ -20,10 +20,14 @@ return new class extends Migration
             $table->string('org_head_rank')->nullable();
             $table->string('org_head_title')->nullable();
             $table->string('org_head_email')->nullable();
+            $table->boolean('is_kpi_reviewer')->default(false);
             $table->json('job_specialists')->nullable()->comment('JSON array: [{name, rank, title, email, job_keyword_id}]');
+            $table->unsignedInteger('sort_order')->nullable();
+            $table->unsignedBigInteger('parent_id')->nullable();
             $table->timestamps();
             
             $table->index('hr_project_id');
+            $table->foreign('parent_id')->references('id')->on('org_chart_mappings')->onDelete('cascade');
         });
     }
 

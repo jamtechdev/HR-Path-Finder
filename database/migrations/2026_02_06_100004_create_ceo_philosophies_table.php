@@ -16,9 +16,17 @@ return new class extends Migration
             $table->foreignId('hr_project_id')->constrained('hr_projects')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade')->comment('CEO user');
             $table->json('survey_responses')->nullable()->comment('JSON: {question_id: answer}');
+            $table->json('management_philosophy_responses')->nullable();
+            $table->json('vision_mission_responses')->nullable();
+            $table->string('growth_stage')->nullable();
+            $table->json('leadership_responses')->nullable();
+            $table->json('general_responses')->nullable();
+            $table->json('organizational_issues')->nullable();
+            $table->text('concerns')->nullable();
             $table->string('main_trait')->nullable()->comment('Primary management trait');
             $table->string('secondary_trait')->nullable()->comment('Secondary management trait');
             $table->timestamps();
+            $table->timestamp('completed_at')->nullable();
             
             $table->unique('hr_project_id');
             $table->index('user_id');

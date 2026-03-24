@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('company_invitations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->constrained('companies')->onDelete('cascade');
+            $table->foreignId('hr_project_id')->nullable()->constrained('hr_projects')->onDelete('cascade');
             $table->string('email');
             $table->enum('role', ['ceo', 'consultant'])->default('ceo');
             $table->string('token', 64)->unique();
@@ -22,8 +23,10 @@ return new class extends Migration
             $table->string('temporary_password')->nullable();
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
             
             $table->index('company_id');
+            $table->index('hr_project_id');
             $table->index('token');
             $table->index('email');
         });
