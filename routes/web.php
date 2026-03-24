@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
@@ -25,6 +26,27 @@ Route::get('/login', function (Request $request) {
         'canRegister' => Features::enabled(Features::registration()),
     ]);
 })->name('login');
+
+// Custom email verification callback:
+// after verify, force login page with success message.
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    if (! $request->user()->hasVerifiedEmail()) {
+        $request->fulfill();
+    }
+
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect()->route('login')->with('status', 'Email verification successful. Please sign in.');
+})->middleware(['auth', 'signed', 'throttle:6,1'])->name('verification.verify');
+
+// Polling endpoint for cross-device verification feedback on verify-email page.
+Route::get('/email/verification-status', function (Request $request) {
+    return response()->json([
+        'verified' => (bool) $request->user()?->hasVerifiedEmail(),
+    ]);
+})->middleware('auth')->name('verification.status');
 
 // Admin Login Route (separate from regular login)
 Route::get('/admin/login', function () {

@@ -13,8 +13,10 @@ import type { SharedData } from '@/types';
 export default function VerifyEmail({ status, smtpConfigured = true }: { status?: string; smtpConfigured?: boolean }) {
     const { flash } = usePage<SharedData>().props;
     const [isVerifying, setIsVerifying] = React.useState(false);
+    const [remoteVerified, setRemoteVerified] = React.useState(false);
     const form = useForm({});
     const flashToastSig = React.useRef<string>('');
+    const remoteVerifiedShownRef = React.useRef(false);
 
     React.useEffect(() => {
         const sig = `${flash?.warning ?? ''}|${flash?.success ?? ''}`;
@@ -32,6 +34,43 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
             toast({ title: flash.success, variant: 'success' });
         }
     }, [flash?.warning, flash?.success]);
+
+    // Cross-device verify support:
+    // if user verifies via mobile email link, desktop page detects and shows success message.
+    React.useEffect(() => {
+        let mounted = true;
+
+        const checkVerificationStatus = async () => {
+            try {
+                const res = await fetch('/email/verification-status', {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: {
+                        Accept: 'application/json',
+                    },
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!mounted) return;
+                if (data?.verified) {
+                    setRemoteVerified(true);
+                    if (!remoteVerifiedShownRef.current) {
+                        remoteVerifiedShownRef.current = true;
+                        toast({ title: 'Email verified successfully. You can continue now.', variant: 'success' });
+                    }
+                }
+            } catch {
+                // Silent fail: polling should not disrupt verify page UX.
+            }
+        };
+
+        checkVerificationStatus();
+        const id = window.setInterval(checkVerificationStatus, 4000);
+        return () => {
+            mounted = false;
+            window.clearInterval(id);
+        };
+    }, []);
     
     const handleManualVerify = () => {
         if (confirm('Are you sure you want to manually verify your email? This option is only available when SMTP is not configured.')) {
@@ -182,6 +221,13 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                             <div className="p-4 rounded-lg bg-success/10 border border-success/20 text-center text-sm font-medium text-success animate-in fade-in slide-in-from-top-4">
                                 <CheckCircle className="w-5 h-5 mx-auto mb-2" />
                                 A new verification link has been sent to your email address.
+                            </div>
+                        )}
+
+                        {remoteVerified && (
+                            <div className="p-4 rounded-lg bg-success/10 border border-success/20 text-center text-sm font-medium text-success animate-in fade-in slide-in-from-top-4">
+                                <CheckCircle className="w-5 h-5 mx-auto mb-2" />
+                                Email verified successfully.
                             </div>
                         )}
 

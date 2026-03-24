@@ -7,11 +7,13 @@ import {
   ToastViewport,
 } from "@/components/ui/toast"
 import { useToast } from "@/hooks/use-toast"
+import { createPortal } from "react-dom"
 
 export function Toaster() {
   const { toasts } = useToast()
+  if (typeof document === "undefined") return null
 
-  return (
+  return createPortal(
     <ToastProvider>
       {toasts.map(function ({ id, title, description, action, ...props }) {
         return (
@@ -29,5 +31,5 @@ export function Toaster() {
       })}
       <ToastViewport />
     </ToastProvider>
-  )
+  , document.body)
 }
