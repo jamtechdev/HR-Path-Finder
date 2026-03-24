@@ -1,4 +1,3 @@
-import { Transition } from '@headlessui/react';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Form, Link } from '@inertiajs/react';
 import { 
@@ -410,15 +409,9 @@ export default function SettingsIndex({
                                                             Save password
                                                         </Button>
 
-                                                        <Transition
-                                                            show={recentlySuccessful}
-                                                            enter="transition ease-in-out"
-                                                            enterFrom="opacity-0"
-                                                            leave="transition ease-in-out"
-                                                            leaveTo="opacity-0"
-                                                        >
+                                                        {recentlySuccessful && (
                                                             <p className="text-sm text-success">Saved</p>
-                                                        </Transition>
+                                                        )}
                                                     </div>
                                                 </>
                                             )}

@@ -1,4 +1,3 @@
-import { Transition } from '@headlessui/react';
 import { Form, Head } from '@inertiajs/react';
 import { useRef } from 'react';
 import PasswordController from '@/actions/App/Http/Controllers/Settings/PasswordController';
@@ -126,17 +125,11 @@ export default function Password() {
                                         Save password
                                     </Button>
 
-                                    <Transition
-                                        show={recentlySuccessful}
-                                        enter="transition ease-in-out"
-                                        enterFrom="opacity-0"
-                                        leave="transition ease-in-out"
-                                        leaveTo="opacity-0"
-                                    >
+                                    {recentlySuccessful && (
                                         <p className="text-sm text-neutral-600">
                                             Saved
                                         </p>
-                                    </Transition>
+                                    )}
                                 </div>
                             </>
                         )}
