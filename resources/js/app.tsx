@@ -3,6 +3,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import '../css/app.css';
+import Preloader from './components/ui/Preloader';
 import { initializeTheme } from './hooks/use-appearance';
 import './lib/i18n'; // Initialize i18n
 
@@ -32,6 +33,7 @@ createInertiaApp({
 
         root.render(
             <StrictMode>
+                <Preloader appName="HR Path-Finder" />
                 <App {...props} />
             </StrictMode>,
         );

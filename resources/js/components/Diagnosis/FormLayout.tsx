@@ -191,13 +191,23 @@ export default function FormLayout({
 }: FormLayoutProps) {
     const [validationError, setValidationError] = useState<string | null>(null);
     const [diagnosisFieldErrors, setDiagnosisFieldErrors] = useState<FieldErrors>({});
+    const [dismissValidationBanner, setDismissValidationBanner] = useState(false);
     const validateBeforeNextRef = useRef(validateBeforeNext);
     validateBeforeNextRef.current = validateBeforeNext;
+    const activeValidationMessage = validationError || liveValidationError || null;
 
     useEffect(() => {
         setDiagnosisFieldErrors({});
         setValidationError(null);
+        setDismissValidationBanner(false);
     }, [activeTab]);
+
+    // If validation message changes, show banner again.
+    useEffect(() => {
+        if (activeValidationMessage) {
+            setDismissValidationBanner(false);
+        }
+    }, [activeValidationMessage]);
 
     // Live: drop field errors and top banner as soon as each field / step becomes valid.
     useEffect(() => {
@@ -445,7 +455,7 @@ export default function FormLayout({
                         )}
 
                         {/* Validation Error (from Next click or live from step when form becomes invalid) */}
-                        {(validationError || liveValidationError) && (
+                        {activeValidationMessage && !dismissValidationBanner && (
                             <div className="mb-4 p-4 bg-destructive/10 border-2 border-destructive/50 rounded-lg shadow-sm animate-in slide-in-from-top-2">
                                 <div className="flex items-start gap-3">
                                     <div className="flex-shrink-0 w-5 h-5 rounded-full bg-destructive/20 flex items-center justify-center mt-0.5">
@@ -453,8 +463,16 @@ export default function FormLayout({
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-sm font-semibold text-destructive mb-1">Validation Error</p>
-                                        <p className="text-sm text-destructive/90">{validationError || liveValidationError}</p>
+                                        <p className="text-sm text-destructive/90">{activeValidationMessage}</p>
                                     </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setDismissValidationBanner(true)}
+                                        aria-label="Dismiss validation message"
+                                        className="text-destructive/70 hover:text-destructive text-lg leading-none px-1"
+                                    >
+                                        ×
+                                    </button>
                                 </div>
                             </div>
                         )}
