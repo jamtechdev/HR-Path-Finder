@@ -9,7 +9,6 @@ const STEP_CONFIG = [
   { id: 'job_analysis', num: 2, name: 'Job Analysis', title: 'Job Analysis', desc: '직무 역할, 책임, 역량, 조직 매핑을 정의합니다.' },
   { id: 'performance', num: 3, name: 'Performance System', title: 'Performance System', desc: '평가 단위, 성과 관리 방법론, 평가 구조를 설계합니다.' },
   { id: 'compensation', num: 4, name: 'Compensation System', title: 'Compensation System', desc: '보상 구조, 차등화 방법론, 인센티브 컴포넌트를 정의합니다.' },
-  { id: 'hr_policy_os', num: 5, name: 'Final Dashboard', title: 'Final Dashboard', desc: 'HR 정책 매뉴얼, 시스템 핸드북, 실행 로드맵, 분석 보고서', fullWidth: true },
 ];
 
 interface StageProgressPercentMap {
@@ -95,7 +94,7 @@ export default function PathFinderDashboard({
   user = { name: 'HR Manager', email: 'hrm@company.com' },
   activeProject = null,
   company = null,
-  progress = { completed: 0, total: 5, currentStepNumber: 1, currentStepKey: 'diagnosis' },
+  progress = { completed: 0, total: 4, currentStepNumber: 1, currentStepKey: 'diagnosis' },
   stepStatuses = {},
   projectId = null,
   ceoPhilosophyStatus = 'not_started',
@@ -175,7 +174,7 @@ export default function PathFinderDashboard({
             {/* Design Steps - Step 1 active, rest locked */}
             <div className="flex items-baseline justify-between mb-3.5">
               <h3 className="text-[15px] font-bold text-slate-800 dark:text-slate-100 tracking-[-0.2px]">{t('dashboard.pathfinder.design_steps')}</h3>
-              <span className="text-[11.5px] text-slate-400 dark:text-slate-500">{t('dashboard.pathfinder.completed_count', { done: 0, total: 5 })}</span>
+              <span className="text-[11.5px] text-slate-400 dark:text-slate-500">{t('dashboard.pathfinder.completed_count', { done: 0, total: 4 })}</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               {/* Step 1 - Active */}
@@ -234,26 +233,6 @@ export default function PathFinderDashboard({
                   </div>
                 </div>
               ))}
-              {/* Step 5 full-width locked */}
-              <div className="col-span-1 md:col-span-2 flex flex-col md:flex-row items-center justify-between py-[18px] px-[22px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 opacity-70">
-                <div className="flex items-center gap-4">
-                  <div className="w-9 h-9 rounded-[9px] bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-base">
-                    <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-                  </div>
-                  <div>
-                    <div className="flex gap-1.5 mb-1.5">
-                      <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">Step 5</span>
-                      <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">{t('dashboard.pathfinder.locked')}</span>
-                    </div>
-                    <h4 className="text-sm font-bold text-slate-400 dark:text-slate-500 mb-1">Final Dashboard</h4>
-                    <p className="text-[11.5px] text-slate-400 dark:text-slate-500 mb-0">{STEP_CONFIG[4].desc}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500 flex-shrink-0">
-                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-                  {t('dashboard.pathfinder.prev_step_required_after')}
-                </div>
-              </div>
             </div>
           </div>
         </div>

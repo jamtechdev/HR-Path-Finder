@@ -54,19 +54,18 @@ class HrManagerDashboardController extends Controller
         }])
         ->first();
 
-        // Calculate progress based on all 5 steps from sidebar
+        // Calculate progress based on the 4 workflow steps
         $stepStatuses = $activeProject?->step_statuses ?? [];
         $completedSteps = 0;
         $currentStepNumber = 1;
         $currentStepKey = null;
         
-        // All 5 steps matching sidebar: Diagnosis, Job Analysis, Performance, Compensation, HR Policy OS
+        // Workflow steps: Diagnosis, Job Analysis, Performance, Compensation
         $mainSteps = [
             'diagnosis' => 'diagnosis',
             'job_analysis' => 'job_analysis',
             'performance' => 'performance',
             'compensation' => 'compensation',
-            'hr_policy_os' => 'hr_policy_os'
         ];
         
         foreach ($mainSteps as $key => $step) {
@@ -140,7 +139,7 @@ class HrManagerDashboardController extends Controller
             ] : null,
             'progress' => [
                 'completed' => $completedSteps,
-                'total' => 5, // 5 steps: Diagnosis, Job Analysis, Performance, Compensation, HR Policy OS
+                'total' => 4, // 4 steps: Diagnosis, Job Analysis, Performance, Compensation
                 'currentStepNumber' => $currentStepNumber,
                 'currentStepKey' => $currentStepKey,
                 'currentStepStatus' => $currentStepStatus,
