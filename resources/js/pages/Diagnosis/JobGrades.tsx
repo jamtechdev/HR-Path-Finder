@@ -105,6 +105,7 @@ export default function JobGrades({
     const [workforceTotal, setWorkforceTotal] = useState(diagnosis?.present_headcount ?? 100);
     const [draggingId, setDraggingId] = useState<string | null>(null);
     const [dropTarget, setDropTarget] = useState<{ id: string; top: boolean } | null>(null);
+    const [hasInteracted, setHasInteracted] = useState(false);
     const idSeqRef = useRef(grades.length + 1);
     /** Some browsers omit getData on drop; keep source id in a ref. */
     const dragSourceIdRef = useRef<string | null>(null);
@@ -116,24 +117,6 @@ export default function JobGrades({
         job_grade_expected_roles: {} as Record<string, string>,
     });
     const useEmbed = embedMode && embedData != null && embedSetData;
-    const setFormData = useCallback(
-        (payload: {
-            job_grade_names: string[];
-            promotion_years: Record<string, number | null>;
-            job_grade_headcounts: Record<string, number>;
-            job_grade_expected_roles: Record<string, string>;
-        }) => {
-            if (useEmbed) {
-                embedSetData('job_grade_names', payload.job_grade_names);
-                embedSetData('promotion_years', payload.promotion_years);
-                embedSetData('job_grade_headcounts', payload.job_grade_headcounts);
-                embedSetData('job_grade_expected_roles', payload.job_grade_expected_roles);
-                return;
-            }
-            internalForm.setData(payload);
-        },
-        [useEmbed, embedSetData, internalForm]
-    );
     const { errors: jobGradesErrors } = internalForm;
     const rawJgErr = jobGradesErrors.job_grade_names;
     const inertiaJobGradeNamesErr =
@@ -176,13 +159,23 @@ export default function JobGrades({
                 if (g.role?.trim()) expectedRoles[g.name] = g.role;
             }
         });
-        setFormData({
+        const payload = {
             job_grade_names: names,
             promotion_years: years,
             job_grade_headcounts: headcounts,
             job_grade_expected_roles: expectedRoles,
-        });
-    }, [grades, setFormData]);
+        };
+
+        if (useEmbed) {
+            embedSetData('job_grade_names', payload.job_grade_names);
+            embedSetData('promotion_years', payload.promotion_years);
+            embedSetData('job_grade_headcounts', payload.job_grade_headcounts);
+            embedSetData('job_grade_expected_roles', payload.job_grade_expected_roles);
+            return;
+        }
+
+        internalForm.setData(payload);
+    }, [grades, useEmbed, embedSetData]);
 
     // Persist UI-only draft keys into formData so FormLayout saves them to sessionStorage
     useEffect(() => {
@@ -195,15 +188,18 @@ export default function JobGrades({
     const barPct = workforceTotal > 0 ? Math.min(100, (totalHc / workforceTotal) * 100) : 0;
 
     const addGrade = useCallback(() => {
+        setHasInteracted(true);
         const id = `g${idSeqRef.current++}`;
         setGrades((prev) => [...prev, { id, name: '', years: 3, noFixed: false, count: 0, role: '' }]);
     }, []);
 
     const removeGrade = useCallback((id: string) => {
+        setHasInteracted(true);
         setGrades((prev) => prev.filter((g) => g.id !== id));
     }, []);
 
     const distributeHeadcountEvenly = useCallback(() => {
+        setHasInteracted(true);
         setGrades((prev) => {
             if (prev.length === 0 || workforceTotal <= 0) return prev;
             const n = prev.length;
@@ -221,6 +217,7 @@ export default function JobGrades({
     }, [workforceTotal]);
 
     const updateGrade = useCallback((id: string, updates: Partial<JobGrade>) => {
+        setHasInteracted(true);
         setGrades((prev) =>
             prev.map((g) => {
                 if (g.id !== id) return g;
@@ -260,6 +257,11 @@ export default function JobGrades({
         e.preventDefault();
         e.stopPropagation();
         const srcId = e.dataTransfer.getData('text/plain') || dragSourceIdRef.current || draggingId;
+        const targetEl = e.currentTarget as HTMLElement | null;
+        const rect = targetEl?.getBoundingClientRect();
+        const insertBefore = rect
+            ? e.clientY < rect.top + rect.height / 2
+            : (dropTarget?.id === targetId ? dropTarget.top : false);
         if (!srcId || srcId === targetId) {
             dragSourceIdRef.current = null;
             setDraggingId(null);
@@ -270,8 +272,7 @@ export default function JobGrades({
             const fromIndex = prev.findIndex((g) => g.id === srcId);
             const toIndex = prev.findIndex((g) => g.id === targetId);
             if (fromIndex === -1 || toIndex === -1) return prev;
-            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-            const insertIndex = e.clientY < rect.top + rect.height / 2 ? toIndex : toIndex + 1;
+            const insertIndex = insertBefore ? toIndex : toIndex + 1;
             const next = [...prev];
             const [removed] = next.splice(fromIndex, 1);
             let insertAt = insertIndex > fromIndex ? insertIndex - 1 : insertIndex;
@@ -352,7 +353,10 @@ export default function JobGrades({
                         type="number"
                         min={1}
                         value={workforceTotal}
-                        onChange={(e) => setWorkforceTotal(parseInt(e.target.value, 10) || 0)}
+                        onChange={(e) => {
+                            setHasInteracted(true);
+                            setWorkforceTotal(parseInt(e.target.value, 10) || 0);
+                        }}
                         className="w-16 h-[26px] px-2 border-[1.5px] border-[#E2E6ED] rounded-[5px] text-[13px] font-bold text-[#1B2B5B] text-center outline-none focus:border-[#2EC4A9]"
                     />
                     <span>명</span>
@@ -595,7 +599,7 @@ export default function JobGrades({
                 saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
                 hidePageTitle
                 liveValidationError={
-                    headcountMismatch
+                    hasInteracted && headcountMismatch
                         ? `Sum of headcounts by grade (${totalHc}) must equal total workforce (${workforceTotal}). Adjust counts or use Distribute evenly.`
                         : null
                 }

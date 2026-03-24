@@ -166,14 +166,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('hr-policy-os/{hrProject}/approve', [\App\Http\Controllers\HrPolicyOsController::class, 'approve'])->name('hr-policy-os.approve');
 
         // Tree / Final Dashboard (CEO)
+        Route::get('tree', [\App\Http\Controllers\Dashboard\CeoDashboardController::class, 'treeList'])->name('tree.list');
         Route::get('tree/{hrProject}/{tab?}', [\App\Http\Controllers\CeoTreeController::class, 'index'])->name('tree.index');
 
         // Report (CEO)
+        Route::get('report', [\App\Http\Controllers\Dashboard\CeoDashboardController::class, 'reportList'])->name('report.list');
         Route::get('report/{hrProject}', [\App\Http\Controllers\CeoReportController::class, 'index'])->name('report.index');
         Route::get('report/{hrProject}/download', [\App\Http\Controllers\CeoReportController::class, 'downloadFullReport'])->name('report.download');
         Route::get('report/{hrProject}/download/{step}', [\App\Http\Controllers\CeoReportController::class, 'downloadStepReport'])->name('report.download.step');
 
         // CEO KPI Review (Performance Step 4-2)
+        Route::get('kpi-review', [\App\Http\Controllers\Dashboard\CeoDashboardController::class, 'kpiReview'])
+            ->name('kpi-review.list');
         Route::get('kpi-review/{hrProject}', [\App\Http\Controllers\CeoKpiReviewController::class, 'index'])->name('kpi-review.index');
         Route::post('kpi-review/{hrProject}', [\App\Http\Controllers\CeoKpiReviewController::class, 'store'])->name('kpi-review.store');
 

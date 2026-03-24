@@ -10,6 +10,8 @@ interface DiagnosisActionsProps {
     diagnosisStatus?: string;
     /** CEO must complete survey before they can verify diagnosis */
     hasSurveyCompleted?: boolean;
+    /** Diagnosis data must be complete before verification */
+    isDiagnosisComplete?: boolean;
     projectId?: number;
 }
 
@@ -19,10 +21,12 @@ export default function DiagnosisActions({
     processing,
     diagnosisStatus,
     hasSurveyCompleted = false,
+    isDiagnosisComplete = false,
     projectId,
 }: DiagnosisActionsProps) {
-    const canConfirm = diagnosisStatus === 'submitted' && hasSurveyCompleted && onConfirm;
+    const canConfirm = diagnosisStatus === 'submitted' && hasSurveyCompleted && isDiagnosisComplete && onConfirm;
     const needsSurvey = diagnosisStatus === 'submitted' && !hasSurveyCompleted;
+    const needsCompleteDiagnosis = diagnosisStatus === 'submitted' && hasSurveyCompleted && !isDiagnosisComplete;
 
     return (
         <div className="mt-8 space-y-4">
@@ -58,10 +62,10 @@ export default function DiagnosisActions({
                         </Button>
                     </Link>
                 )}
-                {canConfirm && (
+                {diagnosisStatus === 'submitted' && hasSurveyCompleted && (
                     <Button
                         onClick={onConfirm}
-                        disabled={processing}
+                        disabled={processing || !isDiagnosisComplete}
                         size="lg"
                         className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all min-w-[200px]"
                     >
@@ -70,6 +74,11 @@ export default function DiagnosisActions({
                     </Button>
                 )}
             </div>
+            {needsCompleteDiagnosis && (
+                <p className="text-sm text-amber-700">
+                    Complete all required diagnosis sections before verification.
+                </p>
+            )}
         </div>
     );
 }

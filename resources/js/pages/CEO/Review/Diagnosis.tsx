@@ -126,6 +126,7 @@ export default function CeoReviewDiagnosis({
     hqLocations = [],
     hrIssues = [],
 }: Props) {
+    const REQUIRED_ORG_CHART_YEARS = ['2023.12', '2024.12', '2025.12'] as const;
     const [activeTab, setActiveTab] = useState('company-info');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [saveNotice, setSaveNotice] = useState<string | null>(null);
@@ -236,6 +237,33 @@ export default function CeoReviewDiagnosis({
                 : [];
         return pos.map((p) => `${p.role} × ${p.count}`).join(', ');
     }, [diagnosis?.executive_positions]);
+
+    const isDiagnosisCompleteForVerification = useMemo(() => {
+        const d = data as Record<string, any>;
+        const hasIndustry = String(d.industry_category ?? '').trim() !== '';
+        const hasHeadcount = Number(d.present_headcount ?? 0) > 0;
+
+        const charts = d.organizational_charts;
+        const chartObj = charts && typeof charts === 'object' && !Array.isArray(charts) ? charts : {};
+        const hasAllCharts = REQUIRED_ORG_CHART_YEARS.every((y) => {
+            const v = chartObj[y];
+            return typeof v === 'string' && v.trim() !== '';
+        });
+
+        const orgTypes = d.org_structure_types;
+        const hasOrgStructure = Array.isArray(orgTypes) && orgTypes.length > 0;
+
+        const jobGrades = d.job_grade_names;
+        const hasJobGrades = Array.isArray(jobGrades) && jobGrades.length > 0;
+
+        const jobCategories = d.job_categories;
+        const jobFunctions = d.job_functions;
+        const hasJobStructure =
+            (Array.isArray(jobCategories) && jobCategories.length > 0) ||
+            (Array.isArray(jobFunctions) && jobFunctions.length > 0);
+
+        return hasIndustry && hasHeadcount && hasAllCharts && hasOrgStructure && hasJobGrades && hasJobStructure;
+    }, [data]);
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -395,6 +423,7 @@ export default function CeoReviewDiagnosis({
                             processing={processing}
                             diagnosisStatus={diagnosis?.status}
                             hasSurveyCompleted={!!project?.ceoPhilosophy}
+                            isDiagnosisComplete={isDiagnosisCompleteForVerification}
                             projectId={project?.id}
                         />
                     </div>

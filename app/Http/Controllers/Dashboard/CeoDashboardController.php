@@ -39,6 +39,13 @@ class CeoDashboardController extends Controller
             });
         })->with(['company', 'diagnosis', 'ceoPhilosophy', 'organizationDesign', 'performanceSystem', 'compensationSystem'])->get();
 
+        $projectIds = $projects->pluck('id')->toArray();
+        $kpiCounts = \App\Models\OrganizationalKpi::whereIn('hr_project_id', $projectIds)
+            ->selectRaw("hr_project_id, COUNT(*) as total, SUM(CASE WHEN COALESCE(ceo_approval_status, '') = 'approved' OR COALESCE(status, '') = 'approved' THEN 1 ELSE 0 END) as approved, SUM(CASE WHEN COALESCE(ceo_approval_status, '') = 'revision_requested' OR COALESCE(status, '') = 'revision_requested' THEN 1 ELSE 0 END) as revision_requested")
+            ->groupBy('hr_project_id')
+            ->get()
+            ->keyBy('hr_project_id');
+
         // Get pending reviews (diagnosis submitted but not approved)
         $pendingReviews = $projects->filter(function ($project) {
             $status = $project->getStepStatus('diagnosis');
@@ -88,7 +95,7 @@ class CeoDashboardController extends Controller
         })->take(5)->values();
 
         // Calculate detailed progress for each project
-        $projectsWithProgress = $projects->map(function ($project) {
+        $projectsWithProgress = $projects->map(function ($project) use ($kpiCounts) {
             $stepStatuses = $project->step_statuses ?? [];
             
             // Calculate HR progress (all 5 steps)
@@ -127,6 +134,21 @@ class CeoDashboardController extends Controller
             } elseif ($diagnosisStatus && in_array($diagnosisStatus->value, ['approved', 'locked'])) {
                 $ceoProgress['diagnosis_review'] = 'completed';
             }
+
+            $counts = $kpiCounts->get($project->id);
+            $kpiTotal = $counts ? (int) $counts->total : 0;
+            $kpiApproved = $counts ? (int) $counts->approved : 0;
+            $kpiRevisionRequested = $counts ? (int) $counts->revision_requested : 0;
+            $kpiStatus = 'none';
+            if ($kpiTotal > 0) {
+                if ($kpiApproved >= $kpiTotal) {
+                    $kpiStatus = 'approved';
+                } elseif ($kpiRevisionRequested > 0) {
+                    $kpiStatus = 'revision_requested';
+                } else {
+                    $kpiStatus = 'pending';
+                }
+            }
             
             return [
                 'id' => $project->id,
@@ -148,6 +170,9 @@ class CeoDashboardController extends Controller
                     'verified_steps' => $ceoVerified,
                     'pending_verification' => $hrSubmitted,
                 ],
+                'kpi_total' => $kpiTotal,
+                'kpi_approved' => $kpiApproved,
+                'kpi_review_status' => $kpiStatus,
                 'created_at' => $project->created_at,
             ];
         });
@@ -188,7 +213,14 @@ class CeoDashboardController extends Controller
             });
         })->with(['company', 'ceoPhilosophy'])->get();
 
-        $projectsWithProgress = $projects->map(function ($project) {
+        $projectIds = $projects->pluck('id')->toArray();
+        $kpiCounts = \App\Models\OrganizationalKpi::whereIn('hr_project_id', $projectIds)
+            ->selectRaw("hr_project_id, COUNT(*) as total, SUM(CASE WHEN COALESCE(ceo_approval_status, '') = 'approved' OR COALESCE(status, '') = 'approved' THEN 1 ELSE 0 END) as approved, SUM(CASE WHEN COALESCE(ceo_approval_status, '') = 'revision_requested' OR COALESCE(status, '') = 'revision_requested' THEN 1 ELSE 0 END) as revision_requested")
+            ->groupBy('hr_project_id')
+            ->get()
+            ->keyBy('hr_project_id');
+
+        $projectsWithProgress = $projects->map(function ($project) use ($kpiCounts) {
             $stepStatuses = $project->step_statuses ?? [];
             $diagnosisStatus = $project->getStepStatus('diagnosis');
             $diagnosisSubmitted = $diagnosisStatus && $diagnosisStatus->value === 'submitted';
@@ -209,6 +241,21 @@ class CeoDashboardController extends Controller
                     $hrSubmitted++;
                 } elseif (in_array($status, ['in_progress'])) {
                     $hrInProgress++;
+                }
+            }
+
+            $counts = $kpiCounts->get($project->id);
+            $kpiTotal = $counts ? (int) $counts->total : 0;
+            $kpiApproved = $counts ? (int) $counts->approved : 0;
+            $kpiRevisionRequested = $counts ? (int) $counts->revision_requested : 0;
+            $kpiStatus = 'none';
+            if ($kpiTotal > 0) {
+                if ($kpiApproved >= $kpiTotal) {
+                    $kpiStatus = 'approved';
+                } elseif ($kpiRevisionRequested > 0) {
+                    $kpiStatus = 'revision_requested';
+                } else {
+                    $kpiStatus = 'pending';
                 }
             }
 
@@ -234,6 +281,9 @@ class CeoDashboardController extends Controller
                     'verified_steps' => $ceoVerified,
                     'pending_verification' => $hrSubmitted,
                 ],
+                'kpi_total' => $kpiTotal,
+                'kpi_approved' => $kpiApproved,
+                'kpi_review_status' => $kpiStatus,
                 'created_at' => $project->created_at,
             ];
         });
@@ -255,6 +305,141 @@ class CeoDashboardController extends Controller
                 'pending_diagnosis_review' => $pendingReviews->count(),
                 'pending_ceo_survey' => $pendingCeoSurvey->count(),
                 'completed_projects' => $projects->filter(fn($p) => $p->isFullyLocked())->count(),
+            ],
+        ]);
+    }
+
+    public function kpiReview(Request $request): Response
+    {
+        $user = $request->user();
+
+        if (!$user || !$user->hasRole('ceo')) {
+            abort(403);
+        }
+
+        $projects = HrProject::whereHas('company', function ($query) use ($user) {
+            $query->whereHas('users', function ($q) use ($user) {
+                $q->where('users.id', $user->id)
+                  ->where('company_users.role', 'ceo');
+            });
+        })->with(['company'])->get();
+
+        $projectIds = $projects->pluck('id')->toArray();
+        $kpiCounts = \App\Models\OrganizationalKpi::whereIn('hr_project_id', $projectIds)
+            ->selectRaw("hr_project_id, COUNT(*) as total, SUM(CASE WHEN COALESCE(ceo_approval_status, '') = 'approved' OR COALESCE(status, '') = 'approved' THEN 1 ELSE 0 END) as approved, SUM(CASE WHEN COALESCE(ceo_approval_status, '') = 'revision_requested' OR COALESCE(status, '') = 'revision_requested' THEN 1 ELSE 0 END) as revision_requested")
+            ->groupBy('hr_project_id')
+            ->get()
+            ->keyBy('hr_project_id');
+
+        $kpiProjects = $projects->map(function ($project) use ($kpiCounts) {
+            $counts = $kpiCounts->get($project->id);
+            $kpiTotal = $counts ? (int) $counts->total : 0;
+            $kpiApproved = $counts ? (int) $counts->approved : 0;
+            $kpiRevisionRequested = $counts ? (int) $counts->revision_requested : 0;
+            $kpiStatus = 'none';
+
+            if ($kpiTotal > 0) {
+                if ($kpiApproved >= $kpiTotal) {
+                    $kpiStatus = 'approved';
+                } elseif ($kpiRevisionRequested > 0) {
+                    $kpiStatus = 'revision_requested';
+                } else {
+                    $kpiStatus = 'pending';
+                }
+            }
+
+            return [
+                'id' => $project->id,
+                'company' => $project->company ? [
+                    'id' => $project->company->id,
+                    'name' => $project->company->name,
+                ] : null,
+                'kpi_total' => $kpiTotal,
+                'kpi_approved' => $kpiApproved,
+                'kpi_review_status' => $kpiStatus,
+                'created_at' => $project->created_at,
+            ];
+        })->filter(fn ($project) => $project['kpi_total'] > 0)->values();
+
+        return Inertia::render('CEO/KpiReview/Index', [
+            'projects' => $kpiProjects,
+            'stats' => [
+                'total_projects' => $projects->count(),
+                'kpi_projects' => $kpiProjects->count(),
+                'pending_kpi_review' => $kpiProjects->where('kpi_review_status', 'pending')->count(),
+                'completed_kpi_review' => $kpiProjects->where('kpi_review_status', 'approved')->count(),
+            ],
+        ]);
+    }
+
+    public function treeList(Request $request): Response
+    {
+        $user = $request->user();
+        if (!$user || !$user->hasRole('ceo')) {
+            abort(403);
+        }
+
+        $projects = HrProject::whereHas('company', function ($query) use ($user) {
+            $query->whereHas('users', function ($q) use ($user) {
+                $q->where('users.id', $user->id)
+                  ->where('company_users.role', 'ceo');
+            });
+        })->with(['company', 'ceoPhilosophy'])->get();
+
+        $projectRows = $projects->map(function ($project) {
+            $surveyDone = (bool) $project->ceoPhilosophy;
+            return [
+                'id' => $project->id,
+                'company' => $project->company ? [
+                    'id' => $project->company->id,
+                    'name' => $project->company->name,
+                ] : null,
+                'survey_completed' => $surveyDone,
+                'created_at' => $project->created_at,
+            ];
+        })->values();
+
+        return Inertia::render('CEO/Tree/List', [
+            'projects' => $projectRows,
+            'stats' => [
+                'total_projects' => $projects->count(),
+                'survey_completed' => $projectRows->where('survey_completed', true)->count(),
+            ],
+        ]);
+    }
+
+    public function reportList(Request $request): Response
+    {
+        $user = $request->user();
+        if (!$user || !$user->hasRole('ceo')) {
+            abort(403);
+        }
+
+        $projects = HrProject::whereHas('company', function ($query) use ($user) {
+            $query->whereHas('users', function ($q) use ($user) {
+                $q->where('users.id', $user->id)
+                  ->where('company_users.role', 'ceo');
+            });
+        })->with(['company', 'ceoPhilosophy'])->get();
+
+        $projectRows = $projects->map(function ($project) {
+            $surveyDone = (bool) $project->ceoPhilosophy;
+            return [
+                'id' => $project->id,
+                'company' => $project->company ? [
+                    'id' => $project->company->id,
+                    'name' => $project->company->name,
+                ] : null,
+                'survey_completed' => $surveyDone,
+                'created_at' => $project->created_at,
+            ];
+        })->values();
+
+        return Inertia::render('CEO/Report/List', [
+            'projects' => $projectRows,
+            'stats' => [
+                'total_projects' => $projects->count(),
+                'survey_completed' => $projectRows->where('survey_completed', true)->count(),
             ],
         ]);
     }

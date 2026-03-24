@@ -189,6 +189,13 @@ export default function FormLayout({
     hidePageTitle = false,
     liveValidationError = null,
 }: FormLayoutProps) {
+    const areFieldErrorsEqual = (a: FieldErrors, b: FieldErrors) => {
+        const aKeys = Object.keys(a);
+        const bKeys = Object.keys(b);
+        if (aKeys.length !== bKeys.length) return false;
+        return aKeys.every((k) => a[k] === b[k]);
+    };
+
     const [validationError, setValidationError] = useState<string | null>(null);
     const [diagnosisFieldErrors, setDiagnosisFieldErrors] = useState<FieldErrors>({});
     const [dismissValidationBanner, setDismissValidationBanner] = useState(false);
@@ -211,29 +218,35 @@ export default function FormLayout({
 
     // Live: drop field errors and top banner as soon as each field / step becomes valid.
     useEffect(() => {
-        setDiagnosisFieldErrors((prev) => {
-            if (Object.keys(prev).length === 0) return prev;
-            const custom = validateBeforeNextRef.current;
-            if (custom) {
-                const ok = custom() === true;
-                if (ok) return {};
-                return prev;
+        const hasFieldErrors = Object.keys(diagnosisFieldErrors).length > 0;
+        const hasTopError = Boolean(validationError);
+        if (!hasFieldErrors && !hasTopError) return;
+
+        const custom = validateBeforeNextRef.current;
+
+        if (custom) {
+            const ok = custom() === true;
+            if (ok) {
+                if (hasFieldErrors) setDiagnosisFieldErrors({});
+                if (hasTopError) setValidationError(null);
             }
-            const merged = mergeDiagnosisWithFormData(diagnosis, formData);
-            const v = validateStepRequiredFields(activeTab, merged);
-            return pruneFieldErrorsToValidator(prev, v.fieldErrors);
-        });
-        setValidationError((ve) => {
-            if (!ve) return null;
-            const custom = validateBeforeNextRef.current;
-            if (custom) {
-                return custom() === true ? null : ve;
+            return;
+        }
+
+        const merged = mergeDiagnosisWithFormData(diagnosis, formData);
+        const v = validateStepRequiredFields(activeTab, merged);
+
+        if (hasFieldErrors) {
+            const nextFieldErrors = pruneFieldErrorsToValidator(diagnosisFieldErrors, v.fieldErrors);
+            if (!areFieldErrorsEqual(diagnosisFieldErrors, nextFieldErrors)) {
+                setDiagnosisFieldErrors(nextFieldErrors);
             }
-            const merged = mergeDiagnosisWithFormData(diagnosis, formData);
-            const v = validateStepRequiredFields(activeTab, merged);
-            return v.isValid ? null : ve;
-        });
-    }, [activeTab, formData, diagnosis]);
+        }
+
+        if (hasTopError && v.isValid) {
+            setValidationError(null);
+        }
+    }, [activeTab, formData, diagnosis, diagnosisFieldErrors, validationError]);
 
     const isReadOnly = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
 

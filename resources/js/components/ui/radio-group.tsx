@@ -36,8 +36,10 @@ RadioGroup.displayName = "RadioGroup"
 
 const RadioGroupItem = React.forwardRef<
   HTMLInputElement,
-  React.InputHTMLAttributes<HTMLInputElement>
->(({ className, value = "", checked, onChange, ...props }, ref) => {
+  Omit<React.InputHTMLAttributes<HTMLInputElement>, "onCheckedChange"> & {
+    onCheckedChange?: (checked: boolean) => void
+  }
+>(({ className, value = "", checked, onChange, onCheckedChange, ...props }, ref) => {
   const group = React.useContext(RadioGroupContext)
   const computedChecked = checked ?? (group.value !== undefined ? group.value === value : undefined)
 
@@ -50,6 +52,7 @@ const RadioGroupItem = React.forwardRef<
       checked={computedChecked}
       onChange={(e) => {
         group.onValueChange?.(String(value))
+        onCheckedChange?.(e.target.checked)
         onChange?.(e)
       }}
       className={cn(

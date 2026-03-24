@@ -1,5 +1,5 @@
 import { Form, Head, Link, useForm } from '@inertiajs/react';
-import { ArrowRight, Sparkles, CheckCircle2, Shield, Zap, ArrowLeft } from 'lucide-react';
+import { ArrowRight, Sparkles, CheckCircle2, Shield, Zap, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Toaster } from '@/components/ui/toaster';
@@ -26,6 +26,7 @@ export default function Login({
     canRegister,
 }: Props) {
     const { t } = useTranslation();
+    const [showPassword, setShowPassword] = React.useState(false);
     const form = useForm({
         email: '',
         password: '',
@@ -161,34 +162,32 @@ export default function Login({
                                         </TextLink>
                                     )}
                                 </div>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    value={form.data.password}
-                                    onChange={(e) => {
-                                        form.setData('password', e.target.value);
-                                        clearInertiaFieldError(form.clearErrors, 'password');
-                                    }}
-                                    required
-                                    tabIndex={2}
-                                    autoComplete="current-password"
-                                    placeholder="••••••••"
-                                    className="h-11 w-full border-[#EEF0F4] focus:ring-2 focus:ring-[#2ECFAB]/30 focus:border-[#2ECFAB]/50"
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={form.data.password}
+                                        onChange={(e) => {
+                                            form.setData('password', e.target.value);
+                                            clearInertiaFieldError(form.clearErrors, 'password');
+                                        }}
+                                        required
+                                        tabIndex={2}
+                                        autoComplete="current-password"
+                                        placeholder="••••••••"
+                                        className="h-11 w-full border-[#EEF0F4] pr-10 focus:ring-2 focus:ring-[#2ECFAB]/30 focus:border-[#2ECFAB]/50"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword((s) => !s)}
+                                        className="absolute inset-y-0 right-0 flex items-center px-3 text-[#6B7585] hover:text-[#0B1E3D]"
+                                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                    >
+                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+                                </div>
                                 <InputError message={form.errors.password} />
                             </div>
-
-                            {canResetPassword && (
-                                <p className="text-center text-sm">
-                                    <TextLink
-                                        href="/forgot-password"
-                                        className="text-[#2ECFAB] font-semibold hover:underline"
-                                        tabIndex={4}
-                                    >
-                                        {t('auth.login.forgot_password_help')}
-                                    </TextLink>
-                                </p>
-                            )}
 
                             <Button
                                 type="submit"

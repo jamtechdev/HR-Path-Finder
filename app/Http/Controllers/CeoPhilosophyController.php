@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StepStatus;
 use App\Models\CeoPhilosophy;
 use App\Models\DiagnosisQuestion;
 use App\Models\HrProject;
 use App\Models\HrIssue;
+use App\Notifications\PhilosophyCompletedNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 
 class CeoPhilosophyController extends Controller
@@ -129,7 +132,25 @@ class CeoPhilosophyController extends Controller
             ]
         );
 
+        // CEO completed survey: verify/lock diagnosis and unlock next workflow step.
+        $currentDiagnosisStatus = $hrProject->getStepStatus('diagnosis');
+        if (!$currentDiagnosisStatus || in_array($currentDiagnosisStatus, [StepStatus::IN_PROGRESS, StepStatus::SUBMITTED, StepStatus::APPROVED], true)) {
+            $hrProject->setStepStatus('diagnosis', StepStatus::LOCKED);
+        }
+        if (! $hrProject->getStepStatus('job_analysis') || $hrProject->getStepStatus('job_analysis') === StepStatus::NOT_STARTED) {
+            $hrProject->setStepStatus('job_analysis', StepStatus::IN_PROGRESS);
+        }
+
+        // Notify HR managers that CEO has completed and verified diagnosis.
+        $hrManagers = $hrProject->company->users()
+            ->wherePivot('role', 'hr_manager')
+            ->get();
+        if ($hrManagers->isNotEmpty()) {
+            Notification::send($hrManagers, new PhilosophyCompletedNotification($hrProject));
+        }
+
         return redirect()->route('ceo.review.diagnosis', $hrProject)
-            ->with('ceoSurveyDone', true);
+            ->with('ceoSurveyDone', true)
+            ->with('success', 'Survey completed and diagnosis verified successfully.');
     }
 }

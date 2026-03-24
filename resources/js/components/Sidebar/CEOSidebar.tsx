@@ -1,73 +1,52 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Building2, Target, FileBarChart, ClipboardList, FileText } from 'lucide-react';
+import { LayoutGrid, Building2, Target, FileBarChart, FolderKanban } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CEOSidebarProps {
     isCollapsed?: boolean;
 }
 
-interface Project {
-    id: number;
-    company?: { name: string } | null;
-    step_statuses?: Record<string, string>;
-    kpi_review_status?: string;
-    kpi_total?: number;
-    kpi_approved?: number;
-}
-
 export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
-    const { url, props } = usePage();
+    const { url } = usePage();
     const currentPath = url.split('?')[0];
 
-    const projects: Project[] = (props as any).projects || [];
-    const currentProjectId = (props as any).project?.id || (props as any).hrProject?.id;
-    const activeProjectId = currentProjectId ?? projects?.[0]?.id;
-
-    const isActive = (path: string) => {
-        if (path === '/') return currentPath === '/';
-        if (path === '/ceo/dashboard') return currentPath === '/ceo/dashboard' || currentPath.startsWith('/ceo/dashboard/');
-        if (path === '/ceo/projects') {
-            return (
-                currentPath === '/ceo/projects' ||
-                currentPath.startsWith('/ceo/projects/') ||
-                currentPath.startsWith('/ceo/review/') ||
-                currentPath.startsWith('/ceo/philosophy/')
-            );
-        }
-        if (path === '/ceo/kpi-review') return currentPath.startsWith('/ceo/kpi-review/');
-        if (path.startsWith('/ceo/report/')) return currentPath.startsWith('/ceo/report/');
-        return currentPath === path || currentPath.startsWith(`${path}/`);
-    };
-
-    const projectsWithKpis = projects.filter((p) => (p.kpi_total ?? 0) > 0);
-
-    const menuItems: { href: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-        { href: '/ceo/dashboard', label: 'Dashboard', icon: LayoutGrid },
-        // CEO "Projects" is effectively the company list.
-        { href: '/ceo/projects', label: 'Companies', icon: Building2 },
+    const menuItems: {
+        href: string;
+        label: string;
+        icon: React.ComponentType<{ className?: string }>;
+        isActive: (path: string) => boolean;
+    }[] = [
+        {
+            href: '/ceo/dashboard',
+            label: 'Dashboard',
+            icon: LayoutGrid,
+            isActive: (path) => path === '/ceo/dashboard' || path.startsWith('/ceo/dashboard/'),
+        },
+        {
+            href: '/ceo/projects',
+            label: 'Companies',
+            icon: Building2,
+            isActive: (path) => path === '/ceo/projects' || path.startsWith('/ceo/projects/'),
+        },
+        {
+            href: '/ceo/kpi-review',
+            label: 'KPI Review (all)',
+            icon: Target,
+            isActive: (path) => path === '/ceo/kpi-review' || path.startsWith('/ceo/kpi-review/'),
+        },
+        {
+            href: '/ceo/tree',
+            label: 'Tree',
+            icon: FolderKanban,
+            isActive: (path) => path === '/ceo/tree' || path.startsWith('/ceo/tree/'),
+        },
+        {
+            href: '/ceo/report',
+            label: 'Report',
+            icon: FileBarChart,
+            isActive: (path) => path === '/ceo/report' || path.startsWith('/ceo/report/'),
+        },
     ];
-    void activeProjectId;
-
-    // Keep all CEO menus, but hide ONLY these two:
-    // - /ceo/tree/*
-    // - /ceo/final-review/*
-    if (activeProjectId) {
-        menuItems.push({ href: `/ceo/review/diagnosis/${activeProjectId}`, label: 'Diagnosis Review', icon: ClipboardList });
-        menuItems.push({ href: `/ceo/philosophy/survey/${activeProjectId}`, label: 'CEO Survey', icon: FileText });
-        menuItems.push({ href: `/ceo/report/${activeProjectId}`, label: 'Report', icon: FileBarChart });
-    }
-    // Always keep KPI Review reachable even in collapsed sidebar.
-    if (projectsWithKpis.length > 0) {
-        menuItems.push({ href: `/ceo/kpi-review/${projectsWithKpis[0].id}`, label: 'KPI Review', icon: Target });
-    }
-
-    const kpiStatusLabel = (status: string) => {
-        if (status === 'approved') return 'Approved';
-        if (status === 'revision_requested') return 'Revision requested';
-        if (status === 'pending') return 'Pending';
-        if (status === 'in_progress') return 'In Progress';
-        return '—';
-    };
 
     return (
         <div className="relative flex h-full w-full flex-col bg-[#111d35] min-h-0">
@@ -89,10 +68,10 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
                 <div className="text-[9px] font-semibold tracking-[1.2px] uppercase text-[rgba(155,165,188,0.5)] px-2 mb-1.5">Menu</div>
                 {menuItems.map((item) => {
                     const Icon = item.icon;
-                    const active = isActive(item.href);
+                    const active = item.isActive(currentPath);
                     return (
                         <Link
-                            key={item.href}
+                            key={`${item.href}-${item.label}`}
                             href={item.href}
                             className={cn(
                                 'flex items-center gap-[9px] py-2 px-2.5 rounded-lg mb-0.5 transition-colors relative',
@@ -111,92 +90,6 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
                         </Link>
                     );
                 })}
-
-                {/* Company quick switch (goes to companies page, not tree) */}
-                {!isCollapsed && projects.length > 0 && (
-                    <>
-                        <div className="text-[9px] font-semibold tracking-[1.2px] uppercase text-[rgba(155,165,188,0.5)] px-2 mt-4 mb-1.5">
-                            Companies
-                        </div>
-                        <div className="space-y-0.5">
-                            {projects.map((project) => {
-                                const label = project.company?.name ?? `Project ${project.id}`;
-                                const href = '/ceo/projects';
-                                const active = currentPath.startsWith('/ceo/projects') && activeProjectId === project.id;
-                                return (
-                                    <Link
-                                        key={project.id}
-                                        href={href}
-                                        className={cn(
-                                            'flex items-center justify-between gap-2 py-2 px-2.5 rounded-lg transition-colors relative',
-                                            active ? 'bg-[rgba(78,205,196,0.12)]' : 'hover:bg-white/[0.06]'
-                                        )}
-                                    >
-                                        {active && (
-                                            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-[18px] bg-[#4ecdc4] rounded-r-[2px]" />
-                                        )}
-                                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                                            <Building2 className={cn('w-[18px] h-[18px] flex-shrink-0', active ? 'text-[#4ecdc4]' : 'text-white/70')} />
-                                            <span className={cn('text-[12px] font-medium truncate', active ? 'text-[#4ecdc4]' : 'text-white/80')}>
-                                                {label}
-                                            </span>
-                                        </div>
-                                    </Link>
-                                );
-                            })}
-                        </div>
-                    </>
-                )}
-
-                {/* KPI Review: all projects with KPIs (old & new) – CEO review status */}
-                {!isCollapsed && projectsWithKpis.length > 0 && (
-                    <>
-                        <div className="text-[9px] font-semibold tracking-[1.2px] uppercase text-[rgba(155,165,188,0.5)] px-2 mt-4 mb-1.5">KPI Review (all)</div>
-                        <div className="space-y-0.5">
-                            {projectsWithKpis.map((project) => {
-                                const href = `/ceo/kpi-review/${project.id}`;
-                                const active = currentPath === href || currentPath.startsWith(href + '/');
-                                const status = project.kpi_review_status ?? 'none';
-                                const label = project.company?.name ?? `Project ${project.id}`;
-                                return (
-                                    <Link
-                                        key={project.id}
-                                        href={href}
-                                        className={cn(
-                                            'flex items-center justify-between gap-2 py-2 px-2.5 rounded-lg transition-colors relative',
-                                            active ? 'bg-[rgba(78,205,196,0.12)]' : 'hover:bg-white/[0.06]'
-                                        )}
-                                    >
-                                        {active && (
-                                            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-[18px] bg-[#4ecdc4] rounded-r-[2px]" />
-                                        )}
-                                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                                            <Target className={cn('w-[18px] h-[18px] flex-shrink-0', active ? 'text-[#4ecdc4]' : 'text-white/70')} />
-                                            <span className={cn('text-[12px] font-medium truncate', active ? 'text-[#4ecdc4]' : 'text-white/80')}>{label}</span>
-                                        </div>
-                                        <span
-                                            className={cn(
-                                                'flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded',
-                                                status === 'approved' && 'bg-emerald-500/20 text-emerald-400',
-                                                status === 'revision_requested' && 'bg-orange-500/20 text-orange-400',
-                                                status === 'pending' && 'bg-amber-500/20 text-amber-400',
-                                                (status === 'in_progress' || status === 'none') && 'bg-white/10 text-white/70'
-                                            )}
-                                        >
-                                            {kpiStatusLabel(status)}
-                                        </span>
-                                    </Link>
-                                );
-                            })}
-                        </div>
-                    </>
-                )}
-                {!isCollapsed && projectsWithKpis.length === 0 && (
-                    <>
-                        <div className="text-[9px] font-semibold tracking-[1.2px] uppercase text-[rgba(155,165,188,0.5)] px-2 mt-4 mb-1.5">KPI Review (all)</div>
-                        <p className="text-[11px] text-white/50 px-2 py-1">No KPIs yet</p>
-                    </>
-                )}
             </div>
         </div>
     );

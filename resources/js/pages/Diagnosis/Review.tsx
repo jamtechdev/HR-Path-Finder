@@ -802,31 +802,33 @@ export default function Review({
                                     </div>
                                 </ReviewCard>
                             </div>
-                            <ReviewCard title={tr('currentIssuesTitle')} icon="⚠️" editUrl={getEditUrl(STEP_MAP.hrIssues)}>
-                                <div className="space-y-3">
-                                    {hrIssuesByCategory.length ? (
-                                        hrIssuesByCategory.map((cat, catIdx) => (
-                                            <div key={`hr-${catIdx}-${cat.category ?? ''}`}>
-                                                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: cat.color }}>
-                                                    {HR_ISSUE_CATEGORY_LABELS[cat.category] ?? cat.category}
-                                                </span>
-                                                <div className="mt-1.5 flex flex-wrap gap-2">
-                                                    {cat.items.map((item, itemIdx) => (
-                                                        <span
-                                                            key={`${cat.category}-item-${itemIdx}-${String(item ?? '')}`}
-                                                            className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs text-slate-700"
-                                                        >
-                                                            {item}
-                                                        </span>
-                                                    ))}
+                            <div className="md:col-span-2">
+                                <ReviewCard title={tr('currentIssuesTitle')} icon="⚠️" editUrl={getEditUrl(STEP_MAP.hrIssues)}>
+                                    <div className="space-y-3">
+                                        {hrIssuesByCategory.length ? (
+                                            hrIssuesByCategory.map((cat, catIdx) => (
+                                                <div key={`hr-${catIdx}-${cat.category ?? ''}`}>
+                                                    <span className="text-xs font-bold uppercase tracking-wider" style={{ color: cat.color }}>
+                                                        {HR_ISSUE_CATEGORY_LABELS[cat.category] ?? cat.category}
+                                                    </span>
+                                                    <div className="mt-1.5 flex flex-wrap gap-2">
+                                                        {cat.items.map((item, itemIdx) => (
+                                                            <span
+                                                                key={`${cat.category}-item-${itemIdx}-${String(item ?? '')}`}
+                                                                className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs text-slate-700"
+                                                            >
+                                                                {item}
+                                                            </span>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="text-sm text-slate-500">—</p>
-                                    )}
-                                </div>
-                            </ReviewCard>
+                                            ))
+                                        ) : (
+                                            <p className="text-sm text-slate-500">—</p>
+                                        )}
+                                    </div>
+                                </ReviewCard>
+                            </div>
                         </div>
 
                         {/* Org chart + Org structure */}

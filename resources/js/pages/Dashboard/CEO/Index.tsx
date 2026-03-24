@@ -1,13 +1,12 @@
 import { Head, Link } from '@inertiajs/react';
-import { 
-    FolderKanban, 
-    CheckCircle2, 
-    Clock, 
+import {
+    FolderKanban,
+    CheckCircle2,
+    Clock,
     FileText,
     AlertCircle,
     ArrowRight,
     Eye,
-    TrendingUp,
     Target,
     ClipboardList
 } from 'lucide-react';
@@ -75,6 +74,8 @@ export default function CeoDashboard({
     stats,
     needsAttention,
 }: Props) {
+    const surveyCompletedCount = projects.filter((project) => !!project.ceoPhilosophy).length;
+
     const getStatusBadge = (status: string) => {
         const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
             'not_started': { label: 'Not Started', variant: 'outline' },
@@ -104,7 +105,7 @@ export default function CeoDashboard({
                         </div>
 
                         {/* Statistics Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
                             <Link href="/ceo/projects">
                                 <Card className="border-t-6 border-t-blue-500 hover:shadow-lg transition-shadow cursor-pointer">
                                     <CardContent className="p-6">
@@ -143,7 +144,7 @@ export default function CeoDashboard({
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="text-sm text-muted-foreground mb-1">Pending Survey</p>
-                                                <p className="text-3xl font-bold">{surveyAvailableProjects.length + stats.pending_ceo_survey}</p>
+                                                <p className="text-3xl font-bold">{stats.pending_ceo_survey}</p>
                                             </div>
                                             <div className="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center">
                                                 <FileText className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
@@ -168,7 +169,109 @@ export default function CeoDashboard({
                                     </CardContent>
                                 </Card>
                             </Link>
+
+                            <Link href="/ceo/projects">
+                                <Card className="border-t-6 border-t-emerald-500 hover:shadow-lg transition-shadow cursor-pointer">
+                                    <CardContent className="p-6">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-sm text-muted-foreground mb-1">Survey Completed</p>
+                                                <p className="text-3xl font-bold">{surveyCompletedCount}</p>
+                                            </div>
+                                            <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center">
+                                                <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+
+                            <Link href="/ceo/kpi-review">
+                                <Card className="border-t-6 border-t-cyan-500 hover:shadow-lg transition-shadow cursor-pointer">
+                                    <CardContent className="p-6">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-sm text-muted-foreground mb-1">Pending KPI Review</p>
+                                                <p className="text-3xl font-bold">{stats.pending_kpi_review ?? 0}</p>
+                                            </div>
+                                            <div className="w-12 h-12 rounded-xl bg-cyan-100 dark:bg-cyan-900/20 flex items-center justify-center">
+                                                <Target className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
                         </div>
+
+                        {/* Simple all-project table */}
+                        <Card className="mb-8 overflow-hidden">
+                            <CardHeader>
+                                <CardTitle>All Companies (Simple Table)</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead className="bg-muted/50">
+                                            <tr className="text-left">
+                                                <th className="px-4 py-3 font-semibold">Company</th>
+                                                <th className="px-4 py-3 font-semibold">Diagnosis</th>
+                                                <th className="px-4 py-3 font-semibold">Survey</th>
+                                                <th className="px-4 py-3 font-semibold">KPI</th>
+                                                <th className="px-4 py-3 font-semibold">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {projects.map((project) => {
+                                                const surveyDone = !!project.ceoPhilosophy;
+                                                return (
+                                                    <tr key={project.id} className="border-t">
+                                                        <td className="px-4 py-3 font-medium">
+                                                            {project.company?.name || `Project #${project.id}`}
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            {project.step_statuses?.diagnosis || 'not_started'}
+                                                        </td>
+                                                        <td className="px-4 py-3">{surveyDone ? 'Completed' : 'Pending'}</td>
+                                                        <td className="px-4 py-3">
+                                                            {(project as any).kpi_total ?? 0} total
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex flex-wrap gap-2">
+                                                                <Link href={`/ceo/review/diagnosis/${project.id}`}>
+                                                                    <Button size="sm" variant="outline">Diagnosis Review</Button>
+                                                                </Link>
+                                                                {surveyDone ? (
+                                                                    <Badge variant="secondary" className="self-center">Survey Completed</Badge>
+                                                                ) : (
+                                                                    <Link href={`/ceo/philosophy/survey/${project.id}`}>
+                                                                        <Button size="sm" variant="outline">Survey</Button>
+                                                                    </Link>
+                                                                )}
+                                                                {surveyDone && (
+                                                                    <>
+                                                                        <Link href={`/ceo/tree/${project.id}`}>
+                                                                            <Button size="sm" variant="outline">View Tree</Button>
+                                                                        </Link>
+                                                                        <Link href={`/ceo/report/${project.id}`}>
+                                                                            <Button size="sm" variant="outline">View Report</Button>
+                                                                        </Link>
+                                                                    </>
+                                                                )}
+                                                                {((project as any).kpi_total ?? 0) > 0 && (
+                                                                    <Link href={`/ceo/kpi-review/${project.id}`}>
+                                                                        <Button size="sm">KPI Review</Button>
+                                                                    </Link>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </CardContent>
+                        </Card>
 
                         {/* Action Cards */}
                         {pendingReviews.length > 0 && (
