@@ -4,14 +4,6 @@ import React from 'react';
 import TextLink from '@/components/text-link';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import { Spinner } from '@/components/ui/spinner';
 import { Toaster } from '@/components/ui/toaster';
 import { toast } from '@/hooks/use-toast';
@@ -20,16 +12,9 @@ import type { SharedData } from '@/types';
 
 export default function VerifyEmail({ status, smtpConfigured = true }: { status?: string; smtpConfigured?: boolean }) {
     const { flash } = usePage<SharedData>().props;
-    const [welcomeOpen, setWelcomeOpen] = React.useState(false);
     const [isVerifying, setIsVerifying] = React.useState(false);
     const form = useForm({});
     const flashToastSig = React.useRef<string>('');
-
-    React.useEffect(() => {
-        if (flash?.registration_created) {
-            setWelcomeOpen(true);
-        }
-    }, [flash?.registration_created]);
 
     React.useEffect(() => {
         const sig = `${flash?.warning ?? ''}|${flash?.success ?? ''}`;
@@ -64,22 +49,6 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
     
     return (
         <div className="min-h-screen gradient-hero flex flex-nowrap relative overflow-hidden">
-            <Dialog open={welcomeOpen} onOpenChange={setWelcomeOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Welcome — you&apos;re registered</DialogTitle>
-                        <DialogDescription className="text-left pt-2">
-                            {flash?.success ??
-                                'We sent a verification link to your email. Open it to verify your address, then you can use the dashboard.'}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button type="button" className="w-full sm:w-auto" onClick={() => setWelcomeOpen(false)}>
-                            Continue
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
             <Toaster />
             {/* Animated Background Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
