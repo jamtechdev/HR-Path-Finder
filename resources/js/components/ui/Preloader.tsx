@@ -9,6 +9,7 @@ export default function Preloader({ appName = 'HR Path-Finder' }: PreloaderProps
     const [isVisible, setIsVisible] = useState(true);
     const initialHandledRef = useRef(false);
     const navigationTimerRef = useRef<number | null>(null);
+    const hardFallbackTimerRef = useRef<number | null>(null);
 
     useEffect(() => {
         if (typeof window === 'undefined' || initialHandledRef.current) {
@@ -26,6 +27,10 @@ export default function Preloader({ appName = 'HR Path-Finder' }: PreloaderProps
             setTimeout(() => {
                 preloaderElement.classList.add('hide');
                 setIsVisible(false);
+                if (hardFallbackTimerRef.current) {
+                    window.clearTimeout(hardFallbackTimerRef.current);
+                    hardFallbackTimerRef.current = null;
+                }
 
                 setTimeout(() => {
                     document.body.classList.remove('preloader-active');
@@ -33,13 +38,22 @@ export default function Preloader({ appName = 'HR Path-Finder' }: PreloaderProps
             }, 350);
         };
 
+        // Safety net: never keep loader forever on refresh.
+        hardFallbackTimerRef.current = window.setTimeout(hide, 2500);
+
         if (document.readyState === 'complete') {
             hide();
             return;
         }
 
         window.addEventListener('load', hide, { once: true });
-        return () => window.removeEventListener('load', hide);
+        return () => {
+            window.removeEventListener('load', hide);
+            if (hardFallbackTimerRef.current) {
+                window.clearTimeout(hardFallbackTimerRef.current);
+                hardFallbackTimerRef.current = null;
+            }
+        };
     }, []);
 
     useEffect(() => {
@@ -48,6 +62,10 @@ export default function Preloader({ appName = 'HR Path-Finder' }: PreloaderProps
             document.body.classList.add('preloader-active');
             const el = document.getElementById('preloader');
             el?.classList.remove('hide');
+            if (hardFallbackTimerRef.current) {
+                window.clearTimeout(hardFallbackTimerRef.current);
+            }
+            hardFallbackTimerRef.current = window.setTimeout(hide, 3000);
         };
 
         const hide = () => {
@@ -59,6 +77,10 @@ export default function Preloader({ appName = 'HR Path-Finder' }: PreloaderProps
                 if (!el) return;
                 el.classList.add('hide');
                 setIsVisible(false);
+                if (hardFallbackTimerRef.current) {
+                    window.clearTimeout(hardFallbackTimerRef.current);
+                    hardFallbackTimerRef.current = null;
+                }
                 window.setTimeout(() => {
                     document.body.classList.remove('preloader-active');
                 }, 500);
@@ -67,12 +89,23 @@ export default function Preloader({ appName = 'HR Path-Finder' }: PreloaderProps
 
         const offStart = router.on('start', show);
         const offFinish = router.on('finish', hide);
+        const offNavigate = router.on('navigate', hide);
+        const offError = router.on('error', hide);
+        const offInvalid = router.on('invalid', hide);
+        const offException = router.on('exception', hide);
 
         return () => {
             offStart();
             offFinish();
+            offNavigate();
+            offError();
+            offInvalid();
+            offException();
             if (navigationTimerRef.current) {
                 window.clearTimeout(navigationTimerRef.current);
+            }
+            if (hardFallbackTimerRef.current) {
+                window.clearTimeout(hardFallbackTimerRef.current);
             }
         };
     }, []);
