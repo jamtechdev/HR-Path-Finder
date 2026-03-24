@@ -11,6 +11,7 @@ export type SharedData = {
     flash?: {
         success?: string;
         registration_created?: boolean;
+        registration_message?: string;
         error?: string;
         warning?: string;
         info?: string;

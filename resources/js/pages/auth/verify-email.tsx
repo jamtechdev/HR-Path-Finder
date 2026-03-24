@@ -5,8 +5,6 @@ import TextLink from '@/components/text-link';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import { Toaster } from '@/components/ui/toaster';
-import { toast } from '@/hooks/use-toast';
 import { logout, home } from '@/routes';
 import type { SharedData } from '@/types';
 
@@ -14,26 +12,9 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
     const { flash } = usePage<SharedData>().props;
     const [isVerifying, setIsVerifying] = React.useState(false);
     const [remoteVerified, setRemoteVerified] = React.useState(false);
+    const [isRedirecting, setIsRedirecting] = React.useState(false);
+    const hasTriggeredRedirectRef = React.useRef(false);
     const form = useForm({});
-    const flashToastSig = React.useRef<string>('');
-    const remoteVerifiedShownRef = React.useRef(false);
-
-    React.useEffect(() => {
-        const sig = `${flash?.warning ?? ''}|${flash?.success ?? ''}`;
-        if (!sig.replace(/\|/g, '')) {
-            return;
-        }
-        if (flashToastSig.current === sig) {
-            return;
-        }
-        flashToastSig.current = sig;
-        if (flash?.warning) {
-            toast({ title: flash.warning, variant: 'default' });
-        }
-        if (flash?.success) {
-            toast({ title: flash.success, variant: 'success' });
-        }
-    }, [flash?.warning, flash?.success]);
 
     // Cross-device verify support:
     // if user verifies via mobile email link, desktop page detects and shows success message.
@@ -52,12 +33,13 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                 if (!res.ok) return;
                 const data = await res.json();
                 if (!mounted) return;
-                if (data?.verified) {
+                if (data?.verified && !hasTriggeredRedirectRef.current) {
+                    hasTriggeredRedirectRef.current = true;
                     setRemoteVerified(true);
-                    if (!remoteVerifiedShownRef.current) {
-                        remoteVerifiedShownRef.current = true;
-                        toast({ title: 'Email verified successfully. You can continue now.', variant: 'success' });
-                    }
+                    setIsRedirecting(true);
+                    window.setTimeout(() => {
+                        router.visit('/dashboard', { replace: true });
+                    }, 1200);
                 }
             } catch {
                 // Silent fail: polling should not disrupt verify page UX.
@@ -88,7 +70,6 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
     
     return (
         <div className="min-h-screen gradient-hero flex flex-nowrap relative overflow-hidden">
-            <Toaster />
             {/* Animated Background Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
@@ -216,6 +197,15 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                             </Alert>
                         )}
 
+                        {flash?.registration_message && (
+                            <Alert className="border-green-600/40 bg-green-50 dark:bg-green-950/30">
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                                <AlertDescription className="text-green-900 dark:text-green-100 text-sm font-medium">
+                                    {flash.registration_message}
+                                </AlertDescription>
+                            </Alert>
+                        )}
+
                         {/* Success Message */}
                         {status === 'verification-link-sent' && (
                             <div className="p-4 rounded-lg bg-success/10 border border-success/20 text-center text-sm font-medium text-success animate-in fade-in slide-in-from-top-4">
@@ -228,6 +218,12 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                             <div className="p-4 rounded-lg bg-success/10 border border-success/20 text-center text-sm font-medium text-success animate-in fade-in slide-in-from-top-4">
                                 <CheckCircle className="w-5 h-5 mx-auto mb-2" />
                                 Email verified successfully.
+                            </div>
+                        )}
+
+                        {isRedirecting && (
+                            <div className="p-4 rounded-lg bg-[#EAF7F3] border border-[#2ECFAB]/30 text-center text-sm font-medium text-[#1A8C6F] animate-in fade-in slide-in-from-top-4">
+                                Redirecting to dashboard...
                             </div>
                         )}
 

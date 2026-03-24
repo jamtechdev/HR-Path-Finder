@@ -2,7 +2,6 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
@@ -28,17 +27,13 @@ Route::get('/login', function (Request $request) {
 })->name('login');
 
 // Custom email verification callback:
-// after verify, force login page with success message.
+// after verify, send user to dashboard.
 Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
     if (! $request->user()->hasVerifiedEmail()) {
         $request->fulfill();
     }
 
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-
-    return redirect()->route('login')->with('status', 'Email verification successful. Please sign in.');
+    return redirect()->route('dashboard')->with('success', 'Email verification successful.');
 })->middleware(['auth', 'signed', 'throttle:6,1'])->name('verification.verify');
 
 // Polling endpoint for cross-device verification feedback on verify-email page.
@@ -90,7 +85,7 @@ Route::get('invitations/reject/{token}', [\App\Http\Controllers\CompanyInvitatio
 Route::get('invitations/set-password/{token}', [\App\Http\Controllers\CompanyInvitationController::class, 'showSetPassword'])->name('ceo.set-password');
 Route::post('invitations/set-password', [\App\Http\Controllers\CompanyInvitationController::class, 'submitSetPassword'])->name('ceo.set-password.submit');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('pending-approval', [\App\Http\Controllers\BetaPendingController::class, 'show'])->name('beta.pending');
 
     // Main dashboard with role-based redirect

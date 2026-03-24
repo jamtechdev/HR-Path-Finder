@@ -9,13 +9,23 @@ const ToastProvider = ({ children }: { children: React.ReactNode }) => <>{childr
 const ToastViewport = React.forwardRef<
   HTMLDivElement,
   React.ComponentPropsWithoutRef<"div">
->(({ className, ...props }, ref) => (
+>(({ className, style, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
       "fixed top-4 right-4 left-auto z-[100] flex max-h-screen w-[420px] max-w-[calc(100vw-1rem)] flex-col gap-2",
       className
     )}
+    style={{
+      position: "fixed",
+      top: "16px",
+      right: "16px",
+      left: "auto",
+      width: "min(420px, calc(100vw - 16px))",
+      maxWidth: "min(420px, calc(100vw - 16px))",
+      writingMode: "horizontal-tb",
+      ...style,
+    }}
     {...props}
   />
 ))
@@ -48,7 +58,7 @@ const Toast = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn(toastVariants({ variant }), className)}
+      className={cn(toastVariants({ variant }), "min-w-[280px]", className)}
       {...props}
     />
   )

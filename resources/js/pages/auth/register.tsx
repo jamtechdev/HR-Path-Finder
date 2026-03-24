@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ArrowLeft, Eye, EyeOff, WandSparkles } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import InputError from '@/components/input-error';
@@ -27,6 +27,44 @@ export default function Register({ status }: Props) {
     });
     
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [showPassword, setShowPassword] = React.useState(false);
+    const [showPasswordConfirmation, setShowPasswordConfirmation] = React.useState(false);
+
+    const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
+        if (!password) return { score: 0, label: 'Enter password', color: 'bg-slate-200' };
+
+        let score = 0;
+        if (password.length >= 8) score += 1;
+        if (/[A-Z]/.test(password)) score += 1;
+        if (/[a-z]/.test(password)) score += 1;
+        if (/\d/.test(password)) score += 1;
+        if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+        if (score <= 2) return { score: 1, label: 'Weak', color: 'bg-red-500' };
+        if (score <= 4) return { score: 2, label: 'Medium', color: 'bg-amber-500' };
+        return { score: 3, label: 'Strong', color: 'bg-emerald-500' };
+    };
+
+    const passwordStrength = getPasswordStrength(form.data.password);
+
+    const generatePassword = React.useCallback(() => {
+        const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*';
+        const length = 14;
+        const bytes = new Uint32Array(length);
+        if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+            window.crypto.getRandomValues(bytes);
+        } else {
+            for (let i = 0; i < length; i++) bytes[i] = Math.floor(Math.random() * alphabet.length);
+        }
+
+        const generated = Array.from(bytes, (n) => alphabet[n % alphabet.length]).join('');
+        form.setData('password', generated);
+        form.setData('password_confirmation', generated);
+        clearInertiaFieldError(form.clearErrors, 'password');
+        clearInertiaFieldError(form.clearErrors, 'password_confirmation');
+        setShowPassword(true);
+        setShowPasswordConfirmation(true);
+    }, [form]);
 
     return (
         <div className="min-h-screen flex flex-nowrap relative overflow-hidden" data-auth-revision>
@@ -181,21 +219,54 @@ export default function Register({ status }: Props) {
                                             <Label htmlFor="password" className="text-sm font-medium leading-none cursor-pointer">
                                                 {t('auth.register.password_label')}
                                             </Label>
-                                            <Input
-                                                id="password"
-                                                type="password"
-                                                name="password"
-                                                value={form.data.password}
-                                                onChange={(e) => {
-                                                    form.setData('password', e.target.value);
-                                                    clearInertiaFieldError(form.clearErrors, 'password');
-                                                }}
-                                                required
-                                                tabIndex={3}
-                                                autoComplete="new-password"
-                                                placeholder={t('auth.register.password_placeholder')}
-                                                className="h-11 w-full border-[#EEF0F4] focus:ring-2 focus:ring-[#2ECFAB]/30 focus:border-[#2ECFAB]/50"
-                                            />
+                                            <div className="relative">
+                                                <Input
+                                                    id="password"
+                                                    type={showPassword ? 'text' : 'password'}
+                                                    name="password"
+                                                    value={form.data.password}
+                                                    onChange={(e) => {
+                                                        form.setData('password', e.target.value);
+                                                        clearInertiaFieldError(form.clearErrors, 'password');
+                                                    }}
+                                                    required
+                                                    tabIndex={3}
+                                                    autoComplete="new-password"
+                                                    placeholder={t('auth.register.password_placeholder')}
+                                                    className="h-11 w-full border-[#EEF0F4] pr-20 focus:ring-2 focus:ring-[#2ECFAB]/30 focus:border-[#2ECFAB]/50"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={generatePassword}
+                                                    className="absolute inset-y-0 right-9 flex items-center px-2 text-[#6B7585] hover:text-[#0B1E3D]"
+                                                    aria-label="Generate secure password"
+                                                    title="Generate secure password"
+                                                >
+                                                    <WandSparkles className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword((s) => !s)}
+                                                    className="absolute inset-y-0 right-0 flex items-center px-3 text-[#6B7585] hover:text-[#0B1E3D]"
+                                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                                >
+                                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </button>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between text-xs">
+                                                    <span className="text-[#3D5068]">Password strength</span>
+                                                    <span className="font-medium text-[#0B1E3D]">{passwordStrength.label}</span>
+                                                </div>
+                                                <div className="grid grid-cols-3 gap-1">
+                                                    {[1, 2, 3].map((level) => (
+                                                        <div
+                                                            key={level}
+                                                            className={`h-1.5 rounded-full ${passwordStrength.score >= level ? passwordStrength.color : 'bg-[#E7EAF0]'}`}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
                                             <p className="text-xs text-[#3D5068]">{t('auth.register.password_hint')}</p>
                                             <InputError message={errors.password} />
                                         </div>
@@ -204,21 +275,31 @@ export default function Register({ status }: Props) {
                                             <Label htmlFor="password_confirmation" className="text-sm font-medium leading-none cursor-pointer">
                                                 {t('auth.register.password_confirm_label')}
                                             </Label>
-                                            <Input
-                                                id="password_confirmation"
-                                                type="password"
-                                                name="password_confirmation"
-                                                value={form.data.password_confirmation}
-                                                onChange={(e) => {
-                                                    form.setData('password_confirmation', e.target.value);
-                                                    clearInertiaFieldError(form.clearErrors, 'password_confirmation');
-                                                }}
-                                                required
-                                                tabIndex={4}
-                                                autoComplete="new-password"
-                                                placeholder={t('auth.register.password_confirm_placeholder')}
-                                                className="h-11 w-full border-[#EEF0F4] focus:ring-2 focus:ring-[#2ECFAB]/30 focus:border-[#2ECFAB]/50"
-                                            />
+                                            <div className="relative">
+                                                <Input
+                                                    id="password_confirmation"
+                                                    type={showPasswordConfirmation ? 'text' : 'password'}
+                                                    name="password_confirmation"
+                                                    value={form.data.password_confirmation}
+                                                    onChange={(e) => {
+                                                        form.setData('password_confirmation', e.target.value);
+                                                        clearInertiaFieldError(form.clearErrors, 'password_confirmation');
+                                                    }}
+                                                    required
+                                                    tabIndex={4}
+                                                    autoComplete="new-password"
+                                                    placeholder={t('auth.register.password_confirm_placeholder')}
+                                                    className="h-11 w-full border-[#EEF0F4] pr-10 focus:ring-2 focus:ring-[#2ECFAB]/30 focus:border-[#2ECFAB]/50"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPasswordConfirmation((s) => !s)}
+                                                    className="absolute inset-y-0 right-0 flex items-center px-3 text-[#6B7585] hover:text-[#0B1E3D]"
+                                                    aria-label={showPasswordConfirmation ? 'Hide confirmation password' : 'Show confirmation password'}
+                                                >
+                                                    {showPasswordConfirmation ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </button>
+                                            </div>
                                             <InputError message={errors.password_confirmation} />
                                         </div>
 
