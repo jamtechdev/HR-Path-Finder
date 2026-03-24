@@ -22,6 +22,7 @@ Route::get('/login', function (Request $request) {
         return redirect()->route('dashboard');
     }
     return Inertia::render('auth/login', [
+        'canResetPassword' => true,
         'canRegister' => Features::enabled(Features::registration()),
     ]);
 })->name('login');

@@ -71,6 +71,9 @@ export default function SettingsIndex({
     status 
 }: PageProps) {
     const { auth } = usePage<any>().props;
+    const isAdmin = Array.isArray(auth?.user?.roles)
+        ? auth.user.roles.some((role: { name?: string }) => role?.name === 'admin')
+        : false;
     const [activeTab, setActiveTab] = useState(initialTab);
     const [testingEmail, setTestingEmail] = useState(false);
     const passwordInput = useRef<HTMLInputElement>(null);
@@ -94,12 +97,20 @@ export default function SettingsIndex({
         const urlParams = new URLSearchParams(window.location.search);
         const tabParam = urlParams.get('tab');
         if (tabParam && tabParam !== activeTab) {
-            setActiveTab(tabParam);
+            if (!isAdmin && (tabParam === 'smtp' || tabParam === 'app')) {
+                setActiveTab('profile');
+            } else {
+                setActiveTab(tabParam);
+            }
         }
-    }, []);
+    }, [activeTab, isAdmin]);
 
     // Update URL when tab changes
     const handleTabChange = (value: string) => {
+        if (!isAdmin && (value === 'smtp' || value === 'app')) {
+            setActiveTab('profile');
+            return;
+        }
         setActiveTab(value);
         const url = new URL(window.location.href);
         url.searchParams.set('tab', value);
@@ -223,7 +234,7 @@ export default function SettingsIndex({
 
                         {/* Tabs */}
                         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-                            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-6">
+                            <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4 lg:grid-cols-6' : 'grid-cols-2 lg:grid-cols-4'}`}>
                                 <TabsTrigger value="profile" className="flex items-center gap-2">
                                     <User className="w-4 h-4" />
                                     <span className="hidden sm:inline">Profile</span>
@@ -232,14 +243,18 @@ export default function SettingsIndex({
                                     <Lock className="w-4 h-4" />
                                     <span className="hidden sm:inline">Password</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="smtp" className="flex items-center gap-2">
-                                    <Mail className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Email</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="app" className="flex items-center gap-2">
-                                    <Building2 className="w-4 h-4" />
-                                    <span className="hidden sm:inline">App</span>
-                                </TabsTrigger>
+                                {isAdmin && (
+                                    <TabsTrigger value="smtp" className="flex items-center gap-2">
+                                        <Mail className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Email</span>
+                                    </TabsTrigger>
+                                )}
+                                {isAdmin && (
+                                    <TabsTrigger value="app" className="flex items-center gap-2">
+                                        <Building2 className="w-4 h-4" />
+                                        <span className="hidden sm:inline">App</span>
+                                    </TabsTrigger>
+                                )}
                                 <TabsTrigger value="appearance" className="flex items-center gap-2">
                                     <Palette className="w-4 h-4" />
                                     <span className="hidden lg:inline">Appearance</span>
@@ -421,6 +436,7 @@ export default function SettingsIndex({
                             </TabsContent>
 
                             {/* SMTP/Email Tab */}
+                            {isAdmin && (
                             <TabsContent value="smtp" className="space-y-6">
                                 {/* SMTP Status */}
                                 <Alert className={smtpConfigured ? 'border-success/50 bg-success/5' : 'border-orange-500/50 bg-orange-50 dark:bg-orange-950/20'}>
@@ -654,8 +670,10 @@ export default function SettingsIndex({
                                     </CardContent>
                                 </Card>
                             </TabsContent>
+                            )}
 
                             {/* Application Settings Tab */}
+                            {isAdmin && (
                             <TabsContent value="app" className="space-y-6">
                                 <Card>
                                     <CardHeader>
@@ -723,6 +741,7 @@ export default function SettingsIndex({
                                     </CardContent>
                                 </Card>
                             </TabsContent>
+                            )}
 
                             {/* Appearance Tab */}
                             <TabsContent value="appearance" className="space-y-6">

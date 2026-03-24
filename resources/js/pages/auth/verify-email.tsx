@@ -9,12 +9,23 @@ import { logout, home } from '@/routes';
 import type { SharedData } from '@/types';
 
 export default function VerifyEmail({ status, smtpConfigured = true }: { status?: string; smtpConfigured?: boolean }) {
-    const { flash } = usePage<SharedData>().props;
+    const { flash, auth } = usePage<SharedData>().props;
     const [isVerifying, setIsVerifying] = React.useState(false);
     const [remoteVerified, setRemoteVerified] = React.useState(false);
     const [isRedirecting, setIsRedirecting] = React.useState(false);
     const hasTriggeredRedirectRef = React.useRef(false);
     const form = useForm({});
+
+    React.useEffect(() => {
+        if (auth?.user?.email_verified_at && !hasTriggeredRedirectRef.current) {
+            hasTriggeredRedirectRef.current = true;
+            setRemoteVerified(true);
+            setIsRedirecting(true);
+            window.setTimeout(() => {
+                router.visit('/dashboard', { replace: true });
+            }, 1200);
+        }
+    }, [auth?.user?.email_verified_at]);
 
     // Cross-device verify support:
     // if user verifies via mobile email link, desktop page detects and shows success message.

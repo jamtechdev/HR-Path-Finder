@@ -49,7 +49,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 <div className="flex items-center gap-8 text-white/50 text-sm">
                     <span>🔐 OTP-based security</span>
                     <span>•</span>
-                    <span>10-minute validity</span>
+                    <span>5-minute validity</span>
                     <span>•</span>
                     <span>One-time use</span>
                 </div>

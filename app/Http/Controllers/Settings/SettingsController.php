@@ -14,11 +14,21 @@ use Inertia\Response;
 
 class SettingsController extends Controller
 {
+    private function ensureAdmin(Request $request): void
+    {
+        if (! $request->user() || ! $request->user()->hasRole('admin')) {
+            abort(403, 'Only admin can access this settings section.');
+        }
+    }
+
     /**
      * Show the settings page with all tabs.
      */
     public function index(Request $request): Response
     {
+        $user = $request->user();
+        $isAdmin = $user && $user->hasRole('admin');
+
         $smtpConfigured = SmtpConfigurationService::isConfigured();
         
         // Get current SMTP settings - check .env first, then database, then config
@@ -31,7 +41,6 @@ class SettingsController extends Controller
         ];
 
         // Get two-factor authentication status
-        $user = $request->user();
         $twoFactorEnabled = $user && method_exists($user, 'hasEnabledTwoFactorAuthentication') 
             ? $user->hasEnabledTwoFactorAuthentication() 
             : false;
@@ -43,6 +52,9 @@ class SettingsController extends Controller
 
         // Get active tab from query parameter
         $activeTab = $request->query('tab', 'profile');
+        if (! $isAdmin && in_array($activeTab, ['smtp', 'app'], true)) {
+            $activeTab = 'profile';
+        }
 
         return Inertia::render('settings/index', [
             'smtpConfigured' => $smtpConfigured,
@@ -61,6 +73,8 @@ class SettingsController extends Controller
      */
     public function updateSmtp(Request $request)
     {
+        $this->ensureAdmin($request);
+
         $validated = $request->validate([
             'mailer' => 'required|string|in:smtp,ses,postmark,resend',
             'host' => 'required_if:mailer,smtp|string|max:255',
@@ -200,6 +214,8 @@ class SettingsController extends Controller
      */
     public function testSmtp(Request $request)
     {
+        $this->ensureAdmin($request);
+
         $request->validate([
             'test_email' => 'required|email',
         ]);
@@ -218,6 +234,8 @@ class SettingsController extends Controller
      */
     public function updateApp(Request $request)
     {
+        $this->ensureAdmin($request);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'logo' => 'nullable|image|max:2048',

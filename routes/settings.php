@@ -13,11 +13,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('settings/index', [\App\Http\Controllers\Settings\SettingsController::class, 'index'])->name('settings.index');
     
     // SMTP Settings
-    Route::post('settings/smtp/update', [\App\Http\Controllers\Settings\SettingsController::class, 'updateSmtp'])->name('settings.smtp.update');
-    Route::post('settings/smtp/test', [\App\Http\Controllers\Settings\SettingsController::class, 'testSmtp'])->name('settings.smtp.test');
+    Route::post('settings/smtp/update', [\App\Http\Controllers\Settings\SettingsController::class, 'updateSmtp'])
+        ->middleware('role:admin')
+        ->name('settings.smtp.update');
+    Route::post('settings/smtp/test', [\App\Http\Controllers\Settings\SettingsController::class, 'testSmtp'])
+        ->middleware('role:admin')
+        ->name('settings.smtp.test');
     
     // Application Settings
-    Route::post('settings/app/update', [\App\Http\Controllers\Settings\SettingsController::class, 'updateApp'])->name('settings.app.update');
+    Route::post('settings/app/update', [\App\Http\Controllers\Settings\SettingsController::class, 'updateApp'])
+        ->middleware('role:admin')
+        ->name('settings.app.update');
 
     Route::get('settings/profile', function () {
         return redirect()->route('settings.index', ['tab' => 'profile']);

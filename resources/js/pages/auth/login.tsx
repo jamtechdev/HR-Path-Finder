@@ -2,12 +2,14 @@ import { Form, Head, Link, useForm } from '@inertiajs/react';
 import { ArrowRight, Sparkles, CheckCircle2, Shield, Zap, ArrowLeft } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { Toaster } from '@/components/ui/toaster';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { toast } from '@/hooks/use-toast';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { register, home } from '@/routes';
 import { request } from '@/routes/password';
@@ -30,9 +32,16 @@ export default function Login({
         remember: false,
     });
 
+    React.useEffect(() => {
+        if (status) {
+            toast({ title: status, variant: 'success' });
+        }
+    }, [status]);
+
 
     return (
         <div className="min-h-screen flex flex-nowrap relative overflow-hidden" data-auth-revision>
+            <Toaster />
             <div className="absolute inset-0 overflow-hidden pointer-events-none lg:block hidden">
                 <div className="absolute top-20 left-10 w-72 h-72 bg-[#2ECFAB]/10 rounded-full blur-3xl animate-pulse" />
                 <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#C8A84B]/8 rounded-full blur-3xl animate-pulse delay-1000" />
