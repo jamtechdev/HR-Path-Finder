@@ -1,7 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
@@ -49,8 +49,8 @@ export default function KpiTemplatesIndex({ templates, companies }: Props) {
     const [orgFilter, setOrgFilter] = useState<string>('');
 
     useEffect(() => {
-        if (flash?.success) toast.success(flash.success);
-        if (flash?.error) toast.error(flash.error);
+        if (flash?.success) toast({ title: 'Success', description: flash.success });
+        if (flash?.error) toast({ title: 'Error', description: flash.error, variant: 'destructive' });
     }, [flash]);
 
     const handleDelete = (id: number) => {

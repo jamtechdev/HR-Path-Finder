@@ -1,9 +1,9 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import { CheckCircle2, Clock, UserCheck } from 'lucide-react';
 import { useEffect, useRef } from 'react';
-import { Toaster, toast } from 'sonner';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +20,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Toaster } from '@/components/ui/toaster';
 
 interface PendingUser {
     id: number;
@@ -47,10 +48,10 @@ export default function BetaAccessIndex({ pendingUsers }: Props) {
         }
         flashSig.current = sig;
         if (flash?.success) {
-            toast.success(flash.success);
+            toast({ title: 'Success', description: flash.success });
         }
         if (flash?.info) {
-            toast.info(flash.info);
+            toast({ title: 'Info', description: flash.info });
         }
     }, [flash?.success, flash?.info]);
 
@@ -60,7 +61,7 @@ export default function BetaAccessIndex({ pendingUsers }: Props) {
 
     return (
         <>
-            <Toaster richColors position="top-right" />
+            <Toaster />
             <SidebarProvider defaultOpen={true}>
                 <Sidebar collapsible="icon" variant="sidebar">
                     <RoleBasedSidebar />
