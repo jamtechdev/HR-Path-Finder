@@ -130,7 +130,7 @@ export default function PathFinderDashboard({
 
   // First-time / no workspace: show onboarding screen (create company to get started)
   if (!workspaceDone) {
-    const onboardingProgress = 20;
+    const onboardingProgress = 0;
     return (
       <AppLayout stepStatuses={{}} projectId={undefined} ceoPhilosophyStatus="not_started">
         <Head title="HR Path-Finder — Dashboard" />
