@@ -42,7 +42,7 @@ export default function Login({
 
     return (
         <div className="min-h-screen flex flex-nowrap relative overflow-hidden" data-auth-revision>
-            <Toaster />
+           
             <div className="absolute inset-0 overflow-hidden pointer-events-none lg:block hidden">
                 <div className="absolute top-20 left-10 w-72 h-72 bg-[#2ECFAB]/10 rounded-full blur-3xl animate-pulse" />
                 <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#C8A84B]/8 rounded-full blur-3xl animate-pulse delay-1000" />

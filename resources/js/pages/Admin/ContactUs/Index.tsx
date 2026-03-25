@@ -47,7 +47,7 @@ export default function ContactUsAdminIndex({ submissions }: Props) {
 
     return (
         <>
-            <Toaster />
+           
             <SidebarProvider defaultOpen={true}>
                 <Sidebar collapsible="icon" variant="sidebar">
                     <RoleBasedSidebar />

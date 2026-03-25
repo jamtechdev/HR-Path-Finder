@@ -110,9 +110,9 @@ export default function CreateCompany() {
                 <RoleBasedSidebar />
             </Sidebar>
             <SidebarInset className="flex flex-col overflow-hidden">
-                <Toaster />
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-muted/30">
+               
                     <Head title="Create Company Workspace" />
                     <div className="p-6 md:p-8 max-w-5xl mx-auto">
                         {/* Header Section */}
