@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import React, { useEffect, useMemo, useState } from 'react';
+import { LandingNav } from '@/components/landing/LandingNav';
 
 type PayBand = {
     lbl: string;
@@ -120,7 +121,7 @@ function PayBandChart({ bands }: { bands: PayBand[] }) {
     );
 }
 
-export default function LandingPage() {
+export default function LandingPage({ canRegister }: { canRegister?: boolean }) {
     const theme: 'dark' | 'light' = 'dark';
     const lang: 'ko' | 'en' = 'ko';
     const [factorA, setFactorA] = useState(20);
@@ -181,30 +182,7 @@ export default function LandingPage() {
                 .bm-bar-fill.animated{width:var(--bar-w) !important;}
             `}</style>
             <div className="landing-wrap">
-                <nav className="fixed top-0 left-0 right-0 z-[100] px-4 md:px-12 h-[60px] flex items-center justify-between bg-[rgba(6,13,26,.92)] backdrop-blur-lg border-b" style={{ borderColor: 'var(--border)' }}>
-                    <div className="text-[.95rem] font-extrabold tracking-[-.01em]">
-                        HR <span style={{ color: 'var(--teal)' }}>Pathfinder</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Link
-                            href={registerHref}
-                            className="rounded-md px-4 py-2 text-sm font-bold no-underline border"
-                            style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
-                        >
-                            {lang === 'ko' ? '시작하기' : 'Get Started'}
-                        </Link>
-                        <Link
-                            href={contactHref}
-                            className="rounded-md px-2 py-2 text-sm font-bold no-underline"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            Contact Us
-                        </Link>
-                        <Link href={contactHref} className="rounded-md px-4 py-2 text-sm font-bold text-white no-underline" style={{ background: 'var(--teal)' }}>
-                            {lang === 'ko' ? '문의하기 →' : 'Inquiry →'}
-                        </Link>
-                    </div>
-                </nav>
+                <LandingNav isAuthenticated={false} canRegister={canRegister ?? false} />
 
                 <section id="hero" className="min-h-screen pt-[120px] pb-20 px-4 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-14 items-center relative">
                     <div className="absolute inset-0 pointer-events-none [background-image:linear-gradient(rgba(0,201,167,.04)_1px,transparent_1px),linear-gradient(90deg,rgba(0,201,167,.04)_1px,transparent_1px)] [background-size:48px_48px]" />
