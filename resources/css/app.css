@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+/* Pretendard + sans-serif only - removed DM Sans Google Fonts import */
 
 @import 'tailwindcss';
 
@@ -10,9 +10,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-    /* Project-wide: Pretendard + DM Sans only */
-    --font-sans: 'Pretendard', 'DM Sans', sans-serif;
-    --font-serif: 'Pretendard', 'DM Sans', sans-serif;
+/* Project-wide: Pretendard + sans-serif only */
+--font-sans: 'Pretendard', sans-serif;
+--font-serif: 'Pretendard', sans-serif;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -460,27 +460,27 @@
 
 /* Landing page revision (Mohit): match HTML fonts – Source Serif 4, Source Sans 3, Noto Serif KR */
 [data-landing-revision] {
-    font-family: 'Pretendard', 'DM Sans', sans-serif;
+    font-family: 'Pretendard', sans-serif;
 }
 [data-landing-revision] .font-serif,
 [data-landing-revision] h1,
 [data-landing-revision] h2 {
-    font-family: 'Pretendard', 'DM Sans', sans-serif;
+    font-family: 'Pretendard', sans-serif;
 }
 
 /* Auth pages (login, register): same fonts and color tokens as landing revision */
 [data-auth-revision] {
-    font-family: 'Pretendard', 'DM Sans', sans-serif;
+    font-family: 'Pretendard', sans-serif;
 }
 [data-auth-revision] .font-serif,
 [data-auth-revision] h1,
 [data-auth-revision] h2 {
-    font-family: 'Pretendard', 'DM Sans', sans-serif;
+    font-family: 'Pretendard', sans-serif;
 }
 
 /* ── Performance System: Review & Submit (LAST STEP.html match) ───────────── */
 .review-submit-page {
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Pretendard', sans-serif;
     --rs-navy: #1a2744;
     --rs-navy2: #2e4270;
     --rs-mint: #2ec4a0;
@@ -551,8 +551,8 @@
     color: var(--rs-mint);
     margin-bottom: 6px;
 }
-.review-submit-page .ph-title {
-    font-family: 'Pretendard', 'DM Sans', sans-serif;
+.ph-title {
+    font-family: 'Pretendard', sans-serif;
     font-size: 24px;
     color: #fff;
     line-height: 1.2;
@@ -922,7 +922,7 @@
 
 /* ── Performance System: Evaluation Structure (PERFOMANCE.HTML match) ───────── */
 .eval-structure-page {
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Pretendard', sans-serif;
     --es-navy: #1a2744;
     --es-navy2: #2e4270;
     --es-mint: #2ec4a0;

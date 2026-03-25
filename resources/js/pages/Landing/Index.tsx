@@ -174,7 +174,7 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
             <style>{`
                 :root { --navy-deepest:#060d1a; --navy-deep:#0a1628; --navy-mid:#0f2040; --navy-light:#1a3260; --teal:#00c9a7; --teal-dim:#00a087; --gold:#f0b429; --text-primary:#e8edf5; --text-secondary:#8ba3c4; --text-muted:#4a6080; --border:rgba(255,255,255,0.07); --border-teal:rgba(0,201,167,0.3); }
                 .theme-light { --navy-deepest:#eef2f8; --navy-deep:#f7f9fc; --navy-mid:#ffffff; --navy-light:#dbe6f5; --text-primary:#10213a; --text-secondary:#385170; --text-muted:#667a95; --border:rgba(20,40,70,0.13); --border-teal:rgba(0,160,135,.35); }
-                .landing-wrap * { box-sizing:border-box; } .landing-wrap { font-family:'Pretendard', 'DM Sans', sans-serif; background:var(--navy-deepest); color:var(--text-primary); overflow-x:hidden; }
+                .landing-wrap * { box-sizing:border-box; } .landing-wrap { font-family:'Pretendard' , sans-serif; background:var(--navy-deepest); color:var(--text-primary); overflow-x:hidden; }
                 .section-label{display:inline-flex;align-items:center;gap:6px;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:16px;}
                 .section-label::before{content:'';display:block;width:16px;height:1px;background:var(--teal);}
                 .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease, transform .6s ease;} .reveal.visible{opacity:1;transform:translateY(0);}
