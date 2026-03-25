@@ -61,7 +61,7 @@ export default function BetaAccessIndex({ pendingUsers }: Props) {
 
     return (
         <>
-            <Toaster />
+           
             <SidebarProvider defaultOpen={true}>
                 <Sidebar collapsible="icon" variant="sidebar">
                     <RoleBasedSidebar />

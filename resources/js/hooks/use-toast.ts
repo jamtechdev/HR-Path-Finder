@@ -134,57 +134,26 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
-function toast({ ...props }: Toast) {
-  const id = genId()
-
-  const update = (props: ToasterToast) =>
-    dispatch({
-      type: "UPDATE_TOAST",
-      toast: { ...props, id },
-    })
-  const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
-
-  dispatch({
-    type: "ADD_TOAST",
-    toast: {
-      ...props,
-      id,
-      open: true,
-      onOpenChange: (open) => {
-        if (!open) dismiss()
-      },
-    },
-  })
-
-  return {
-    id: id,
-    dismiss,
-    update,
-  }
+// Toast is disabled project-wide (no UI + no state updates).
+// We keep the API so existing calls don't crash, but nothing will be shown.
+function toast(_props: Toast) {
+    return {
+        id: "toast-disabled",
+        dismiss: () => {},
+        update: () => {},
+    }
 }
 
 function useToast() {
-  const [state, setState] = React.useState<State>(memoryState)
-
-  React.useEffect(() => {
-    listeners.push(setState)
-    return () => {
-      const index = listeners.indexOf(setState)
-      if (index > -1) {
-        listeners.splice(index, 1)
-      }
+    return {
+        toasts: [],
+        toast,
+        dismiss: (_toastId?: string) => {},
     }
-  }, [state])
-
-  return {
-    ...state,
-    toast,
-    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
-  }
 }
 
 function dismissAll() {
-  dispatch({ type: "DISMISS_TOAST" })
+    // noop
 }
 
 export { useToast, toast, dismissAll }

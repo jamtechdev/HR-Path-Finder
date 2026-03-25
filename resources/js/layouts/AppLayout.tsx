@@ -1,10 +1,8 @@
 import React from 'react';
-import { FlashToasts } from '@/components/FlashToasts';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import TranslationLoader from '@/components/TranslationLoader';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import { Toaster } from '@/components/ui/toaster';
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -28,12 +26,10 @@ export default function AppLayout({
                 <RoleBasedSidebar />
             </Sidebar>
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
-                <FlashToasts />
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
                     {children}
                 </main>
-                <Toaster />
             </SidebarInset>
         </SidebarProvider>
     );

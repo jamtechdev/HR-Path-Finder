@@ -14,6 +14,14 @@ import React, { useState } from 'react';
 import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import InlineErrorSummary, { flattenErrors } from '@/components/Forms/InlineErrorSummary';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import type { PolicyAnswer, JobSelection, JobDefinition, OrgChartMapping } from '../hooks/useJobAnalysisState';
 
 interface Question {
@@ -168,45 +176,62 @@ export default function Step6ReviewSubmit({
 
     if (submitted) {
         return (
-            <div className="min-h-full flex flex-col bg-[#f9f7f2] text-[#121431] pb-24">
-                <div className="max-w-[900px] mx-auto w-full py-12 px-5">
-                    <div className="text-center">
-                        <div className="w-16 h-16 rounded-full bg-[#48b082] text-white flex items-center justify-center mx-auto mb-6">
-                            <CheckCircle2 className="w-10 h-10" />
+            <Dialog
+                open={submitted}
+                onOpenChange={(open) => {
+                    if (!open) router.visit('/hr-manager/dashboard');
+                }}
+            >
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <div className="flex items-center justify-center mb-4">
+                            <div className="w-16 h-16 rounded-full bg-[#48b082] flex items-center justify-center">
+                                <CheckCircle2 className="w-10 h-10 text-white" />
+                            </div>
                         </div>
-                        <h1 className="text-2xl font-bold text-[#121431] mb-2">Job Analysis Submitted</h1>
-                        <p className="text-[#6b7280] mb-8">
-                            All data has been submitted successfully. Below is what was submitted.
-                        </p>
+                        <DialogTitle className="text-center text-2xl">
+                            <span className="block">Job analysis submitted</span>
+                            <span className="block text-sm font-medium opacity-90 mt-1">직무 분석 제출이 완료되었습니다</span>
+                        </DialogTitle>
+                        <DialogDescription className="text-center pt-2">
+                            <span className="block">All data has been submitted successfully. </span>
+                            <span className="block opacity-90 mt-1">
+                                제출이 완료되었습니다. 아래 요약이 반영되었습니다.
+                            </span>
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="px-2 pb-2 text-sm space-y-2">
+                        <div className="flex items-center gap-2 justify-center">
+                            <FileText className="w-4 h-4 text-blue-600" />
+                            <span className="font-semibold">Jobs: {jobsCount}</span>
+                        </div>
+                        <div className="flex items-center gap-2 justify-center">
+                            <Network className="w-4 h-4 text-green-600" />
+                            <span className="font-semibold">Org units: {orgUnitsCount}</span>
+                        </div>
+                        <div className="flex items-center gap-2 justify-center">
+                            <Target className="w-4 h-4 text-purple-600" />
+                            <span className="font-semibold">CSFs: {csfsCount}</span>
+                        </div>
+                        <div className="flex items-center gap-2 justify-center">
+                            <User className="w-4 h-4 text-orange-600" />
+                            <span className="font-semibold">Role owners: {roleOwnersCount}</span>
+                        </div>
                     </div>
-                    <div className="bg-white rounded-xl border border-[#e5e7eb] p-6 shadow-sm space-y-4">
-                        <div className="flex items-center gap-3 text-[#121431]">
-                            <FileText className="w-5 h-5 text-blue-600" />
-                            <span className="font-semibold">Jobs Defined: {jobsCount}</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-[#121431]">
-                            <Network className="w-5 h-5 text-green-600" />
-                            <span className="font-semibold">Org Units Mapped: {orgUnitsCount}</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-[#121431]">
-                            <Target className="w-5 h-5 text-purple-600" />
-                            <span className="font-semibold">CSFs Generated: {csfsCount}</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-[#121431]">
-                            <User className="w-5 h-5 text-orange-600" />
-                            <span className="font-semibold">Role Owners: {roleOwnersCount}</span>
-                        </div>
-                        <div className="pt-4 border-t border-[#e5e7eb]">
-                            <Button
-                                onClick={() => router.visit('/hr-manager/dashboard')}
-                                className="bg-[#121431] hover:bg-[#1e2a4a] text-white"
-                            >
-                                Go to Dashboard
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+                    <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-center">
+                        <button
+                            type="button"
+                            onClick={() => router.visit('/hr-manager/dashboard')}
+                            className="w-full sm:w-auto h-11 rounded-lg bg-[#121431] hover:bg-[#1e2a4a] text-white font-semibold"
+                        >
+                            Done
+                            <span className="block text-xs opacity-80">대시보드로 이동</span>
+                        </button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         );
     }
 

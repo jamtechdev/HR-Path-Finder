@@ -28,6 +28,8 @@ export function Toaster() {
   }, [])
 
   if (!portalNode) return null
+  // If toasts are disabled, nothing is rendered.
+  if (!toasts.length) return null
 
   return createPortal(
     <ToastProvider>

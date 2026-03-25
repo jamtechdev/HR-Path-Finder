@@ -290,6 +290,23 @@ export const t = {
   logoAlt: { en: 'Company logo', ko: '회사 로고' },
   fileTypeError: { en: 'Please upload a PNG or JPG image file.', ko: 'PNG 또는 JPG 이미지 파일을 업로드해 주세요.' },
   fileSizeError: { en: 'File size must be less than 2MB.', ko: '파일 용량은 2MB 이하여야 합니다.' },
+
+  // Diagnosis Submit Success Modal
+  diagnosisSubmitSuccessTitle: { en: 'Diagnosis submitted successfully!', ko: '진단 제출이 완료되었습니다!' },
+  diagnosisSubmitSuccessDesc: {
+    en: 'Your diagnosis has been submitted for CEO review. You can now invite the CEO to join the platform.',
+    ko: '진단이 CEO 검토를 위해 제출되었습니다. 이제 CEO를 초대하여 플랫폼에 참여하도록 할 수 있습니다.',
+  },
+  ceoEmailAddressLabel: { en: 'CEO Email Address', ko: 'CEO 이메일 주소' },
+  inviteCeoLabel: { en: 'Invite CEO', ko: 'CEO 초대하기' },
+  inviteSendingLabel: { en: 'Sending...', ko: '전송 중...' },
+  skipForNowLabel: { en: 'Skip for Now', ko: '지금은 건너뛰기' },
+  invitationSentTitle: { en: 'Invitation sent successfully!', ko: '초대 이메일이 전송되었습니다!' },
+  invitationSentDesc: {
+    en: 'An invitation email has been sent to {{email}}. The CEO will receive instructions to join the platform.',
+    ko: '{{email}}로 초대 이메일이 발송되었습니다. CEO는 플랫폼 참여 방법을 안내받게 됩니다.',
+  },
+  doneLabel: { en: 'Done', ko: '완료' },
 } as const;
 
 export type Lang = 'en' | 'ko';

@@ -865,15 +865,22 @@ export default function CompensationSystemIndex({
                                     <CheckCircle2 className="w-9 h-9 text-[#2ec4a0]" strokeWidth={2} />
                                 </div>
                                 <h2 className="text-xl font-bold text-white tracking-tight">
-                                    Compensation system submitted
+                                    <span className="block">Compensation system submitted</span>
+                                    <span className="block text-sm font-medium opacity-90 mt-1">보상 시스템 제출이 완료되었습니다</span>
                                 </h2>
                                 <p className="text-sm text-white/70 mt-1.5">
-                                    Step 4 is complete. Your consultant will review and the CEO can approve.
+                                    <span className="block">Step 4 is complete. Your consultant will review and the CEO can approve.</span>
+                                    <span className="block opacity-90 mt-1">4단계가 완료되었습니다. 컨설턴트가 검토하고 CEO가 승인할 수 있습니다.</span>
                                 </p>
                             </div>
                             <div className="px-8 py-6 space-y-5">
                                 <p className="text-sm text-[#4A5B78] leading-relaxed">
-                                    Your company now has a structured HR system: performance management, compensation, and benefits. You can enhance it later through our optional subscription—HR policy management, diagnostics, and advisory support.
+                                    <span className="block">
+                                        Your company now has a structured HR system: performance management, compensation, and benefits. You can enhance it later through our optional subscription—HR policy management, diagnostics, and advisory support.
+                                    </span>
+                                    <span className="block opacity-90 mt-2">
+                                        이제 회사에 체계적인 HR 시스템이 구축되었습니다: 성과관리, 보상, 복리후생. 필요에 따라 추후 구독을 통해 HR 정책 관리, 진단, 컨설팅 지원을 강화할 수 있습니다.
+                                    </span>
                                 </p>
                                 <div className="flex flex-col gap-2">
                                     <Button
@@ -883,7 +890,10 @@ export default function CompensationSystemIndex({
                                         }}
                                         className="w-full h-11 font-semibold rounded-lg bg-[#152540] hover:bg-[#1e3a62] text-white"
                                     >
-                                        Okay
+                                        <span className="flex flex-col leading-tight">
+                                            <span>Done</span>
+                                            <span className="text-xs opacity-80">대시보드로 이동</span>
+                                        </span>
                                     </Button>
                                     <a
                                         href="https://better.odw.co.kr"
