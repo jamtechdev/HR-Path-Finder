@@ -225,9 +225,9 @@ export default function LandingPage() {
                             <Link href={contactHref} className="inline-flex items-center gap-2 rounded-lg px-7 py-3.5 font-bold text-[.92rem] text-white no-underline" style={{ background: 'var(--teal)' }}>
                                 서비스 문의하기 →
                             </Link>
-                            <a href="https://bettercompany.info" target="_blank" rel="noopener noreferrer" className="inline-flex items-center rounded-lg px-6 py-3.5 text-[.88rem] font-semibold no-underline border" style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
+                            <Link href="/contact" className="inline-flex items-center rounded-lg px-6 py-3.5 text-[.88rem] font-semibold no-underline border" style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
                                 전문 컨설팅펌, 베러컴퍼니가 만든 SaaS →
-                            </a>
+                            </Link>
                         </div>
                         <div className="flex gap-8 flex-wrap">
                             <div><div className="text-3xl font-extrabold leading-none" style={{ color: 'var(--gold)' }}>1개월</div><div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>평균 제도설계 완료</div></div>
