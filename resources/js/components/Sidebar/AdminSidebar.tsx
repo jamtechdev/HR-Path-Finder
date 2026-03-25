@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Settings, LayoutGrid, FolderOpen, HelpCircle, FileText, Building2, AlertCircle, Database, Layers, Target, DollarSign, Languages, ChevronRight, ChevronDown, Users, Eye, UserPlus, Network, FileBarChart, UserCheck } from 'lucide-react';
+import { Settings, LayoutGrid, FolderOpen, HelpCircle, FileText, Building2, AlertCircle, Database, Layers, Target, DollarSign, Languages, ChevronRight, ChevronDown, Users, Eye, UserPlus, Network, FileBarChart, UserCheck, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -90,6 +90,20 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                 >
                                     <LayoutGrid className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
                                     {!isCollapsed && <span className="flex-1 text-left truncate">Dashboard</span>}
+                                </Link>
+
+                                <Link
+                                    href="/admin/contact-us"
+                                    className={cn(
+                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                                        isActive('/admin/contact-us')
+                                            ? "bg-sidebar-accent text-sidebar-primary"
+                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                                        isCollapsed && "justify-center px-3"
+                                    )}
+                                >
+                                    <Mail className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
+                                    {!isCollapsed && <span className="flex-1 text-left truncate">Contact Us</span>}
                                 </Link>
 
                                 <Link

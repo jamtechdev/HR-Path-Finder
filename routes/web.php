@@ -20,6 +20,12 @@ Route::get('/contact', function (Request $request) {
     return Inertia::render('Landing/Contact');
 })->name('contact');
 
+Route::post('/contact', [\App\Http\Controllers\ContactUsController::class, 'store'])
+    ->middleware('web')
+    ->name('contact.store');
+
+// Public contact form: Admin view
+
 Route::get('/login', function (Request $request) {
     // If already logged in, redirect to role-based dashboard
     if ($request->user()) {
@@ -272,6 +278,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ========== Admin Routes ==========
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('contact-us', [\App\Http\Controllers\Admin\ContactUsSubmissionController::class, 'index'])->name('contact-us.index');
         Route::get('beta-access', [\App\Http\Controllers\Admin\BetaAccessController::class, 'index'])->name('beta-access.index');
         Route::post('beta-access/{user}/approve', [\App\Http\Controllers\Admin\BetaAccessController::class, 'approve'])->name('beta-access.approve');
         Route::get('project-tree', [\App\Http\Controllers\Admin\DashboardController::class, 'projectTree'])->name('project-tree');

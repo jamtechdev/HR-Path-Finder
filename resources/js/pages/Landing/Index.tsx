@@ -193,6 +193,13 @@ export default function LandingPage() {
                         >
                             {lang === 'ko' ? '시작하기' : 'Get Started'}
                         </Link>
+                        <Link
+                            href={contactHref}
+                            className="rounded-md px-2 py-2 text-sm font-bold no-underline"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            Contact Us
+                        </Link>
                         <Link href={contactHref} className="rounded-md px-4 py-2 text-sm font-bold text-white no-underline" style={{ background: 'var(--teal)' }}>
                             {lang === 'ko' ? '문의하기 →' : 'Inquiry →'}
                         </Link>

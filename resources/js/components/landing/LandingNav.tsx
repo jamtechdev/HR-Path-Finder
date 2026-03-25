@@ -45,6 +45,9 @@ export function LandingNav({
                 <a href="#benchmark" className="text-sm font-medium text-white/70 hover:text-[#2ECFAB] no-underline transition-colors">
                     {navBenchmark}
                 </a>
+                <Link href="/contact" className="text-sm font-medium text-white/70 hover:text-[#2ECFAB] no-underline transition-colors">
+                    Contact Us
+                </Link>
                 <div className="flex items-center gap-4">
                     <LanguageToggle />
                     {isAuthenticated ? (

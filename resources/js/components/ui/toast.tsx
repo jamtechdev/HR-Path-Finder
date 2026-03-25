@@ -18,7 +18,9 @@ const ToastViewport = React.forwardRef<
     )}
     style={{
       position: "fixed",
-      top: "16px",
+      // Keep toasts below the sticky header so they don't float over it.
+      // (Header height is controlled by --hr-topbar-h)
+      top: "calc(var(--hr-topbar-h, 52px) + 12px)",
       right: "16px",
       left: "auto",
       width: "min(420px, calc(100vw - 16px))",
