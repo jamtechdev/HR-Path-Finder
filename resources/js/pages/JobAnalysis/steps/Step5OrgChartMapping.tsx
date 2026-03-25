@@ -371,7 +371,7 @@ export default function Step5OrgChartMapping({
                 <div className="mb-2" style={{ color: '#b88a44', fontSize: 11, fontWeight: 700, letterSpacing: 1.2 }}>
                     STEP 5 OF 6 – ORG CHART MAPPING
                 </div>
-                <h1 className="m-0 mb-3" style={{ fontFamily: 'Playfair Display, serif', fontSize: 32 }}>
+                <h1 className="m-0 mb-3" style={{ fontFamily: "'Pretendard', 'DM Sans', sans-serif", fontSize: 32 }}>
                     Organization Chart Mapping
                 </h1>
                 <p className="text-[#6b7280] text-[15px] mb-6 max-w-[900px] leading-relaxed">

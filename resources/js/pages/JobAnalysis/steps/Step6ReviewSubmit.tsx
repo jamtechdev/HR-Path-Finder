@@ -216,7 +216,7 @@ export default function Step6ReviewSubmit({
                 <div className="mb-2" style={{ color: '#b88a44', fontSize: 11, fontWeight: 700, letterSpacing: 1.2 }}>
                     STEP 6 OF 6 – JOB ANALYSIS
                 </div>
-                <h1 className="m-0 mb-2 text-[#121431]" style={{ fontFamily: 'Playfair Display, serif', fontSize: 28 }}>
+                <h1 className="m-0 mb-2 text-[#121431]" style={{ fontFamily: "'Pretendard', 'DM Sans', sans-serif", fontSize: 28 }}>
                     Step 6 — Review & Submit
                 </h1>
                 <p className="text-[#6b7280] text-[15px] mb-8 leading-relaxed">

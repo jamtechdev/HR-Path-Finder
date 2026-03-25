@@ -52,15 +52,49 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
     // Update local state when external state changes
     useEffect(() => {
         if (externalResponses) {
-            // Normalize any numeric strings to numbers for validation consistency.
+            // Normalize numeric strings (including nested objects/arrays) to numbers.
+            // This keeps validation/completion logic consistent when backend stores decimals as strings.
+            const normalizeValue = (value: any): any => {
+                if (typeof value === 'string') {
+                    const n = parseFloat(value);
+                    return Number.isFinite(n) ? n : value;
+                }
+
+                if (Array.isArray(value)) {
+                    return value.map((item) => {
+                        if (item && typeof item === 'object') {
+                            const out: Record<string, any> = { ...item };
+                            Object.entries(out).forEach(([ik, iv]) => {
+                                if (typeof iv === 'string') {
+                                    const n = parseFloat(iv);
+                                    if (Number.isFinite(n)) out[ik] = n;
+                                }
+                            });
+                            return out;
+                        }
+                        return normalizeValue(item);
+                    });
+                }
+
+                if (value && typeof value === 'object') {
+                    const out: Record<string, any> = {};
+                    Object.entries(value).forEach(([ik, iv]) => {
+                        if (typeof iv === 'string') {
+                            const n = parseFloat(iv);
+                            out[ik] = Number.isFinite(n) ? n : iv;
+                        } else {
+                            out[ik] = normalizeValue(iv);
+                        }
+                    });
+                    return out;
+                }
+
+                return value;
+            };
+
             const normalized: Record<number, any> = {};
             Object.entries(externalResponses).forEach(([k, v]) => {
-                if (typeof v === 'string') {
-                    const n = parseFloat(v);
-                    normalized[Number(k)] = Number.isFinite(n) ? n : v;
-                } else {
-                    normalized[Number(k)] = v;
-                }
+                normalized[Number(k)] = normalizeValue(v);
             });
             setSnapshotResponses(normalized);
         }

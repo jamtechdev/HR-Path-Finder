@@ -8,7 +8,7 @@ type PayBand = {
     max: number;
 };
 
-const inquiryHref = 'https://better.odw.co.kr';
+const contactHref = '/contact';
 const registerHref = '/register';
 
 function calcBands(a: number, b: number): PayBand[] {
@@ -193,9 +193,9 @@ export default function LandingPage() {
                         >
                             {lang === 'ko' ? '시작하기' : 'Get Started'}
                         </Link>
-                        <a href={inquiryHref} target="_blank" rel="noopener noreferrer" className="rounded-md px-4 py-2 text-sm font-bold text-white no-underline" style={{ background: 'var(--teal)' }}>
+                        <Link href={contactHref} className="rounded-md px-4 py-2 text-sm font-bold text-white no-underline" style={{ background: 'var(--teal)' }}>
                             {lang === 'ko' ? '문의하기 →' : 'Inquiry →'}
-                        </a>
+                        </Link>
                     </div>
                 </nav>
 
@@ -222,9 +222,9 @@ export default function LandingPage() {
                             일반 컨설팅의 1/4 금액으로 내부 HR 역량 육성과 전문 제도설계 서비스를 모두 받아보세요.
                         </p>
                         <div className="flex flex-wrap gap-3 items-center mb-12">
-                            <a href={inquiryHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg px-7 py-3.5 font-bold text-[.92rem] text-white no-underline" style={{ background: 'var(--teal)' }}>
+                            <Link href={contactHref} className="inline-flex items-center gap-2 rounded-lg px-7 py-3.5 font-bold text-[.92rem] text-white no-underline" style={{ background: 'var(--teal)' }}>
                                 서비스 문의하기 →
-                            </a>
+                            </Link>
                             <a href="https://bettercompany.info" target="_blank" rel="noopener noreferrer" className="inline-flex items-center rounded-lg px-6 py-3.5 text-[.88rem] font-semibold no-underline border" style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
                                 전문 컨설팅펌, 베러컴퍼니가 만든 SaaS →
                             </a>
@@ -429,18 +429,18 @@ export default function LandingPage() {
                         <p className="text-[.95rem] mb-8 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                             20~300인 규모의 기업이라면 패스파인더가 가장 빠르고 전문적인 HR 제도설계 경로입니다.
                         </p>
-                        <a href={inquiryHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center rounded-lg px-8 py-3.5 font-bold text-white no-underline" style={{ background: 'var(--teal)' }}>
+                        <Link href={contactHref} className="inline-flex items-center rounded-lg px-8 py-3.5 font-bold text-white no-underline" style={{ background: 'var(--teal)' }}>
                             서비스 문의하기 →
-                        </a>
+                        </Link>
                     </div>
                 </section>
 
                 <footer className="py-8 px-4 md:px-12 border-t flex flex-col md:flex-row items-center justify-between gap-3" style={{ borderColor: 'var(--border)', background: 'var(--navy-deepest)' }}>
                     <div className="text-sm font-bold" style={{ color: 'var(--text-muted)' }}>HR <span style={{ color: 'var(--teal)' }}>Pathfinder</span> by BetterCompany</div>
                     <div className="text-xs" style={{ color: 'var(--text-muted)' }}>© 2025 (주)에버데어. All rights reserved.</div>
-                    <a href={inquiryHref} target="_blank" rel="noopener noreferrer" className="text-xs no-underline" style={{ color: 'var(--text-muted)' }}>
+                    <Link href={contactHref} className="text-xs no-underline" style={{ color: 'var(--text-muted)' }}>
                         문의하기
-                    </a>
+                    </Link>
                 </footer>
             </div>
         </>

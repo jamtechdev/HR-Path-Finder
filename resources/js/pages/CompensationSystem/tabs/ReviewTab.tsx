@@ -189,7 +189,7 @@ export default function ReviewTab({
     };
 
     return (
-        <div className="min-h-full" style={{ background: BG, color: NAVY, fontFamily: "'Pretendard', 'Apple SD Gothic Neo', -apple-system, sans-serif" }}>
+        <div className="min-h-full" style={{ background: BG, color: NAVY, fontFamily: "'Pretendard', 'DM Sans', -apple-system, sans-serif" }}>
             {/* Hero */}
             <div
                 className="relative overflow-hidden px-7 py-7"

@@ -174,33 +174,41 @@ export default function OrgChartMappingContent({ project, jobDefinitions, mappin
         e.preventDefault();
         setDragOverUnitIndex(null);
 
-        if (!draggedJobId) return;
+        if (draggedJobId == null) return;
 
         const jobDef = jobDefinitions.find(j => j.id === draggedJobId);
-        if (!jobDef) return;
-
-        const newUnits = [...orgUnits];
-        const unit = newUnits[unitIndex];
-        
-        const currentJobIds = unit.job_keyword_ids || [];
-        if (jobDef.job_keyword_id && !currentJobIds.includes(jobDef.job_keyword_id)) {
-            newUnits[unitIndex] = {
-                ...unit,
-                job_keyword_ids: [...currentJobIds, jobDef.job_keyword_id],
-            };
-            setOrgUnits(newUnits);
-            
-            toast({
-                title: "Job assigned successfully",
-                description: `${jobDef.job_name} has been assigned to ${unit.org_unit_name || 'organization unit'}.`,
-            });
-        } else if (jobDef.job_keyword_id && currentJobIds.includes(jobDef.job_keyword_id)) {
-            toast({
-                title: "Job already assigned",
-                description: `${jobDef.job_name} is already assigned to this unit.`,
-                variant: "default",
-            });
+        if (!jobDef?.job_keyword_id) {
+            setDraggedJobId(null);
+            return;
         }
+        
+        setOrgUnits((prev) => {
+            if (unitIndex < 0 || unitIndex >= prev.length) return prev;
+            const unit = prev[unitIndex];
+            if (!unit) return prev;
+
+            const currentJobIds = unit.job_keyword_ids || [];
+            if (!currentJobIds.includes(jobDef.job_keyword_id)) {
+                const newUnits = [...prev];
+                newUnits[unitIndex] = {
+                    ...unit,
+                    job_keyword_ids: [...currentJobIds, jobDef.job_keyword_id],
+                };
+
+                toast({
+                    title: 'Job assigned successfully',
+                    description: `${jobDef.job_name} has been assigned to ${unit.org_unit_name || 'organization unit'}.`,
+                });
+                return newUnits;
+            }
+
+            toast({
+                title: 'Job already assigned',
+                description: `${jobDef.job_name} is already assigned to this unit.`,
+                variant: 'default',
+            });
+            return prev;
+        });
 
         setDraggedJobId(null);
     };

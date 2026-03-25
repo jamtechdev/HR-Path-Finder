@@ -223,8 +223,8 @@
     "recent_activity": "최근 활동",
     "statistics": "통계",
     "pathfinder": {
-      "welcome_back": "다시 오신 것을 환영합니다, {{name}}",
-      "subtitle": "HR 시스템 설계를 단계별로 진행하세요. Step {{step}} {{title}}가 진행 중입니다.",
+      "welcome_back": "다시 오신 것을 환영합니다, {{name}}님",
+      "subtitle": "HR 시스템 설계를 단계별로 진행하세요. Step {{step}} {{title}}이 진행 중입니다.",
       "step_in_progress": "Step {{num}}: {{title}} 진행 중",
       "banner_desc": "회사 기본 정보, 인력 현황, 조직 구조를 입력하고 진단을 완료하면 다음 단계가 열립니다.",
       "design_steps": "Design Steps",

@@ -482,6 +482,7 @@ class DiagnosisController extends Controller
             Notification::send($ceo, new DiagnosisSubmittedNotification($hrProject));
         }
 
-        return back()->with('success', 'Diagnosis submitted for CEO review.');
+        // No session flash -> avoids toast spam; frontend handles success modal UX.
+        return back();
     }
 }

@@ -151,8 +151,7 @@ class CompensationSystemController extends Controller
         $hrProject->setStepStatus('compensation', StepStatus::IN_PROGRESS);
 
         $tab = $request->input('tab', 'overview');
-        return redirect()->route('hr-manager.compensation-system.index', [$hrProject, $tab])
-            ->with('success', 'Compensation system data saved successfully.');
+        return redirect()->route('hr-manager.compensation-system.index', [$hrProject, $tab]);
     }
 
     /**
@@ -187,8 +186,7 @@ class CompensationSystemController extends Controller
         $hrProject->setStepStatus('compensation', StepStatus::IN_PROGRESS);
 
         $tab = $request->input('tab', 'snapshot');
-        return redirect()->route('hr-manager.compensation-system.index', [$hrProject, $tab])
-            ->with('success', 'Compensation snapshot saved successfully.');
+        return redirect()->route('hr-manager.compensation-system.index', [$hrProject, $tab]);
     }
 
     /**
@@ -216,8 +214,7 @@ class CompensationSystemController extends Controller
         $hrProject->setStepStatus('compensation', StepStatus::IN_PROGRESS);
 
         $tab = $request->input('tab', 'base-salary-framework');
-        return redirect()->route('hr-manager.compensation-system.index', [$hrProject, $tab])
-            ->with('success', 'Base salary framework saved successfully.');
+        return redirect()->route('hr-manager.compensation-system.index', [$hrProject, $tab]);
     }
 
     /**
@@ -295,8 +292,7 @@ class CompensationSystemController extends Controller
         $hrProject->setStepStatus('compensation', StepStatus::IN_PROGRESS);
 
         $tab = $request->input('tab', 'pay-band');
-        return redirect()->route('hr-manager.compensation-system.index', [$hrProject, $tab])
-            ->with('success', 'Pay band structure saved successfully.');
+        return redirect()->route('hr-manager.compensation-system.index', [$hrProject, $tab]);
     }
 
     /**
@@ -360,8 +356,7 @@ class CompensationSystemController extends Controller
         $hrProject->setStepStatus('compensation', StepStatus::IN_PROGRESS);
 
         $tab = $request->input('tab', 'salary-table');
-        return redirect()->route('hr-manager.compensation-system.index', [$hrProject, $tab])
-            ->with('success', 'Salary table saved successfully.');
+        return redirect()->route('hr-manager.compensation-system.index', [$hrProject, $tab]);
     }
 
     /**
@@ -383,8 +378,7 @@ class CompensationSystemController extends Controller
         $hrProject->setStepStatus('compensation', StepStatus::IN_PROGRESS);
 
         $tab = $request->input('tab', 'operation-criteria');
-        return redirect()->route('hr-manager.compensation-system.index', [$hrProject, $tab])
-            ->with('success', 'Operation criteria saved successfully.');
+        return redirect()->route('hr-manager.compensation-system.index', [$hrProject, $tab]);
     }
 
     /**
@@ -421,8 +415,7 @@ class CompensationSystemController extends Controller
         $hrProject->setStepStatus('compensation', StepStatus::IN_PROGRESS);
 
         $tab = $request->input('tab', 'bonus-pool');
-        return redirect()->route('hr-manager.compensation-system.index', [$hrProject, $tab])
-            ->with('success', 'Bonus pool configuration saved successfully.');
+        return redirect()->route('hr-manager.compensation-system.index', [$hrProject, $tab]);
     }
 
     /**
@@ -453,8 +446,7 @@ class CompensationSystemController extends Controller
         $hrProject->setStepStatus('compensation', StepStatus::IN_PROGRESS);
 
         $tab = $request->input('tab', 'benefits');
-        return redirect()->route('hr-manager.compensation-system.index', [$hrProject, $tab])
-            ->with('success', 'Benefits configuration saved successfully.');
+        return redirect()->route('hr-manager.compensation-system.index', [$hrProject, $tab]);
     }
 
     /**

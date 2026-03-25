@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { Building2, Upload, MapPin, FileText, X, CheckCircle2, AlertCircle } from 'lucide-react';
 import type { FormEventHandler} from 'react';
 import React, { useState, useRef } from 'react';
@@ -89,6 +89,9 @@ export default function CreateCompany() {
             forceFormData: true,
             onSuccess: () => {
                 setLogoPreview(null);
+                // Laravel redirects, but some environments may not move the user quickly enough.
+                // Force the navigation after successful creation.
+                router.get('/hr-manager/dashboard', {}, { replace: true });
             },
             onError: (errs) => {
                 if (errs.logo && String(errs.logo).includes('too large')) {

@@ -108,6 +108,7 @@ class RegisteredUserResponse implements RegisterResponseContract
             default => 'dashboard', // Fallback to generic dashboard if no role
         };
 
-        return redirect()->route($redirectRoute);
+        return redirect()->route($redirectRoute)
+            ->with('success', 'Account created successfully. Welcome!');
     }
 }

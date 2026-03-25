@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import React from 'react';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { Button } from '@/components/ui/button';
-import { login, register, dashboard } from '@/routes';
+import { login, dashboard } from '@/routes';
 
 interface LandingNavProps {
     isAuthenticated?: boolean;
@@ -60,7 +60,7 @@ export function LandingNav({
                                 {signInLabel}
                             </Link>
                             <Button asChild className="bg-[#2ECFAB] text-[#0B1E3D] hover:bg-[#7EE8D0] font-bold px-5 py-2.5 rounded-md text-sm h-auto transition-all hover:-translate-y-0.5">
-                                <Link href={canRegister ? register() : login()}>
+                                <Link href="/contact">
                                     {ctaLabel}
                                 </Link>
                             </Button>
@@ -76,7 +76,7 @@ export function LandingNav({
                     </Button>
                 ) : (
                     <Button asChild size="sm" className="bg-[#2ECFAB] text-[#0B1E3D] font-bold">
-                        <Link href={canRegister ? register() : login()}>{ctaLabel}</Link>
+                        <Link href="/contact">{ctaLabel}</Link>
                     </Button>
                 )}
             </div>

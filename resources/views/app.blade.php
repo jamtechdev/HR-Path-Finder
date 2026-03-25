@@ -41,8 +41,24 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         {{-- Korean font: Pretendard --}}
         <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
-        {{-- Landing page revision (Mohit): Source Serif 4, Source Sans 3, Noto Serif KR --}}
-        <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;0,8..60,900;1,8..60,400;1,8..60,600&family=Source+Sans+3:wght@300;400;500;600;700&family=Noto+Serif+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+        {{-- DA SANS (used throughout UI): DM Sans --}}
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+        <style>
+            :root {
+                --hr-font-sans: 'Pretendard', 'DM Sans', sans-serif;
+            }
+
+            body {
+                font-family: var(--hr-font-sans) !important;
+            }
+
+            /* Tailwind classes used across the project */
+            .font-serif,
+            .font-display {
+                font-family: var(--hr-font-sans) !important;
+            }
+        </style>
 
         @vite(['resources/js/app.tsx'])
         @inertiaHead

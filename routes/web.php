@@ -16,6 +16,10 @@ Route::get('/', function (Request $request) {
     ]);
 })->name('home');
 
+Route::get('/contact', function (Request $request) {
+    return Inertia::render('Landing/Contact');
+})->name('contact');
+
 Route::get('/login', function (Request $request) {
     // If already logged in, redirect to role-based dashboard
     if ($request->user()) {

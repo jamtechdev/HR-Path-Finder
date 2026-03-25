@@ -106,7 +106,7 @@ export default function Step4Finalization({
                         <div className="step-label mb-2" style={{ color: '#b88a44', fontSize: 12, fontWeight: 700, letterSpacing: 1 }}>
                             STEP 4 OF 6 — JOB ANALYSIS
                         </div>
-                        <h1 className="m-0 mb-4" style={{ fontFamily: 'Playfair Display, serif', fontSize: 32 }}>
+                        <h1 className="m-0 mb-4" style={{ fontFamily: "'Pretendard', 'DM Sans', sans-serif", fontSize: 32 }}>
                             Finalization of Job Definitions
                         </h1>
                     </div>
@@ -173,7 +173,7 @@ export default function Step4Finalization({
                                 </div>
                                 <h2
                                     className="mt-2 mb-3 text-white font-bold"
-                                    style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(28px, 4vw, 40px)' }}
+                                    style={{ fontFamily: "'Pretendard', 'DM Sans', sans-serif", fontSize: 'clamp(28px, 4vw, 40px)' }}
                                 >
                                     {activeJob.job_name}
                                 </h2>

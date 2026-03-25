@@ -16,9 +16,10 @@ return [
     */
 
     'ssr' => [
-        'enabled' => true,
-        'url' => 'http://127.0.0.1:13714',
-        // 'bundle' => base_path('bootstrap/ssr/ssr.mjs'),
+        // SSR is optional. Use the SSR bundle (no remote `url` calls).
+        // Enable only if `bootstrap/ssr/ssr.mjs` exists and the SSR build is available.
+        'enabled' => (bool) env('INERTIA_SSR_ENABLED', false),
+        'bundle' => base_path('bootstrap/ssr/ssr.mjs'),
 
     ],
 
@@ -50,6 +51,29 @@ return [
             'vue',
         ],
 
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pages (runtime)
+    |--------------------------------------------------------------------------
+    |
+    | Runtime pages live under `resources/js/pages` (lowercase).
+    | On case-sensitive filesystems, using the wrong casing will cause
+    | Inertia to fail resolving components and return HTTP 500.
+    |
+    */
+    'ensure_pages_exist' => true,
+    'page_paths' => [
+        resource_path('js/pages'),
+    ],
+    'page_extensions' => [
+        'js',
+        'jsx',
+        'svelte',
+        'ts',
+        'tsx',
+        'vue',
     ],
 
 ];
