@@ -75,7 +75,7 @@ function salaryTablesToGrid(tables: SalaryTable[]): {
         }
         cells.push(gradeCells);
     });
-    let levels = INIT_LV.slice();
+    const levels = INIT_LV.slice();
     if (levelsSet.has('LV.4')) levels.push('LV.4');
     if (levelsSet.has('LV.5')) levels.push('LV.5');
 

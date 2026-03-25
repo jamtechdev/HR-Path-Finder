@@ -1,8 +1,9 @@
 import { Head, usePage } from '@inertiajs/react';
+import { Mail } from 'lucide-react';
 import React, { useEffect } from 'react';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import { toast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     SidebarProvider,
@@ -17,9 +18,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Toaster } from '@/components/ui/toaster';
-import { Mail } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface ContactSubmission {
     id: number;

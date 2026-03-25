@@ -3,7 +3,6 @@ import { CheckCircle2, Clock, UserCheck } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +20,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Toaster } from '@/components/ui/toaster';
+import { toast } from '@/hooks/use-toast';
 
 interface PendingUser {
     id: number;

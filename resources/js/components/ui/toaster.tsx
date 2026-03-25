@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react"
+import { createPortal } from "react-dom"
 import {
   Toast,
   ToastClose,
@@ -7,8 +9,6 @@ import {
   ToastViewport,
 } from "@/components/ui/toast"
 import { useToast } from "@/hooks/use-toast"
-import { useEffect, useState } from "react"
-import { createPortal } from "react-dom"
 
 export function Toaster() {
   const { toasts } = useToast()

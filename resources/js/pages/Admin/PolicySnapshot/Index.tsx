@@ -1,7 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useEffect } from 'react';
-import { toast } from '@/hooks/use-toast';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +11,7 @@ import {
     SidebarInset,
     SidebarProvider,
 } from '@/components/ui/sidebar';
+import { toast } from '@/hooks/use-toast';
 
 interface PolicySnapshotQuestion {
     id: number;
