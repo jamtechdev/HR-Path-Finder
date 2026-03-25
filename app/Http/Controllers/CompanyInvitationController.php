@@ -156,6 +156,15 @@ class CompanyInvitationController extends Controller
             if (!$user->hasRole('ceo')) {
                 $user->assignRole('ceo');
             }
+
+            // Invitation token acceptance should act as email verification.
+            // If the user already existed but was not verified yet, update the flag
+            // so they won't be redirected to the verify-email screen on login.
+            if (empty($user->email_verified_at)) {
+                $user->forceFill([
+                    'email_verified_at' => now(),
+                ])->save();
+            }
         }
 
         // Associate user with company
@@ -221,6 +230,14 @@ class CompanyInvitationController extends Controller
         }
 
         $user->update(['password' => Hash::make($request->password)]);
+
+        // Safety net: ensure invited CEO is treated as verified after accepting invitation.
+        // This prevents 'verified email' screen after login when user pre-exists.
+        if (empty($user->email_verified_at)) {
+            $user->forceFill([
+                'email_verified_at' => now(),
+            ])->save();
+        }
 
         // Optional: send welcome email without credentials (account ready)
         try {
