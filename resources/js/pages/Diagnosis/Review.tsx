@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
 import { diagnosisTabs } from '@/config/diagnosisTabs';
-import { tr } from '@/config/diagnosisTranslations';
+import { both, tr } from '@/config/diagnosisTranslations';
 import { mergeTabDraftsIntoDiagnosis, clearDiagnosisDrafts } from '@/lib/diagnosisDraftStorage';
 import {
     getOrgChartDraftFiles,
@@ -178,6 +178,28 @@ export default function Review({
     const [inviteSuccess, setInviteSuccess] = useState(false);
     const [pageErrors, setPageErrors] = useState<Record<string, string>>({});
     const submitErrorRef = useRef<HTMLDivElement>(null);
+
+    // Bilingual (EN / KO) modal content
+    const submitSuccessTitle = both('diagnosisSubmitSuccessTitle');
+    const submitSuccessDesc = both('diagnosisSubmitSuccessDesc');
+    const ceoEmailAddressLabel = both('ceoEmailAddressLabel');
+    const inviteCeoLabel = both('inviteCeoLabel');
+    const inviteSendingLabel = both('inviteSendingLabel');
+    const skipForNowLabel = both('skipForNowLabel');
+    const invitationSentTitle = both('invitationSentTitle');
+    const invitationSentDesc = both('invitationSentDesc');
+    const doneLabel = both('doneLabel');
+
+    const renderEmailTemplate = (template: string) => {
+        const [before, after] = template.split('{{email}}');
+        return (
+            <>
+                {before}
+                <strong>{inviteEmail}</strong>
+                {after}
+            </>
+        );
+    };
 
     const { props } = usePage<{ errors?: Record<string, string> }>();
 
@@ -461,9 +483,13 @@ export default function Review({
                                 <CheckCircle2 className="h-8 w-8 text-green-600" />
                             </div>
                         </div>
-                        <DialogTitle className="text-center text-2xl">Diagnosis Submitted Successfully!</DialogTitle>
+                        <DialogTitle className="text-center text-2xl">
+                            <span className="block">{submitSuccessTitle.en}</span>
+                            <span className="block text-sm font-medium opacity-90">{submitSuccessTitle.ko}</span>
+                        </DialogTitle>
                         <DialogDescription className="text-center pt-2">
-                            Your diagnosis has been submitted for CEO review. You can now invite the CEO to join the platform.
+                            <span className="block">{submitSuccessDesc.en}</span>
+                            <span className="block opacity-90">{submitSuccessDesc.ko}</span>
                         </DialogDescription>
                     </DialogHeader>
                     
@@ -471,7 +497,10 @@ export default function Review({
                         {!inviteSuccess ? (
                             <form onSubmit={handleInviteCeo} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="ceo-email">CEO Email Address</Label>
+                                    <Label htmlFor="ceo-email" className="space-y-1">
+                                        <span className="block">{ceoEmailAddressLabel.en}</span>
+                                        <span className="block text-xs opacity-80">{ceoEmailAddressLabel.ko}</span>
+                                    </Label>
                                     <Input
                                         id="ceo-email"
                                         type="email"
@@ -498,7 +527,10 @@ export default function Review({
                                         disabled={inviteProcessing}
                                         className="w-full sm:w-auto"
                                     >
-                                        Skip for Now
+                                        <span className="flex flex-col leading-tight">
+                                            <span>{skipForNowLabel.en}</span>
+                                            <span className="text-xs opacity-80">{skipForNowLabel.ko}</span>
+                                        </span>
                                     </Button>
                                     <Button
                                         type="submit"
@@ -508,12 +540,18 @@ export default function Review({
                                         {inviteProcessing ? (
                                             <>
                                                 <span className="animate-spin mr-2">⏳</span>
-                                                Sending...
+                                                <span className="flex flex-col leading-tight">
+                                                    <span>{inviteSendingLabel.en}</span>
+                                                    <span className="text-xs opacity-80">{inviteSendingLabel.ko}</span>
+                                                </span>
                                             </>
                                         ) : (
                                             <>
                                                 <Mail className="w-4 h-4 mr-2" />
-                                                Invite CEO
+                                                <span className="flex flex-col leading-tight">
+                                                    <span>{inviteCeoLabel.en}</span>
+                                                    <span className="text-xs opacity-80">{inviteCeoLabel.ko}</span>
+                                                </span>
                                             </>
                                         )}
                                     </Button>
@@ -524,10 +562,14 @@ export default function Review({
                                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                                     <div className="flex items-center gap-2 text-green-800">
                                         <CheckCircle2 className="h-5 w-5" />
-                                        <p className="font-medium">Invitation sent successfully!</p>
+                                        <p className="font-medium">
+                                            <span className="block">{invitationSentTitle.en}</span>
+                                            <span className="block text-sm font-normal opacity-90">{invitationSentTitle.ko}</span>
+                                        </p>
                                     </div>
                                     <p className="text-sm text-green-700 mt-2">
-                                        An invitation email has been sent to <strong>{inviteEmail}</strong>. The CEO will receive instructions to join the platform.
+                                        <span className="block">{renderEmailTemplate(invitationSentDesc.en)}</span>
+                                        <span className="block opacity-90">{renderEmailTemplate(invitationSentDesc.ko)}</span>
                                     </p>
                                 </div>
                                 <DialogFooter>
@@ -535,7 +577,10 @@ export default function Review({
                                         onClick={handleCloseModal}
                                         className="w-full"
                                     >
-                                        Done
+                                        <span className="flex flex-col leading-tight">
+                                            <span>{doneLabel.en}</span>
+                                            <span className="text-xs opacity-80">{doneLabel.ko}</span>
+                                        </span>
                                     </Button>
                                 </DialogFooter>
                             </div>

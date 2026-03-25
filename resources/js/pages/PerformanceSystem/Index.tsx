@@ -14,6 +14,14 @@ import React, { useMemo, useState, useEffect } from 'react';
 import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import AppLayout from '@/layouts/AppLayout';
 import { pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
 import { cn } from '@/lib/utils';
@@ -108,6 +116,7 @@ export default function PerformanceSystemIndex({
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [tabValidationMessage, setTabValidationMessage] = useState<string | null>(null);
     const [isSavingDraft, setIsSavingDraft] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [perfFieldErrors, setPerfFieldErrors] = useState<FieldErrors>({});
     const [snapshotAnsweredCount, setSnapshotAnsweredCount] = useState(() => {
         const total = (snapshotQuestions as any[])?.length ?? 0;
@@ -562,10 +571,15 @@ export default function PerformanceSystemIndex({
             } catch {
                 // ignore
             }
-            router.visit('/hr-manager/dashboard');
+            setShowSuccessModal(true);
         } catch {
             setSubmitError('Submit failed. Please review each tab and try again.');
         }
+    };
+
+    const handleCloseSuccessModal = () => {
+        setShowSuccessModal(false);
+        router.visit('/hr-manager/dashboard');
     };
 
     return (
@@ -842,6 +856,40 @@ export default function PerformanceSystemIndex({
                 )}
             </div>
             )}
+            <Dialog
+                open={showSuccessModal}
+                onOpenChange={(open) => {
+                    if (!open) handleCloseSuccessModal();
+                    else setShowSuccessModal(true);
+                }}
+            >
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-center text-2xl">
+                            <span className="block">Performance system submitted successfully!</span>
+                            <span className="block text-sm font-medium opacity-90">성과 시스템 제출이 완료되었습니다!</span>
+                        </DialogTitle>
+                        <DialogDescription className="text-center pt-2">
+                            <span className="block">
+                                Your performance design has been submitted for consultant review. The final system will be confirmed through a collaborative review process.
+                            </span>
+                            <span className="block opacity-90">
+                                성과 설계가 컨설턴트 검토를 위해 제출되었습니다. 협업 검토 과정을 통해 최종 시스템이 확정됩니다.
+                            </span>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-center">
+                        <button
+                            type="button"
+                            onClick={handleCloseSuccessModal}
+                            className="w-full sm:w-auto h-11 rounded-lg bg-[#152540] hover:bg-[#1e3a62] text-white font-semibold"
+                        >
+                            Done
+                            <span className="block text-xs opacity-80">대시보드로 이동</span>
+                        </button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }
