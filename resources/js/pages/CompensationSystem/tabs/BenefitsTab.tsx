@@ -37,11 +37,11 @@ const CATS: BenefitCategory[] = [
     {
         id: 'life',
         icon: '💰',
-        name: '생활/경제',
+        name: 'Lifestyle & Economy',
         items: [
             {
                 id: 'meal',
-                name: '식대 지원',
+                name: 'Meal Allowance',
                 bs: 92,
                 bi: 88,
                 tax: true,
@@ -49,17 +49,17 @@ const CATS: BenefitCategory[] = [
                 rec: false,
                 cp: {
                     tag: 'gold',
-                    tl: '절세',
-                    title: '식대 지원',
-                    desc: '월 20만원 이내 식대는 복리후생비와 비과세 세 혜택이 적용됩니다.',
-                    effect: '비과세 한도 내 운영 시 회사·직원 모두 세부담 완화. 연간 1인당 최대 240만원 비과세.',
-                    caution: '현물 식사와 식대 중복 비과세 불가. 사내식당 운영 시 별도 검토 필요.',
-                    ex: '예시: 월 20만원 식대 · 연간 240만원 비과세',
+                    tl: 'Tax savings',
+                    title: 'Meal Allowance',
+                    desc: 'Meal allowances up to 200,000 KRW per month qualify as welfare expenses and receive tax-exempt benefits.',
+                    effect: 'When operated within the tax-exempt limit, it reduces the tax burden for both the company and employees. Up to 2,400,000 KRW per person per year is tax-exempt.',
+                    caution: 'Tax-exempt treatment cannot be duplicated between in-kind meals and meal allowances. If operating an in-house cafeteria, review separately.',
+                    ex: 'Example: Meal allowance of 200,000 KRW/month; tax-exempt up to 2,400,000 KRW/year',
                 },
             },
             {
                 id: 'transport',
-                name: '교통비 지원',
+                name: 'Transportation Allowance',
                 bs: 78,
                 bi: 72,
                 tax: false,
@@ -67,12 +67,12 @@ const CATS: BenefitCategory[] = [
                 rec: false,
                 cp: {
                     tag: 'mint',
-                    tl: '복지',
-                    title: '교통비 지원',
-                    desc: '통근 교통비를 월정액 또는 실비로 지원합니다.',
-                    effect: '출퇴근 부담 완화, 원거리 인재 유지에 유리.',
-                    caution: '자가용 통근자 유류비 지원 시 과세 여부 사전 확인.',
-                    ex: '예시: 월 10만원 정액 또는 대중교통 실비',
+                    tl: 'Welfare',
+                    title: 'Transportation Allowance',
+                    desc: 'Provide commuting transportation costs either as a monthly fixed allowance or reimbursement of actual expenses.',
+                    effect: 'Reduces the commuting burden and helps retain talent living in distant areas.',
+                    caution: 'If reimbursing fuel costs for employees commuting by private vehicle, confirm taxability in advance.',
+                    ex: 'Example: 100,000 KRW fixed per month or reimbursement of actual public-transport expenses',
                 },
             },
         ],
@@ -80,11 +80,11 @@ const CATS: BenefitCategory[] = [
     {
         id: 'health',
         icon: '🏃',
-        name: '건강/에너지',
+        name: 'Health & Energy',
         items: [
             {
                 id: 'checkup',
-                name: '건강검진',
+                name: 'Health Screening',
                 bs: 95,
                 bi: 90,
                 tax: true,
@@ -92,12 +92,12 @@ const CATS: BenefitCategory[] = [
                 rec: false,
                 cp: {
                     tag: 'gold',
-                    tl: '비용인정',
-                    title: '임직원 건강검진',
-                    desc: '연 1회 이상 건강검진 비용은 복리후생비로 전액 비용 인정.',
-                    effect: '세법상 복리후생비 인정. 1인당 20~50만원 수준.',
-                    caution: '임원과 직원 간 차등 지원 시 임원 분 손금 불산입 위험.',
-                    ex: '예시: 일반 검진 연 20만원 + 종합검진 선택 지원',
+                    tl: 'Deductible costs',
+                    title: 'Employee Health Screening',
+                    desc: 'Health screening costs paid at least once per year can be fully recognized as deductible welfare expenses.',
+                    effect: 'Recognized as welfare expense under tax law. Typically 200,000–500,000 KRW per person.',
+                    caution: 'If support differs between executives and employees, there is a risk that executives’ portions may not be deductible.',
+                    ex: 'Example: 200,000 KRW/year for basic screening + optional coverage for comprehensive screening',
                 },
             },
         ],
@@ -105,11 +105,11 @@ const CATS: BenefitCategory[] = [
     {
         id: 'growth',
         icon: '📚',
-        name: '성장/자기계발',
+        name: 'Growth & Self-Development',
         items: [
             {
                 id: 'edu',
-                name: '교육비 지원',
+                name: 'Education & Training Support',
                 bs: 82,
                 bi: 75,
                 tax: true,
@@ -117,12 +117,12 @@ const CATS: BenefitCategory[] = [
                 rec: false,
                 cp: {
                     tag: 'gold',
-                    tl: '비용인정',
-                    title: '임직원 교육훈련비',
-                    desc: '직무 관련 교육훈련비는 전액 비용 처리 가능.',
-                    effect: '직무역량 강화, 인재 개발 투자.',
-                    caution: '직무 무관 순수 자기계발은 과세 여부 검토 필요.',
-                    ex: '예시: 연 100만원 자기계발비 + 사내 교육 프로그램 무상',
+                    tl: 'Deductible costs',
+                    title: 'Employee Education & Training Expenses',
+                    desc: 'Job-related education and training expenses can be fully treated as deductible costs.',
+                    effect: 'Strengthen job-related capabilities and invest in talent development.',
+                    caution: 'Pure self-development unrelated to the job requires review of tax treatment.',
+                    ex: 'Example: 1,000,000 KRW/year for self-development + free internal training programs',
                 },
             },
         ],
@@ -715,7 +715,7 @@ export default function BenefitsTab({
                             </ul>
                             <div className="h-px bg-border my-4" />
                             <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                                선택 옵션 가이드
+                                Option Guide
                             </div>
                             {conceptPanel}
                         </CardContent>

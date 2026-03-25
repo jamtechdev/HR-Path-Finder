@@ -51,7 +51,7 @@ interface Props {
 
 const TABS = [
     { id: 'overview', label: 'Overview', icon: Shield },
-    { id: 'snapshot', label: 'Stage 4-1: Strategic Compensation Snapshot', icon: FileText },
+    { id: 'snapshot', label: 'Strategic Compensation Snapshot', icon: FileText },
     { id: 'base-salary-framework', label: 'Base Salary Framework', icon: Settings },
     { id: 'pay-band-salary-table', label: 'Pay Band / Salary Table', icon: TrendingUp },
     { id: 'bonus-pool', label: 'Bonus Pool Configuration', icon: Award },

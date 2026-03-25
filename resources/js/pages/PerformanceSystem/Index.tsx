@@ -107,6 +107,7 @@ export default function PerformanceSystemIndex({
     const [draftStructure, setDraftStructure] = useState<any>(() => project.evaluation_structure ?? null);
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [tabValidationMessage, setTabValidationMessage] = useState<string | null>(null);
+    const [isSavingDraft, setIsSavingDraft] = useState(false);
     const [perfFieldErrors, setPerfFieldErrors] = useState<FieldErrors>({});
     const [snapshotAnsweredCount, setSnapshotAnsweredCount] = useState(() => {
         const total = (snapshotQuestions as any[])?.length ?? 0;
@@ -126,6 +127,25 @@ export default function PerformanceSystemIndex({
         return n;
     });
     const snapshotTotalCount = (snapshotQuestions as any[])?.length ?? 0;
+    const draftStorageKey = useMemo(() => `performance-draft:${project.id}`, [project.id]);
+
+    const reviewSubmitAssignments = useMemo(() => {
+        const byJobId = new Map<number, any>();
+        (jobDefinitions ?? []).forEach((job: any) => {
+            const id = Number(job?.id);
+            if (id) byJobId.set(id, job);
+        });
+
+        return Object.entries(draftAssignments ?? {}).map(([jobId, model]) => {
+            const numericJobId = Number(jobId);
+            const job = byJobId.get(numericJobId);
+            return {
+                job_definition_id: numericJobId,
+                evaluation_model: model,
+                job_definition: job ?? null,
+            };
+        });
+    }, [draftAssignments, jobDefinitions]);
 
     // Validate tab completion based on data
     const validateTabCompletion = (tabId: string): boolean => {
@@ -231,6 +251,50 @@ export default function PerformanceSystemIndex({
         setActiveTab(initialTab);
     }, [initialTab]);
 
+    // Hydrate unsaved local draft on first load.
+    useEffect(() => {
+        const hasServerDraftData =
+            Object.keys(snapshotResponses ?? {}).length > 0 ||
+            (organizationalKpis ?? []).length > 0 ||
+            (evaluationModelAssignments ?? []).length > 0 ||
+            !!project.evaluation_structure;
+
+        try {
+            if (hasServerDraftData) {
+                window.localStorage.removeItem(draftStorageKey);
+                return;
+            }
+
+            const raw = window.localStorage.getItem(draftStorageKey);
+            if (!raw) return;
+            const parsed = JSON.parse(raw);
+            if (parsed?.snapshotResponses) setDraftSnapshotResponses(parsed.snapshotResponses);
+            if (Array.isArray(parsed?.kpis)) setDraftKpis(parsed.kpis);
+            if (parsed?.assignments) setDraftAssignments(parsed.assignments);
+            if (parsed?.structure) setDraftStructure(parsed.structure);
+        } catch {
+            // Ignore malformed local draft.
+        }
+    }, [draftStorageKey, snapshotResponses, organizationalKpis, evaluationModelAssignments, project.evaluation_structure]);
+
+    // Persist current draft locally while user progresses.
+    useEffect(() => {
+        try {
+            window.localStorage.setItem(
+                draftStorageKey,
+                JSON.stringify({
+                    snapshotResponses: draftSnapshotResponses,
+                    kpis: draftKpis,
+                    assignments: draftAssignments,
+                    structure: draftStructure,
+                    updatedAt: Date.now(),
+                }),
+            );
+        } catch {
+            // Ignore local storage write failures.
+        }
+    }, [draftStorageKey, draftSnapshotResponses, draftKpis, draftAssignments, draftStructure]);
+
     // Live: drop field-level errors as the user fixes each field on the active tab.
     useEffect(() => {
         if (activeTab === 'overview' || activeTab === 'review-submit') return;
@@ -295,8 +359,27 @@ export default function PerformanceSystemIndex({
         setTabValidationMessage(null);
         setPerfFieldErrors({});
         setDraftSnapshotResponses(responses);
-        setLocalDone((d) => ({ ...d, 'performance-snapshot': true }));
-        handleTabChange('kpi-review', true);
+        setIsSavingDraft(true);
+        router.post(`/hr-manager/performance-system/${project.id}`, {
+            tab: 'performance-snapshot',
+            responses: Object.entries(responses ?? {}).map(([questionId, d]) => ({
+                question_id: Number(questionId),
+                response: d?.response ?? [],
+                text_response: d?.text_response,
+            })),
+        }, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                setLocalDone((d) => ({ ...d, 'performance-snapshot': true }));
+                setIsSavingDraft(false);
+                handleTabChange('kpi-review', true);
+            },
+            onError: () => {
+                setIsSavingDraft(false);
+                setTabValidationMessage('Snapshot save failed. Please try again.');
+            },
+        });
     };
 
     const handleKpiReviewContinue = async (kpis: any[]) => {
@@ -309,8 +392,23 @@ export default function PerformanceSystemIndex({
         setTabValidationMessage(null);
         setPerfFieldErrors({});
         setDraftKpis(kpis);
-        setLocalDone((d) => ({ ...d, 'kpi-review': true }));
-        handleTabChange('model-assignment', true);
+        setIsSavingDraft(true);
+        router.post(`/hr-manager/performance-system/${project.id}`, {
+            tab: 'kpi-review',
+            kpis: kpis ?? [],
+        }, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                setLocalDone((d) => ({ ...d, 'kpi-review': true }));
+                setIsSavingDraft(false);
+                handleTabChange('model-assignment', true);
+            },
+            onError: () => {
+                setIsSavingDraft(false);
+                setTabValidationMessage('KPI draft save failed. Please try again.');
+            },
+        });
     };
 
     const handleModelAssignmentContinue = async (assignments: Record<number, 'mbo' | 'bsc' | 'okr'>) => {
@@ -323,8 +421,23 @@ export default function PerformanceSystemIndex({
         setTabValidationMessage(null);
         setPerfFieldErrors({});
         setDraftAssignments(assignments);
-        setLocalDone((d) => ({ ...d, 'model-assignment': true }));
-        handleTabChange('evaluation-structure', true);
+        setIsSavingDraft(true);
+        router.post(`/hr-manager/performance-system/${project.id}`, {
+            tab: 'model-assignment',
+            assignments,
+        }, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                setLocalDone((d) => ({ ...d, 'model-assignment': true }));
+                setIsSavingDraft(false);
+                handleTabChange('evaluation-structure', true);
+            },
+            onError: () => {
+                setIsSavingDraft(false);
+                setTabValidationMessage('Model assignment save failed. Please try again.');
+            },
+        });
     };
 
     const handleEvaluationStructureContinue = async (structure: any) => {
@@ -337,8 +450,23 @@ export default function PerformanceSystemIndex({
         setTabValidationMessage(null);
         setPerfFieldErrors({});
         setDraftStructure(structure);
-        setLocalDone((d) => ({ ...d, 'evaluation-structure': true }));
-        handleTabChange('review-submit', true);
+        setIsSavingDraft(true);
+        router.post(`/hr-manager/performance-system/${project.id}`, {
+            tab: 'evaluation-structure',
+            ...(structure ?? {}),
+        }, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                setLocalDone((d) => ({ ...d, 'evaluation-structure': true }));
+                setIsSavingDraft(false);
+                handleTabChange('review-submit', true);
+            },
+            onError: () => {
+                setIsSavingDraft(false);
+                setTabValidationMessage('Evaluation structure save failed. Please try again.');
+            },
+        });
     };
 
     const handleReviewSubmit = async () => {
@@ -429,6 +557,11 @@ export default function PerformanceSystemIndex({
             });
 
             await postStep(`/hr-manager/performance-system/${project.id}/submit`, {});
+            try {
+                window.localStorage.removeItem(draftStorageKey);
+            } catch {
+                // ignore
+            }
             router.visit('/hr-manager/dashboard');
         } catch {
             setSubmitError('Submit failed. Please review each tab and try again.');
@@ -628,6 +761,11 @@ export default function PerformanceSystemIndex({
                                 style={{ width: `${(completedTabsCount / TABS.length) * 100}%` }}
                             />
                         </div>
+                        {isSavingDraft && (
+                            <div className="px-4 py-2 text-xs text-[#6b7280] bg-[#f9fafb] border-t border-[#eef2f7]">
+                                Saving draft...
+                            </div>
+                        )}
                     </div>
 
                 {/* Tab Content (non-overview): flex so KPI Review footer stays in content area */}
@@ -692,7 +830,7 @@ export default function PerformanceSystemIndex({
                             snapshotQuestions={snapshotQuestions}
                             snapshotResponses={draftSnapshotResponses}
                             organizationalKpis={draftKpis}
-                            evaluationModelAssignments={evaluationModelAssignments}
+                            evaluationModelAssignments={reviewSubmitAssignments}
                             evaluationStructure={draftStructure ?? project.evaluation_structure}
                             orgChartMappings={orgChartMappings}
                             onBack={() => handleTabChange('evaluation-structure')}

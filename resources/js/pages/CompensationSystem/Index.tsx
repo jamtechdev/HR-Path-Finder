@@ -56,7 +56,7 @@ interface Props {
 
 const TABS = [
     { id: 'overview', label: 'Overview', icon: Shield },
-    { id: 'snapshot', label: 'Stage 4-1: Strategic Compensation Snapshot', icon: FileText },
+    { id: 'snapshot', label: 'Strategic Compensation Snapshot', icon: FileText },
     { id: 'base-salary-framework', label: 'Base Salary Framework', icon: Settings },
     { id: 'pay-band-salary-table', label: 'Pay Band / Salary Table', icon: TrendingUp },
     { id: 'bonus-pool', label: 'Bonus Pool Configuration', icon: Award },
@@ -75,6 +75,7 @@ export default function CompensationSystemIndex({
     snapshotQuestions = [],
     errors,
 }: Props) {
+    const draftStorageKey = useMemo(() => `compensation-system-draft:${project.id}`, [project.id]);
     const [activeTab, setActiveTab] = useState(initialTab);
     const [tabCompletions, setTabCompletions] = useState<Record<string, boolean>>({});
     const [localTabDone, setLocalTabDone] = useState<Record<string, boolean>>({});
@@ -96,7 +97,10 @@ export default function CompensationSystemIndex({
         const responses: Record<number, string[] | string | number | object | null> = {};
         project.compensation_snapshot_responses?.forEach(resp => {
             if (resp.numeric_response !== null && resp.numeric_response !== undefined) {
-                responses[resp.question_id] = resp.numeric_response;
+                // Backend may serialize decimal values as strings (e.g. "3.00").
+                const raw = resp.numeric_response as unknown;
+                const n = typeof raw === 'string' ? parseFloat(raw) : (raw as number);
+                responses[resp.question_id] = Number.isFinite(n) ? n : null;
             } else if (resp.text_response) {
                 responses[resp.question_id] = resp.text_response;
             } else {
@@ -109,6 +113,17 @@ export default function CompensationSystemIndex({
     const { post, processing } = useForm({});
     const [saving, setSaving] = useState(false);
 
+    type CompensationDraft = {
+        snapshotResponses: Record<number, string[] | string | number | object | null>;
+        baseSalaryFramework: BaseSalaryFramework;
+        payBands: PayBand[];
+        salaryTables: SalaryTable[];
+        operationCriteria: PayBandOperationCriteria;
+        bonusPool: BonusPoolConfiguration;
+        benefits: BenefitsConfiguration;
+        localTabDone: Record<string, boolean>;
+    };
+
     const validationCtx = () => ({
         snapshotQuestions: snapshotQuestions || [],
         snapshotResponses,
@@ -118,6 +133,53 @@ export default function CompensationSystemIndex({
         bonusPool,
         benefits,
     });
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        try {
+            const raw = window.localStorage.getItem(draftStorageKey);
+            if (!raw) return;
+
+            const draft = JSON.parse(raw) as Partial<CompensationDraft>;
+            if (draft.snapshotResponses) setSnapshotResponses(draft.snapshotResponses);
+            if (draft.baseSalaryFramework) setBaseSalaryFramework(draft.baseSalaryFramework);
+            if (draft.payBands) setPayBands(draft.payBands);
+            if (draft.salaryTables) setSalaryTables(draft.salaryTables);
+            if (draft.operationCriteria) setOperationCriteria(draft.operationCriteria);
+            if (draft.bonusPool) setBonusPool(draft.bonusPool);
+            if (draft.benefits) setBenefits(draft.benefits);
+            if (draft.localTabDone) setLocalTabDone(draft.localTabDone);
+        } catch {
+            // Ignore invalid local draft payloads.
+        }
+    }, [draftStorageKey]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const draft: CompensationDraft = {
+            snapshotResponses,
+            baseSalaryFramework,
+            payBands,
+            salaryTables,
+            operationCriteria,
+            bonusPool,
+            benefits,
+            localTabDone,
+        };
+        window.localStorage.setItem(draftStorageKey, JSON.stringify(draft));
+    }, [
+        draftStorageKey,
+        snapshotResponses,
+        baseSalaryFramework,
+        payBands,
+        salaryTables,
+        operationCriteria,
+        bonusPool,
+        benefits,
+        localTabDone,
+    ]);
 
     const handleSaveAndContinue = () => {
         setCompError(null);
@@ -145,47 +207,40 @@ export default function CompensationSystemIndex({
         handleTabChange(nextTabId);
     };
 
-    // Validate tab completion
+    const PRE_REVIEW_TABS = ['snapshot', 'base-salary-framework', 'pay-band-salary-table', 'bonus-pool', 'benefits'] as const;
+
+    // Tab unlock: current form must pass validation (no bypass via stale server props alone).
     const validateTabCompletion = (tabId: string): boolean => {
+        const ctx = validationCtx();
         switch (tabId) {
             case 'overview':
                 return false;
-            case 'snapshot':
-                return (
-                    !!(project.compensation_snapshot_responses && project.compensation_snapshot_responses.length > 0) ||
-                    tabCompletions['snapshot'] === true ||
-                    localTabDone['snapshot'] === true
-                );
-            case 'base-salary-framework':
-                return (
-                    !!project.base_salary_framework ||
-                    tabCompletions['base-salary-framework'] === true ||
-                    localTabDone['base-salary-framework'] === true
-                );
-            case 'pay-band-salary-table':
-                return (
-                    !!(project.pay_bands && project.pay_bands.length > 0) ||
-                    !!(project.salary_tables && project.salary_tables.length > 0) ||
-                    tabCompletions['pay-band-salary-table'] === true ||
-                    localTabDone['pay-band-salary-table'] === true
-                );
-            case 'bonus-pool':
-                return (
-                    !!project.bonus_pool_configuration ||
-                    tabCompletions['bonus-pool'] === true ||
-                    localTabDone['bonus-pool'] === true
-                );
-            case 'benefits':
-                return (
-                    !!project.benefits_configuration ||
-                    tabCompletions['benefits'] === true ||
-                    localTabDone['benefits'] === true
-                );
             case 'review':
-                return validateTabCompletion('benefits');
+                // Prefer the local step-flow completion (Continue clicks),
+                // but fall back to strict validation if local progress isn't available
+                // (e.g. refreshed page).
+                if (PRE_REVIEW_TABS.every((tid) => !!localTabDone[tid])) return true;
+                return PRE_REVIEW_TABS.every((tid) => validateCompensationStep(tid, ctx).ok);
             default:
-                return false;
+                // For other tabs, strict validation decides whether the tab is unlocked.
+                return validateCompensationStep(tabId, ctx).ok;
         }
+    };
+
+    // Display completion (step checkmarks / overview progress).
+    // This can use local step-flow info, because Continue already validated before
+    // marking a tab as done.
+    const isTabCompletedForUI = (tabId: string): boolean => {
+        const ctx = validationCtx();
+        if (tabId === 'overview') return false;
+
+        if (tabId === 'review') {
+            return PRE_REVIEW_TABS.every(
+                (tid) => !!localTabDone[tid] || validateCompensationStep(tid, ctx).ok
+            );
+        }
+
+        return !!localTabDone[tabId] || validateCompensationStep(tabId, ctx).ok;
     };
 
     const isTabEnabled = (tabId: string, tabIndex: number): boolean => {
@@ -209,7 +264,22 @@ export default function CompensationSystemIndex({
             completions[tab.id] = validateTabCompletion(tab.id);
         });
         setTabCompletions(completions);
-    }, [project.compensation_snapshot_responses, project.base_salary_framework, project.pay_bands, project.salary_tables, project.bonus_pool_configuration, project.benefits_configuration]);
+    }, [
+        snapshotQuestions,
+        snapshotResponses,
+        baseSalaryFramework,
+        payBands,
+        salaryTables,
+        operationCriteria,
+        bonusPool,
+        benefits,
+        project.compensation_snapshot_responses,
+        project.base_salary_framework,
+        project.pay_bands,
+        project.salary_tables,
+        project.bonus_pool_configuration,
+        project.benefits_configuration,
+    ]);
 
     const handleTabChange = (newTab: string) => {
         const tabIndex = TABS.findIndex(t => t.id === newTab);
@@ -298,7 +368,7 @@ export default function CompensationSystemIndex({
 
         setSaving(true);
         const pid = project.id;
-        const opts = { preserveScroll: true, preserveState: true, only: ['project'] as const };
+        const opts = { preserveScroll: true, preserveState: true, only: ['project'] as string[] };
         const fail = (msg: string, inertiaErrors?: Record<string, string | string[]>) => {
             setSaving(false);
             setCompError(msg);
@@ -317,23 +387,24 @@ export default function CompensationSystemIndex({
         const responseData = (snapshotQuestions || []).map((q: { id: number; answer_type?: string }) => {
             const response = snapshotResponses[q.id];
             if (q.answer_type === 'numeric') {
+                // Backend stores numeric scalars into `numeric_response` and
+                // numeric objects (e.g. multi-year values) into `response` (json).
+                const isObj = typeof response === 'object' && response !== null;
                 return {
                     question_id: q.id,
-                    response: null,
+                    response: isObj ? response : null,
                     text_response: null,
-                    numeric_response: typeof response === 'object' ? null : (response as number) ?? null,
-                    response_data: typeof response === 'object' ? response : null,
+                    numeric_response: isObj ? null : (response as number) ?? null,
                 };
             }
             if (q.answer_type === 'text') {
-                return { question_id: q.id, response: null, text_response: (response as string) ?? null, numeric_response: null, response_data: null };
+                return { question_id: q.id, response: null, text_response: (response as string) ?? null, numeric_response: null };
             }
             return {
                 question_id: q.id,
                 response: Array.isArray(response) ? response : response ? [response] : null,
                 text_response: null,
                 numeric_response: null,
-                response_data: null,
             };
         });
 
@@ -343,50 +414,76 @@ export default function CompensationSystemIndex({
                 (updatedBenefits.previous_year_total_benefits_expense / updatedBenefits.previous_year_total_salary) * 100;
         }
 
+        const saveOperationCriteriaAndAfter = () => {
+            router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'operation-criteria', ...operationCriteria } as never, {
+                ...opts,
+                onSuccess: () => {
+                    router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'bonus-pool', ...bonusPool } as never, {
+                        ...opts,
+                        onSuccess: () => {
+                            router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'benefits', ...updatedBenefits } as never, {
+                                ...opts,
+                                onSuccess: () => {
+                                    post(`/hr-manager/compensation-system/${pid}/submit`, {
+                                        onSuccess: () => {
+                                            if (typeof window !== 'undefined') {
+                                                window.localStorage.removeItem(draftStorageKey);
+                                            }
+                                            setSaving(false);
+                                            setTabCompletions((c) => ({ ...c, review: true }));
+                                            setShowSuccessModal(true);
+                                        },
+                                        onError: (e) => fail('Submit failed. Check all sections and try again.', e),
+                                    });
+                                },
+                                onError: (e) => fail('Could not save benefits. Please check required fields.', e),
+                            });
+                        },
+                        onError: (e) => fail('Could not save bonus pool.', e),
+                    });
+                },
+                onError: (e) => fail('Could not save operation criteria.', e),
+            });
+        };
+
+        const saveStructureAndAfter = () => {
+            const std = (baseSalaryFramework?.salary_determination_standard || '').trim();
+
+            // Backend validation requires:
+            // - `pay-band` => `pay_bands` must be present (non-empty array)
+            // - `salary-table` => `salary_tables` must be present (non-empty array)
+            // So we must save ONLY the structure type selected by the user.
+            if (std === 'salary_table') {
+                router.post(
+                    `/hr-manager/compensation-system/${pid}`,
+                    { tab: 'salary-table', salary_tables: salaryTables } as never,
+                    {
+                        ...opts,
+                        onSuccess: () => saveOperationCriteriaAndAfter(),
+                        onError: (e) => fail('Could not save salary tables.', e),
+                    }
+                );
+                return;
+            }
+
+            router.post(
+                `/hr-manager/compensation-system/${pid}`,
+                { tab: 'pay-band', pay_bands: payBands } as never,
+                {
+                    ...opts,
+                    onSuccess: () => saveOperationCriteriaAndAfter(),
+                    onError: (e) => fail('Could not save pay bands.', e),
+                }
+            );
+        };
+
         router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'snapshot', responses: responseData } as never, {
             ...opts,
             onSuccess: () => {
                 router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'base-salary-framework', ...baseSalaryFramework } as never, {
                     ...opts,
                     onSuccess: () => {
-                        router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'pay-band', pay_bands: payBands } as never, {
-                            ...opts,
-                            onSuccess: () => {
-                                router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'salary-table', salary_tables: salaryTables } as never, {
-                                    ...opts,
-                                    onSuccess: () => {
-                                        router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'operation-criteria', ...operationCriteria } as never, {
-                                            ...opts,
-                                            onSuccess: () => {
-                                                router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'bonus-pool', ...bonusPool } as never, {
-                                                    ...opts,
-                                                    onSuccess: () => {
-                                                        router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'benefits', ...updatedBenefits } as never, {
-                                                            ...opts,
-                                                            onSuccess: () => {
-                                                                post(`/hr-manager/compensation-system/${pid}/submit`, {
-                                                                    onSuccess: () => {
-                                                                        setSaving(false);
-                                                                        setTabCompletions((c) => ({ ...c, review: true }));
-                                                                        setShowSuccessModal(true);
-                                                                    },
-                                                                    onError: (e) => fail('Submit failed. Check all sections and try again.', e),
-                                                                });
-                                                            },
-                                                            onError: (e) => fail('Could not save benefits. Please check required fields.', e),
-                                                        });
-                                                    },
-                                                    onError: (e) => fail('Could not save bonus pool.', e),
-                                                });
-                                            },
-                                            onError: (e) => fail('Could not save pay structure.', e),
-                                        });
-                                    },
-                                    onError: (e) => fail('Could not save salary tables.', e),
-                                });
-                            },
-                            onError: (e) => fail('Could not save pay bands.', e),
-                        });
+                        saveStructureAndAfter();
                     },
                     onError: (e) => fail('Could not save base salary framework.', e),
                 });
@@ -397,16 +494,32 @@ export default function CompensationSystemIndex({
 
     const completedTabsCount = TABS.filter(tab => {
         if (tab.id === 'overview') return false;
-        return validateTabCompletion(tab.id);
+        return isTabCompletedForUI(tab.id);
     }).length;
 
     const completedSteps = useMemo(() => {
         const set = new Set<string>();
         TABS.forEach(tab => {
-            if (tab.id !== 'overview' && validateTabCompletion(tab.id)) set.add(tab.id);
+            if (tab.id !== 'overview' && isTabCompletedForUI(tab.id)) set.add(tab.id);
         });
         return set;
-    }, [project.compensation_snapshot_responses, project.base_salary_framework, project.pay_bands, project.salary_tables, project.bonus_pool_configuration, project.benefits_configuration]);
+    }, [
+        snapshotQuestions,
+        snapshotResponses,
+        baseSalaryFramework,
+        payBands,
+        salaryTables,
+        operationCriteria,
+        bonusPool,
+        benefits,
+        project.compensation_snapshot_responses,
+        project.base_salary_framework,
+        project.pay_bands,
+        project.salary_tables,
+        project.bonus_pool_configuration,
+        project.benefits_configuration,
+        localTabDone,
+    ]);
 
     const getStatusForHeader = (): 'not_started' | 'in_progress' | 'submitted' => {
         const status = stepStatuses?.compensation || 'not_started';
@@ -480,7 +593,7 @@ export default function CompensationSystemIndex({
                                     {TABS.map((tab, idx) => {
                                         const Icon = tab.icon;
                                         const isActive = activeTab === tab.id;
-                                        const isDone = tab.id === 'overview' ? false : validateTabCompletion(tab.id);
+                                        const isDone = tab.id === 'overview' ? false : isTabCompletedForUI(tab.id);
                                         const stepNum = tab.id === 'overview' ? null : idx; // Overview = O, Snapshot = 1, ... Review = 6
                                         return (
                                             <button
@@ -518,7 +631,7 @@ export default function CompensationSystemIndex({
                             </div>
                         </div>
 
-                        <div className="max-w-7xl mx-auto px-6 py-6 pb-28">
+                        <div className="max-w-7xl mx-auto px-6 py-6 pb-40">
                         {(compError || Object.keys(compFieldErrors).length > 0) && (
                             <InlineErrorSummary
                                 className="mb-4"
@@ -679,6 +792,7 @@ export default function CompensationSystemIndex({
                             style={{ left: 'var(--sidebar-width, 16rem)' }}
                         >
                             <Button
+                                type="button"
                                 variant="outline"
                                 onClick={() => {
                                     const idx = TABS.findIndex(t => t.id === activeTab);
@@ -690,14 +804,14 @@ export default function CompensationSystemIndex({
                                 <ArrowLeft className="w-4 h-4 mr-2" /> Previous
                             </Button>
                             {activeTab !== 'review' ? (
-                                <Button onClick={handleSaveAndContinue} className="bg-[#152540] hover:bg-[#1e3a62] text-white">
+                                <Button type="button" onClick={handleSaveAndContinue} className="bg-[#152540] hover:bg-[#1e3a62] text-white">
                                     Continue
                                     <svg className="w-3.5 h-3.5 ml-1.5" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M7.5 3l3.5 3.5L7.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                 </Button>
                             ) : (
-                                <Button onClick={handleSubmit} disabled={processing || saving} className="bg-[#152540] hover:bg-[#1e3a62] text-white">
+                                <Button type="button" onClick={handleSubmit} disabled={processing || saving} className="bg-[#152540] hover:bg-[#1e3a62] text-white">
                                     <CheckCircle2 className="w-4 h-4 mr-2" />
-                                    Submit & Lock Step 4
+                                    {processing || saving ? 'Submitting...' : 'Submit & Lock Step 4'}
                                 </Button>
                             )}
                         </footer>

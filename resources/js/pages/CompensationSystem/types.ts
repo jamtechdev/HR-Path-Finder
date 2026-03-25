@@ -104,7 +104,7 @@ export interface SalaryTableGrade {
     years: number;
 }
 
-/** Grid state: cells[gradeIndex][yearIndex][levelIndex] = value (e.g. 만원) */
+/** Grid state: cells[gradeIndex][yearIndex][levelIndex] = value (e.g. 10,000 KRW units) */
 export type SalaryTableCells = (number | null)[][][];
 
 export interface SalaryTablePerformanceIncrease {

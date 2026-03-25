@@ -8,6 +8,8 @@ import type {
     SalaryTable,
 } from './types';
 
+const BONUS_ALLOC_CRITERIA_IDS = ['indiv', 'org', 'grade', 'pos', 'role', 'other'] as const;
+
 export interface CompValidationResult {
     ok: boolean;
     message: string;
@@ -20,7 +22,76 @@ function isSnapshotQuestionAnswered(
 ): boolean {
     const r = responses[q.id];
     if (q.answer_type === 'numeric') {
-        return r != null && (typeof r === 'number' || (typeof r === 'object' && r !== null));
+        if (typeof r === 'number') return Number.isFinite(r);
+        if (typeof r === 'string') {
+            const n = parseFloat(r);
+            return Number.isFinite(n);
+        }
+
+        // Job functions (stored as an array of {function, amount})
+        if (Array.isArray(r)) {
+            const isJobFunctions =
+                q.metadata?.is_job_functions === true ||
+                (q.question_text?.toLowerCase().includes('average salary by job function') ?? false);
+            if (isJobFunctions) {
+                return (
+                    r.length > 0 &&
+                    r.every((item) => {
+                        if (!item || typeof item !== 'object') return false;
+                        const fn = (item as any).function;
+                        const amt = (item as any).amount;
+                        const amtNum = typeof amt === 'string' ? parseFloat(amt) : amt;
+                        return (
+                            typeof fn === 'string' &&
+                            fn.trim() !== '' &&
+                            typeof amtNum === 'number' &&
+                            Number.isFinite(amtNum)
+                        );
+                    })
+                );
+            }
+            return r.length > 0;
+        }
+
+        // Multi-year numeric & years-of-service (stored as objects)
+        if (typeof r === 'object' && r !== null) {
+            const lower = q.question_text?.toLowerCase() ?? '';
+            const isMultiYear =
+                q.metadata?.is_multi_year === true ||
+                lower.includes('past three years') ||
+                lower.includes('average annual salary increase rate') ||
+                lower.includes('labor cost ratio') ||
+                lower.includes('average bonus payout ratio');
+            const isYearsOfService =
+                q.metadata?.is_years_of_service === true ||
+                lower.includes('average salary by years of service');
+
+            if (isMultiYear) {
+                const years = ['2023', '2024', '2025'] as const;
+                return years.every((y) => {
+                    const v = (r as any)[y];
+                        const n = typeof v === 'string' ? parseFloat(v) : v;
+                        return typeof n === 'number' && Number.isFinite(n);
+                });
+            }
+
+            if (isYearsOfService) {
+                const keys = ['overall', '1_3', '4_7', '8_12', '13_17', '18_20'] as const;
+                return keys.every((k) => {
+                    const v = (r as any)[k];
+                        const n = typeof v === 'string' ? parseFloat(v) : v;
+                        return typeof n === 'number' && Number.isFinite(n);
+                });
+            }
+
+            // Generic object numeric: require at least one finite numeric value.
+            return Object.values(r as any).some((v) => {
+                const n = typeof v === 'string' ? parseFloat(v) : v;
+                return typeof n === 'number' && Number.isFinite(n);
+            });
+        }
+
+        return false;
     }
     if (q.answer_type === 'text') {
         return typeof r === 'string' && r.trim() !== '';
@@ -37,7 +108,23 @@ export function validateCompensationSnapshot(
     if (!questions?.length) {
         return { ok: true, message: '', fieldErrors: {} };
     }
+    const q17 = questions[16];
+    const q18 = questions[17];
+    const q17Selected = Array.isArray(q17 ? responses[q17.id] : null)
+        ? ((responses[q17.id] as string[]) ?? [])
+        : [];
+
     for (const q of questions) {
+        // Q18 depends on Q17 selections. If Q17 has no usable choices yet,
+        // skip Q18 required validation to avoid a false error state.
+        if (q18 && q.id === q18.id) {
+            const q18Options = Array.isArray(q18.options) ? q18.options : [];
+            const hasUsableQ18Options = q17Selected.some((opt) => q18Options.includes(opt));
+            if (!hasUsableQ18Options) {
+                continue;
+            }
+        }
+
         if (!isSnapshotQuestionAnswered(q, responses)) {
             fieldErrors[`comp-q-${q.id}`] = 'This question requires an answer.';
         }
@@ -70,51 +157,123 @@ export function validateBaseSalaryFramework(fw: BaseSalaryFramework): CompValida
     return { ok: true, message: '', fieldErrors: {} };
 }
 
-export function validatePayBandTab(payBands: PayBand[], salaryTables: SalaryTable[]): CompValidationResult {
-    if ((payBands?.length ?? 0) === 0 && (salaryTables?.length ?? 0) === 0) {
-        return {
-            ok: false,
-            message: 'Add at least one pay band or salary table row before continuing.',
-            fieldErrors: {
-                'comp-pay-band': 'Define pay bands and/or salary table data.',
-            },
-        };
+export function validatePayBandTab(
+    payBands: PayBand[],
+    salaryTables: SalaryTable[],
+    framework: BaseSalaryFramework
+): CompValidationResult {
+    const std = (framework.salary_determination_standard || '').trim();
+    if (std === 'pay_band') {
+        if ((payBands?.length ?? 0) === 0) {
+            return {
+                ok: false,
+                message: 'Add at least one pay band row before continuing (Pay Band is selected in Base Salary Framework).',
+                fieldErrors: {
+                    'comp-pay-band': 'Add pay band data for the selected determination method.',
+                },
+            };
+        }
+        return { ok: true, message: '', fieldErrors: {} };
     }
-    return { ok: true, message: '', fieldErrors: {} };
+    if (std === 'salary_table') {
+        if ((salaryTables?.length ?? 0) === 0) {
+            return {
+                ok: false,
+                message: 'Add at least one salary table row before continuing (Salary Table is selected in Base Salary Framework).',
+                fieldErrors: {
+                    'comp-pay-band': 'Add salary table data for the selected determination method.',
+                },
+            };
+        }
+        return { ok: true, message: '', fieldErrors: {} };
+    }
+    return {
+        ok: false,
+        message: 'Select Pay Band or Salary Table in Base Salary Framework, then complete the matching section.',
+        fieldErrors: {
+            'comp-pay-band': 'Complete Base Salary Framework (determination standard) first.',
+        },
+    };
 }
 
 export function validateBonusPoolTab(cfg: BonusPoolConfiguration): CompValidationResult {
-    const has =
-        (cfg.payment_trigger_condition || '').trim() ||
-        (cfg.bonus_pool_determination_criteria || '').trim() ||
-        (cfg.bonus_pool_determination_method || '').trim();
-    if (!has) {
+    const fieldErrors: FieldErrors = {};
+    const trigger = (cfg.payment_trigger_condition || '').trim();
+    const criteria = (cfg.bonus_pool_determination_criteria || '').trim();
+    const method = (cfg.bonus_pool_determination_method || '').trim();
+    const scope = (cfg.eligibility_scope || '').trim();
+    const month = cfg.bonus_payment_month;
+
+    const allocationCriteria = cfg.allocation_criteria ?? [];
+    const allocationWeights = cfg.allocation_weights ?? {};
+    const totalWeight = BONUS_ALLOC_CRITERIA_IDS.filter((id) => allocationCriteria.includes(id)).reduce(
+        (sum, id) => sum + (allocationWeights[id] ?? 0),
+        0
+    );
+    const weightOk = allocationCriteria.length === 0 || totalWeight === 100;
+
+    const missing: string[] = [];
+    if (!trigger) missing.push('payment trigger');
+    if (!criteria) missing.push('determination criteria');
+    if (!method) missing.push('determination method');
+    if (!scope) missing.push('eligibility scope');
+    if (month == null || month < 1 || month > 12) missing.push('bonus payment month');
+    if (!weightOk) missing.push('allocation weights must total 100%');
+
+    if (method === 'ratio' && (cfg.ratio_value == null || Number.isNaN(cfg.ratio_value))) {
+        missing.push('profit ratio (%)');
+    }
+    if (
+        method === 'range' &&
+        (cfg.range_min == null || cfg.range_max == null || Number.isNaN(cfg.range_min) || Number.isNaN(cfg.range_max))
+    ) {
+        missing.push('bonus pool range (min/max)');
+    }
+    if (method === 'amount' && (cfg.amount_value == null || Number.isNaN(cfg.amount_value))) {
+        missing.push('fixed bonus pool amount');
+    }
+
+    if (missing.length > 0) {
+        fieldErrors['comp-bonus-pool'] = `Complete bonus pool: ${missing.join(', ')}.`;
         return {
             ok: false,
-            message: 'Fill in bonus pool criteria or payment trigger before continuing.',
-            fieldErrors: {
-                'comp-bonus-pool': 'Provide at least one bonus pool configuration field.',
-            },
+            message: 'Complete all required Bonus Pool fields before continuing.',
+            fieldErrors,
         };
     }
     return { ok: true, message: '', fieldErrors: {} };
 }
 
 export function validateBenefitsTab(cfg: BenefitsConfiguration): CompValidationResult {
-    const hasNumbers =
-        (cfg.previous_year_total_salary != null && cfg.previous_year_total_salary > 0) ||
-        (cfg.previous_year_total_benefits_expense != null && cfg.previous_year_total_benefits_expense > 0);
-    const hasPrograms =
-        (cfg.current_benefits_programs?.length ?? 0) > 0 ||
-        (cfg.future_programs?.length ?? 0) > 0 ||
-        (cfg.benefits_strategic_direction?.length ?? 0) > 0;
-    if (!hasNumbers && !hasPrograms) {
+    const fieldErrors: FieldErrors = {};
+    const missing: string[] = [];
+
+    const salaryOk =
+        cfg.previous_year_total_salary != null &&
+        cfg.previous_year_total_salary > 0 &&
+        !Number.isNaN(cfg.previous_year_total_salary);
+    const benefitsExpenseOk =
+        cfg.previous_year_total_benefits_expense != null &&
+        cfg.previous_year_total_benefits_expense > 0 &&
+        !Number.isNaN(cfg.previous_year_total_benefits_expense);
+
+    if (!salaryOk) missing.push('total labor cost (100M KRW)');
+    if (!benefitsExpenseOk) missing.push('total benefits expense (100M KRW)');
+
+    const stratCount = cfg.benefits_strategic_direction?.length ?? 0;
+    if (stratCount < 1) missing.push('at least one strategic direction');
+    if (stratCount > 2) missing.push('at most two strategic directions');
+
+    const programCount =
+        (cfg.current_benefits_programs?.length ?? 0) + (cfg.future_programs?.length ?? 0);
+    if (programCount < 1) missing.push('at least one benefits program (select a card)');
+
+    if (missing.length > 0) {
+        fieldErrors['comp-benefits'] = `Complete benefits: ${missing.join('; ')}.`;
         return {
             ok: false,
-            message: 'Add benefits data (e.g. prior-year totals or program selections) before continuing.',
-            fieldErrors: {
-                'comp-benefits': 'Complete at least one benefits section.',
-            },
+            message: 'Complete all required Benefits fields before continuing.',
+            fieldErrors,
         };
     }
     return { ok: true, message: '', fieldErrors: {} };
@@ -140,7 +299,7 @@ export function validateCompensationStep(
         case 'base-salary-framework':
             return validateBaseSalaryFramework(ctx.baseSalaryFramework);
         case 'pay-band-salary-table':
-            return validatePayBandTab(ctx.payBands, ctx.salaryTables);
+            return validatePayBandTab(ctx.payBands, ctx.salaryTables, ctx.baseSalaryFramework);
         case 'bonus-pool':
             return validateBonusPoolTab(ctx.bonusPool);
         case 'benefits':

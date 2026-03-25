@@ -10,10 +10,10 @@ import type { BonusPoolConfiguration } from '../types';
 
 const CRITERIA_MAP: Record<string, string[]> = {
     profit: [
-        'Revenue (매출액)',
-        'Operating profit (영업이익)',
-        'Net profit (당기순이익)',
-        'Projected revenue (예상 매출)',
+        'Revenue',
+        'Operating profit',
+        'Net profit',
+        'Projected revenue',
         'Projected operating profit after tax',
         'Projected net profit after tax',
         'EBITDA',
@@ -43,7 +43,20 @@ const ALLOC_ITEMS = [
     { id: 'other', lbl: 'Other (manual input)' },
 ];
 
-const MONTHS = Array.from({ length: 12 }, (_, i) => `${i + 1}월`);
+const MONTHS = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+];
 
 interface ConceptData {
     tag: string;
@@ -58,98 +71,98 @@ interface ConceptData {
 const CONCEPTS: Record<string, Record<string, ConceptData>> = {
     trigger: {
         profit: {
-            tag: '성과 지향',
+            tag: 'Performance-driven',
             tagCls: 'perf',
             icon: '📈',
             iconCls: 'mint',
-            title: '수익 발생 시 지급',
-            desc: '실제 이익이 발생했을 때만 성과급 재원이 생성됩니다. 회사의 재무 건전성과 성과급을 직접 연동하는 가장 일반적인 방식입니다.',
-            ex: '예시: "당해연도 영업이익 흑자 전환 시 해당 이익의 10%를 성과급 재원으로 설정"',
+            title: 'Paid when profit is generated',
+            desc: 'The bonus pool is created only when actual profit is generated. This directly links company financial health to bonus funding and is the most common approach.',
+            ex: 'Example: "When operating profit turns positive this year, set 10% of that profit as the bonus funding."',
         },
         company_target: {
-            tag: '성과 지향',
+            tag: 'Performance-driven',
             tagCls: 'perf',
             icon: '🎯',
             iconCls: 'mint',
-            title: '회사 목표 달성 시 지급',
-            desc: '사전에 설정한 전사 목표(매출, KPI 등)를 달성했을 때 지급이 트리거됩니다.',
-            ex: '예시: "연간 매출 목표 100% 달성 시 성과급 지급"',
+            title: 'Paid when company targets are achieved',
+            desc: 'Payout is triggered when pre-set company-wide targets (revenue, KPIs, etc.) are met.',
+            ex: 'Example: "Pay bonuses when the annual revenue target is achieved at 100%."',
         },
         org_target: {
-            tag: '성과 지향',
+            tag: 'Performance-driven',
             tagCls: 'perf',
             icon: '🏢',
             iconCls: 'mint',
-            title: '조직 목표 달성 시 지급',
-            desc: '팀·부서 단위의 목표 달성 여부가 기준입니다.',
-            ex: '예시: "각 사업부의 OKR 달성률 70% 이상인 경우 해당 사업부 직원에게 성과급 지급"',
+            title: 'Paid when organizational targets are achieved',
+            desc: 'Achievement of targets at the team or department level is the criterion.',
+            ex: 'Example: "If each business unit’s OKR attainment is 70% or higher, pay bonuses to employees in that unit."',
         },
         discretion: {
-            tag: '재량 중심',
+            tag: 'Discretion-based',
             tagCls: 'flex',
             icon: '⚖️',
             iconCls: 'gold',
-            title: '경영진 재량 지급',
-            desc: '정량적 기준 없이 CEO 또는 이사회의 판단으로 재원을 결정합니다.',
-            ex: '예시: "연말 경영진 회의에서 사업 환경 및 조직 기여도를 종합 평가하여 지급 여부 결정"',
+            title: 'Management discretion payout',
+            desc: 'The bonus pool is determined by CEO or board judgment without fixed quantitative criteria.',
+            ex: 'Example: "At the year-end management meeting, evaluate business conditions and organizational contribution to decide whether to pay."',
         },
     },
     method: {
         ratio: {
-            tag: '성과 연동',
+            tag: 'Profit-linked',
             tagCls: 'perf',
             icon: '%',
             iconCls: 'mint',
-            title: '이익의 고정 비율',
-            desc: '이익에 미리 정한 비율을 곱해 재원을 산정합니다.',
-            ex: '예시: "영업이익의 10%를 성과급 재원으로 확정"',
+            title: 'Fixed percentage of profit',
+            desc: 'The pool is calculated by multiplying profit by a predetermined percentage.',
+            ex: 'Example: "Set operating profit × 10% as the bonus funding."',
         },
         range: {
-            tag: '유연형',
+            tag: 'Flexible',
             tagCls: 'flex',
             icon: '↔',
             iconCls: 'gold',
-            title: '범위 기반 결정',
-            desc: '최소~최대 범위를 정해두고 그 안에서 결정합니다.',
-            ex: '예시: "성과급 재원은 최소 2억, 최대 10억 범위 내에서 당해 실적에 따라 결정"',
+            title: 'Range-based determination',
+            desc: 'Set a minimum and maximum range, then determine within that range.',
+            ex: 'Example: "The bonus pool is determined based on performance within a range of 0.2 to 1.0 billion KRW."',
         },
         amount: {
-            tag: '안정 지향',
+            tag: 'Stable',
             tagCls: 'stab',
             icon: '₩',
             iconCls: 'navy',
-            title: '고정 금액',
-            desc: '경영 실적과 무관하게 사전에 확정된 금액을 지급합니다.',
-            ex: '예시: "매년 전사 성과급 재원을 3억원으로 고정 편성"',
+            title: 'Fixed amount',
+            desc: 'A fixed amount is paid regardless of business performance.',
+            ex: 'Example: "Fix the annual company bonus pool at 0.3 billion KRW."',
         },
         annual: {
-            tag: '재량형',
+            tag: 'Discretionary',
             tagCls: 'flex',
             icon: '📅',
             iconCls: 'gold',
-            title: '사업연도별 별도 결정',
-            desc: '매년 사업 여건에 따라 재원을 새로 결정합니다.',
-            ex: '예시: "매년 12월 이사회에서 차년도 성과급 재원 규모를 별도로 의결"',
+            title: 'Separate determination by business year',
+            desc: 'Each year, the bonus pool is newly determined based on business conditions.',
+            ex: 'Example: "In the December board meeting, separately decide the next year’s bonus pool size."',
         },
     },
     leave: {
         include: {
-            tag: '포용형',
+            tag: 'Inclusive',
             tagCls: 'stab',
             icon: '🏥',
             iconCls: 'navy',
-            title: '휴직자 포함 (근무일 기준)',
-            desc: '휴직 기간을 제외한 실제 근무일 수에 비례하여 성과급을 지급합니다.',
-            ex: '예시: "총 근무일 120일 / 연간 근무일 240일 = 50% 지급"',
+            title: 'Include employees on leave (working-day basis)',
+            desc: 'Bonuses are paid proportionally based on actual working days, excluding leave periods.',
+            ex: 'Example: "120 working days out of 240 in the year = pay 50%."',
         },
         exclude: {
-            tag: '엄격형',
+            tag: 'Strict',
             tagCls: 'perf',
             icon: '🚫',
             iconCls: 'mint',
-            title: '휴직자 제외',
-            desc: '휴직 기간이 있는 직원은 성과급 지급 대상에서 제외합니다.',
-            ex: '예시: "산정기간 중 1일이라도 휴직 이력 있는 직원은 제외"',
+            title: 'Exclude employees on leave',
+            desc: 'Employees with any leave during the calculation period are excluded from the bonus payout.',
+            ex: 'Example: "If an employee has any leave history for even 1 day during the calculation period, they are excluded."',
         },
     },
 };
@@ -197,53 +210,55 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
     }, [trigger, method, configuration.inclusion_of_employees_on_leave]);
 
     const updateSummary = useCallback(() => {
-        const parts: string[] = [];
         const trTxt =
             {
-                profit: '수익 발생 시',
-                company_target: '회사 목표 달성 시',
-                org_target: '조직 목표 달성 시',
-                discretion: '경영진 재량',
+                profit: 'Profit',
+                company_target: 'Company Targets',
+                org_target: 'Organizational Targets',
+                discretion: 'Discretion',
             }[trigger] || trigger;
         const crTxt = configuration.bonus_pool_determination_criteria || '';
         const meTxt =
             {
-                ratio: '이익의 고정 비율',
-                range: '범위 기반 결정',
-                amount: '고정 금액',
-                annual: '사업연도별 별도 결정',
+                ratio: 'Fixed percentage of profit',
+                range: 'Range-based determination',
+                amount: 'Fixed amount',
+                annual: 'Separate determination by business year',
             }[method] || method;
         const scTxt =
             {
-                all: '전 직원',
-                all_excl: '전 직원 (임원·계약직 제외)',
-                all_exec_incl: '전 직원 (임원 포함, 계약직 제외)',
-                regular: '정규직',
-                grade: '특정 직급 이상',
-                org: '특정 조직 단위',
-                other_scope: '기타',
+                all: 'All employees (incl. exec & contractors)',
+                all_excl: 'All employees (excl. exec & contractors)',
+                all_exec_incl: 'All employees (incl. exec, excl. contractors)',
+                regular: 'Regular employees only',
+                grade: 'By job grade',
+                org: 'By organization unit',
+                other_scope: 'Other',
             }[configuration.eligibility_scope || ''] || configuration.eligibility_scope || '';
         const pm = configuration.bonus_payment_month
-            ? `${configuration.bonus_payment_month}월`
+            ? `${configuration.bonus_payment_month} month`
             : '';
         const fm = configuration.bonus_pool_finalization_timing
-            ? `${configuration.bonus_pool_finalization_timing}월`
+            ? `${configuration.bonus_pool_finalization_timing} month`
             : '';
 
-        let s = '회사는 ';
-        s += `<span class="text-[#5DCAA5] font-bold">${trTxt}</span>를 기점으로 `;
-        if (crTxt) s += `<span class="text-[#5DCAA5] font-bold">${crTxt}</span>의 `;
-        if (method === 'ratio' && configuration.ratio_value != null)
-            s += `<span class="text-[#5DCAA5] font-bold">${configuration.ratio_value}%</span>를 `;
-        else if (method === 'range' && configuration.range_min != null && configuration.range_max != null)
-            s += `<span class="text-[#5DCAA5] font-bold">${configuration.range_min}~${configuration.range_max}만원</span>을 `;
-        else if (method === 'amount' && configuration.amount_value != null)
-            s += `<span class="text-[#5DCAA5] font-bold">${configuration.amount_value}만원</span>을 `;
-        else if (meTxt) s += `<span class="text-[#5DCAA5] font-bold">${meTxt}</span>으로 `;
-        s += '성과급 재원을 확정하며, ';
-        if (scTxt) s += `지급 대상은 <span class="text-[#5DCAA5] font-bold">${scTxt}</span>으로 하되 `;
-        s += pm ? `<span class="text-[#5DCAA5] font-bold">${pm}</span>에 지급한다.` : '지급 시기를 결정한다.';
-        if (fm) s += ` (재원 확정 기준월: <span class="text-[#5DCAA5] font-bold">${fm}</span>)`;
+        let s = 'The company sets the bonus pool based on ';
+        s += `<span class="text-[#5DCAA5] font-bold">${trTxt}</span> as the trigger condition.`;
+        if (crTxt) s += ` The determination criteria is <span class="text-[#5DCAA5] font-bold">${crTxt}</span>.`;
+
+        if (method === 'ratio' && configuration.ratio_value != null) {
+            s += ` The pool is determined as <span class="text-[#5DCAA5] font-bold">${configuration.ratio_value}%</span> of profit.`;
+        } else if (method === 'range' && configuration.range_min != null && configuration.range_max != null) {
+            s += ` The pool is determined within <span class="text-[#5DCAA5] font-bold">${configuration.range_min}~${configuration.range_max} (10,000 KRW)</span>.`;
+        } else if (method === 'amount' && configuration.amount_value != null) {
+            s += ` The pool is fixed at <span class="text-[#5DCAA5] font-bold">${configuration.amount_value} (10,000 KRW)</span>.`;
+        } else if (meTxt) {
+            s += ` Determination method: <span class="text-[#5DCAA5] font-bold">${meTxt}</span>.`;
+        }
+
+        if (scTxt) s += ` Eligible recipients are <span class="text-[#5DCAA5] font-bold">${scTxt}</span>.`;
+        s += pm ? ` Payment is scheduled for <span class="text-[#5DCAA5] font-bold">${pm}</span>.` : ' The payment timing is to be decided.';
+        if (fm) s += ` (Finalization month: <span class="text-[#5DCAA5] font-bold">${fm}</span>).`;
         return s;
     }, [configuration, trigger, method]);
 
@@ -267,7 +282,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                 eyebrowTag="Compensation Structure"
                 stepLabel="Step 4 of 6 · Bonus Pool Configuration"
                 title="Bonus Pool Configuration"
-                description="성과급 운영 원칙과 배분 기준을 설계합니다."
+                description="Design the rules and allocation criteria for your bonus pool."
                 completionPct={completionPct}
             />
             <FieldErrorMessage fieldKey="comp-bonus-pool" errors={fieldErrors} className="mt-4 px-1" />
@@ -304,16 +319,16 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="profit">
-                                                수익 발생 시 (Paid when profit is generated)
+                                                Paid when profit is generated
                                             </SelectItem>
                                             <SelectItem value="company_target">
-                                                회사 목표 달성 시 (Company-wide targets achieved)
+                                                Paid when company-wide targets are achieved
                                             </SelectItem>
                                             <SelectItem value="org_target">
-                                                조직 목표 달성 시 (Organizational targets achieved)
+                                                Paid when organizational targets are achieved
                                             </SelectItem>
                                             <SelectItem value="discretion">
-                                                경영진 재량 (Discretionary / CEO decision)
+                                                Management discretion (CEO decision)
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -337,7 +352,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                                 placeholder={
                                                     trigger
                                                         ? 'Select criteria'
-                                                        : '— trigger 선택 후 활성화 —'
+                                                        : '— Activate after selecting a trigger —'
                                                 }
                                             />
                                         </SelectTrigger>
@@ -369,14 +384,14 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="ratio">
-                                            이익의 고정 비율 (Fixed percentage of profit)
+                                            Fixed percentage of profit
                                         </SelectItem>
                                         <SelectItem value="range">
-                                            범위 기반 결정 (Range-based determination)
+                                            Range-based determination
                                         </SelectItem>
-                                        <SelectItem value="amount">고정 금액 (Fixed amount)</SelectItem>
+                                        <SelectItem value="amount">Fixed amount</SelectItem>
                                         <SelectItem value="annual">
-                                            사업연도별 별도 결정 (Separate determination by business year)
+                                            Separate determination by business year
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -385,7 +400,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                 <div className="mt-4 flex flex-wrap items-center gap-4">
                                     {method === 'ratio' && (
                                         <>
-                                            <Label className="text-sm">비율</Label>
+                                            <Label className="text-sm">Ratio</Label>
                                             <Input
                                                 type="number"
                                                 min={0}
@@ -397,7 +412,9 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                                 onChange={(e) =>
                                                     onUpdate({
                                                         ...configuration,
-                                                        ratio_value: parseFloat(e.target.value) || undefined,
+                                                        ratio_value: Number.isNaN(parseFloat(e.target.value))
+                                                            ? undefined
+                                                            : Math.min(100, Math.max(0, parseFloat(e.target.value))),
                                                     })
                                                 }
                                             />
@@ -406,10 +423,10 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                     )}
                                     {method === 'range' && (
                                         <>
-                                            <Label className="text-sm">최소</Label>
+                                            <Label className="text-sm">Min</Label>
                                             <Input
                                                 type="number"
-                                                placeholder="최소"
+                                                placeholder="Min"
                                                 className="max-w-[120px]"
                                                 value={configuration.range_min ?? ''}
                                                 onChange={(e) =>
@@ -419,10 +436,10 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                                     })
                                                 }
                                             />
-                                            <Label className="text-sm">~ 최대</Label>
+                                            <Label className="text-sm">~ Max</Label>
                                             <Input
                                                 type="number"
-                                                placeholder="최대"
+                                                placeholder="Max"
                                                 className="max-w-[120px]"
                                                 value={configuration.range_max ?? ''}
                                                 onChange={(e) =>
@@ -432,12 +449,12 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                                     })
                                                 }
                                             />
-                                            <span className="text-sm text-muted-foreground">만원</span>
+                                            <span className="text-sm text-muted-foreground">10,000 KRW</span>
                                         </>
                                     )}
                                     {method === 'amount' && (
                                         <>
-                                            <Label className="text-sm">금액</Label>
+                                            <Label className="text-sm">Amount</Label>
                                             <Input
                                                 type="number"
                                                 placeholder="e.g. 50000"
@@ -450,7 +467,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                                     })
                                                 }
                                             />
-                                            <span className="text-sm text-muted-foreground">만원</span>
+                                            <span className="text-sm text-muted-foreground">10,000 KRW</span>
                                         </>
                                     )}
                                 </div>
@@ -485,18 +502,18 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="all">
-                                                전 직원 (임원·계약직 포함)
+                                                All employees (incl. executives & contractors)
                                             </SelectItem>
                                             <SelectItem value="all_excl">
-                                                전 직원 (임원·계약직 제외)
+                                                All employees (excl. executives & contractors)
                                             </SelectItem>
                                             <SelectItem value="all_exec_incl">
-                                                전 직원 (임원 포함, 계약직 제외)
+                                                All employees (incl. executives, excl. contractors)
                                             </SelectItem>
-                                            <SelectItem value="regular">정규직만</SelectItem>
-                                            <SelectItem value="grade">특정 직급 이상</SelectItem>
-                                            <SelectItem value="org">특정 조직 단위</SelectItem>
-                                            <SelectItem value="other_scope">기타 (직접 입력)</SelectItem>
+                                        <SelectItem value="regular">Regular employees only</SelectItem>
+                                        <SelectItem value="grade">By job grade</SelectItem>
+                                        <SelectItem value="org">By organization unit</SelectItem>
+                                        <SelectItem value="other_scope">Other (manual input)</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -514,13 +531,13 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                             <SelectValue placeholder="Select criteria" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="yearend">연말 재직자</SelectItem>
-                                            <SelectItem value="announce">보너스 공지일 재직자</SelectItem>
-                                            <SelectItem value="tenure3_abs">3개월 이상 재직</SelectItem>
+                                            <SelectItem value="yearend">Employees employed at year-end</SelectItem>
+                                            <SelectItem value="announce">Employees employed on the bonus announcement date</SelectItem>
+                                            <SelectItem value="tenure3_abs">Employed for 3+ months</SelectItem>
                                             <SelectItem value="tenure3_period">
-                                                산정기간 내 3개월 이상 재직
+                                                Employed for 3+ months within the evaluation period
                                             </SelectItem>
-                                            <SelectItem value="other_crit">기타</SelectItem>
+                                            <SelectItem value="other_crit">Other</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -543,10 +560,10 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="include">
-                                            포함 — 근무일 기준 (Included, working days basis)
+                                            Included — working days basis
                                         </SelectItem>
-                                        <SelectItem value="exclude">제외 (Excluded)</SelectItem>
-                                        <SelectItem value="other_leave">기타</SelectItem>
+                                        <SelectItem value="exclude">Excluded</SelectItem>
+                                        <SelectItem value="other_leave">Other</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -583,13 +600,13 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="salary_pct">
-                                                급여 기반 비율 (% of salary-based calculation)
+                                                Salary-based percentage (% of salary-based calculation)
                                             </SelectItem>
                                             <SelectItem value="band_amount">
-                                                직급·밴드 기반 금액 (Amount based on salary band)
+                                                Amount based on job grade & salary band
                                             </SelectItem>
                                             <SelectItem value="fixed_amount">
-                                                사전 정의 고정액 (Predefined fixed amount per person)
+                                                Predefined fixed amount per person
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -612,16 +629,16 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="equal">
-                                                전사 균등 배분 (Equal allocation, company-wide)
+                                                Equal allocation (company-wide)
                                             </SelectItem>
                                             <SelectItem value="org_diff">
-                                                조직별 차등 배분 (Differentiated by organization)
+                                                Differentiated by organization
                                             </SelectItem>
                                             <SelectItem value="indiv_perf">
-                                                개인 성과 기반 배분 (Differentiated by individual performance)
+                                                Differentiated by individual performance
                                             </SelectItem>
                                             <SelectItem value="mixed">
-                                                조직 + 개인 혼합 (Differentiated by organization and individual)
+                                                Mixed: organization + individual
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -646,6 +663,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                                 <Checkbox
                                                     id={`alloc_${id}`}
                                                     checked={checked}
+                                                    className="rounded-full border-2"
                                                     onCheckedChange={(c) => {
                                                         const arr = configuration.allocation_criteria || [];
                                                         const next = c
@@ -675,10 +693,15 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                                             className="w-14 h-8 text-right text-sm"
                                                             value={w || ''}
                                                             onChange={(e) => {
-                                                                const v = Math.min(
-                                                                    100,
-                                                                    Math.max(0, parseFloat(e.target.value) || 0)
+                                                                const raw = parseFloat(e.target.value);
+                                                                const safeRaw = Number.isNaN(raw) ? 0 : Math.max(0, raw);
+                                                                const otherTotal = checkedAlloc.reduce(
+                                                                    (sum, item) =>
+                                                                        item.id === id ? sum : sum + (allocationWeights[item.id] ?? 0),
+                                                                    0
                                                                 );
+                                                                const allowedMax = Math.max(0, 100 - otherTotal);
+                                                                const v = Math.min(100, allowedMax, safeRaw);
                                                                 onUpdate({
                                                                     ...configuration,
                                                                     allocation_weights: {
@@ -722,7 +745,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                 )}
                                 {checkedAlloc.length > 0 && totalWeight !== 100 && (
                                     <p className="text-xs text-destructive mt-1">
-                                        ⚠ 가중치 합계가 100%가 되어야 다음 단계로 진행 가능합니다.
+                                        ⚠ Allocation weights must total 100% to proceed to the next step.
                                     </p>
                                 )}
                             </div>
@@ -839,7 +862,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                     </span>
                                     <span className="font-semibold text-[#1B2E4B]">Summary Note</span>
                                 </div>
-                                <span className="text-[10px] text-muted-foreground">자동 생성</span>
+                                <span className="text-[10px] text-muted-foreground">Auto-generated</span>
                             </div>
                             <div className="bg-[#1B2E4B] rounded-xl p-5 text-white">
                                 <div className="text-[10px] font-bold uppercase tracking-wider text-white/50 mb-2">
@@ -850,12 +873,11 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                     dangerouslySetInnerHTML={{
                                         __html: trigger
                                             ? updateSummary()
-                                            : '<span class="italic text-white/40">설정값을 입력하면 성과급 정책 문장이 자동 완성됩니다.</span>',
+                                            : '<span class="italic text-white/40">Enter the required settings to auto-generate the bonus policy statement.</span>',
                                     }}
                                 />
                                 <div className="text-xs text-white/40 mt-3 pt-3 border-t border-white/10">
-                                    ※ 최종 HR 시스템 설계 보고서에는 전문 컨설턴트의 검토 의견과 권고사항이 함께
-                                    제공됩니다.
+                                    ※ The final HR system design report will include professional consultant reviews and recommendations.
                                 </div>
                             </div>
                         </CardContent>
@@ -870,24 +892,24 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                             <ul className="space-y-2 text-sm text-muted-foreground">
                                 <li className="flex gap-2">
                                     <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] mt-1.5 shrink-0" />
-                                    성과급 재원의 발생 조건과 규모를 결정합니다.
+                                    Determine the trigger conditions and size of the bonus pool.
                                 </li>
                                 <li className="flex gap-2">
                                     <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] mt-1.5 shrink-0" />
-                                    지급 대상 범위와 자격 기준을 정의합니다.
+                                    Define the eligible population and qualification criteria.
                                 </li>
                                 <li className="flex gap-2">
                                     <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] mt-1.5 shrink-0" />
-                                    개인·조직 성과의 배분 가중치를 구조화합니다.
+                                    Structure the allocation weights for individual and organizational performance.
                                 </li>
                                 <li className="flex gap-2">
                                     <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] mt-1.5 shrink-0" />
-                                    이 설정은 이후 개인 보너스 산출의 기준이 됩니다.
+                                    These settings become the basis for calculating individual bonuses later.
                                 </li>
                             </ul>
                             <div className="h-px bg-border my-4" />
                             <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                                선택 옵션 가이드
+                                Option Guide
                             </div>
                             {conceptData ? (
                                 <div className="rounded-lg border bg-muted/30 p-3">
@@ -914,7 +936,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                 </div>
                             ) : (
                                 <p className="text-xs italic text-muted-foreground">
-                                    항목을 선택하면 개념 설명이 표시됩니다.
+                                    Select an option to view the concept explanation.
                                 </p>
                             )}
                         </CardContent>

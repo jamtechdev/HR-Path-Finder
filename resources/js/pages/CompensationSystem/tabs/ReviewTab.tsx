@@ -31,8 +31,9 @@ interface ReviewTabProps {
 }
 
 function formatKrWon(n: number): string {
-    if (n >= 100000000) return `${(n / 100000000).toFixed(1)}억`;
-    if (n >= 10000) return `${(n / 10000).toFixed(0)}만`;
+    // Display compact units in English (100M / 10K KRW scale).
+    if (n >= 100000000) return `${(n / 100000000).toFixed(1)}×100M`;
+    if (n >= 10000) return `${(n / 10000).toFixed(0)}×10K`;
     return n.toLocaleString();
 }
 
@@ -262,7 +263,7 @@ export default function ReviewTab({
                                     )}
                                     {(mixRatios.base > 0 || mixRatios.incentive > 0 || mixRatios.benefits > 0) && (
                                         <>
-                                            <div className="text-[10px] font-semibold mb-2 uppercase tracking-wider" style={{ color: TEXT_MUTED }}>보상 믹스 / Compensation Mix</div>
+                                            <div className="text-[10px] font-semibold mb-2 uppercase tracking-wider" style={{ color: TEXT_MUTED }}>Compensation Mix / Compensation Mix Ratio</div>
                                             <div className="flex h-4 rounded-lg overflow-hidden gap-0.5">
                                                 <div className="h-full rounded-l" style={{ background: MINT, flex: mixRatios.base || 1 }} />
                                                 <div className="h-full" style={{ background: GOLD, flex: mixRatios.incentive || 0 }} />
@@ -288,7 +289,7 @@ export default function ReviewTab({
                                 <span className="text-[10px] font-semibold px-2 py-0.5 border rounded" style={{ color: TEXT_MUTED, borderColor: BORDER }}>REF-CODE-04A</span>
                                 <span className="text-sm font-semibold" style={{ color: NAVY }}>Base Salary Framework</span>
                             </div>
-                            {stepCompleted.base && <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: MINT }}><span className="w-2 h-2 rounded-full" style={{ background: MINT }} /> 완료</div>}
+                            {stepCompleted.base && <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: MINT }}><span className="w-2 h-2 rounded-full" style={{ background: MINT }} /> Completed</div>}
                         </div>
                         <div className="p-5">
                             {!stepCompleted.base ? (
@@ -320,7 +321,7 @@ export default function ReviewTab({
                                         if (total <= 0) return null;
                                         return (
                                             <div className="p-4 rounded-lg border" style={{ background: BG_SECTION, borderColor: BORDER }}>
-                                                <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>총 기본급 재원</div>
+                                                <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>Total Base Salary Pool</div>
                                                 <div className="text-sm font-semibold" style={{ color: GOLD }}>{formatKrWon(total)} KRW</div>
                                             </div>
                                         );
@@ -366,7 +367,7 @@ export default function ReviewTab({
                                 <span className="text-[10px] font-semibold px-2 py-0.5 border rounded" style={{ color: TEXT_MUTED, borderColor: BORDER }}>REF-CODE-04B</span>
                                 <span className="text-sm font-semibold" style={{ color: NAVY }}>Bonus Pool Configuration</span>
                             </div>
-                            {stepCompleted.bonus && <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: MINT }}><span className="w-2 h-2 rounded-full" style={{ background: MINT }} /> 완료</div>}
+                            {stepCompleted.bonus && <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: MINT }}><span className="w-2 h-2 rounded-full" style={{ background: MINT }} /> Completed</div>}
                         </div>
                         <div className="p-5">
                             {!stepCompleted.bonus ? (
@@ -387,7 +388,7 @@ export default function ReviewTab({
                                     </div>
                                     {(bonusPool.amount_value != null || bonusPool.ratio_value != null) && (
                                         <div className="p-4 rounded-lg border" style={{ background: BG_SECTION, borderColor: BORDER }}>
-                                            <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>인센티브 재원</div>
+                                            <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>Incentive Pool</div>
                                             <div className="text-sm font-semibold" style={{ color: GOLD }}>
                                                 {bonusPool.amount_value != null ? `${formatKrWon(bonusPool.amount_value)} KRW` : bonusPool.ratio_value != null ? `${bonusPool.ratio_value}% of salary` : '—'}
                                             </div>
@@ -406,7 +407,7 @@ export default function ReviewTab({
                                 <span className="text-[10px] font-semibold px-2 py-0.5 border rounded" style={{ color: TEXT_MUTED, borderColor: BORDER }}>REF-CODE-04C</span>
                                 <span className="text-sm font-semibold" style={{ color: NAVY }}>Benefits Configuration</span>
                             </div>
-                            {stepCompleted.benefits && <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: MINT }}><span className="w-2 h-2 rounded-full" style={{ background: MINT }} /> 완료</div>}
+                            {stepCompleted.benefits && <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: MINT }}><span className="w-2 h-2 rounded-full" style={{ background: MINT }} /> Completed</div>}
                         </div>
                         <div className="p-5">
                             {!stepCompleted.benefits ? (
@@ -427,7 +428,7 @@ export default function ReviewTab({
                                     )}
                                     {benefits.previous_year_total_benefits_expense != null && (
                                         <div className="p-4 rounded-lg border" style={{ background: BG_SECTION, borderColor: BORDER }}>
-                                            <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>복리후생 재원</div>
+                                            <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>Benefits Funding</div>
                                             <div className="text-sm font-semibold" style={{ color: GOLD }}>{formatKrWon(benefits.previous_year_total_benefits_expense)} KRW</div>
                                         </div>
                                     )}
@@ -469,12 +470,12 @@ export default function ReviewTab({
                         </div>
                         <div className="p-4">
                             <div className="flex flex-col gap-0">
-                                <div className="flex justify-between py-2.5 border-b text-sm" style={{ borderColor: BORDER }}><span style={{ color: TEXT_MUTED }}>회사명</span><span className="font-medium">{project.company?.name || '—'}</span></div>
-                                <div className="flex justify-between py-2.5 border-b text-sm" style={{ borderColor: BORDER }}><span style={{ color: TEXT_MUTED }}>완료 모듈</span><span className="font-semibold" style={{ color: MINT }}>{completedCount} / {totalModules} 완료</span></div>
+                                <div className="flex justify-between py-2.5 border-b text-sm" style={{ borderColor: BORDER }}><span style={{ color: TEXT_MUTED }}>Company</span><span className="font-medium">{project.company?.name || '—'}</span></div>
+                                <div className="flex justify-between py-2.5 border-b text-sm" style={{ borderColor: BORDER }}><span style={{ color: TEXT_MUTED }}>Completed Modules</span><span className="font-semibold" style={{ color: MINT }}>{completedCount} / {totalModules} Completed</span></div>
                             </div>
                             <div className="mt-4 p-4 rounded-lg border text-xs leading-relaxed" style={{ background: '#E6F7F3', borderColor: '#A8E6D9', color: TEXT_MID }}>
-                                <strong className="block mb-1.5" style={{ color: NAVY }}>제출 후 프로세스</strong>
-                                제출 시 전체 4단계가 완료됩니다. 컨설턴트 검토 후 CEO 최종 승인이 진행됩니다.
+                                <strong className="block mb-1.5" style={{ color: NAVY }}>After Submission</strong>
+                                After submission, the full Step 4 modules are completed. The consultant reviews the design and the CEO proceeds with the final approval.
                             </div>
                         </div>
                     </div>

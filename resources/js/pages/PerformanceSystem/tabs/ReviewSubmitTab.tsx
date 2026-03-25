@@ -51,6 +51,7 @@ export default function PerformanceSystemReviewSubmit({
     onGoToStep,
 }: Props) {
     const [processing, setProcessing] = useState(false);
+    const [showMissingError, setShowMissingError] = useState(false);
 
     const snapshotCount = useMemo(() => {
         const qIds = (snapshotQuestions as SnapshotQuestion[]).map((q) => q.id);
@@ -104,7 +105,12 @@ export default function PerformanceSystemReviewSubmit({
     const rolesTotal = assignmentCount;
 
     const handleSubmit = () => {
-        if (processing || !allCompleted) return;
+        if (processing) return;
+        if (!allCompleted) {
+            setShowMissingError(true);
+            return;
+        }
+        setShowMissingError(false);
         setProcessing(true);
         onSubmit();
     };
@@ -137,6 +143,11 @@ export default function PerformanceSystemReviewSubmit({
         !hasStructure && 'Evaluation Structure',
     ].filter(Boolean) as string[];
 
+    const hasSnapshotError = showMissingError && snapshotCount === 0;
+    const hasKpiError = showMissingError && kpiCount === 0;
+    const hasAssignmentError = showMissingError && assignmentCount === 0;
+    const hasStructureError = showMissingError && !hasStructure;
+
     const STATUS_LABEL: Record<string, string> = { confirmed: 'Confirmed', email_sent: 'Email Sent', draft: 'In Review', none: 'Not Started' };
     const STATUS_CHIP: Record<string, 'green' | 'blue' | 'amber' | 'red'> = { confirmed: 'green', email_sent: 'blue', draft: 'amber', none: 'red' };
     const MODEL_META: Record<string, { chip: 'amber' | 'purple' | 'blue'; badge: string; title: string; desc: string; fit: string }> = {
@@ -168,7 +179,7 @@ export default function PerformanceSystemReviewSubmit({
 
             <div className="rs-outer">
                 {/* Error bar */}
-                {!allCompleted && missingSteps.length > 0 && (
+                {showMissingError && !allCompleted && missingSteps.length > 0 && (
                     <div className="flex items-center gap-2 px-4 py-3 mb-4 rounded-xl bg-[#fff1f2] border border-[#fecaca]">
                         <AlertCircle className="w-5 h-5 text-[#b91c1c] flex-shrink-0" />
                         <p className="text-sm font-semibold text-[#b91c1c]">
@@ -178,7 +189,7 @@ export default function PerformanceSystemReviewSubmit({
                 )}
 
                 {/* Section 1 — Policy Snapshot */}
-                <section className="review-section s1">
+                <section className={cn('review-section s1', hasSnapshotError && 'border border-[#ef4444] bg-[#fff5f5]')}>
                     <div className="rs-hd">
                         <div className="rs-icon">📋</div>
                         <div className="rs-meta">
@@ -241,7 +252,7 @@ export default function PerformanceSystemReviewSubmit({
                 </section>
 
                 {/* Section 2 — Organizational KPI */}
-                <section className="review-section s2">
+                <section className={cn('review-section s2', hasKpiError && 'border border-[#ef4444] bg-[#fff5f5]')}>
                     <div className="rs-hd">
                         <div className="rs-icon">🎯</div>
                         <div className="rs-meta">
@@ -290,7 +301,7 @@ export default function PerformanceSystemReviewSubmit({
                 </section>
 
                 {/* Section 3 — Goal Management Modeling */}
-                <section className="review-section s3">
+                <section className={cn('review-section s3', hasAssignmentError && 'border border-[#ef4444] bg-[#fff5f5]')}>
                     <div className="rs-hd">
                         <div className="rs-icon">⚙️</div>
                         <div className="rs-meta">
@@ -344,7 +355,7 @@ export default function PerformanceSystemReviewSubmit({
                 </section>
 
                 {/* Section 4 — Evaluation Process */}
-                <section className="review-section s4">
+                <section className={cn('review-section s4', hasStructureError && 'border border-[#ef4444] bg-[#fff5f5]')}>
                     <div className="rs-hd">
                         <div className="rs-icon">📅</div>
                         <div className="rs-meta">
@@ -503,7 +514,7 @@ export default function PerformanceSystemReviewSubmit({
                     <button
                         type="button"
                         onClick={handleSubmit}
-                        disabled={processing || !allCompleted}
+                        disabled={processing}
                         className="btn-submit"
                     >
                         <ChevronRight className="w-4 h-4" />

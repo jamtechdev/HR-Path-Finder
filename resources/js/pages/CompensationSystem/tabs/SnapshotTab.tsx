@@ -24,13 +24,22 @@ interface SnapshotTabProps {
 }
 
 export default function SnapshotTab({ projectId, questions = [], responses: initialResponses, snapshotResponses: externalResponses, onSnapshotResponsesChange, onNext, fieldErrors = {} }: SnapshotTabProps) {
+    const clampPercentage = (value: string): number => {
+        const parsed = parseFloat(value);
+        if (Number.isNaN(parsed)) return 0;
+        return Math.min(100, Math.max(0, parsed));
+    };
+
     // Initialize responses state from existing data or external state
     const [snapshotResponses, setSnapshotResponses] = useState<Record<number, string[] | string | number | object | null>>(() => {
         if (externalResponses) return externalResponses;
         const responses: Record<number, string[] | string | number | object | null> = {};
         initialResponses?.forEach(resp => {
             if (resp.numeric_response !== null && resp.numeric_response !== undefined) {
-                responses[resp.question_id] = resp.numeric_response;
+                // Backend may serialize decimal values as strings (e.g. "3.00").
+                const raw = resp.numeric_response as unknown;
+                const n = typeof raw === 'string' ? parseFloat(raw) : (raw as number);
+                responses[resp.question_id] = Number.isFinite(n) ? n : null;
             } else if (resp.text_response) {
                 responses[resp.question_id] = resp.text_response;
             } else {
@@ -43,7 +52,17 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
     // Update local state when external state changes
     useEffect(() => {
         if (externalResponses) {
-            setSnapshotResponses(externalResponses);
+            // Normalize any numeric strings to numbers for validation consistency.
+            const normalized: Record<number, any> = {};
+            Object.entries(externalResponses).forEach(([k, v]) => {
+                if (typeof v === 'string') {
+                    const n = parseFloat(v);
+                    normalized[Number(k)] = Number.isFinite(n) ? n : v;
+                } else {
+                    normalized[Number(k)] = v;
+                }
+            });
+            setSnapshotResponses(normalized);
         }
     }, [externalResponses]);
 
@@ -59,9 +78,95 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
     const q17Question = questions.find((q, i) => i === 16);
     const q17Response = q17Question ? (snapshotResponses[q17Question.id] as string[] || []) : [];
 
+    // Keep Q18 selection consistent with Q17 (so "invalid" previously selected options are cleared)
+    const q18Question = questions.find((q, i) => i === 17);
+    const q18Selected = q18Question ? snapshotResponses[q18Question.id] : null;
+
+    useEffect(() => {
+        if (!q18Question || q18Question.answer_type !== 'select_up_to_2') return;
+
+        const options = Array.isArray(q18Question.options) ? q18Question.options : [];
+        const allowed = q17Response.length > 0 ? options.filter((opt) => q17Response.includes(opt)) : [];
+
+        if (!Array.isArray(q18Selected)) return;
+        const next = q18Selected.filter((v) => allowed.includes(v));
+
+        // Only update when something actually changed (prevents render loops)
+        const changed =
+            next.length !== q18Selected.length || next.some((v, i) => v !== q18Selected[i]);
+        if (changed) {
+            updateResponses({
+                ...snapshotResponses,
+                [q18Question.id]: next,
+            });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [q17Response.join('|'), q18Question?.id, q18Selected]);
+
     const answeredCount = useMemo(() => questions.filter(q => {
         const r = snapshotResponses[q.id];
-        if (q.answer_type === 'numeric') return r != null && (typeof r === 'number' || (typeof r === 'object' && r !== null));
+        if (q.answer_type === 'numeric') {
+            if (typeof r === 'number') return Number.isFinite(r);
+
+            if (Array.isArray(r)) {
+                const isJobFunctions =
+                    q.metadata?.is_job_functions === true ||
+                    (q.question_text?.toLowerCase().includes('average salary by job function') ?? false);
+
+                if (isJobFunctions) {
+                    return (
+                        r.length > 0 &&
+                        r.every((item) => {
+                            if (!item || typeof item !== 'object') return false;
+                            const fn = (item as any).function;
+                            const amt = (item as any).amount;
+                            return (
+                                typeof fn === 'string' &&
+                                fn.trim() !== '' &&
+                                typeof amt === 'number' &&
+                                Number.isFinite(amt)
+                            );
+                        })
+                    );
+                }
+
+                return r.length > 0;
+            }
+
+            if (typeof r === 'object' && r !== null) {
+                const lower = q.question_text?.toLowerCase() ?? '';
+                const isMultiYear =
+                    q.metadata?.is_multi_year === true ||
+                    lower.includes('past three years') ||
+                    lower.includes('average annual salary increase rate') ||
+                    lower.includes('labor cost ratio') ||
+                    lower.includes('average bonus payout ratio');
+
+                const isYearsOfService =
+                    q.metadata?.is_years_of_service === true ||
+                    lower.includes('average salary by years of service');
+
+                if (isMultiYear) {
+                    const years = ['2023', '2024', '2025'] as const;
+                    return years.every((y) => {
+                        const v = (r as any)[y];
+                        return typeof v === 'number' && Number.isFinite(v);
+                    });
+                }
+
+                if (isYearsOfService) {
+                    const keys = ['overall', '1_3', '4_7', '8_12', '13_17', '18_20'] as const;
+                    return keys.every((k) => {
+                        const v = (r as any)[k];
+                        return typeof v === 'number' && Number.isFinite(v);
+                    });
+                }
+
+                return Object.values(r as any).some((v) => typeof v === 'number' && Number.isFinite(v));
+            }
+
+            return false;
+        }
         if (q.answer_type === 'text') return typeof r === 'string' && r.trim() !== '';
         return Array.isArray(r) ? r.length > 0 : r != null && r !== '';
     }).length, [questions, snapshotResponses]);
@@ -71,7 +176,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
         <div className="space-y-0">
             <CompensationPageHeader
                 eyebrowTag="Compensation Structure"
-                stepLabel="Stage 4-1 · Strategic Compensation Snapshot"
+                stepLabel="Strategic Compensation Snapshot"
                 title="Strategic Compensation Snapshot"
                 description="Please answer the following questions to help us understand your current compensation approach."
                 completionPct={completionPct}
@@ -119,6 +224,8 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                     <Label className="text-sm font-medium text-muted-foreground">{year} (%)</Label>
                                                                     <Input
                                                                         type="number"
+                                                                        min={0}
+                                                                        max={100}
                                                                         step="0.01"
                                                                         value={typeof snapshotResponses[question.id] === 'object' && snapshotResponses[question.id] !== null
                                                                             ? (snapshotResponses[question.id] as any)[year] || '' 
@@ -129,7 +236,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                                 : {};
                                                                             updateResponses({ 
                                                                                 ...snapshotResponses, 
-                                                                                [question.id]: { ...current, [year]: parseFloat(e.target.value) || 0 }
+                                                                                [question.id]: { ...current, [year]: clampPercentage(e.target.value) }
                                                                             });
                                                                         }}
                                                                         placeholder="0.00"

@@ -501,6 +501,8 @@ class CompensationSystemController extends Controller
 
         $hrProject->setStepStatus('compensation', StepStatus::SUBMITTED);
 
-        return back()->with('success', 'Compensation system submitted successfully.');
+        // No session flash -> avoids the toast on the last step.
+        // Return back so the frontend can show the success modal and redirect on "Okay".
+        return back();
     }
 }

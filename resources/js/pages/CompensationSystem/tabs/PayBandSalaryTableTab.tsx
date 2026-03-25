@@ -75,20 +75,23 @@ function salaryTablesToGrid(tables: SalaryTable[]): {
         }
         cells.push(gradeCells);
     });
-    const levels = INIT_LV.slice();
-    [['LV.4'], ['LV.5']].forEach((extra, i) => {
-        if (levelsSet.has(extra[0]) || levels.length + i < 5) {
-            if (!levels.includes(extra[0])) levels.push(extra[0]);
-        }
-    });
+    let levels = INIT_LV.slice();
+    if (levelsSet.has('LV.4')) levels.push('LV.4');
+    if (levelsSet.has('LV.5')) levels.push('LV.5');
+
+    // Keep at least 3 levels so the table has a sensible structure.
     while (levels.length < 3) levels.push(`LV.${levels.length + 1}`);
-    const numLevels = Math.max(3, levels.length);
+
+    // Trim to MAX_LV and also trim cell rows to the same length.
+    const trimmedLevels = levels.slice(0, Math.min(MAX_LV, levels.length));
+    const numLevels = Math.max(3, trimmedLevels.length);
     cells.forEach((gradeRows) => {
         gradeRows.forEach((row) => {
             while (row.length < numLevels) row.push(null);
+            if (row.length > numLevels) row.splice(numLevels);
         });
     });
-    return { grades, levels: levels.slice(0, Math.min(MAX_LV, levels.length)), cells };
+    return { grades, levels: trimmedLevels, cells };
 }
 
 function gridToSalaryTables(
@@ -150,6 +153,12 @@ export default function PayBandSalaryTableTab({
         salaryDeterminationStandard === 'salary_table' ? 'salary_table' : 'pay_band'
     );
 
+    // Keep the active UI in sync with the Base Salary Framework selection.
+    useEffect(() => {
+        const next: 'pay_band' | 'salary_table' = salaryDeterminationStandard === 'salary_table' ? 'salary_table' : 'pay_band';
+        setActiveType(next);
+    }, [salaryDeterminationStandard]);
+
     const { grades, levels, cells } = useMemo(
         () => salaryTablesToGrid(salaryTables),
         [salaryTables]
@@ -164,7 +173,7 @@ export default function PayBandSalaryTableTab({
 
     const addGrade = useCallback(() => {
         if (grades.length >= MAX_GRADE) return;
-        const name = window.prompt('새 직급 이름을 입력하세요', 'New Grade')?.trim();
+        const name = window.prompt('Enter a new grade name', 'New Grade')?.trim();
         if (!name) return;
         const newGrades = [...grades, { name, years: 3 }];
         const newCells = [...cells.map((g) => g.map((r) => [...r]))];
@@ -177,7 +186,7 @@ export default function PayBandSalaryTableTab({
     const removeGrade = useCallback(
         (gi: number) => {
             if (grades.length <= 1) return;
-            if (!window.confirm(`'${grades[gi].name}' 직급을 삭제할까요?`)) return;
+            if (!window.confirm(`Delete grade '${grades[gi].name}'?`)) return;
             const newGrades = grades.filter((_, i) => i !== gi);
             const newCells = cells.filter((_, i) => i !== gi);
             pushSalaryTables(newGrades, newCells, levels);
@@ -405,7 +414,7 @@ export default function PayBandSalaryTableTab({
                             >
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs font-semibold uppercase text-muted-foreground">
-                                        역량 레벨
+                                        Competency Levels
                                     </span>
                                     <Button
                                         type="button"
@@ -415,7 +424,7 @@ export default function PayBandSalaryTableTab({
                                         onClick={addLv}
                                         disabled={levels.length >= MAX_LV}
                                     >
-                                        + LV 추가
+                                        + Add LV
                                     </Button>
                                     <Button
                                         type="button"
@@ -425,7 +434,7 @@ export default function PayBandSalaryTableTab({
                                         onClick={removeLv}
                                         disabled={levels.length <= 1}
                                     >
-                                        − LV 삭제
+                                        − Delete LV
                                     </Button>
                                     <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
                                         {levels.length} / {MAX_LV}
@@ -433,7 +442,7 @@ export default function PayBandSalaryTableTab({
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs font-semibold uppercase text-muted-foreground">
-                                        직급
+                                        Grade
                                     </span>
                                     <Button
                                         type="button"
@@ -443,7 +452,7 @@ export default function PayBandSalaryTableTab({
                                         onClick={addGrade}
                                         disabled={grades.length >= MAX_GRADE}
                                     >
-                                        + 직급 추가
+                                        + Add Grade
                                     </Button>
                                     <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
                                         {grades.length} / {MAX_GRADE}
@@ -541,7 +550,7 @@ export default function PayBandSalaryTableTab({
                                                                         className="h-7 text-xs w-full"
                                                                         onClick={() => addYear(gi)}
                                                                     >
-                                                                        + 연차
+                                                                        + Add Year
                                                                     </Button>
                                                                 )}
                                                                 {yi === 1 && g.years > 1 && (
@@ -554,7 +563,7 @@ export default function PayBandSalaryTableTab({
                                                                             removeYear(gi)
                                                                         }
                                                                     >
-                                                                        − 연차
+                                                                        − Remove Year
                                                                     </Button>
                                                                 )}
                                                                 {yi === g.years - 1 && (
@@ -568,7 +577,7 @@ export default function PayBandSalaryTableTab({
                                                                         }
                                                                         disabled={grades.length <= 1}
                                                                     >
-                                                                        − 직급
+                                                                        − Remove Grade
                                                                     </Button>
                                                                 )}
                                                             </div>
@@ -589,7 +598,7 @@ export default function PayBandSalaryTableTab({
                                                     onClick={addGrade}
                                                     disabled={grades.length >= MAX_GRADE}
                                                 >
-                                                    + 직급 추가
+                                                    + Add Grade
                                                 </Button>
                                             </TableCell>
                                             <TableCell />
@@ -601,7 +610,7 @@ export default function PayBandSalaryTableTab({
                                 <Card className="border-dashed">
                                     <CardContent className="p-8 text-center">
                                         <p className="text-muted-foreground">
-                                            No salary table configured. Click &quot;+ 직급 추가&quot; to
+                                            No salary table configured. Click &quot;+ Add Grade&quot; to
                                             get started.
                                         </p>
                                     </CardContent>

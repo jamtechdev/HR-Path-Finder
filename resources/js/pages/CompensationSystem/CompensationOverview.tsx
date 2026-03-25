@@ -33,7 +33,7 @@ interface Props {
 const STEPS: StepConfig[] = [
     {
         id: 'snapshot',
-        name: 'Stage 4-1: Strategic Compensation Snapshot',
+        name: 'Strategic Compensation Snapshot',
         description: 'Answer questions about your company\'s compensation philosophy and current approach.',
         icon: <FileText className="w-5 h-5" />,
         route: 'snapshot',
@@ -111,7 +111,14 @@ export default function CompensationOverview({
         }
     };
 
-    const statusLabel = isSubmitted ? 'SUBMITTED' : isInProgress ? 'IN PROGRESS' : 'NOT STARTED';
+    const statusLabel =
+        isSubmitted
+            ? 'SUBMITTED'
+            : isInProgress
+              ? 'IN PROGRESS'
+              : completedCount === STEPS.length
+                ? 'READY FOR REVIEW'
+                : 'NOT STARTED';
 
     return (
         <div className="min-h-full flex flex-col bg-[#f5f3ef] text-[#1e293b]">
