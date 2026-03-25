@@ -32,14 +32,34 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
 
     // Initialize responses state from existing data or external state
     const [snapshotResponses, setSnapshotResponses] = useState<Record<number, string[] | string | number | object | null>>(() => {
+        const numericFromAny = (value: any): number | null => {
+            if (value === null || value === undefined) return null;
+            if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+            if (typeof value === 'string') {
+                const n = parseFloat(value);
+                return Number.isFinite(n) ? n : null;
+            }
+            if (typeof value === 'object') {
+                const v = typeof (value as any).valueOf === 'function' ? (value as any).valueOf() : value;
+                if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+                if (typeof v === 'string') {
+                    const n = parseFloat(v);
+                    return Number.isFinite(n) ? n : null;
+                }
+                const n = parseFloat(String(value));
+                return Number.isFinite(n) ? n : null;
+            }
+            return null;
+        };
+
         if (externalResponses) return externalResponses;
         const responses: Record<number, string[] | string | number | object | null> = {};
         initialResponses?.forEach(resp => {
             if (resp.numeric_response !== null && resp.numeric_response !== undefined) {
                 // Backend may serialize decimal values as strings (e.g. "3.00").
                 const raw = resp.numeric_response as unknown;
-                const n = typeof raw === 'string' ? parseFloat(raw) : (raw as number);
-                responses[resp.question_id] = Number.isFinite(n) ? n : null;
+                const n = numericFromAny(raw);
+                responses[resp.question_id] = n ?? null;
             } else if (resp.text_response) {
                 responses[resp.question_id] = resp.text_response;
             } else {
@@ -55,10 +75,33 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
             // Normalize numeric strings (including nested objects/arrays) to numbers.
             // This keeps validation/completion logic consistent when backend stores decimals as strings.
             const normalizeValue = (value: any): any => {
+                // Preserve numeric scalars even if they come in as numeric-like objects.
+                const numericFromAny = (v: any): number | null => {
+                    if (v === null || v === undefined) return null;
+                    if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+                    if (typeof v === 'string') {
+                        const n = parseFloat(v);
+                        return Number.isFinite(n) ? n : null;
+                    }
+                    if (typeof v === 'object') {
+                        const vo = typeof (v as any).valueOf === 'function' ? (v as any).valueOf() : v;
+                        if (typeof vo === 'number') return Number.isFinite(vo) ? vo : null;
+                        if (typeof vo === 'string') {
+                            const n = parseFloat(vo);
+                            return Number.isFinite(n) ? n : null;
+                        }
+                        const n = parseFloat(String(v));
+                        return Number.isFinite(n) ? n : null;
+                    }
+                    return null;
+                };
+
                 if (typeof value === 'string') {
                     const n = parseFloat(value);
                     return Number.isFinite(n) ? n : value;
                 }
+                const scalar = numericFromAny(value);
+                if (scalar !== null) return scalar;
 
                 if (Array.isArray(value)) {
                     return value.map((item) => {

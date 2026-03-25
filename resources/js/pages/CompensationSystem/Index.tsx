@@ -387,14 +387,52 @@ export default function CompensationSystemIndex({
         const responseData = (snapshotQuestions || []).map((q: { id: number; answer_type?: string }) => {
             const response = snapshotResponses[q.id];
             if (q.answer_type === 'numeric') {
+                const lower = (q as any).question_text?.toLowerCase?.() ?? '';
+                const isJobFunctions =
+                    (q as any).metadata?.is_job_functions === true ||
+                    lower.includes('average salary by job function');
+                const isMultiYear =
+                    (q as any).metadata?.is_multi_year === true ||
+                    lower.includes('past three years') ||
+                    lower.includes('average annual salary increase rate') ||
+                    lower.includes('labor cost ratio') ||
+                    lower.includes('average bonus payout ratio');
+                const isYearsOfService =
+                    (q as any).metadata?.is_years_of_service === true ||
+                    lower.includes('average salary by years of service');
+
+                const numericFromAny = (value: any): number | null => {
+                    if (value === null || value === undefined) return null;
+                    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+                    if (typeof value === 'string') {
+                        const n = parseFloat(value);
+                        return Number.isFinite(n) ? n : null;
+                    }
+                    if (typeof value === 'object') {
+                        const v = typeof (value as any).valueOf === 'function' ? (value as any).valueOf() : value;
+                        if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+                        if (typeof v === 'string') {
+                            const n = parseFloat(v);
+                            return Number.isFinite(n) ? n : null;
+                        }
+                        const n = parseFloat(String(value));
+                        return Number.isFinite(n) ? n : null;
+                    }
+                    return null;
+                };
+
                 // Backend stores numeric scalars into `numeric_response` and
                 // numeric objects (e.g. multi-year values) into `response` (json).
-                const isObj = typeof response === 'object' && response !== null;
+                // Some numeric libraries may represent scalars as objects (e.g. Number/Decimal).
+                // So detect scalars by parsing, not by `typeof response === 'object'`.
+                const scalar = numericFromAny(response);
+                const treatAsScalar = scalar !== null && !isJobFunctions && !isMultiYear && !isYearsOfService;
+
                 return {
                     question_id: q.id,
-                    response: isObj ? response : null,
+                    response: treatAsScalar ? null : response,
                     text_response: null,
-                    numeric_response: isObj ? null : (response as number) ?? null,
+                    numeric_response: treatAsScalar ? scalar : null,
                 };
             }
             if (q.answer_type === 'text') {
@@ -841,7 +879,7 @@ export default function CompensationSystemIndex({
                                     <Button
                                         onClick={() => {
                                             setShowSuccessModal(false);
-                                            router.get('/hr-manager/dashboard');
+                                            router.visit('/hr-manager/dashboard');
                                         }}
                                         className="w-full h-11 font-semibold rounded-lg bg-[#152540] hover:bg-[#1e3a62] text-white"
                                     >

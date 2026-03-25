@@ -21,12 +21,32 @@ function isSnapshotQuestionAnswered(
     responses: Record<number, string[] | string | number | object | null | undefined>
 ): boolean {
     const r = responses[q.id];
-    if (q.answer_type === 'numeric') {
-        if (typeof r === 'number') return Number.isFinite(r);
-        if (typeof r === 'string') {
-            const n = parseFloat(r);
-            return Number.isFinite(n);
+
+    const numericFromAny = (value: any): number | null => {
+        if (value === null || value === undefined) return null;
+        if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+        if (typeof value === 'string') {
+            const n = parseFloat(value);
+            return Number.isFinite(n) ? n : null;
         }
+        if (typeof value === 'object') {
+            // Handle Decimal/Number objects that may not be plain primitives.
+            const v = typeof (value as any).valueOf === 'function' ? (value as any).valueOf() : value;
+            if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+            if (typeof v === 'string') {
+                const n = parseFloat(v);
+                return Number.isFinite(n) ? n : null;
+            }
+            // Fallback: try parsing the string representation.
+            const n = parseFloat(String(value));
+            return Number.isFinite(n) ? n : null;
+        }
+        return null;
+    };
+
+    if (q.answer_type === 'numeric') {
+        const scalar = numericFromAny(r);
+        if (scalar !== null) return true;
 
         // Job functions (stored as an array of {function, amount})
         if (Array.isArray(r)) {
@@ -40,12 +60,11 @@ function isSnapshotQuestionAnswered(
                         if (!item || typeof item !== 'object') return false;
                         const fn = (item as any).function;
                         const amt = (item as any).amount;
-                        const amtNum = typeof amt === 'string' ? parseFloat(amt) : amt;
+                        const amtNum = numericFromAny(amt);
                         return (
                             typeof fn === 'string' &&
                             fn.trim() !== '' &&
-                            typeof amtNum === 'number' &&
-                            Number.isFinite(amtNum)
+                            amtNum !== null
                         );
                     })
                 );
@@ -70,8 +89,8 @@ function isSnapshotQuestionAnswered(
                 const years = ['2023', '2024', '2025'] as const;
                 return years.every((y) => {
                     const v = (r as any)[y];
-                        const n = typeof v === 'string' ? parseFloat(v) : v;
-                        return typeof n === 'number' && Number.isFinite(n);
+                    const n = numericFromAny(v);
+                    return n !== null;
                 });
             }
 
@@ -79,15 +98,14 @@ function isSnapshotQuestionAnswered(
                 const keys = ['overall', '1_3', '4_7', '8_12', '13_17', '18_20'] as const;
                 return keys.every((k) => {
                     const v = (r as any)[k];
-                        const n = typeof v === 'string' ? parseFloat(v) : v;
-                        return typeof n === 'number' && Number.isFinite(n);
+                    const n = numericFromAny(v);
+                    return n !== null;
                 });
             }
 
             // Generic object numeric: require at least one finite numeric value.
             return Object.values(r as any).some((v) => {
-                const n = typeof v === 'string' ? parseFloat(v) : v;
-                return typeof n === 'number' && Number.isFinite(n);
+                return numericFromAny(v) !== null;
             });
         }
 
