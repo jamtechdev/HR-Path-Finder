@@ -1,8 +1,10 @@
 import React from 'react';
+import { FlashToasts } from '@/components/FlashToasts';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import TranslationLoader from '@/components/TranslationLoader';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import { Toaster } from '@/components/ui/toaster';
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -22,6 +24,8 @@ export default function AppLayout({
     return (
         <SidebarProvider defaultOpen={true}>
             <TranslationLoader />
+            <Toaster />
+            <FlashToasts />
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>

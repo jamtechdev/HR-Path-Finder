@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout';
 import { pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
 import { cn } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
+import { toastCopy } from '@/lib/toastCopy';
 
 // Import types
 
@@ -169,6 +171,7 @@ export default function CompensationSystemIndex({
             localTabDone,
         };
         window.localStorage.setItem(draftStorageKey, JSON.stringify(draft));
+
     }, [
         draftStorageKey,
         snapshotResponses,
@@ -179,6 +182,7 @@ export default function CompensationSystemIndex({
         bonusPool,
         benefits,
         localTabDone,
+        activeTab,
     ]);
 
     const handleSaveAndContinue = () => {
@@ -204,6 +208,12 @@ export default function CompensationSystemIndex({
         if (activeTab !== 'overview' && activeTab !== 'review') {
             setLocalTabDone((d) => ({ ...d, [activeTab]: true }));
         }
+        toast({
+            title: toastCopy.stepCompleted,
+            description: 'Your updates were saved. Moving to the next step. 입력 내용이 저장되었습니다.',
+            variant: 'success',
+            duration: 1800,
+        });
         handleTabChange(nextTabId);
     };
 
@@ -372,6 +382,11 @@ export default function CompensationSystemIndex({
         const fail = (msg: string, inertiaErrors?: Record<string, string | string[]>) => {
             setSaving(false);
             setCompError(msg);
+            toast({
+                title: toastCopy.saveFailed,
+                description: `${msg} 다시 시도해 주세요.`,
+                variant: 'destructive',
+            });
             if (inertiaErrors && typeof inertiaErrors === 'object') {
                 const fe: FieldErrors = {};
                 for (const [k, val] of Object.entries(inertiaErrors)) {
@@ -469,6 +484,12 @@ export default function CompensationSystemIndex({
                                             }
                                             setSaving(false);
                                             setTabCompletions((c) => ({ ...c, review: true }));
+                                            toast({
+                                                title: toastCopy.submitted,
+                                                description: 'Compensation & Benefits system has been submitted. 보상/복리후생 시스템이 제출되었습니다.',
+                                                variant: 'success',
+                                                duration: 2000,
+                                            });
                                             setShowSuccessModal(true);
                                         },
                                         onError: (e) => fail('Submit failed. Check all sections and try again.', e),

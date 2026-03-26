@@ -37,7 +37,7 @@ export function FlashToasts() {
             toast({ title: flash.error, variant: 'destructive' });
         }
         if (flash?.warning) {
-            toast({ title: flash.warning, variant: 'default' });
+            toast({ title: flash.warning, variant: 'warning' });
         }
         if (flash?.info) {
             toast({ title: flash.info, variant: 'default' });

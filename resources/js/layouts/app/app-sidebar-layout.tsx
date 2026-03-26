@@ -1,8 +1,10 @@
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
+import { FlashToasts } from '@/components/FlashToasts';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Sidebar } from '@/components/ui/sidebar';
+import { Toaster } from '@/components/ui/toaster';
 import type { AppLayoutProps } from '@/types';
 
 export default function AppSidebarLayout({
@@ -11,6 +13,8 @@ export default function AppSidebarLayout({
 }: AppLayoutProps) {
     return (
         <AppShell variant="sidebar">
+            <Toaster />
+            <FlashToasts />
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>

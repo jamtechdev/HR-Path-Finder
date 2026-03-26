@@ -15,9 +15,35 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Collection;
 
 class KpiReviewController extends Controller
 {
+    /**
+     * Resolve CEO recipients with valid emails for this project's company.
+     *
+     * @return Collection<int, \App\Models\User>
+     */
+    protected function resolveCeoRecipients(HrProject $hrProject): Collection
+    {
+        $company = $hrProject->company;
+        if (! $company) {
+            return collect();
+        }
+
+        // Primary source: company_users pivot with role=ceo
+        $ceos = $company->ceos()->get();
+
+        // Fallback: in case relationship caching/pivot is stale, re-query via users relation.
+        if ($ceos->isEmpty()) {
+            $ceos = $company->users()->wherePivot('role', 'ceo')->get();
+        }
+
+        return $ceos
+            ->filter(fn ($u) => is_string($u->email) && trim($u->email) !== '')
+            ->values();
+    }
+
     /**
      * Show KPI review page via magic link (no authentication required).
      */
@@ -72,6 +98,14 @@ class KpiReviewController extends Controller
         // Check if token is already used (review completed)
         $isCompleted = $reviewToken->is_used || ($reviewToken->uses_count >= $reviewToken->max_uses);
 
+        $ceos = $this->resolveCeoRecipients($hrProject)->map(function ($u) {
+            return [
+                'id' => $u->id,
+                'name' => $u->name,
+                'email' => $u->email,
+            ];
+        })->values();
+
         return Inertia::render('PerformanceSystem/KpiReviewToken', [
             'token' => $token,
             'project' => $hrProject,
@@ -81,6 +115,7 @@ class KpiReviewController extends Controller
             'reviewerName' => $reviewToken->name,
             'reviewerEmail' => $reviewToken->email,
             'isCompleted' => $isCompleted,
+            'ceos' => $ceos->toArray(),
         ]);
     }
 
@@ -108,6 +143,8 @@ class KpiReviewController extends Controller
             'kpis' => ['required', 'array'],
             'organization_name' => ['required', 'string'],
             'review_comments' => ['nullable', 'string', 'max:5000'],
+            'ceo_user_ids' => ['nullable', 'array'],
+            'ceo_user_ids.*' => ['integer', 'exists:users,id'],
             'self_assessment' => ['nullable', 'array'],
             'self_assessment.*' => ['boolean'],
             'kpis.*.id' => ['nullable', 'exists:organizational_kpis,id'],
@@ -260,13 +297,23 @@ class KpiReviewController extends Controller
         $reviewToken->incrementUse();
 
         $hrProject->load('company');
-        $ceos = $hrProject->company?->ceos()->get() ?? collect();
-        if ($ceos->isNotEmpty()) {
+        $ceos = $this->resolveCeoRecipients($hrProject);
+        $requestedCeoIds = $validated['ceo_user_ids'] ?? null;
+
+        $ceosToNotify = $ceos;
+        if (is_array($requestedCeoIds) && count($requestedCeoIds) > 0) {
+            // only allow selection among this company's CEO recipients
+            $ceosToNotify = $ceos->whereIn('id', $requestedCeoIds)->values();
+        }
+
+        $ceoNotified = false;
+        if ($ceosToNotify->isNotEmpty()) {
             try {
                 Notification::send(
-                    $ceos,
+                    $ceosToNotify,
                     new CeoKpiReviewRequestedNotification($hrProject, $organizationName)
                 );
+                $ceoNotified = true;
             } catch (\Exception $e) {
                 \Log::error('Failed to notify CEO after leader KPI submission', [
                     'project_id' => $hrProject->id,
@@ -286,7 +333,12 @@ class KpiReviewController extends Controller
 
         // Redirect back to the review page - Inertia will call show() method which reloads fresh KPIs
         return redirect()->route('kpi-review.token', ['token' => $token])
-            ->with('success', 'Your KPI review has been submitted successfully. CEO has been notified by email.');
+            ->with(
+                $ceoNotified ? 'success' : 'warning',
+                $ceoNotified
+                    ? 'Your KPI review has been submitted successfully. CEO has been notified by email.'
+                    : 'Your KPI review has been submitted successfully, but we could not email the CEO. Please contact support.'
+            );
     }
 
     /**
@@ -359,7 +411,37 @@ class KpiReviewController extends Controller
 
         $hrProject->load('company');
         $recipientTarget = $validated['recipient_target'] ?? 'leader';
-        $ceos = $hrProject->company?->ceos()->get() ?? collect();
+        $ceos = $this->resolveCeoRecipients($hrProject);
+        $selectedOrg = trim((string) $validated['organization_name']);
+
+        // Guard: verified/approved organizations cannot be re-sent unless CEO requested revision.
+        $orgRows = OrganizationalKpi::where('hr_project_id', $hrProject->id)
+            ->whereRaw('TRIM(LOWER(organization_name)) = ?', [strtolower($selectedOrg)])
+            ->get(['status', 'ceo_approval_status']);
+
+        if ($orgRows->isEmpty()) {
+            return back()->withErrors([
+                'error' => 'No KPI rows found for the selected organization.',
+            ]);
+        }
+
+        $hasCeoRevisionRequested = $orgRows->contains(function ($k) {
+            $ceo = strtolower((string) ($k->ceo_approval_status ?? ''));
+            $status = strtolower((string) ($k->status ?? ''));
+            return $ceo === 'revision_requested' || $status === 'revision_requested';
+        });
+
+        $allApproved = $orgRows->every(function ($k) {
+            $ceo = strtolower((string) ($k->ceo_approval_status ?? ''));
+            $status = strtolower((string) ($k->status ?? ''));
+            return $ceo === 'approved' || $status === 'approved' || $status === 'verified';
+        });
+
+        if ($allApproved && !$hasCeoRevisionRequested) {
+            return back()->withErrors([
+                'error' => 'This organization is already verified by CEO. Re-send is allowed only after a CEO revision request.',
+            ]);
+        }
 
         $emailsSent = 0;
         $errors = [];
@@ -367,7 +449,6 @@ class KpiReviewController extends Controller
         // Persist latest KPI draft before sending email, so token page always shows current KPIs.
         // Full sync for selected organization: create/update provided rows and remove missing rows.
         if (!empty($validated['kpis']) && is_array($validated['kpis'])) {
-            $selectedOrg = trim((string) $validated['organization_name']);
             $incoming = collect($validated['kpis'])
                 ->map(function ($kpiData) use ($selectedOrg) {
                     return [
@@ -545,7 +626,7 @@ class KpiReviewController extends Controller
         ]);
 
         $hrProject->load('company');
-        $ceos = $hrProject->company?->ceos()->get() ?? collect();
+        $ceos = $this->resolveCeoRecipients($hrProject);
 
         if ($ceos->isEmpty()) {
             return back()->withErrors([

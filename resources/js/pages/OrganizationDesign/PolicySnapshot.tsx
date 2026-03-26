@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from '@/hooks/use-toast';
 import AppLayout from '@/layouts/AppLayout';
+import { toastCopy } from '@/lib/toastCopy';
 import { mergeJobAnalysisState } from '@/pages/JobAnalysis/utils/jobAnalysisStorage';
 
 interface PolicySnapshotQuestion {
@@ -69,9 +70,21 @@ export default function PolicySnapshot({ project, questions }: Props) {
         router.post(`/hr-manager/job-analysis/${project.id}/policy-snapshot`, { policy_answers }, {
             onSuccess: () => {
                 setNavigating(false);
-                toast({ title: 'Saved', description: 'Policy snapshot saved.' });
+                toast({
+                    title: toastCopy.stepCompleted,
+                    description: 'Policy Snapshot saved. Moving to the next step. 정책 스냅샷이 저장되었습니다.',
+                    variant: 'success',
+                    duration: 1800,
+                });
             },
-            onError: () => setNavigating(false),
+            onError: () => {
+                setNavigating(false);
+                toast({
+                    title: toastCopy.saveFailed,
+                    description: 'Could not save Policy Snapshot. Please try again. 다시 시도해 주세요.',
+                    variant: 'destructive',
+                });
+            },
         });
     };
 

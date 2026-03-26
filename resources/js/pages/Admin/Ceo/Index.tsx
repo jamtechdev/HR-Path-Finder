@@ -55,6 +55,7 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
+import { toastCopy } from '@/lib/toastCopy';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 interface Invitation {
@@ -110,15 +111,15 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
 
         useEffect(() => {
             if (flash?.success) {
-                toast({ title: 'Success', description: flash.success });
+                toast({ title: toastCopy.success, description: flash.success });
             }
 
             if (flash?.error) {
-                toast({ title: 'Error', description: flash.error, variant: 'destructive' });
+                toast({ title: toastCopy.error, description: flash.error, variant: 'destructive' });
             }
 
             if (flash?.message) {
-                toast({ title: 'Info', description: flash.message });
+                toast({ title: toastCopy.info, description: flash.message });
             }
         }, [flash]);
     

@@ -6,9 +6,11 @@ import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
 import { diagnosisTabs } from '@/config/diagnosisTabs';
 import { tr } from '@/config/diagnosisTranslations';
+import { toast } from '@/hooks/use-toast';
 import AppLayout from '@/layouts/AppLayout';
 import { saveTabDraft } from '@/lib/diagnosisDraftStorage';
 import { mergeDiagnosisWithFormData, pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
+import { toastCopy } from '@/lib/toastCopy';
 
 function hasFiles(data: any): boolean {
     if (!data) return false;
@@ -189,6 +191,7 @@ export default function FormLayout({
     hidePageTitle = false,
     liveValidationError = null,
 }: FormLayoutProps) {
+    const lastSaveToastAtRef = useRef(0);
     const areFieldErrorsEqual = (a: FieldErrors, b: FieldErrors) => {
         const aKeys = Object.keys(a);
         const bKeys = Object.keys(b);
@@ -269,6 +272,18 @@ export default function FormLayout({
         setValidationError(null);
         setDiagnosisFieldErrors({});
 
+        const showSavedToast = (description: string) => {
+            const now = Date.now();
+            if (now - lastSaveToastAtRef.current < 1500) return;
+            lastSaveToastAtRef.current = now;
+            toast({
+                title: toastCopy.changesSaved,
+                description,
+                variant: 'success',
+                duration: 1800,
+            });
+        };
+
         const stepCompleted = stepStatuses[activeTab] === 'submitted' ||
             stepStatuses[activeTab] === 'approved' ||
             stepStatuses[activeTab] === 'locked' ||
@@ -328,6 +343,7 @@ export default function FormLayout({
                     if (projectId) {
                         saveTabDraft(projectId, activeTab, serializeDraft(formData));
                     }
+                    showSavedToast('Your diagnosis updates have been saved. 변경사항이 저장되었습니다.');
                     doNavigate();
                 },
                 onError: (payload: unknown) => {
@@ -342,6 +358,11 @@ export default function FormLayout({
                     const first = Object.values(mappedErrors)[0];
                     setValidationError(first ?? 'Failed to save. Please try again.');
                     setDiagnosisFieldErrors(mappedErrors as FieldErrors);
+                    toast({
+                        title: toastCopy.saveFailed,
+                        description: 'Could not save this step. Please review required fields and try again. 필수 항목을 확인해 주세요.',
+                        variant: 'destructive',
+                    });
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 },
             });
@@ -350,6 +371,7 @@ export default function FormLayout({
 
         if (projectId && formData && activeTab !== 'review') {
             saveTabDraft(projectId, activeTab, serializeDraft(formData));
+            showSavedToast('Your diagnosis updates have been saved. 변경사항이 저장되었습니다.');
         }
 
         doNavigate();
@@ -386,6 +408,12 @@ export default function FormLayout({
         if (projectId && formData && !isReadOnly && activeTab !== 'review') {
             e.preventDefault();
             saveTabDraft(projectId, activeTab, serializeDraft(formData));
+            toast({
+                title: toastCopy.changesSaved,
+                description: 'Your diagnosis updates have been saved. 변경사항이 저장되었습니다.',
+                variant: 'success',
+                duration: 1500,
+            });
             router.visit(getBackUrl());
         }
     };

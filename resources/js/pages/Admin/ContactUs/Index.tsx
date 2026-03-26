@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/table';
 import { Toaster } from '@/components/ui/toaster';
 import { toast } from '@/hooks/use-toast';
+import { toastCopy } from '@/lib/toastCopy';
 
 interface ContactSubmission {
     id: number;
@@ -41,7 +42,7 @@ export default function ContactUsAdminIndex({ submissions }: Props) {
 
     useEffect(() => {
         if (flash?.success) {
-            toast({ title: 'Success', description: flash.success });
+            toast({ title: toastCopy.success, description: flash.success });
         }
     }, [flash?.success]);
 

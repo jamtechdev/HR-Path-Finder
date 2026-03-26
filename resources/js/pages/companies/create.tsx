@@ -89,6 +89,11 @@ export default function CreateCompany() {
             forceFormData: true,
             onSuccess: () => {
                 setLogoPreview(null);
+                toast({
+                    title: 'Project created successfully',
+                    description: 'Your company workspace is ready.',
+                    variant: 'success',
+                });
                 // Laravel redirects, but some environments may not move the user quickly enough.
                 // Force the navigation after successful creation.
                 router.get('/hr-manager/dashboard', {}, { replace: true });
@@ -106,6 +111,7 @@ export default function CreateCompany() {
 
     return (
         <SidebarProvider defaultOpen={true}>
+            <Toaster />
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>

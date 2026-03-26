@@ -1,159 +1,84 @@
-import * as React from "react"
+import type React from 'react';
+import {
+    toast as notify,
+    type Id as ToastId,
+    type ToastContent,
+    type ToastOptions,
+} from 'react-toastify';
 
-import type { ToastActionElement, ToastProps } from "@/components/ui/toast"
+type ToastVariant = 'default' | 'destructive' | 'success' | 'warning';
 
-const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 5000
+type ToastInput = {
+    title?: React.ReactNode;
+    description?: React.ReactNode;
+    variant?: ToastVariant;
+    duration?: number;
+};
 
-type ToasterToast = ToastProps & {
-  id: string
-  title?: React.ReactNode
-  description?: React.ReactNode
-  action?: ToastActionElement
-}
-
-const actionTypes = {
-  ADD_TOAST: "ADD_TOAST",
-  UPDATE_TOAST: "UPDATE_TOAST",
-  DISMISS_TOAST: "DISMISS_TOAST",
-  REMOVE_TOAST: "REMOVE_TOAST",
-} as const
-
-let count = 0
-
-function genId() {
-  count = (count + 1) % Number.MAX_SAFE_INTEGER
-  return count.toString()
-}
-
-type ActionType = typeof actionTypes
-
-type Action =
-  | {
-      type: ActionType["ADD_TOAST"]
-      toast: ToasterToast
-    }
-  | {
-      type: ActionType["UPDATE_TOAST"]
-      toast: Partial<ToasterToast>
-    }
-  | {
-      type: ActionType["DISMISS_TOAST"]
-      toastId?: ToasterToast["id"]
-    }
-  | {
-      type: ActionType["REMOVE_TOAST"]
-      toastId?: ToasterToast["id"]
+function toToastContent(title?: React.ReactNode, description?: React.ReactNode): ToastContent {
+    if (title && description) {
+        return `${String(title)}\n${String(description)}`;
     }
 
-interface State {
-  toasts: ToasterToast[]
+    if (title) return title as ToastContent;
+    if (description) return description as ToastContent;
+    return '';
 }
 
-const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
-
-const addToRemoveQueue = (toastId: string) => {
-  if (toastTimeouts.has(toastId)) {
-    return
-  }
-
-  const timeout = setTimeout(() => {
-    toastTimeouts.delete(toastId)
-    dispatch({
-      type: "REMOVE_TOAST",
-      toastId: toastId,
-    })
-  }, TOAST_REMOVE_DELAY)
-
-  toastTimeouts.set(toastId, timeout)
-}
-
-export const reducer = (state: State, action: Action): State => {
-  switch (action.type) {
-    case "ADD_TOAST":
-      return {
-        ...state,
-        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
-      }
-
-    case "UPDATE_TOAST":
-      return {
-        ...state,
-        toasts: state.toasts.map((t) =>
-          t.id === action.toast.id ? { ...t, ...action.toast } : t
-        ),
-      }
-
-    case "DISMISS_TOAST": {
-      const { toastId } = action
-
-      if (toastId) {
-        addToRemoveQueue(toastId)
-      } else {
-        state.toasts.forEach((toast) => {
-          addToRemoveQueue(toast.id)
-        })
-      }
-
-      return {
-        ...state,
-        toasts: state.toasts.map((t) =>
-          t.id === toastId || toastId === undefined
-            ? {
-                ...t,
-                open: false,
-              }
-            : t
-        ),
-      }
-    }
-    case "REMOVE_TOAST":
-      if (action.toastId === undefined) {
-        return {
-          ...state,
-          toasts: [],
-        }
-      }
-      return {
-        ...state,
-        toasts: state.toasts.filter((t) => t.id !== action.toastId),
-      }
-  }
-}
-
-const listeners: Array<(state: State) => void> = []
-
-let memoryState: State = { toasts: [] }
-
-function dispatch(action: Action) {
-  memoryState = reducer(memoryState, action)
-  listeners.forEach((listener) => {
-    listener(memoryState)
-  })
-}
-
-type Toast = Omit<ToasterToast, "id">
-
-// Toast is disabled project-wide (no UI + no state updates).
-// We keep the API so existing calls don't crash, but nothing will be shown.
-function toast(_props: Toast) {
+function baseOptions(duration?: number): ToastOptions {
     return {
-        id: "toast-disabled",
-        dismiss: () => {},
-        update: () => {},
+        autoClose: duration ?? 5000,
+        position: 'top-right',
+    };
+}
+
+function toast({ title, description, variant = 'default', duration }: ToastInput) {
+    const content = toToastContent(title, description);
+    const options: ToastOptions = {
+        ...baseOptions(duration),
+        className: variant === 'warning' ? 'toast-warning-emphasis' : undefined,
+    };
+
+    let id: ToastId;
+    if (variant === 'destructive') {
+        id = notify.error(content, options);
+    } else if (variant === 'success') {
+        id = notify.success(content, options);
+    } else if (variant === 'warning') {
+        id = notify.warn(content, options);
+    } else {
+        id = notify(content, options);
     }
+
+    return {
+        id: String(id),
+        dismiss: () => notify.dismiss(id),
+        update: (next: ToastInput) =>
+            notify.update(id, {
+                render: toToastContent(next.title, next.description),
+                type:
+                    next.variant === 'destructive'
+                        ? 'error'
+                        : next.variant === 'success'
+                          ? 'success'
+                          : next.variant === 'warning'
+                            ? 'warning'
+                          : 'default',
+                autoClose: next.duration ?? 5000,
+            }),
+    };
 }
 
 function useToast() {
     return {
         toasts: [],
         toast,
-        dismiss: (_toastId?: string) => {},
-    }
+        dismiss: (toastId?: string) => notify.dismiss(toastId),
+    };
 }
 
 function dismissAll() {
-    // noop
+    notify.dismiss();
 }
 
-export { useToast, toast, dismissAll }
+export { useToast, toast, dismissAll };

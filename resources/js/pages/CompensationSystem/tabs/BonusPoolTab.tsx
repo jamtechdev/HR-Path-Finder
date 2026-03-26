@@ -58,6 +58,17 @@ const MONTHS = [
     'December',
 ];
 
+const toDateInputValue = (raw?: string | null) => {
+    if (!raw) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime())) return '';
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+};
+
 interface ConceptData {
     tag: string;
     tagCls: string;
@@ -823,7 +834,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                     <Input
                                         type="date"
                                         className="mt-1"
-                                        value={configuration.calculation_period_start || ''}
+                                        value={toDateInputValue(configuration.calculation_period_start)}
                                         onChange={(e) =>
                                             onUpdate({
                                                 ...configuration,
@@ -839,7 +850,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                     <Input
                                         type="date"
                                         className="mt-1"
-                                        value={configuration.calculation_period_end || ''}
+                                        value={toDateInputValue(configuration.calculation_period_end)}
                                         onChange={(e) =>
                                             onUpdate({
                                                 ...configuration,

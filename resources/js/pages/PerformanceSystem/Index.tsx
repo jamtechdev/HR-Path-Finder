@@ -25,6 +25,10 @@ import {
 import AppLayout from '@/layouts/AppLayout';
 import { pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
 import { cn } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
+import { toastCopy } from '@/lib/toastCopy';
+import { toastCopy } from '@/lib/toastCopy';
+import { toastCopy } from '@/lib/toastCopy';
 import {
     validatePerformanceSnapshotTab,
     validateKpiReviewTab,
@@ -299,10 +303,11 @@ export default function PerformanceSystemIndex({
                     updatedAt: Date.now(),
                 }),
             );
+
         } catch {
             // Ignore local storage write failures.
         }
-    }, [draftStorageKey, draftSnapshotResponses, draftKpis, draftAssignments, draftStructure]);
+    }, [draftStorageKey, draftSnapshotResponses, draftKpis, draftAssignments, draftStructure, activeTab]);
 
     // Live: drop field-level errors as the user fixes each field on the active tab.
     useEffect(() => {
@@ -382,11 +387,22 @@ export default function PerformanceSystemIndex({
             onSuccess: () => {
                 setLocalDone((d) => ({ ...d, 'performance-snapshot': true }));
                 setIsSavingDraft(false);
+                toast({
+                    title: toastCopy.stepCompleted,
+                    description: 'Snapshot saved. Moving to KPI Review. 스냅샷이 저장되었습니다.',
+                    variant: 'success',
+                    duration: 1800,
+                });
                 handleTabChange('kpi-review', true);
             },
             onError: () => {
                 setIsSavingDraft(false);
                 setTabValidationMessage('Snapshot save failed. Please try again.');
+                toast({
+                    title: toastCopy.saveFailed,
+                    description: 'Snapshot could not be saved. Please try again. 다시 시도해 주세요.',
+                    variant: 'destructive',
+                });
             },
         });
     };
@@ -411,11 +427,22 @@ export default function PerformanceSystemIndex({
             onSuccess: () => {
                 setLocalDone((d) => ({ ...d, 'kpi-review': true }));
                 setIsSavingDraft(false);
+                toast({
+                    title: toastCopy.stepCompleted,
+                    description: 'KPI Review saved. Moving to Model Assignment. KPI 검토가 저장되었습니다.',
+                    variant: 'success',
+                    duration: 1800,
+                });
                 handleTabChange('model-assignment', true);
             },
             onError: () => {
                 setIsSavingDraft(false);
                 setTabValidationMessage('KPI draft save failed. Please try again.');
+                toast({
+                    title: toastCopy.saveFailed,
+                    description: 'KPI Review could not be saved. Please try again. 다시 시도해 주세요.',
+                    variant: 'destructive',
+                });
             },
         });
     };
@@ -440,11 +467,22 @@ export default function PerformanceSystemIndex({
             onSuccess: () => {
                 setLocalDone((d) => ({ ...d, 'model-assignment': true }));
                 setIsSavingDraft(false);
+                toast({
+                    title: toastCopy.stepCompleted,
+                    description: 'Model Assignment saved. Moving to Evaluation Structure. 모델 할당이 저장되었습니다.',
+                    variant: 'success',
+                    duration: 1800,
+                });
                 handleTabChange('evaluation-structure', true);
             },
             onError: () => {
                 setIsSavingDraft(false);
                 setTabValidationMessage('Model assignment save failed. Please try again.');
+                toast({
+                    title: toastCopy.saveFailed,
+                    description: 'Model Assignment could not be saved. Please try again. 다시 시도해 주세요.',
+                    variant: 'destructive',
+                });
             },
         });
     };
@@ -469,11 +507,22 @@ export default function PerformanceSystemIndex({
             onSuccess: () => {
                 setLocalDone((d) => ({ ...d, 'evaluation-structure': true }));
                 setIsSavingDraft(false);
+                toast({
+                    title: toastCopy.stepCompleted,
+                    description: 'Evaluation Structure saved. Moving to Review & Submit. 평가 구조가 저장되었습니다.',
+                    variant: 'success',
+                    duration: 1800,
+                });
                 handleTabChange('review-submit', true);
             },
             onError: () => {
                 setIsSavingDraft(false);
                 setTabValidationMessage('Evaluation structure save failed. Please try again.');
+                toast({
+                    title: toastCopy.saveFailed,
+                    description: 'Evaluation Structure could not be saved. Please try again. 다시 시도해 주세요.',
+                    variant: 'destructive',
+                });
             },
         });
     };
@@ -571,9 +620,20 @@ export default function PerformanceSystemIndex({
             } catch {
                 // ignore
             }
+            toast({
+                title: toastCopy.submitted,
+                description: 'Performance system submitted for review. 성과 시스템이 제출되었습니다.',
+                variant: 'success',
+                duration: 2000,
+            });
             setShowSuccessModal(true);
         } catch {
             setSubmitError('Submit failed. Please review each tab and try again.');
+            toast({
+                title: toastCopy.submitFailed,
+                description: 'Please review required fields and try again. 필수 항목을 확인해 주세요.',
+                variant: 'destructive',
+            });
         }
     };
 

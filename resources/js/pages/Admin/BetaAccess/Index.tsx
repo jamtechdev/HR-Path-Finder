@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Toaster } from '@/components/ui/toaster';
 import { toast } from '@/hooks/use-toast';
+import { toastCopy } from '@/lib/toastCopy';
 
 interface PendingUser {
     id: number;
@@ -48,10 +49,10 @@ export default function BetaAccessIndex({ pendingUsers }: Props) {
         }
         flashSig.current = sig;
         if (flash?.success) {
-            toast({ title: 'Success', description: flash.success });
+            toast({ title: toastCopy.success, description: flash.success });
         }
         if (flash?.info) {
-            toast({ title: 'Info', description: flash.info });
+            toast({ title: toastCopy.info, description: flash.info });
         }
     }, [flash?.success, flash?.info]);
 

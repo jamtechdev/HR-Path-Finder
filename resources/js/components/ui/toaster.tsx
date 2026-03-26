@@ -1,53 +1,30 @@
-import { useEffect, useState } from "react"
-import { createPortal } from "react-dom"
-import {
-  Toast,
-  ToastClose,
-  ToastDescription,
-  ToastProvider,
-  ToastTitle,
-  ToastViewport,
-} from "@/components/ui/toast"
-import { useToast } from "@/hooks/use-toast"
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export function Toaster() {
-  const { toasts } = useToast()
-  const [portalNode, setPortalNode] = useState<HTMLElement | null>(null)
-
-  useEffect(() => {
-    if (typeof document === "undefined") return
-
-    let node = document.getElementById("app-toast-root") as HTMLElement | null
-    if (!node) {
-      node = document.createElement("div")
-      node.id = "app-toast-root"
-      document.body.appendChild(node)
-    }
-
-    setPortalNode(node)
-  }, [])
-
-  if (!portalNode) return null
-  // If toasts are disabled, nothing is rendered.
-  if (!toasts.length) return null
-
-  return createPortal(
-    <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, onOpenChange: _onOpenChange, ...props }) {
-        return (
-          <Toast key={id} {...props}>
-            <div className="grid gap-1">
-              {title && <ToastTitle>{title}</ToastTitle>}
-              {description && (
-                <ToastDescription>{description}</ToastDescription>
-              )}
-            </div>
-            {action}
-            <ToastClose />
-          </Toast>
-        )
-      })}
-      <ToastViewport />
-    </ToastProvider>
-  , portalNode)
+    return (
+        <>
+            <ToastContainer
+                newestOnTop
+                closeOnClick
+                pauseOnFocusLoss
+                pauseOnHover
+                draggable
+                theme="colored"
+                position="top-right"
+                toastStyle={{ marginTop: 'calc(var(--hr-topbar-h, 52px) + 12px)' }}
+            />
+            <style>{`
+                .toast-warning-emphasis {
+                    background: #fef08a !important;
+                    color: #78350f !important;
+                    border: 2px solid #facc15 !important;
+                    font-weight: 800 !important;
+                    font-size: 16px !important;
+                    line-height: 1.35 !important;
+                    box-shadow: 0 10px 24px rgba(250, 204, 21, 0.35) !important;
+                }
+            `}</style>
+        </>
+    );
 }

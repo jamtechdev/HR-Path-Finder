@@ -22,6 +22,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { toast } from '@/hooks/use-toast';
+import { toastCopy } from '@/lib/toastCopy';
 import type { PolicyAnswer, JobSelection, JobDefinition, OrgChartMapping } from '../hooks/useJobAnalysisState';
 
 interface Question {
@@ -150,6 +152,12 @@ export default function Step6ReviewSubmit({
             onSuccess: () => {
                 setProcessing(false);
                 setSubmitted(true);
+                toast({
+                    title: toastCopy.submitted,
+                    description: 'Your job analysis has been submitted. 직무 분석이 제출되었습니다.',
+                    variant: 'success',
+                    duration: 2000,
+                });
             },
             onError: (errors: Record<string, string | string[]>) => {
                 const fe: FieldErrors = {};

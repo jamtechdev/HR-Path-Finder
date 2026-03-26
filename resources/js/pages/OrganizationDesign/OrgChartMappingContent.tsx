@@ -17,6 +17,7 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
+import { toastCopy } from '@/lib/toastCopy';
 import { mergeJobAnalysisState, buildSubmitPayload } from '@/pages/JobAnalysis/utils/jobAnalysisStorage';
 
 interface JobDefinition {
@@ -196,15 +197,15 @@ export default function OrgChartMappingContent({ project, jobDefinitions, mappin
                 };
 
                 toast({
-                    title: 'Job assigned successfully',
-                    description: `${jobDef.job_name} has been assigned to ${unit.org_unit_name || 'organization unit'}.`,
+                    title: toastCopy.success,
+                    description: `${jobDef.job_name} has been assigned to ${unit.org_unit_name || 'organization unit'}. 직무가 할당되었습니다.`,
                 });
                 return newUnits;
             }
 
             toast({
-                title: 'Job already assigned',
-                description: `${jobDef.job_name} is already assigned to this unit.`,
+                title: toastCopy.info,
+                description: `${jobDef.job_name} is already assigned to this unit. 이미 이 조직에 포함되어 있습니다.`,
                 variant: 'default',
             });
             return prev;
@@ -284,13 +285,21 @@ export default function OrgChartMappingContent({ project, jobDefinitions, mappin
                     onSuccess: () => router.visit('/hr-manager/dashboard'),
                     onError: () => {
                         setSubmitting(false);
-                        toast({ title: 'Submission failed', variant: 'destructive' });
+                        toast({
+                            title: toastCopy.submitFailed,
+                            description: 'Please review required fields and try again. 필수 항목을 확인해 주세요.',
+                            variant: 'destructive',
+                        });
                     },
                 });
             },
             onError: () => {
                 setSubmitting(false);
-                toast({ title: 'Save failed', variant: 'destructive' });
+                toast({
+                    title: toastCopy.saveFailed,
+                    description: 'Could not save mapping. Please try again. 저장에 실패했습니다.',
+                    variant: 'destructive',
+                });
             },
         });
     };

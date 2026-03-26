@@ -1,4 +1,4 @@
-import { Head, useForm, Link, usePage } from '@inertiajs/react';
+import { Head, useForm, Link, usePage, router } from '@inertiajs/react';
 import React, { useEffect, useState } from 'react';
 import AppLayout from '@/layouts/AppLayout';
 
@@ -67,7 +67,9 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
     const teamCount = organizations.length;
     const allApproved = totalKpis > 0 && approvedCount === totalKpis;
 
-    const { data, setData, post, processing } = useForm({
+    // Keep `processing` for button disabled states.
+    // We send explicit payloads with `router.post(...)` (no `setData` timing dependency).
+    const { processing } = useForm({
         action: 'approve',
         revision_requests: [] as Array<{ organization_name: string; comment: string }>,
     });
@@ -97,14 +99,18 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
 
     const handleApprove = () => {
         const route = isAdmin ? `/admin/kpi-review/${project.id}` : `/ceo/kpi-review/${project.id}`;
-        setData({ action: 'approve', revision_requests: [] });
-        post(route, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setSuccessModalMessage('Company-wide KPIs have been finalized and approved.');
-                setSuccessModalOpen(true);
+        // Use router.post with an explicit payload to avoid any `setData` timing race.
+        router.post(
+            route,
+            { action: 'approve', revision_requests: [] },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setSuccessModalMessage('Company-wide KPIs have been finalized and approved.');
+                    setSuccessModalOpen(true);
+                },
             },
-        });
+        );
     };
 
     const handleRequestRevision = () => {
@@ -116,14 +122,18 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
             return;
         }
         const route = isAdmin ? `/admin/kpi-review/${project.id}` : `/ceo/kpi-review/${project.id}`;
-        setData({ action: 'request_revision', revision_requests: requests });
-        post(route, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setSuccessModalMessage('Revision requests have been sent to organization leaders.');
-                setSuccessModalOpen(true);
+        // Use router.post with an explicit payload to avoid any `setData` timing race.
+        router.post(
+            route,
+            { action: 'request_revision', revision_requests: requests },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setSuccessModalMessage('Revision requests have been sent to organization leaders.');
+                    setSuccessModalOpen(true);
+                },
             },
-        });
+        );
     };
 
     const getStatusBadge = (status: string, ceoStatus?: string) => {

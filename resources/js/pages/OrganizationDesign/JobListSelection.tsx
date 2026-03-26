@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import AppLayout from '@/layouts/AppLayout';
+import { toastCopy } from '@/lib/toastCopy';
 import { mergeJobAnalysisState } from '@/pages/JobAnalysis/utils/jobAnalysisStorage';
 
 interface JobKeyword {
@@ -194,8 +195,21 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
         };
         mergeJobAnalysisState(project.id, { jobSelections });
         router.post(`/hr-manager/job-analysis/${project.id}/job-list-selection`, { job_selections: jobSelections }, {
-            onSuccess: () => toast({ title: 'Saved', description: 'Job list saved.' }),
-            onError: () => setNavigating(false),
+            onSuccess: () =>
+                toast({
+                    title: toastCopy.stepCompleted,
+                    description: 'Job List saved. Moving to Job Definition. 직무 목록이 저장되었습니다.',
+                    variant: 'success',
+                    duration: 1800,
+                }),
+            onError: () => {
+                setNavigating(false);
+                toast({
+                    title: toastCopy.saveFailed,
+                    description: 'Could not save Job List. Please try again. 다시 시도해 주세요.',
+                    variant: 'destructive',
+                });
+            },
         });
     };
 

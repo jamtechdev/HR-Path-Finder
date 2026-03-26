@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sidebar, SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { toast } from '@/hooks/use-toast';
+import { toastCopy } from '@/lib/toastCopy';
 
 interface Company {
     id: number;
@@ -49,8 +50,8 @@ export default function KpiTemplatesIndex({ templates, companies }: Props) {
     const [orgFilter, setOrgFilter] = useState<string>('');
 
     useEffect(() => {
-        if (flash?.success) toast({ title: 'Success', description: flash.success });
-        if (flash?.error) toast({ title: 'Error', description: flash.error, variant: 'destructive' });
+        if (flash?.success) toast({ title: toastCopy.success, description: flash.success });
+        if (flash?.error) toast({ title: toastCopy.error, description: flash.error, variant: 'destructive' });
     }, [flash]);
 
     const handleDelete = (id: number) => {

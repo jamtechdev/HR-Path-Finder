@@ -19,6 +19,7 @@ import {
     SidebarInset,
     SidebarProvider,
 } from '@/components/ui/sidebar';
+import { toastCopy } from '@/lib/toastCopy';
 import { toast } from '@/hooks/use-toast';
 
 interface DiagnosisQuestion {
@@ -49,12 +50,12 @@ export default function CEOQuestionsIndex({
         if (toastShown.current) return;
 
         if (flash?.success) {
-            toast({ title: 'Success', description: flash.success });
+            toast({ title: toastCopy.success, description: flash.success });
             toastShown.current = true;
         }
 
         if (flash?.error) {
-            toast({ title: 'Error', description: flash.error, variant: 'destructive' });
+            toast({ title: toastCopy.error, description: flash.error, variant: 'destructive' });
             toastShown.current = true;
         }
     }, [flash]);

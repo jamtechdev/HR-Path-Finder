@@ -1,5 +1,7 @@
 import { Head, useForm, router, usePage } from '@inertiajs/react';
 import React, { useState, useEffect } from 'react';
+import { FlashToasts } from '@/components/FlashToasts';
+import { Toaster } from '@/components/ui/toaster';
 
 interface OrganizationalKpi {
     id?: number;
@@ -31,6 +33,11 @@ interface Props {
     organizationName: string;
     allOrganizations?: string[];
     kpis: OrganizationalKpi[];
+    ceos?: Array<{
+        id: number;
+        name?: string;
+        email?: string;
+    }>;
     reviewerName?: string;
     reviewerEmail?: string;
     isCompleted?: boolean;
@@ -49,6 +56,7 @@ export default function KpiReviewToken({
     organizationName: defaultOrganizationName,
     allOrganizations = [],
     kpis: initialKpis = [],
+    ceos = [],
     reviewerName,
     reviewerEmail,
     isCompleted = false,
@@ -72,6 +80,15 @@ export default function KpiReviewToken({
     const [submitPopupOpen, setSubmitPopupOpen] = useState(false);
     const [submitPopupMessage, setSubmitPopupMessage] = useState('');
     const [validationMessage, setValidationMessage] = useState<string | null>(null);
+
+    const [ceoPickerOpen, setCeoPickerOpen] = useState(false);
+    const [selectedCeoIds, setSelectedCeoIds] = useState<number[]>(() => ceos.map((c) => c.id));
+
+    useEffect(() => {
+        // Keep selection in sync with available CEO list.
+        // If user hasn't selected anything yet, default to "all".
+        setSelectedCeoIds((prev) => (prev.length ? prev : ceos.map((c) => c.id)));
+    }, [ceos]);
 
     useEffect(() => {
         const pageKpis = (props as any)?.kpis;
@@ -146,31 +163,109 @@ export default function KpiReviewToken({
         if (isCompleted) setCompleted(true);
     }, [props, isCompleted]);
 
+    const submitFinalReviewToSelectedCeo = (ceoIds: number[]) => {
+        router.post(
+            `/kpi-review/token/${token}`,
+            {
+                final_submit: true,
+                self_assessment: confirmed,
+                organization_name: selectedOrganization,
+                review_comments: reviewComments,
+                ceo_user_ids: ceoIds,
+                kpis: kpis.map((kpi) => ({
+                    id: kpi.id,
+                    kpi_name: kpi.kpi_name,
+                    purpose: kpi.purpose || '',
+                    category: kpi.category || '',
+                    linked_job_id: kpi.linked_job_id || null,
+                    linked_csf: kpi.linked_csf || '',
+                    formula: kpi.formula || '',
+                    measurement_method: kpi.measurement_method || '',
+                    weight: kpi.weight || null,
+                    is_active: kpi.is_active,
+                })),
+            },
+            {
+                preserveScroll: false,
+                onSuccess: () => {
+                    router.reload({
+                        onSuccess: () => {
+                            setSubmitPopupMessage('Org KPI review submitted successfully.');
+                            setSubmitPopupOpen(true);
+                            setCompleted(true);
+                            setCeoPickerOpen(false);
+                        },
+                    });
+                },
+                onError: (errors) => {
+                    console.error('Submit error:', errors);
+                    const firstError = Object.values(errors || {})[0];
+                    const msg =
+                        typeof firstError === 'string'
+                            ? firstError
+                            : 'Failed to submit review. Please try again.';
+                    setValidationMessage(msg);
+                },
+            },
+        );
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setValidationMessage(null);
-        setData('final_submit', true);
-        setData('self_assessment', confirmed);
-        post(`/kpi-review/token/${token}`, {
-            preserveScroll: false,
-            onSuccess: () => {
-                router.reload({
-                    only: ['kpis'],
-                    onSuccess: () => {
-                        setSubmitPopupMessage('Org KPI review submitted successfully. CEO has been notified by email.');
-                        setSubmitPopupOpen(true);
-                        setCompleted(true);
-                    },
-                });
-            },
-            onError: (errors) => {
-                console.error('Submit error:', errors);
-                const firstError = Object.values(errors || {})[0];
-                const msg = typeof firstError === 'string' ? firstError : 'Failed to submit review. Please try again.';
-                setValidationMessage(msg);
-                setData('final_submit', false);
-            },
-        });
+
+        // If prerequisites are not met, keep the button clickable but show
+        // why the CEO request cannot be sent yet.
+        const totalWeightLocal = kpis.reduce((s, k) => s + (Number(k.weight) || 0), 0);
+        const totalWeightNormalizedLocal = Math.round(totalWeightLocal * 100) / 100;
+        const allConfirmedLocal = confirmed.every(Boolean);
+        const invalidKpiIndicesLocal = kpis.reduce<number[]>((acc, kpi, index) => {
+            const nameInvalid = !String(kpi.kpi_name ?? '').trim();
+            const weightNum = Number(kpi.weight);
+            const weightInvalid = Number.isNaN(weightNum) || weightNum < 0 || weightNum > 100;
+            if (nameInvalid || weightInvalid) acc.push(index + 1);
+            return acc;
+        }, []);
+
+        const weightOkLocal = Math.abs(totalWeightNormalizedLocal - 100) < 0.01;
+        const confirmedCountLocal = confirmed.filter(Boolean).length;
+        const hasInvalidKpisLocal = invalidKpiIndicesLocal.length > 0;
+
+        let blockingMessage: string | null = null;
+        if (completed) {
+            blockingMessage = 'You already submitted this review.';
+        } else if (processing || loading) {
+            blockingMessage = 'Please wait... the request is being processed.';
+        } else if (kpis.length === 0) {
+            blockingMessage = 'Add at least one KPI before requesting a CEO review.';
+        } else if (ceos.length === 0) {
+            blockingMessage = 'No CEO recipient is configured for this company (missing CEO email).';
+        } else if (!weightOkLocal) {
+            blockingMessage = `Total KPI weight must be 100%. Current: ${totalWeightNormalizedLocal}%.`;
+        } else if (!allConfirmedLocal) {
+            blockingMessage = `Please confirm all 4 self-assessment checks (${confirmedCountLocal}/4 confirmed).`;
+        } else if (hasInvalidKpisLocal) {
+            blockingMessage = `Fix KPI #${invalidKpiIndicesLocal.join(', ')}: KPI name is required and weight must be 0-100.`;
+        }
+
+        if (blockingMessage) {
+            setValidationMessage(blockingMessage);
+            return;
+        }
+
+        // prerequisites are satisfied
+        // If only one CEO exists -> send immediately (no popup).
+        // If multiple CEOs exist -> open chooser popup.
+        if (ceos.length <= 1) {
+            const firstId = ceos[0]?.id;
+            if (!firstId) {
+                setValidationMessage('No CEO recipient is configured for this company (missing CEO email).');
+                return;
+            }
+            submitFinalReviewToSelectedCeo([firstId]);
+        } else {
+            setCeoPickerOpen(true);
+        }
     };
 
     const addKpi = () => {
@@ -312,6 +407,7 @@ export default function KpiReviewToken({
     };
 
     const totalWeight = kpis.reduce((s, k) => s + (Number(k.weight) || 0), 0);
+    const totalWeightNormalized = Math.round(totalWeight * 100) / 100; // avoid float issues (e.g. 99.999999)
     const allConfirmed = confirmed.every(Boolean);
     const invalidKpiIndices = kpis.reduce<number[]>((acc, kpi, index) => {
         const nameInvalid = !String(kpi.kpi_name ?? '').trim();
@@ -321,18 +417,22 @@ export default function KpiReviewToken({
         return acc;
     }, []);
     const hasInvalidKpis = invalidKpiIndices.length > 0;
-    /* Enable submit when: not done, not loading/processing, has KPIs, total weight 100%, and all 4 self-assessments confirmed. */
+    const confirmedCount = confirmed.filter(Boolean).length;
+    const weightOk = Math.abs(totalWeightNormalized - 100) < 0.01;
+    /* Enable submit when: not done, not loading/processing, has KPIs, total weight ~100%, and all 4 self-assessments confirmed. */
     const canSubmit =
         !completed &&
         !processing &&
         !loading &&
         kpis.length > 0 &&
-        totalWeight === 100 &&
+        weightOk &&
         allConfirmed &&
         !hasInvalidKpis;
 
     return (
         <div className="leader-kpi-review-page">
+            <Toaster />
+            <FlashToasts />
             <Head title={`Leader KPI Review - ${selectedOrganization}`} />
 
             {submitPopupOpen && (
@@ -374,6 +474,159 @@ export default function KpiReviewToken({
                                 }}
                             >
                                 OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {ceoPickerOpen && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        backgroundColor: 'rgba(15, 23, 42, 0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 9999,
+                    }}
+                    onClick={() => setCeoPickerOpen(false)}
+                >
+                    <div
+                        style={{
+                            width: 'min(92vw, 520px)',
+                            background: '#ffffff',
+                            borderRadius: 14,
+                            border: '1px solid #dbe3ef',
+                            boxShadow: '0 18px 45px rgba(15, 23, 42, 0.22)',
+                            padding: '18px 20px',
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div style={{ fontWeight: 800, color: '#0f2a4a', marginBottom: 6 }}>
+                            Choose CEO recipient(s)
+                        </div>
+                        <div style={{ color: '#334155', fontSize: 13, lineHeight: 1.5, marginBottom: 12 }}>
+                            Select which CEO(s) should receive the KPI review request email.
+                        </div>
+
+                        <div style={{ maxHeight: 300, overflowY: 'auto', paddingRight: 6 }}>
+                            {ceos.length === 0 ? (
+                                <div style={{ color: '#b91c1c', fontSize: 13 }}>
+                                    No CEO recipients are available (missing email).
+                                </div>
+                            ) : (
+                                ceos.map((ceo) => {
+                                    const checked = selectedCeoIds.includes(ceo.id);
+                                    return (
+                                        <label
+                                            key={ceo.id}
+                                            style={{
+                                                display: 'flex',
+                                                gap: 10,
+                                                alignItems: 'flex-start',
+                                                padding: '10px 0',
+                                                borderBottom: '1px solid #e5e7eb',
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={checked}
+                                                onChange={() => {
+                                                    setSelectedCeoIds((prev) => {
+                                                        if (prev.includes(ceo.id)) {
+                                                            return prev.filter((id) => id !== ceo.id);
+                                                        }
+                                                        return [...prev, ceo.id];
+                                                    });
+                                                }}
+                                                style={{ marginTop: 4 }}
+                                            />
+                                            <div style={{ minWidth: 0 }}>
+                                                <div style={{ fontWeight: 700, color: '#0f2a4a' }}>
+                                                    {ceo.name || ceo.email || `CEO #${ceo.id}`}
+                                                </div>
+                                                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2, wordBreak: 'break-word' }}>
+                                                    {ceo.email}
+                                                </div>
+                                            </div>
+                                        </label>
+                                    );
+                                })
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 14 }}>
+                            <div style={{ display: 'flex', gap: 10 }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedCeoIds(ceos.map((c) => c.id))}
+                                    style={{
+                                        background: '#f8fafc',
+                                        color: '#0f2a4a',
+                                        border: '1px solid #dbe3ef',
+                                        borderRadius: 10,
+                                        padding: '8px 12px',
+                                        fontWeight: 800,
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    Select All
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedCeoIds([])}
+                                    style={{
+                                        background: '#f8fafc',
+                                        color: '#0f2a4a',
+                                        border: '1px solid #dbe3ef',
+                                        borderRadius: 10,
+                                        padding: '8px 12px',
+                                        fontWeight: 800,
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    Select None
+                                </button>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setCeoPickerOpen(false)}
+                                style={{
+                                    background: '#fff',
+                                    color: '#0f2a4a',
+                                    border: '1px solid #dbe3ef',
+                                    borderRadius: 10,
+                                    padding: '8px 14px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (selectedCeoIds.length === 0) {
+                                        setValidationMessage('Please select at least one CEO recipient.');
+                                        return;
+                                    }
+                                    setValidationMessage(null);
+                                    submitFinalReviewToSelectedCeo(selectedCeoIds);
+                                }}
+                                style={{
+                                    background: '#0f2a4a',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: 10,
+                                    padding: '8px 16px',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                Send to selected CEO(s)
                             </button>
                         </div>
                     </div>
@@ -656,7 +909,7 @@ export default function KpiReviewToken({
                         <div className="lkr-summary-divider" />
                         <div className="lkr-summary-chip">
                             <span className="lkr-s-label">Total Weight</span>
-                            <span className={`lkr-s-value ${totalWeight === 100 ? 'ok' : ''}`}>{totalWeight}%</span>
+                            <span className={`lkr-s-value ${weightOk ? 'ok' : ''}`}>{totalWeightNormalized}%</span>
                         </div>
                         <div className="lkr-summary-divider" />
                         <div className="lkr-summary-chip">
@@ -669,21 +922,25 @@ export default function KpiReviewToken({
                         </div>
                     </div>
                     <div className="lkr-submit-right">
-                        <span className={`lkr-submit-hint ${allConfirmed && totalWeight === 100 ? 'hidden' : ''}`}>
-                            {!allConfirmed
-                                ? `Complete self-assessment (${confirmed.filter(Boolean).length}/4) and set total weight to 100% to enable submit`
-                                : 'Set total weight to 100% to enable submit'}
-                        </span>
-                        {hasInvalidKpis && (
-                            <span className="lkr-submit-hint" style={{ color: '#dc2626' }}>
-                                Fix KPI #{invalidKpiIndices.join(', ')}: KPI Name is required and Weight must be 0-100.
-                            </span>
-                        )}
+                            {hasInvalidKpis ? (
+                                <span className="lkr-submit-hint" style={{ color: '#dc2626' }}>
+                                    Fix KPI #{invalidKpiIndices.join(', ')}: KPI name is required and weight must be 0-100.
+                                </span>
+                            ) : !allConfirmed ? (
+                                <span className="lkr-submit-hint">
+                                    Confirm all 4 checks first ({confirmedCount}/4 confirmed).
+                                </span>
+                            ) : !weightOk ? (
+                                <span className="lkr-submit-hint">
+                                    Total weight must be 100%. Current: {totalWeightNormalized}%.
+                                </span>
+                            ) : (
+                                <span className="lkr-submit-hint hidden">Ready</span>
+                            )}
                         <button
                             type="submit"
                             form="lkr-review-form"
                             className="lkr-btn-submit"
-                            disabled={!canSubmit}
                         >
                             Request CEO Review →
                         </button>

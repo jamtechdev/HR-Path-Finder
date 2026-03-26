@@ -18,7 +18,7 @@ import {
     Lightbulb,
     Circle,
 } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -29,12 +29,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
+import { toastCopy } from '@/lib/toastCopy';
 
 const VALIDATION_CRITERIA = [
-    { id: 'outcome_influence', label: 'Outcome Influence', icon: Zap, desc: "Outcome is primarily driven by this org's own efforts.", question: 'Is the outcome primarily influenced by this organization\'s own efforts?', noHint: 'Please refine the KPI so it reflects outcomes your org can directly control.' },
-    { id: 'job_relevance', label: 'Job Relevance', icon: CheckCircle2, desc: "Directly tied to this org's core responsibilities.", question: 'Is this KPI directly tied to this organization\'s core responsibilities and performance?', noHint: 'Please align the KPI with this org\'s core job scope.' },
+    { id: 'outcome_influence', label: 'Outcome Influence', icon: Zap, desc: "Outcome is primarily driven by this org's own efforts.", required: false, question: 'Is the outcome primarily influenced by this organization\'s own efforts?', noHint: 'Please refine the KPI so it reflects outcomes your org can directly control.' },
+    { id: 'job_relevance', label: 'Job Relevance', icon: CheckCircle2, desc: "Directly tied to this org's core responsibilities.", required: false, question: 'Is this KPI directly tied to this organization\'s core responsibilities and performance?', noHint: 'Please align the KPI with this org\'s core job scope.' },
     { id: 'measurability', label: 'Measurability Required', icon: TrendingUp, desc: 'Measurable with a clear data source.', required: true, question: 'Is this KPI clearly measurable with numerical data?', noHint: 'Please refine the KPI name and formula to be more quantitative.' },
-    { id: 'data_availability', label: 'Data Availability', icon: Database, desc: 'Data is accessible and ready to collect.', question: 'Is the data for this KPI accessible and ready to collect?', noHint: 'Please ensure a clear data source exists before confirming.' },
+    { id: 'data_availability', label: 'Data Availability', icon: Database, desc: 'Data is accessible and ready to collect.', required: false, question: 'Is the data for this KPI accessible and ready to collect?', noHint: 'Please ensure a clear data source exists before confirming.' },
 ] as const;
 
 type ValidationKey = (typeof VALIDATION_CRITERIA)[number]['id'];
@@ -146,6 +148,9 @@ export default function KpiReviewTab({
     const [editForm, setEditForm] = useState<Partial<Kpi>>({});
     const [recommendedTemplates, setRecommendedTemplates] = useState<Array<{ id: number; kpi_name: string; purpose?: string; category?: string; formula?: string; measurement_method?: string; weight?: number }>>([]);
     const [loadingTemplates, setLoadingTemplates] = useState(false);
+    // When an organization has only 1 KPI, it should appear selected by default,
+    // but only until the user manually toggles selection.
+    const [selectionTouchedByOrg, setSelectionTouchedByOrg] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         if (!kpiVerificationNotice || !project?.id) return;
@@ -186,8 +191,14 @@ export default function KpiReviewTab({
     }, [kpis]);
 
     const orgKpis = kpis.filter((k) => k.organization_name === selectedOrg);
+    const orgActiveKpis = orgKpis.filter((k) => k.is_active);
     const leaderName = orgChartMappings.find((m) => m.org_unit_name === selectedOrg)?.org_head_name || '—';
-    const totalWeight = orgKpis.reduce((s, k) => s + (k.weight || 0), 0);
+    const isSingleKpiOrg = orgKpis.length === 1;
+    const isDefaultAutoSelectedSingleKpi = !!selectedOrg && isSingleKpiOrg && !selectionTouchedByOrg[selectedOrg];
+    const orgSelectedKpis = isDefaultAutoSelectedSingleKpi ? orgKpis : orgActiveKpis;
+
+    const totalWeight = orgSelectedKpis.reduce((s, k) => s + (k.weight || 0), 0);
+    const weightOk = orgSelectedKpis.length <= 1 ? orgSelectedKpis.length === 1 : Math.abs(totalWeight - 100) < 0.01;
 
     const getValidation = (kpiKey: string): ValidationState =>
         validationByKpi[kpiKey] ?? defaultValidation();
@@ -233,7 +244,8 @@ export default function KpiReviewTab({
             formula: '',
             measurement_method: '',
             weight: 0,
-            is_active: true,
+            // New KPI starts as "unselected" until the user includes it (green check).
+            is_active: false,
             status: 'draft',
         };
         setKpis((prev) => [...prev, newKpi]);
@@ -253,7 +265,8 @@ export default function KpiReviewTab({
             formula: template.formula || '',
             measurement_method: template.measurement_method || '',
             weight: template.weight ?? 0,
-            is_active: true,
+            // Template KPIs also start as "unselected" until user includes them.
+            is_active: false,
             status: 'draft',
         };
         setKpis((prev) => [...prev, newKpi]);
@@ -300,9 +313,15 @@ export default function KpiReviewTab({
 
     const handleExcludeKpi = (index: number) => {
         const kpi = kpis[index];
+        if (selectedOrg) {
+            setSelectionTouchedByOrg((prev) => ({ ...prev, [selectedOrg]: true }));
+        }
+        const defaultSelectedSoleKpi =
+            !!selectedOrg && isDefaultAutoSelectedSingleKpi && kpi.organization_name === selectedOrg && !kpi.is_active;
+
         setKpis((prev) => {
             const next = [...prev];
-            next[index] = { ...kpi, is_active: !kpi.is_active };
+            next[index] = { ...kpi, is_active: defaultSelectedSoleKpi ? false : !kpi.is_active };
             return next;
         });
     };
@@ -324,10 +343,67 @@ export default function KpiReviewTab({
     };
 
     const kpiReviewRecipients = orgChartMappings.filter((m) => m.is_kpi_reviewer && m.org_head_email?.trim());
+    const getHasReviewSent = (orgName: string) => {
+        const tokens = (kpiReviewTokens as Record<string, unknown[]>)[orgName];
+        return Array.isArray(tokens) && tokens.length > 0;
+    };
+    const getOrgReviewEligibility = (orgName: string) => {
+        const orgRows = kpis.filter((k) => k.organization_name === orgName);
+        if (orgRows.length === 0) {
+            return { canSend: false, reason: 'No KPIs available for this organization.' };
+        }
+        const hasCeoRevisionRequested = orgRows.some((k) => {
+            const ceo = (k.ceo_approval_status ?? '').toLowerCase();
+            const status = (k.status ?? '').toLowerCase();
+            return ceo === 'revision_requested' || status === 'revision_requested';
+        });
+        const allApproved = orgRows.every((k) => {
+            const ceo = (k.ceo_approval_status ?? '').toLowerCase();
+            const status = (k.status ?? '').toLowerCase();
+            return ceo === 'approved' || status === 'approved' || status === 'verified';
+        });
+        if (allApproved && !hasCeoRevisionRequested) {
+            return {
+                canSend: false,
+                reason: 'Already verified by CEO. Re-send is blocked unless CEO requests revision.',
+            };
+        }
+        return { canSend: true, reason: null as string | null };
+    };
+    const selectedHasReviewSent = selectedOrg ? getHasReviewSent(selectedOrg) : false;
+    const selectedEligibility = selectedOrg
+        ? getOrgReviewEligibility(selectedOrg)
+        : { canSend: false, reason: 'Select organization first.' };
+
+    // NOTE:
+    // We intentionally do NOT auto-call setKpis here.
+    // Doing setState in effects caused maximum update depth issues earlier.
+    // Instead, the "single KPI default selected" behavior is implemented via derived UI logic above.
 
     const handleSendReviewRequest = () => {
         if (!selectedOrg || !project?.id) return;
         if (sendingReview) return;
+        if (!selectedEligibility.canSend) {
+            toast({
+                title: toastCopy.notReadyYet,
+                description:
+                    (selectedEligibility.reason || 'This organization cannot be sent for review.') +
+                    ' 준비가 완료되면 다시 시도해 주세요.',
+                variant: 'warning',
+                duration: 2500,
+            });
+            return;
+        }
+        if (!selectedKpisReady) {
+            toast({
+                title: toastCopy.completeFirst,
+                description:
+                    'For selected KPIs, make sure all 4 validation criteria are checked and measurability is set. 필수 검증을 완료해 주세요.',
+                variant: 'warning',
+                duration: 3000,
+            });
+            return;
+        }
 
         setInlineMsg(null);
         setSendingReview(true);
@@ -337,7 +413,7 @@ export default function KpiReviewTab({
             {
                 organization_name: selectedOrg,
                 recipient_target: 'leader',
-                kpis: orgKpis.map((kpi) => ({
+                kpis: orgSelectedKpis.map((kpi) => ({
                     id: kpi.id ?? null,
                     organization_name: kpi.organization_name,
                     kpi_name: kpi.kpi_name,
@@ -348,7 +424,8 @@ export default function KpiReviewTab({
                     formula: kpi.formula,
                     measurement_method: kpi.measurement_method,
                     weight: kpi.weight ?? null,
-                    is_active: kpi.is_active,
+                    // If KPI is included in this request, always treat it as active for backend payload.
+                    is_active: true,
                 })),
             },
             {
@@ -379,14 +456,24 @@ export default function KpiReviewTab({
             const status = (k.status ?? '').toLowerCase();
             return ceo === 'approved' || status === 'approved';
         });
+
+    const getKpiKey = (kpi: Kpi) => {
+        const globalIndex = kpis.findIndex((x) => x === kpi);
+        return `kpi-${kpi.id ?? globalIndex}-${kpi.kpi_name}`;
+    };
+
+    const selectedKpisReady = orgSelectedKpis.length > 0 &&
+        orgSelectedKpis.every((kpi) => {
+            const key = getKpiKey(kpi);
+            return completedCount(key) === 4 && (kpi.measurement_method ?? '').trim() !== '';
+        });
+
     const canSendReviewRequest =
         !!selectedOrg &&
-        orgKpis.length > 0 &&
-        orgKpis.every((k) => {
-            const key = `kpi-${k.id ?? kpis.findIndex((x) => x === k)}-${k.kpi_name}`;
-            return completedCount(key) === 4 && (k.measurement_method ?? '').trim() !== '';
-        }) &&
-        totalWeight === 100;
+        selectedEligibility.canSend &&
+        orgSelectedKpis.length > 0 &&
+        selectedKpisReady &&
+        weightOk;
 
     return (
         <div className="manager-kpi-draft min-h-full flex flex-col" style={{ background: '#f8f9fb' }}>
@@ -436,6 +523,21 @@ export default function KpiReviewTab({
                 <div className="flex-1 min-w-0 space-y-4">
                     <Card className="rounded-xl border border-[#e2e6ed] shadow-sm bg-white overflow-hidden">
                         <CardContent className="p-6">
+                            {/* UX guidance: request is per-organization */}
+                            <div className="mb-5 rounded-xl border border-[#facc15]/40 bg-[#fefce8] px-4 py-3">
+                                <div className="flex items-start gap-3">
+                                    <Lightbulb className="w-5 h-5 text-[#92400e] mt-0.5" />
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-extrabold text-[#78350f]">
+                                            Review requests must be sent per organization
+                                        </p>
+                                        <p className="text-xs text-[#6b7685] mt-1">
+                                            After completing the KPIs for an organization, click <strong>Send Review Request</strong> for that organization.
+                                            Other organizations will not be requested automatically.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                             {/* Top row: Organization, Leader, KPI Count */}
                             <div className="flex flex-wrap items-center gap-4 mb-4">
                                 <div className="flex items-center gap-2">
@@ -446,7 +548,10 @@ export default function KpiReviewTab({
                                         </SelectTrigger>
                                         <SelectContent>
                                             {orgNames.map((org) => (
-                                                <SelectItem key={org} value={org}>{org}</SelectItem>
+                                                <SelectItem key={org} value={org}>
+                                                    {org}
+                                                    {!getOrgReviewEligibility(org).canSend ? ' (Verified/Locked)' : ''}
+                                                </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -461,6 +566,12 @@ export default function KpiReviewTab({
                                     <span className="font-medium">KPI Count</span>
                                     <span className="text-[#1a2b4a] font-semibold">{orgKpis.length}</span>
                                 </div>
+                                {orgKpis.length > 0 && !selectedHasReviewSent && (
+                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#fef9c3] border border-[#facc15] text-sm text-[#92400e]">
+                                        <Clock className="w-4 h-4" />
+                                        <span className="font-semibold">Pending Request</span>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Action buttons */}
@@ -545,11 +656,22 @@ export default function KpiReviewTab({
                                                 >
                                                     <span className="font-medium text-[#1a2b4a]">{orgName}</span>
                                                     <div className="flex items-center gap-2">
-                                                        <Badge variant={orgKpiCount > 0 ? 'default' : 'secondary'} className="text-xs">
-                                                            {orgKpiCount > 0 ? 'Draft' : 'No KPIs'}
-                                                        </Badge>
-                                                        {hasReviewSent && (
-                                                            <Badge className="bg-[#1a2b4a] text-white text-xs">Review sent</Badge>
+                                                        {orgKpiCount === 0 ? (
+                                                            <Badge variant="secondary" className="text-xs">
+                                                                No KPIs
+                                                            </Badge>
+                                                        ) : hasReviewSent ? (
+                                                            <Badge variant="default" className="text-xs">
+                                                                Request Sent
+                                                            </Badge>
+                                                        ) : !getOrgReviewEligibility(orgName).canSend ? (
+                                                            <Badge className="bg-[#334155] text-white text-xs font-semibold">
+                                                                Verified (Locked)
+                                                            </Badge>
+                                                        ) : (
+                                                            <Badge className="bg-[#f59e0b] text-white text-xs font-semibold">
+                                                                Pending Request
+                                                            </Badge>
                                                         )}
                                                         {hasLeaderSubmitted && (
                                                             <Badge className="bg-[#2563eb] text-white text-xs">Leader submitted</Badge>
@@ -570,13 +692,25 @@ export default function KpiReviewTab({
 
                             {/* KPI summary + send hint */}
                             <div className="flex flex-wrap items-center gap-4 mb-6 text-sm">
-                                <span className="text-[#6b7685] font-medium">KPI {orgKpis.length}개</span>
+                                <span className="text-[#6b7685] font-medium">
+                                    KPI {orgSelectedKpis.length}/{orgKpis.length}개
+                                </span>
                                 <span className="text-[#6b7685]">
-                                    ◎ Weight 합계: <span className={cn('font-bold', totalWeight === 100 ? 'text-[#2ec4a0]' : 'text-[#1a2b4a]')}>{totalWeight}%</span>
+                                    ◎ Weight 합계:{' '}
+                                    <span
+                                        className={cn(
+                                            'font-bold',
+                                            weightOk ? 'text-[#2ec4a0]' : 'text-[#1a2b4a]'
+                                        )}
+                                    >
+                                        {totalWeight}%
+                                    </span>
                                 </span>
                                 {orgKpis.length > 0 && (
                                     <span className="text-xs text-[#6b7685]">
-                                        <span>Send to Leader first. Continue unlocks after CEO completes and approves KPI review.</span>
+                                        <span>
+                                            Send request for this organization only. You must click <strong>Send Review Request</strong> separately for each organization after finishing its KPIs.
+                                        </span>
                                     </span>
                                 )}
                             </div>
@@ -588,23 +722,47 @@ export default function KpiReviewTab({
                                 ) : orgKpis.length === 0 ? (
                                     <p className="text-sm text-[#6b7685] py-8 text-center">No KPIs for this organization. Click &quot;+ Add KPI&quot; to create one.</p>
                                 ) : (
-                                    orgKpis.map((kpi, idx) => {
+                                    <>
+                                        {orgSelectedKpis.length === 0 && (
+                                            <p className="text-sm text-[#6b7685] py-4">
+                                                Select KPI cards with the <strong>green check</strong> to include them in the review request.
+                                            </p>
+                                        )}
+                                        {orgKpis.map((kpi, idx) => {
                                         const globalIndex = kpis.findIndex((k) => k === kpi);
                                         const kpiKey = `kpi-${kpi.id ?? globalIndex}-${kpi.kpi_name}`;
                                         const validation = getValidation(kpiKey);
                                         const completed = completedCount(kpiKey);
                                         const measurabilityRequired = needsMeasurability(kpiKey);
                                         const formulaText = kpi.formula || kpi.measurement_method || '—';
-                                        const isExcluded = !kpi.is_active;
+                                        const isSelected = orgSelectedKpis.includes(kpi);
 
                                         return (
                                             <div
                                                 key={kpiKey}
+                                                role="button"
+                                                tabIndex={0}
+                                                onClick={(e) => {
+                                                    const target = e.target as HTMLElement;
+                                                    // Don't toggle selection when user interacts with any button inside the card.
+                                                    if (target.closest('button')) return;
+                                                    handleExcludeKpi(globalIndex);
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key !== 'Enter' && e.key !== ' ') return;
+                                                    e.preventDefault();
+                                                    handleExcludeKpi(globalIndex);
+                                                }}
                                                 className={cn(
-                                                    'rounded-xl border bg-white p-5 shadow-sm transition-all',
-                                                    isExcluded ? 'opacity-60 border-[#e2e6ed]' : 'border-[#e2e6ed]'
+                                                    'relative rounded-xl border bg-white p-5 shadow-sm transition-all cursor-pointer',
+                                                    isSelected
+                                                        ? 'border-[#16a34a] bg-[#ecfdf5]'
+                                                        : 'opacity-60 border-[#e2e6ed] hover:border-[#dbe2ea]'
                                                 )}
                                             >
+                                                {isSelected && (
+                                                    <CheckCircle2 className="absolute top-4 right-4 w-6 h-6 text-[#16a34a]" />
+                                                )}
                                                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                                                     <div className="min-w-0 flex-1">
                                                         <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -644,10 +802,14 @@ export default function KpiReviewTab({
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            className="bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 rounded-lg"
+                                                            className={
+                                                                isSelected
+                                                                    ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100 rounded-lg'
+                                                                    : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 rounded-lg'
+                                                            }
                                                             onClick={() => handleExcludeKpi(globalIndex)}
                                                         >
-                                                            Exclude
+                                                            {isSelected ? 'Unselect' : 'Select'}
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -702,7 +864,8 @@ export default function KpiReviewTab({
                                                 </div>
                                             </div>
                                         );
-                                    })
+                                        })}
+                                    </>
                                 )}
                             </div>
                         </CardContent>
@@ -782,11 +945,14 @@ export default function KpiReviewTab({
                         <p className="text-xs text-[#6b7685]">
                             Only units marked as <strong>KPI Reviewer</strong> with a valid email in Org Chart Mapping receive the request. Recipients: {kpiReviewRecipients.length > 0 ? kpiReviewRecipients.map((m) => m.org_unit_name).join(', ') : 'none designated.'}
                         </p>
+                        <p className="text-[11px] text-[#6b7685]">
+                            Tip: The button sends the request only for the <strong>selected organization</strong>. If you have multiple organizations, you need to send requests one by one.
+                        </p>
                         <FieldErrorMessage fieldKey="kpi-list" errors={fieldErrors} className="w-full" />
                         <div className="flex items-center gap-3 flex-wrap">
                             <Button
                                 onClick={handleSendReviewRequest}
-                                disabled={sendingReview}
+                                disabled={sendingReview || !canSendReviewRequest}
                                 className="bg-[#1a2b4a] hover:bg-[#2e4570] text-white rounded-lg font-bold px-6 py-2.5 shadow-md disabled:opacity-60"
                             >
                                 <Send className="w-4 h-4 mr-2" />

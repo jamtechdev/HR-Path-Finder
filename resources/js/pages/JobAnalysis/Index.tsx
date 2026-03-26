@@ -6,6 +6,8 @@ import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
 import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/AppLayout';
 import { pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
+import { toastCopy } from '@/lib/toastCopy';
+import { toast } from '@/hooks/use-toast';
 import StepProgress from './components/StepProgress';
 import { useJobAnalysisState, type OrgChartMapping } from './hooks/useJobAnalysisState';
 import { useStepValidation } from './hooks/useStepValidation';
@@ -294,24 +296,48 @@ export default function JobAnalysisIndex({
     const handleStep1Continue = () => {
         if (!applyStepValidation('policy-snapshot')) return;
         markStepCompleted('policy-snapshot');
+        toast({
+            title: toastCopy.stepCompleted,
+            description: 'Policy Snapshot saved. Moving to Job List Selection. 정책 스냅샷이 저장되었습니다.',
+            variant: 'success',
+            duration: 1800,
+        });
         handleStepChange('job-list-selection');
     };
 
     const handleStep2Continue = () => {
         if (!applyStepValidation('job-list-selection')) return;
         markStepCompleted('job-list-selection');
+        toast({
+            title: toastCopy.stepCompleted,
+            description: 'Job List Selection saved. Moving to Job Definition. 직무 목록 선택이 저장되었습니다.',
+            variant: 'success',
+            duration: 1800,
+        });
         handleStepChange('job-definition');
     };
 
     const handleStep3Continue = () => {
         if (!applyStepValidation('job-definition')) return;
         markStepCompleted('job-definition');
+        toast({
+            title: toastCopy.stepCompleted,
+            description: 'Job Definition saved. Moving to Finalization. 직무 정의가 저장되었습니다.',
+            variant: 'success',
+            duration: 1800,
+        });
         handleStepChange('finalization');
     };
 
     const handleStep4Continue = () => {
         if (!applyStepValidation('finalization')) return;
         markStepCompleted('finalization');
+        toast({
+            title: toastCopy.stepCompleted,
+            description: 'Finalization saved. Moving to Org Chart Mapping. 최종 정리가 저장되었습니다.',
+            variant: 'success',
+            duration: 1800,
+        });
         handleStepChange('org-chart-mapping');
     };
 
@@ -331,6 +357,12 @@ export default function JobAnalysisIndex({
         setStepFieldErrors({});
         setStepError(null);
         markStepCompleted('org-chart-mapping');
+        toast({
+            title: toastCopy.stepCompleted,
+            description: 'Org Chart Mapping saved. Moving to Review & Submit. 조직도 매핑이 저장되었습니다.',
+            variant: 'success',
+            duration: 1800,
+        });
         handleStepChange('review-submit');
     };
 

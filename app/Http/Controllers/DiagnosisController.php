@@ -151,7 +151,7 @@ class DiagnosisController extends Controller
         // Reload the project to get updated step statuses
         $hrProject->refresh();
 
-        return back();
+        return back()->with('success', 'Diagnosis step saved successfully.');
     }
     
     /**
@@ -482,7 +482,6 @@ class DiagnosisController extends Controller
             Notification::send($ceo, new DiagnosisSubmittedNotification($hrProject));
         }
 
-        // No session flash -> avoids toast spam; frontend handles success modal UX.
-        return back();
+        return back()->with('success', 'Diagnosis submitted successfully.');
     }
 }

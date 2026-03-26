@@ -1,9 +1,12 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { LandingNav } from '@/components/landing/LandingNav';
+import { Toaster } from '@/components/ui/toaster';
+import { toast } from '@/hooks/use-toast';
 
 export default function Contact() {
     const { flash } = usePage().props as any;
+    const lastShownMessage = useRef<string>('');
     const { data, setData, post, processing, errors, reset } = useForm({
         company_name: '',
         manager_name: '',
@@ -13,7 +16,19 @@ export default function Contact() {
         agreed_personal_information: false,
     });
 
-    const hasSuccess = !!flash?.success;
+    useEffect(() => {
+        const successMessage = String(flash?.success ?? '').trim();
+        if (!successMessage || lastShownMessage.current === successMessage) {
+            return;
+        }
+        lastShownMessage.current = successMessage;
+        toast({
+            title: successMessage,
+            variant: 'warning',
+            duration: 7000,
+        });
+    }, [flash?.success]);
+
     const bgImageStyle = useMemo(
         () => ({
             backgroundImage: "url('/contact-us.png')",
@@ -27,6 +42,7 @@ export default function Contact() {
         <>
             <Head title="Contact Us" />
             <LandingNav />
+            <Toaster />
             <div className="min-h-screen px-4 pt-24 pb-14" style={{ background: '#0B1E3D' }}>
                 <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
                     {/* Left: image hero */}
@@ -56,11 +72,6 @@ export default function Contact() {
                                     Contact Us
                                 </span>
                             </div>
-                            {hasSuccess && (
-                                <div className="mt-4 rounded-lg bg-green-50/10 border border-green-500/20 text-sm text-white/90 p-3">
-                                    {flash?.success}
-                                </div>
-                            )}
                         </div>
 
                         <form

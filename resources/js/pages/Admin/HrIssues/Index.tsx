@@ -18,6 +18,7 @@ import {
     SidebarInset,
     SidebarProvider,
 } from '@/components/ui/sidebar';
+import { toastCopy } from '@/lib/toastCopy';
 import { toast } from '@/hooks/use-toast';
 
 interface HrIssue {
@@ -43,11 +44,11 @@ export default function HrIssuesIndex({
 
     useEffect(() => {
         if (flash?.success) {
-            toast({ title: 'Success', description: flash.success });
+            toast({ title: toastCopy.success, description: flash.success });
         }
 
         if (flash?.error) {
-            toast({ title: 'Error', description: flash.error, variant: 'destructive' });
+            toast({ title: toastCopy.error, description: flash.error, variant: 'destructive' });
         }
     }, [flash]);
 

@@ -1,4 +1,3 @@
-import { Plus, Trash2 } from 'lucide-react';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CompensationPageHeader from '../components/CompensationPageHeader';
+import PayBandCreatorPanel from './PayBandCreatorPanel';
 import type {
     PayBand,
     SalaryTable,
@@ -149,15 +149,17 @@ export default function PayBandSalaryTableTab({
     onOperationCriteriaUpdate,
     fieldErrors = {},
 }: PayBandSalaryTableTabProps) {
+    const selectedStandard: 'pay_band' | 'salary_table' =
+        salaryDeterminationStandard === 'salary_table' ? 'salary_table' : 'pay_band';
     const [activeType, setActiveType] = useState<'pay_band' | 'salary_table'>(
-        salaryDeterminationStandard === 'salary_table' ? 'salary_table' : 'pay_band'
+        selectedStandard
     );
 
     // Keep the active UI in sync with the Base Salary Framework selection.
     useEffect(() => {
-        const next: 'pay_band' | 'salary_table' = salaryDeterminationStandard === 'salary_table' ? 'salary_table' : 'pay_band';
+        const next: 'pay_band' | 'salary_table' = selectedStandard;
         setActiveType(next);
-    }, [salaryDeterminationStandard]);
+    }, [selectedStandard]);
 
     const { grades, levels, cells } = useMemo(
         () => salaryTablesToGrid(salaryTables),
@@ -233,7 +235,8 @@ export default function PayBandSalaryTableTab({
     }, [grades, levels, cells, pushSalaryTables]);
 
     const removeLv = useCallback(() => {
-        if (levels.length <= 1) return;
+        // Keep at least 3 competency levels to match the intended salary-table structure.
+        if (levels.length <= 3) return;
         const newLevels = levels.slice(0, -1);
         const newCells = cells.map((gRows) =>
             gRows.map((row) => row.slice(0, -1))
@@ -299,111 +302,26 @@ export default function PayBandSalaryTableTab({
                     onValueChange={(v) => setActiveType(v as 'pay_band' | 'salary_table')}
                 >
                     <TabsList>
-                        <TabsTrigger value="pay_band">Pay Band</TabsTrigger>
-                        <TabsTrigger value="salary_table">Salary Table</TabsTrigger>
+                        <TabsTrigger value="pay_band">
+                            Pay Band
+                        </TabsTrigger>
+                        <TabsTrigger value="salary_table">
+                            Salary Table
+                        </TabsTrigger>
                     </TabsList>
+                    <div className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+                        Active structure: <span className="font-semibold text-foreground">
+                            {selectedStandard === 'pay_band' ? 'Pay Band' : 'Salary Table'}
+                        </span>. To switch structure, change the option in `Base Salary Framework`.
+                    </div>
 
                     <TabsContent value="pay_band" className="mt-6">
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-center">
-                                <Label className="text-base font-semibold">Pay Band Structure</Label>
-                                <Button
-                                    onClick={() =>
-                                        onPayBandsUpdate([
-                                            ...payBands,
-                                            {
-                                                id: Date.now(),
-                                                job_grade: '',
-                                                min_salary: 0,
-                                                max_salary: 0,
-                                                order: payBands.length,
-                                            },
-                                        ])
-                                    }
-                                    size="sm"
-                                >
-                                    <Plus className="w-4 h-4 mr-2" /> Add Pay Band
-                                </Button>
-                            </div>
-                            {payBands.map((band, idx) => (
-                                <Card key={band.id || idx}>
-                                    <CardContent className="p-4">
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                            <div>
-                                                <Label>Job Grade</Label>
-                                                <Input
-                                                    value={band.job_grade}
-                                                    onChange={(e) => {
-                                                        const updated = [...payBands];
-                                                        updated[idx].job_grade = e.target.value;
-                                                        onPayBandsUpdate(updated);
-                                                    }}
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label>Min Salary (KRW)</Label>
-                                                <Input
-                                                    type="number"
-                                                    value={band.min_salary || ''}
-                                                    onChange={(e) => {
-                                                        const updated = [...payBands];
-                                                        updated[idx].min_salary =
-                                                            parseFloat(e.target.value) || 0;
-                                                        onPayBandsUpdate(updated);
-                                                    }}
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label>Max Salary (KRW)</Label>
-                                                <Input
-                                                    type="number"
-                                                    value={band.max_salary || ''}
-                                                    onChange={(e) => {
-                                                        const updated = [...payBands];
-                                                        updated[idx].max_salary =
-                                                            parseFloat(e.target.value) || 0;
-                                                        onPayBandsUpdate(updated);
-                                                    }}
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label>Target Salary (KRW)</Label>
-                                                <Input
-                                                    type="number"
-                                                    value={band.target_salary ?? ''}
-                                                    onChange={(e) => {
-                                                        const updated = [...payBands];
-                                                        updated[idx].target_salary =
-                                                            parseFloat(e.target.value) || undefined;
-                                                        onPayBandsUpdate(updated);
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="mt-2"
-                                            onClick={() =>
-                                                onPayBandsUpdate(payBands.filter((_, i) => i !== idx))
-                                            }
-                                        >
-                                            <Trash2 className="w-4 h-4 mr-2" /> Remove
-                                        </Button>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                            {payBands.length === 0 && (
-                                <Card className="border-dashed">
-                                    <CardContent className="p-8 text-center">
-                                        <p className="text-muted-foreground">
-                                            No pay bands configured. Click &quot;Add Pay Band&quot; to
-                                            get started.
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                            )}
-                        </div>
+                        <PayBandCreatorPanel
+                            payBands={payBands}
+                            onPayBandsUpdate={onPayBandsUpdate}
+                            operationCriteria={operationCriteria}
+                            onOperationCriteriaUpdate={onOperationCriteriaUpdate}
+                        />
                     </TabsContent>
 
                     <TabsContent value="salary_table" className="mt-6">
@@ -432,7 +350,7 @@ export default function PayBandSalaryTableTab({
                                         size="sm"
                                         className="h-8 text-xs text-destructive hover:text-destructive"
                                         onClick={removeLv}
-                                        disabled={levels.length <= 1}
+                                        disabled={levels.length <= 3}
                                     >
                                         − Delete LV
                                     </Button>
@@ -553,7 +471,7 @@ export default function PayBandSalaryTableTab({
                                                                         + Add Year
                                                                     </Button>
                                                                 )}
-                                                                {yi === 1 && g.years > 1 && (
+                                                                {yi === 0 && g.years > 1 && (
                                                                     <Button
                                                                         type="button"
                                                                         variant="outline"
@@ -620,6 +538,7 @@ export default function PayBandSalaryTableTab({
                     </TabsContent>
                 </Tabs>
 
+                {activeType === 'salary_table' && (
                 <Card className="mt-6">
                     <CardHeader>
                         <CardTitle className="text-base">Operation Criteria</CardTitle>
@@ -696,6 +615,7 @@ export default function PayBandSalaryTableTab({
                         </div>
                     </CardContent>
                 </Card>
+                )}
             </div>
         </div>
     );
