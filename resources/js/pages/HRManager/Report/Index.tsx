@@ -89,39 +89,39 @@ export default function HrReportIndex({
     return (
         <AppLayout showWorkflowSteps={true} stepStatuses={stepStatuses} projectId={projectId}>
             <Head title={`Report - ${project.company.name}`} />
-            <div className="p-6 md:p-8 max-w-4xl mx-auto bg-background space-y-4">
-                <div className="mb-2">
+            <div className="px-6 py-12 md:px-8 md:py-12 max-w-[760px] mx-auto space-y-4">
+                <div className="mb-6">
                     <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-[#4F8EF7]">
                         For HR Manager · CEO
                     </p>
-                    <h1 className="text-[44px] leading-tight font-serif text-[#1A1744]">Consultant Report</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <h1 className="text-[28px] leading-[1.2] font-serif font-normal text-[#1A1744] mt-2">Consultant Report</h1>
+                    <p className="text-[13px] text-[#6b6a66] mt-[6px]">
                         {project.company.name} · HR System Design
                     </p>
                 </div>
 
-                <Card className="border border-[#eeede9] shadow-sm bg-[#fafaf8]">
-                    <CardContent className="p-7">
+                <Card className="rounded-xl border border-[#eeede9] shadow-sm bg-[#fafaf8] border-l-[3px] border-l-[#1A1744]">
+                    <CardContent className="px-8 py-7">
                         <p className="text-[11px] font-semibold tracking-[0.10em] uppercase text-[#aaa9a3] mb-3">
                             Completion Notification
                         </p>
-                        <p className="text-sm leading-7 text-[#2e2e2c]">
+                        <p className="text-[14px] leading-[1.75] text-[#2e2e2c]">
                             The initial HR system design for <strong>{project.company.name}</strong> has
                             been completed.
                         </p>
-                        <p className="text-sm leading-7 text-[#2e2e2c] mt-2">
+                        <p className="text-[14px] leading-[1.75] text-[#2e2e2c] mt-[10px]">
                             Once the consultant review and final report upload are finished, a separate
                             email notification will be sent to the HR Manager of {project.company.name}.
                         </p>
-                        <p className="text-sm leading-7 text-[#2e2e2c] mt-2">
+                        <p className="text-[14px] leading-[1.75] text-[#2e2e2c] mt-[10px]">
                             Please use the link provided in the email to review the report and decide
                             whether to request revisions or proceed with final confirmation.
                         </p>
                     </CardContent>
-                </div>
+                </Card>
 
-                <Card className="border border-[#eeede9] shadow-sm">
-                    <CardContent className="p-7">
+                <Card className="rounded-xl border border-[#eeede9] shadow-sm">
+                    <CardContent className="px-8 py-7">
                         <p className="text-[11px] font-semibold tracking-[0.10em] uppercase text-[#aaa9a3] mb-5">
                             Consultant Review Status
                         </p>
@@ -149,7 +149,7 @@ export default function HrReportIndex({
                                         >
                                             {done ? <Check className="w-3 h-3" /> : i}
                                         </div>
-                                        <p className={`mt-2 text-[11px] leading-4 ${active ? 'text-[#4F8EF7] font-semibold' : done ? 'text-[#1A1744] font-medium' : 'text-[#aaa9a3]'}`}>
+                                        <p className={`mt-2 text-[11px] leading-[1.4] ${active ? 'text-[#4F8EF7] font-semibold' : done ? 'text-[#1A1744] font-medium' : 'text-[#aaa9a3]'}`}>
                                             {i === 1 && (
                                                 <>
                                                     Client Draft
@@ -186,21 +186,25 @@ export default function HrReportIndex({
                     </CardContent>
                 </Card>
 
-                <Card className="border border-[#eeede9] shadow-sm">
-                    <CardContent className="p-7">
+                <Card className="rounded-xl border border-[#eeede9] shadow-sm">
+                    <CardContent className="px-8 py-7">
                         <p className="text-[11px] font-semibold tracking-[0.10em] uppercase text-[#aaa9a3] mb-3">
                             Consultant Brief Comment <span className="normal-case tracking-normal font-normal">(by admin)</span>
                         </p>
-                        <div className="rounded-lg border border-[#eeede9] bg-[#f8f8f6] min-h-[90px] p-4 text-sm text-[#aaa9a3] italic">
+                        <div className="rounded-lg border border-[#eeede9] bg-[#f8f8f6] min-h-[90px] px-[18px] py-4 text-[14px] leading-[1.7] text-[#aaa9a3] italic">
                             No comment has been added yet.
                         </div>
                         <hr className="my-5 border-[#eeede9]" />
                         <div className="flex gap-3 flex-wrap">
-                            <Button variant="outline" className="border-[#eeede9] text-[#2e2e2c]" onClick={openOrWarn}>
+                            <Button
+                                variant="outline"
+                                className="h-10 px-5 rounded-lg border-[1.5px] border-[#eeede9] text-[#2e2e2c] hover:border-[#1A1744] hover:text-[#1A1744]"
+                                onClick={openOrWarn}
+                            >
                                 <Eye className="w-4 h-4 mr-2" />
                                 View Report
                             </Button>
-                            <Button className="bg-[#1A1744] hover:bg-[#2a2660]" onClick={openOrWarn}>
+                            <Button className="h-10 px-5 rounded-lg bg-[#1A1744] hover:bg-[#2a2660] text-white" onClick={openOrWarn}>
                                 <Download className="w-4 h-4 mr-2" />
                                 Download Report
                             </Button>
@@ -208,12 +212,12 @@ export default function HrReportIndex({
                     </CardContent>
                 </Card>
 
-                <Card className="border border-[#eeede9] shadow-sm">
-                    <CardContent className="p-7">
+                <Card className="rounded-xl border border-[#eeede9] shadow-sm">
+                    <CardContent className="px-8 py-7">
                         <div className="flex gap-3 flex-wrap">
                             <Button
                                 variant="outline"
-                                className="h-11 border-[#eeede9] text-[#2e2e2c]"
+                                className="h-10 px-5 rounded-lg border-[1.5px] border-[#eeede9] text-[#2e2e2c]"
                                 onClick={() => setShowContactDialog(true)}
                             >
                                 <List className="w-4 h-4 mr-2" />
@@ -221,7 +225,7 @@ export default function HrReportIndex({
                             </Button>
                             <Button
                                 variant="outline"
-                                className="h-11 border-[#fca5a5] text-[#b91c1c] hover:bg-[#fff5f5] hover:text-[#991b1b]"
+                                className="h-10 px-5 rounded-lg border-[1.5px] border-[#fca5a5] text-[#b91c1c] hover:bg-[#fff5f5] hover:text-[#991b1b]"
                                 onClick={() => setShowFinalConfirmDialog(true)}
                             >
                                 <OctagonAlert className="w-4 h-4 mr-2" />
@@ -233,7 +237,7 @@ export default function HrReportIndex({
             </div>
 
             <Dialog open={showMissingReportDialog} onOpenChange={setShowMissingReportDialog}>
-                <DialogContent className="sm:max-w-[520px]">
+                <DialogContent className="sm:max-w-[520px] rounded-[14px]">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <AlertCircle className="w-5 h-5 text-amber-500" />
@@ -251,7 +255,7 @@ export default function HrReportIndex({
             </Dialog>
 
             <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
-                <DialogContent className="sm:max-w-[520px]">
+                <DialogContent className="sm:max-w-[520px] rounded-[14px]">
                     <DialogHeader>
                         <DialogTitle>Contact Consultant</DialogTitle>
                         <DialogDescription className="text-sm leading-6 text-[#4b5563] pt-2">
@@ -265,7 +269,7 @@ export default function HrReportIndex({
             </Dialog>
 
             <Dialog open={showFinalConfirmDialog} onOpenChange={setShowFinalConfirmDialog}>
-                <DialogContent className="sm:max-w-[560px]">
+                <DialogContent className="sm:max-w-[560px] rounded-[14px]">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-[#1A1744]">
                             <OctagonAlert className="w-5 h-5 text-[#dc2626]" />
