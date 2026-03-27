@@ -13,12 +13,12 @@ import { diagnosisTabs } from '@/config/diagnosisTabs';
 import { both, tr } from '@/config/diagnosisTranslations';
 import { toast } from '@/hooks/use-toast';
 import { mergeTabDraftsIntoDiagnosis, clearDiagnosisDrafts } from '@/lib/diagnosisDraftStorage';
-import { toastCopy } from '@/lib/toastCopy';
 import {
     getOrgChartDraftFiles,
     getLogoDraftFile,
     clearAllDiagnosisFileDrafts,
 } from '@/lib/diagnosisFileDrafts';
+import { toastCopy } from '@/lib/toastCopy';
 
 // HR issue categories for grouping on review (id, color, issue strings)
 const HR_ISSUE_CATEGORIES = [

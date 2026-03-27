@@ -64,6 +64,12 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
     const approvedCount = kpis.filter((k) => k.ceo_approval_status === 'approved' || k.status === 'approved').length;
     const pendingCount = totalKpis - approvedCount;
     const totalWeight = kpis.reduce((s, k) => s + (Number(k.weight) || 0), 0);
+    const orgTotals = Object.values(kpisByOrganization).map((orgRows) =>
+        orgRows.reduce((sum, row) => sum + (Number(row.weight) || 0), 0),
+    );
+    const averageOrgWeight = orgTotals.length > 0
+        ? orgTotals.reduce((a, b) => a + b, 0) / orgTotals.length
+        : 0;
     const teamCount = organizations.length;
     const allApproved = totalKpis > 0 && approvedCount === totalKpis;
 
@@ -152,8 +158,8 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
     };
 
     const backHref = isAdmin ? '/admin/dashboard' : '/ceo/dashboard';
-    const weightPct = Math.min(100, totalWeight);
-    const statusAlertType = totalWeight === 100 ? 'ok' : totalWeight > 0 ? 'warn' : 'idle';
+    const weightPct = Math.min(100, averageOrgWeight);
+    const statusAlertType = averageOrgWeight === 100 ? 'ok' : averageOrgWeight > 0 ? 'warn' : 'idle';
 
     return (
         <AppLayout>
@@ -263,7 +269,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                             </div>
                             <div className="ckr-strip-divider" />
                             <div className="ckr-strip-pill-ratio">
-                                <div className="ckr-pill-val">{totalWeight === 100 ? '100%' : totalWeight > 0 ? `${totalWeight.toFixed(0)}%` : '—'}</div>
+                                <div className="ckr-pill-val">{averageOrgWeight === 100 ? '100%' : averageOrgWeight > 0 ? `${averageOrgWeight.toFixed(0)}%` : '—'}</div>
                                 <div className="ckr-pill-lbl">가중치 합계</div>
                             </div>
                         </div>
@@ -438,7 +444,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                 />
                             </div>
                             <div className="ckr-hc-nums">
-                                <span className="ckr-hc-total-val">{totalWeight.toFixed(1)}%</span>
+                                <span className="ckr-hc-total-val">{averageOrgWeight.toFixed(1)}%</span>
                                 <span className="ckr-hc-of">/ 100%</span>
                             </div>
                         </div>
@@ -450,7 +456,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                             </svg>
                             <span>
                                 {statusAlertType === 'ok' && '✓ 가중치 100% — 최종 승인 가능'}
-                                {statusAlertType === 'warn' && `가중치 합계 ${totalWeight.toFixed(1)}%. 100%가 되면 최종 확정할 수 있습니다.`}
+                                {statusAlertType === 'warn' && `평균 팀 가중치 ${averageOrgWeight.toFixed(1)}%. 각 조직이 100%가 되면 최종 확정할 수 있습니다.`}
                                 {statusAlertType === 'idle' && '팀별 KPI를 검토한 뒤 승인 또는 수정 요청을 선택하세요.'}
                             </span>
                         </div>

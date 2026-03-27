@@ -10,11 +10,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from '@/hooks/use-toast';
 import AppLayout from '@/layouts/AppLayout';
 import { pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
-import { cn } from '@/lib/utils';
-import { toast } from '@/hooks/use-toast';
 import { toastCopy } from '@/lib/toastCopy';
+import { cn } from '@/lib/utils';
 
 // Import types
 
@@ -215,6 +215,83 @@ export default function CompensationSystemIndex({
             duration: 1800,
         });
         handleTabChange(nextTabId);
+    };
+
+    const saveCurrentTabOnly = () => {
+        setCompError(null);
+        setCompFieldErrors({});
+        const pid = project.id;
+
+        const fail = (msg: string) => {
+            setCompError(msg);
+            toast({
+                title: toastCopy.saveFailed,
+                description: `${msg} 다시 시도해 주세요.`,
+                variant: 'destructive',
+            });
+        };
+
+        if (activeTab === 'base-salary-framework') {
+            router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'base-salary-framework', ...baseSalaryFramework } as never, {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    toast({
+                        title: toastCopy.changesSaved,
+                        description: 'Base salary framework saved. 저장되었습니다.',
+                        variant: 'success',
+                        duration: 1500,
+                    });
+                },
+                onError: () => fail('Could not save base salary framework.'),
+            });
+            return;
+        }
+
+        if (activeTab === 'pay-band-salary-table') {
+            const std = (baseSalaryFramework?.salary_determination_standard || '').trim();
+            if (std === 'salary_table') {
+                router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'salary-table', salary_tables: salaryTables } as never, {
+                    preserveScroll: true,
+                    preserveState: true,
+                    onSuccess: () => {
+                        router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'operation-criteria', ...operationCriteria } as never, {
+                            preserveScroll: true,
+                            preserveState: true,
+                            onSuccess: () => toast({
+                                title: toastCopy.changesSaved,
+                                description: 'Salary table saved. 저장되었습니다.',
+                                variant: 'success',
+                                duration: 1500,
+                            }),
+                            onError: () => fail('Could not save operation criteria.'),
+                        });
+                    },
+                    onError: () => fail('Could not save salary tables.'),
+                });
+                return;
+            }
+
+            router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'pay-band', pay_bands: payBands } as never, {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'operation-criteria', ...operationCriteria } as never, {
+                        preserveScroll: true,
+                        preserveState: true,
+                        onSuccess: () => toast({
+                                title: toastCopy.changesSaved,
+                            description: 'Pay band saved. 저장되었습니다.',
+                            variant: 'success',
+                            duration: 1500,
+                        }),
+                        onError: () => fail('Could not save operation criteria.'),
+                    });
+                },
+                onError: () => fail('Could not save pay bands.'),
+            });
+            return;
+        }
     };
 
     const PRE_REVIEW_TABS = ['snapshot', 'base-salary-framework', 'pay-band-salary-table', 'bonus-pool', 'benefits'] as const;
@@ -808,6 +885,15 @@ export default function CompensationSystemIndex({
                             onPayBandsUpdate={setPayBands}
                             onSalaryTablesUpdate={setSalaryTables}
                             onOperationCriteriaUpdate={setOperationCriteria}
+                            onRequestStructureSwitch={() => {
+                                handleTabChange('base-salary-framework');
+                                toast({
+                                    title: toastCopy.info,
+                                    description: 'To switch structure, change Base Salary Framework first.',
+                                    variant: 'warning',
+                                    duration: 2200,
+                                });
+                            }}
                             fieldErrors={compFieldErrors}
                         />
                                                 </TabsContent>
@@ -862,6 +948,16 @@ export default function CompensationSystemIndex({
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" /> Previous
                             </Button>
+                            {(activeTab === 'base-salary-framework' || activeTab === 'pay-band-salary-table') && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={saveCurrentTabOnly}
+                                    className="border-[#d4d8de] text-[#4b5563] hover:bg-[#f7f8fa]"
+                                >
+                                    Save
+                                </Button>
+                            )}
                             {activeTab !== 'review' ? (
                                 <Button type="button" onClick={handleSaveAndContinue} className="bg-[#152540] hover:bg-[#1e3a62] text-white">
                                     Continue

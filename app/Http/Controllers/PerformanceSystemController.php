@@ -436,6 +436,20 @@ class PerformanceSystemController extends Controller
             'kpis.*.is_active' => ['nullable', 'boolean'],
         ]);
 
+        $groupedWeights = collect($validated['kpis'])
+            ->groupBy(fn ($k) => trim((string) ($k['organization_name'] ?? '')))
+            ->map(function ($rows) {
+                return collect($rows)
+                    ->filter(fn ($k) => ($k['is_active'] ?? true) === true)
+                    ->sum(fn ($k) => (float) ($k['weight'] ?? 0));
+            });
+        $overflowOrg = $groupedWeights->first(fn ($sum) => $sum > 100.0 + 0.0001);
+        if ($overflowOrg !== null) {
+            return back()->withErrors([
+                'kpis' => 'Total active KPI weight per organization cannot exceed 100%.',
+            ]);
+        }
+
         $newKpis = [];
         
         DB::transaction(function () use ($hrProject, $validated, $request, &$newKpis) {

@@ -4,10 +4,10 @@ import React, { useState, useEffect } from 'react';
 import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
 import { Badge } from '@/components/ui/badge';
+import { toast } from '@/hooks/use-toast';
 import AppLayout from '@/layouts/AppLayout';
 import { pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
 import { toastCopy } from '@/lib/toastCopy';
-import { toast } from '@/hooks/use-toast';
 import StepProgress from './components/StepProgress';
 import { useJobAnalysisState, type OrgChartMapping } from './hooks/useJobAnalysisState';
 import { useStepValidation } from './hooks/useStepValidation';
@@ -449,6 +449,7 @@ export default function JobAnalysisIndex({
                 return (
                     <Step5OrgChartMapping
                         jobDefinitions={state.jobDefinitions}
+                        jobSelections={state.jobSelections}
                         orgMappings={state.orgMappings}
                         onMappingsChange={updateOrgMappings}
                         onContinue={handleStep5Continue}

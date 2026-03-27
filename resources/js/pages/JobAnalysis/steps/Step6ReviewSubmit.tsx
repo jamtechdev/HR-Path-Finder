@@ -56,7 +56,6 @@ export default function Step6ReviewSubmit({
     const [processing, setProcessing] = useState(false);
     const [expandedPolicy, setExpandedPolicy] = useState(false);
     const [expandedJobDefs, setExpandedJobDefs] = useState(false);
-    const [expandedJobKeys, setExpandedJobKeys] = useState<Set<string>>(new Set());
     const [expandedOrg, setExpandedOrg] = useState(false);
     const [expandedMappingIds, setExpandedMappingIds] = useState<Set<string>>(new Set());
     const [submitted, setSubmitted] = useState(false);
@@ -69,15 +68,6 @@ export default function Step6ReviewSubmit({
     const csfsCount = Object.values(jobDefinitions).reduce((acc, job) => acc + (job.csfs?.length || 0), 0);
     const roleOwnersCount = orgMappings.filter((m) => (m.org_head_name ?? '').trim()).length;
     const policyAnswerCount = Object.keys(policyAnswers).length;
-
-    const toggleJobKey = (key: string) => {
-        setExpandedJobKeys((prev) => {
-            const next = new Set(prev);
-            if (next.has(key)) next.delete(key);
-            else next.add(key);
-            return next;
-        });
-    };
 
     const toggleMapping = (id: string) => {
         setExpandedMappingIds((prev) => {
@@ -356,77 +346,24 @@ export default function Step6ReviewSubmit({
                     </button>
                     {expandedJobDefs && (
                         <div className="border-t border-[#e5e7eb] px-5 py-4 bg-[#fafafa] space-y-2">
-                            {jobEntries.map(([key, job]) => {
-                                const isOpen = expandedJobKeys.has(key);
-                                return (
-                                    <div key={key} className="rounded-lg border border-[#e5e7eb] bg-white overflow-hidden">
-                                        <button
+                            {jobEntries.map(([key, job]) => (
+                                <div key={key} className="rounded-lg border border-[#e5e7eb] bg-white overflow-hidden">
+                                    <div className="w-full flex items-center justify-between px-4 py-3 text-left">
+                                        <div className="flex items-center gap-2">
+                                            <FileText className="w-4 h-4 text-[#6b7280]" />
+                                            <span className="font-medium text-[#121431]">{job.job_name}</span>
+                                        </div>
+                                        <Button
                                             type="button"
-                                            onClick={() => toggleJobKey(key)}
-                                            className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[#f9fafb]"
+                                            variant="outline"
+                                            className="h-8"
+                                            onClick={() => router.visit(`/hr-manager/tree/${projectId}`)}
                                         >
-                                            <div className="flex items-center gap-2">
-                                                <FileText className="w-4 h-4 text-[#6b7280]" />
-                                                <span className="font-medium text-[#121431]">{job.job_name}</span>
-                                            </div>
-                                            {isOpen ? (
-                                                <ChevronDown className="w-4 h-4 text-[#6b7280]" />
-                                            ) : (
-                                                <ChevronRight className="w-4 h-4 text-[#6b7280]" />
-                                            )}
-                                        </button>
-                                        {isOpen && (
-                                            <div className="border-t border-[#e5e7eb] p-4 space-y-4 text-sm">
-                                                {job.job_description && (
-                                                    <div>
-                                                        <p className="font-semibold text-[#121431] mb-1">Job Description</p>
-                                                        <p className="text-[#6b7280] whitespace-pre-wrap">{job.job_description}</p>
-                                                    </div>
-                                                )}
-                                                {job.job_specification && (
-                                                    <div>
-                                                        <p className="font-semibold text-[#121431] mb-2">Job Specification</p>
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[#6b7280]">
-                                                            <div><strong>Education:</strong> REQ: {job.job_specification.education?.required || '—'} / PREF: {job.job_specification.education?.preferred || '—'}</div>
-                                                            <div><strong>Experience:</strong> REQ: {job.job_specification.experience?.required || '—'} / PREF: {job.job_specification.experience?.preferred || '—'}</div>
-                                                            <div><strong>Skills:</strong> REQ: {job.job_specification.skills?.required || '—'} / PREF: {job.job_specification.skills?.preferred || '—'}</div>
-                                                            <div><strong>Communication:</strong> REQ: {job.job_specification.communication?.required || '—'} / PREF: {job.job_specification.communication?.preferred || '—'}</div>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                {(job.competency_levels?.length ?? 0) > 0 && (
-                                                    <div>
-                                                        <p className="font-semibold text-[#121431] mb-2">Competency Levels</p>
-                                                        <ul className="list-disc pl-4 space-y-1 text-[#6b7280]">
-                                                            {job.competency_levels!.map((l, i) => (
-                                                                <li key={i}><strong>{l.level}:</strong> {l.description || '—'}</li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                )}
-                                                {(job.csfs?.length ?? 0) > 0 && (
-                                                    <div>
-                                                        <p className="font-semibold text-[#121431] mb-2">Critical Success Factors</p>
-                                                        <div className="space-y-2">
-                                                            {job.csfs!.map((c, i) => (
-                                                                <div key={i} className="p-2 rounded bg-[#f3f4f6]">
-                                                                    <p className="font-medium text-[#121431]">{c.name}</p>
-                                                                    <p className="text-[#6b7280] text-xs">{c.description || '—'}</p>
-                                                                    {(c.strategic_importance || c.category) && (
-                                                                        <span className="text-xs text-[#6b7280]">
-                                                                            {[c.strategic_importance, c.category].filter(Boolean).join(' · ')}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
+                                            Open Job Matrix Card
+                                        </Button>
                                     </div>
-                                );
-                            })}
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>

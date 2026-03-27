@@ -55,8 +55,8 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { toastCopy } from '@/lib/toastCopy';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
+import { toastCopy } from '@/lib/toastCopy';
 
 interface Invitation {
     id: number;

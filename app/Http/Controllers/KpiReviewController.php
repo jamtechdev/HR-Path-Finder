@@ -470,6 +470,15 @@ class KpiReviewController extends Controller
                 })
                 ->values();
 
+            $activeTotalWeight = (float) $incoming
+                ->filter(fn ($row) => (bool) ($row['is_active'] ?? true))
+                ->sum(fn ($row) => (float) ($row['weight'] ?? 0));
+            if ($incoming->isEmpty() || round($activeTotalWeight, 2) !== 100.0) {
+                return back()->withErrors([
+                    'error' => 'Selected organization KPI weight must be exactly 100% before sending review request.',
+                ]);
+            }
+
             \DB::transaction(function () use ($hrProject, $selectedOrg, $incoming) {
                 $orgQuery = OrganizationalKpi::where('hr_project_id', $hrProject->id)
                     ->whereRaw('TRIM(LOWER(organization_name)) = ?', [strtolower($selectedOrg)]);

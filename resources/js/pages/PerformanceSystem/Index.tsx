@@ -22,13 +22,11 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { toast } from '@/hooks/use-toast';
 import AppLayout from '@/layouts/AppLayout';
 import { pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
+import { toastCopy } from '@/lib/toastCopy';
 import { cn } from '@/lib/utils';
-import { toast } from '@/hooks/use-toast';
-import { toastCopy } from '@/lib/toastCopy';
-import { toastCopy } from '@/lib/toastCopy';
-import { toastCopy } from '@/lib/toastCopy';
 import {
     validatePerformanceSnapshotTab,
     validateKpiReviewTab,
@@ -266,25 +264,26 @@ export default function PerformanceSystemIndex({
 
     // Hydrate unsaved local draft on first load.
     useEffect(() => {
-        const hasServerDraftData =
-            Object.keys(snapshotResponses ?? {}).length > 0 ||
-            (organizationalKpis ?? []).length > 0 ||
-            (evaluationModelAssignments ?? []).length > 0 ||
-            !!project.evaluation_structure;
-
         try {
-            if (hasServerDraftData) {
-                window.localStorage.removeItem(draftStorageKey);
-                return;
-            }
-
             const raw = window.localStorage.getItem(draftStorageKey);
-            if (!raw) return;
-            const parsed = JSON.parse(raw);
-            if (parsed?.snapshotResponses) setDraftSnapshotResponses(parsed.snapshotResponses);
-            if (Array.isArray(parsed?.kpis)) setDraftKpis(parsed.kpis);
-            if (parsed?.assignments) setDraftAssignments(parsed.assignments);
-            if (parsed?.structure) setDraftStructure(parsed.structure);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (
+                    Object.keys(snapshotResponses ?? {}).length === 0 &&
+                    parsed?.snapshotResponses
+                ) setDraftSnapshotResponses(parsed.snapshotResponses);
+                if (
+                    (organizationalKpis ?? []).length === 0 &&
+                    Array.isArray(parsed?.kpis)
+                ) setDraftKpis(parsed.kpis);
+                if (
+                    (evaluationModelAssignments ?? []).length === 0 &&
+                    parsed?.assignments
+                ) setDraftAssignments(parsed.assignments);
+                if (!project.evaluation_structure && parsed?.structure) {
+                    setDraftStructure(parsed.structure);
+                }
+            }
         } catch {
             // Ignore malformed local draft.
         }

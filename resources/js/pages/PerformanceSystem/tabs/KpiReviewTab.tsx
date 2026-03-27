@@ -28,9 +28,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { toastCopy } from '@/lib/toastCopy';
+import { cn } from '@/lib/utils';
 
 const VALIDATION_CRITERIA = [
     { id: 'outcome_influence', label: 'Outcome Influence', icon: Zap, desc: "Outcome is primarily driven by this org's own efforts.", required: false, question: 'Is the outcome primarily influenced by this organization\'s own efforts?', noHint: 'Please refine the KPI so it reflects outcomes your org can directly control.' },
@@ -333,13 +333,45 @@ export default function KpiReviewTab({
             setInlineMsg('KPI name is required.');
             return;
         }
+        if ((kpi.weight ?? 0) < 0 || (kpi.weight ?? 0) > 100) {
+            setInlineMsg('Weight must be between 0 and 100.');
+            return;
+        }
         setInlineMsg(null);
         setKpis((prev) => {
             const next = [...prev];
             next[index] = { ...kpi, kpi_name: kpi.kpi_name.trim(), organization_name: (kpi.organization_name || '').trim() };
+            const targetOrg = next[index].organization_name;
+            const total = next
+                .filter((row) => row.organization_name === targetOrg && row.is_active)
+                .reduce((sum, row) => sum + (row.weight || 0), 0);
+            if (total > 100) {
+                setInlineMsg(`Total active KPI weight for "${targetOrg}" cannot exceed 100%.`);
+            }
             return next;
         });
         setEditingKpi(null);
+    };
+
+    const saveCurrentDraftToServer = (successMsg: string) => {
+        if (!project?.id) return;
+        router.post(
+            `/hr-manager/performance-system/${project.id}`,
+            {
+                tab: 'kpi-review',
+                kpis: kpis,
+            },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    setInlineMsg(successMsg);
+                },
+                onError: () => {
+                    setInlineMsg('Failed to save KPI draft. Please try again.');
+                },
+            },
+        );
     };
 
     const kpiReviewRecipients = orgChartMappings.filter((m) => m.is_kpi_reviewer && m.org_head_email?.trim());
@@ -404,6 +436,15 @@ export default function KpiReviewTab({
             });
             return;
         }
+        if (!weightOk) {
+            toast({
+                title: toastCopy.completeFirst,
+                description: 'Total selected KPI weight must be exactly 100% before sending review request.',
+                variant: 'warning',
+                duration: 2800,
+            });
+            return;
+        }
 
         setInlineMsg(null);
         setSendingReview(true);
@@ -436,7 +477,7 @@ export default function KpiReviewTab({
                     setSendingReview(false);
                 },
                 onError: () => {
-                    setInlineMsg('Failed to send review request. Please check recipient configuration and try again.');
+                    setInlineMsg('Failed to send review request. Check KPI Reviewer email in Org Chart Mapping and ensure selected KPI total weight is 100%.');
                     setSendingReview(false);
                 },
             },
@@ -790,6 +831,17 @@ export default function KpiReviewTab({
                                                             }}
                                                         >
                                                             <Edit className="w-3.5 h-3.5 mr-1" /> Edit
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 rounded-lg"
+                                                            onClick={() => {
+                                                                handleSaveKpi(globalIndex);
+                                                                saveCurrentDraftToServer('KPI saved.');
+                                                            }}
+                                                        >
+                                                            <Check className="w-3.5 h-3.5 mr-1" /> Save
                                                         </Button>
                                                         <Button
                                                             variant="outline"

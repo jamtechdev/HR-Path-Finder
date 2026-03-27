@@ -88,6 +88,19 @@ class CeoKpiReviewController extends Controller
         $action = $request->input('action'); // 'approve' or 'request_revision'
 
         if ($action === 'approve') {
+            $weightByOrg = OrganizationalKpi::where('hr_project_id', $hrProject->id)
+                ->get()
+                ->groupBy(fn ($k) => trim((string) $k->organization_name))
+                ->map(function ($rows) {
+                    return (float) $rows->sum(fn ($k) => (float) ($k->weight ?? 0));
+                });
+            $invalidOrg = $weightByOrg->first(fn ($sum, $org) => trim((string) $org) !== '' && round($sum, 2) !== 100.0);
+            if ($invalidOrg !== null) {
+                return back()->withErrors([
+                    'error' => 'Each organization total KPI weight must be exactly 100% before CEO approval.',
+                ]);
+            }
+
             $orgNames = OrganizationalKpi::where('hr_project_id', $hrProject->id)
                 ->select('organization_name')
                 ->distinct()

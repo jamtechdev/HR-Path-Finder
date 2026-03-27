@@ -4,7 +4,7 @@ import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErr
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import type { OrgChartMapping, JobDefinition } from '../hooks/useJobAnalysisState';
+import type { OrgChartMapping, JobDefinition, JobSelection } from '../hooks/useJobAnalysisState';
 
 const MAX_DEPTH = 2; // 3 levels: 0, 1, 2
 
@@ -43,6 +43,7 @@ function buildTreeOrder(units: OrgChartMapping[]): OrgChartMapping[] {
 
 interface Step5OrgChartMappingProps {
     jobDefinitions: Record<string, JobDefinition>;
+    jobSelections?: JobSelection;
     orgMappings: OrgChartMapping[];
     onMappingsChange: (mappings: OrgChartMapping[]) => void;
     onContinue: (mappings?: OrgChartMapping[]) => void;
@@ -52,6 +53,7 @@ interface Step5OrgChartMappingProps {
 
 export default function Step5OrgChartMapping({
     jobDefinitions,
+    jobSelections,
     orgMappings,
     onMappingsChange,
     onContinue,
@@ -74,13 +76,23 @@ export default function Step5OrgChartMapping({
     const SCROLL_STEP = 14;
 
     const allJobIds = useMemo(() => {
+        const selectedSet = new Set<number>([
+            ...(jobSelections?.selected_job_keyword_ids ?? []),
+            ...((jobSelections?.grouped_jobs ?? []).flatMap((g) => g.job_keyword_ids ?? [])),
+        ]);
         const ids: number[] = [];
         Object.values(jobDefinitions).forEach((def) => {
-            if (def.job_keyword_id) ids.push(def.job_keyword_id);
-            if (def.grouped_job_keyword_ids) ids.push(...def.grouped_job_keyword_ids);
+            if (def.job_keyword_id && (selectedSet.size === 0 || selectedSet.has(def.job_keyword_id))) {
+                ids.push(def.job_keyword_id);
+            }
+            if (def.grouped_job_keyword_ids) {
+                def.grouped_job_keyword_ids.forEach((id) => {
+                    if (selectedSet.size === 0 || selectedSet.has(id)) ids.push(id);
+                });
+            }
         });
         return [...new Set(ids)];
-    }, [jobDefinitions]);
+    }, [jobDefinitions, jobSelections]);
 
     const mappedJobIds = useMemo(() => {
         const set = new Set<number>();
@@ -448,8 +460,11 @@ export default function Step5OrgChartMapping({
                                             canDropUnit && 'ring-2 ring-[#121431] ring-offset-2'
                                         )}
                                         style={{
-                                            background: '#f5f3ef',
+                                            background: isChild ? '#f0f7ff' : '#f5f3ef',
                                             boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                                            marginLeft: isChild ? 32 : 0,
+                                            borderLeftColor: isChild ? '#93c5fd' : undefined,
+                                            borderLeftWidth: isChild ? 3 : undefined,
                                         }}
                                         onDragOver={(e) => handleUnitDragOver(e, unit.id)}
                                         onDrop={(e) => handleUnitDrop(e, unit.id)}
@@ -514,6 +529,17 @@ export default function Step5OrgChartMapping({
                                                     >
                                                         <Minus className="w-5 h-5 text-white" strokeWidth={2.5} />
                                                     </button>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        className="h-10 border-red-200 text-red-600 hover:bg-red-50"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleRemoveUnit(unit.id);
+                                                        }}
+                                                    >
+                                                        Delete
+                                                    </Button>
                                                     <div
                                                         className="w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold text-white shrink-0"
                                                         style={{ background: '#121431' }}

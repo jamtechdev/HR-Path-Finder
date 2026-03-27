@@ -263,7 +263,8 @@
     "job_analysis": "Job Analysis",
     "performance": "Performance",
     "compensation": "Compensation",
-    "hr_policy_os": "Final Dashboard"
+    "hr_policy_os": "Final Dashboard",
+    "report": "Report"
   },
   "buttons": {
     "continue": "Continue",

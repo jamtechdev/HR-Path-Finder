@@ -19,8 +19,8 @@ import {
     SidebarInset,
     SidebarProvider,
 } from '@/components/ui/sidebar';
-import { toastCopy } from '@/lib/toastCopy';
 import { toast } from '@/hooks/use-toast';
+import { toastCopy } from '@/lib/toastCopy';
 
 interface DiagnosisQuestion {
     id: number;

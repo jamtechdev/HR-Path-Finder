@@ -16,6 +16,7 @@ const MAIN_STEPS: StepConfig[] = [
     { id: 'performance', step: 3, name: 'Performance System', icon: Target, route: '/hr-manager/performance-system' },
     { id: 'compensation', step: 4, name: 'Compensation System', icon: DollarSign, route: '/hr-manager/compensation-system' },
     { id: 'hr_policy_os', step: 5, name: 'Final Dashboard', icon: Award, route: '/hr-manager/tree' },
+    { id: 'report', step: 6, name: 'Report', icon: FileText, route: '/hr-manager/report' },
 ];
 
 export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?: boolean }) {
@@ -41,7 +42,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?
         const diagnosisStatus = stepStatuses['diagnosis'];
         const diagnosisOk = diagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(diagnosisStatus);
 
-        if (stepId === 'hr_policy_os' && projectId) {
+        if ((stepId === 'hr_policy_os' || stepId === 'report') && projectId) {
             if (status && ['approved', 'locked', 'completed'].includes(status)) {
                 return 'completed';
             }
@@ -73,14 +74,14 @@ export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?
 
     const isStepActuallyLocked = (stepId: string): boolean => {
         // Final Dashboard (step 5) is always reachable when a project exists
-        if (stepId === 'hr_policy_os' && projectId) {
+        if ((stepId === 'hr_policy_os' || stepId === 'report') && projectId) {
             return false;
         }
         const status = stepStatuses[stepId] ?? 'not_started';
         const stepIndex = MAIN_STEPS.findIndex((s) => s.id === stepId);
         if (stepIndex === 0) return false;
         if (currentPath.startsWith(MAIN_STEPS.find((s) => s.id === stepId)?.route ?? '')) return false;
-        if (status === 'submitted') return false;
+        if (status === 'submitted' || status === 'in_progress') return false;
         if (status && ['approved', 'locked', 'completed'].includes(status)) return false;
         if (ceoPhilosophyStatus !== 'completed' && stepId !== 'diagnosis') return true;
         for (let i = 0; i < stepIndex; i++) {
@@ -93,6 +94,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?
     const getStepRoute = (step: StepConfig): string => {
         if (!projectId) return step.id === 'diagnosis' ? step.route : '#';
         if (step.id === 'hr_policy_os') return `/hr-manager/tree/${projectId}`;
+        if (step.id === 'report') return `/hr-manager/report/${projectId}`;
         return `${step.route}/${projectId}/overview`;
     };
 
@@ -199,16 +201,6 @@ export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?
                 </div>
             </div>
 
-            {/* Bottom: Report (Final Dashboard = Design Progress is Step 5) */}
-            <div className="py-3 px-3 border-t border-white/[0.06] flex-shrink-0">
-                <Link
-                    href={projectId ? `/hr-manager/report/${projectId}` : '#'}
-                    className="flex items-center gap-[9px] py-1.5 px-2.5 rounded-[7px] mb-0.5 transition-colors hover:bg-white/[0.06]"
-                >
-                    <FileText className="w-[18px] h-[18px] opacity-50 text-white" />
-                    {!isCollapsed && <span className="text-[12px] font-medium text-white/45">{t('sidebar.report')}</span>}
-                </Link>
-            </div>
         </div>
     );
 }

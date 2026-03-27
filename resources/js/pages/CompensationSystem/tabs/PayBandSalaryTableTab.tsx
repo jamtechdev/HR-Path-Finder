@@ -2,13 +2,13 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CompensationPageHeader from '../components/CompensationPageHeader';
-import PayBandCreatorPanel from './PayBandCreatorPanel';
 import type {
     PayBand,
     SalaryTable,
@@ -16,6 +16,7 @@ import type {
     SalaryTableGrade,
     SalaryTableCells,
 } from '../types';
+import PayBandCreatorPanel from './PayBandCreatorPanel';
 
 const MAX_LV = 4;
 const MAX_GRADE = 7;
@@ -135,6 +136,7 @@ interface PayBandSalaryTableTabProps {
     onPayBandsUpdate: (bands: PayBand[]) => void;
     onSalaryTablesUpdate: (tables: SalaryTable[]) => void;
     onOperationCriteriaUpdate: (criteria: PayBandOperationCriteria) => void;
+    onRequestStructureSwitch?: (target: 'pay_band' | 'salary_table') => void;
     fieldErrors?: FieldErrors;
 }
 
@@ -147,6 +149,7 @@ export default function PayBandSalaryTableTab({
     onPayBandsUpdate,
     onSalaryTablesUpdate,
     onOperationCriteriaUpdate,
+    onRequestStructureSwitch,
     fieldErrors = {},
 }: PayBandSalaryTableTabProps) {
     const selectedStandard: 'pay_band' | 'salary_table' =
@@ -154,12 +157,28 @@ export default function PayBandSalaryTableTab({
     const [activeType, setActiveType] = useState<'pay_band' | 'salary_table'>(
         selectedStandard
     );
+    const [switchDialogOpen, setSwitchDialogOpen] = useState(false);
+    const [pendingType, setPendingType] = useState<'pay_band' | 'salary_table' | null>(null);
 
     // Keep the active UI in sync with the Base Salary Framework selection.
     useEffect(() => {
         const next: 'pay_band' | 'salary_table' = selectedStandard;
         setActiveType(next);
     }, [selectedStandard]);
+
+    const openSwitchDialog = useCallback((target: 'pay_band' | 'salary_table') => {
+        if (target === selectedStandard) return;
+        setPendingType(target);
+        setSwitchDialogOpen(true);
+    }, [selectedStandard]);
+
+    const confirmSwitch = useCallback(() => {
+        if (pendingType && onRequestStructureSwitch) {
+            onRequestStructureSwitch(pendingType);
+        }
+        setSwitchDialogOpen(false);
+        setPendingType(null);
+    }, [pendingType, onRequestStructureSwitch]);
 
     const { grades, levels, cells } = useMemo(
         () => salaryTablesToGrid(salaryTables),
@@ -299,13 +318,32 @@ export default function PayBandSalaryTableTab({
             <div className="pt-6 space-y-6">
                 <Tabs
                     value={activeType}
-                    onValueChange={(v) => setActiveType(v as 'pay_band' | 'salary_table')}
+                    onValueChange={(v) => {
+                        const next = v as 'pay_band' | 'salary_table';
+                        if (next === selectedStandard) {
+                            setActiveType(next);
+                            return;
+                        }
+                        openSwitchDialog(next);
+                    }}
                 >
                     <TabsList>
-                        <TabsTrigger value="pay_band">
+                        <TabsTrigger
+                            value="pay_band"
+                            disabled={selectedStandard !== 'pay_band'}
+                            onClick={() => {
+                                if (selectedStandard !== 'pay_band') openSwitchDialog('pay_band');
+                            }}
+                        >
                             Pay Band
                         </TabsTrigger>
-                        <TabsTrigger value="salary_table">
+                        <TabsTrigger
+                            value="salary_table"
+                            disabled={selectedStandard !== 'salary_table'}
+                            onClick={() => {
+                                if (selectedStandard !== 'salary_table') openSwitchDialog('salary_table');
+                            }}
+                        >
                             Salary Table
                         </TabsTrigger>
                     </TabsList>
@@ -617,6 +655,27 @@ export default function PayBandSalaryTableTab({
                 </Card>
                 )}
             </div>
+            <Dialog open={switchDialogOpen} onOpenChange={setSwitchDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Switch compensation structure?</DialogTitle>
+                        <DialogDescription>
+                            You currently have{' '}
+                            <strong>{selectedStandard === 'pay_band' ? 'Pay Band' : 'Salary Table'}</strong>{' '}
+                            selected. Would you like to switch to{' '}
+                            <strong>{pendingType === 'pay_band' ? 'Pay Band' : 'Salary Table'}</strong>? Previous data may be reset.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => setSwitchDialogOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button type="button" onClick={confirmSwitch}>
+                            Switch Structure
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

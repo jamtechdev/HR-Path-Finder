@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { Building2, Lock, AlertTriangle, BarChart3, ClipboardList, Target, Unlock, CheckCircle2 } from 'lucide-react';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/AppLayout';
 
@@ -105,8 +105,23 @@ export default function PathFinderDashboard({
   const currentStepTitle = STEP_CONFIG.find((s) => s.id === currentStepKey)?.title ?? 'Diagnosis';
   const companyName = company?.name ?? activeProject?.company?.name ?? null;
 
-  const diagnosisStatus = stepStatuses['diagnosis'];
-  const isDiagnosisSubmitted = diagnosisStatus === 'submitted';
+  const phaseStatusText = useMemo(() => {
+    const status = stepStatuses[currentStepKey] ?? 'not_started';
+    const title = STEP_CONFIG.find((s) => s.id === currentStepKey)?.title ?? 'Current step';
+    if (status === 'submitted') {
+      return {
+        title: `${title} submitted — waiting for review`,
+        hint: 'You can continue to the next available step while review is in progress.',
+      };
+    }
+    if (status === 'in_progress') {
+      return {
+        title: `${title} is in progress`,
+        hint: 'Your draft is kept while moving between steps.',
+      };
+    }
+    return null;
+  }, [currentStepKey, stepStatuses]);
 
   const stepCards = STEP_CONFIG.map((s, i) => {
     const state = getStepState(s.id, i, stepStatuses, currentStepKey, ceoPhilosophyStatus, projectId);
@@ -262,17 +277,17 @@ export default function PathFinderDashboard({
             </div>
 
             {/* Submitted - waiting for CEO banner */}
-            {isDiagnosisSubmitted && (
+            {phaseStatusText && (
               <div className="mb-6 rounded-xl border border-[var(--hr-mint)] bg-[rgba(78,205,196,0.08)] px-5 py-4 flex items-center gap-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--hr-mint)] text-[var(--hr-navy-deep)]">
                   <CheckCircle2 className="h-5 w-5" />
                 </div>
                 <div>
                   <p className="text-[14px] font-bold text-[var(--hr-gray-800)]">
-                    {t('dashboard.pathfinder.submitted_wait_ceo', 'Diagnosis submitted — waiting for CEO review')}
+                    {phaseStatusText.title}
                   </p>
                   <p className="text-[12px] text-[var(--hr-gray-500)] mt-0.5">
-                    {t('dashboard.pathfinder.submitted_wait_ceo_hint', 'You can continue to Step 2 (Job Analysis) while the CEO reviews.')}
+                    {phaseStatusText.hint}
                   </p>
                 </div>
               </div>

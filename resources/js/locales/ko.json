@@ -263,7 +263,8 @@
     "job_analysis": "직무 분석",
     "performance": "성과 관리",
     "compensation": "보상 체계",
-    "hr_policy_os": "최종 대시보드"
+    "hr_policy_os": "최종 대시보드",
+    "report": "리포트"
   },
   "buttons": {
     "continue": "계속하기",
