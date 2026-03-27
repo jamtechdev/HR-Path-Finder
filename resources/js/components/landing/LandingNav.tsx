@@ -4,7 +4,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { Button } from '@/components/ui/button';
-import { login, register, dashboard } from '@/routes';
+import { login, dashboard } from '@/routes';
 
 interface LandingNavProps {
     isAuthenticated?: boolean;
@@ -58,10 +58,10 @@ export function LandingNav({
                     ) : (
                         <>
                             <Link
-                                href={canRegister ? register() : login()}
+                                href={login()}
                                 className="text-sm font-medium text-white/70 hover:text-[#2ECFAB] no-underline transition-colors"
                             >
-                                {canRegister ? startLabel : signInText}
+                                {signInText}
                             </Link>
                             <a
                                 href={externalInquiryHref}

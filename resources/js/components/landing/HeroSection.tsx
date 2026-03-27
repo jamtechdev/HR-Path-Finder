@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { login, register } from '@/routes';
+import { login } from '@/routes';
 
 export function HeroSection({ canRegister = true }: { canRegister?: boolean }) {
     return (
@@ -23,7 +23,7 @@ export function HeroSection({ canRegister = true }: { canRegister?: boolean }) {
 
                 <div className="flex flex-col gap-4 sm:flex-row">
                     <Button asChild size="lg" className="bg-brand-blue text-white hover:bg-brand-blue/90">
-                        <Link href={canRegister ? register() : login()}>
+                        <Link href={login()}>
                             Start Free Trial
                             <ArrowRight className="ml-2 size-4" />
                         </Link>

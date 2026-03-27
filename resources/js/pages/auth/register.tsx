@@ -29,9 +29,10 @@ export default function Register({ status }: Props) {
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [showPassword, setShowPassword] = React.useState(false);
     const [showPasswordConfirmation, setShowPasswordConfirmation] = React.useState(false);
+    const nameInputRef = React.useRef<HTMLInputElement | null>(null);
 
     const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
-        if (!password) return { score: 0, label: 'Enter password', color: 'bg-slate-200' };
+        if (!password) return { score: 0, label: '비밀번호 입력', color: 'bg-slate-200' };
 
         let score = 0;
         if (password.length >= 8) score += 1;
@@ -40,12 +41,19 @@ export default function Register({ status }: Props) {
         if (/\d/.test(password)) score += 1;
         if (/[^A-Za-z0-9]/.test(password)) score += 1;
 
-        if (score <= 2) return { score: 1, label: 'Weak', color: 'bg-red-500' };
-        if (score <= 4) return { score: 2, label: 'Medium', color: 'bg-amber-500' };
-        return { score: 3, label: 'Strong', color: 'bg-emerald-500' };
+        if (score <= 2) return { score: 1, label: '약함', color: 'bg-red-500' };
+        if (score <= 4) return { score: 2, label: '보통', color: 'bg-amber-500' };
+        return { score: 3, label: '강함', color: 'bg-emerald-500' };
     };
 
     const passwordStrength = getPasswordStrength(form.data.password);
+
+    React.useEffect(() => {
+        const t = window.setTimeout(() => {
+            nameInputRef.current?.focus();
+        }, 0);
+        return () => window.clearTimeout(t);
+    }, []);
 
     const generatePassword = React.useCallback(() => {
         const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*';
@@ -175,6 +183,7 @@ export default function Register({ status }: Props) {
                                                 {t('auth.register.name_label')}
                                             </Label>
                                             <Input
+                                                ref={nameInputRef}
                                                 id="name"
                                                 type="text"
                                                 name="name"
@@ -255,7 +264,7 @@ export default function Register({ status }: Props) {
                                             </div>
                                             <div className="space-y-2">
                                                 <div className="flex items-center justify-between text-xs">
-                                                    <span className="text-[#3D5068]">Password strength</span>
+                                                    <span className="text-[#3D5068]">비밀번호 보안 수준</span>
                                                     <span className="font-medium text-[#0B1E3D]">{passwordStrength.label}</span>
                                                 </div>
                                                 <div className="grid grid-cols-3 gap-1">

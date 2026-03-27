@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { register } from '@/routes';
+import { login } from '@/routes';
 
 export function CTASection({ canRegister = true }: { canRegister?: boolean }) {
     return (
@@ -15,7 +15,7 @@ export function CTASection({ canRegister = true }: { canRegister?: boolean }) {
                     scales from prototype to full implementation.
                 </p>
                 <Button asChild size="lg" variant="secondary" className="bg-white text-brand-blue hover:bg-gray-100">
-                    <Link href={canRegister ? register() : '#'}>
+                    <Link href={login()}>
                         Get Started Free
                         <ArrowRight className="ml-2 size-4" />
                     </Link>

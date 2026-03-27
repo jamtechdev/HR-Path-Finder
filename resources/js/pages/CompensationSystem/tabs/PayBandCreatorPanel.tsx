@@ -25,10 +25,10 @@ export default function PayBandCreatorPanel({
 }: Props) {
     const [initialized, setInitialized] = useState(false);
     const [steps, setSteps] = useState(5);
-    const [eMin, setEMin] = useState(4000);
-    const [eTgt, setETgt] = useState(4720);
-    const [eMax, setEMax] = useState(5200);
-    const [sMax, setSMax] = useState(11000);
+    const [eMin, setEMin] = useState(0);
+    const [eTgt, setETgt] = useState(0);
+    const [eMax, setEMax] = useState(0);
+    const [sMax, setSMax] = useState(0);
     const [factorA, setFactorA] = useState(20);
     const [factorB, setFactorB] = useState(85);
     const [overrides, setOverrides] = useState<Record<number, Partial<Record<FieldKey, number>>>>({});
@@ -36,7 +36,6 @@ export default function PayBandCreatorPanel({
     const [editDraft, setEditDraft] = useState('');
     const [tipA, setTipA] = useState(false);
     const [tipB, setTipB] = useState(false);
-    const [lastOK, setLastOK] = useState<{ min: number; tgt: number; max: number; sMax: number }>(REC);
 
     useEffect(() => {
         if (initialized) return;
@@ -54,17 +53,14 @@ export default function PayBandCreatorPanel({
                     ? Math.round((first.min_salary / first.target_salary) * 100)
                     : 85;
             setSteps(clamp(sorted.length, 3, 7));
-            const firstMin = Math.round(first?.min_salary || REC.min);
-            const firstMax = Math.round(first?.max_salary || REC.max);
-            const firstTgt = Math.round(first?.target_salary || ((firstMin + firstMax) / 2));
-            const seniorMax = Math.round(last?.max_salary || REC.sMax);
+            const firstMin = Math.round(first?.min_salary || 0);
+            const firstMax = Math.round(first?.max_salary || 0);
+            const firstTgt = Math.round(first?.target_salary || 0);
+            const seniorMax = Math.round(last?.max_salary || 0);
             setEMin(firstMin);
             setETgt(firstTgt);
             setEMax(firstMax);
             setSMax(seniorMax);
-            if (firstMin > 0 && firstTgt > firstMin && firstMax > firstTgt && seniorMax > firstMax) {
-                setLastOK({ min: firstMin, tgt: firstTgt, max: firstMax, sMax: seniorMax });
-            }
             setFactorA(clamp(Number.isFinite(a) ? a : 20, 5, 50));
             setFactorB(clamp(Number.isFinite(b) ? b : 85, 60, 99));
         }
@@ -85,16 +81,14 @@ export default function PayBandCreatorPanel({
         [errors]
     );
 
-    useEffect(() => {
-        if (!validation) {
-            setLastOK({ min: eMin, tgt: eTgt, max: eMax, sMax });
-        }
-    }, [validation, eMin, eTgt, eMax, sMax]);
+    const canGenerate = useMemo(
+        () => !validation && eMin > 0 && eTgt > eMin && eMax > eTgt && sMax > eMax,
+        [validation, eMin, eTgt, eMax, sMax]
+    );
 
     const bands = useMemo<BandRow[]>(() => {
-        const src = validation
-            ? lastOK
-            : { min: eMin, tgt: eTgt, max: eMax, sMax };
+        if (!canGenerate) return [];
+        const src = { min: eMin, tgt: eTgt, max: eMax, sMax };
         const A = factorA / 100;
         const B = factorB / 100;
         const raw: BandRow[] = [{ lbl: 'Grade A', min: src.min, tgt: src.tgt, max: src.max, manual: false }];
@@ -128,7 +122,7 @@ export default function PayBandCreatorPanel({
             const max = ov.max ?? b.max;
             return { ...b, min, tgt, max, manual: ov.min !== undefined || ov.tgt !== undefined || ov.max !== undefined };
         });
-    }, [steps, eMin, eTgt, eMax, sMax, factorA, factorB, validation, overrides, lastOK]);
+    }, [steps, eMin, eTgt, eMax, sMax, factorA, factorB, overrides, canGenerate]);
 
     const ovPct = (i: number) => {
         if (i === 0) return null;
@@ -379,8 +373,17 @@ export default function PayBandCreatorPanel({
                     <span className="pb-slabel">밴드 시각화</span>
                     <span style={{ fontSize: 10, color: '#9CA3AF', background: '#F0F2F5', border: '.5px solid rgba(27,46,75,.10)', borderRadius: 5, padding: '3px 9px' }}>단위: KRW, 만원</span>
                 </div>
-                {hasOverlapWarn ? <div style={{ background: '#FDF1F1', border: '.5px solid rgba(217,79,79,.35)', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#D94F4F', marginBottom: 10 }}>⚠ 일부 직급 간 Overlap이 15% 미만입니다. 귀사의 조직 구조에 적절한지 검토해 주세요.</div> : null}
+                {validation ? (
+                    <div style={{ background: '#F8FAFC', border: '.5px solid rgba(148,163,184,.35)', borderRadius: 8, padding: '10px 12px', fontSize: 12, color: '#475569', marginBottom: 10 }}>
+                        앵커값(MIN/TARGET/MAX, Senior MAX)을 먼저 올바르게 입력하면 차트가 실시간 생성됩니다.
+                    </div>
+                ) : hasOverlapWarn ? <div style={{ background: '#FDF1F1', border: '.5px solid rgba(217,79,79,.35)', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#D94F4F', marginBottom: 10 }}>⚠ 일부 직급 간 Overlap이 15% 미만입니다. 귀사의 조직 구조에 적절한지 검토해 주세요.</div> : null}
                 <div style={{ width: '100%', overflow: 'auto', position: 'relative' }}>
+                    {bands.length === 0 ? (
+                        <div style={{ minHeight: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', fontSize: 12 }}>
+                            유효한 앵커값 입력 시 밴드 차트가 표시됩니다.
+                        </div>
+                    ) : (
                     <svg width={chart.W} height={chart.H} viewBox={`0 0 ${chart.W} ${chart.H}`}>
                         {chart.ticks.map((t) => {
                             const y = chart.PAD.top + chart.yS(t);
@@ -442,6 +445,7 @@ export default function PayBandCreatorPanel({
                             opacity=".85"
                         />
                     </svg>
+                    )}
                     {editCell ? (() => {
                         const i = editCell.gradeIdx;
                         const b = bands[i];
@@ -494,12 +498,15 @@ export default function PayBandCreatorPanel({
                         );
                     })() : null}
                 </div>
+                {bands.length > 0 && (
                 <div className="pb-legend">
                     <div className="pb-leg"><span style={{ width: 12, height: 12, borderRadius: 2, background: 'rgba(225,245,238,.95)', border: '1.5px solid #1D9E75' }} />밴드 (Min - Max)</div>
                     <div className="pb-leg"><span style={{ width: 22, height: 2, background: '#1B2E4B', position: 'relative', display: 'inline-block' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff', border: '2px solid #1B2E4B', position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)' }} /></span>Target</div>
                     <div className="pb-leg"><span style={{ width: 12, height: 12, borderRadius: 2, background: 'rgba(29,158,117,.13)', border: '1px dashed rgba(29,158,117,.5)' }} />Overlap 구간</div>
                     <div style={{ marginLeft: 'auto', fontSize: 11, color: '#9CA3AF' }}>수치 클릭 시 직접 편집 가능</div>
                 </div>
+                )}
+                {bands.length > 0 && (
                 <div style={{ overflowX: 'auto', borderTop: '.5px solid rgba(27,46,75,.10)' }}>
                     <table className="pb-table">
                         <thead>
@@ -528,6 +535,7 @@ export default function PayBandCreatorPanel({
                         </tbody>
                     </table>
                 </div>
+                )}
             </div>
 
             <div className="pb-card">

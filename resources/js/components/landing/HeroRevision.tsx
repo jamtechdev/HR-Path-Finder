@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
 import React from 'react';
-import { login, register, dashboard } from '@/routes';
+import { login, dashboard } from '@/routes';
 
 interface HeroRevisionProps {
     canRegister?: boolean;
@@ -58,7 +58,7 @@ export function HeroRevision({
                 </p>
                 <div className="flex flex-wrap items-center gap-4">
                     <Link
-                        href={isAuthenticated ? dashboardUrl : (canRegister ? register() : login())}
+                        href={isAuthenticated ? dashboardUrl : login()}
                         className="inline-flex items-center gap-2 bg-[#2ECFAB] text-[#0B1E3D] font-bold px-8 py-4 rounded-lg text-base no-underline transition-all shadow-[0_8px_32px_rgba(46,207,171,0.3)] hover:bg-[#7EE8D0] hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(46,207,171,0.4)]"
                     >
                         {primaryButton}

@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Building2, FileText, HelpCircle, Mail, Phone, Shield, Target, Users, Wallet } from 'lucide-react';
-import { dashboard, login, register } from '@/routes';
+import { dashboard, login } from '@/routes';
 
 interface FooterProps {
     canRegister?: boolean;
@@ -176,7 +176,7 @@ export function Footer({ canRegister = true }: FooterProps) {
                         </div>
                         <div className="flex items-center gap-4">
                             <Link
-                                href={canRegister ? register() : login()}
+                                href={login()}
                                 className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
                             >
                                 Get Started

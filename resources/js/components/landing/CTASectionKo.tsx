@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { register } from '@/routes';
+import { login } from '@/routes';
 
 interface CTASectionKoProps {
     canRegister?: boolean;
@@ -32,7 +32,7 @@ export function CTASectionKo({
                     {description}
                 </p>
                 <Button asChild className="bg-white hover:bg-gray-100 text-[#0a1629] font-medium px-6 py-3 rounded-lg text-base h-auto shadow-sm">
-                    <Link href={isAuthenticated ? dashboardUrl : (canRegister ? register() : '#')}>
+                    <Link href={isAuthenticated ? dashboardUrl : login()}>
                         {isAuthenticated ? dashboardLabel : buttonText}
                         <ArrowRight className="ml-2 w-4 h-4" />
                     </Link>

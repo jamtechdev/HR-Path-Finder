@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import React from 'react';
-import { login, register, dashboard } from '@/routes';
+import { login, dashboard } from '@/routes';
 
 interface CTABlockProps {
     canRegister?: boolean;
@@ -34,7 +34,7 @@ export function CTABlock({
                 </p>
                 <div className="flex flex-wrap items-center justify-center gap-5">
                     <Link
-                        href={isAuthenticated ? dashboard() : (canRegister ? register() : login())}
+                        href={isAuthenticated ? dashboard() : login()}
                         className="inline-flex items-center bg-[#2ECFAB] text-[#0B1E3D] font-extrabold px-10 py-4 rounded-xl text-[17px] no-underline shadow-[0_16px_48px_rgba(46,207,171,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_24px_64px_rgba(46,207,171,0.5)]"
                     >
                         {buttonText}

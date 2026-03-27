@@ -27,6 +27,7 @@ export default function Login({
 }: Props) {
     const { t } = useTranslation();
     const [showPassword, setShowPassword] = React.useState(false);
+    const emailInputRef = React.useRef<HTMLInputElement | null>(null);
     const form = useForm({
         email: '',
         password: '',
@@ -38,6 +39,13 @@ export default function Login({
             toast({ title: status, variant: 'success' });
         }
     }, [status]);
+
+    React.useEffect(() => {
+        const t = window.setTimeout(() => {
+            emailInputRef.current?.focus();
+        }, 0);
+        return () => window.clearTimeout(t);
+    }, []);
 
 
     return (
@@ -134,6 +142,7 @@ export default function Login({
                                     {t('auth.login.email_label')}
                                 </Label>
                                 <Input
+                                    ref={emailInputRef}
                                     id="email"
                                     type="email"
                                     value={form.data.email}

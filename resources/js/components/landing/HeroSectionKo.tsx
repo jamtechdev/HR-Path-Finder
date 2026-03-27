@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { login, register } from '@/routes';
+import { login } from '@/routes';
 import { CompensationBenchmarkPreview } from './CompensationBenchmarkPreview';
 
 interface HeroSectionKoProps {
@@ -75,7 +75,7 @@ export function HeroSectionKo({
                         
                         <div className="flex flex-col sm:flex-row gap-4 mb-8">
                             <Button asChild className="bg-[#0a1629] hover:bg-[#0d1b35] text-white font-medium px-6 py-3 rounded-lg text-base h-auto shadow-sm">
-                                <Link href={isAuthenticated ? dashboardUrl : (canRegister ? register() : login())}>
+                                <Link href={isAuthenticated ? dashboardUrl : login()}>
                                     {isAuthenticated ? dashboardLabel : primaryButton}
                                     <ArrowRight className="ml-2 w-4 h-4" />
                                 </Link>

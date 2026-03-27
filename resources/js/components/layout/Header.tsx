@@ -3,7 +3,7 @@ import { ArrowRight, ChevronDown, Menu, Moon, Sun, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAppearance } from '@/hooks/use-appearance';
-import { dashboard, login, register } from '@/routes';
+import { dashboard, login } from '@/routes';
 import type { SharedData } from '@/types';
 
 interface HeaderProps {
@@ -102,7 +102,7 @@ export function Header({ canRegister = true }: HeaderProps) {
                             </Button>
                             {canRegister && (
                                 <Button asChild className="h-10 px-4">
-                                    <Link href={register()}>
+                                    <Link href={login()}>
                                         Get Started
                                         <ArrowRight className="ml-2 size-4" />
                                     </Link>
@@ -151,7 +151,7 @@ export function Header({ canRegister = true }: HeaderProps) {
                                     </Button>
                                     {canRegister && (
                                         <Button asChild className="w-full">
-                                            <Link href={register()}>
+                                            <Link href={login()}>
                                                 Get Started
                                                 <ArrowRight className="ml-2 size-4" />
                                             </Link>

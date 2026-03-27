@@ -45,7 +45,31 @@ class PdfReportService
     private function formatValueForHtml($value): string
     {
         if (is_array($value)) {
-            return htmlspecialchars(implode(', ', array_filter($value, fn($v) => $v !== null && $v !== '')));
+            $flatten = function (array $items) use (&$flatten): array {
+                $result = [];
+                foreach ($items as $item) {
+                    if (is_array($item)) {
+                        $result = array_merge($result, $flatten($item));
+                        continue;
+                    }
+                    if (is_bool($item)) {
+                        $result[] = $item ? 'Yes' : 'No';
+                        continue;
+                    }
+                    if ($item === null || $item === '') {
+                        continue;
+                    }
+                    $result[] = (string) $item;
+                }
+                return $result;
+            };
+
+            $flatValues = $flatten($value);
+            if (empty($flatValues)) {
+                return '-';
+            }
+
+            return htmlspecialchars(implode(', ', $flatValues));
         }
         if (is_bool($value)) {
             return $value ? 'Yes' : 'No';
