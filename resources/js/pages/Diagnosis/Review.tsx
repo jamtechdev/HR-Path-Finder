@@ -11,14 +11,12 @@ import { Label } from '@/components/ui/label';
 import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
 import { diagnosisTabs } from '@/config/diagnosisTabs';
 import { both, tr } from '@/config/diagnosisTranslations';
-import { toast } from '@/hooks/use-toast';
 import { mergeTabDraftsIntoDiagnosis, clearDiagnosisDrafts } from '@/lib/diagnosisDraftStorage';
 import {
     getOrgChartDraftFiles,
     getLogoDraftFile,
     clearAllDiagnosisFileDrafts,
 } from '@/lib/diagnosisFileDrafts';
-import { toastCopy } from '@/lib/toastCopy';
 
 // HR issue categories for grouping on review (id, color, issue strings)
 const HR_ISSUE_CATEGORIES = [
@@ -265,12 +263,6 @@ export default function Review({
                 clearAllDiagnosisFileDrafts(projectId);
                 setShowSuccessModal(true);
                 setProcessing(false);
-                toast({
-                    title: toastCopy.submitted,
-                    description: 'Your diagnosis has been submitted. 진단이 제출되었습니다.',
-                    variant: 'success',
-                    duration: 2000,
-                });
             },
             onError: (payload: Record<string, unknown>) => {
                 const errors = (payload?.errors ?? payload) as Record<string, string | string[]>;

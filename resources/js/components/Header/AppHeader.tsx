@@ -83,7 +83,7 @@ export default function AppHeader() {
             <div className="flex h-full items-center justify-between px-7 w-full">
                 <div className="flex items-center gap-4">
                     <SidebarTrigger className={cn(
-                        'md:flex hidden size-9 w-7 h-7 -ml-1',
+                        'flex size-9 w-7 h-7 -ml-1',
                         headerDark && 'text-white hover:bg-white/10'
                     )} />
                     <div className={cn(

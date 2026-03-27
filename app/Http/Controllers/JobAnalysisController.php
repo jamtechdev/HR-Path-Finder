@@ -246,6 +246,10 @@ class JobAnalysisController extends Controller
             'industry' => $industry,
             'sizeRange' => $sizeRange,
             'diagnosisContext' => $diagnosisContext,
+            'diagnosisSummary' => [
+                'present_headcount' => $diagnosis->present_headcount ?? null,
+                'job_grade_names' => $diagnosis->job_grade_names ?? [],
+            ],
             'introCompleted' => $introCompleted,
             'stepStatuses' => $stepStatuses,
             'templates' => $templates,

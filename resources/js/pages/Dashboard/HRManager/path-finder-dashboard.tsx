@@ -104,6 +104,7 @@ export default function PathFinderDashboard({
   const currentStepKey = progress.currentStepKey ?? 'diagnosis';
   const currentStepTitle = STEP_CONFIG.find((s) => s.id === currentStepKey)?.title ?? 'Diagnosis';
   const companyName = company?.name ?? activeProject?.company?.name ?? null;
+  const isCurrentStepSubmitted = (stepStatuses[currentStepKey] ?? 'not_started') === 'submitted';
 
   const phaseStatusText = useMemo(() => {
     const status = stepStatuses[currentStepKey] ?? 'not_started';
@@ -300,7 +301,7 @@ export default function PathFinderDashboard({
                 <div className="flex items-center justify-between mb-2.5">
                   <span className="text-[10.5px] font-semibold text-white/45 uppercase tracking-[0.6px]">{t('dashboard.pathfinder.overall_progress')}</span>
                   <span className="text-[9.5px] font-semibold py-0.5 px-1.5 rounded-[20px] bg-[rgba(78,205,196,0.15)] text-[var(--hr-mint)]">
-                    {isDiagnosisSubmitted ? t('dashboard.pathfinder.submitted_short', 'Submitted') : t('dashboard.pathfinder.in_progress')}
+                    {isCurrentStepSubmitted ? t('dashboard.pathfinder.submitted_short', 'Submitted') : t('dashboard.pathfinder.in_progress')}
                   </span>
                 </div>
                 <div className="text-[26px] font-bold text-white leading-none tracking-[-1px]">

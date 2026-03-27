@@ -26,9 +26,8 @@ class StoreDiagnosisRequest extends FormRequest
             'foundation_date' => ['nullable', 'date'],
             'brand_name' => ['nullable', 'string', 'max:255'],
             'registration_number' => ['nullable', 'string', 'max:255', function ($attribute, $value, $fail) {
-                if ($value && !preg_match('/^(\d{3}-\d{2}-\d{5}|\d{10}|\d{3,10})$/', $value)) {
-                    // Allow format: 000-00-00000, or 10 digits, or 3-10 digits
-                    $fail('The registration number format is invalid. Use format: 000-00-00000 or enter digits only.');
+                if ($value && !preg_match('/^(\d{3}-\d{2}-\d{5}|\d{10})$/', $value)) {
+                    $fail('Registration number must be exactly 10 digits (000-00-00000).');
                 }
             }],
             'industry_category' => ['nullable', 'string', 'max:255'],

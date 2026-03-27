@@ -104,6 +104,11 @@ class CeoPhilosophyController extends Controller
      */
     public function store(Request $request, HrProject $hrProject)
     {
+        $existingPhilosophy = CeoPhilosophy::where('hr_project_id', $hrProject->id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+        $alreadyCompleted = (bool) ($existingPhilosophy?->completed_at);
+
         $validated = $request->validate([
             'management_philosophy' => ['required', 'array'],
             'vision_mission' => ['required', 'array'],
@@ -141,16 +146,23 @@ class CeoPhilosophyController extends Controller
             $hrProject->setStepStatus('job_analysis', StepStatus::IN_PROGRESS);
         }
 
-        // Notify HR managers that CEO has completed and verified diagnosis.
-        $hrManagers = $hrProject->company->users()
-            ->wherePivot('role', 'hr_manager')
-            ->get();
-        if ($hrManagers->isNotEmpty()) {
-            Notification::send($hrManagers, new PhilosophyCompletedNotification($hrProject));
+        // Notify HR managers only on first completion (avoid repeated emails).
+        if (! $alreadyCompleted) {
+            $hrManagers = $hrProject->company->users()
+                ->wherePivot('role', 'hr_manager')
+                ->get();
+            if ($hrManagers->isNotEmpty()) {
+                Notification::send($hrManagers, new PhilosophyCompletedNotification($hrProject));
+            }
         }
 
-        return redirect()->route('ceo.review.diagnosis', $hrProject)
-            ->with('ceoSurveyDone', true)
+        $redirect = redirect()->route('ceo.review.diagnosis', $hrProject)
             ->with('success', 'Survey completed and diagnosis verified successfully.');
+
+        if (! $alreadyCompleted) {
+            $redirect->with('ceoSurveyDone', true);
+        }
+
+        return $redirect;
     }
 }

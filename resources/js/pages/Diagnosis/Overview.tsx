@@ -181,16 +181,16 @@ export default function DiagnosisOverview({
         <AppLayout showWorkflowSteps={true} stepStatuses={stepStatuses} projectId={pid}>
             <Head title={`Step 1: Diagnosis - ${company?.name || project?.company?.name || 'Company'}`} />
             <div className="min-h-full flex flex-col bg-[#f5f3ef] text-[#1e293b]">
-                <div className="p-6 pt-6 pb-0">
-                    <Link
-                        href="/hr-manager/dashboard"
-                        className="text-sm font-medium text-[#0f2a4a] hover:text-[#1a4070] flex items-center gap-1"
-                    >
-                        ← Back to Dashboard
-                    </Link>
-                </div>
                 {/* Hero Section — same as Job Analysis / Performance */}
                 <section className="bg-[#0f172a] text-white px-6 py-10 pb-20 md:px-[10%]">
+                    <div className="mb-4">
+                        <Link
+                            href="/hr-manager/dashboard"
+                            className="inline-flex items-center gap-1 rounded-lg border border-[#b38e5d] bg-[#b38e5d]/10 px-3 py-1.5 text-sm font-semibold text-[#b38e5d] transition-colors hover:bg-[#b38e5d]/20"
+                        >
+                            ← Back
+                        </Link>
+                    </div>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
                         <div className="font-bold text-lg">
                             HR Path-Finder <span className="font-normal text-[#64748b] ml-2">/ Diagnosis</span>

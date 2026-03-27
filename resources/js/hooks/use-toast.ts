@@ -26,8 +26,15 @@ function toToastContent(title?: React.ReactNode, description?: React.ReactNode):
 }
 
 function baseOptions(duration?: number): ToastOptions {
+    const MIN_AUTO_CLOSE_MS = 5000;
+    const DEFAULT_AUTO_CLOSE_MS = 7000;
+    const normalizedDuration =
+        typeof duration === 'number'
+            ? Math.max(duration, MIN_AUTO_CLOSE_MS)
+            : DEFAULT_AUTO_CLOSE_MS;
+
     return {
-        autoClose: duration ?? 5000,
+        autoClose: normalizedDuration,
         position: 'top-right',
     };
 }
@@ -61,7 +68,10 @@ function toast({ title, description, variant = 'default', duration }: ToastInput
                               : next.variant === 'warning'
                                 ? 'warning'
                               : 'default',
-                    autoClose: next.duration ?? 5000,
+                    autoClose:
+                        typeof next.duration === 'number'
+                            ? Math.max(next.duration, 5000)
+                            : 7000,
                 }),
         };
     }
@@ -91,7 +101,10 @@ function toast({ title, description, variant = 'default', duration }: ToastInput
                           : next.variant === 'warning'
                             ? 'warning'
                           : 'default',
-                autoClose: next.duration ?? 5000,
+                autoClose:
+                    typeof next.duration === 'number'
+                        ? Math.max(next.duration, 5000)
+                        : 7000,
             }),
     };
 }

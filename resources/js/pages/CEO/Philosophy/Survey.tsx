@@ -6,6 +6,8 @@ import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import { Toaster } from '@/components/ui/toaster';
+import { toast } from '@/hooks/use-toast';
 import { STEPS, MAX_ORGANIZATIONAL_ISSUES } from './constants';
 import {
     IntroStep,
@@ -332,10 +334,22 @@ export default function CeoPhilosophySurvey({
         post(`/ceo/philosophy/survey/${project.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                router.visit('/ceo/dashboard');
+                toast({
+                    title: 'Survey submitted successfully',
+                    description: 'Your CEO philosophy survey has been saved.',
+                    variant: 'success',
+                });
+                window.setTimeout(() => {
+                    router.visit('/ceo/dashboard');
+                }, 500);
             },
             onError: () => {
                 setSubmitError('Could not submit. Please check all answers and try again.');
+                toast({
+                    title: 'Submission failed',
+                    description: 'Please check all required answers and try again.',
+                    variant: 'destructive',
+                });
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             },
         });
@@ -440,6 +454,7 @@ export default function CeoPhilosophySurvey({
 
     return (
         <SidebarProvider defaultOpen={true}>
+            <Toaster />
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>

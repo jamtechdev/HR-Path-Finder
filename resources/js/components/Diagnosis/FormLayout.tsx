@@ -191,7 +191,6 @@ export default function FormLayout({
     hidePageTitle = false,
     liveValidationError = null,
 }: FormLayoutProps) {
-    const lastSaveToastAtRef = useRef(0);
     const areFieldErrorsEqual = (a: FieldErrors, b: FieldErrors) => {
         const aKeys = Object.keys(a);
         const bKeys = Object.keys(b);
@@ -272,18 +271,6 @@ export default function FormLayout({
         setValidationError(null);
         setDiagnosisFieldErrors({});
 
-        const showSavedToast = (description: string) => {
-            const now = Date.now();
-            if (now - lastSaveToastAtRef.current < 1500) return;
-            lastSaveToastAtRef.current = now;
-            toast({
-                title: toastCopy.changesSaved,
-                description,
-                variant: 'success',
-                duration: 1800,
-            });
-        };
-
         const stepCompleted = stepStatuses[activeTab] === 'submitted' ||
             stepStatuses[activeTab] === 'approved' ||
             stepStatuses[activeTab] === 'locked' ||
@@ -343,7 +330,6 @@ export default function FormLayout({
                     if (projectId) {
                         saveTabDraft(projectId, activeTab, serializeDraft(formData));
                     }
-                    showSavedToast('Your diagnosis updates have been saved. 변경사항이 저장되었습니다.');
                     doNavigate();
                 },
                 onError: (payload: unknown) => {
@@ -371,7 +357,6 @@ export default function FormLayout({
 
         if (projectId && formData && activeTab !== 'review') {
             saveTabDraft(projectId, activeTab, serializeDraft(formData));
-            showSavedToast('Your diagnosis updates have been saved. 변경사항이 저장되었습니다.');
         }
 
         doNavigate();
@@ -408,12 +393,6 @@ export default function FormLayout({
         if (projectId && formData && !isReadOnly && activeTab !== 'review') {
             e.preventDefault();
             saveTabDraft(projectId, activeTab, serializeDraft(formData));
-            toast({
-                title: toastCopy.changesSaved,
-                description: 'Your diagnosis updates have been saved. 변경사항이 저장되었습니다.',
-                variant: 'success',
-                duration: 1500,
-            });
             router.visit(getBackUrl());
         }
     };

@@ -422,7 +422,7 @@ export default function CeoReviewDiagnosis({
                             onConfirm={handleConfirm}
                             processing={processing}
                             diagnosisStatus={diagnosis?.status}
-                            hasSurveyCompleted={!!project?.ceoPhilosophy}
+                            hasSurveyCompleted={!!project?.ceoPhilosophy?.completed_at}
                             isDiagnosisComplete={isDiagnosisCompleteForVerification}
                             projectId={project?.id}
                         />

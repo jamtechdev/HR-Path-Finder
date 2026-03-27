@@ -3,6 +3,9 @@ import { useEffect, useRef } from 'react';
 import { toast } from '@/hooks/use-toast';
 import type { SharedData } from '@/types';
 
+const FLASH_DEDUPE_WINDOW_MS = 4000;
+const flashShownAt = new Map<string, number>();
+
 /**
  * Shows session flash messages as toasts once per distinct flash payload (AppLayout / HR shell).
  */
@@ -26,7 +29,15 @@ export function FlashToasts() {
         if (lastSig.current === sig) {
             return;
         }
+
+        const now = Date.now();
+        const lastShown = flashShownAt.get(sig) ?? 0;
+        if (now - lastShown < FLASH_DEDUPE_WINDOW_MS) {
+            return;
+        }
+
         lastSig.current = sig;
+        flashShownAt.set(sig, now);
 
         if (flash?.success) {
             toast({ title: flash.success, variant: 'success' });

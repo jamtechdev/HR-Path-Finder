@@ -55,6 +55,10 @@ interface Props {
         jobClassificationStatus: string | null;
         hasFormalFramework: boolean;
     };
+    diagnosisSummary?: {
+        present_headcount?: number | null;
+        job_grade_names?: string[];
+    };
     introCompleted?: boolean;
     stepStatuses?: any;
     templates?: Record<number | string, any>;
@@ -129,6 +133,7 @@ export default function JobAnalysisIndex({
     industry,
     sizeRange,
     diagnosisContext,
+    diagnosisSummary,
     introCompleted = false,
     stepStatuses = {},
     templates = {},
@@ -437,6 +442,7 @@ export default function JobAnalysisIndex({
                         projectId={project.id}
                         jobDefinitions={state.jobDefinitions}
                         orgMappings={state.orgMappings}
+                        diagnosisSummary={diagnosisSummary}
                         policyAnswers={state.policyAnswers}
                         jobSelections={state.jobSelections}
                         onContinue={handleStep4Continue}

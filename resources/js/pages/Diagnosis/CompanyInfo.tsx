@@ -1,5 +1,5 @@
 import { Head, useForm, router } from '@inertiajs/react';
-import { Calendar, Upload, X } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 import React, { useEffect, useState, useRef } from 'react';
 import { DiagnosisFieldShell } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 import FormLayout from '@/components/Diagnosis/FormLayout';
@@ -80,23 +80,13 @@ export default function CompanyInfo({
     embedData,
     embedSetData,
 }: Props) {
-    // Format registration number for display (convert "291" to "291-00-00000" format if needed)
+    // Format registration number as 000-00-00000 while typing.
     const formatRegistrationNumber = (value: string): string => {
         if (!value) return '';
-        // If already in correct format, return as is
-        if (/^\d{3}-\d{2}-\d{5}$/.test(value)) {
-            return value;
-        }
-        // If it's just digits, try to format it
-        const digits = value.replace(/\D/g, '');
-        if (digits.length >= 3) {
-            // Format as 000-00-00000
-            const part1 = digits.substring(0, 3);
-            const part2 = digits.substring(3, 5) || '00';
-            const part3 = digits.substring(5, 10) || '00000';
-            return `${part1}-${part2}-${part3}`.substring(0, 13);
-        }
-        return value;
+        const digits = value.replace(/\D/g, '').slice(0, 10);
+        if (digits.length <= 3) return digits;
+        if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+        return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
     };
 
     const [logoPreview, setLogoPreview] = useState<string | null>(company.logo_path || null);
@@ -159,11 +149,10 @@ export default function CompanyInfo({
         });
     }, [projectId, readOnly, embedMode, setData]);
 
-    // Validate registration number format (000-00-00000 or digits only)
+    // Validate registration number format (exactly 10 digits => 000-00-00000)
     const validateRegistrationNumber = (value: string): boolean => {
         if (!value) return true; // Allow empty for optional fields
-        // Accept format: 000-00-00000 or 3-10 digits
-        const regex = /^(\d{3}-\d{2}-\d{5}|\d{3,10})$/;
+        const regex = /^\d{3}-\d{2}-\d{5}$/;
         return regex.test(value);
     };
 
@@ -291,14 +280,9 @@ export default function CompanyInfo({
                                 id="registration_number"
                                 value={data.registration_number}
                                 onChange={(e) => {
-                                    const value = e.target.value;
-                                    const formatted = value
-                                        .replace(/\D/g, '')
-                                        .replace(/(\\d{3})(\\d{2})(\\d{5})/, '$1-$2-$3')
-                                        .slice(0, 13);
-                                    setData('registration_number', formatted);
+                                    setData('registration_number', formatRegistrationNumber(e.target.value));
                                 }}
-                                placeholder="618-02-72032"
+                                placeholder="000-00-00000"
                                 className={cn(
                                     'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 px-3 text-sm',
                                     errors.registration_number && 'border-red-500'
@@ -310,7 +294,11 @@ export default function CompanyInfo({
                             {errors.registration_number && (
                                 <p className="mt-1 text-xs text-red-500">{errors.registration_number}</p>
                             )}
-                            {data.registration_number && !validateRegistrationNumber(data.registration_number) && (
+                            {data.registration_number && !validateRegistrationNumber(data.registration_number) ? (
+                                <p className="mt-1 text-xs text-red-500">
+                                    Enter exactly 10 digits. It auto-formats to 000-00-00000.
+                                </p>
+                            ) : (
                                 <p className="mt-1 text-xs text-amber-600">{tr('registrationNumberFormatHint')}</p>
                             )}
                         </div>
@@ -349,7 +337,6 @@ export default function CompanyInfo({
                                         required
                                         disabled={readOnly}
                                     />
-                                    <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                 </div>
                                 {errors.foundation_date && (
                                     <p className="mt-1 text-xs text-red-500">{errors.foundation_date}</p>

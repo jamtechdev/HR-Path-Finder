@@ -24,9 +24,26 @@ export default function DiagnosisActions({
     isDiagnosisComplete = false,
     projectId,
 }: DiagnosisActionsProps) {
+    const isFinalized =
+        diagnosisStatus === 'approved' ||
+        diagnosisStatus === 'locked' ||
+        diagnosisStatus === 'completed';
+
     const canConfirm = diagnosisStatus === 'submitted' && hasSurveyCompleted && isDiagnosisComplete && onConfirm;
     const needsSurvey = diagnosisStatus === 'submitted' && !hasSurveyCompleted;
     const needsCompleteDiagnosis = diagnosisStatus === 'submitted' && hasSurveyCompleted && !isDiagnosisComplete;
+
+    if (isFinalized) {
+        return (
+            <div className="mt-8 space-y-3">
+                <div className="flex items-center justify-end pt-6 border-t">
+                    <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                        Diagnosis already verified
+                    </span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="mt-8 space-y-4">

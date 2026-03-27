@@ -10,6 +10,10 @@ interface Step4FinalizationProps {
     projectId: number;
     jobDefinitions: Record<string, JobDefinition>;
     orgMappings: OrgChartMapping[];
+    diagnosisSummary?: {
+        present_headcount?: number | null;
+        job_grade_names?: string[];
+    };
     policyAnswers?: Record<number, { answer: string; conditional_text?: string }>;
     jobSelections?: {
         selected_job_keyword_ids: number[];
@@ -25,6 +29,7 @@ export default function Step4Finalization({
     projectId,
     jobDefinitions,
     orgMappings,
+    diagnosisSummary,
     policyAnswers = {},
     jobSelections = {
         selected_job_keyword_ids: [],
@@ -91,16 +96,78 @@ export default function Step4Finalization({
     const spec = activeJob?.job_specification;
     const levels = activeJob?.competency_levels || [];
 
-    const reportsTo =
-        activeJob?.job_name === 'Accounting'
-            ? 'CFO / Finance Director'
-            : activeJob?.job_name === 'HR'
-            ? 'CHRO / HR Director'
-            : '—';
+    const activeJobKeywordIds = useMemo(() => {
+        if (!activeJob) return [];
+        const ids = new Set<number>();
+        if (typeof activeJob.job_keyword_id === 'number') ids.add(activeJob.job_keyword_id);
+        (activeJob.grouped_job_keyword_ids || []).forEach((id) => {
+            if (typeof id === 'number') ids.add(id);
+        });
+        return Array.from(ids);
+    }, [activeJob]);
+
+    const mappingById = useMemo(() => {
+        const map = new Map<string, OrgChartMapping>();
+        orgMappings.forEach((m) => map.set(m.id, m));
+        return map;
+    }, [orgMappings]);
+
+    const relatedOrgUnits = useMemo(() => {
+        if (activeJobKeywordIds.length === 0) return [] as OrgChartMapping[];
+        return orgMappings.filter((unit) => {
+            const unitHasJob = (unit.job_keyword_ids || []).some((id) => activeJobKeywordIds.includes(id));
+            const specialistHasJob = (unit.job_specialists || []).some((s) => activeJobKeywordIds.includes(s.job_keyword_id));
+            return unitHasJob || specialistHasJob;
+        });
+    }, [activeJobKeywordIds, orgMappings]);
+
+    const reportsTo = useMemo(() => {
+        if (relatedOrgUnits.length === 0) return 'Not mapped yet';
+        const candidates = relatedOrgUnits
+            .map((unit) => {
+                if (unit.parentId) {
+                    const parent = mappingById.get(unit.parentId);
+                    if (parent) {
+                        return parent.org_head_title || parent.org_head_rank || parent.org_head_name || parent.org_unit_name;
+                    }
+                }
+                return unit.org_head_title || unit.org_head_rank || unit.org_head_name || unit.org_unit_name;
+            })
+            .filter(Boolean) as string[];
+        const unique = Array.from(new Set(candidates.map((v) => v.trim()).filter(Boolean)));
+        if (unique.length === 0) return 'Not mapped yet';
+        return unique.slice(0, 2).join(' / ');
+    }, [mappingById, relatedOrgUnits]);
+
+    const headcountLabel = useMemo(() => {
+        if (relatedOrgUnits.length === 0) return 'Not mapped yet';
+        const specialistCount = relatedOrgUnits.reduce((sum, unit) => {
+            return sum + (unit.job_specialists || []).filter((s) => activeJobKeywordIds.includes(s.job_keyword_id)).length;
+        }, 0);
+        if (specialistCount > 0) return `${specialistCount} FTE`;
+        const mappedUnitsCount = relatedOrgUnits.filter((unit) =>
+            (unit.job_keyword_ids || []).some((id) => activeJobKeywordIds.includes(id))
+        ).length;
+        return mappedUnitsCount > 0 ? `${mappedUnitsCount} FTE` : 'Not mapped yet';
+    }, [activeJobKeywordIds, relatedOrgUnits]);
+
+    const finalHeadcountLabel = useMemo(() => {
+        if (headcountLabel !== 'Not mapped yet') return headcountLabel;
+        const fromDiagnosis = Number(diagnosisSummary?.present_headcount ?? 0);
+        if (fromDiagnosis > 0) return `${fromDiagnosis} FTE`;
+        return '—';
+    }, [headcountLabel, diagnosisSummary?.present_headcount]);
+
+    const jobGradeLabel = useMemo(() => {
+        const grades = (diagnosisSummary?.job_grade_names || []).filter((g) => String(g || '').trim() !== '');
+        if (grades.length === 0) return '—';
+        if (grades.length === 1) return grades[0];
+        return `${grades[0]} — ${grades[grades.length - 1]}`;
+    }, [diagnosisSummary?.job_grade_names]);
 
     return (
         <div className="min-h-full flex flex-col bg-[#f9f7f2] text-[#121431]">
-            <div className="flex-1 min-h-0 max-w-[1100px] mx-auto w-full py-10 px-5 pb-8" style={{ padding: '0 20px', margin: '40px auto' }}>
+            <div className="flex-1 min-h-0 max-w-[1100px] mx-auto w-full py-10 px-5 pb-44" style={{ padding: '0 20px', margin: '40px auto' }}>
                 <div className="flex items-start justify-between gap-4 flex-wrap mb-2">
                     <div>
                         <div className="step-label mb-2" style={{ color: '#b88a44', fontSize: 12, fontWeight: 700, letterSpacing: 1 }}>
@@ -136,7 +203,7 @@ export default function Step4Finalization({
 
                 <FieldErrorMessage fieldKey="finalization" errors={fieldErrors} className="mb-4" />
 
-                <div className="flex gap-2 mb-6 flex-wrap">
+                <div className="flex gap-2 mb-8 flex-wrap">
                     {jobEntries.map(([key]) => {
                         const isActive = activeKey === key;
                         return (
@@ -167,20 +234,23 @@ export default function Step4Finalization({
                                 boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)',
                             }}
                         >
-                            <div className="pt-10 pb-10 px-6 md:px-10 pr-4 md:pr-10">
+                            <div className="pt-10 pb-10 px-6 md:px-10">
                                 <div className="text-[11px] uppercase tracking-wider opacity-70 mb-1" style={{ letterSpacing: 1 }}>
                                     JOB PROFILE — CORPORATE & MANAGEMENT SUPPORT
                                 </div>
-                                <h2
-                                    className="mt-2 mb-3 text-white font-bold"
-                                    style={{ fontFamily: "'Pretendard', 'DM Sans', sans-serif", fontSize: 'clamp(28px, 4vw, 40px)' }}
-                                >
-                                    {activeJob.job_name}
-                                </h2>
-                                <p className="opacity-90 max-w-[600px] leading-relaxed m-0 text-[15px]">
-                                    {activeJob.job_description || 'No description entered.'}
-                                </p>
-                                <div className="sm:absolute top-10 right-6 md:right-10 text-right flex flex-col gap-2 min-w-[140px]">
+                                <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                                    <div className="min-w-0 md:max-w-[70%]">
+                                        <h2
+                                            className="mt-2 mb-3 text-white font-bold"
+                                            style={{ fontFamily: "'Pretendard', 'DM Sans', sans-serif", fontSize: 'clamp(28px, 4vw, 40px)' }}
+                                        >
+                                            {activeJob.job_name}
+                                        </h2>
+                                        <p className="opacity-90 leading-relaxed m-0 text-[15px]">
+                                            {activeJob.job_description || 'No description entered.'}
+                                        </p>
+                                    </div>
+                                    <div className="text-right flex flex-col gap-2 min-w-[200px]">
                                     <div
                                         className="rounded px-3 py-2 text-[11px] border shrink-0"
                                         style={{
@@ -197,7 +267,7 @@ export default function Step4Finalization({
                                             borderColor: 'rgba(255,255,255,0.25)',
                                         }}
                                     >
-                                        HEADCOUNT: <strong className="font-semibold">4 FTE</strong>
+                                        HEADCOUNT: <strong className="font-semibold">{finalHeadcountLabel}</strong>
                                     </div>
                                     <div
                                         className="rounded px-3 py-2 text-[11px] border shrink-0"
@@ -206,8 +276,9 @@ export default function Step4Finalization({
                                             borderColor: 'rgba(255,255,255,0.25)',
                                         }}
                                     >
-                                        JOB GRADE: <strong className="font-semibold">Grade 3—5</strong>
+                                        JOB GRADE: <strong className="font-semibold">{jobGradeLabel}</strong>
                                     </div>
+                                </div>
                                 </div>
                             </div>
                         </div>
@@ -243,13 +314,13 @@ export default function Step4Finalization({
                                     </div>
                                     {levels.length > 0 ? (
                                         <div className="overflow-x-auto -mx-1">
-                                            <table className="w-full border-collapse text-[13px]">
+                                            <table className="w-full border-collapse text-[13px] table-fixed">
                                                 <thead>
                                                     <tr>
-                                                        <th className="text-left pb-3 border-b font-medium text-[#6b7280] text-[11px] uppercase" style={{ borderColor: '#e5e7eb' }}>LV</th>
-                                                        <th className="text-left pb-3 border-b font-medium text-[#6b7280] text-[11px] uppercase" style={{ borderColor: '#e5e7eb' }}>TITLE</th>
-                                                        <th className="text-left pb-3 border-b font-medium text-[#6b7280] text-[11px] uppercase" style={{ borderColor: '#e5e7eb' }}>YEARS</th>
-                                                        <th className="text-left pb-3 border-b font-medium text-[#6b7280] text-[11px] uppercase" style={{ borderColor: '#e5e7eb' }}>CORE EXPECTATION</th>
+                                                        <th className="w-[52px] text-left pb-3 border-b font-medium text-[#6b7280] text-[11px] uppercase" style={{ borderColor: '#e5e7eb' }}>LV</th>
+                                                        <th className="w-[150px] text-left pb-3 border-b font-medium text-[#6b7280] text-[11px] uppercase pr-3" style={{ borderColor: '#e5e7eb' }}>TITLE</th>
+                                                        <th className="w-[72px] text-left pb-3 border-b font-medium text-[#6b7280] text-[11px] uppercase pr-3" style={{ borderColor: '#e5e7eb' }}>YEARS</th>
+                                                        <th className="text-left pb-3 border-b font-medium text-[#6b7280] text-[11px] uppercase">CORE EXPECTATION</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -267,8 +338,8 @@ export default function Step4Finalization({
                                                                         {level.level}
                                                                     </span>
                                                                 </td>
-                                                                <td className="py-3.5 align-top font-semibold text-[#121431]">{titlePart || '—'}</td>
-                                                                <td className="py-3.5 align-top text-[#6b7280] text-[12px]">0–2 yrs</td>
+                                                                <td className="py-3.5 align-top font-semibold text-[#121431] pr-3">{titlePart || '—'}</td>
+                                                                <td className="py-3.5 align-top text-[#6b7280] text-[12px] pr-3">0–2 yrs</td>
                                                                 <td className="py-3.5 align-top text-[#6b7280] text-[12px] leading-snug">{rest || '—'}</td>
                                                             </tr>
                                                         );
@@ -402,7 +473,7 @@ export default function Step4Finalization({
             </div>
 
             <footer
-                className="sticky bottom-0 w-full bg-white border-t border-[#e0ddd5] py-[18px] px-6 md:px-[60px] flex flex-wrap items-center justify-between gap-4 z-10 mt-auto"
+                className="sticky bottom-0 w-full bg-white/95 backdrop-blur border-t border-[#e0ddd5] py-[18px] px-6 md:px-[60px] flex flex-wrap items-center justify-between gap-4 z-20 mt-auto"
                 style={{
                     boxShadow: '0 -4px 6px -1px rgba(0,0,0,0.05)',
                 }}
