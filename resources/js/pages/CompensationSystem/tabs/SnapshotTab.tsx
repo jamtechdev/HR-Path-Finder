@@ -25,9 +25,23 @@ interface SnapshotTabProps {
 
 export default function SnapshotTab({ projectId, questions = [], responses: initialResponses, snapshotResponses: externalResponses, onSnapshotResponsesChange, onNext, fieldErrors = {} }: SnapshotTabProps) {
     const clampPercentage = (value: string): number => {
-        const parsed = parseFloat(value);
+        const parsed = parseFloat(value.replace(/,/g, ''));
         if (Number.isNaN(parsed)) return 0;
         return Math.min(100, Math.max(0, parsed));
+    };
+
+    const stripCommas = (v: string): string => v.replace(/,/g, '');
+    const formatWithCommas = (n: number | string | null | undefined): string => {
+        if (n === null || n === undefined || n === '') return '';
+        const num = typeof n === 'string' ? parseFloat(stripCommas(n)) : n;
+        if (!Number.isFinite(num)) return '';
+        return num.toLocaleString('en-US');
+    };
+    const parseNumberWithCommas = (v: string): number => {
+        const cleaned = stripCommas(v);
+        const parsed = parseFloat(cleaned);
+        // Use NaN so downstream "answered" checks using Number.isFinite() treat it as empty.
+        return Number.isNaN(parsed) ? NaN : parsed;
     };
 
     // Initialize responses state from existing data or external state
@@ -151,19 +165,19 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
         }
     };
 
-    // Get Q17 response for filtering Q18 options
-    const q17Question = questions.find((q, i) => i === 16);
+    // Q17/Q18 filtering relies on question "order", not array index.
+    const q17Question = questions.find((q) => q.order === 17);
     const q17Response = q17Question ? (snapshotResponses[q17Question.id] as string[] || []) : [];
 
     // Keep Q18 selection consistent with Q17 (so "invalid" previously selected options are cleared)
-    const q18Question = questions.find((q, i) => i === 17);
+    const q18Question = questions.find((q) => q.order === 18);
     const q18Selected = q18Question ? snapshotResponses[q18Question.id] : null;
 
     useEffect(() => {
         if (!q18Question || q18Question.answer_type !== 'select_up_to_2') return;
 
-        const options = Array.isArray(q18Question.options) ? q18Question.options : [];
-        const allowed = q17Response.length > 0 ? options.filter((opt) => q17Response.includes(opt)) : [];
+        const q17Options = Array.isArray(q17Question?.options) ? q17Question?.options : [];
+        const allowed = q17Response.length > 0 ? q17Options.filter((opt) => q17Response.includes(opt)) : [];
 
         if (!Array.isArray(q18Selected)) return;
         const next = q18Selected.filter((v) => allowed.includes(v));
@@ -263,7 +277,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                 <div className="lg:col-span-2 space-y-6">
                     {questions && questions.length > 0 ? (
                         questions.map((question, idx) => {
-                            const isQ18 = idx === 17;
+                            const isQ18 = question.order === 18;
                             const isMultiYearNumeric = question.metadata?.is_multi_year === true || 
                                 question.question_text?.toLowerCase().includes('past three years') ||
                                 question.question_text?.toLowerCase().includes('average annual salary increase rate') ||
@@ -300,12 +314,12 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                 <div key={year} className="space-y-2">
                                                                     <Label className="text-sm font-medium text-muted-foreground">{year} (%)</Label>
                                                                     <Input
-                                                                        type="number"
+                                                                        type="text"
                                                                         min={0}
                                                                         max={100}
                                                                         step="0.01"
                                                                         value={typeof snapshotResponses[question.id] === 'object' && snapshotResponses[question.id] !== null
-                                                                            ? (snapshotResponses[question.id] as any)[year] || '' 
+                                                                            ? formatWithCommas((snapshotResponses[question.id] as any)[year] ?? '')
                                                                             : ''}
                                                                         onChange={(e) => {
                                                                             const current = typeof snapshotResponses[question.id] === 'object' && snapshotResponses[question.id] !== null
@@ -345,11 +359,11 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                         className="w-48"
                                                                     />
                                                                     <Input
-                                                                        type="number"
-                                                                        value={func.amount || ''}
+                                                                        type="text"
+                                                                        value={formatWithCommas(func.amount ?? '')}
                                                                         onChange={(e) => {
                                                                             const updated = [...jobFunctions];
-                                                                            updated[funcIdx] = { ...updated[funcIdx], amount: parseFloat(e.target.value) || 0 };
+                                                                            updated[funcIdx] = { ...updated[funcIdx], amount: parseNumberWithCommas(e.target.value) };
                                                                             updateResponses({ ...snapshotResponses, [question.id]: updated });
                                                                         }}
                                                                         placeholder="Amount (KRW)"
@@ -405,9 +419,9 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                             <div key={range.key} className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
                                                                 <Label className="w-32 text-sm font-medium">{range.label}</Label>
                                                                 <Input
-                                                                    type="number"
+                                                                    type="text"
                                                                     value={typeof snapshotResponses[question.id] === 'object' && snapshotResponses[question.id] !== null
-                                                                        ? (snapshotResponses[question.id] as any)[range.key] || '' 
+                                                                        ? formatWithCommas((snapshotResponses[question.id] as any)[range.key] ?? '')
                                                                         : ''}
                                                                     onChange={(e) => {
                                                                         const current = typeof snapshotResponses[question.id] === 'object' && snapshotResponses[question.id] !== null
@@ -415,7 +429,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                             : {};
                                                                         updateResponses({ 
                                                                             ...snapshotResponses, 
-                                                                            [question.id]: { ...current, [range.key]: parseFloat(e.target.value) || 0 }
+                                                                            [question.id]: { ...current, [range.key]: parseNumberWithCommas(e.target.value) }
                                                                         });
                                                                     }}
                                                                     placeholder="Amount (KRW)"
@@ -453,9 +467,13 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                 <span className="text-[#4b5563]"> — choose the two programs you believe are least effective.</span>
                                                             </div>
                                                         )}
-                                                        {(isQ18 && q17Response.length > 0 
-                                                            ? (question.options || []).filter(opt => q17Response.includes(opt))
-                                                            : (question.options || [])
+                                                        {(isQ18
+                                                            ? q17Response.length > 0
+                                                                ? ((Array.isArray(q17Question?.options) ? q17Question?.options : []) as string[]).filter((opt) =>
+                                                                    q17Response.includes(opt)
+                                                                )
+                                                                : []
+                                                            : question.options || []
                                                         ).map((option, optIdx) => {
                                                             const selected = Array.isArray(snapshotResponses[question.id]) 
                                                                 ? (snapshotResponses[question.id] as string[]).includes(option)
@@ -538,9 +556,9 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                 {/* Regular numeric input */}
                                                 {!isMultiYearNumeric && !isJobFunctions && !isYearsOfService && question.answer_type === 'numeric' && (
                                                     <Input
-                                                        type="number"
-                                                        value={snapshotResponses[question.id] as number || ''}
-                                                        onChange={(e) => updateResponses({ ...snapshotResponses, [question.id]: parseFloat(e.target.value) || 0 })}
+                                                        type="text"
+                                                        value={formatWithCommas(snapshotResponses[question.id] as any)}
+                                                        onChange={(e) => updateResponses({ ...snapshotResponses, [question.id]: parseNumberWithCommas(e.target.value) })}
                                                         placeholder="Enter amount (KRW)"
                                                         className="max-w-md"
                                                     />

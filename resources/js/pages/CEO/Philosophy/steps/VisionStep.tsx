@@ -1,5 +1,6 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { VISION_CHUNKS, KEYWORD_PRESETS } from '../constants';
 import type { DiagnosisQuestion, SurveyFormData, VisionChunkConfig } from '../types';
 
@@ -63,7 +64,10 @@ export default function VisionStep({
                     const val = data.vision_mission[qId];
                     const answered = val !== undefined && val !== null && (typeof val !== 'string' || val.trim() !== '') && (!Array.isArray(val) || (val as unknown[]).some((x) => String(x).trim()));
                     const hasError = showErrors && !answered;
-                    const isSegment = question.question_type === 'select' && (question.options?.length ?? 0) <= 4;
+                    const isSelect = question.question_type === 'select';
+                    const optionsCount = question.options?.length ?? 0;
+                    const isSegment = isSelect && optionsCount > 0 && optionsCount <= 4;
+                    const isSelectDropdown = isSelect && optionsCount > 4;
                     const isRevenue = question.question_type === 'number';
                     const isKeyword = question.question_type === 'text' && question.question_text.toLowerCase().includes('keyword');
                     const unit = (question.metadata as { unit?: string })?.unit || 'USD (thousands)';
@@ -94,6 +98,29 @@ export default function VisionStep({
                                             {opt}
                                         </button>
                                     ))}
+                                </div>
+                            )}
+                            {isSelectDropdown && (
+                                <div className="flex gap-0 rounded-lg overflow-hidden">
+                                    <Select
+                                        value={val == null ? '' : typeof val === 'string' ? val : String(val)}
+                                        onValueChange={(value) =>
+                                            setData('vision_mission', { ...data.vision_mission, [qId]: value })
+                                        }
+                                    >
+                                        <SelectTrigger
+                                            className={`w-full h-11 rounded-lg border ${hasError ? 'border-red-300 dark:border-red-500/60' : 'border-[#E2DDD4] dark:border-slate-600'} bg-[#FAFAF8] dark:bg-slate-700`}
+                                        >
+                                            <SelectValue placeholder="Select an option" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {(question.options || []).map((opt) => (
+                                                <SelectItem key={opt} value={opt}>
+                                                    {opt}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                             )}
                             {isRevenue && (
@@ -136,7 +163,7 @@ export default function VisionStep({
                                     />
                                 </>
                             )}
-                            {!isSegment && !isRevenue && !isKeyword && (
+                            {!isSegment && !isSelectDropdown && !isRevenue && !isKeyword && (
                                 question.question_text.length > 100 ? (
                                     <textarea
                                         value={typeof val === 'string' ? val : (Array.isArray(val) ? (val as string[]).join('\n') : '')}

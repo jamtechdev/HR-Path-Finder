@@ -8,9 +8,10 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { tr } from '@/config/diagnosisTranslations';
-import { loadAllTabDrafts } from '@/lib/diagnosisDraftStorage';
-import { setLogoDraftFile } from '@/lib/diagnosisFileDrafts';
+import { loadAllTabDrafts, saveTabDraft } from '@/lib/diagnosisDraftStorage';
+import { getLogoDraftFile, setLogoDraftFile } from '@/lib/diagnosisFileDrafts';
 import { cn } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
 
 interface Company {
     id: number;
@@ -92,6 +93,7 @@ export default function CompanyInfo({
     const [logoPreview, setLogoPreview] = useState<string | null>(company.logo_path || null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const draftHydrated = useRef(false);
+    const logoDraftPreviewHydrated = useRef(false);
 
     const internalForm = useForm<{
         company_name: string;
@@ -123,6 +125,18 @@ export default function CompanyInfo({
     const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v as never) : internalForm.setData;
     const errors = internalForm.errors;
 
+    const isNonEmptyString = (v: unknown): boolean => typeof v === 'string' && v.trim().length > 0;
+
+    const serializeDraft = (formData: any): Record<string, unknown> => {
+        if (!formData || typeof formData !== 'object') return {};
+        try {
+            const json = JSON.stringify(formData, (_k, v) => (v instanceof File ? undefined : v));
+            return JSON.parse(json) as Record<string, unknown>;
+        } catch {
+            return {};
+        }
+    };
+
     // Removed auto-save - only save on review and submit
 
     // Load existing logo if available
@@ -137,6 +151,27 @@ export default function CompanyInfo({
             }
         }
     }, [company.logo_path]);
+
+    // If the user uploaded a logo earlier, rehydrate the preview from in-memory file drafts
+    // so it doesn't disappear after navigation.
+    useEffect(() => {
+        if (!projectId) return;
+        if (logoDraftPreviewHydrated.current) return;
+        const draftLogo = getLogoDraftFile(projectId);
+        if (!draftLogo) return;
+        logoDraftPreviewHydrated.current = true;
+
+        // Only populate the form's `logo` File when not embedded.
+        // In embedded mode we only need the preview (the draft file is handled at submit time anyway).
+        if (!useEmbed) {
+            internalForm.setData('logo', draftLogo);
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setLogoPreview(reader.result as string);
+        };
+        reader.readAsDataURL(draftLogo);
+    }, [projectId]);
 
     useEffect(() => {
         if (draftHydrated.current || !projectId || readOnly || embedMode) return;
@@ -181,6 +216,17 @@ export default function CompanyInfo({
         reader.readAsDataURL(file);
     };
 
+    const handleSaveDraft = () => {
+        if (!projectId) return;
+        const draft = serializeDraft({ ...data, is_public: data.is_public });
+        saveTabDraft(projectId, 'company-info', draft);
+        toast({
+            title: 'Draft saved',
+            description: 'You can come back later without losing your progress.',
+            variant: 'success',
+        });
+    };
+
     const primaryIndustryFilled =
         (data.industry_category && data.industry_category !== 'Others') ||
         (data.industry_category === 'Others' && !!data.industry_category_other?.trim());
@@ -189,13 +235,17 @@ export default function CompanyInfo({
         data.industry_category === 'Others' ||
         (!!data.industry_subcategory?.trim() && (data.industry_subcategory !== 'Others' || !!data.industry_other?.trim()));
     const requiredFields = [
-        !!data.company_name?.trim(),
-        !!data.registration_number?.trim(),
-        !!data.foundation_date?.trim(),
+        isNonEmptyString(data.company_name),
+        isNonEmptyString(data.registration_number),
+        isNonEmptyString(data.foundation_date),
         primaryIndustryFilled,
         subIndustryFilled,
-        !!data.hq_location?.trim(),
-        data.is_public !== undefined && data.is_public !== null,
+        isNonEmptyString(data.hq_location),
+        typeof data.is_public === 'boolean' ||
+            data.is_public === 0 ||
+            data.is_public === 1 ||
+            data.is_public === '0' ||
+            data.is_public === '1',
     ];
     const requiredCount = requiredFields.filter(Boolean).length;
     const completionPct = Math.round((requiredCount / requiredFields.length) * 100);
@@ -593,6 +643,21 @@ export default function CompanyInfo({
                                 필수 항목을 모두 입력하면 다음 단계로 이동할 수 있습니다
                             </p>
                         </div>
+
+                        {projectId && !readOnly && (
+                            <div className="pt-4">
+                                <button
+                                    type="button"
+                                    onClick={handleSaveDraft}
+                                    className="w-full h-10 rounded-lg bg-teal-500 text-white font-bold text-sm shadow-sm hover:bg-teal-400 transition-colors"
+                                >
+                                    Save Draft
+                                </button>
+                                <p className="text-[10px] text-gray-400 mt-2">
+                                    Session에 임시 저장됩니다.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
 

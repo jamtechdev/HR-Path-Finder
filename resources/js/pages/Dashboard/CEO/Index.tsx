@@ -160,7 +160,7 @@ export default function CeoDashboard({
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="text-sm text-muted-foreground mb-1">Completed</p>
-                                                <p className="text-3xl font-bold">{stats.completed_projects}</p>
+                                                <p className="text-3xl font-bold whitespace-nowrap tabular-nums">{stats.completed_projects}</p>
                                             </div>
                                             <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
                                                 <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />

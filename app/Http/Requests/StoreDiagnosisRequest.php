@@ -25,6 +25,7 @@ class StoreDiagnosisRequest extends FormRequest
             'is_public' => ['nullable', 'boolean'],
             'foundation_date' => ['nullable', 'date'],
             'brand_name' => ['nullable', 'string', 'max:255'],
+            'hq_location' => ['nullable', 'string', 'max:255'],
             'registration_number' => ['nullable', 'string', 'max:255', function ($attribute, $value, $fail) {
                 if ($value && !preg_match('/^(\d{3}-\d{2}-\d{5}|\d{10})$/', $value)) {
                     $fail('Registration number must be exactly 10 digits (000-00-00000).');

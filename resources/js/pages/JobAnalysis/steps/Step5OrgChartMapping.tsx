@@ -516,19 +516,6 @@ export default function Step5OrgChartMapping({
                                                     className="flex items-center gap-3 pt-3 rounded-lg p-3"
                                                     style={{ background: '#faf9f7' }}
                                                 >
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleRemoveUnit(unit.id);
-                                                        }}
-                                                        className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#121431]"
-                                                        style={{ background: '#121431' }}
-                                                        title="Remove this unit"
-                                                        aria-label="Remove this unit"
-                                                    >
-                                                        <Minus className="w-5 h-5 text-white" strokeWidth={2.5} />
-                                                    </button>
                                                     <Button
                                                         type="button"
                                                         variant="outline"

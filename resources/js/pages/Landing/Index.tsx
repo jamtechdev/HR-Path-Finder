@@ -127,6 +127,47 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
     const [factorA, setFactorA] = useState(20);
     const [factorB, setFactorB] = useState(85);
 
+    // Benchmark bar chart (competitive gap vs "우리 회사" baseline 100)
+    const benchmarkBase = 100;
+    const minCompanyWidthPercent = 6; // keep "our company" visible (gap=0)
+    const benchmarkCardRows = [
+        {
+            label: '우리 회사',
+            value: 100,
+            keyName: 'our',
+            isOurCompany: true,
+            barBackground: 'linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.55))',
+        },
+        {
+            label: '업종 전체',
+            value: 127,
+            keyName: 'industry',
+            isOurCompany: false,
+            barBackground: 'linear-gradient(90deg, #ff6b6b, #ff3b3b)',
+        },
+        {
+            label: '타깃 경쟁사',
+            value: 118,
+            keyName: 'comp-a',
+            isOurCompany: false,
+            barBackground: 'linear-gradient(90deg, #ffb020, #ff7a00)',
+        },
+        {
+            label: '유사 제조업',
+            value: 108,
+            keyName: 'comp-b',
+            isOurCompany: false,
+            barBackground: 'linear-gradient(90deg, rgba(241,196,15,0.95), rgba(148,163,184,0.75))',
+        },
+    ];
+    const maxGap = Math.max(...benchmarkCardRows.map((r) => r.value - benchmarkBase));
+    const gapToPercent = (value: number) => {
+        const gap = value - benchmarkBase;
+        if (gap <= 0) return minCompanyWidthPercent;
+        if (maxGap <= 0) return minCompanyWidthPercent;
+        return Math.max(minCompanyWidthPercent, (gap / maxGap) * 100);
+    };
+
     const bands = useMemo(() => calcBands(factorA / 100, factorB / 100), [factorA, factorB]);
 
     useEffect(() => {
@@ -234,19 +275,30 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
                             </div>
                             <div className="p-6">
                                 <div className="text-[.78rem] font-bold mb-5" style={{ color: 'var(--text-secondary)' }}>연간 총보상 수준 (Annual Total Pay Level) — 귀사 기준 100, 시장 비교</div>
-                                {[
-                                    ['우리 회사', 100, 'our', true],
-                                    ['업종 전체', 127, 'industry', false],
-                                    ['타깃 경쟁사', 118, 'comp-a', false],
-                                    ['유사 제조업', 108, 'comp-b', false],
-                                ].map(([label, value, keyName, hi]) => (
-                                    <div key={String(keyName)} className="mb-4">
+                                {benchmarkCardRows.map((row) => (
+                                    <div key={row.keyName} className="mb-4">
                                         <div className="flex justify-between items-center mb-1.5">
-                                            <span className={`text-[.78rem] font-semibold ${hi ? '' : 'opacity-90'}`} style={{ color: hi ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{String(label)}</span>
-                                            <span className={`text-[.85rem] font-extrabold ${hi ? '' : 'opacity-75'}`} style={{ color: hi ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{String(value)}</span>
+                                            <span
+                                                className={`text-[.78rem] font-semibold ${row.isOurCompany ? '' : 'opacity-90'}`}
+                                                style={{ color: row.isOurCompany ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+                                            >
+                                                {row.label}
+                                            </span>
+                                            <span
+                                                className={`text-[.85rem] font-extrabold ${row.isOurCompany ? '' : 'opacity-75'}`}
+                                                style={{ color: row.isOurCompany ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+                                            >
+                                                {row.value}
+                                            </span>
                                         </div>
                                         <div className="h-2 rounded relative" style={{ background: 'rgba(255,255,255,.06)' }}>
-                                            <div className={`bm-bar-fill ${String(keyName)}`} style={{ ['--bar-w' as string]: `${Math.round((Number(value) / 212) * 100)}%`, background: hi ? 'linear-gradient(90deg,#0d9980,var(--teal))' : 'linear-gradient(90deg,#1e4d8c,#3b82f6)' }} />
+                                            <div
+                                                className={`bm-bar-fill ${row.keyName}`}
+                                                style={{
+                                                    ['--bar-w' as string]: `${Math.round(gapToPercent(row.value))}%`,
+                                                    background: row.barBackground,
+                                                }}
+                                            />
                                         </div>
                                     </div>
                                 ))}

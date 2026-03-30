@@ -377,7 +377,14 @@ export default function Leaders({
                                 )}
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                <button type="button" onClick={() => adj(row.id, -1)} className="w-8 h-8 flex items-center justify-center bg-[#F8F9FB] text-[#6B7585] font-bold hover:bg-[#E6F9F6] hover:text-[#25A891]">
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        adj(row.id, -1);
+                                    }}
+                                    className="w-8 h-8 flex items-center justify-center bg-[#F8F9FB] text-[#6B7585] font-bold hover:bg-[#E6F9F6] hover:text-[#25A891]"
+                                >
                                     −
                                 </button>
                                 <input
@@ -385,9 +392,24 @@ export default function Leaders({
                                     min={1}
                                     max={999}
                                     value={count}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.currentTarget.select();
+                                    }}
+                                    onFocus={(e) => e.currentTarget.select()}
                                     onChange={(e) => syncRow(row.id, parseInt(e.target.value, 10) || 1)}
                                     className="w-11 border-0 bg-transparent text-center text-[15px] font-extrabold text-[#1B2B5B] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        adj(row.id, 1);
+                                    }}
+                                    className="w-8 h-8 flex items-center justify-center bg-[#F8F9FB] text-[#6B7585] font-bold hover:bg-[#E6F9F6] hover:text-[#25A891]"
+                                >
+                                    +
+                                </button>
                                 <span className="px-2 border-l border-[#E2E6ED] bg-[#F8F9FB] text-[11px] font-semibold text-[#9AA3B2] h-8 flex items-center">명</span>
                             </div>
                         </div>

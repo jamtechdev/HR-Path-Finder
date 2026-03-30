@@ -312,10 +312,24 @@ export default function Executives({
                                     min={1}
                                     max={99}
                                     value={count}
-                                    onClick={(ev) => ev.stopPropagation()}
+                                    onClick={(ev) => {
+                                        ev.stopPropagation();
+                                        ev.currentTarget.select();
+                                    }}
+                                    onFocus={(ev) => ev.currentTarget.select()}
                                     onChange={(ev) => syncCount(e.id, parseInt(ev.target.value, 10) || 1)}
                                     className="flex-1 border-0 bg-transparent text-center text-base font-extrabold text-[#1B2B5B] min-w-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={(ev) => {
+                                        ev.stopPropagation();
+                                        adjustCount(e.id, 1);
+                                    }}
+                                    className="w-[34px] h-[34px] flex items-center justify-center bg-[#F8F9FB] text-[#6B7585] font-bold text-base hover:bg-[#E6F9F6] hover:text-[#25A891]"
+                                >
+                                    +
+                                </button>
                                 <span className="px-2.5 text-[11px] font-semibold text-[#9AA3B2] border-l border-[#E2E6ED] bg-[#F8F9FB] h-[34px] flex items-center">
                                     명
                                 </span>
@@ -360,7 +374,10 @@ export default function Executives({
                             <div className="flex items-center rounded-lg overflow-hidden border border-[#B2EDE5] bg-white">
                                 <button
                                     type="button"
-                                    onClick={() => adjustCount(r.id, -1)}
+                                    onClick={(ev) => {
+                                        ev.stopPropagation();
+                                        adjustCount(r.id, -1);
+                                    }}
                                     className="w-[34px] h-[34px] flex items-center justify-center bg-[#F8F9FB] text-[#6B7585] font-bold hover:bg-[#E6F9F6] hover:text-[#25A891]"
                                 >
                                     −
@@ -370,9 +387,24 @@ export default function Executives({
                                     min={1}
                                     max={99}
                                     value={count}
+                                    onClick={(ev) => {
+                                        ev.stopPropagation();
+                                        ev.currentTarget.select();
+                                    }}
+                                    onFocus={(ev) => ev.currentTarget.select()}
                                     onChange={(ev) => syncCount(r.id, parseInt(ev.target.value, 10) || 1)}
                                     className="flex-1 border-0 bg-transparent text-center text-base font-extrabold text-[#1B2B5B] min-w-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={(ev) => {
+                                        ev.stopPropagation();
+                                        adjustCount(r.id, 1);
+                                    }}
+                                    className="w-[34px] h-[34px] flex items-center justify-center bg-[#F8F9FB] text-[#6B7585] font-bold hover:bg-[#E6F9F6] hover:text-[#25A891]"
+                                >
+                                    +
+                                </button>
                                 <span className="px-2.5 text-[11px] font-semibold text-[#9AA3B2] border-l border-[#E2E6ED] bg-[#F8F9FB] h-[34px] flex items-center">
                                     명
                                 </span>

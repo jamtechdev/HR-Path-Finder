@@ -1,4 +1,4 @@
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { CheckCircle2 } from 'lucide-react';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
@@ -339,9 +339,6 @@ export default function CeoPhilosophySurvey({
                     description: 'Your CEO philosophy survey has been saved.',
                     variant: 'success',
                 });
-                window.setTimeout(() => {
-                    router.visit('/ceo/dashboard');
-                }, 500);
             },
             onError: () => {
                 setSubmitError('Could not submit. Please check all answers and try again.');

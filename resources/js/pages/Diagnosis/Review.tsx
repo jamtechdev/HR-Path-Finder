@@ -394,7 +394,11 @@ export default function Review({
     const jobGradesForPyramid = useMemo(() => {
         const names = preview?.job_grade_names ?? [];
         const headcounts = (preview?.job_grade_headcounts ?? {}) as Record<string, number>;
-        return names.map((name) => ({ name, headcount: Number(headcounts[name]) || 0 }));
+        // Ensure visual orientation: top = Department Head (highest grade), bottom = Staff (lowest grade).
+        // job_grade_names are stored from low->high in the editor, so we reverse for the pyramid.
+        return names
+            .map((name) => ({ name, headcount: Number(headcounts[name]) || 0 }))
+            .reverse();
     }, [preview?.job_grade_names, preview?.job_grade_headcounts]);
 
     const gradeTotal = useMemo(() => jobGradesForPyramid.reduce((s, g) => s + g.headcount, 0), [jobGradesForPyramid]);

@@ -81,6 +81,12 @@ class DiagnosisController extends Controller
             $companyUpdates['brand_name'] = $data['brand_name'];
             unset($data['brand_name']); // Remove from diagnosis data
         }
+
+        // Keep HQ location on Company (not in diagnoses table).
+        if (isset($data['hq_location'])) {
+            $companyUpdates['hq_location'] = $data['hq_location'];
+            unset($data['hq_location']); // Remove from diagnosis payload
+        }
         
         if (!empty($companyUpdates)) {
             $hrProject->company->update($companyUpdates);

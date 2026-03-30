@@ -69,6 +69,13 @@ const toDateInputValue = (raw?: string | null) => {
     return `${y}-${m}-${day}`;
 };
 
+const formatKrWon = (value: number | string | null | undefined): string => {
+    if (value === null || value === undefined || value === '') return '—';
+    const n = typeof value === 'string' ? parseFloat(value) : value;
+    if (!Number.isFinite(n)) return '—';
+    return n.toLocaleString('en-US');
+};
+
 interface ConceptData {
     tag: string;
     tagCls: string;
@@ -260,9 +267,9 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
         if (method === 'ratio' && configuration.ratio_value != null) {
             s += ` The pool is determined as <span class="text-[#5DCAA5] font-bold">${configuration.ratio_value}%</span> of profit.`;
         } else if (method === 'range' && configuration.range_min != null && configuration.range_max != null) {
-            s += ` The pool is determined within <span class="text-[#5DCAA5] font-bold">${configuration.range_min}~${configuration.range_max} (10,000 KRW)</span>.`;
+            s += ` The pool is determined within <span class="text-[#5DCAA5] font-bold">${formatKrWon(configuration.range_min)}~${formatKrWon(configuration.range_max)} (10,000 KRW)</span>.`;
         } else if (method === 'amount' && configuration.amount_value != null) {
-            s += ` The pool is fixed at <span class="text-[#5DCAA5] font-bold">${configuration.amount_value} (10,000 KRW)</span>.`;
+            s += ` The pool is fixed at <span class="text-[#5DCAA5] font-bold">${formatKrWon(configuration.amount_value)} (10,000 KRW)</span>.`;
         } else if (meTxt) {
             s += ` Determination method: <span class="text-[#5DCAA5] font-bold">${meTxt}</span>.`;
         }
