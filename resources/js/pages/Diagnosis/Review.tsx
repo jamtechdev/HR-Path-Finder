@@ -11,12 +11,9 @@ import { Label } from '@/components/ui/label';
 import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
 import { diagnosisTabs } from '@/config/diagnosisTabs';
 import { both, tr } from '@/config/diagnosisTranslations';
-import { mergeTabDraftsIntoDiagnosis, clearDiagnosisDrafts } from '@/lib/diagnosisDraftStorage';
-import {
-    getOrgChartDraftFiles,
-    getLogoDraftFile,
-    clearAllDiagnosisFileDrafts,
-} from '@/lib/diagnosisFileDrafts';
+import { mergeTabDraftsIntoDiagnosis } from '@/lib/diagnosisDraftStorage';
+import { clearClientDraftCaches } from '@/lib/clientDraftCleanup';
+import { getOrgChartDraftFiles, getLogoDraftFile } from '@/lib/diagnosisFileDrafts';
 
 // HR issue categories for grouping on review (id, color, issue strings)
 const HR_ISSUE_CATEGORIES = [
@@ -274,8 +271,7 @@ export default function Review({
             onSuccess: () => {
                 setSubmitError('');
                 setPageErrors({});
-                clearDiagnosisDrafts(projectId);
-                clearAllDiagnosisFileDrafts(projectId);
+                clearClientDraftCaches(projectId);
                 setShowSuccessModal(true);
                 setProcessing(false);
             },

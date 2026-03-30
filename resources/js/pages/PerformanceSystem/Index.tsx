@@ -386,12 +386,6 @@ export default function PerformanceSystemIndex({
             onSuccess: () => {
                 setLocalDone((d) => ({ ...d, 'performance-snapshot': true }));
                 setIsSavingDraft(false);
-                toast({
-                    title: toastCopy.stepCompleted,
-                    description: 'Snapshot saved. Moving to KPI Review. 스냅샷이 저장되었습니다.',
-                    variant: 'success',
-                    duration: 1800,
-                });
                 handleTabChange('kpi-review', true);
             },
             onError: () => {
@@ -426,12 +420,6 @@ export default function PerformanceSystemIndex({
             onSuccess: () => {
                 setLocalDone((d) => ({ ...d, 'kpi-review': true }));
                 setIsSavingDraft(false);
-                toast({
-                    title: toastCopy.stepCompleted,
-                    description: 'KPI Review saved. Moving to Model Assignment. KPI 검토가 저장되었습니다.',
-                    variant: 'success',
-                    duration: 1800,
-                });
                 handleTabChange('model-assignment', true);
             },
             onError: () => {
@@ -466,12 +454,6 @@ export default function PerformanceSystemIndex({
             onSuccess: () => {
                 setLocalDone((d) => ({ ...d, 'model-assignment': true }));
                 setIsSavingDraft(false);
-                toast({
-                    title: toastCopy.stepCompleted,
-                    description: 'Model Assignment saved. Moving to Evaluation Structure. 모델 할당이 저장되었습니다.',
-                    variant: 'success',
-                    duration: 1800,
-                });
                 handleTabChange('evaluation-structure', true);
             },
             onError: () => {
@@ -506,12 +488,6 @@ export default function PerformanceSystemIndex({
             onSuccess: () => {
                 setLocalDone((d) => ({ ...d, 'evaluation-structure': true }));
                 setIsSavingDraft(false);
-                toast({
-                    title: toastCopy.stepCompleted,
-                    description: 'Evaluation Structure saved. Moving to Review & Submit. 평가 구조가 저장되었습니다.',
-                    variant: 'success',
-                    duration: 1800,
-                });
                 handleTabChange('review-submit', true);
             },
             onError: () => {

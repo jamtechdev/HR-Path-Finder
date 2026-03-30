@@ -81,8 +81,8 @@ export default function CeoReportIndex({
                     <Head title={`Report - ${project.company.name}`} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         {/* Header */}
-                        <div className="mb-6">
-                            <h1 className="text-3xl font-bold mb-2 text-foreground">Project Report</h1>
+                        <div className="mb-8 rounded-2xl border bg-gradient-to-r from-slate-50 to-white px-6 py-5">
+                            <h1 className="text-3xl font-bold mb-1 text-foreground">Project Report</h1>
                             <p className="text-muted-foreground">
                                 Comprehensive report for {project.company.name}
                             </p>

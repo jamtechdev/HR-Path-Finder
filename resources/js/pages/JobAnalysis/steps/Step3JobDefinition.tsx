@@ -647,9 +647,6 @@ export default function Step3JobDefinition({
                         <ChevronLeft className="w-4 h-4 mr-1" />
                         Back
                     </Button>
-                    <Button type="button" variant="outline" className="border-[#ccc] rounded-md">
-                        Save Job
-                    </Button>
                     <Button
                         type="button"
                         onClick={onContinue}

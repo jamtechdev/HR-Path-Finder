@@ -11,6 +11,7 @@ use App\Services\DiagnosisSnapshotService;
 use App\Services\StepTransitionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
 class CeoReviewController extends Controller
@@ -37,6 +38,15 @@ class CeoReviewController extends Controller
         }
 
         $hrProject->load(['diagnosis', 'company', 'ceoPhilosophy']);
+
+        // CEO must complete the philosophy survey before they can review/verify diagnosis.
+        // If a new CEO account hasn't finished the survey yet (or only has an in-progress record),
+        // redirect to the survey start page to keep the flow consistent.
+        if (!($hrProject->ceoPhilosophy && $hrProject->ceoPhilosophy->completed_at)) {
+            return redirect()->route('ceo.philosophy.survey', ['hrProject' => $hrProject->id])
+                ->with('info', 'Please complete the CEO Philosophy Survey first.');
+        }
+
         $reviewLogs = CeoReviewLog::where('hr_project_id', $hrProject->id)
             ->with('modifier')
             ->orderBy('created_at', 'desc')
@@ -92,6 +102,13 @@ class CeoReviewController extends Controller
         }
 
         $diagnosis = $hrProject->diagnosis;
+
+        // Enforce survey-first flow.
+        $hrProject->loadMissing('ceoPhilosophy');
+        if (!($hrProject->ceoPhilosophy && $hrProject->ceoPhilosophy->completed_at)) {
+            return redirect()->route('ceo.philosophy.survey', ['hrProject' => $hrProject->id])
+                ->with('info', 'Please complete the CEO Philosophy Survey first.');
+        }
         
         if (!$diagnosis || $diagnosis->status !== StepStatus::SUBMITTED) {
             return back()->withErrors(['error' => 'Diagnosis must be submitted before review.']);
@@ -225,16 +242,37 @@ class CeoReviewController extends Controller
         }
 
         // Require CEO to complete the Management Philosophy Survey before verifying diagnosis
-        if (!$hrProject->ceoPhilosophy) {
-            return redirect()->route('ceo.philosophy.survey', $hrProject)
+        if (!($hrProject->ceoPhilosophy && $hrProject->ceoPhilosophy->completed_at)) {
+            return redirect()->route('ceo.philosophy.survey', ['hrProject' => $hrProject->id])
                 ->with('error', 'Complete the Management Philosophy Survey first to verify the diagnosis.');
         }
 
-        // Create snapshot
-        $this->snapshotService->createSnapshot($hrProject);
+        try {
+            // Create snapshot
+            $this->snapshotService->createSnapshot($hrProject);
 
-        // Approve and lock diagnosis step (this will unlock organization design)
-        $this->stepTransitionService->approveAndLockStep($hrProject, 'diagnosis');
+            // Defensive sync: some older records have diagnosis model status as SUBMITTED
+            // but project step_statuses['diagnosis'] not aligned, which can throw 500.
+            $projectStepStatus = $hrProject->getStepStatus('diagnosis');
+            if ($projectStepStatus !== StepStatus::SUBMITTED) {
+                $hrProject->setStepStatus('diagnosis', StepStatus::SUBMITTED);
+            }
+
+            // Approve and lock diagnosis step (this will unlock organization design)
+            $this->stepTransitionService->approveAndLockStep($hrProject, 'diagnosis');
+        } catch (\Throwable $e) {
+            Log::error('CEO confirmDiagnosis failed', [
+                'hr_project_id' => $hrProject->id,
+                'diagnosis_id' => $diagnosis?->id,
+                'diagnosis_status' => $diagnosis?->status?->value ?? (string) $diagnosis?->status,
+                'project_step_status' => $hrProject->getStepStatus('diagnosis')?->value,
+                'message' => $e->getMessage(),
+            ]);
+
+            return back()->withErrors([
+                'error' => 'Unable to proceed to next step right now. Please refresh and try again.',
+            ]);
+        }
 
         // Notify HR manager(s) that CEO has completed diagnosis and next step is open
         $hrManagers = $hrProject->company->hrManagers()->get();

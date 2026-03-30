@@ -3,7 +3,6 @@ import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 
 interface Project {
@@ -22,6 +21,9 @@ interface Props {
 }
 
 export default function CeoTreeList({ projects, stats }: Props) {
+    // Stats are provided by backend, but this page is table-first to match other CEO list pages.
+    void stats;
+
     return (
         <SidebarProvider defaultOpen={true}>
             <Sidebar collapsible="icon" variant="sidebar">
@@ -32,31 +34,15 @@ export default function CeoTreeList({ projects, stats }: Props) {
                 <main className="flex-1 overflow-auto bg-background">
                     <Head title="Tree - CEO" />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
-                        <div className="mb-8">
-                            <h1 className="text-3xl font-bold mb-2">Tree</h1>
-                            <p className="text-muted-foreground">Open HR Tree view project-wise.</p>
+                        <div className="mb-8 rounded-2xl border bg-gradient-to-r from-slate-50 to-white px-6 py-5">
+                            <h1 className="text-3xl font-bold mb-1">Tree</h1>
+                            <p className="text-muted-foreground text-sm">Open HR Tree view project-wise.</p>
                         </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                            <Card>
-                                <CardContent className="p-6">
-                                    <p className="text-sm text-muted-foreground mb-1">Total Projects</p>
-                                    <p className="text-3xl font-bold">{stats.total_projects}</p>
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardContent className="p-6">
-                                    <p className="text-sm text-muted-foreground mb-1">Survey Completed</p>
-                                    <p className="text-3xl font-bold">{stats.survey_completed}</p>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Projects</CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-0">
+                        {projects.length > 0 ? (
+                            <div className="rounded-lg border overflow-hidden bg-background">
+                                <div className="px-6 py-4 border-b">
+                                    <h2 className="text-lg font-semibold">Projects</h2>
+                                </div>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead className="bg-muted/50">
@@ -68,13 +54,15 @@ export default function CeoTreeList({ projects, stats }: Props) {
                                         </thead>
                                         <tbody>
                                             {projects.map((project) => (
-                                                <tr key={project.id} className="border-t">
+                                                <tr key={project.id} className="border-t hover:bg-muted/30 transition-colors">
                                                     <td className="px-4 py-3 font-medium">
                                                         {project.company?.name || `Project #${project.id}`}
                                                     </td>
                                                     <td className="px-4 py-3">
                                                         {project.survey_completed ? (
-                                                            <Badge variant="secondary">Survey Completed</Badge>
+                                                            <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                                                                Survey Completed
+                                                            </Badge>
                                                         ) : (
                                                             <Badge variant="outline">Pending</Badge>
                                                         )}
@@ -82,7 +70,7 @@ export default function CeoTreeList({ projects, stats }: Props) {
                                                     <td className="px-4 py-3">
                                                         {project.survey_completed ? (
                                                             <Link href={`/ceo/tree/${project.id}`}>
-                                                                <Button size="sm">View Tree</Button>
+                                                                <Button size="sm" variant="outline">View Tree</Button>
                                                             </Link>
                                                         ) : (
                                                             <Button size="sm" variant="outline" disabled>
@@ -95,8 +83,13 @@ export default function CeoTreeList({ projects, stats }: Props) {
                                         </tbody>
                                     </table>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        ) : (
+                            <div className="rounded-lg border bg-background p-12 text-center">
+                                <p className="text-lg font-medium mb-2">No Tree Projects Available</p>
+                                <p className="text-muted-foreground">Projects will appear here once assigned.</p>
+                            </div>
+                        )}
                     </div>
                 </main>
             </SidebarInset>

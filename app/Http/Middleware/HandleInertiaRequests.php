@@ -76,7 +76,6 @@ class HandleInertiaRequests extends Middleware
                     'unread_count' => $user->unreadNotifications()->count(),
                     'items' => $user->notifications()
                         ->latest()
-                        ->limit(20)
                         ->get()
                         ->map(fn ($n) => [
                             'id' => $n->id,

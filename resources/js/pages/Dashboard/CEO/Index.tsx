@@ -75,6 +75,11 @@ export default function CeoDashboard({
     needsAttention,
 }: Props) {
     const surveyCompletedCount = projects.filter((project) => !!project.ceoPhilosophy).length;
+    const verificationTargetProjectId = pendingReviews[0]?.id ?? projects[0]?.id;
+    const cardBaseClass = 'border-t-6 hover:shadow-lg transition-all duration-200 cursor-pointer min-h-[118px]';
+    const cardContentClass = 'p-6 h-full flex items-center';
+    const statValueClass = 'text-3xl font-bold whitespace-nowrap tabular-nums leading-none text-slate-900';
+    const iconWrapClass = 'w-12 h-12 rounded-xl flex items-center justify-center shrink-0';
 
     const getStatusBadge = (status: string) => {
         const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
@@ -105,17 +110,18 @@ export default function CeoDashboard({
                         </div>
 
                         {/* Statistics Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
+                        {/* 6 cards -> 3 per row (2 rows on desktop) */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                             <Link href="/ceo/projects">
-                                <Card className="border-t-6 border-t-blue-500 hover:shadow-lg transition-shadow cursor-pointer">
-                                    <CardContent className="p-6">
-                                        <div className="flex items-center justify-between">
+                                <Card className={`${cardBaseClass} border-t-blue-500`}>
+                                    <CardContent className={cardContentClass}>
+                                        <div className="flex items-center justify-between w-full gap-4">
                                             <div>
                                                 <p className="text-sm text-muted-foreground mb-1">Total Projects</p>
-                                                <p className="text-3xl font-bold">{stats.total_projects}</p>
+                                                <p className={statValueClass}>{stats.total_projects}</p>
                                             </div>
-                                            <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                                                <FolderKanban className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                            <div className={`${iconWrapClass} bg-blue-100`}>
+                                                <FolderKanban className="w-5 h-5 text-blue-600" />
                                             </div>
                                         </div>
                                     </CardContent>
@@ -123,15 +129,15 @@ export default function CeoDashboard({
                             </Link>
 
                             <Link href="/ceo/projects">
-                                <Card className="border-t-6 border-t-orange-500 hover:shadow-lg transition-shadow cursor-pointer">
-                                    <CardContent className="p-6">
-                                        <div className="flex items-center justify-between">
+                                <Card className={`${cardBaseClass} border-t-orange-500`}>
+                                    <CardContent className={cardContentClass}>
+                                        <div className="flex items-center justify-between w-full gap-4">
                                             <div>
                                                 <p className="text-sm text-muted-foreground mb-1">Pending Review</p>
-                                                <p className="text-3xl font-bold">{stats.pending_diagnosis_review}</p>
+                                                <p className={statValueClass}>{stats.pending_diagnosis_review}</p>
                                             </div>
-                                            <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
-                                                <Clock className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                                            <div className={`${iconWrapClass} bg-orange-100`}>
+                                                <Clock className="w-5 h-5 text-orange-600" />
                                             </div>
                                         </div>
                                     </CardContent>
@@ -139,31 +145,31 @@ export default function CeoDashboard({
                             </Link>
 
                             <Link href={surveyAvailableProjects.length > 0 ? `/ceo/philosophy/survey/${surveyAvailableProjects[0].id}` : '/ceo/projects'}>
-                                <Card className="border-t-6 border-t-yellow-500 hover:shadow-lg transition-shadow cursor-pointer">
-                                    <CardContent className="p-6">
-                                        <div className="flex items-center justify-between">
+                                <Card className={`${cardBaseClass} border-t-yellow-500`}>
+                                    <CardContent className={cardContentClass}>
+                                        <div className="flex items-center justify-between w-full gap-4">
                                             <div>
                                                 <p className="text-sm text-muted-foreground mb-1">Pending Survey</p>
-                                                <p className="text-3xl font-bold">{stats.pending_ceo_survey}</p>
+                                                <p className={statValueClass}>{stats.pending_ceo_survey}</p>
                                             </div>
-                                            <div className="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center">
-                                                <FileText className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                                            <div className={`${iconWrapClass} bg-yellow-100`}>
+                                                <FileText className="w-5 h-5 text-yellow-600" />
                                             </div>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </Link>
 
-                            <Link href="/ceo/projects">
-                                <Card className="border-t-6 border-t-green-500 hover:shadow-lg transition-shadow cursor-pointer">
-                                    <CardContent className="p-6">
-                                        <div className="flex items-center justify-between">
+                            <Link href={verificationTargetProjectId ? `/ceo/projects/${verificationTargetProjectId}/verification` : '/ceo/projects'}>
+                                <Card className={`${cardBaseClass} border-t-green-500`}>
+                                    <CardContent className={cardContentClass}>
+                                        <div className="flex items-center justify-between w-full gap-4">
                                             <div>
                                                 <p className="text-sm text-muted-foreground mb-1">Completed</p>
-                                                <p className="text-3xl font-bold whitespace-nowrap tabular-nums">{stats.completed_projects}</p>
+                                                <p className={statValueClass}>{stats.completed_projects}</p>
                                             </div>
-                                            <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                                                <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+                                            <div className={`${iconWrapClass} bg-green-100`}>
+                                                <CheckCircle2 className="w-5 h-5 text-green-600" />
                                             </div>
                                         </div>
                                     </CardContent>
@@ -171,15 +177,15 @@ export default function CeoDashboard({
                             </Link>
 
                             <Link href="/ceo/projects">
-                                <Card className="border-t-6 border-t-emerald-500 hover:shadow-lg transition-shadow cursor-pointer">
-                                    <CardContent className="p-6">
-                                        <div className="flex items-center justify-between">
+                                <Card className={`${cardBaseClass} border-t-emerald-500`}>
+                                    <CardContent className={cardContentClass}>
+                                        <div className="flex items-center justify-between w-full gap-4">
                                             <div>
                                                 <p className="text-sm text-muted-foreground mb-1">Survey Completed</p>
-                                                <p className="text-3xl font-bold">{surveyCompletedCount}</p>
+                                                <p className={statValueClass}>{surveyCompletedCount}</p>
                                             </div>
-                                            <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center">
-                                                <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                                            <div className={`${iconWrapClass} bg-emerald-100`}>
+                                                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                                             </div>
                                         </div>
                                     </CardContent>
@@ -187,15 +193,15 @@ export default function CeoDashboard({
                             </Link>
 
                             <Link href="/ceo/kpi-review">
-                                <Card className="border-t-6 border-t-cyan-500 hover:shadow-lg transition-shadow cursor-pointer">
-                                    <CardContent className="p-6">
-                                        <div className="flex items-center justify-between">
+                                <Card className={`${cardBaseClass} border-t-cyan-500`}>
+                                    <CardContent className={cardContentClass}>
+                                        <div className="flex items-center justify-between w-full gap-4">
                                             <div>
                                                 <p className="text-sm text-muted-foreground mb-1">Pending KPI Review</p>
-                                                <p className="text-3xl font-bold">{stats.pending_kpi_review ?? 0}</p>
+                                                <p className={statValueClass}>{stats.pending_kpi_review ?? 0}</p>
                                             </div>
-                                            <div className="w-12 h-12 rounded-xl bg-cyan-100 dark:bg-cyan-900/20 flex items-center justify-center">
-                                                <Target className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+                                            <div className={`${iconWrapClass} bg-cyan-100`}>
+                                                <Target className="w-5 h-5 text-cyan-600" />
                                             </div>
                                         </div>
                                     </CardContent>
@@ -237,25 +243,17 @@ export default function CeoDashboard({
                                                         </td>
                                                         <td className="px-4 py-3">
                                                             <div className="flex flex-wrap gap-2">
-                                                                <Link href={`/ceo/review/diagnosis/${project.id}`}>
-                                                                    <Button size="sm" variant="outline">Diagnosis Review</Button>
+                                                                <Link href={`/ceo/projects/${project.id}/verification`}>
+                                                                    <Button size="sm" variant="outline">Verify</Button>
                                                                 </Link>
                                                                 {surveyDone ? (
-                                                                    <Badge variant="secondary" className="self-center">Survey Completed</Badge>
+                                                                    <Link href={`/ceo/review/diagnosis/${project.id}`}>
+                                                                        <Button size="sm" variant="outline">View Diagnosis</Button>
+                                                                    </Link>
                                                                 ) : (
                                                                     <Link href={`/ceo/philosophy/survey/${project.id}`}>
-                                                                        <Button size="sm" variant="outline">Survey</Button>
+                                                                        <Button size="sm" variant="outline">Start Survey</Button>
                                                                     </Link>
-                                                                )}
-                                                                {surveyDone && (
-                                                                    <>
-                                                                        <Link href={`/ceo/tree/${project.id}`}>
-                                                                            <Button size="sm" variant="outline">View Tree</Button>
-                                                                        </Link>
-                                                                        <Link href={`/ceo/report/${project.id}`}>
-                                                                            <Button size="sm" variant="outline">View Report</Button>
-                                                                        </Link>
-                                                                    </>
                                                                 )}
                                                                 {((project as any).kpi_total ?? 0) > 0 && (
                                                                     <Link href={`/ceo/kpi-review/${project.id}`}>

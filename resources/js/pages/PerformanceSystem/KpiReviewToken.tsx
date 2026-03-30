@@ -137,6 +137,20 @@ export default function KpiReviewToken({
         })),
     });
 
+    const hasCeoRevisionRequest = kpis.some((k) => {
+        const ceo = String((k as any).ceo_approval_status ?? '').toLowerCase();
+        const status = String(k.status ?? '').toLowerCase();
+        return ceo === 'revision_requested' || status === 'revision_requested';
+    });
+    const hasCeoFinalized =
+        kpis.length > 0 &&
+        kpis.every((k) => {
+            const ceo = String((k as any).ceo_approval_status ?? '').toLowerCase();
+            const status = String(k.status ?? '').toLowerCase();
+            return ceo === 'approved' || status === 'approved' || status === 'verified';
+        });
+    const showLeaderSubmittedScreen = completed && !hasCeoRevisionRequest && !hasCeoFinalized;
+
     useEffect(() => {
         setData('organization_name', selectedOrganization);
         setData('review_comments', reviewComments);
@@ -232,7 +246,7 @@ export default function KpiReviewToken({
         const hasInvalidKpisLocal = invalidKpiIndicesLocal.length > 0;
 
         let blockingMessage: string | null = null;
-        if (completed) {
+        if (completed && !hasCeoRevisionRequest) {
             blockingMessage = 'You already submitted this review.';
         } else if (processing || loading) {
             blockingMessage = 'Please wait... the request is being processed.';
@@ -242,7 +256,7 @@ export default function KpiReviewToken({
             blockingMessage = 'No CEO recipient is configured for this company (missing CEO email).';
         } else if (!weightOkLocal) {
             blockingMessage = `Total KPI weight must be 100%. Current: ${totalWeightNormalizedLocal}%.`;
-        } else if (!allConfirmedLocal) {
+        } else if (!hasCeoRevisionRequest && !allConfirmedLocal) {
             blockingMessage = `Please confirm all 4 self-assessment checks (${confirmedCountLocal}/4 confirmed).`;
         } else if (hasInvalidKpisLocal) {
             blockingMessage = `Fix KPI #${invalidKpiIndicesLocal.join(', ')}: KPI name is required and weight must be 0-100.`;
@@ -679,10 +693,53 @@ export default function KpiReviewToken({
                     </div>
                 </div>
 
+                {hasCeoFinalized && (
+                    <div className="lkr-kpi-card" style={{ padding: '36px', textAlign: 'center' }}>
+                        <div className="lkr-success-title" style={{ fontSize: 24, marginBottom: 8 }}>
+                            CEO Finalized
+                        </div>
+                        <div className="lkr-success-desc" style={{ marginBottom: 16 }}>
+                            CEO has finalized this KPI review. No further action is required on this link.
+                        </div>
+                        <button type="button" className="lkr-btn-submit" onClick={() => router.reload()}>
+                            Refresh
+                        </button>
+                    </div>
+                )}
+
+                {showLeaderSubmittedScreen && (
+                    <div className="lkr-kpi-card" style={{ padding: '36px', textAlign: 'center' }}>
+                        <div className="lkr-success-title" style={{ fontSize: 24, marginBottom: 8 }}>
+                            You have submitted successfully
+                        </div>
+                        <div className="lkr-success-desc" style={{ marginBottom: 16 }}>
+                            Your review is already submitted. Please refresh this page to see latest CEO status.
+                        </div>
+                        <button type="button" className="lkr-btn-submit" onClick={() => router.reload()}>
+                            Refresh
+                        </button>
+                    </div>
+                )}
+
+                {!hasCeoFinalized && !showLeaderSubmittedScreen && (
+                    <>
                 <div className="lkr-guide-banner">
                     <span>💡</span>
-                    <span>Review the draft prepared by your manager and edit only what&apos;s necessary. All 4 self-assessment criteria must be confirmed before submitting to the CEO.</span>
+                    <span>
+                        {hasCeoRevisionRequest
+                            ? 'CEO requested revision. Please update KPI/comment and resubmit. Self-assessment re-validation is not required in this revision round.'
+                            : "Review the draft prepared by your manager and edit only what's necessary. All 4 self-assessment criteria must be confirmed before submitting to the CEO."}
+                    </span>
                 </div>
+
+                {hasCeoRevisionRequest && (
+                    <div className="lkr-comments-card" style={{ borderColor: '#fcd34d', background: '#fffbeb' }}>
+                        <div className="lkr-comments-title" style={{ color: '#92400e' }}>CEO Revision Requested</div>
+                        <div className="lkr-comments-desc" style={{ color: '#b45309' }}>
+                            CEO has requested revision again. Update the KPI details/comments and submit. Validation checks are skipped for this revision cycle.
+                        </div>
+                    </div>
+                )}
 
                 {loading ? (
                     <div className="lkr-section-header">
@@ -868,29 +925,31 @@ export default function KpiReviewToken({
                             </div>
                         )}
 
-                        <div className="lkr-validation-section">
-                            <div className="lkr-validation-title">Self-Assessment Before Finalizing KPIs</div>
-                            <div className="lkr-validation-desc">All 4 criteria must be confirmed before you can submit to the CEO. Click each item to review.</div>
-                            <div className="lkr-validation-grid">
-                                {VALIDATIONS.map((v, idx) => (
-                                    <div
-                                        key={idx}
-                                        className={`lkr-val-card ${confirmed[idx] ? 'confirmed' : ''}`}
-                                    >
-                                        <div className="lkr-val-card-top">
-                                            <span className="lkr-val-tag">{v.title.replace(/\s+/g, ' ')}</span>
-                                            <div className="lkr-val-check">✓</div>
+                        {!hasCeoRevisionRequest && (
+                            <div className="lkr-validation-section">
+                                <div className="lkr-validation-title">Self-Assessment Before Finalizing KPIs</div>
+                                <div className="lkr-validation-desc">All 4 criteria must be confirmed before you can submit to the CEO. Click each item to review.</div>
+                                <div className="lkr-validation-grid">
+                                    {VALIDATIONS.map((v, idx) => (
+                                        <div
+                                            key={idx}
+                                            className={`lkr-val-card ${confirmed[idx] ? 'confirmed' : ''}`}
+                                        >
+                                            <div className="lkr-val-card-top">
+                                                <span className="lkr-val-tag">{v.title.replace(/\s+/g, ' ')}</span>
+                                                <div className="lkr-val-check">✓</div>
+                                            </div>
+                                            <div className="lkr-val-question">{v.question}</div>
+                                            <div className="lkr-val-hint">{v.hint}</div>
+                                            <button type="button" className="lkr-val-yes-btn" onClick={() => openPopup(idx)}>
+                                                {confirmed[idx] ? 'Selected' : 'Select →'}
+                                            </button>
+                                            <div className="lkr-val-confirmed-label">✓ Confirmed</div>
                                         </div>
-                                        <div className="lkr-val-question">{v.question}</div>
-                                        <div className="lkr-val-hint">{v.hint}</div>
-                                        <button type="button" className="lkr-val-yes-btn" onClick={() => openPopup(idx)}>
-                                            {confirmed[idx] ? 'Selected' : 'Select →'}
-                                        </button>
-                                        <div className="lkr-val-confirmed-label">✓ Confirmed</div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
                         {validationMessage && (
                             <div className="lkr-comments-card" style={{ borderColor: '#fecaca', background: '#fff1f2' }}>
                                 <div className="lkr-comments-title" style={{ color: '#991b1b' }}>Validation Required</div>
@@ -926,7 +985,7 @@ export default function KpiReviewToken({
                                 <span className="lkr-submit-hint" style={{ color: '#dc2626' }}>
                                     Fix KPI #{invalidKpiIndices.join(', ')}: KPI name is required and weight must be 0-100.
                                 </span>
-                            ) : !allConfirmed ? (
+                            ) : !hasCeoRevisionRequest && !allConfirmed ? (
                                 <span className="lkr-submit-hint">
                                     Confirm all 4 checks first ({confirmedCount}/4 confirmed).
                                 </span>
@@ -946,6 +1005,8 @@ export default function KpiReviewToken({
                         </button>
                     </div>
                 </div>
+                    </>
+                )}
             </div>
 
             <div

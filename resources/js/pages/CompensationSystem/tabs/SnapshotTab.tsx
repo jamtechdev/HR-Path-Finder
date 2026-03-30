@@ -50,17 +50,17 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
             if (value === null || value === undefined) return null;
             if (typeof value === 'number') return Number.isFinite(value) ? value : null;
             if (typeof value === 'string') {
-                const n = parseFloat(value);
+                const n = parseFloat(stripCommas(value));
                 return Number.isFinite(n) ? n : null;
             }
             if (typeof value === 'object') {
                 const v = typeof (value as any).valueOf === 'function' ? (value as any).valueOf() : value;
                 if (typeof v === 'number') return Number.isFinite(v) ? v : null;
                 if (typeof v === 'string') {
-                    const n = parseFloat(v);
+                    const n = parseFloat(stripCommas(v));
                     return Number.isFinite(n) ? n : null;
                 }
-                const n = parseFloat(String(value));
+                const n = parseFloat(stripCommas(String(value)));
                 return Number.isFinite(n) ? n : null;
             }
             return null;
@@ -94,24 +94,24 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                     if (v === null || v === undefined) return null;
                     if (typeof v === 'number') return Number.isFinite(v) ? v : null;
                     if (typeof v === 'string') {
-                        const n = parseFloat(v);
+                        const n = parseFloat(stripCommas(v));
                         return Number.isFinite(n) ? n : null;
                     }
                     if (typeof v === 'object') {
                         const vo = typeof (v as any).valueOf === 'function' ? (v as any).valueOf() : v;
                         if (typeof vo === 'number') return Number.isFinite(vo) ? vo : null;
                         if (typeof vo === 'string') {
-                            const n = parseFloat(vo);
+                            const n = parseFloat(stripCommas(vo));
                             return Number.isFinite(n) ? n : null;
                         }
-                        const n = parseFloat(String(v));
+                        const n = parseFloat(stripCommas(String(v)));
                         return Number.isFinite(n) ? n : null;
                     }
                     return null;
                 };
 
                 if (typeof value === 'string') {
-                    const n = parseFloat(value);
+                    const n = parseFloat(stripCommas(value));
                     return Number.isFinite(n) ? n : value;
                 }
                 const scalar = numericFromAny(value);
@@ -123,7 +123,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                             const out: Record<string, any> = { ...item };
                             Object.entries(out).forEach(([ik, iv]) => {
                                 if (typeof iv === 'string') {
-                                    const n = parseFloat(iv);
+                                    const n = parseFloat(stripCommas(iv));
                                     if (Number.isFinite(n)) out[ik] = n;
                                 }
                             });
@@ -137,7 +137,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                     const out: Record<string, any> = {};
                     Object.entries(value).forEach(([ik, iv]) => {
                         if (typeof iv === 'string') {
-                            const n = parseFloat(iv);
+                            const n = parseFloat(stripCommas(iv));
                             out[ik] = Number.isFinite(n) ? n : iv;
                         } else {
                             out[ik] = normalizeValue(iv);
@@ -177,7 +177,9 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
         if (!q18Question || q18Question.answer_type !== 'select_up_to_2') return;
 
         const q17Options = Array.isArray(q17Question?.options) ? q17Question?.options : [];
-        const allowed = q17Response.length > 0 ? q17Options.filter((opt) => q17Response.includes(opt)) : [];
+        const allowed = q17Response.length > 0
+            ? (q17Options.length > 0 ? q17Options.filter((opt) => q17Response.includes(opt)) : q17Response)
+            : [];
 
         if (!Array.isArray(q18Selected)) return;
         const next = q18Selected.filter((v) => allowed.includes(v));
@@ -467,14 +469,15 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                 <span className="text-[#4b5563]"> — choose the two programs you believe are least effective.</span>
                                                             </div>
                                                         )}
-                                                        {(isQ18
-                                                            ? q17Response.length > 0
-                                                                ? ((Array.isArray(q17Question?.options) ? q17Question?.options : []) as string[]).filter((opt) =>
-                                                                    q17Response.includes(opt)
-                                                                )
-                                                                : []
-                                                            : question.options || []
-                                                        ).map((option, optIdx) => {
+                                                        {(() => {
+                                                            const q18Options = isQ18
+                                                                ? (q17Response.length > 0
+                                                                    ? ((Array.isArray(q17Question?.options) && q17Question?.options.length > 0
+                                                                        ? q17Question?.options
+                                                                        : q17Response) as string[])
+                                                                    : [])
+                                                                : (question.options || []);
+                                                            return q18Options.map((option, optIdx) => {
                                                             const selected = Array.isArray(snapshotResponses[question.id]) 
                                                                 ? (snapshotResponses[question.id] as string[]).includes(option)
                                                                 : false;
@@ -506,7 +509,27 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                     <Label htmlFor={`q${question.id}-opt${optIdx}`} className="cursor-pointer flex-1 text-sm font-normal">{option}</Label>
                                                                 </div>
                                                             );
-                                                        })}
+                                                            });
+                                                        })()}
+                                                        {isQ18 && q17Response.length > 0 && (() => {
+                                                            const q18Options = (Array.isArray(q17Question?.options) && q17Question?.options.length > 0
+                                                                ? q17Question?.options.filter((opt) => q17Response.includes(opt))
+                                                                : q17Response) as string[];
+                                                            return q18Options.length === 0;
+                                                        })() && (
+                                                            <div className="space-y-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                                <p className="text-sm text-blue-800">
+                                                                    No predefined options are available. Please answer this as an open-ended response (with Question 19).
+                                                                </p>
+                                                                <Textarea
+                                                                    value={typeof snapshotResponses[question.id] === 'string' ? (snapshotResponses[question.id] as string) : ''}
+                                                                    onChange={(e) => updateResponses({ ...snapshotResponses, [question.id]: e.target.value })}
+                                                                    placeholder="Enter the least effective program(s) in text..."
+                                                                    rows={3}
+                                                                    className="resize-none bg-white"
+                                                                />
+                                                            </div>
+                                                        )}
                                                         {isQ18 && q17Response.length === 0 && (
                                                             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                                                                 <p className="text-sm text-yellow-800 flex items-center gap-2">

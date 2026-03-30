@@ -90,6 +90,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
 
     useEffect(() => {
         // Preload previously submitted CEO revision comments as selected values.
+        // Depend on raw KPI rows to avoid object-identity render loops.
         const next: Record<string, string> = {};
         Object.entries(kpisByOrganization).forEach(([orgName, orgKpis]) => {
             const saved =
@@ -98,10 +99,14 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                 '';
             if (saved.trim()) next[orgName] = saved;
         });
-        if (Object.keys(next).length > 0) {
-            setRevisionRequests((prev) => ({ ...next, ...prev }));
-        }
-    }, [kpisByOrganization]);
+        if (Object.keys(next).length === 0) return;
+        setRevisionRequests((prev) => {
+            const merged = { ...next, ...prev };
+            const prevSig = JSON.stringify(prev);
+            const nextSig = JSON.stringify(merged);
+            return prevSig === nextSig ? prev : merged;
+        });
+    }, [kpis]);
 
     const handleApprove = () => {
         const route = isAdmin ? `/admin/kpi-review/${project.id}` : `/ceo/kpi-review/${project.id}`;
@@ -304,7 +309,10 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                 const leader = orgChartMappings?.find((m) => (m.org_unit_name || '').trim() === (orgName || '').trim());
                                 const step = getOrgStepStatus(orgKpis);
                                 const isExpanded = expandedOrg === orgName;
-                                const revComment = orgKpis[0]?.ceo_revision_comment || orgKpis[0]?.revision_comment;
+                                const revComment =
+                                    orgKpis.find((k) => (k.ceo_revision_comment ?? '').trim())?.ceo_revision_comment ||
+                                    orgKpis.find((k) => (k.revision_comment ?? '').trim())?.revision_comment ||
+                                    '';
                                 const orgWeight = orgKpis.reduce((sum, item) => sum + (Number(item.weight) || 0), 0);
                                 const lastUpdated = orgKpis
                                     .map((item) => item.updated_at)

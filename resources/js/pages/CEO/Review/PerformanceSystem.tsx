@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { 
     ArrowLeft, 
+    ArrowRight,
     CheckCircle2, 
     FileText, 
     Target, 
@@ -141,6 +142,18 @@ export default function CeoReviewPerformanceSystem({
     stepStatuses = {},
 }: Props) {
     const [activeTab, setActiveTab] = useState('overview');
+    const tabOrder = ['overview', 'snapshot', 'kpis', 'models', 'structure'] as const;
+    const activeTabIndex = tabOrder.indexOf(activeTab as (typeof tabOrder)[number]);
+    const canGoPrevTab = activeTabIndex > 0;
+    const canGoNextTab = activeTabIndex >= 0 && activeTabIndex < tabOrder.length - 1;
+    const goPrevTab = () => {
+        if (!canGoPrevTab) return;
+        setActiveTab(tabOrder[activeTabIndex - 1]);
+    };
+    const goNextTab = () => {
+        if (!canGoNextTab) return;
+        setActiveTab(tabOrder[activeTabIndex + 1]);
+    };
 
     const performanceStatus = stepStatuses?.performance || 'not_started';
     const isSubmitted = performanceStatus === 'submitted' || performanceStatus === 'approved' || performanceStatus === 'locked';
@@ -543,6 +556,29 @@ export default function CeoReviewPerformanceSystem({
                                 </Card>
                             </TabsContent>
                         </Tabs>
+
+                        {/* Tab Navigation */}
+                        <div className="mt-6 flex items-center justify-between">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={goPrevTab}
+                                disabled={!canGoPrevTab}
+                                className="min-w-[120px]"
+                            >
+                                <ArrowLeft className="w-4 h-4 mr-2" />
+                                Back
+                            </Button>
+                            <Button
+                                type="button"
+                                onClick={goNextTab}
+                                disabled={!canGoNextTab}
+                                className="min-w-[120px]"
+                            >
+                                Next
+                                <ArrowRight className="w-4 h-4 ml-2" />
+                            </Button>
+                        </div>
 
                         {/* Action Buttons */}
                         {isSubmitted && (

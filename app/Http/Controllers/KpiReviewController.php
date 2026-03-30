@@ -548,6 +548,7 @@ class KpiReviewController extends Controller
                 ->first();
 
             if ($orgMapping && $orgMapping->is_kpi_reviewer && !empty(trim($orgMapping->org_head_email ?? ''))) {
+                $reviewToken = null;
                 try {
                     $token = KpiReviewToken::generateToken();
                     $expiresAt = Carbon::now()->addDays(7);
@@ -578,6 +579,17 @@ class KpiReviewController extends Controller
 
                     $emailsSent++;
                 } catch (\Exception $e) {
+                    // Roll back token if email delivery failed, so UI doesn't show false "Request Sent".
+                    if ($reviewToken) {
+                        try {
+                            $reviewToken->delete();
+                        } catch (\Throwable $deleteError) {
+                            \Log::warning('Failed to rollback KPI review token after mail send failure', [
+                                'review_token_id' => $reviewToken->id ?? null,
+                                'error' => $deleteError->getMessage(),
+                            ]);
+                        }
+                    }
                     \Log::error('Failed to send KPI Review Request Email to Organization Leader', [
                         'org_head_email' => $orgMapping->org_head_email ?? null,
                         'error' => $e->getMessage(),

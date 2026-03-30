@@ -19,7 +19,7 @@ import {
     Circle,
 } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
-import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
+import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -145,7 +145,13 @@ export default function KpiReviewTab({
     const [editingKpiIndex, setEditingKpiIndex] = useState<number | null>(null);
     const [sendingReview, setSendingReview] = useState(false);
     const [sendSuccessModalOpen, setSendSuccessModalOpen] = useState(false);
+    const [reviewerModalOpen, setReviewerModalOpen] = useState(false);
+    const [reviewerOrgName, setReviewerOrgName] = useState('');
+    const [reviewerName, setReviewerName] = useState('');
+    const [reviewerEmail, setReviewerEmail] = useState('');
+    const [savingReviewer, setSavingReviewer] = useState(false);
     const [editForm, setEditForm] = useState<Partial<Kpi>>({});
+    const [savedKpiKeys, setSavedKpiKeys] = useState<Set<string>>(new Set());
     const [recommendedTemplates, setRecommendedTemplates] = useState<Array<{ id: number; kpi_name: string; purpose?: string; category?: string; formula?: string; measurement_method?: string; weight?: number }>>([]);
     const [loadingTemplates, setLoadingTemplates] = useState(false);
     // When an organization has only 1 KPI, it should appear selected by default,
@@ -181,14 +187,46 @@ export default function KpiReviewTab({
             .finally(() => setLoadingTemplates(false));
     }, [selectedOrg, project?.id]);
 
+    // Auto-close success modal shortly after showing it.
+    useEffect(() => {
+        if (!sendSuccessModalOpen) return;
+        const timer = window.setTimeout(() => {
+            setSendSuccessModalOpen(false);
+        }, 1800);
+        return () => window.clearTimeout(timer);
+    }, [sendSuccessModalOpen]);
+
     useEffect(() => {
         const next = normalizeKpis(organizationalKpis || []);
         setKpis((prev) => (areKpisEqual(prev, next) ? prev : next));
     }, [organizationalKpis]);
 
     useEffect(() => {
+        // Existing DB rows are considered already saved.
+        setSavedKpiKeys(() => {
+            const initial = new Set<string>();
+            (organizationalKpis || []).forEach((k: any) => {
+                if (k?.id) initial.add(`id:${k.id}`);
+            });
+            return initial;
+        });
+    }, [organizationalKpis]);
+
+    useEffect(() => {
         onKpisChange?.(kpis);
     }, [kpis]);
+
+    useEffect(() => {
+        if (!inlineMsg) return;
+        const isFailure = /failed|error|required|missing/i.test(inlineMsg);
+        toast({
+            title: isFailure ? toastCopy.saveFailed : toastCopy.success,
+            description: inlineMsg,
+            variant: isFailure ? 'destructive' : 'success',
+            duration: 2500,
+        });
+        setInlineMsg(null);
+    }, [inlineMsg]);
 
     const orgKpis = kpis.filter((k) => k.organization_name === selectedOrg);
     const orgActiveKpis = orgKpis.filter((k) => k.is_active);
@@ -375,6 +413,56 @@ export default function KpiReviewTab({
     };
 
     const kpiReviewRecipients = orgChartMappings.filter((m) => m.is_kpi_reviewer && m.org_head_email?.trim());
+    const hasOrgReviewer = (orgName: string) =>
+        orgChartMappings.some(
+            (m) =>
+                (m.org_unit_name ?? '').trim().toLowerCase() === (orgName ?? '').trim().toLowerCase() &&
+                !!m.is_kpi_reviewer &&
+                !!m.org_head_email?.trim(),
+        );
+    const hasSelectedOrgReviewer = selectedOrg ? hasOrgReviewer(selectedOrg) : false;
+    const openReviewerModal = (orgName: string) => {
+        const mapping = orgChartMappings.find(
+            (m) => (m.org_unit_name ?? '').trim().toLowerCase() === orgName.trim().toLowerCase(),
+        );
+        setReviewerOrgName(orgName);
+        setReviewerName(mapping?.org_head_name ?? '');
+        setReviewerEmail(mapping?.org_head_email ?? '');
+        setReviewerModalOpen(true);
+    };
+    const saveReviewerForOrg = () => {
+        if (!project?.id || !reviewerOrgName || !reviewerEmail.trim()) {
+            setInlineMsg('Reviewer email is required.');
+            return;
+        }
+        setSavingReviewer(true);
+        const payload = orgChartMappings.map((m) => {
+            const isTarget = (m.org_unit_name ?? '').trim().toLowerCase() === reviewerOrgName.trim().toLowerCase();
+            return {
+                org_unit_name: m.org_unit_name,
+                org_head_name: isTarget ? reviewerName.trim() : (m.org_head_name ?? ''),
+                org_head_email: isTarget ? reviewerEmail.trim() : (m.org_head_email ?? ''),
+                is_kpi_reviewer: isTarget ? true : !!m.is_kpi_reviewer,
+            };
+        });
+        router.post(
+            `/hr-manager/job-analysis/${project.id}/org-chart-mapping`,
+            { org_chart_mappings: payload },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    setSavingReviewer(false);
+                    setReviewerModalOpen(false);
+                    setInlineMsg(`KPI Reviewer saved for ${reviewerOrgName}.`);
+                },
+                onError: () => {
+                    setSavingReviewer(false);
+                    setInlineMsg('Failed to save KPI Reviewer. Please check email format and try again.');
+                },
+            },
+        );
+    };
     const getHasReviewSent = (orgName: string) => {
         const tokens = (kpiReviewTokens as Record<string, unknown[]>)[orgName];
         return Array.isArray(tokens) && tokens.length > 0;
@@ -415,6 +503,16 @@ export default function KpiReviewTab({
     const handleSendReviewRequest = () => {
         if (!selectedOrg || !project?.id) return;
         if (sendingReview) return;
+        if (!hasSelectedOrgReviewer) {
+            setInlineMsg('KPI Reviewer is not set for this organization. Please add reviewer email in Org Chart Mapping.');
+            toast({
+                title: toastCopy.completeFirst,
+                description: 'Set KPI Reviewer first, then send review request.',
+                variant: 'warning',
+                duration: 2500,
+            });
+            return;
+        }
         if (!selectedEligibility.canSend) {
             toast({
                 title: toastCopy.notReadyYet,
@@ -430,7 +528,7 @@ export default function KpiReviewTab({
             toast({
                 title: toastCopy.completeFirst,
                 description:
-                    'For selected KPIs, make sure all 4 validation criteria are checked and measurability is set. 필수 검증을 완료해 주세요.',
+                    'For selected KPIs, make sure all 4 validation criteria are checked and measurability text (measurement method or formula) is set. 필수 검증을 완료해 주세요.',
                 variant: 'warning',
                 duration: 3000,
             });
@@ -506,15 +604,11 @@ export default function KpiReviewTab({
     const selectedKpisReady = orgSelectedKpis.length > 0 &&
         orgSelectedKpis.every((kpi) => {
             const key = getKpiKey(kpi);
-            return completedCount(key) === 4 && (kpi.measurement_method ?? '').trim() !== '';
+            // Accept either explicit measurement method OR formula text for measurability readiness.
+            const hasMeasurabilityText =
+                (kpi.measurement_method ?? '').trim() !== '' || (kpi.formula ?? '').trim() !== '';
+            return completedCount(key) === 4 && hasMeasurabilityText;
         });
-
-    const canSendReviewRequest =
-        !!selectedOrg &&
-        selectedEligibility.canSend &&
-        orgSelectedKpis.length > 0 &&
-        selectedKpisReady &&
-        weightOk;
 
     return (
         <div className="manager-kpi-draft min-h-full flex flex-col" style={{ background: '#f8f9fb' }}>
@@ -547,7 +641,11 @@ export default function KpiReviewTab({
                 </DialogContent>
             </Dialog>
             <Dialog open={sendSuccessModalOpen} onOpenChange={setSendSuccessModalOpen}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent
+                    className="sm:max-w-md"
+                    onPointerDownOutside={(e) => e.preventDefault()}
+                    onEscapeKeyDown={(e) => e.preventDefault()}
+                >
                     <DialogHeader>
                         <DialogTitle>Success</DialogTitle>
                         <DialogDescription>
@@ -556,6 +654,45 @@ export default function KpiReviewTab({
                     </DialogHeader>
                     <div className="flex justify-end mt-4">
                         <Button onClick={() => setSendSuccessModalOpen(false)}>OK</Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+            <Dialog open={reviewerModalOpen} onOpenChange={setReviewerModalOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Add KPI Reviewer</DialogTitle>
+                        <DialogDescription>
+                            Set reviewer details for <strong>{reviewerOrgName || 'selected organization'}</strong>.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-3 mt-2">
+                        <div>
+                            <Label className="text-xs">Reviewer Name (optional)</Label>
+                            <Input
+                                value={reviewerName}
+                                onChange={(e) => setReviewerName(e.target.value)}
+                                placeholder="Reviewer name"
+                                className="mt-1"
+                            />
+                        </div>
+                        <div>
+                            <Label className="text-xs">Reviewer Email</Label>
+                            <Input
+                                type="email"
+                                value={reviewerEmail}
+                                onChange={(e) => setReviewerEmail(e.target.value)}
+                                placeholder="name@company.com"
+                                className="mt-1"
+                            />
+                        </div>
+                        <div className="flex justify-end gap-2 pt-1">
+                            <Button variant="outline" onClick={() => setReviewerModalOpen(false)} disabled={savingReviewer}>
+                                Cancel
+                            </Button>
+                            <Button onClick={saveReviewerForOrg} disabled={savingReviewer || !reviewerEmail.trim()}>
+                                {savingReviewer ? 'Saving...' : 'Save Reviewer'}
+                            </Button>
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -584,14 +721,13 @@ export default function KpiReviewTab({
                                 <div className="flex items-center gap-2">
                                     <Label className="text-sm font-semibold text-[#1a2b4a]">Organization:</Label>
                                     <Select value={selectedOrg} onValueChange={setSelectedOrg}>
-                                        <SelectTrigger className="w-[220px] border-[#e2e6ed] rounded-lg">
+                                        <SelectTrigger className="w-[280px] max-w-full border-[#e2e6ed] rounded-lg h-10">
                                             <SelectValue placeholder="Select organization" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {orgNames.map((org) => (
                                                 <SelectItem key={org} value={org}>
                                                     {org}
-                                                    {!getOrgReviewEligibility(org).canSend ? ' (Verified/Locked)' : ''}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -675,6 +811,7 @@ export default function KpiReviewTab({
                                         {orgNames.map((orgName) => {
                                             const orgKpisForStatus = kpis.filter((k) => k.organization_name === orgName);
                                             const orgKpiCount = orgKpisForStatus.length;
+                                            const orgHasReviewer = hasOrgReviewer(orgName);
                                             const tokens = (kpiReviewTokens as Record<string, unknown[]>)[orgName];
                                             const hasReviewSent = Array.isArray(tokens) && tokens.length > 0;
                                             const hasLeaderSubmitted = orgKpisForStatus.some((k) => (k.status ?? '').toLowerCase() === 'proposed');
@@ -722,6 +859,22 @@ export default function KpiReviewTab({
                                                         )}
                                                         {allCeoApproved && (
                                                             <Badge className="bg-[#16a34a] text-white text-xs">CEO approved</Badge>
+                                                        )}
+                                                        {!orgHasReviewer && (
+                                                            <Badge className="bg-amber-100 text-amber-800 border border-amber-300 text-xs">
+                                                                Reviewer Missing
+                                                            </Badge>
+                                                        )}
+                                                        {!orgHasReviewer && orgName === selectedOrg && (
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-7 text-xs"
+                                                                onClick={() => openReviewerModal(orgName)}
+                                                            >
+                                                                Add KPI Reviewer
+                                                            </Button>
                                                         )}
                                                     </div>
                                                 </div>
@@ -772,6 +925,8 @@ export default function KpiReviewTab({
                                         {orgKpis.map((kpi, idx) => {
                                         const globalIndex = kpis.findIndex((k) => k === kpi);
                                         const kpiKey = `kpi-${kpi.id ?? globalIndex}-${kpi.kpi_name}`;
+                                        const actionKey = kpi.id ? `id:${kpi.id}` : `tmp:${globalIndex}:${kpi.kpi_name}`;
+                                        const isSaved = savedKpiKeys.has(actionKey);
                                         const validation = getValidation(kpiKey);
                                         const completed = completedCount(kpiKey);
                                         const measurabilityRequired = needsMeasurability(kpiKey);
@@ -802,7 +957,7 @@ export default function KpiReviewTab({
                                                 )}
                                             >
                                                 {isSelected && (
-                                                    <CheckCircle2 className="absolute top-4 right-4 w-6 h-6 text-[#16a34a]" />
+                                                    <CheckCircle2 className="absolute top-2 right-2 w-5 h-5 text-[#16a34a]" />
                                                 )}
                                                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                                                     <div className="min-w-0 flex-1">
@@ -825,6 +980,11 @@ export default function KpiReviewTab({
                                                             size="sm"
                                                             className="bg-[#f1f5f9] border-[#e2e8f0] text-[#475569] hover:bg-[#e2e8f0] rounded-lg"
                                                             onClick={() => {
+                                                                setSavedKpiKeys((prev) => {
+                                                                    const next = new Set(prev);
+                                                                    next.delete(actionKey);
+                                                                    return next;
+                                                                });
                                                                 setEditingKpi(kpi);
                                                                 setEditingKpiIndex(globalIndex);
                                                                 setEditForm({ ...kpi });
@@ -832,17 +992,24 @@ export default function KpiReviewTab({
                                                         >
                                                             <Edit className="w-3.5 h-3.5 mr-1" /> Edit
                                                         </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 rounded-lg"
-                                                            onClick={() => {
-                                                                handleSaveKpi(globalIndex);
-                                                                saveCurrentDraftToServer('KPI saved.');
-                                                            }}
-                                                        >
-                                                            <Check className="w-3.5 h-3.5 mr-1" /> Save
-                                                        </Button>
+                                                        {!isSaved && (
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 rounded-lg"
+                                                                onClick={() => {
+                                                                    handleSaveKpi(globalIndex);
+                                                                    saveCurrentDraftToServer('KPI saved.');
+                                                                    setSavedKpiKeys((prev) => {
+                                                                        const next = new Set(prev);
+                                                                        next.add(actionKey);
+                                                                        return next;
+                                                                    });
+                                                                }}
+                                                            >
+                                                                <Check className="w-3.5 h-3.5 mr-1" /> Save
+                                                            </Button>
+                                                        )}
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
@@ -850,18 +1017,6 @@ export default function KpiReviewTab({
                                                             onClick={() => handleDeleteKpi(globalIndex)}
                                                         >
                                                             <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className={
-                                                                isSelected
-                                                                    ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100 rounded-lg'
-                                                                    : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 rounded-lg'
-                                                            }
-                                                            onClick={() => handleExcludeKpi(globalIndex)}
-                                                        >
-                                                            {isSelected ? 'Unselect' : 'Select'}
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -993,22 +1148,14 @@ export default function KpiReviewTab({
                         <div />
                     )}
                     <div className="flex flex-col items-start gap-2">
-                        {inlineMsg && <p className="text-xs text-[#6b7685]">{inlineMsg}</p>}
-                        <p className="text-xs text-[#6b7685]">
-                            Only units marked as <strong>KPI Reviewer</strong> with a valid email in Org Chart Mapping receive the request. Recipients: {kpiReviewRecipients.length > 0 ? kpiReviewRecipients.map((m) => m.org_unit_name).join(', ') : 'none designated.'}
-                        </p>
-                        <p className="text-[11px] text-[#6b7685]">
-                            Tip: The button sends the request only for the <strong>selected organization</strong>. If you have multiple organizations, you need to send requests one by one.
-                        </p>
-                        <FieldErrorMessage fieldKey="kpi-list" errors={fieldErrors} className="w-full" />
                         <div className="flex items-center gap-3 flex-wrap">
                             <Button
                                 onClick={handleSendReviewRequest}
-                                disabled={sendingReview || !canSendReviewRequest}
+                                disabled={sendingReview || !selectedOrg}
                                 className="bg-[#1a2b4a] hover:bg-[#2e4570] text-white rounded-lg font-bold px-6 py-2.5 shadow-md disabled:opacity-60"
                             >
                                 <Send className="w-4 h-4 mr-2" />
-                                {sendingReview ? 'Sending...' : 'Send Review Request'}
+                                {sendingReview ? 'Sending...' : (selectedHasReviewSent ? 'Resend Review Request' : 'Send Review Request')}
                             </Button>
                             <Button
                                 onClick={() => onContinue(kpis)}
@@ -1038,7 +1185,11 @@ export default function KpiReviewTab({
                     }
                 }}
             >
-                <DialogContent className="max-w-lg rounded-xl">
+                <DialogContent
+                    className="max-w-lg rounded-xl"
+                    onPointerDownOutside={(e) => e.preventDefault()}
+                    onEscapeKeyDown={(e) => e.preventDefault()}
+                >
                     <DialogHeader>
                         <DialogTitle>Edit KPI</DialogTitle>
                         <DialogDescription>Update KPI name, formula, weight, and other fields.</DialogDescription>

@@ -4,7 +4,6 @@ import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 
 interface Project {
@@ -26,7 +25,7 @@ interface Props {
     };
 }
 
-export default function CeoKpiReviewIndex({ projects, stats }: Props) {
+export default function CeoKpiReviewIndex({ projects }: Props) {
     const getStatusBadge = (status: Project['kpi_review_status']) => {
         if (status === 'approved') return <Badge className="bg-emerald-600">Approved</Badge>;
         if (status === 'revision_requested') return <Badge variant="destructive">Revision Requested</Badge>;
@@ -44,43 +43,16 @@ export default function CeoKpiReviewIndex({ projects, stats }: Props) {
                 <main className="flex-1 overflow-auto bg-background">
                     <Head title="KPI Review - CEO" />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
-                        <div className="mb-8">
-                            <h1 className="text-3xl font-bold mb-2">KPI Review</h1>
-                            <p className="text-muted-foreground">All projects that contain KPIs for CEO review.</p>
+                        <div className="mb-8 rounded-2xl border bg-gradient-to-r from-slate-50 to-white px-6 py-5">
+                            <h1 className="text-3xl font-bold mb-1">KPI Review</h1>
+                            <p className="text-muted-foreground text-sm">All projects that contain KPIs for CEO review.</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                            <Card className="border-t-4 border-t-blue-500">
-                                <CardContent className="p-6">
-                                    <p className="text-sm text-muted-foreground mb-1">Total Projects</p>
-                                    <p className="text-3xl font-bold">{stats.total_projects}</p>
-                                </CardContent>
-                            </Card>
-                            <Card className="border-t-4 border-t-cyan-500">
-                                <CardContent className="p-6">
-                                    <p className="text-sm text-muted-foreground mb-1">KPI Projects</p>
-                                    <p className="text-3xl font-bold">{stats.kpi_projects}</p>
-                                </CardContent>
-                            </Card>
-                            <Card className="border-t-4 border-t-amber-500">
-                                <CardContent className="p-6">
-                                    <p className="text-sm text-muted-foreground mb-1">Pending KPI Review</p>
-                                    <p className="text-3xl font-bold">{stats.pending_kpi_review}</p>
-                                </CardContent>
-                            </Card>
-                            <Card className="border-t-4 border-t-emerald-500">
-                                <CardContent className="p-6">
-                                    <p className="text-sm text-muted-foreground mb-1">Completed KPI Review</p>
-                                    <p className="text-3xl font-bold">{stats.completed_kpi_review}</p>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>KPI Review List</CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-0">
+                        <div className="rounded-lg border overflow-hidden bg-background">
+                            <div className="px-6 py-4 border-b">
+                                <h2 className="text-lg font-semibold">KPI Review List</h2>
+                            </div>
+                            <div className="p-0">
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead className="bg-muted/50">
@@ -100,7 +72,7 @@ export default function CeoKpiReviewIndex({ projects, stats }: Props) {
                                                 </tr>
                                             ) : (
                                                 projects.map((project) => (
-                                                    <tr key={project.id} className="border-t">
+                                                    <tr key={project.id} className="border-t hover:bg-muted/30 transition-colors">
                                                         <td className="px-4 py-3 font-medium">
                                                             {project.company?.name || `Project #${project.id}`}
                                                         </td>
@@ -113,7 +85,7 @@ export default function CeoKpiReviewIndex({ projects, stats }: Props) {
                                                         <td className="px-4 py-3">{getStatusBadge(project.kpi_review_status)}</td>
                                                         <td className="px-4 py-3">
                                                             <Link href={`/ceo/kpi-review/${project.id}`}>
-                                                                <Button size="sm">
+                                                                <Button size="sm" variant="outline">
                                                                     {project.kpi_review_status === 'approved' ? (
                                                                         <CheckCircle2 className="h-4 w-4 mr-1" />
                                                                     ) : (
@@ -129,8 +101,8 @@ export default function CeoKpiReviewIndex({ projects, stats }: Props) {
                                         </tbody>
                                     </table>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
                     </div>
                 </main>
             </SidebarInset>

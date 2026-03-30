@@ -6,6 +6,7 @@ import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import AppLayout from '@/layouts/AppLayout';
+import { clearClientDraftCaches } from '@/lib/clientDraftCleanup';
 import { pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
 import { toastCopy } from '@/lib/toastCopy';
 import StepProgress from './components/StepProgress';
@@ -147,6 +148,7 @@ export default function JobAnalysisIndex({
         updateOrgMappings,
         markStepCompleted,
         setActiveStep,
+        resetState,
     } = useJobAnalysisState(project.id);
 
     // Hydrate org mappings from server when present (e.g. returning to step after save)
@@ -198,6 +200,34 @@ export default function JobAnalysisIndex({
             updatePolicyAnswers(policySnapshotAnswers);
         }
     }, [policySnapshotAnswers, updatePolicyAnswers]);
+
+    // If overview is opened with no server data, clear stale local draft and show fresh DB/empty state.
+    useEffect(() => {
+        const hasServerData =
+            Object.keys(policySnapshotAnswers ?? {}).length > 0 ||
+            (finalizedJobDefinitions?.length ?? 0) > 0 ||
+            (serverMappings?.length ?? 0) > 0;
+
+        const status = String((stepStatuses as any)?.job_analysis ?? '').toLowerCase();
+        const hasWorkflowProgress =
+            status === 'in_progress' || status === 'submitted' || status === 'approved' || status === 'locked' || status === 'completed';
+
+        if (initialTab === 'overview' && !hasServerData && !hasWorkflowProgress) {
+            clearClientDraftCaches(project.id);
+            resetState();
+            setActiveStepLocal('overview');
+            setActiveStep('overview');
+        }
+    }, [
+        initialTab,
+        project.id,
+        policySnapshotAnswers,
+        finalizedJobDefinitions,
+        serverMappings,
+        stepStatuses,
+        resetState,
+        setActiveStep,
+    ]);
 
     // Update completed steps based on state
     useEffect(() => {

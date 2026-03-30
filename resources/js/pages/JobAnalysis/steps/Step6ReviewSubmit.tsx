@@ -58,6 +58,8 @@ export default function Step6ReviewSubmit({
     const [expandedJobDefs, setExpandedJobDefs] = useState(false);
     const [expandedOrg, setExpandedOrg] = useState(false);
     const [expandedMappingIds, setExpandedMappingIds] = useState<Set<string>>(new Set());
+    const [showJobMatrix, setShowJobMatrix] = useState(false);
+    const [activeJobKey, setActiveJobKey] = useState('');
     const [submitted, setSubmitted] = useState(false);
     const [submitErr, setSubmitErr] = useState<string | null>(null);
     const [submitFieldErrors, setSubmitFieldErrors] = useState<FieldErrors>({});
@@ -68,6 +70,8 @@ export default function Step6ReviewSubmit({
     const csfsCount = Object.values(jobDefinitions).reduce((acc, job) => acc + (job.csfs?.length || 0), 0);
     const roleOwnersCount = orgMappings.filter((m) => (m.org_head_name ?? '').trim()).length;
     const policyAnswerCount = Object.keys(policyAnswers).length;
+    const activeMatrixJobKey = activeJobKey || (jobEntries[0]?.[0] ?? '');
+    const activeMatrixJob = activeMatrixJobKey ? jobDefinitions[activeMatrixJobKey] : null;
 
     const toggleMapping = (id: string) => {
         setExpandedMappingIds((prev) => {
@@ -357,7 +361,10 @@ export default function Step6ReviewSubmit({
                                             type="button"
                                             variant="outline"
                                             className="h-8"
-                                            onClick={() => router.visit(`/hr-manager/tree/${projectId}`)}
+                                            onClick={() => {
+                                                setActiveJobKey(key);
+                                                setShowJobMatrix(true);
+                                            }}
                                         >
                                             Open Job Matrix Card
                                         </Button>
@@ -367,6 +374,81 @@ export default function Step6ReviewSubmit({
                         </div>
                     )}
                 </div>
+
+                {showJobMatrix && activeMatrixJob && (
+                    <div className="bg-white rounded-xl border border-[#e5e7eb] shadow-sm overflow-hidden mb-4">
+                        <div className="px-5 py-4 border-b bg-[#f8fafc] flex items-center justify-between gap-3 flex-wrap">
+                            <div>
+                                <h3 className="font-semibold text-[#121431]">Job Matrix Card</h3>
+                                <p className="text-xs text-[#6b7280]">
+                                    {activeMatrixJob.job_name} · Stage 3 draft data (editable preview for confirmation)
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setShowJobMatrix(false)}
+                                >
+                                    Close
+                                </Button>
+                            </div>
+                        </div>
+                        <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <p className="text-xs text-[#6b7280] mb-1">Job Name</p>
+                                <div className="rounded border px-3 py-2 bg-[#fafafa]">{activeMatrixJob.job_name}</div>
+                            </div>
+                            <div>
+                                <p className="text-xs text-[#6b7280] mb-1">Job Code</p>
+                                <div className="rounded border px-3 py-2 bg-[#fafafa]">
+                                    {activeMatrixJob.job_keyword_id ?? '—'}
+                                </div>
+                            </div>
+                            <div className="md:col-span-2">
+                                <p className="text-xs text-[#6b7280] mb-1">Job Purpose</p>
+                                <div className="rounded border px-3 py-2 bg-[#fafafa] whitespace-pre-wrap">
+                                    {activeMatrixJob.job_description || '—'}
+                                </div>
+                            </div>
+                            <div className="md:col-span-2">
+                                <p className="text-xs text-[#6b7280] mb-1">Competency Levels</p>
+                                <div className="rounded border bg-[#fafafa] overflow-hidden">
+                                    <table className="w-full text-xs">
+                                        <thead className="bg-[#f1f5f9]">
+                                            <tr>
+                                                <th className="text-left px-2 py-1.5">Level</th>
+                                                <th className="text-left px-2 py-1.5">Expected Behavior</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {(activeMatrixJob.competency_levels || []).map((lv, idx) => (
+                                                <tr key={idx} className="border-t">
+                                                    <td className="px-2 py-1.5">{lv.level || `Lv.${idx + 1}`}</td>
+                                                    <td className="px-2 py-1.5">{lv.description || '—'}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div className="md:col-span-2">
+                                <p className="text-xs text-[#6b7280] mb-1">CSFs</p>
+                                <div className="rounded border px-3 py-2 bg-[#fafafa]">
+                                    {(activeMatrixJob.csfs || []).length > 0 ? (
+                                        <ul className="list-disc pl-5 space-y-1">
+                                            {(activeMatrixJob.csfs || []).map((c, idx) => (
+                                                <li key={idx}>{c.name || '—'}{c.description ? ` — ${c.description}` : ''}</li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <span>—</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Organization Chart Mappings - collapsible */}
                 {orgMappings.length > 0 && (

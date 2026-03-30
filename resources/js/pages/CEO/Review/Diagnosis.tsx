@@ -1,5 +1,5 @@
 import { Head, useForm, router, Link, usePage } from '@inertiajs/react';
-import { AlertCircle, ArrowLeft } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import React, { useEffect, useState, useMemo } from 'react';
 import ChangeHistoryTab from '@/components/CEO/Review/ChangeHistoryTab';
 import DiagnosisActions from '@/components/CEO/Review/DiagnosisActions';
@@ -108,6 +108,7 @@ interface Props {
         id: number;
         company: Company;
         ceoPhilosophy?: { id?: number; completed_at?: string } | null;
+        ceo_philosophy?: { id?: number; completed_at?: string } | null;
     };
     diagnosis?: Diagnosis;
     company: Company;
@@ -127,6 +128,18 @@ export default function CeoReviewDiagnosis({
     hrIssues = [],
 }: Props) {
     const REQUIRED_ORG_CHART_YEARS = ['2023.12', '2024.12', '2025.12'] as const;
+    const tabOrder = [
+        'company-info',
+        'workforce',
+        'executives',
+        'leaders',
+        'job-grades',
+        'organizational-charts',
+        'organizational-structure',
+        'job-structure',
+        'hr-issues',
+        'history',
+    ] as const;
     const [activeTab, setActiveTab] = useState('company-info');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [saveNotice, setSaveNotice] = useState<string | null>(null);
@@ -218,25 +231,30 @@ export default function CeoReviewDiagnosis({
         router.visit('/ceo/dashboard');
     };
 
-    const totalHeadcount = Number(diagnosis?.present_headcount) || 0;
-    const execTotal = Number(diagnosis?.total_executives) || 0;
+    // Use live form data for summary metrics so CEO sees correct values immediately while editing.
+    const totalHeadcount = Number((data as any)?.present_headcount) || 0;
+    const execTotal = Number((data as any)?.total_executives) || 0;
     const jobGradesForPyramid = useMemo(() => {
-        const names = diagnosis?.job_grade_names ?? [];
-        const headcounts = (diagnosis?.job_grade_headcounts ?? {}) as Record<string, number>;
-        return names.map((name) => ({ name, headcount: Number(headcounts[name]) || 0 }));
-    }, [diagnosis?.job_grade_names, diagnosis?.job_grade_headcounts]);
+        const names = ((data as any)?.job_grade_names ?? []) as string[];
+        const headcounts = (((data as any)?.job_grade_headcounts ?? {}) as Record<string, number | string>);
+        // Stored order is typically low -> high in editor; reverse for top -> bottom analysis.
+        return names
+            .map((name) => ({ name, headcount: Number(headcounts[name]) || 0 }))
+            .reverse();
+    }, [(data as any)?.job_grade_names, (data as any)?.job_grade_headcounts]);
     const leaderCountFromGrades = jobGradesForPyramid.slice(0, 2).reduce((s, g) => s + g.headcount, 0);
     const leaderTotal = execTotal + leaderCountFromGrades;
     const leaderRatio = totalHeadcount ? ((leaderTotal / totalHeadcount) * 100).toFixed(1) : '0';
     const execRatio = totalHeadcount ? ((execTotal / totalHeadcount) * 100).toFixed(1) : '0';
     const execPositionsStr = useMemo(() => {
-        const pos = Array.isArray(diagnosis?.executive_positions)
-            ? diagnosis.executive_positions
-            : diagnosis?.executive_positions && typeof diagnosis.executive_positions === 'object'
-                ? Object.entries(diagnosis.executive_positions).map(([role, count]) => ({ role, count: Number(count) || 0 }))
+        const positions = (data as any)?.executive_positions;
+        const pos = Array.isArray(positions)
+            ? positions
+            : positions && typeof positions === 'object'
+                ? Object.entries(positions).map(([role, count]) => ({ role, count: Number(count) || 0 }))
                 : [];
         return pos.map((p) => `${p.role} × ${p.count}`).join(', ');
-    }, [diagnosis?.executive_positions]);
+    }, [(data as any)?.executive_positions]);
 
     const isDiagnosisCompleteForVerification = useMemo(() => {
         const d = data as Record<string, any>;
@@ -264,6 +282,19 @@ export default function CeoReviewDiagnosis({
 
         return hasIndustry && hasHeadcount && hasAllCharts && hasOrgStructure && hasJobGrades && hasJobStructure;
     }, [data]);
+    const hasSurveyCompleted =
+        !!project?.ceoPhilosophy?.completed_at || !!(project as any)?.ceo_philosophy?.completed_at;
+    const activeTabIndex = tabOrder.indexOf(activeTab as (typeof tabOrder)[number]);
+    const canGoPrevTab = activeTabIndex > 0;
+    const canGoNextTab = activeTabIndex >= 0 && activeTabIndex < tabOrder.length - 1;
+    const handleBackTab = () => {
+        if (!canGoPrevTab) return;
+        setActiveTab(tabOrder[activeTabIndex - 1]);
+    };
+    const handleNextTab = () => {
+        if (!canGoNextTab) return;
+        setActiveTab(tabOrder[activeTabIndex + 1]);
+    };
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -281,14 +312,6 @@ export default function CeoReviewDiagnosis({
                                 <AlertDescription>{saveNotice}</AlertDescription>
                             </Alert>
                         )}
-                        <Link
-                            href={`/ceo/projects/${project.id}/verification`}
-                            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 mb-6 transition-colors"
-                        >
-                            <ArrowLeft className="w-4 h-4" />
-                            Back to Step Verification
-                        </Link>
-
                         <DiagnosisHeader
                             title="Review HR Diagnosis Inputs"
                             subtitle="Review and edit the diagnosis data submitted by your HR Manager. All changes will be logged."
@@ -298,7 +321,7 @@ export default function CeoReviewDiagnosis({
                         {diagnosis && (
                             <div className="rounded-t-[14px] bg-gradient-to-br from-[#0f2a4a] to-[#1a4070] dark:from-slate-800 dark:to-slate-900 px-6 py-5 mb-0">
                                 <div className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#c8a84b]">
-                                    {company?.name || project.company?.name || '—'} · {formatValue(diagnosis?.industry_category) || '—'}
+                                    {company?.name || project.company?.name || '—'} · {formatValue((data as any)?.industry_category) || '—'}
                                 </div>
                                 <div className="flex flex-wrap items-end gap-6">
                                     <div>
@@ -312,7 +335,7 @@ export default function CeoReviewDiagnosis({
                                         <div>
                                             <div className="mb-0.5 text-[9px] text-slate-400">Active tenure (avg)</div>
                                             <div className="text-2xl font-extrabold leading-none text-emerald-400">
-                                                {formatNumber(diagnosis?.average_tenure_active)}
+                                                {formatNumber((data as any)?.average_tenure_active)}
                                                 <span className="ml-0.5 text-xs font-medium text-slate-400">yrs</span>
                                             </div>
                                         </div>
@@ -320,7 +343,7 @@ export default function CeoReviewDiagnosis({
                                         <div>
                                             <div className="mb-0.5 text-[9px] text-slate-400">Exit tenure (avg)</div>
                                             <div className="text-2xl font-extrabold leading-none text-slate-400">
-                                                {formatNumber(diagnosis?.average_tenure_leavers)}
+                                                {formatNumber((data as any)?.average_tenure_leavers)}
                                                 <span className="ml-0.5 text-xs font-medium text-slate-400">yrs</span>
                                             </div>
                                         </div>
@@ -420,9 +443,13 @@ export default function CeoReviewDiagnosis({
                         <DiagnosisActions
                             onSave={handleSave}
                             onConfirm={handleConfirm}
+                            onBackTab={handleBackTab}
+                            onNextTab={handleNextTab}
+                            canGoBackTab={canGoPrevTab}
+                            canGoNextTab={canGoNextTab}
                             processing={processing}
                             diagnosisStatus={diagnosis?.status}
-                            hasSurveyCompleted={!!project?.ceoPhilosophy?.completed_at}
+                            hasSurveyCompleted={hasSurveyCompleted}
                             isDiagnosisComplete={isDiagnosisCompleteForVerification}
                             projectId={project?.id}
                         />

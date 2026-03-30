@@ -92,6 +92,7 @@ export default function CompanyInfo({
     };
 
     const [logoPreview, setLogoPreview] = useState<string | null>(company.logo_path || null);
+    const [customHqInput, setCustomHqInput] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const draftHydrated = useRef(false);
     const logoDraftPreviewHydrated = useRef(false);
@@ -125,6 +126,20 @@ export default function CompanyInfo({
     const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
     const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v as never) : internalForm.setData;
     const errors = internalForm.errors;
+    const hqOptions = React.useMemo(() => {
+        const base = [...hqLocations];
+        const current = typeof data.hq_location === 'string' ? data.hq_location.trim() : '';
+        if (current && !base.includes(current)) {
+            // Ensure current value is visible even if not in admin-configured options yet.
+            return [current, ...base];
+        }
+        return base;
+    }, [hqLocations, data.hq_location]);
+    const isCustomHqSelected = React.useMemo(() => {
+        const current = typeof data.hq_location === 'string' ? data.hq_location.trim() : '';
+        if (!current) return false;
+        return !hqOptions.includes(current);
+    }, [data.hq_location, hqOptions]);
 
     const isNonEmptyString = (v: unknown): boolean => typeof v === 'string' && v.trim().length > 0;
     const isFilledString = (v: unknown): boolean => v !== undefined && v !== null && String(v).trim().length > 0;
@@ -200,6 +215,24 @@ export default function CompanyInfo({
             setData(k as keyof typeof internalForm.data, v as never);
         });
     }, [normalizedProjectId, readOnly, embedMode, setData, hqLocations]);
+
+    // Embed mode (CEO review) does not use local draft hydration; repair 1-char HQ values here too.
+    useEffect(() => {
+        const current = typeof data.hq_location === 'string' ? data.hq_location.trim() : '';
+        if (current.length !== 1 || hqOptions.length === 0) return;
+        const prefix = current.toLowerCase();
+        const matches = hqOptions.filter((loc) => loc.toLowerCase().startsWith(prefix));
+        if (matches.length === 1 && matches[0] !== data.hq_location) {
+            setData('hq_location', matches[0]);
+        }
+    }, [data.hq_location, hqOptions, setData]);
+
+    useEffect(() => {
+        const current = typeof data.hq_location === 'string' ? data.hq_location.trim() : '';
+        if (current && !hqOptions.includes(current)) {
+            setCustomHqInput(current);
+        }
+    }, [data.hq_location, hqOptions]);
 
     // Validate registration number format (exactly 10 digits => 000-00-00000)
     const validateRegistrationNumber = (value: string): boolean => {
@@ -586,10 +619,17 @@ export default function CompanyInfo({
                                 {tr('hqLocationLabel')} <span className="text-red-500">*</span>
                             </Label>
                             <div className="relative">
-                                {hqLocations.length > 0 ? (
+                                {hqOptions.length > 0 ? (
                                     <Select
-                                        value={data.hq_location}
-                                        onValueChange={(value) => setData('hq_location', value)}
+                                        value={isCustomHqSelected ? '__custom__' : data.hq_location}
+                                        onValueChange={(value) => {
+                                            if (value === '__custom__') {
+                                                const nextCustom = customHqInput.trim();
+                                                setData('hq_location', nextCustom);
+                                                return;
+                                            }
+                                            setData('hq_location', value);
+                                        }}
                                         disabled={readOnly}
                                     >
                                         <SelectTrigger
@@ -601,11 +641,14 @@ export default function CompanyInfo({
                                             <SelectValue placeholder={tr('hqLocationPlaceholder')} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {hqLocations.map((location) => (
+                                            {hqOptions.map((location) => (
                                                 <SelectItem key={location} value={location}>
                                                     {location}
                                                 </SelectItem>
                                             ))}
+                                            {!readOnly && (
+                                                <SelectItem value="__custom__">Custom location...</SelectItem>
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 ) : (
@@ -633,6 +676,20 @@ export default function CompanyInfo({
                                     <circle cx="12" cy="11" r="2.5" />
                                 </svg>
                             </div>
+                            {hqOptions.length > 0 && !readOnly && isCustomHqSelected && (
+                                <div className="mt-2">
+                                    <Input
+                                        value={customHqInput}
+                                        onChange={(e) => {
+                                            const v = e.target.value;
+                                            setCustomHqInput(v);
+                                            setData('hq_location', v);
+                                        }}
+                                        placeholder="Enter custom location"
+                                        className="w-full h-11 rounded-lg border border-gray-200 px-3 text-sm"
+                                    />
+                                </div>
+                            )}
                             {errors.hq_location && (
                                 <p className="mt-1 text-xs text-red-500">{errors.hq_location}</p>
                             )}

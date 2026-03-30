@@ -18,6 +18,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { clearClientDraftCaches } from '@/lib/clientDraftCleanup';
 import { cn } from '@/lib/utils';
 
 function getBreadcrumbLabel(path: string): string {
@@ -75,15 +76,15 @@ export default function AppHeader() {
 
     return (
         <header className={cn(
-            'sticky top-0 z-50 w-full flex-shrink-0 h-[var(--hr-topbar-h)]',
+            'sticky top-0 z-50 w-full flex-shrink-0 h-[var(--hr-topbar-h)] backdrop-blur supports-[backdrop-filter]:backdrop-blur',
             headerDark
                 ? 'bg-[#0f2a4a] border-b border-white/10'
-                : 'border-b border-[var(--hr-gray-200)] bg-white'
+                : 'border-b border-[var(--hr-gray-200)] bg-white/95'
         )}>
-            <div className="flex h-full items-center justify-between px-7 w-full">
+            <div className="flex h-full items-center justify-between px-5 md:px-7 w-full">
                 <div className="flex items-center gap-4">
                     <SidebarTrigger className={cn(
-                        'flex size-9 w-7 h-7 -ml-1',
+                        'flex size-9 rounded-lg -ml-1',
                         headerDark && 'text-white hover:bg-white/10'
                     )} />
                     <div className={cn(
@@ -152,10 +153,12 @@ export default function AppHeader() {
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className={cn(
-                                'flex items-center gap-2 h-auto py-1 pr-2.5 pl-1 rounded-lg',
-                                headerDark ? 'hover:bg-white/10' : 'hover:bg-[var(--hr-gray-100)]'
+                                'flex items-center gap-2 h-auto py-1.5 pr-2.5 pl-1.5 rounded-xl border',
+                                headerDark
+                                    ? 'border-white/20 bg-white/5 hover:bg-white/10'
+                                    : 'border-[var(--hr-gray-200)] bg-[var(--hr-gray-50)] hover:bg-[var(--hr-gray-100)]'
                             )}>
-                                <div className="w-[30px] h-[30px] rounded-lg bg-[var(--hr-navy)] flex items-center justify-center flex-shrink-0">
+                                <div className="w-[30px] h-[30px] rounded-lg bg-[var(--hr-navy)] flex items-center justify-center flex-shrink-0 shadow-sm">
                                     <span className="text-[11px] font-bold text-[var(--hr-mint)]">
                                         {user?.name ? getInitials(user.name) : 'U'}
                                     </span>
@@ -211,6 +214,7 @@ export default function AppHeader() {
                                     as="button"
                                     className="flex w-full cursor-pointer items-center text-destructive focus:text-destructive"
                                     onClick={() => {
+                                        clearClientDraftCaches();
                                         router.flushAll();
                                     }}
                                 >
