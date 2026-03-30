@@ -1,4 +1,5 @@
 import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
 
 type CollapsibleContextValue = {
   open: boolean
@@ -36,20 +37,25 @@ function Collapsible({
 
 function CollapsibleTrigger({
   onClick,
+  asChild = false,
+  children,
   ...props
-}: React.ComponentProps<"button">) {
+}: React.ComponentProps<"button"> & { asChild?: boolean; children?: React.ReactNode }) {
   const ctx = React.useContext(CollapsibleContext)
+  const Comp: any = asChild ? Slot : "button"
 
   return (
-    <button
+    <Comp
       type="button"
       data-slot="collapsible-trigger"
-      onClick={(e) => {
+      onClick={(e: any) => {
         ctx?.setOpen(!ctx.open)
         onClick?.(e)
       }}
       {...props}
-    />
+    >
+      {children}
+    </Comp>
   )
 }
 

@@ -87,6 +87,17 @@ class DiagnosisController extends Controller
             $companyUpdates['hq_location'] = $data['hq_location'];
             unset($data['hq_location']); // Remove from diagnosis payload
         }
+
+        // Persist company logo on intermediate step saves as well.
+        // The final submit step stores `company_logo`, but the wizard step form sends it as `logo`.
+        if ($request->hasFile('logo')) {
+            $path = $request->file('logo')->store('company-logos', 'public');
+            $companyUpdates['logo_path'] = $path;
+        } elseif ($request->hasFile('company_logo')) {
+            // Safety for any client that already uses the submit field name.
+            $path = $request->file('company_logo')->store('company-logos', 'public');
+            $companyUpdates['logo_path'] = $path;
+        }
         
         if (!empty($companyUpdates)) {
             $hrProject->company->update($companyUpdates);

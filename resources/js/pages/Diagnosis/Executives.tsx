@@ -294,7 +294,7 @@ export default function Executives({
                             <div
                                 className={cn(
                                     'flex items-center rounded-lg overflow-hidden border bg-white transition-all',
-                                    active ? 'border-[#B2EDE5]' : 'border-[#E2E6ED] opacity-35 pointer-events-none'
+                                    active ? 'border-[#B2EDE5]' : 'border-[#E2E6ED] opacity-35'
                                 )}
                             >
                                 <button

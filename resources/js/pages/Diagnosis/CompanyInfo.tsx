@@ -81,6 +81,7 @@ export default function CompanyInfo({
     embedData,
     embedSetData,
 }: Props) {
+    const normalizedProjectId = typeof projectId === 'string' ? Number(projectId) : projectId;
     // Format registration number as 000-00-00000 while typing.
     const formatRegistrationNumber = (value: string): string => {
         if (!value) return '';
@@ -126,6 +127,7 @@ export default function CompanyInfo({
     const errors = internalForm.errors;
 
     const isNonEmptyString = (v: unknown): boolean => typeof v === 'string' && v.trim().length > 0;
+    const isFilledString = (v: unknown): boolean => v !== undefined && v !== null && String(v).trim().length > 0;
 
     const serializeDraft = (formData: any): Record<string, unknown> => {
         if (!formData || typeof formData !== 'object') return {};
@@ -155,9 +157,9 @@ export default function CompanyInfo({
     // If the user uploaded a logo earlier, rehydrate the preview from in-memory file drafts
     // so it doesn't disappear after navigation.
     useEffect(() => {
-        if (!projectId) return;
+        if (!normalizedProjectId) return;
         if (logoDraftPreviewHydrated.current) return;
-        const draftLogo = getLogoDraftFile(projectId);
+        const draftLogo = getLogoDraftFile(normalizedProjectId);
         if (!draftLogo) return;
         logoDraftPreviewHydrated.current = true;
 
@@ -171,18 +173,33 @@ export default function CompanyInfo({
             setLogoPreview(reader.result as string);
         };
         reader.readAsDataURL(draftLogo);
-    }, [projectId]);
+    }, [normalizedProjectId]);
 
     useEffect(() => {
-        if (draftHydrated.current || !projectId || readOnly || embedMode) return;
+        if (draftHydrated.current || !normalizedProjectId || readOnly || embedMode) return;
         draftHydrated.current = true;
-        const p = loadAllTabDrafts(projectId)['company-info'];
+        const p = loadAllTabDrafts(normalizedProjectId)['company-info'];
         if (!p) return;
         Object.entries(p).forEach(([k, v]) => {
             if (v === undefined || v === null || k === 'logo') return;
+            // Sometimes drafts come back as a truncated prefix (e.g. "S" from "Seoul, South Korea").
+            // If the draft value looks like a 1-char prefix and we can uniquely match it, repair it.
+            if (
+                k === 'hq_location' &&
+                typeof v === 'string' &&
+                v.trim().length === 1 &&
+                hqLocations.length > 0
+            ) {
+                const prefix = v.trim().toLowerCase();
+                const matches = hqLocations.filter((loc) => loc.toLowerCase().startsWith(prefix));
+                if (matches.length === 1) {
+                    setData(k as keyof typeof internalForm.data, matches[0] as never);
+                    return;
+                }
+            }
             setData(k as keyof typeof internalForm.data, v as never);
         });
-    }, [projectId, readOnly, embedMode, setData]);
+    }, [normalizedProjectId, readOnly, embedMode, setData, hqLocations]);
 
     // Validate registration number format (exactly 10 digits => 000-00-00000)
     const validateRegistrationNumber = (value: string): boolean => {
@@ -206,7 +223,7 @@ export default function CompanyInfo({
         }
 
         setData('logo', file);
-        if (projectId) setLogoDraftFile(projectId, file);
+        if (normalizedProjectId) setLogoDraftFile(normalizedProjectId, file);
 
         // Create preview
         const reader = new FileReader();
@@ -235,17 +252,13 @@ export default function CompanyInfo({
         data.industry_category === 'Others' ||
         (!!data.industry_subcategory?.trim() && (data.industry_subcategory !== 'Others' || !!data.industry_other?.trim()));
     const requiredFields = [
-        isNonEmptyString(data.company_name),
-        isNonEmptyString(data.registration_number),
-        isNonEmptyString(data.foundation_date),
+        isFilledString(data.company_name),
+        isFilledString(data.registration_number),
+        isFilledString(data.foundation_date),
         primaryIndustryFilled,
         subIndustryFilled,
-        isNonEmptyString(data.hq_location),
-        typeof data.is_public === 'boolean' ||
-            data.is_public === 0 ||
-            data.is_public === 1 ||
-            data.is_public === '0' ||
-            data.is_public === '1',
+        isFilledString(data.hq_location),
+        data.is_public !== undefined && data.is_public !== null,
     ];
     const requiredCount = requiredFields.filter(Boolean).length;
     const completionPct = Math.round((requiredCount / requiredFields.length) * 100);

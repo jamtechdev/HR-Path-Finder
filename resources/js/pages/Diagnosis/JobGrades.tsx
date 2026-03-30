@@ -74,19 +74,34 @@ function buildGradesFromDiagnosis(diagnosis?: Diagnosis | null): JobGrade[] {
     return diagnosis.job_grade_names.map((name, index) => {
         const fromDefault = DEFAULT_GRADES.find((d) => d.name === name) ?? DEFAULT_GRADES[index % DEFAULT_GRADES.length];
         const yearsVal = promotionYears[name];
-        const noPeriod = yearsVal === null || yearsVal === undefined;
+        const noPeriod = yearsVal === null || yearsVal === undefined || yearsVal === '';
+
+        const toInt = (v: unknown): number | null => {
+            if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+            if (typeof v === 'string') {
+                const parsed = parseInt(v, 10);
+                return Number.isFinite(parsed) ? parsed : null;
+            }
+            return null;
+        };
+
+        const headcountVal = headcounts[name];
+        const headcountInt = toInt(headcountVal);
+
+        const yearsInt = toInt(yearsVal);
         return {
             id: `g${index}-${name}`,
             name,
-            years: noPeriod ? fromDefault.years : (typeof yearsVal === 'number' ? yearsVal : fromDefault.years),
+            years: noPeriod ? fromDefault.years : (yearsInt ?? fromDefault.years),
             noFixed: noPeriod,
-            count: typeof headcounts[name] === 'number' ? headcounts[name] : 0,
+            count: headcountInt ?? 0,
             role: expectedRoles[name] ?? fromDefault.role,
         };
     });
 }
 
-const GRADE_GRID = '28px 44px 100px 180px 100px minmax(120px,3.5fr) 36px';
+// Give the headcount column slightly more room so the - [input] + 명 stepper fits cleanly.
+const GRADE_GRID = '28px 44px 100px 180px 120px minmax(120px,3.5fr) 36px';
 
 export default function JobGrades({
     project,
@@ -489,7 +504,7 @@ export default function JobGrades({
                                 type="button"
                                 onClick={() => updateGrade(g.id, { count: Math.max(0, g.count - 1) })}
                                 disabled={isReadOnly}
-                                className="w-[30px] h-[34px] flex items-center justify-center bg-[#F8F9FB] text-[#6B7585] font-bold text-[15px] hover:bg-[#E6F9F6] hover:text-[#25A891] disabled:opacity-50"
+                                className="w-[28px] h-[34px] flex items-center justify-center bg-[#F8F9FB] text-[#6B7585] font-bold text-[15px] hover:bg-[#E6F9F6] hover:text-[#25A891] disabled:opacity-50"
                             >
                                 −
                             </button>
@@ -497,11 +512,34 @@ export default function JobGrades({
                                 type="number"
                                 min={0}
                                 value={g.count || ''}
-                                onChange={(e) => updateGrade(g.id, { count: parseInt(e.target.value, 10) || 0 })}
+                                onChange={(e) => {
+                                    const parsed = parseInt(e.target.value, 10) || 0;
+                                    // Prevent exceeding workforceTotal (keeps analysis % <= 100).
+                                    const nextTotalWithoutThis = totalHc - (g.count || 0);
+                                    const maxForThis = Math.max(0, workforceTotal - nextTotalWithoutThis);
+                                    const next = Math.min(parsed, maxForThis);
+                                    updateGrade(g.id, { count: next });
+                                }}
                                 disabled={isReadOnly}
                                 className="flex-1 min-w-0 border-0 bg-transparent text-center text-[14px] font-extrabold text-[#1B2B5B] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
-                            <span className="px-2 text-[11px] font-semibold text-[#9AA3B2] border-l border-[#E2E6ED] bg-[#F8F9FB] h-[34px] flex items-center">명</span>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const nextTotalWithoutThis = totalHc - (g.count || 0);
+                                    const maxForThis = Math.max(0, workforceTotal - nextTotalWithoutThis);
+                                    const next = Math.min((g.count || 0) + 1, maxForThis);
+                                    updateGrade(g.id, { count: next });
+                                }}
+                                disabled={isReadOnly || workforceTotal <= 0}
+                                className="w-[28px] h-[34px] flex items-center justify-center bg-[#F8F9FB] text-[#6B7585] font-bold text-[15px] hover:bg-[#E6F9F6] hover:text-[#25A891] disabled:opacity-50"
+                                title="Increase headcount"
+                            >
+                                +
+                            </button>
+                            <span className="w-[28px] px-0 text-[10px] font-semibold text-[#9AA3B2] border-l border-[#E2E6ED] bg-[#F8F9FB] h-[34px] flex items-center justify-center shrink-0">
+                                명
+                            </span>
                         </div>
                         <div>
                             <textarea

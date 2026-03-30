@@ -89,9 +89,47 @@ export default function Leaders({
     ];
     const totalPos = allSelected.length;
     const totalHead = allSelected.reduce((s, r) => s + r.count, 0);
-    const ratioPct = totalWorkforce > 0 && totalHead >= 0 ? ((totalHead / totalWorkforce) * 100).toFixed(1) : null;
-    const ratioNum = totalWorkforce > 0 ? Math.min(100, parseFloat(ratioPct || '0')) : 0;
+    const ratioPctRaw = totalWorkforce > 0 && totalHead >= 0 ? (totalHead / totalWorkforce) * 100 : null;
+    const ratioPct = ratioPctRaw == null ? null : Math.min(100, ratioPctRaw).toFixed(1);
+    const ratioNum = totalWorkforce > 0 ? Math.min(100, ratioPctRaw ?? 0) : 0;
     const tooManyLeaders = totalWorkforce > 0 && totalHead > totalWorkforce;
+
+    // If the user (or draft) pushes leader headcount above workforce, automatically reduce
+    // so % never exceeds 100. This avoids blocking Next in common cases (e.g. 126/…).
+    useEffect(() => {
+        if (embedMode || readOnly) return;
+        if (totalWorkforce <= 0) return;
+        if (totalHead <= totalWorkforce) return;
+        const ids = Array.from(selected);
+        if (ids.length === 0) return;
+
+        const excess = totalHead - totalWorkforce;
+        setCounts((prev) => {
+            const next = { ...prev };
+            let remainingExcess = excess;
+            let changed = false;
+
+            const reducible = ids
+                .map((id) => ({ id, count: next[id] ?? 1 }))
+                .sort((a, b) => b.count - a.count);
+
+            for (const r of reducible) {
+                if (remainingExcess <= 0) break;
+                const current = next[r.id] ?? 1;
+                const canReduce = Math.max(0, current - 1);
+                if (canReduce <= 0) continue;
+                const dec = Math.min(canReduce, remainingExcess);
+                const newVal = current - dec;
+                if (newVal !== current) {
+                    next[r.id] = newVal;
+                    changed = true;
+                }
+                remainingExcess -= dec;
+            }
+
+            return changed ? next : prev;
+        });
+    }, [embedMode, readOnly, selected, totalHead, totalWorkforce]);
 
     // Hydrate UI selections from draft (UI-only keys) so Back/Next preserves selections.
     useDiagnosisDraftHydrate(
@@ -138,13 +176,52 @@ export default function Leaders({
         [readOnly]
     );
 
-    const adj = useCallback((key: string, delta: number) => {
-        setCounts((prev) => ({ ...prev, [key]: Math.max(1, (prev[key] ?? 1) + delta) }));
-    }, []);
+    const computeTotalHeadFromCounts = useCallback(
+        (nextCounts: Record<string, number>) => Array.from(selected).reduce((s, id) => s + (nextCounts[id] ?? 1), 0),
+        [selected]
+    );
 
-    const syncRow = useCallback((key: string, value: number) => {
-        setCounts((prev) => ({ ...prev, [key]: Math.max(1, value) }));
-    }, []);
+    const adj = useCallback(
+        (key: string, delta: number) => {
+            setCounts((prev) => {
+                const next = { ...prev };
+                const nextVal = Math.max(1, (prev[key] ?? 1) + delta);
+                next[key] = nextVal;
+
+                // Cap so total leaders never exceed workforce.
+                const nextTotal = computeTotalHeadFromCounts(next);
+                if (totalWorkforce > 0 && nextTotal > totalWorkforce && selected.has(key)) {
+                    // Reduce ONLY the changed key to avoid surprising redistribution.
+                    const others = nextTotal - nextVal;
+                    const maxForKey = Math.max(1, totalWorkforce - others);
+                    next[key] = Math.min(nextVal, maxForKey);
+                }
+
+                return next;
+            });
+        },
+        [computeTotalHeadFromCounts, totalWorkforce]
+    );
+
+    const syncRow = useCallback(
+        (key: string, value: number) => {
+            setCounts((prev) => {
+                const next = { ...prev };
+                const nextVal = Math.max(1, value);
+                next[key] = nextVal;
+
+                const nextTotal = computeTotalHeadFromCounts(next);
+                if (totalWorkforce > 0 && nextTotal > totalWorkforce && selected.has(key)) {
+                    const others = nextTotal - nextVal;
+                    const maxForKey = Math.max(1, totalWorkforce - others);
+                    next[key] = Math.min(nextVal, maxForKey);
+                }
+
+                return next;
+            });
+        },
+        [computeTotalHeadFromCounts, totalWorkforce]
+    );
 
     const openCustom = useCallback(() => {
         setCustomInputVisible(true);
@@ -180,9 +257,12 @@ export default function Leaders({
         setOrder((prev) => prev.filter((x) => x !== id));
     }, []);
 
-    const adjCustom = useCallback((id: string, delta: number) => {
-        setCounts((prev) => ({ ...prev, [id]: Math.max(1, (prev[id] ?? 1) + delta) }));
-    }, []);
+    const adjCustom = useCallback(
+        (id: string, delta: number) => {
+            adj(id, delta);
+        },
+        [adj]
+    );
 
     const handleDragStart = useCallback((e: React.DragEvent, key: string) => {
         setDraggingKey(key);
@@ -197,7 +277,9 @@ export default function Leaders({
         e.preventDefault();
         if (draggingKey === key) return;
         e.dataTransfer.dropEffect = 'move';
-        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        const rectEl = e.currentTarget as HTMLElement | null;
+        const rect = rectEl?.getBoundingClientRect();
+        if (!rect) return;
         const mid = rect.top + rect.height / 2;
         setDropTarget({ key, top: e.clientY < mid });
     }, [draggingKey]);
@@ -216,6 +298,14 @@ export default function Leaders({
                 setDraggingKey(null);
                 return;
             }
+
+            // Important: React SyntheticEvents can be pooled, so never read `e.*`
+            // inside a later state updater. Compute insert position immediately.
+            const rectEl = e.currentTarget as HTMLElement | null;
+            const rect = rectEl?.getBoundingClientRect() ?? null;
+            const clientY = e.clientY;
+            const insertBeforeTarget = rect ? clientY < rect.top + rect.height / 2 : false;
+
             justDraggedRef.current = true;
             setTimeout(() => { justDraggedRef.current = false; }, 150);
             setDropTarget(null);
@@ -227,9 +317,7 @@ export default function Leaders({
                 const next = [...prev];
                 const [removed] = next.splice(i, 1);
                 const newJ = next.indexOf(key);
-                const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                const top = e.clientY < rect.top + rect.height / 2;
-                next.splice(top ? newJ : newJ + 1, 0, removed);
+                next.splice(insertBeforeTarget ? newJ : newJ + 1, 0, removed);
                 return next;
             });
         },
@@ -373,7 +461,7 @@ export default function Leaders({
                             <div
                                 className={cn(
                                     'flex items-center rounded-lg overflow-hidden border bg-white shrink-0 transition-all',
-                                    active ? 'border-[#B2EDE5]' : 'border-[#E2E6ED] opacity-30 pointer-events-none'
+                                    active ? 'border-[#B2EDE5]' : 'border-[#E2E6ED] opacity-30'
                                 )}
                                 onClick={(e) => e.stopPropagation()}
                             >

@@ -52,6 +52,21 @@ const GENDER_COLORS = ['#0f2a4a', '#c8a84b', '#94a3b8'];
 
 function pyramidShape(grades: { name: string; headcount: number }[]): { label: string; color: string; desc: string } {
     if (!grades.length) return { label: tr('pyramidDiamond'), color: '#c8a84b', desc: tr('pyramidDiamondDesc') };
+    const headcounts = grades.map((g) => Number(g.headcount) || 0);
+    const top = headcounts[0] ?? 0;
+    const bottom = headcounts[headcounts.length - 1] ?? 0;
+    const max = Math.max(...headcounts);
+    const topIsMax = top === max;
+    const bottomIsMax = bottom === max;
+
+    // Classification based on where the "peak" sits:
+    // - bottom peak => lower grades are thick (healthy pyramid)
+    // - top peak => top-heavy (inverted pyramid)
+    // - otherwise => diamond / mixed concentration
+    if (bottomIsMax && !topIsMax) return { label: tr('pyramidHealthy'), color: '#2aab6e', desc: tr('pyramidHealthyDesc') };
+    if (topIsMax && !bottomIsMax) return { label: tr('pyramidInverted'), color: '#e8622a', desc: tr('pyramidInvertedDesc') };
+
+    // Fallback: if strictly monotonic, keep the old behavior.
     let inc = 0, dec = 0;
     for (let i = 0; i < grades.length - 1; i++) {
         if (grades[i].headcount < grades[i + 1].headcount) inc++;
@@ -395,7 +410,7 @@ export default function Review({
         const names = preview?.job_grade_names ?? [];
         const headcounts = (preview?.job_grade_headcounts ?? {}) as Record<string, number>;
         // Ensure visual orientation: top = Department Head (highest grade), bottom = Staff (lowest grade).
-        // job_grade_names are stored from low->high in the editor, so we reverse for the pyramid.
+        // job_grade_names are stored from low->high in the editor, so reverse for the pyramid.
         return names
             .map((name) => ({ name, headcount: Number(headcounts[name]) || 0 }))
             .reverse();
