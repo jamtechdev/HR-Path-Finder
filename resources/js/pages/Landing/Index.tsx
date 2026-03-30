@@ -295,6 +295,8 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
                                             <div
                                                 className={`bm-bar-fill ${row.keyName}`}
                                                 style={{
+                                                    borderRadius: '5px',
+                                                    height: '100%',
                                                     ['--bar-w' as string]: `${Math.round(gapToPercent(row.value))}%`,
                                                     background: row.barBackground,
                                                 }}
