@@ -3,7 +3,7 @@ import React from 'react';
 interface BenchmarkRow {
     label: string;
     value: number;
-    diff?: number;
+    barColor?: string;
     isAnchor?: boolean;
 }
 
@@ -16,10 +16,10 @@ interface BenchmarkSectionProps {
 }
 
 const defaultRows: BenchmarkRow[] = [
-    { label: '우리 회사', value: 100, isAnchor: true },
-    { label: '업종 전체', value: 127, diff: 27 },
-    { label: '타깃 경쟁사', value: 118, diff: 18 },
-    { label: '유사 제조업', value: 108, diff: 8 },
+    { label: '우리 회사', value: 100, isAnchor: true, barColor: 'linear-gradient(90deg, rgba(255,255,255,0.98), rgba(228,236,249,0.72))' },
+    { label: '업종 전체', value: 127, barColor: 'linear-gradient(90deg, #ff7d7d, #ff4e4e)' },
+    { label: '타깃 경쟁사', value: 118, barColor: 'linear-gradient(90deg, #ffc24a, #ff8a1f)' },
+    { label: '유사 제조업', value: 108, barColor: 'linear-gradient(90deg, rgba(241,196,15,0.95), rgba(156,163,175,0.85))' },
 ];
 
 export function BenchmarkSection({
@@ -29,6 +29,9 @@ export function BenchmarkSection({
     rows = defaultRows,
     insight,
 }: BenchmarkSectionProps) {
+    const maxValue = Math.max(...rows.map((row) => row.value), 1);
+    const widthFromValue = (value: number) => `${Math.max(16, (value / maxValue) * 100)}%`;
+
     const defaultTitle = (
         <>
             우리 회사 보상,
@@ -69,30 +72,16 @@ export function BenchmarkSection({
                                 <span className={`text-xs font-medium w-[76px] shrink-0 font-sans ${row.isAnchor ? 'text-[#0B1E3D] font-bold' : 'text-[#3D5068]'}`}>
                                     {row.label}
                                 </span>
-                                <div className="flex-1 relative h-6 flex items-center">
-                                    {row.isAnchor ? (
-                                        <>
-                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[60%] h-2 bg-[#0B1E3D] rounded-r rounded-l-none" />
-                                            <div className="absolute left-[60%] top-[-6px] h-[calc(100%+12px)] w-0.5 bg-[#0B1E3D] z-[3]" />
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="flex-1 h-2 bg-[#F0F2F6] rounded overflow-visible relative">
-                                                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[60%] h-2 bg-[#0B1E3D] rounded-l rounded-r-none" />
-                                                <div
-                                                    className="absolute left-[60%] top-1/2 -translate-y-1/2 h-2 rounded-r bg-gradient-to-r from-[#8FA6C4] to-[#6B88A8]"
-                                                    style={{ width: `${(row.diff ?? 0) * 0.85}%` }}
-                                                />
-                                            </div>
-                                            {row.diff != null && (
-                                                <span className="absolute left-[calc(60%+4px)] top-1/2 -translate-y-1/2 text-[10px] font-bold text-[#5A6F8A] whitespace-nowrap z-[4]">
-                                                    +{row.diff}
-                                                </span>
-                                            )}
-                                        </>
-                                    )}
+                                <div className="flex-1 relative h-2 rounded bg-[#F0F2F6] overflow-hidden">
+                                    <div
+                                        className="h-full rounded"
+                                        style={{
+                                            width: widthFromValue(row.value),
+                                            background: row.barColor ?? 'linear-gradient(90deg, #8FA6C4, #6B88A8)',
+                                        }}
+                                    />
                                 </div>
-                                <span className={`text-[13px] font-bold min-w-[32px] text-right font-sans tracking-tight ${row.isAnchor ? 'text-[#0B1E3D]' : row.diff ? 'text-[#5A6F8A]' : 'text-[#3D5068]'}`}>
+                                <span className={`text-[13px] font-bold min-w-[32px] text-right font-sans tracking-tight ${row.isAnchor ? 'text-[#0B1E3D]' : 'text-[#3D5068]'}`}>
                                     {row.value}
                                 </span>
                             </div>
