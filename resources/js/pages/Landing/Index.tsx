@@ -127,46 +127,40 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
     const [factorA, setFactorA] = useState(20);
     const [factorB, setFactorB] = useState(85);
 
-    // Benchmark bar chart (competitive gap vs "우리 회사" baseline 100)
-    const benchmarkBase = 100;
-    const minCompanyWidthPercent = 6; // keep "our company" visible (gap=0)
+    // Benchmark bar chart: value-proportional bars for clear visual comparison.
+    const minBenchmarkWidthPercent = 12;
     const benchmarkCardRows = [
         {
             label: '우리 회사',
             value: 100,
             keyName: 'our',
             isOurCompany: true,
-            barBackground: 'linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.55))',
+            barBackground: 'linear-gradient(90deg, rgba(255,255,255,0.98), rgba(228,236,249,0.72))',
         },
         {
             label: '업종 전체',
             value: 127,
             keyName: 'industry',
             isOurCompany: false,
-            barBackground: 'linear-gradient(90deg, #ff6b6b, #ff3b3b)',
+            barBackground: 'linear-gradient(90deg, #ff7d7d, #ff4e4e)',
         },
         {
             label: '타깃 경쟁사',
             value: 118,
             keyName: 'comp-a',
             isOurCompany: false,
-            barBackground: 'linear-gradient(90deg, #ffb020, #ff7a00)',
+            barBackground: 'linear-gradient(90deg, #ffc24a, #ff8a1f)',
         },
         {
             label: '유사 제조업',
             value: 108,
             keyName: 'comp-b',
             isOurCompany: false,
-            barBackground: 'linear-gradient(90deg, rgba(241,196,15,0.95), rgba(148,163,184,0.75))',
+            barBackground: 'linear-gradient(90deg, rgba(241,196,15,0.95), rgba(156,163,175,0.85))',
         },
     ];
-    const maxGap = Math.max(...benchmarkCardRows.map((r) => r.value - benchmarkBase));
-    const gapToPercent = (value: number) => {
-        const gap = value - benchmarkBase;
-        if (gap <= 0) return minCompanyWidthPercent;
-        if (maxGap <= 0) return minCompanyWidthPercent;
-        return Math.max(minCompanyWidthPercent, (gap / maxGap) * 100);
-    };
+    const maxBenchmarkValue = Math.max(...benchmarkCardRows.map((r) => r.value), 1);
+    const valueToPercent = (value: number) => Math.max(minBenchmarkWidthPercent, (value / maxBenchmarkValue) * 100);
 
     const bands = useMemo(() => calcBands(factorA / 100, factorB / 100), [factorA, factorB]);
 
@@ -219,8 +213,8 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
                 .section-label{display:inline-flex;align-items:center;gap:6px;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:16px;}
                 .section-label::before{content:'';display:block;width:16px;height:1px;background:var(--teal);}
                 .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease, transform .6s ease;} .reveal.visible{opacity:1;transform:translateY(0);}
-                .bm-bar-fill{width:0 !important;transition:width 1.2s cubic-bezier(0.16,1,0.3,1);}
-                .bm-bar-fill.animated{width:var(--bar-w) !important;}
+                .bm-bar-fill{transition:width 1.2s cubic-bezier(0.16,1,0.3,1);}
+                .bm-bar-fill.animated{opacity:1;}
             `}</style>
             <div className="landing-wrap">
                 <LandingNav isAuthenticated={false} canRegister={canRegister ?? false} />
@@ -297,8 +291,9 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
                                                 style={{
                                                     borderRadius: '5px',
                                                     height: '100%',
-                                                    ['--bar-w' as string]: `${Math.round(gapToPercent(row.value))}%`,
+                                                    width: `${Math.round(valueToPercent(row.value))}%`,
                                                     background: row.barBackground,
+                                                    opacity: 0.98,
                                                 }}
                                             />
                                         </div>
