@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Middleware;
 
@@ -46,13 +48,24 @@ class HandleInertiaRequests extends Middleware
         
         $shared = [
             ...parent::share($request),
-            'name' => config('app.name'),
+            'name' => Setting::get('app_name', config('app.name')),
+            'appConfig' => [
+                'name' => Setting::get('app_name', config('app.name')),
+                'logo' => ($logo = Setting::get('app_logo_path')) ? Storage::url($logo) : asset('logo.svg'),
+            ],
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'email_verified_at' => $user->email_verified_at?->toIso8601String(),
+                    'phone' => $user->phone,
+                    'address' => $user->address,
+                    'city' => $user->city,
+                    'state' => $user->state,
+                    'latitude' => $user->latitude,
+                    'longitude' => $user->longitude,
+                    'profile_photo_url' => $user->profile_photo_path ? Storage::url($user->profile_photo_path) : null,
                     'roles' => $user->roles->map(fn($role) => ['name' => $role->name]),
                 ] : null,
             ],

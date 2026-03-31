@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Setting;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,12 +16,22 @@ class EnsureBetaAccessApproved
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! config('beta.require_admin_approval', false)) {
+        $requiresApproval = Setting::getBool(
+            'beta_require_admin_approval',
+            (bool) env('BETA_REQUIRE_ADMIN_APPROVAL', false)
+        );
+
+        if (! $requiresApproval) {
             return $next($request);
         }
 
         $user = $request->user();
         if (! $user) {
+            return $next($request);
+        }
+
+        // Admin should be able to use the system freely from the start.
+        if ($user->hasRole('admin')) {
             return $next($request);
         }
 

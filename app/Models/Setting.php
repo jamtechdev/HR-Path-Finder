@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class Setting extends Model
 {
@@ -15,8 +16,12 @@ class Setting extends Model
      */
     public static function get(string $key, $default = null)
     {
-        $setting = static::where('key', $key)->first();
-        return $setting ? $setting->value : $default;
+        $cacheKey = "settings:{$key}";
+
+        return Cache::remember($cacheKey, 300, function () use ($key, $default) {
+            $setting = static::where('key', $key)->first();
+            return $setting ? $setting->value : $default;
+        });
     }
     
     /**
@@ -28,6 +33,22 @@ class Setting extends Model
             ['key' => $key],
             ['value' => $value]
         );
+
+        Cache::forget("settings:{$key}");
+    }
+
+    /**
+     * Get boolean setting value by key.
+     */
+    public static function getBool(string $key, bool $default = false): bool
+    {
+        $value = static::get($key, $default ? '1' : '0');
+
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        return filter_var((string) $value, FILTER_VALIDATE_BOOLEAN);
     }
     
     /**

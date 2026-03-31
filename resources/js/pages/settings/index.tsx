@@ -52,6 +52,7 @@ interface PageProps {
     appSettings: {
         name: string;
         logo: string;
+        require_admin_approval?: boolean;
     };
     twoFactorEnabled?: boolean;
     requiresConfirmation?: boolean;
@@ -121,6 +122,13 @@ export default function SettingsIndex({
     const profileForm = useForm({
         name: auth?.user?.name || '',
         email: auth?.user?.email || '',
+        phone: auth?.user?.phone ?? '',
+        address: auth?.user?.address ?? '',
+        city: auth?.user?.city ?? '',
+        state: auth?.user?.state ?? '',
+        latitude: auth?.user?.latitude ?? '',
+        longitude: auth?.user?.longitude ?? '',
+        profile_photo: null as File | null,
     });
 
     // Password Form
@@ -146,6 +154,7 @@ export default function SettingsIndex({
     const appForm = useForm({
         name: appSettings.name || '',
         logo: null as File | null,
+        require_admin_approval: Boolean(appSettings.require_admin_approval),
     });
 
     // Test Email Form
@@ -192,6 +201,7 @@ export default function SettingsIndex({
         e.preventDefault();
         profileForm.patch('/settings/profile', {
             preserveScroll: true,
+            forceFormData: true,
             onSuccess: () => {
                 router.reload();
             },
@@ -232,79 +242,202 @@ export default function SettingsIndex({
                             </Alert>
                         )}
 
-                        {/* Tabs */}
-                        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-                            <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4 lg:grid-cols-6' : 'grid-cols-2 lg:grid-cols-4'}`}>
-                                <TabsTrigger value="profile" className="flex items-center gap-2">
-                                    <User className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Profile</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="password" className="flex items-center gap-2">
-                                    <Lock className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Password</span>
-                                </TabsTrigger>
-                                {isAdmin && (
-                                    <TabsTrigger value="smtp" className="flex items-center gap-2">
-                                        <Mail className="w-4 h-4" />
-                                        <span className="hidden sm:inline">Email</span>
-                                    </TabsTrigger>
-                                )}
-                                {isAdmin && (
-                                    <TabsTrigger value="app" className="flex items-center gap-2">
-                                        <Building2 className="w-4 h-4" />
-                                        <span className="hidden sm:inline">App</span>
-                                    </TabsTrigger>
-                                )}
-                                <TabsTrigger value="appearance" className="flex items-center gap-2">
-                                    <Palette className="w-4 h-4" />
-                                    <span className="hidden lg:inline">Appearance</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="security" className="flex items-center gap-2">
-                                    <ShieldCheck className="w-4 h-4" />
-                                    <span className="hidden lg:inline">Security</span>
-                                </TabsTrigger>
+                        {/* Tab-based Settings */}
+                        <Tabs value={activeTab} onValueChange={handleTabChange}>
+                            <TabsList className="w-full justify-start">
+                                <TabsTrigger value="profile">Profile</TabsTrigger>
+                                <TabsTrigger value="password">Password</TabsTrigger>
+                                {isAdmin && <TabsTrigger value="smtp">SMTP/Email</TabsTrigger>}
+                                {isAdmin && <TabsTrigger value="app">App</TabsTrigger>}
+                                <TabsTrigger value="appearance">Appearance</TabsTrigger>
+                                <TabsTrigger value="security">Security</TabsTrigger>
                             </TabsList>
 
-                            {/* Profile Tab */}
-                            <TabsContent value="profile" className="space-y-6">
+                            <div className="space-y-6 mt-6">
+
+                            {/* Profile */}
+                            {activeTab === 'profile' && (
+                                <div className="space-y-6">
                                 <Card>
                                     <CardHeader>
                                         <CardTitle>Profile Information</CardTitle>
                                         <CardDescription>
-                                            Update your personal information and email address
+                                            Update your personal info, contact details, and location
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
-                                        <form onSubmit={handleProfileSubmit} className="space-y-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="name">Full Name</Label>
-                                                <Input
-                                                    id="name"
-                                                    name="name"
-                                                    value={profileForm.data.name}
-                                                    onChange={(e) => {
-                                                        profileForm.setData('name', e.target.value);
-                                                        clearInertiaFieldError(profileForm.clearErrors, 'name');
-                                                    }}
-                                                    required
-                                                />
-                                                <InputError message={profileForm.errors.name} />
+                                        <form
+                                            onSubmit={handleProfileSubmit}
+                                            className="space-y-4"
+                                            encType="multipart/form-data"
+                                        >
+                                            <div className="flex items-start gap-6">
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <div className="w-20 h-20 rounded-full overflow-hidden border bg-muted flex items-center justify-center">
+                                                        {auth?.user?.profile_photo_url ? (
+                                                            <img
+                                                                src={auth.user.profile_photo_url}
+                                                                alt="Profile photo"
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <span className="text-sm font-semibold text-muted-foreground">No photo</span>
+                                                        )}
+                                                    </div>
+                                                    <Label htmlFor="profile_photo" className="cursor-pointer">
+                                                        Upload photo
+                                                    </Label>
+                                                    <Input
+                                                        id="profile_photo"
+                                                        type="file"
+                                                        name="profile_photo"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0] ?? null;
+                                                            profileForm.setData('profile_photo', file);
+                                                            clearInertiaFieldError(profileForm.clearErrors, 'profile_photo');
+                                                        }}
+                                                    />
+                                                    <InputError message={profileForm.errors.profile_photo} />
+                                                </div>
+
+                                                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="name">Full Name</Label>
+                                                        <Input
+                                                            id="name"
+                                                            name="name"
+                                                            value={profileForm.data.name}
+                                                            onChange={(e) => {
+                                                                profileForm.setData('name', e.target.value);
+                                                                clearInertiaFieldError(profileForm.clearErrors, 'name');
+                                                            }}
+                                                            required
+                                                        />
+                                                        <InputError message={profileForm.errors.name} />
+                                                    </div>
+
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="email">Email Address</Label>
+                                                        <Input
+                                                            id="email"
+                                                            type="email"
+                                                            name="email"
+                                                            value={profileForm.data.email}
+                                                            onChange={(e) => {
+                                                                profileForm.setData('email', e.target.value);
+                                                                clearInertiaFieldError(profileForm.clearErrors, 'email');
+                                                            }}
+                                                            required
+                                                        />
+                                                        <InputError message={profileForm.errors.email} />
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="email">Email Address</Label>
-                                                <Input
-                                                    id="email"
-                                                    type="email"
-                                                    name="email"
-                                                    value={profileForm.data.email}
-                                                    onChange={(e) => {
-                                                        profileForm.setData('email', e.target.value);
-                                                        clearInertiaFieldError(profileForm.clearErrors, 'email');
-                                                    }}
-                                                    required
-                                                />
-                                                <InputError message={profileForm.errors.email} />
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="phone">Phone number</Label>
+                                                    <Input
+                                                        id="phone"
+                                                        name="phone"
+                                                        value={profileForm.data.phone}
+                                                        onChange={(e) => {
+                                                            profileForm.setData('phone', e.target.value);
+                                                            clearInertiaFieldError(profileForm.clearErrors, 'phone');
+                                                        }}
+                                                        autoComplete="tel"
+                                                        placeholder="Phone number"
+                                                    />
+                                                    <InputError message={profileForm.errors.phone} />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="address">Address</Label>
+                                                    <Input
+                                                        id="address"
+                                                        name="address"
+                                                        value={profileForm.data.address}
+                                                        onChange={(e) => {
+                                                            profileForm.setData('address', e.target.value);
+                                                            clearInertiaFieldError(profileForm.clearErrors, 'address');
+                                                        }}
+                                                        autoComplete="street-address"
+                                                        placeholder="Street address"
+                                                    />
+                                                    <InputError message={profileForm.errors.address} />
+                                                </div>
                                             </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="city">City</Label>
+                                                    <Input
+                                                        id="city"
+                                                        name="city"
+                                                        value={profileForm.data.city}
+                                                        onChange={(e) => {
+                                                            profileForm.setData('city', e.target.value);
+                                                            clearInertiaFieldError(profileForm.clearErrors, 'city');
+                                                        }}
+                                                        placeholder="City"
+                                                    />
+                                                    <InputError message={profileForm.errors.city} />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="state">State / Province</Label>
+                                                    <Input
+                                                        id="state"
+                                                        name="state"
+                                                        value={profileForm.data.state}
+                                                        onChange={(e) => {
+                                                            profileForm.setData('state', e.target.value);
+                                                            clearInertiaFieldError(profileForm.clearErrors, 'state');
+                                                        }}
+                                                        placeholder="State"
+                                                    />
+                                                    <InputError message={profileForm.errors.state} />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="latitude">Latitude</Label>
+                                                    <Input
+                                                        id="latitude"
+                                                        name="latitude"
+                                                        type="number"
+                                                        step="any"
+                                                        value={profileForm.data.latitude}
+                                                        onChange={(e) => {
+                                                            profileForm.setData('latitude', e.target.value);
+                                                            clearInertiaFieldError(profileForm.clearErrors, 'latitude');
+                                                        }}
+                                                        placeholder="Latitude"
+                                                    />
+                                                    <InputError message={profileForm.errors.latitude} />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="longitude">Longitude</Label>
+                                                    <Input
+                                                        id="longitude"
+                                                        name="longitude"
+                                                        type="number"
+                                                        step="any"
+                                                        value={profileForm.data.longitude}
+                                                        onChange={(e) => {
+                                                            profileForm.setData('longitude', e.target.value);
+                                                            clearInertiaFieldError(profileForm.clearErrors, 'longitude');
+                                                        }}
+                                                        placeholder="Longitude"
+                                                    />
+                                                    <InputError message={profileForm.errors.longitude} />
+                                                </div>
+                                            </div>
+
                                             {mustVerifyEmail && auth?.user?.email_verified_at === null && (
                                                 <div>
                                                     <p className="text-sm text-muted-foreground">
@@ -324,6 +457,7 @@ export default function SettingsIndex({
                                                     )}
                                                 </div>
                                             )}
+
                                             <div className="flex items-center gap-4">
                                                 <Button type="submit" disabled={profileForm.processing}>
                                                     {profileForm.processing ? (
@@ -343,10 +477,12 @@ export default function SettingsIndex({
                                     </CardContent>
                                 </Card>
                                 <DeleteUser />
-                            </TabsContent>
+                            </div>
+                            )}
 
-                            {/* Password Tab */}
-                            <TabsContent value="password" className="space-y-6">
+                            {/* Password */}
+                            {activeTab === 'password' && (
+                                <div className="space-y-6">
                                 <Card>
                                     <CardHeader>
                                         <CardTitle>Change Password</CardTitle>
@@ -432,12 +568,13 @@ export default function SettingsIndex({
                                             )}
                                         </Form>
                                     </CardContent>
-                                </Card>
-                            </TabsContent>
+                                    </Card>
+                                </div>
+                                )}
 
-                            {/* SMTP/Email Tab */}
-                            {isAdmin && (
-                            <TabsContent value="smtp" className="space-y-6">
+                            {/* SMTP/Email (Admin only) */}
+                            {isAdmin && activeTab === 'smtp' && (
+                            <div className="space-y-6">
                                 {/* SMTP Status */}
                                 <Alert className={smtpConfigured ? 'border-success/50 bg-success/5' : 'border-orange-500/50 bg-orange-50 dark:bg-orange-950/20'}>
                                     {smtpConfigured ? (
@@ -669,12 +806,12 @@ export default function SettingsIndex({
                                         </form>
                                     </CardContent>
                                 </Card>
-                            </TabsContent>
+                            </div>
                             )}
 
-                            {/* Application Settings Tab */}
-                            {isAdmin && (
-                            <TabsContent value="app" className="space-y-6">
+                            {/* Application Settings (Admin only) */}
+                            {isAdmin && activeTab === 'app' && (
+                            <div className="space-y-6">
                                 <Card>
                                     <CardHeader>
                                         <CardTitle>Application Settings</CardTitle>
@@ -727,6 +864,24 @@ export default function SettingsIndex({
                                                 </p>
                                             </div>
 
+                                            <div className="space-y-2 border rounded-md p-4 bg-muted/30">
+                                                <div className="flex items-center justify-between gap-4">
+                                                    <div>
+                                                        <Label htmlFor="require_admin_approval">Require admin approval for new accounts</Label>
+                                                        <p className="text-xs text-muted-foreground mt-1">
+                                                            When enabled, new users must wait until admin approval before accessing the system.
+                                                        </p>
+                                                    </div>
+                                                    <input
+                                                        id="require_admin_approval"
+                                                        type="checkbox"
+                                                        checked={Boolean(appForm.data.require_admin_approval)}
+                                                        onChange={(e) => appForm.setData('require_admin_approval', e.target.checked)}
+                                                        className="h-5 w-5 accent-primary"
+                                                    />
+                                                </div>
+                                            </div>
+
                                             <Button type="submit" disabled={appForm.processing}>
                                                 {appForm.processing ? (
                                                     <>Saving...</>
@@ -740,11 +895,12 @@ export default function SettingsIndex({
                                         </form>
                                     </CardContent>
                                 </Card>
-                            </TabsContent>
+                            </div>
                             )}
 
-                            {/* Appearance Tab */}
-                            <TabsContent value="appearance" className="space-y-6">
+                            {/* Appearance */}
+                            {activeTab === 'appearance' && (
+                                <div className="space-y-6">
                                 <Card>
                                     <CardHeader>
                                         <CardTitle>Appearance Settings</CardTitle>
@@ -764,10 +920,12 @@ export default function SettingsIndex({
                                         </div>
                                     </CardContent>
                                 </Card>
-                            </TabsContent>
+                            </div>
+                            )}
 
-                            {/* Security Tab */}
-                            <TabsContent value="security" className="space-y-6">
+                            {/* Two-Factor Security */}
+                            {activeTab === 'security' && (
+                                <div className="space-y-6">
                                 <Card>
                                     <CardHeader>
                                         <CardTitle>Two-Factor Authentication</CardTitle>
@@ -847,7 +1005,9 @@ export default function SettingsIndex({
                                         />
                                     </CardContent>
                                 </Card>
-                            </TabsContent>
+                            </div>
+                            )}
+                            </div>
                         </Tabs>
                     </div>
                 </main>

@@ -30,6 +30,8 @@ export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?
         || {};
     const projectId = (props as any).projectId || (props as any).project?.id;
     const ceoPhilosophyStatus = (props as any).ceoPhilosophyStatus || 'not_started';
+    const appName = (props as any).appConfig?.name || 'HR Path-Finder';
+    const appLogo = (props as any).appConfig?.logo || '/logo.svg';
 
     const isDashboardActive = currentPath === '/hr-manager/dashboard' || currentPath.startsWith('/hr-manager/dashboard/');
     const isCompaniesActive = currentPath === '/hr-manager/companies' || currentPath.startsWith('/hr-manager/companies/');
@@ -105,12 +107,12 @@ export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?
 
             {/* Logo */}
             <div className="py-[18px] px-5 border-b border-white/[0.06] flex items-center gap-2.5 flex-shrink-0 relative">
-                <div className="w-8 h-8 bg-[#4ecdc4] rounded-lg flex items-center justify-center font-bold text-[13px] text-[#111d35] flex-shrink-0">
-                    HR
+                <div className="w-8 h-8 bg-[#4ecdc4] rounded-lg flex items-center justify-center font-bold text-[13px] text-[#111d35] flex-shrink-0 overflow-hidden">
+                    <img src={appLogo} alt={appName} className="w-6 h-6 object-contain" />
                 </div>
                 {!isCollapsed && (
                     <div className="flex flex-col">
-                        <strong className="text-[13px] font-bold text-white tracking-[-0.2px] leading-tight">HR Path-Finder</strong>
+                        <strong className="text-[13px] font-bold text-white tracking-[-0.2px] leading-tight">{appName}</strong>
                         <span className="text-[10px] text-[#9ba5bc] font-normal">by BetterCompany</span>
                     </div>
                 )}

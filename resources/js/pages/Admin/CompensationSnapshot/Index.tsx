@@ -19,20 +19,30 @@ interface CompensationSnapshotQuestion {
     version?: string;
 }
 
+interface PaginatedQuestions {
+    data: CompensationSnapshotQuestion[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    prev_page_url: string | null;
+    next_page_url: string | null;
+}
+
 interface Props {
-    questions: CompensationSnapshotQuestion[];
+    questions: PaginatedQuestions;
     answerTypes: Record<string, string>;
 }
 
 export default function CompensationSnapshotIndex({ questions, answerTypes }: Props) {
     const [searchTerm, setSearchTerm] = useState('');
-    const [localQuestions, setLocalQuestions] = useState(questions);
+    const [localQuestions, setLocalQuestions] = useState(questions.data);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
     // Update local questions when props change
     React.useEffect(() => {
-        setLocalQuestions(questions);
+        setLocalQuestions(questions.data);
     }, [questions]);
 
     const filteredQuestions = localQuestions.filter(q =>
@@ -66,6 +76,11 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
         e.preventDefault();
         setDragOverIndex(null);
 
+        if (searchTerm.trim().length > 0) {
+            setDraggedIndex(null);
+            return;
+        }
+
         if (draggedIndex === null || draggedIndex === dropIndex) {
             setDraggedIndex(null);
             return;
@@ -76,9 +91,10 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
         newQuestions.splice(dropIndex, 0, removed);
 
         // Update order values
+        const pageOffset = (questions.current_page - 1) * questions.per_page;
         const updatedQuestions = newQuestions.map((q, idx) => ({
             ...q,
-            order: idx + 1,
+            order: pageOffset + idx + 1,
         }));
 
         setLocalQuestions(updatedQuestions);
@@ -88,7 +104,7 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
         router.post('/admin/compensation-snapshot/reorder', {
             questions: updatedQuestions.map((q, idx) => ({
                 id: q.id,
-                order: idx + 1,
+                order: pageOffset + idx + 1,
             })),
         }, {
             preserveScroll: true,
@@ -131,7 +147,7 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
                         <Card>
                             <CardHeader>
                                 <div className="flex items-center justify-between">
-                                    <CardTitle>Questions ({filteredQuestions.length})</CardTitle>
+                                    <CardTitle>Questions ({questions.total})</CardTitle>
                                     <div className="relative w-64">
                                         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                         <Input
@@ -150,7 +166,7 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
                                         return (
                                         <div
                                             key={question.id}
-                                            draggable
+                                            draggable={searchTerm.trim().length === 0}
                                             onDragStart={(e) => handleDragStart(e, originalIndex)}
                                             onDragOver={(e) => handleDragOver(e, originalIndex)}
                                             onDragLeave={handleDragLeave}
@@ -209,6 +225,42 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
                                             {searchTerm ? 'No questions found matching your search.' : 'No questions configured yet.'}
                                         </div>
                                     )}
+                                </div>
+                                <div className="mt-6 flex items-center justify-between border-t pt-4">
+                                    <p className="text-sm text-muted-foreground">
+                                        Page {questions.current_page} of {questions.last_page} (10 per page)
+                                    </p>
+                                    {searchTerm.trim().length > 0 && (
+                                        <p className="text-xs text-muted-foreground">
+                                            Clear search to enable drag reorder.
+                                        </p>
+                                    )}
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={!questions.prev_page_url}
+                                            onClick={() => {
+                                                if (!questions.prev_page_url) return;
+                                                router.get(questions.prev_page_url, {}, { preserveScroll: true });
+                                            }}
+                                        >
+                                            Previous
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={!questions.next_page_url}
+                                            onClick={() => {
+                                                if (!questions.next_page_url) return;
+                                                router.get(questions.next_page_url, {}, { preserveScroll: true });
+                                            }}
+                                        >
+                                            Next
+                                        </Button>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

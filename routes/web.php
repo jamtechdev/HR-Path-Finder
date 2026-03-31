@@ -44,6 +44,22 @@ Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $requ
         $request->fulfill();
     }
 
+    $user = $request->user();
+    $requiresApproval = \App\Models\Setting::getBool(
+        'beta_require_admin_approval',
+        (bool) env('BETA_REQUIRE_ADMIN_APPROVAL', false)
+    );
+
+    if (
+        $requiresApproval
+        && $user
+        && ! $user->hasRole('admin')
+        && $user->access_granted_at === null
+    ) {
+        return redirect()->route('beta.pending')
+            ->with('warning', 'Your email is verified. Please wait for admin approval.');
+    }
+
     return redirect()->route('dashboard')->with('success', 'Email verification successful.');
 })->middleware(['auth', 'signed', 'throttle:6,1'])->name('verification.verify');
 
@@ -352,6 +368,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // CEO Management
         Route::get('ceo', [\App\Http\Controllers\Admin\CeoController::class, 'index'])->name('ceo.index');
         Route::post('ceo/create', [\App\Http\Controllers\Admin\CeoController::class, 'store'])->name('ceo.create');
+        Route::put('users/{user}', [\App\Http\Controllers\Admin\CeoController::class, 'updateUser'])
+            ->name('users.update');
+        Route::post('users/{user}/toggle-access', [\App\Http\Controllers\Admin\CeoController::class, 'toggleAccess'])
+            ->name('users.toggle-access');
         Route::get('ceos/{ceo}', [\App\Http\Controllers\Admin\CeoController::class, 'show'])
             ->name('ceos.show');
         Route::get('ceos/{ceo}/edit', [\App\Http\Controllers\Admin\CeoController::class, 'edit'])
@@ -481,6 +501,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'update' => 'compensation-snapshot.update',
             'destroy' => 'compensation-snapshot.destroy',
         ]);
+        Route::get(
+            'compensation-snapshot/{compensationSnapshotQuestion}/edit-data',
+            [\App\Http\Controllers\Admin\CompensationSnapshotQuestionController::class, 'editData']
+        )->name('compensation-snapshot.edit-data');
+        Route::post(
+            'compensation-snapshot/{compensationSnapshotQuestion}/update-data',
+            [\App\Http\Controllers\Admin\CompensationSnapshotQuestionController::class, 'updateData']
+        )->name('compensation-snapshot.update-data');
         Route::post('compensation-snapshot/reorder', [\App\Http\Controllers\Admin\CompensationSnapshotQuestionController::class, 'reorder'])->name('compensation-snapshot.reorder');
 
         // Translations Management (JSON-based)

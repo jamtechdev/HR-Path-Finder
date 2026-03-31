@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\User;
+use App\Models\Setting;
 use App\Notifications\CompanyInvitationNotification;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,49 +24,73 @@ class CeoController extends Controller
      */
     public function index(): Response
     {
-        $ceos = User::role('ceo')->with('companies')->get();
-        $companies = Company::with('users')->get();
+        $companies = Company::select('id', 'name')->orderBy('name')->get();
 
-        // Get all CEO invitations with status (including soft deleted/rejected ones)
-        $invitations = \App\Models\CompanyInvitation::where('role', 'ceo')
-            ->withTrashed()
-            ->with(['company', 'inviter', 'hrProject'])
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($invitation) {
-                $status = 'pending';
-                if ($invitation->accepted_at) {
-                    $status = 'accepted';
-                } elseif ($invitation->trashed()) {
-                    $status = 'rejected';
-                }
+        $users = User::query()
+            ->whereHas('roles', function ($query): void {
+                $query->whereIn('name', ['ceo', 'hr_manager']);
+            })
+            ->with(['companies', 'roles'])
+            ->orderByDesc('created_at')
+            ->get([
+                'id',
+                'name',
+                'email',
+                'phone',
+                'address',
+                'city',
+                'state',
+                'latitude',
+                'longitude',
+                'profile_photo_path',
+                'email_verified_at',
+                'created_at',
+                'access_granted_at',
+            ]);
 
-                return [
-                    'id' => $invitation->id,
-                    'email' => $invitation->email,
-                    'company' => $invitation->company ? [
-                        'id' => $invitation->company->id,
-                        'name' => $invitation->company->name,
-                    ] : null,
-                    'status' => $status,
-                    'invited_by' => $invitation->inviter ? [
-                        'id' => $invitation->inviter->id,
-                        'name' => $invitation->inviter->name,
-                        'email' => $invitation->inviter->email,
-                    ] : null,
-                    'invited_at' => $invitation->created_at,
-                    'accepted_at' => $invitation->accepted_at,
-                    'rejected_at' => $invitation->trashed() ? $invitation->deleted_at : null,
-                    'hr_project' => $invitation->hrProject ? [
-                        'id' => $invitation->hrProject->id,
-                    ] : null,
-                ];
-            });
+        $usersPayload = $users->map(function (User $user): array {
+            $role = $user->hasRole('ceo') ? 'ceo' : 'hr_manager';
+            $companyNames = $user->companies
+                ->filter(function ($company) use ($role): bool {
+                    return $company->pivot?->role === $role;
+                })
+                ->pluck('name')
+                ->values()
+                ->all();
 
-        return Inertia::render('Admin/Ceo/Index', [
-            'ceos' => $ceos,
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $role,
+                'companyNames' => $companyNames,
+                'phone' => $user->phone,
+                'address' => $user->address,
+                'city' => $user->city,
+                'state' => $user->state,
+                'latitude' => $user->latitude,
+                'longitude' => $user->longitude,
+                'profile_photo_url' => $user->profile_photo_path ? Storage::url($user->profile_photo_path) : null,
+                'email_verified_at' => $user->email_verified_at?->toIso8601String(),
+                'created_at' => $user->created_at?->toIso8601String(),
+                'access_granted_at' => $user->access_granted_at?->toIso8601String(),
+            ];
+        })->values()->all();
+
+        $totalHrUsers = $users->filter(fn (User $u) => $u->hasRole('hr_manager'))->count();
+        $totalCeoUsers = $users->filter(fn (User $u) => $u->hasRole('ceo'))->count();
+        $pendingUsersCount = $users->filter(fn (User $u) => $u->access_granted_at === null)->count();
+
+        return Inertia::render('Admin/Users/Index', [
+            'users' => $usersPayload,
+            'total_hr_users' => $totalHrUsers,
+            'total_ceo_users' => $totalCeoUsers,
+            'pending_users_count' => $pendingUsersCount,
             'companies' => $companies,
-            'invitations' => $invitations,
+            'require_admin_approval' => Setting::getBool(
+                'beta_require_admin_approval',
+                (bool) env('BETA_REQUIRE_ADMIN_APPROVAL', false)
+            ),
         ]);
     }
 
@@ -73,108 +100,155 @@ class CeoController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'role' => ['required', 'in:ceo,hr_manager'],
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'company_id' => ['nullable', 'exists:companies,id'],
+            'email' => ['required', 'email', 'max:255'],
+            'company_id' => ['nullable', 'exists:companies,id', 'required_without:company_name'],
+            'company_name' => ['nullable', 'string', 'max:255', 'required_without:company_id'],
         ]);
 
-        // Check if user already exists
-        $existingUser = User::where('email', $request->email)->first();
+        $requestedRole = $request->input('role', 'ceo');
+        $requiresApproval = Setting::getBool(
+            'beta_require_admin_approval',
+            (bool) env('BETA_REQUIRE_ADMIN_APPROVAL', false)
+        );
 
-        if ($existingUser) {
-            // User exists, assign CEO role if not already assigned
-            if (!$existingUser->hasRole('ceo')) {
-                $existingUser->assignRole('ceo');
-            }
-            $ceo = $existingUser;
-        } else {
-            // Generate temporary password
-            $temporaryPassword = 'changeMe@123';
+        $accessGrantedAt = $requiresApproval ? null : now();
 
-            // Create CEO user
-            $ceo = User::create([
+        $user = User::query()->where('email', $request->email)->first();
+        $temporaryPassword = 'changeMe@123';
+
+        $isNew = $user === null;
+
+        if ($isNew) {
+            $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($temporaryPassword),
+                'email_verified_at' => now(), // admin-created accounts are treated as verified
+                'access_granted_at' => $accessGrantedAt,
+            ]);
+        } else {
+            $user->fill([
+                'name' => $request->name,
+                'email' => $request->email,
                 'email_verified_at' => now(),
             ]);
 
-            // Assign CEO role
-            $ceo->assignRole('ceo');
+            if (! $requiresApproval) {
+                // If admin approval is disabled, make sure the user is active.
+                $user->access_granted_at = $user->access_granted_at ?? now();
+            }
+
+            $user->save();
         }
 
-        // If company_id is provided, associate CEO with company
+        // Ensure spatie role exists and sync to a single role.
+        \Spatie\Permission\Models\Role::firstOrCreate(
+            ['name' => $requestedRole, 'guard_name' => 'web']
+        );
+        $user->syncRoles([$requestedRole]);
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+        $company = null;
         if ($request->company_id) {
             $company = Company::findOrFail($request->company_id);
-
-            // Check if CEO is already associated with this company
-            $isCompanyMember = $company->users->contains($ceo);
-            $existingCompanyRoles = [];
-            if ($isCompanyMember) {
-                $existingCompanyRoles = $company->users()
-                    ->where('users.id', $ceo->id)
-                    ->pluck('company_users.role')
-                    ->toArray();
-            }
-
-            // Associate CEO with company if not already associated
-            if (!in_array('ceo', $existingCompanyRoles)) {
-                $company->users()->syncWithoutDetaching([
-                    $ceo->id => ['role' => 'ceo'],
-                ]);
-
-                // Create invitation record for tracking
-                $invitation = \App\Models\CompanyInvitation::create([
-                    'company_id' => $company->id,
-                    'email' => $request->email,
-                    'role' => 'ceo',
-                    'inviter_id' => $request->user()->id,
-                    'accepted_at' => now(),
-                    'temporary_password' => $existingUser ? null : $temporaryPassword,
-                ]);
-
-                // Send welcome email with credentials
-                try {
-                    Log::info('Sending CEO Welcome Email (Admin Created)', [
-                        'invitation_id' => $invitation->id,
-                        'email' => $request->email,
-                        'company_id' => $company->id,
-                        'company_name' => $company->name,
-                        'is_new_user' => !$existingUser,
-                        'mailer' => config('mail.default'),
-                        'mail_host' => config('mail.mailers.smtp.host'),
-                        'timestamp' => now()->toIso8601String(),
-                    ]);
-
-                    Notification::route('mail', $request->email)
-                        ->notify(new CompanyInvitationNotification($invitation));
-
-                    Log::info('CEO Welcome Email sent successfully (Admin Created)', [
-                        'invitation_id' => $invitation->id,
-                        'email' => $request->email,
-                    ]);
-                } catch (\Exception $e) {
-                    Log::error('Failed to send CEO Welcome Email (Admin Created)', [
-                        'invitation_id' => $invitation->id,
-                        'email' => $request->email,
-                        'error' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString(),
-                    ]);
-                }
-
-                $message = $existingUser
-                    ? "CEO account has been successfully assigned to {$company->name}. Welcome email sent."
-                    : "CEO account created and assigned to {$company->name}. Welcome email with credentials sent.";
-            } else {
-                $message = "CEO is already associated with {$company->name}.";
-            }
-        } else {
-            $message = $existingUser
-                ? "CEO account already exists. Please assign to a company."
-                : "CEO created successfully. Please assign to a company.";
+        } elseif ($request->company_name) {
+            $company = Company::create([
+                'name' => $request->company_name,
+                'created_by' => $request->user()?->id,
+            ]);
         }
 
+        if ($company) {
+            // Attach and set pivot role for this single company.
+            $user->companies()->sync([$company->id => ['role' => $requestedRole]]);
+        }
+
+        $message = $isNew ? 'User created successfully.' : 'User updated successfully.';
+
         return back()->with('success', $message);
+    }
+
+    /**
+     * Update admin editable profile fields for any non-admin user.
+     */
+    public function updateUser(Request $request, User $user)
+    {
+        if ($user->hasRole('admin')) {
+            return back()->with('error', 'You cannot edit admin accounts.');
+        }
+
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'state' => ['nullable', 'string', 'max:255'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'profile_photo' => ['nullable', 'image', 'max:2048'],
+        ]);
+
+        $previousEmail = $user->email;
+
+        $data = $request->validated();
+        $user->fill([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'phone' => $data['phone'] ?? null,
+            'address' => $data['address'] ?? null,
+            'city' => $data['city'] ?? null,
+            'state' => $data['state'] ?? null,
+            'latitude' => $data['latitude'] ?? null,
+            'longitude' => $data['longitude'] ?? null,
+        ]);
+
+        if ($request->hasFile('profile_photo')) {
+            $path = $request->file('profile_photo')->store('profile-photos', 'public');
+            $user->profile_photo_path = $path;
+        }
+
+        // Admin edits should not lock the user out due to email verification.
+        if ($previousEmail !== $user->email) {
+            $user->email_verified_at = now();
+        }
+
+        $user->save();
+
+        return back()->with('success', 'User profile updated successfully.');
+    }
+
+    /**
+     * Toggle access for CEO/HR users from admin users page.
+     */
+    public function toggleAccess(Request $request, User $user): RedirectResponse
+    {
+        if ($user->hasRole('admin')) {
+            return back()->with('error', 'You cannot change admin access.');
+        }
+
+        $validated = $request->validate([
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $shouldBeActive = (bool) $validated['active'];
+        $isCurrentlyActive = $user->access_granted_at !== null;
+
+        if ($shouldBeActive === $isCurrentlyActive) {
+            return back()->with('info', $shouldBeActive
+                ? 'User is already active.'
+                : 'User is already inactive.');
+        }
+
+        $user->forceFill([
+            'access_granted_at' => $shouldBeActive ? now() : null,
+        ])->save();
+
+        return back()->with('success', $shouldBeActive
+            ? "Access activated for {$user->email}."
+            : "Access deactivated for {$user->email}.");
     }
 
     public function show(User $ceo)

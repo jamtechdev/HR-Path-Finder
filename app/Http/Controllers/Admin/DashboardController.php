@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AdminComment;
 use App\Models\HrProject;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -81,6 +82,44 @@ class DashboardController extends Controller
         // Get all companies for CEO assignment
         $companies = \App\Models\Company::select('id', 'name')->orderBy('name')->get();
 
+        // Beta approval user list (non-admin): HR Manager + CEO
+        $users = User::query()
+            ->whereHas('roles', function ($query): void {
+                $query->whereIn('name', ['hr_manager', 'ceo']);
+            })
+            ->with(['companies'])
+            ->with('roles')
+            ->get(['id', 'name', 'email', 'email_verified_at', 'created_at', 'access_granted_at']);
+
+        $usersPayload = $users->map(function (User $user): array {
+            $role = $user->hasRole('ceo') ? 'ceo' : 'hr_manager';
+            $approvalStatus = $user->access_granted_at ? 'active' : 'pending';
+
+            // Filter companies by pivot role for display.
+            $companyNames = $user->companies
+                ->filter(function ($company) use ($role): bool {
+                    return $company->pivot?->role === $role;
+                })
+                ->pluck('name')
+                ->values()
+                ->all();
+
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $role,
+                'companyNames' => $companyNames,
+                'email_verified_at' => $user->email_verified_at?->toIso8601String(),
+                'created_at' => $user->created_at?->toIso8601String(),
+                'access_granted_at' => $user->access_granted_at?->toIso8601String(),
+                'approval_status' => $approvalStatus,
+            ];
+        })->values()->all();
+
+        $totalHrUsers = $users->filter(fn (User $u) => $u->hasRole('hr_manager'))->count();
+        $totalCeoUsers = $users->filter(fn (User $u) => $u->hasRole('ceo'))->count();
+
         return Inertia::render('Dashboard/Admin/Index', [
             'projects' => $projects,
             'stats' => [
@@ -97,6 +136,9 @@ class DashboardController extends Controller
             'projectsNeedingPerformanceRecommendation' => $projectsNeedingPerformanceRecommendation,
             'projectsNeedingCompensationRecommendation' => $projectsNeedingCompensationRecommendation,
             'companies' => $companies,
+            'total_hr_users' => $totalHrUsers,
+            'total_ceo_users' => $totalCeoUsers,
+            'users' => $usersPayload,
         ]);
     }
 

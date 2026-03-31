@@ -28,6 +28,8 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
     // Get projects from shared props (with step_statuses and kpi_review_status for KPI list)
     const projects: Project[] = (props as any).projects || [];
     const currentProjectId = (props as any).project?.id || (props as any).hrProject?.id;
+    const appName = (props as any).appConfig?.name || 'HR Path-Finder';
+    const appLogo = (props as any).appConfig?.logo || '/logo.svg';
 
     const translationPages = [
         { key: 'all', label: 'All Translations', path: '/admin/translations?page=all' },
@@ -61,12 +63,12 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                 "flex items-center border-b border-sidebar-border/30 gap-3 transition-all duration-200",
                 isCollapsed ? "h-16 px-4 justify-center" : "h-20 px-6"
             )}>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center flex-shrink-0 shadow-lg transition-all duration-200">
-                    <span className="text-white font-bold text-base">HR</span>
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 border border-primary/20 shadow-sm transition-all duration-200 overflow-hidden">
+                    <img src={appLogo} alt={appName} className="w-9 h-9 object-contain" />
                 </div>
                 {!isCollapsed && (
                     <div className="flex flex-col gap-1">
-                        <span className="font-semibold text-sidebar-foreground text-lg leading-none">HR Path-Finder</span>
+                        <span className="font-semibold text-sidebar-foreground text-lg leading-none">{appName}</span>
                         <span className="text-xs text-sidebar-foreground/60 leading-none">by BetterCompany</span>
                     </div>
                 )}
@@ -117,21 +119,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                     )}
                                 >
                                     <Users className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                    {!isCollapsed && <span className="flex-1 text-left truncate">CEO Management</span>}
-                                </Link>
-
-                                <Link
-                                    href="/admin/beta-access"
-                                    className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                        isActive('/admin/beta-access')
-                                            ? "bg-sidebar-accent text-sidebar-primary"
-                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                        isCollapsed && "justify-center px-3"
-                                    )}
-                                >
-                                    <UserCheck className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                    {!isCollapsed && <span className="flex-1 text-left truncate">Beta access</span>}
+                                    {!isCollapsed && <span className="flex-1 text-left truncate">Users & Beta Access</span>}
                                 </Link>
 
                                 <Link
@@ -220,6 +208,19 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                 >
                                     <Target className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
                                     {!isCollapsed && <span className="flex-1 text-left truncate">Performance Snapshot</span>}
+                                </Link>
+                                <Link
+                                    href="/admin/compensation-snapshot"
+                                    className={cn(
+                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                                        isActive('/admin/compensation-snapshot')
+                                            ? "bg-sidebar-accent text-sidebar-primary"
+                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                                        isCollapsed && "justify-center px-3"
+                                    )}
+                                >
+                                    <DollarSign className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
+                                    {!isCollapsed && <span className="flex-1 text-left truncate">Compensation Snapshot</span>}
                                 </Link>
                                 <Link
                                     href="/admin/kpi-templates"

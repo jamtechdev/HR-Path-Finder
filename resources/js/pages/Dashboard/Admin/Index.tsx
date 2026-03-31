@@ -10,12 +10,21 @@ import {
     LayoutGrid,
     Target,
     TrendingUp,
+    Users,
 } from 'lucide-react';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import {
     Sidebar,
     SidebarInset,
@@ -52,6 +61,17 @@ interface Props {
     projectsNeedingPerformanceRecommendation?: Project[];
     projectsNeedingCompensationRecommendation?: Project[];
     companies?: Company[];
+    users?: Array<{
+        id: number;
+        name: string;
+        email: string;
+        role: 'ceo' | 'hr_manager' | string;
+        companyNames: string[];
+        email_verified_at?: string | null;
+        access_granted_at: string | null;
+    }>;
+    total_hr_users?: number;
+    total_ceo_users?: number;
 }
 
 export default function AdminDashboard({
@@ -62,6 +82,9 @@ export default function AdminDashboard({
     projectsNeedingPerformanceRecommendation = [],
     projectsNeedingCompensationRecommendation = [],
     companies = [],
+    users = [],
+    total_hr_users = 0,
+    total_ceo_users = 0,
 }: Props) {
     const getStatusBadge = (status: string) => {
         const statusMap: Record<
@@ -92,8 +115,8 @@ export default function AdminDashboard({
                         <Head title="Admin Dashboard" />
                         <div className="mx-auto max-w-7xl p-6 md:p-8">
                             <div className="mb-8">
-                                <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg dark:from-blue-600 dark:to-purple-700">
-                                    <LayoutGrid className="h-8 w-8 text-white" />
+                                <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
+                                    <LayoutGrid className="h-8 w-8 text-primary" />
                                 </div>
                                 <h1 className="mb-2 text-3xl font-bold text-foreground">
                                     Admin Dashboard
@@ -106,6 +129,42 @@ export default function AdminDashboard({
 
                             {/* Statistics Cards */}
                             <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="mb-1 text-sm text-muted-foreground">
+                                                    Total HR
+                                                </p>
+                                                <p className="text-3xl font-bold text-foreground">
+                                                    {total_hr_users}
+                                                </p>
+                                            </div>
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
+                                                <Users className="h-6 w-6 text-primary" />
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="mb-1 text-sm text-muted-foreground">
+                                                    Total CEO
+                                                </p>
+                                                <p className="text-3xl font-bold text-foreground">
+                                                    {total_ceo_users}
+                                                </p>
+                                            </div>
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
+                                                <Users className="h-6 w-6 text-primary" />
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
                                 <Card>
                                     <CardContent className="p-6">
                                         <div className="flex items-center justify-between">
@@ -171,9 +230,77 @@ export default function AdminDashboard({
                                                     {stats.completed_projects}
                                                 </p>
                                             </div>
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-900/20">
-                                                <CheckCircle2 className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
+                                                <CheckCircle2 className="h-6 w-6 text-primary" />
                                             </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            {/* Users List */}
+                            <div className="mb-8">
+                                <Card>
+                                    <CardHeader>
+                                        <div className="flex items-center justify-between gap-3">
+                                            <CardTitle className="flex items-center gap-2">
+                                                <Users className="h-5 w-5 text-primary" />
+                                                All Users (CEO/HR)
+                                            </CardTitle>
+                                            <Link href="/admin/ceo">
+                                                <Button variant="outline" size="sm">
+                                                    Manage
+                                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="overflow-x-auto">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>Name</TableHead>
+                                                        <TableHead>Role</TableHead>
+                                                        <TableHead>Company</TableHead>
+                                                        <TableHead>Email verified</TableHead>
+                                                        <TableHead>Access</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {users.length === 0 ? (
+                                                        <TableRow>
+                                                            <TableCell colSpan={5} className="text-center text-muted-foreground">
+                                                                No users found
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ) : (
+                                                        users.map((u) => (
+                                                            <TableRow key={u.id}>
+                                                                <TableCell className="font-medium">{u.name}</TableCell>
+                                                                <TableCell>{u.role === 'ceo' ? 'CEO' : 'HR Manager'}</TableCell>
+                                                                <TableCell>
+                                                                    {u.companyNames && u.companyNames.length > 0
+                                                                        ? u.companyNames.join(', ')
+                                                                        : '-'}
+                                                                </TableCell>
+                                                                <TableCell>{u.access_granted_at ? (u.email_verified_at ? 'Yes' : 'No') : (u.email_verified_at ? 'Yes' : 'No')}</TableCell>
+                                                                <TableCell>
+                                                                    {u.access_granted_at ? (
+                                                                        <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-200">
+                                                                            Active
+                                                                        </Badge>
+                                                                    ) : (
+                                                                        <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
+                                                                            Pending
+                                                                        </Badge>
+                                                                    )}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))
+                                                    )}
+                                                </TableBody>
+                                            </Table>
                                         </div>
                                     </CardContent>
                                 </Card>

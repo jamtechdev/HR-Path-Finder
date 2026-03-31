@@ -15,6 +15,9 @@ class BetaAccessController extends Controller
     {
         $pending = User::query()
             ->whereNull('access_granted_at')
+            ->whereDoesntHave('roles', function ($query): void {
+                $query->where('name', 'admin');
+            })
             ->orderByDesc('created_at')
             ->get(['id', 'name', 'email', 'email_verified_at', 'created_at']);
 
@@ -33,8 +36,6 @@ class BetaAccessController extends Controller
 
         $user->forceFill(['access_granted_at' => now()])->save();
 
-        return redirect()
-            ->route('admin.beta-access.index')
-            ->with('success', "Access granted for {$user->email}.");
+        return redirect()->back()->with('success', "Access granted for {$user->email}.");
     }
 }

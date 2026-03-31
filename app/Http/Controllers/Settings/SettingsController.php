@@ -8,7 +8,7 @@ use App\Services\SmtpConfigurationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -35,9 +35,17 @@ class SettingsController extends Controller
         $smtpSettings = $this->getSmtpSettings();
         
         // Get application settings
+        $appName = Setting::get('app_name', Config::get('app.name'));
+        $appLogoPath = Setting::get('app_logo_path', null);
+        $appLogoUrl = $appLogoPath ? Storage::url($appLogoPath) : asset('logo.svg');
+
         $appSettings = [
-            'name' => Config::get('app.name'),
-            'logo' => asset('logo.svg'), // Default logo path
+            'name' => $appName,
+            'logo' => $appLogoUrl,
+            'require_admin_approval' => Setting::getBool(
+                'beta_require_admin_approval',
+                (bool) env('BETA_REQUIRE_ADMIN_APPROVAL', false)
+            ),
         ];
 
         // Get two-factor authentication status
@@ -239,15 +247,20 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'logo' => 'nullable|image|max:2048',
+            'require_admin_approval' => 'nullable|boolean',
         ]);
 
-        // Update application name in config
-        // In production, store in database
-        
+        Setting::set('app_name', $validated['name']);
+
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->store('app-logos', 'public');
-            // Update logo path
+            Setting::set('app_logo_path', $path);
         }
+
+        Setting::set(
+            'beta_require_admin_approval',
+            !empty($validated['require_admin_approval']) ? '1' : '0'
+        );
 
         return back()->with('success', 'Application settings updated successfully!');
     }

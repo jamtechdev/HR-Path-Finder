@@ -7,8 +7,10 @@ interface CEOSidebarProps {
 }
 
 export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
-    const { url } = usePage();
+    const { url, props } = usePage<any>();
     const currentPath = url.split('?')[0];
+    const appName = props?.appConfig?.name || 'HR Path-Finder';
+    const appLogo = props?.appConfig?.logo || '/logo.svg';
 
     const menuItems: {
         href: string;
@@ -53,12 +55,12 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
             <div className="absolute top-0 right-0 w-px h-full bg-gradient-to-b from-transparent via-[rgba(78,205,196,0.3)] to-transparent pointer-events-none" aria-hidden />
 
             <div className="py-[18px] px-5 border-b border-white/[0.06] flex items-center gap-2.5 flex-shrink-0 relative">
-                <div className="w-8 h-8 bg-[#4ecdc4] rounded-lg flex items-center justify-center font-bold text-[13px] text-[#111d35] flex-shrink-0">
-                    HR
+                <div className="w-8 h-8 bg-[#4ecdc4] rounded-lg flex items-center justify-center font-bold text-[13px] text-[#111d35] flex-shrink-0 overflow-hidden">
+                    <img src={appLogo} alt={appName} className="w-6 h-6 object-contain" />
                 </div>
                 {!isCollapsed && (
                     <div className="flex flex-col">
-                        <strong className="text-[13px] font-bold text-white tracking-[-0.2px] leading-tight">HR Path-Finder</strong>
+                        <strong className="text-[13px] font-bold text-white tracking-[-0.2px] leading-tight">{appName}</strong>
                         <span className="text-[10px] text-[#9ba5bc] font-normal">by BetterCompany</span>
                     </div>
                 )}

@@ -45,8 +45,9 @@ function getBreadcrumbLabel(path: string): string {
 
 export default function AppHeader() {
     const page = usePage<any>();
-    const { auth, activeRole, canSwitchToHr, notifications } = page.props;
+    const { auth, activeRole, canSwitchToHr, notifications, appConfig } = page.props;
     const user = auth?.user;
+    const appName = appConfig?.name || 'HR Path-Finder';
     const notificationItems = Array.isArray(notifications?.items) ? notifications.items : [];
     const unreadCount = Number(notifications?.unread_count ?? 0);
     const path = (page as { url?: string }).url?.split('?')[0] ?? '';
@@ -91,7 +92,7 @@ export default function AppHeader() {
                         'flex items-center gap-2 text-[12px]',
                         headerDark ? 'text-white/80' : 'text-[var(--hr-gray-400)]'
                     )}>
-                        <span>HR Path-Finder</span>
+                        <span>{appName}</span>
                         <span>&nbsp;/&nbsp;</span>
                         <strong className={headerDark ? 'text-white font-semibold' : 'text-[var(--hr-gray-800)] font-semibold'}>{breadcrumbLabel}</strong>
                     </div>

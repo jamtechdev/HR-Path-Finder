@@ -73,13 +73,12 @@ export default function BetaAccessIndex({ pendingUsers }: Props) {
                         <Head title="Beta access - Admin" />
                         <div className="p-6 md:p-8 max-w-5xl mx-auto">
                             <div className="mb-6 flex items-center gap-3">
-                                <UserCheck className="w-9 h-9 text-purple-600" />
+                                <UserCheck className="w-9 h-9 text-primary" />
                                 <div>
                                     <h1 className="text-3xl font-bold text-foreground">Beta access</h1>
                                     <p className="text-muted-foreground text-sm mt-1 max-w-2xl">
-                                        When <code className="text-xs bg-muted px-1 rounded">BETA_REQUIRE_ADMIN_APPROVAL=true</code> in{' '}
-                                        <code className="text-xs bg-muted px-1 rounded">.env</code>, new users cannot use the app until you approve them here.
-                                        If beta mode is off, this list stays empty.
+                                        When the approval toggle is enabled in Settings &gt; App, new users cannot use the app until you approve them here.
+                                        If approval mode is off, this list stays empty.
                                     </p>
                                 </div>
                             </div>

@@ -28,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role.dashboard' => \App\Http\Middleware\RoleBasedDashboard::class,
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+            'verified' => \App\Http\Middleware\EnsureEmailVerifiedForNonAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

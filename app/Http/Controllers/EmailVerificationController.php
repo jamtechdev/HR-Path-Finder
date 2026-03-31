@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\SmtpConfigurationService;
@@ -44,6 +45,16 @@ class EmailVerificationController extends Controller
             $role = $user->roles->first()?->name;
             
             // Always redirect HR Manager to dashboard after email verification
+            // If admin approval is required and access is not granted yet, show pending page first.
+            $requiresApproval = Setting::getBool(
+                'beta_require_admin_approval',
+                (bool) env('BETA_REQUIRE_ADMIN_APPROVAL', false)
+            );
+            if ($requiresApproval && !$user->hasRole('admin') && $user->access_granted_at === null) {
+                return redirect()->route('beta.pending')
+                    ->with('warning', 'Your email is verified. Please wait for admin approval.');
+            }
+
             // Status will remain "not_started" until they click "Start" from overview page
             if ($role === 'hr_manager') {
                 return redirect()->route('hr-manager.dashboard')
@@ -98,6 +109,15 @@ class EmailVerificationController extends Controller
             'hr_manager' => 'hr-manager.dashboard',
             default => 'dashboard',
         };
+
+        $requiresApproval = Setting::getBool(
+            'beta_require_admin_approval',
+            (bool) env('BETA_REQUIRE_ADMIN_APPROVAL', false)
+        );
+        if ($requiresApproval && !$user->hasRole('admin') && $user->access_granted_at === null) {
+            return redirect()->route('beta.pending')
+                ->with('warning', 'Your email is verified. Please wait for admin approval.');
+        }
         
         return redirect()->route($redirectRoute)
             ->with('info', 'Your email is already verified.');

@@ -4,6 +4,7 @@ namespace App\Actions\Fortify;
 
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
@@ -34,7 +35,11 @@ class CreateNewUser implements CreatesNewUsers
         )->validate();
 
         try {
-            $accessGrantedAt = config('beta.require_admin_approval', false) ? null : now();
+            $requiresApproval = Setting::getBool(
+                'beta_require_admin_approval',
+                (bool) env('BETA_REQUIRE_ADMIN_APPROVAL', false)
+            );
+            $accessGrantedAt = $requiresApproval ? null : now();
 
             $user = User::create([
                 'name' => $input['name'],
