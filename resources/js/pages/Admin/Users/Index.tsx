@@ -87,7 +87,7 @@ export default function AdminUsersIndex({
         if (flashSig.current === sig) return;
         flashSig.current = sig;
 
-        if (flash?.success) toast({ title: toastCopy.success, description: flash.success });
+        if (flash?.success) toast({ title: toastCopy.success, description: flash.success, variant: 'success' });
         if (flash?.info) toast({ title: toastCopy.info, description: flash.info });
         if (flash?.error) toast({ title: toastCopy.error, description: flash.error, variant: 'destructive' });
     }, [flash]);
