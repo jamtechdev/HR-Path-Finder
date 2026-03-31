@@ -1,5 +1,5 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { CheckCircle2, Clock, ShieldCheck, UserCheck } from 'lucide-react';
+import { CheckCircle2, Clock, ShieldCheck, Trash2, UserCheck } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import AppHeader from '@/components/Header/AppHeader';
@@ -31,6 +31,16 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Toaster } from '@/components/ui/toaster';
 import { toast } from '@/hooks/use-toast';
 import { toastCopy } from '@/lib/toastCopy';
@@ -59,8 +69,13 @@ type UserRow = {
     profile_photo_url?: string | null;
     email_verified_at: string | null;
     created_at: string;
+    updated_at?: string | null;
     access_granted_at: string | null;
 };
+type ConfirmAction =
+    | { type: 'toggle'; user: UserRow; nextActive: boolean }
+    | { type: 'delete'; user: UserRow }
+    | null;
 
 interface Props {
     users: UserRow[];
@@ -78,7 +93,8 @@ export default function AdminUsersIndex({
     pending_users_count,
     companies,
 }: Props) {
-    const { flash } = usePage().props as { flash?: { success?: string; info?: string; error?: string } };
+    const page = usePage();
+    const { flash } = page.props as { flash?: { success?: string; info?: string; error?: string } };
     const flashSig = useRef<string>('');
 
     useEffect(() => {
@@ -97,7 +113,15 @@ export default function AdminUsersIndex({
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState<'all' | UserRole>('all');
 
-    const [tab, setTab] = useState<'all' | 'pending' | 'active'>('all');
+    const initialTab = useMemo<'all' | 'pending' | 'active'>(() => {
+        const raw = page.url?.split('?')[1] ?? '';
+        const params = new URLSearchParams(raw);
+        const value = params.get('tab');
+        if (value === 'pending' || value === 'active') return value;
+        return 'all';
+    }, [page.url]);
+    const [tab, setTab] = useState<'all' | 'pending' | 'active'>(initialTab);
+    const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
 
     const [createOpen, setCreateOpen] = useState(false);
     const createForm = useForm({
@@ -138,20 +162,7 @@ export default function AdminUsersIndex({
     const toggleAccess = (user: UserRow) => {
         const isActive = user.access_granted_at !== null;
         const nextActive = !isActive;
-        const confirmMessage = nextActive
-            ? `Activate access for ${user.email}?`
-            : `Deactivate access for ${user.email}?`;
-
-        if (!window.confirm(confirmMessage)) return;
-
-        router.post(
-            `/admin/users/${user.id}/toggle-access`,
-            { active: nextActive },
-            {
-                preserveScroll: true,
-                onSuccess: () => router.reload(),
-            },
-        );
+        setConfirmAction({ type: 'toggle', user, nextActive });
     };
 
     const handleCreate = (e: FormEvent) => {
@@ -183,6 +194,35 @@ export default function AdminUsersIndex({
     const openEditDialog = (u: UserRow) => {
         setEditUser(u);
         setEditOpen(true);
+    };
+
+    const deleteUser = (user: UserRow) => {
+        setConfirmAction({ type: 'delete', user });
+    };
+    const runConfirmedAction = () => {
+        if (!confirmAction) return;
+        if (confirmAction.type === 'toggle') {
+            router.post(
+                `/admin/users/${confirmAction.user.id}/toggle-access`,
+                { active: confirmAction.nextActive },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        setConfirmAction(null);
+                        router.reload();
+                    },
+                },
+            );
+            return;
+        }
+
+        router.delete(`/admin/users/${confirmAction.user.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setConfirmAction(null);
+                router.reload();
+            },
+        });
     };
 
     const applyFilters = (list: UserRow[]) => {
@@ -225,6 +265,9 @@ export default function AdminUsersIndex({
                                         <p className="text-muted-foreground text-sm mt-1 max-w-2xl">
                                             Manage all non-admin users (CEO/HR) and approve pending accounts when admin approval is enabled.
                                         </p>
+                                        <p className="text-xs text-muted-foreground mt-2">
+                                            Pending approval means <code className="rounded bg-muted px-1">access_granted_at === null</code>.
+                                        </p>
                                     </div>
                                 </div>
 
@@ -244,7 +287,14 @@ export default function AdminUsersIndex({
                                     <Card>
                                         <CardContent className="p-5">
                                             <p className="text-sm text-muted-foreground">Pending approval</p>
-                                            <p className="text-3xl font-bold text-foreground">{pending_users_count}</p>
+                                            <button
+                                                type="button"
+                                                className="text-3xl font-bold text-foreground hover:underline"
+                                                onClick={() => setTab('pending')}
+                                                title="Open pending users list"
+                                            >
+                                                {pending_users_count}
+                                            </button>
                                         </CardContent>
                                     </Card>
                                 </div>
@@ -290,6 +340,7 @@ export default function AdminUsersIndex({
                                         users={filteredAll}
                                         onEditUser={openEditDialog}
                                         onToggleAccess={toggleAccess}
+                                        onDeleteUser={deleteUser}
                                     />
                                 </TabsContent>
                                 <TabsContent value="pending">
@@ -297,6 +348,7 @@ export default function AdminUsersIndex({
                                         users={filteredPending}
                                         onEditUser={openEditDialog}
                                         onToggleAccess={toggleAccess}
+                                        onDeleteUser={deleteUser}
                                     />
                                 </TabsContent>
                                 <TabsContent value="active">
@@ -304,6 +356,7 @@ export default function AdminUsersIndex({
                                         users={filteredActive}
                                         onEditUser={openEditDialog}
                                         onToggleAccess={toggleAccess}
+                                        onDeleteUser={deleteUser}
                                     />
                                 </TabsContent>
                             </Tabs>
@@ -560,6 +613,10 @@ export default function AdminUsersIndex({
                                                                     ? editUser.companyNames.join(', ')
                                                                     : '-'}
                                                             </div>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                User record created {new Date(editUser.created_at).toLocaleDateString()}
+                                                                {editUser.updated_at ? ` · last updated ${new Date(editUser.updated_at).toLocaleDateString()}` : ''}
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -579,6 +636,31 @@ export default function AdminUsersIndex({
                 </SidebarInset>
             </SidebarProvider>
             <Toaster />
+            <AlertDialog open={confirmAction !== null} onOpenChange={(o) => !o && setConfirmAction(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {confirmAction?.type === 'delete' ? 'Delete user' : 'Change user access'}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {confirmAction?.type === 'delete'
+                                ? `Delete ${confirmAction.user.email}? This action cannot be undone.`
+                                : confirmAction
+                                  ? `${confirmAction.nextActive ? 'Activate' : 'Deactivate'} access for ${confirmAction.user.email}?`
+                                  : ''}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            className={confirmAction?.type === 'delete' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}
+                            onClick={runConfirmedAction}
+                        >
+                            {confirmAction?.type === 'delete' ? 'Delete' : 'Confirm'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 }
@@ -587,10 +669,12 @@ function UsersTable({
     users,
     onEditUser,
     onToggleAccess,
+    onDeleteUser,
 }: {
     users: UserRow[];
     onEditUser: (u: UserRow) => void;
     onToggleAccess: (u: UserRow) => void;
+    onDeleteUser: (u: UserRow) => void;
 }) {
     if (users.length === 0) {
         return (
@@ -627,6 +711,7 @@ function UsersTable({
                                         <TableHead>Address</TableHead>
                                 <TableHead>Email verified</TableHead>
                                 <TableHead>Access</TableHead>
+                                <TableHead>Created</TableHead>
                                 <TableHead className="text-right">Action</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -691,6 +776,9 @@ function UsersTable({
                                                 </Badge>
                                             )}
                                         </TableCell>
+                                        <TableCell className="text-xs text-muted-foreground">
+                                            {new Date(u.created_at).toLocaleDateString()}
+                                        </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <Button
@@ -702,6 +790,14 @@ function UsersTable({
                                                 </Button>
                                                 <Button size="sm" variant="outline" onClick={() => onEditUser(u)}>
                                                     Profile
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="text-destructive hover:bg-destructive/10"
+                                                    onClick={() => onDeleteUser(u)}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
                                                 </Button>
                                             </div>
                                         </TableCell>

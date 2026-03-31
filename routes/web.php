@@ -298,6 +298,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('beta-access', [\App\Http\Controllers\Admin\BetaAccessController::class, 'index'])->name('beta-access.index');
         Route::post('beta-access/{user}/approve', [\App\Http\Controllers\Admin\BetaAccessController::class, 'approve'])->name('beta-access.approve');
         Route::get('project-tree', [\App\Http\Controllers\Admin\DashboardController::class, 'projectTree'])->name('project-tree');
+        Route::post('projects/{hrProject}/reset', [\App\Http\Controllers\Admin\DashboardController::class, 'resetProject'])->name('projects.reset');
+        Route::delete('projects/{hrProject}', [\App\Http\Controllers\Admin\DashboardController::class, 'destroyProject'])->name('projects.destroy');
 
         // HR Projects (Admin can view all projects)
         Route::get('hr-projects', [\App\Http\Controllers\HrProjectController::class, 'index'])->name('hr-projects.index');
@@ -370,6 +372,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('ceo/create', [\App\Http\Controllers\Admin\CeoController::class, 'store'])->name('ceo.create');
         Route::put('users/{user}', [\App\Http\Controllers\Admin\CeoController::class, 'updateUser'])
             ->name('users.update');
+        Route::delete('users/{user}', [\App\Http\Controllers\Admin\CeoController::class, 'destroyUser'])
+            ->name('users.destroy');
         Route::post('users/{user}/toggle-access', [\App\Http\Controllers\Admin\CeoController::class, 'toggleAccess'])
             ->name('users.toggle-access');
         Route::get('ceos/{ceo}', [\App\Http\Controllers\Admin\CeoController::class, 'show'])

@@ -28,9 +28,20 @@ class AdminReviewController extends Controller
             'company',
         ]);
 
+        $projects = HrProject::with('company')->orderByDesc('created_at')->get(['id', 'company_id', 'step_statuses', 'created_at']);
+
         return \Inertia\Inertia::render('Admin/Review/Index', [
             'project' => $hrProject,
+            'projects' => $projects,
             'comments' => $hrProject->adminComments,
+            'stepData' => [
+                'diagnosis' => $hrProject->diagnosis,
+                'ceo_philosophy' => $hrProject->ceoPhilosophy,
+                'organization_design' => $hrProject->organizationDesign,
+                'performance_system' => $hrProject->performanceSystem,
+                'compensation_system' => $hrProject->compensationSystem,
+                'hr_policy_os' => $hrProject->hrPolicyOs,
+            ],
         ]);
     }
 

@@ -214,6 +214,12 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                 </div>
             )}
             <div className="ceo-kpi-review-page w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+            {isAdmin && (
+                <div className="mb-4 rounded-lg border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+                    <strong className="text-foreground">When to use this page:</strong> review submitted company KPIs, request revision per organization, or finalize approved KPIs.
+                    <span className="ml-1">For default KPI catalogs before project data exists, use <Link href="/admin/kpi-templates" className="underline">KPI Templates</Link>.</span>
+                </div>
+            )}
 
             {/* Top bar: same as Job Grades reference (white, 56px, back + title + badge + counter) */}
             <div className="ckr-top-bar">

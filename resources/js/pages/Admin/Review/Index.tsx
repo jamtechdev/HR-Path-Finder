@@ -20,6 +20,7 @@ interface Project {
         name: string;
     };
     step_statuses?: Record<string, string>;
+    created_at?: string;
 }
 
 interface AdminComment {
@@ -33,12 +34,14 @@ interface Props {
     project: Project;
     projects?: Project[];
     comments?: AdminComment[];
+    stepData?: Record<string, unknown>;
 }
 
 export default function AdminReview({
     project,
     projects = [],
     comments = [],
+    stepData = {},
 }: Props) {
     const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
         project?.id || null,
@@ -83,7 +86,7 @@ export default function AdminReview({
                                 Admin Review
                             </h1>
                             <p className="text-muted-foreground">
-                                Review projects and add step-wise comments.
+                                Inspect actual user-entered step data, then add directed admin comments.
                             </p>
                         </div>
 
@@ -110,13 +113,8 @@ export default function AdminReview({
                                                     {p.company.name}
                                                 </div>
                                                 <div className="mt-1 text-xs text-muted-foreground">
-                                                    {
-                                                        Object.keys(
-                                                            p.step_statuses ||
-                                                                {},
-                                                        ).length
-                                                    }{' '}
-                                                    steps
+                                                    Created{' '}
+                                                    {p.created_at ? new Date(p.created_at).toLocaleDateString() : '-'}
                                                 </div>
                                             </Link>
                                         ))}
@@ -163,6 +161,30 @@ export default function AdminReview({
                                                         ))}
                                                     </div>
                                                 </div>
+                                            </CardContent>
+                                        </Card>
+
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle>Submitted Data Inspector</CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="space-y-4">
+                                                {Object.keys(stepData).length === 0 ? (
+                                                    <p className="text-sm text-muted-foreground">
+                                                        No submitted step payloads found yet.
+                                                    </p>
+                                                ) : (
+                                                    Object.entries(stepData).map(([key, value]) => (
+                                                        <div key={key} className="rounded-lg border">
+                                                            <div className="border-b bg-muted/40 px-3 py-2 text-sm font-medium">
+                                                                {key}
+                                                            </div>
+                                                            <pre className="max-h-64 overflow-auto p-3 text-xs">
+                                                                {JSON.stringify(value, null, 2)}
+                                                            </pre>
+                                                        </div>
+                                                    ))
+                                                )}
                                             </CardContent>
                                         </Card>
 

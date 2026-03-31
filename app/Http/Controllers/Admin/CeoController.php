@@ -73,6 +73,7 @@ class CeoController extends Controller
                 'profile_photo_url' => $user->profile_photo_path ? Storage::url($user->profile_photo_path) : null,
                 'email_verified_at' => $user->email_verified_at?->toIso8601String(),
                 'created_at' => $user->created_at?->toIso8601String(),
+                'updated_at' => $user->updated_at?->toIso8601String(),
                 'access_granted_at' => $user->access_granted_at?->toIso8601String(),
             ];
         })->values()->all();
@@ -249,6 +250,21 @@ class CeoController extends Controller
         return back()->with('success', $shouldBeActive
             ? "Access activated for {$user->email}."
             : "Access deactivated for {$user->email}.");
+    }
+
+    /**
+     * Delete a non-admin user from the admin users page.
+     */
+    public function destroyUser(User $user): RedirectResponse
+    {
+        if ($user->hasRole('admin')) {
+            return back()->with('error', 'You cannot delete admin accounts.');
+        }
+
+        $user->companies()->detach();
+        $user->delete();
+
+        return back()->with('success', 'User deleted successfully.');
     }
 
     public function show(User $ceo)

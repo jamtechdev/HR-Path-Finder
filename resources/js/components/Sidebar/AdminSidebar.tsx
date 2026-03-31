@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Settings, LayoutGrid, FolderOpen, HelpCircle, FileText, Building2, AlertCircle, Database, Layers, Target, DollarSign, Languages, ChevronRight, ChevronDown, Users, Eye, UserPlus, Network, FileBarChart, UserCheck, Mail } from 'lucide-react';
+import { Settings, LayoutGrid, HelpCircle, FileText, Building2, AlertCircle, Database, Layers, Target, DollarSign, Languages, ChevronRight, ChevronDown, Users, Eye, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -19,6 +19,9 @@ interface Project {
 export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps) {
     const { url, props } = usePage();
     const currentPath = url.split('?')[0];
+    const [clientOpsOpen, setClientOpsOpen] = useState(true);
+    const [contentMgmtOpen, setContentMgmtOpen] = useState(true);
+    const [systemConfigOpen, setSystemConfigOpen] = useState(true);
     const [translationsOpen, setTranslationsOpen] = useState(currentPath.startsWith('/admin/translations'));
     
     // Get user roles to determine if admin
@@ -27,7 +30,6 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
     
     // Get projects from shared props (with step_statuses and kpi_review_status for KPI list)
     const projects: Project[] = (props as any).projects || [];
-    const currentProjectId = (props as any).project?.id || (props as any).hrProject?.id;
     const appName = (props as any).appConfig?.name || 'HR Path-Finder';
     const appLogo = (props as any).appConfig?.logo || '/logo.svg';
 
@@ -57,6 +59,11 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
         return currentPath === path || currentPath.startsWith(`${path}/`);
     };
 
+    const menuBtnClass =
+        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200";
+    const sectionTitleClass = "text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 px-4 pt-2 pb-1";
+    const sectionWrapClass = "space-y-1";
+
     return (
         <div className="flex flex-col h-full w-full">
             <div className={cn(
@@ -77,13 +84,12 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
             <nav className="flex-1 overflow-y-auto">
                 <div className={cn("transition-all duration-200", isCollapsed ? "px-3 py-6" : "px-6 py-8")}>
                     <div className={cn("transition-all duration-200", isCollapsed ? "space-y-2" : "space-y-2")}>
-                        {/* Dashboard - Admin only */}
                         {isAdmin && (
                             <>
                                 <Link
                                     href="/admin/dashboard"
                                     className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                                        menuBtnClass,
                                         isActive('/admin/dashboard')
                                             ? "bg-sidebar-accent text-sidebar-primary"
                                             : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
@@ -97,7 +103,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                 <Link
                                     href="/admin/contact-us"
                                     className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                                        menuBtnClass,
                                         isActive('/admin/contact-us')
                                             ? "bg-sidebar-accent text-sidebar-primary"
                                             : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
@@ -108,135 +114,68 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                     {!isCollapsed && <span className="flex-1 text-left truncate">Contact Us</span>}
                                 </Link>
 
-                                <Link
-                                    href="/admin/ceo"
-                                    className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                        isActive('/admin/ceo')
-                                            ? "bg-sidebar-accent text-sidebar-primary"
-                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                        isCollapsed && "justify-center px-3"
-                                    )}
-                                >
-                                    <Users className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                    {!isCollapsed && <span className="flex-1 text-left truncate">Users & Beta Access</span>}
-                                </Link>
-
-                                <Link
-                                    href="/admin/project-tree"
-                                    className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                        isActive('/admin/project-tree')
-                                            ? "bg-sidebar-accent text-sidebar-primary"
-                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                        isCollapsed && "justify-center px-3"
-                                    )}
-                                >
-                                    <Eye className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                    {!isCollapsed && <span className="flex-1 text-left truncate">Project Tree</span>}
-                                </Link>
-
-                                {currentProjectId && (
-                                    <>
-                                        <Link
-                                            href={`/admin/tree/${currentProjectId}/overview`}
-                                            className={cn(
-                                                "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                                isActive(`/admin/tree/${currentProjectId}`)
-                                                    ? "bg-sidebar-accent text-sidebar-primary"
-                                                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                                isCollapsed && "justify-center px-3"
-                                            )}
-                                        >
-                                            <Network className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                            {!isCollapsed && <span className="flex-1 text-left truncate">Tree</span>}
-                                        </Link>
-
-                                        <Link
-                                            href={`/admin/report/${currentProjectId}`}
-                                            className={cn(
-                                                "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                                isActive(`/admin/report/${currentProjectId}`)
-                                                    ? "bg-sidebar-accent text-sidebar-primary"
-                                                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                                isCollapsed && "justify-center px-3"
-                                            )}
-                                        >
-                                            <FileBarChart className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                            {!isCollapsed && <span className="flex-1 text-left truncate">Report</span>}
-                                        </Link>
-                                    </>
+                                {!isCollapsed && (
+                                    <div className={sectionTitleClass}>Client Ops</div>
                                 )}
+                                <div className={sectionWrapClass}>
+                                    <button
+                                        onClick={() => !isCollapsed && setClientOpsOpen((prev) => !prev)}
+                                        className={cn(menuBtnClass, "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}
+                                    >
+                                        <Database className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
+                                        {!isCollapsed && (
+                                            <>
+                                                <span className="flex-1 text-left truncate">Client Ops</span>
+                                                {clientOpsOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                                            </>
+                                        )}
+                                    </button>
+                                    {!isCollapsed && clientOpsOpen && (
+                                        <div className="ml-4 mt-1 space-y-1 border-l border-sidebar-border/30 pl-4">
+                                            <Link href="/admin/ceo" className={cn(menuBtnClass, "py-2 text-xs", isActive('/admin/ceo') ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}>
+                                                <Users className="w-4 h-4" />
+                                                <span className="truncate">Users & Beta Access</span>
+                                            </Link>
+                                            <Link href="/admin/project-tree" className={cn(menuBtnClass, "py-2 text-xs", isActive('/admin/project-tree') ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}>
+                                                <Eye className="w-4 h-4" />
+                                                <span className="truncate">All Projects</span>
+                                            </Link>
+                                            <Link href="/admin/hr-projects" className={cn(menuBtnClass, "py-2 text-xs", isActive('/admin/hr-projects') ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}>
+                                                <Building2 className="w-4 h-4" />
+                                                <span className="truncate">All Companies</span>
+                                            </Link>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {!isCollapsed && (
+                                    <div className={sectionTitleClass}>Content Mgmt</div>
+                                )}
+                                <div className={sectionWrapClass}>
+                                    <button
+                                        onClick={() => !isCollapsed && setContentMgmtOpen((prev) => !prev)}
+                                        className={cn(menuBtnClass, "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}
+                                    >
+                                        <FileText className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
+                                        {!isCollapsed && (
+                                            <>
+                                                <span className="flex-1 text-left truncate">Content Mgmt</span>
+                                                {contentMgmtOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                                            </>
+                                        )}
+                                    </button>
+                                    {!isCollapsed && contentMgmtOpen && (
+                                        <div className="ml-4 mt-1 space-y-1 border-l border-sidebar-border/30 pl-4">
+                                            <Link href="/admin/questions/ceo" className={cn(menuBtnClass, "py-2 text-xs", isActive('/admin/questions/ceo') ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}><HelpCircle className="w-4 h-4" /><span>CEO Questions</span></Link>
+                                            <Link href="/admin/policy-snapshot" className={cn(menuBtnClass, "py-2 text-xs", isActive('/admin/policy-snapshot') ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}><FileText className="w-4 h-4" /><span>Policy Snapshot</span></Link>
+                                            <Link href="/admin/performance-snapshot" className={cn(menuBtnClass, "py-2 text-xs", isActive('/admin/performance-snapshot') ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}><Target className="w-4 h-4" /><span>Performance Snapshot</span></Link>
+                                            <Link href="/admin/compensation-snapshot" className={cn(menuBtnClass, "py-2 text-xs", isActive('/admin/compensation-snapshot') ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}><DollarSign className="w-4 h-4" /><span>Compensation Snapshot</span></Link>
+                                            <Link href="/admin/kpi-templates" className={cn(menuBtnClass, "py-2 text-xs", isActive('/admin/kpi-templates') ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}><Target className="w-4 h-4" /><span>KPI Templates</span></Link>
+                                        </div>
+                                    )}
+                                </div>
                                 
-                                <Link
-                                    href="/admin/questions/ceo"
-                                    className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                        isActive('/admin/questions/ceo')
-                                            ? "bg-sidebar-accent text-sidebar-primary"
-                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                        isCollapsed && "justify-center px-3"
-                                    )}
-                                >
-                                    <HelpCircle className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                    {!isCollapsed && <span className="flex-1 text-left truncate">CEO Questions</span>}
-                                </Link>
-                                
-                                <Link
-                                    href="/admin/policy-snapshot"
-                                    className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                        isActive('/admin/policy-snapshot')
-                                            ? "bg-sidebar-accent text-sidebar-primary"
-                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                        isCollapsed && "justify-center px-3"
-                                    )}
-                                >
-                                    <FileText className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                    {!isCollapsed && <span className="flex-1 text-left truncate">Policy Snapshot</span>}
-                                </Link>
-                                
-                                <Link
-                                    href="/admin/performance-snapshot"
-                                    className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                        isActive('/admin/performance-snapshot')
-                                            ? "bg-sidebar-accent text-sidebar-primary"
-                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                        isCollapsed && "justify-center px-3"
-                                    )}
-                                >
-                                    <Target className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                    {!isCollapsed && <span className="flex-1 text-left truncate">Performance Snapshot</span>}
-                                </Link>
-                                <Link
-                                    href="/admin/compensation-snapshot"
-                                    className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                        isActive('/admin/compensation-snapshot')
-                                            ? "bg-sidebar-accent text-sidebar-primary"
-                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                        isCollapsed && "justify-center px-3"
-                                    )}
-                                >
-                                    <DollarSign className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                    {!isCollapsed && <span className="flex-1 text-left truncate">Compensation Snapshot</span>}
-                                </Link>
-                                <Link
-                                    href="/admin/kpi-templates"
-                                    className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                        isActive('/admin/kpi-templates')
-                                            ? "bg-sidebar-accent text-sidebar-primary"
-                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                        isCollapsed && "justify-center px-3"
-                                    )}
-                                >
-                                    <Target className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                    {!isCollapsed && <span className="flex-1 text-left truncate">KPI Templates</span>}
-                                </Link>
-                                
-                                {/* KPI Review - all projects with KPIs (old & new), CEO review status */}
+                                {/* KPI Review - all projects with KPIs */}
                                 {(() => {
                                     const projectsWithKpis = projects.filter((p) => (p.kpi_total ?? 0) > 0);
                                     const kpiStatusLabel = (status: string) => {
@@ -309,65 +248,23 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                     }
                                     return null;
                                 })()}
-                                
-                                <Link
-                                    href="/admin/hr-issues"
-                                    className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                        isActive('/admin/hr-issues')
-                                            ? "bg-sidebar-accent text-sidebar-primary"
-                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                        isCollapsed && "justify-center px-3"
-                                    )}
-                                >
-                                    <AlertCircle className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                    {!isCollapsed && <span className="flex-1 text-left truncate">HR Issues</span>}
-                                </Link>
-                                
-                                <Link
-                                    href="/admin/industries"
-                                    className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                        isActive('/admin/industries')
-                                            ? "bg-sidebar-accent text-sidebar-primary"
-                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                        isCollapsed && "justify-center px-3"
-                                    )}
-                                >
-                                    <Building2 className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                    {!isCollapsed && <span className="flex-1 text-left truncate">Industries</span>}
-                                </Link>
-                                
-                                <Link
-                                    href="/admin/subcategories"
-                                    className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                        isActive('/admin/subcategories')
-                                            ? "bg-sidebar-accent text-sidebar-primary"
-                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                        isCollapsed && "justify-center px-3"
-                                    )}
-                                >
-                                    <Layers className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                    {!isCollapsed && <span className="flex-1 text-left truncate">Subcategories</span>}
-                                </Link>
-                                
-                                {/* Translations Menu */}
-                                <div className={cn("mt-2", isCollapsed && "hidden")}>
+
+                                {!isCollapsed && (
+                                    <div className={sectionTitleClass}>System Config</div>
+                                )}
+                                <div className={sectionWrapClass}>
                                     <button
-                                        onClick={() => !isCollapsed && setTranslationsOpen(!translationsOpen)}
+                                        onClick={() => !isCollapsed && setSystemConfigOpen(!systemConfigOpen)}
                                         className={cn(
-                                            "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                            (isActive('/admin/translations') || isActive('/admin/landing-page'))
-                                                ? "bg-sidebar-accent text-sidebar-primary"
-                                                : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                                            menuBtnClass,
+                                            "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                                         )}
                                     >
-                                        <Languages className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
+                                        <Settings className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
                                         {!isCollapsed && (
                                             <>
-                                                <span className="flex-1 text-left truncate">Translations</span>
-                                                {translationsOpen ? (
+                                                <span className="flex-1 text-left truncate">System Config</span>
+                                                {systemConfigOpen ? (
                                                     <ChevronDown className="w-4 h-4" />
                                                 ) : (
                                                     <ChevronRight className="w-4 h-4" />
@@ -375,9 +272,21 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                             </>
                                         )}
                                     </button>
-                                    
-                                    {!isCollapsed && translationsOpen && (
+                                    {!isCollapsed && systemConfigOpen && (
                                         <div className="ml-4 mt-1 space-y-1 border-l border-sidebar-border/30 pl-4">
+                                            <Link href="/admin/hr-issues" className={cn(menuBtnClass, "py-2 text-xs", isActive('/admin/hr-issues') ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}><AlertCircle className="w-4 h-4" /><span>HR Issues</span></Link>
+                                            <Link href="/admin/industries" className={cn(menuBtnClass, "py-2 text-xs", isActive('/admin/industries') ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}><Building2 className="w-4 h-4" /><span>Industries</span></Link>
+                                            <Link href="/admin/subcategories" className={cn(menuBtnClass, "py-2 text-xs", isActive('/admin/subcategories') ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}><Layers className="w-4 h-4" /><span>Subcategories</span></Link>
+                                            <button
+                                                onClick={() => setTranslationsOpen((prev) => !prev)}
+                                                className={cn(menuBtnClass, "py-2 text-xs text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}
+                                            >
+                                                <Languages className="w-4 h-4" />
+                                                <span className="flex-1 text-left truncate">Translations</span>
+                                                {translationsOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                                            </button>
+                                            {translationsOpen && (
+                                                <div className="ml-2 mt-1 space-y-1 border-l border-sidebar-border/30 pl-3">
                                             {translationPages.map((page) => {
                                                 const isActive = page.key === 'landing-page' 
                                                     ? currentPath === '/admin/landing-page'
@@ -399,56 +308,18 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                     </Link>
                                                 );
                                             })}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
-                                
-                                {!isCollapsed && (
-                                    <div className="px-4 mt-4 mb-2">
-                                        <span className="text-xs font-semibold text-sidebar-foreground/60 uppercase tracking-wider">
-                                            Recommendations
-                                        </span>
-                                    </div>
-                                )}
-                                
-                                <div className={cn("text-xs text-sidebar-foreground/50 px-4 mb-2", isCollapsed && "hidden")}>
-                                    <p className="text-xs text-sidebar-foreground/50 italic">
-                                        Access via project review or dashboard
-                                    </p>
-                                </div>
                             </>
                         )}
-                        
-                        {/* Projects Section - Admin can see all projects */}
-                        {isAdmin && (
-                            <div className={cn("mt-6", isCollapsed && "mt-4")}>
-                                {!isCollapsed && (
-                                    <div className="px-4 mb-2">
-                                        <span className="text-xs font-semibold text-sidebar-foreground/60 uppercase tracking-wider">
-                                            Projects
-                                        </span>
-                                    </div>
-                                )}
-                                <Link
-                                    href="/admin/hr-projects"
-                                    className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                                        isActive('/admin/hr-projects')
-                                            ? "bg-sidebar-accent text-sidebar-primary"
-                                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                                        isCollapsed && "justify-center px-3"
-                                    )}
-                                >
-                                    <Database className={cn("flex-shrink-0", isCollapsed ? "w-6 h-6" : "w-5 h-5")} />
-                                    {!isCollapsed && <span className="flex-1 text-left truncate">All Projects</span>}
-                                </Link>
-                            </div>
-                        )}
-                        
+
                         <Link
                             href="/settings"
                             className={cn(
-                                "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 mt-4",
+                                `${menuBtnClass} mt-4`,
                                 isActive('/settings')
                                     ? "bg-sidebar-accent text-sidebar-primary"
                                     : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",

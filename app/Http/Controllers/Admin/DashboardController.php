@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminComment;
 use App\Models\HrProject;
 use App\Models\User;
+use App\Enums\StepStatus;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -152,10 +155,86 @@ class DashboardController extends Controller
             'company',
             'diagnosis',
             'ceoPhilosophy',
-        ])->get();
+        ])->orderByDesc('created_at')->get();
 
         return Inertia::render('Admin/ProjectTree', [
             'projects' => $projects,
         ]);
+    }
+
+    public function resetProject(Request $request, HrProject $hrProject): RedirectResponse
+    {
+        if (! $request->user()?->hasRole('admin')) {
+            abort(403);
+        }
+
+        DB::transaction(function () use ($hrProject): void {
+            $hrProject->diagnosis()->delete();
+            $hrProject->ceoPhilosophy()->delete();
+            $hrProject->companyAttributes()->delete();
+            $hrProject->organizationalSentiment()->delete();
+            $hrProject->organizationDesign()->delete();
+            $hrProject->performanceSystem()->delete();
+            $hrProject->compensationSystem()->delete();
+            $hrProject->hrPolicyOs()->delete();
+            $hrProject->performanceSnapshotResponses()->delete();
+            $hrProject->organizationalKpis()->delete();
+            $hrProject->kpiReviewTokens()->delete();
+            $hrProject->evaluationModelAssignments()->delete();
+            $hrProject->evaluationStructure()->delete();
+            $hrProject->compensationSnapshotResponses()->delete();
+            $hrProject->baseSalaryFramework()->delete();
+            $hrProject->payBands()->delete();
+            $hrProject->salaryTables()->delete();
+            $hrProject->payBandOperationCriteria()->delete();
+            $hrProject->bonusPoolConfiguration()->delete();
+            $hrProject->benefitsConfiguration()->delete();
+            $hrProject->adminComments()->delete();
+
+            $hrProject->step_statuses = [
+                'diagnosis' => StepStatus::NOT_STARTED->value,
+                'job_analysis' => StepStatus::NOT_STARTED->value,
+                'performance' => StepStatus::NOT_STARTED->value,
+                'compensation' => StepStatus::NOT_STARTED->value,
+                'hr_policy_os' => StepStatus::NOT_STARTED->value,
+            ];
+            $hrProject->save();
+        });
+
+        return back()->with('success', 'Project data has been reset.');
+    }
+
+    public function destroyProject(Request $request, HrProject $hrProject): RedirectResponse
+    {
+        if (! $request->user()?->hasRole('admin')) {
+            abort(403);
+        }
+
+        DB::transaction(function () use ($hrProject): void {
+            $hrProject->adminComments()->delete();
+            $hrProject->diagnosis()->delete();
+            $hrProject->ceoPhilosophy()->delete();
+            $hrProject->companyAttributes()->delete();
+            $hrProject->organizationalSentiment()->delete();
+            $hrProject->organizationDesign()->delete();
+            $hrProject->performanceSystem()->delete();
+            $hrProject->compensationSystem()->delete();
+            $hrProject->hrPolicyOs()->delete();
+            $hrProject->performanceSnapshotResponses()->delete();
+            $hrProject->organizationalKpis()->delete();
+            $hrProject->kpiReviewTokens()->delete();
+            $hrProject->evaluationModelAssignments()->delete();
+            $hrProject->evaluationStructure()->delete();
+            $hrProject->compensationSnapshotResponses()->delete();
+            $hrProject->baseSalaryFramework()->delete();
+            $hrProject->payBands()->delete();
+            $hrProject->salaryTables()->delete();
+            $hrProject->payBandOperationCriteria()->delete();
+            $hrProject->bonusPoolConfiguration()->delete();
+            $hrProject->benefitsConfiguration()->delete();
+            $hrProject->delete();
+        });
+
+        return back()->with('success', 'Project deleted successfully.');
     }
 }

@@ -236,6 +236,28 @@ export default function AdminDashboard({
                                         </div>
                                     </CardContent>
                                 </Card>
+                                <Link href="/admin/ceo?tab=pending">
+                                    <Card className="hover:bg-muted/40 transition-colors">
+                                        <CardContent className="p-6">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="mb-1 text-sm text-muted-foreground">
+                                                        Pending Approval
+                                                    </p>
+                                                    <p className="text-3xl font-bold text-foreground">
+                                                        {users.filter((u) => !u.access_granted_at).length}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        access_granted_at = null
+                                                    </p>
+                                                </div>
+                                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/20">
+                                                    <Users className="h-6 w-6 text-amber-700 dark:text-amber-300" />
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </Link>
                             </div>
 
                             {/* Users List */}

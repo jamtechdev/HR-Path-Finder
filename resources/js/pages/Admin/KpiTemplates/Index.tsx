@@ -85,6 +85,9 @@ export default function KpiTemplatesIndex({ templates, companies }: Props) {
                                 <p className="text-muted-foreground">
                                     Recommended KPIs by organization unit. Managers see these when creating KPIs.
                                 </p>
+                                <p className="text-xs text-muted-foreground mt-2">
+                                    Use this page to define reusable default KPI suggestions. Use KPI Review for approving or revising live submitted KPI data by project.
+                                </p>
                             </div>
                             <Link href="/admin/kpi-templates/create">
                                 <Button>

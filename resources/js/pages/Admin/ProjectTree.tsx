@@ -1,23 +1,21 @@
-import { Head, Link } from '@inertiajs/react';
-import { 
-    Building2, 
-    CheckCircle2, 
-    Clock, 
-    FileText,
-    ChevronRight,
-    ChevronDown,
-    Users,
-    UserCheck,
-    AlertCircle,
-    TrendingUp
-} from 'lucide-react';
-import React from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import { Building2, Eye, FileText, RotateCcw, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import { cn } from '@/lib/utils';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface Project {
     id: number;
@@ -38,85 +36,34 @@ interface Project {
 interface Props {
     projects: Project[];
 }
-
-const STEP_NAMES: Record<string, string> = {
-    'diagnosis': 'Step 1: Diagnosis',
-    'job_analysis': 'Step 2: Job Analysis',
-    'performance': 'Step 3: Performance',
-    'compensation': 'Step 4: Compensation',
-    'hr_policy_os': 'Step 5: Final Dashboard',
-};
-
-const STEP_ORDER = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'hr_policy_os'];
+type ProjectAction =
+    | { type: 'reset'; project: Project }
+    | { type: 'delete'; project: Project }
+    | null;
 
 export default function ProjectTree({ projects }: Props) {
-    const [expandedProjects, setExpandedProjects] = React.useState<Set<number>>(new Set());
-
-    const toggleProject = (projectId: number) => {
-        const newExpanded = new Set(expandedProjects);
-        if (newExpanded.has(projectId)) {
-            newExpanded.delete(projectId);
-        } else {
-            newExpanded.add(projectId);
-        }
-        setExpandedProjects(newExpanded);
-    };
-
-    const getStepStatus = (project: Project, stepKey: string): { status: string; label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' } => {
-        const status = project.step_statuses?.[stepKey] || 'not_started';
-        
-        // Special handling for diagnosis step - check CEO survey
-        if (stepKey === 'diagnosis') {
-            const diagnosisStatus = project.diagnosis?.status || status;
-            if (diagnosisStatus === 'submitted' && !project.ceoPhilosophy?.completed_at) {
-                return { status: 'waiting_ceo_survey', label: 'Waiting for CEO Survey', variant: 'secondary' };
-            }
-            if (project.ceoPhilosophy?.completed_at && diagnosisStatus === 'submitted') {
-                return { status: 'completed', label: 'Completed', variant: 'default' };
-            }
-        }
-
-        const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-            'not_started': { label: 'Not Started', variant: 'outline' },
-            'in_progress': { label: 'In Progress', variant: 'secondary' },
-            'submitted': { label: 'Submitted', variant: 'secondary' },
-            'approved': { label: 'Approved', variant: 'default' },
-            'locked': { label: 'Locked', variant: 'default' },
-            'completed': { label: 'Completed', variant: 'default' },
-        };
-        
-        return statusMap[status] || { status, label: status, variant: 'outline' };
-    };
-
+    const [pendingAction, setPendingAction] = useState<ProjectAction>(null);
     const getProjectProgress = (project: Project) => {
-        let completed = 0;
-        const total = STEP_ORDER.length;
-        
-        STEP_ORDER.forEach(stepKey => {
-            const stepStatus = getStepStatus(project, stepKey);
-            if (['approved', 'locked', 'completed'].includes(stepStatus.status)) {
-                completed++;
-            }
-        });
-        
-        return { completed, total, percentage: (completed / total) * 100 };
+        const statuses = Object.values(project.step_statuses ?? {});
+        const completed = statuses.filter((s) => ['approved', 'locked', 'completed'].includes(s)).length;
+        const total = 5;
+        return { completed, total };
     };
 
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'completed':
-            case 'approved':
-            case 'locked':
-                return <CheckCircle2 className="w-4 h-4 text-green-600" />;
-            case 'waiting_ceo_survey':
-                return <UserCheck className="w-4 h-4 text-amber-600" />;
-            case 'submitted':
-                return <Clock className="w-4 h-4 text-blue-600" />;
-            case 'in_progress':
-                return <TrendingUp className="w-4 h-4 text-blue-600" />;
-            default:
-                return <AlertCircle className="w-4 h-4 text-gray-400" />;
+    const handleReset = (project: Project) => {
+        setPendingAction({ type: 'reset', project });
+    };
+
+    const handleDelete = (project: Project) => {
+        setPendingAction({ type: 'delete', project });
+    };
+    const runProjectAction = () => {
+        if (!pendingAction) return;
+        if (pendingAction.type === 'reset') {
+            router.post(`/admin/projects/${pendingAction.project.id}/reset`, {}, { preserveScroll: true, onSuccess: () => setPendingAction(null) });
+            return;
         }
+        router.delete(`/admin/projects/${pendingAction.project.id}`, { preserveScroll: true, onSuccess: () => setPendingAction(null) });
     };
 
     return (
@@ -127,129 +74,65 @@ export default function ProjectTree({ projects }: Props) {
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="Admin - Project Tree View" />
+                    <Head title="Admin - Project View" />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-8">
-                            <h1 className="text-3xl font-bold mb-2 text-foreground">Project Tree View</h1>
+                            <h1 className="text-3xl font-bold mb-2 text-foreground">Project View</h1>
                             <p className="text-muted-foreground">
-                                View all projects and their progress in a hierarchical tree structure
+                                Compact management list for direct admin control and intervention.
                             </p>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             {projects.map((project) => {
-                                const isExpanded = expandedProjects.has(project.id);
                                 const progress = getProjectProgress(project);
                                 const companyName = project.company?.name || `Project #${project.id}`;
 
                                 return (
-                                    <Card key={project.id} className="overflow-hidden">
-                                        <CardHeader 
-                                            className="cursor-pointer hover:bg-muted/50 transition-colors"
-                                            onClick={() => toggleProject(project.id)}
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3 flex-1">
-                                                    {isExpanded ? (
-                                                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                                                    ) : (
-                                                        <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                                                    )}
-                                                    <Building2 className="w-5 h-5 text-primary" />
-                                                    <div className="flex-1">
-                                                        <CardTitle className="text-lg">{companyName}</CardTitle>
-                                                        <div className="flex items-center gap-4 mt-2">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-sm text-muted-foreground">Progress:</span>
-                                                                <span className="text-sm font-semibold">
-                                                                    {progress.completed} / {progress.total}
-                                                                </span>
-                                                            </div>
-                                                            <div className="w-32 bg-muted rounded-full h-2">
-                                                                <div 
-                                                                    className={cn(
-                                                                        "h-2 rounded-full transition-all",
-                                                                        progress.percentage === 100 ? "bg-green-500" : "bg-primary"
-                                                                    )}
-                                                                    style={{ width: `${progress.percentage}%` }}
-                                                                />
-                                                            </div>
-                                                            {progress.percentage === 100 && (
-                                                                <Badge variant="default" className="bg-green-500">
-                                                                    <CheckCircle2 className="w-3 h-3 mr-1" />
-                                                                    Complete
-                                                                </Badge>
-                                                            )}
-                                                        </div>
+                                    <Card key={project.id}>
+                                        <CardHeader className="py-3">
+                                            <div className="flex items-center justify-between gap-4">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <Building2 className="w-4 h-4 text-primary flex-shrink-0" />
+                                                    <div className="min-w-0">
+                                                        <CardTitle className="text-base truncate">{companyName}</CardTitle>
+                                                        <p className="text-xs text-muted-foreground mt-1">
+                                                            Created: {new Date(project.created_at).toLocaleDateString()} · Progress: {progress.completed}/{progress.total}
+                                                        </p>
                                                     </div>
                                                 </div>
-                                                <Link 
-                                                    href={`/admin/review/${project.id}`}
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    <Badge variant="outline" className="hover:bg-muted">
-                                                        View Details
-                                                    </Badge>
-                                                </Link>
+                                                <div className="flex items-center gap-2">
+                                                    <Badge variant="outline">{progress.completed}/{progress.total}</Badge>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleReset(project)}
+                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-md border hover:bg-muted"
+                                                        title="Reset project data"
+                                                    >
+                                                        <RotateCcw className="h-4 w-4" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDelete(project)}
+                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-md border text-destructive hover:bg-destructive/10"
+                                                        title="Delete project"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                    <Link href={`/admin/review/${project.id}`}>
+                                                        <Badge variant="outline" className="hover:bg-muted gap-1">
+                                                            <Eye className="h-3 w-3" />
+                                                            View Details
+                                                        </Badge>
+                                                    </Link>
+                                                </div>
                                             </div>
                                         </CardHeader>
-                                        
-                                        {isExpanded && (
-                                            <CardContent className="pt-0">
-                                                <div className="space-y-3 pl-8">
-                                                    {STEP_ORDER.map((stepKey) => {
-                                                        const stepStatus = getStepStatus(project, stepKey);
-                                                        const statusIcon = getStatusIcon(stepStatus.status);
-
-                                                        return (
-                                                            <div 
-                                                                key={stepKey}
-                                                                className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
-                                                            >
-                                                                <div className="flex items-center gap-3 flex-1">
-                                                                    {statusIcon}
-                                                                    <div>
-                                                                        <p className="font-medium text-sm">
-                                                                            {STEP_NAMES[stepKey]}
-                                                                        </p>
-                                                                        <p className="text-xs text-muted-foreground">
-                                                                            {stepStatus.label}
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                                <Badge variant={stepStatus.variant}>
-                                                                    {stepStatus.label}
-                                                                </Badge>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                    
-                                                    {/* CEO Survey Status */}
-                                                    <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                                                        <div className="flex items-center gap-3 flex-1">
-                                                            {project.ceoPhilosophy?.completed_at ? (
-                                                                <CheckCircle2 className="w-4 h-4 text-green-600" />
-                                                            ) : (
-                                                                <UserCheck className="w-4 h-4 text-amber-600" />
-                                                            )}
-                                                            <div>
-                                                                <p className="font-medium text-sm">
-                                                                    CEO Philosophy Survey
-                                                                </p>
-                                                                <p className="text-xs text-muted-foreground">
-                                                                    {project.ceoPhilosophy?.completed_at 
-                                                                        ? `Completed: ${new Date(project.ceoPhilosophy.completed_at).toLocaleDateString()}`
-                                                                        : 'Pending'}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                        <Badge variant={project.ceoPhilosophy?.completed_at ? 'default' : 'secondary'}>
-                                                            {project.ceoPhilosophy?.completed_at ? 'Completed' : 'Pending'}
-                                                        </Badge>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        )}
+                                        <CardContent className="pt-0 pb-3">
+                                            <p className="text-xs text-muted-foreground">
+                                                Use <strong>View Details</strong> to open Admin Review and inspect/edit entered step data.
+                                            </p>
+                                        </CardContent>
                                     </Card>
                                 );
                             })}
@@ -266,6 +149,31 @@ export default function ProjectTree({ projects }: Props) {
                     </div>
                 </main>
             </SidebarInset>
+            <AlertDialog open={pendingAction !== null} onOpenChange={(o) => !o && setPendingAction(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {pendingAction?.type === 'delete' ? 'Delete project' : 'Reset project data'}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {pendingAction
+                                ? pendingAction.type === 'delete'
+                                    ? `Delete ${pendingAction.project.company?.name ?? `Project #${pendingAction.project.id}`} and all related data? This cannot be undone.`
+                                    : `Reset all entered data for ${pendingAction.project.company?.name ?? `Project #${pendingAction.project.id}`}. Structure remains, data clears.`
+                                : ''}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            className={pendingAction?.type === 'delete' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}
+                            onClick={runProjectAction}
+                        >
+                            {pendingAction?.type === 'delete' ? 'Delete' : 'Reset'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </SidebarProvider>
     );
 }
