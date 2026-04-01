@@ -8,10 +8,10 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { tr } from '@/config/diagnosisTranslations';
+import { toast } from '@/hooks/use-toast';
 import { loadAllTabDrafts, saveTabDraft } from '@/lib/diagnosisDraftStorage';
 import { getLogoDraftFile, setLogoDraftFile } from '@/lib/diagnosisFileDrafts';
 import { cn } from '@/lib/utils';
-import { toast } from '@/hooks/use-toast';
 
 interface Company {
     id: number;

@@ -31,28 +31,11 @@ class TreeManagementController extends Controller
 
         $data = $this->reportDataService->getComprehensiveProjectData($hrProject);
 
-        // Load admin recommendations
-        $adminRecommendations = \App\Models\AdminComment::where('hr_project_id', $hrProject->id)
-            ->where('step', 'tree')
-            ->where('is_recommendation', true)
-            ->first();
-
-        $componentMap = [
-            'overview' => 'Admin/TreeManagement/Overview',
-            'talent-review' => 'Admin/TreeManagement/TalentReview',
-            'evaluation' => 'Admin/TreeManagement/Evaluation',
-            'enhancement' => 'Admin/TreeManagement/Enhancement',
-        ];
-
-        $component = $componentMap[$tab] ?? 'Admin/TreeManagement/Overview';
-
-        return Inertia::render($component, [
+        return Inertia::render('Admin/Tree/Index', [
             'project' => $data['project'],
             'stepStatuses' => $data['stepStatuses'],
-            'activeTab' => $tab,
+            'stageProgressPercent' => $data['stageProgressPercent'],
             'projectId' => $hrProject->id,
-            'jobDefinitions' => $data['jobDefinitions'],
-            'adminRecommendations' => $adminRecommendations,
             'hrSystemSnapshot' => $data['hrSystemSnapshot'],
         ]);
     }

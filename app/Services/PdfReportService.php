@@ -81,6 +81,26 @@ class PdfReportService
     }
 
     /**
+     * Safely format number-like values.
+     */
+    private function formatNumber($value, int $decimals = 0): string
+    {
+        if (is_array($value)) {
+            return '-';
+        }
+
+        if ($value === null || $value === '') {
+            return '-';
+        }
+
+        if (!is_numeric($value)) {
+            return $this->formatValueForHtml($value);
+        }
+
+        return number_format((float) $value, $decimals);
+    }
+
+    /**
      * Build HTML for full report.
      */
     private function buildFullReportHtml(array $data): string
@@ -265,7 +285,7 @@ class PdfReportService
             </div>
             <div class="data-row">
                 <span class="data-label">Company Size:</span>
-                <span class="data-value">' . number_format($snapshot['company']['size']) . ' employees</span>
+                <span class="data-value">' . $this->formatNumber($snapshot['company']['size'] ?? null) . ' employees</span>
             </div>';
 
         if (!empty($snapshot['ceo_philosophy']['main_trait'])) {
@@ -305,7 +325,7 @@ class PdfReportService
         <div class="section-content">
             <div class="data-row">
                 <span class="data-label">Jobs Defined:</span>
-                <span class="data-value">' . number_format($snapshot['job_architecture']['jobs_defined']) . '</span>
+                <span class="data-value">' . $this->formatNumber($snapshot['job_architecture']['jobs_defined'] ?? null) . '</span>
             </div>';
 
         if (!empty($snapshot['job_architecture']['structure_type'])) {
@@ -332,7 +352,7 @@ class PdfReportService
                 $html .= '<tr>
                     <td>' . htmlspecialchars($job->job_name ?? '-') . '</td>
                     <td>' . htmlspecialchars($job->job_group ?? '-') . '</td>
-                    <td>' . htmlspecialchars(substr($job->job_description ?? '', 0, 150)) . (strlen($job->job_description ?? '') > 150 ? '...' : '') . '</td>
+                    <td>' . htmlspecialchars(substr((string) ($job->job_description ?? ''), 0, 150)) . (strlen((string) ($job->job_description ?? '')) > 150 ? '...' : '') . '</td>
                 </tr>';
             }
             
@@ -395,9 +415,9 @@ class PdfReportService
             foreach ($compensationDetails['payBands'] as $band) {
                 $html .= '<tr>
                     <td>' . htmlspecialchars($band->job_grade ?? '-') . '</td>
-                    <td>' . number_format($band->min_salary ?? 0, 2) . '</td>
-                    <td>' . number_format($band->max_salary ?? 0, 2) . '</td>
-                    <td>' . number_format($band->target_salary ?? 0, 2) . '</td>
+                    <td>' . $this->formatNumber($band->min_salary ?? null, 2) . '</td>
+                    <td>' . $this->formatNumber($band->max_salary ?? null, 2) . '</td>
+                    <td>' . $this->formatNumber($band->target_salary ?? null, 2) . '</td>
                 </tr>';
             }
             
@@ -592,7 +612,7 @@ class PdfReportService
                     <div class="section-content">
                         <div class="data-row">
                             <span class="data-label">Jobs Defined:</span>
-                            <span class="data-value">' . number_format($snapshot['job_architecture']['jobs_defined'] ?? 0) . '</span>
+                            <span class="data-value">' . $this->formatNumber($snapshot['job_architecture']['jobs_defined'] ?? null) . '</span>
                         </div>';
                 if (!empty($snapshot['job_architecture']['structure_type'])) {
                     $html .= '<div class="data-row">
@@ -614,7 +634,7 @@ class PdfReportService
                         $html .= '<tr>
                             <td>' . htmlspecialchars($job->job_name ?? '-') . '</td>
                             <td>' . htmlspecialchars($job->job_group ?? '-') . '</td>
-                            <td>' . htmlspecialchars(substr($job->job_description ?? '', 0, 150)) . '</td>
+                            <td>' . htmlspecialchars(substr((string) ($job->job_description ?? ''), 0, 150)) . '</td>
                         </tr>';
                     }
                     $html .= '</tbody></table>';
@@ -669,9 +689,9 @@ class PdfReportService
                     foreach ($compensationDetails['payBands'] as $band) {
                         $html .= '<tr>
                             <td>' . htmlspecialchars($band->job_grade ?? '-') . '</td>
-                            <td>' . number_format($band->min_salary ?? 0, 2) . '</td>
-                            <td>' . number_format($band->max_salary ?? 0, 2) . '</td>
-                            <td>' . number_format($band->target_salary ?? 0, 2) . '</td>
+                            <td>' . $this->formatNumber($band->min_salary ?? null, 2) . '</td>
+                            <td>' . $this->formatNumber($band->max_salary ?? null, 2) . '</td>
+                            <td>' . $this->formatNumber($band->target_salary ?? null, 2) . '</td>
                         </tr>';
                     }
                     $html .= '</tbody></table>';
@@ -689,7 +709,7 @@ class PdfReportService
                         </div>
                         <div class="data-row">
                             <span class="data-label">Jobs Defined:</span>
-                            <span class="data-value">' . number_format($snapshot['job_architecture']['jobs_defined'] ?? 0) . '</span>
+                            <span class="data-value">' . $this->formatNumber($snapshot['job_architecture']['jobs_defined'] ?? null) . '</span>
                         </div>
                     </div>
                 </div>';

@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import AppHeader from '@/components/Header/AppHeader';
 import StepDataFields, { StepDataJsonToggle } from '@/components/Admin/StepDataFields';
+import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -96,6 +96,9 @@ export default function AdminReview({
                             <h1 className="mb-2 text-3xl font-bold">Admin Review</h1>
                             <p className="text-muted-foreground">
                                 Browse projects on the left, then inspect structured step data and add comments for the CEO/HR team.
+                            </p>
+                            <p className="text-sm text-blue-600 mt-2">
+                                Admin note: this page is for data control. Select a project, verify actual user inputs per step, and leave actionable comments.
                             </p>
                         </div>
 

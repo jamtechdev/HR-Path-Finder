@@ -3,13 +3,6 @@ import React from 'react';
 import FinalBoard, { type StageProgressPercent } from '@/components/Dashboard/HRManager/FinalBoard';
 import AppLayout from '@/layouts/AppLayout';
 
-interface JobDefinition {
-    id: number;
-    job_name: string;
-    job_description?: string;
-    job_group?: string;
-}
-
 interface HrSystemSnapshot {
     company: {
         name: string;
@@ -50,23 +43,16 @@ interface Props {
     stepStatuses: Record<string, string>;
     stageProgressPercent?: StageProgressPercent;
     projectId: number;
-    jobDefinitions: JobDefinition[];
-    activeTab?: string;
     hrSystemSnapshot: HrSystemSnapshot;
 }
 
-export default function CeoTreeIndex({
+export default function AdminTreeIndex({
     project,
-    stepStatuses = {},
+    stepStatuses,
     stageProgressPercent,
     projectId,
-    jobDefinitions,
-    activeTab = 'overview',
     hrSystemSnapshot,
 }: Props) {
-    void jobDefinitions;
-    void activeTab;
-
     return (
         <AppLayout showWorkflowSteps={true} stepStatuses={stepStatuses} projectId={projectId}>
             <Head title={`Final Board - ${project.company.name}`} />
@@ -76,7 +62,7 @@ export default function CeoTreeIndex({
                 stepStatuses={stepStatuses}
                 stageProgressPercent={stageProgressPercent}
                 hrSystemSnapshot={hrSystemSnapshot}
-                viewerRole="ceo"
+                viewerRole="admin"
             />
         </AppLayout>
     );

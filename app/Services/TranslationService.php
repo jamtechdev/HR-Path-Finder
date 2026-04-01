@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Translation Service (JSON-based only)
@@ -79,11 +78,18 @@ class TranslationService
     public function saveTranslations(string $locale, array $translations): bool
     {
         $filePath = $this->translationsPath . "/{$locale}.json";
+        $dirPath = dirname($filePath);
+        if (!File::exists($dirPath)) {
+            File::makeDirectory($dirPath, 0755, true);
+        }
         
         // Sort keys recursively
         $translations = $this->sortKeysRecursive($translations);
         
         $json = json_encode($translations, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($json === false) {
+            return false;
+        }
         
         return File::put($filePath, $json) !== false;
     }

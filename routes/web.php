@@ -198,6 +198,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Report (CEO)
         Route::get('report', [\App\Http\Controllers\Dashboard\CeoDashboardController::class, 'reportList'])->name('report.list');
         Route::get('report/{hrProject}', [\App\Http\Controllers\CeoReportController::class, 'index'])->name('report.index');
+        Route::get('report/{hrProject}/upload/{reportUpload}/download', [\App\Http\Controllers\CeoReportController::class, 'downloadUploadedReport'])->name('report.upload.download');
         Route::get('report/{hrProject}/download', [\App\Http\Controllers\CeoReportController::class, 'downloadFullReport'])->name('report.download');
         Route::get('report/{hrProject}/download/{step}', [\App\Http\Controllers\CeoReportController::class, 'downloadStepReport'])->name('report.download.step');
 
@@ -570,6 +571,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Report (Admin)
         Route::get('report/{hrProject}', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('report.index');
+        Route::get('report/{hrProject}/upload/{reportUpload}/download', [\App\Http\Controllers\Admin\ReportController::class, 'downloadUploadedReport'])->name('report.upload.download');
         Route::get('report/{hrProject}/download', [\App\Http\Controllers\Admin\ReportController::class, 'downloadFullReport'])->name('report.download');
         Route::get('report/{hrProject}/download/{step}', [\App\Http\Controllers\Admin\ReportController::class, 'downloadStepReport'])->name('report.download.step');
 

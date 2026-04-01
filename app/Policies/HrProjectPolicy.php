@@ -21,8 +21,8 @@ class HrProjectPolicy
     public function view(User $user, HrProject $hrProject): bool
     {
         // User must be associated with the company or be consultant/admin
-        return $hrProject->company->users->contains($user) || 
-               $user->hasRole(['consultant', 'admin']);
+        return $hrProject->company->users->contains($user) ||
+               $user->hasAnyRole(['consultant', 'admin']);
     }
 
     /**

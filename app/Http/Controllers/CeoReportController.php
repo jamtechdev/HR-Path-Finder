@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\HrProject;
+use App\Models\ReportUpload;
 use App\Services\ReportDataService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -34,12 +35,17 @@ class CeoReportController extends Controller
         }
 
         $data = $this->reportDataService->getComprehensiveProjectData($hrProject);
+        $reportUploads = ReportUpload::query()
+            ->where('hr_project_id', $hrProject->id)
+            ->latest()
+            ->get(['id', 'original_name', 'created_at']);
 
         return Inertia::render('CEO/Report/Index', [
             'project' => $data['project'],
             'stepStatuses' => $data['stepStatuses'],
             'projectId' => $hrProject->id,
             'hrSystemSnapshot' => $data['hrSystemSnapshot'],
+            'reportUploads' => $reportUploads,
         ]);
     }
 
@@ -102,5 +108,30 @@ class CeoReportController extends Controller
         return response($pdfContent, 200)
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
+
+    /**
+     * Download uploaded consultant report.
+     */
+    public function downloadUploadedReport(Request $request, HrProject $hrProject, ReportUpload $reportUpload)
+    {
+        $user = $request->user();
+
+        if (!$user->hasRole('ceo')) {
+            abort(403);
+        }
+
+        if (!$hrProject->company->users->contains($user)) {
+            abort(403);
+        }
+
+        if ((int) $reportUpload->hr_project_id !== (int) $hrProject->id) {
+            abort(404);
+        }
+
+        return response()->download(
+            storage_path('app/public/' . $reportUpload->file_path),
+            $reportUpload->original_name
+        );
     }
 }

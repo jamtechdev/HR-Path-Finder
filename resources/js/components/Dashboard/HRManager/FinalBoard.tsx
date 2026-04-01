@@ -72,7 +72,7 @@ interface FinalBoardProps {
   hrSystemSnapshot: HrSystemSnapshot;
   /** Real stage %; without it, done→100% and other states→0% (no fake 87/72). */
   stageProgressPercent?: StageProgressPercent;
-  viewerRole?: 'hr_manager' | 'ceo';
+  viewerRole?: 'hr_manager' | 'ceo' | 'admin';
 }
 
 function toStageStatus(stepStatus?: string): StageUiStatus {
@@ -85,8 +85,12 @@ function toStageStatus(stepStatus?: string): StageUiStatus {
 function getStageRoute(
   stageId: 'diagnosis' | 'job_analysis' | 'performance' | 'compensation',
   projectId: number,
-  viewerRole: 'hr_manager' | 'ceo'
+  viewerRole: 'hr_manager' | 'ceo' | 'admin'
 ) {
+  if (viewerRole === 'admin') {
+    return `/admin/review/${projectId}`;
+  }
+
   if (viewerRole === 'ceo') {
     switch (stageId) {
       case 'diagnosis':

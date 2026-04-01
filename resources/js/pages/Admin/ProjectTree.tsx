@@ -3,15 +3,6 @@ import { Building2, Eye, FileText, RotateCcw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -22,6 +13,15 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface Project {
     id: number;
@@ -91,6 +91,9 @@ export default function ProjectTree({ projects }: Props) {
                                 <h1 className="text-xl font-semibold text-foreground">Project View</h1>
                                 <p className="text-xs text-muted-foreground mt-0.5">
                                     Compact list — reset, delete, or open Admin Review for each company project.
+                                </p>
+                                <p className="text-xs text-blue-600 mt-1">
+                                    Admin guide: use Delete to permanently remove a company project, or View Details to inspect and edit step-by-step entered data.
                                 </p>
                             </div>
 
