@@ -91,6 +91,7 @@ export default function AdminUsersIndex({
     total_hr_users,
     total_ceo_users,
     pending_users_count,
+    require_admin_approval,
     companies,
 }: Props) {
     const page = usePage();
@@ -122,6 +123,25 @@ export default function AdminUsersIndex({
     }, [page.url]);
     const [tab, setTab] = useState<'all' | 'pending' | 'active'>(initialTab);
     const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
+
+    useEffect(() => {
+        const raw = page.url?.split('?')[1] ?? '';
+        const value = new URLSearchParams(raw).get('tab');
+        if (value === 'pending' || value === 'active') {
+            setTab(value);
+        } else {
+            setTab('all');
+        }
+    }, [page.url]);
+
+    const navigateToTab = (next: 'all' | 'pending' | 'active') => {
+        setTab(next);
+        router.get(
+            '/admin/ceo',
+            next === 'all' ? {} : { tab: next },
+            { preserveState: true, preserveScroll: true, replace: true },
+        );
+    };
 
     const [createOpen, setCreateOpen] = useState(false);
     const createForm = useForm({
@@ -266,7 +286,20 @@ export default function AdminUsersIndex({
                                             Manage all non-admin users (CEO/HR) and approve pending accounts when admin approval is enabled.
                                         </p>
                                         <p className="text-xs text-muted-foreground mt-2">
-                                            Pending approval means <code className="rounded bg-muted px-1">access_granted_at === null</code>.
+                                            Pending approval means the account is waiting for you to grant access (
+                                            <code className="rounded bg-muted px-1">access_granted_at</code> is empty). Click the
+                                            number below to open the Pending tab (URL updates so you can bookmark or refresh).
+                                        </p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            The primary action shows <strong>Activate</strong> only on pending users; active users show{' '}
+                                            <strong>Deactivate</strong>.
+                                            {!require_admin_approval && (
+                                                <>
+                                                    {' '}
+                                                    Admin approval is currently <strong>off</strong> in app settings, so new users are
+                                                    usually created active and the pending count may stay at 0.
+                                                </>
+                                            )}
                                         </p>
                                     </div>
                                 </div>
@@ -290,7 +323,7 @@ export default function AdminUsersIndex({
                                             <button
                                                 type="button"
                                                 className="text-3xl font-bold text-foreground hover:underline"
-                                                onClick={() => setTab('pending')}
+                                                onClick={() => navigateToTab('pending')}
                                                 title="Open pending users list"
                                             >
                                                 {pending_users_count}
@@ -328,7 +361,7 @@ export default function AdminUsersIndex({
                                 </div>
                             </div>
 
-                            <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="mt-2">
+                            <Tabs value={tab} onValueChange={(v) => navigateToTab(v as typeof tab)} className="mt-2">
                                 <TabsList className="w-full justify-start">
                                     <TabsTrigger value="all">All ({filteredAll.length})</TabsTrigger>
                                     <TabsTrigger value="pending">Pending ({filteredPending.length})</TabsTrigger>
@@ -789,7 +822,7 @@ function UsersTable({
                                                     {isPending ? 'Activate' : 'Deactivate'}
                                                 </Button>
                                                 <Button size="sm" variant="outline" onClick={() => onEditUser(u)}>
-                                                    Profile
+                                                    Edit user
                                                 </Button>
                                                 <Button
                                                     size="sm"

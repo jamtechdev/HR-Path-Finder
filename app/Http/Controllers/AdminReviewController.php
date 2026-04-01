@@ -9,11 +9,30 @@ use Illuminate\Http\Request;
 class AdminReviewController extends Controller
 {
     /**
-     * Show admin review page.test
+     * Admin review landing: pick a project (no project payload yet).
+     */
+    public function list(Request $request)
+    {
+        if (! $request->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        $projects = $this->projectsForReviewSidebar();
+
+        return \Inertia\Inertia::render('Admin/Review/Index', [
+            'project' => null,
+            'projects' => $projects,
+            'comments' => [],
+            'stepData' => [],
+        ]);
+    }
+
+    /**
+     * Show admin review for a single project.
      */
     public function index(Request $request, HrProject $hrProject)
     {
-        if (!$request->user()->hasRole('admin')) {
+        if (! $request->user()->hasRole('admin')) {
             abort(403);
         }
 
@@ -28,7 +47,7 @@ class AdminReviewController extends Controller
             'company',
         ]);
 
-        $projects = HrProject::with('company')->orderByDesc('created_at')->get(['id', 'company_id', 'step_statuses', 'created_at']);
+        $projects = $this->projectsForReviewSidebar();
 
         return \Inertia\Inertia::render('Admin/Review/Index', [
             'project' => $hrProject,
@@ -46,12 +65,20 @@ class AdminReviewController extends Controller
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, HrProject>
+     */
+    private function projectsForReviewSidebar()
+    {
+        return HrProject::with('company')->orderByDesc('created_at')->get(['id', 'company_id', 'step_statuses', 'created_at']);
+    }
+
+    /**
      * Add admin comment.
      */
     public function addComment(Request $request, HrProject $hrProject)
     {
         // dd($request->comment, $request->step);
-        if (!$request->user()->hasRole('admin')) {
+        if (! $request->user()->hasRole('admin')) {
             abort(403);
         }
 

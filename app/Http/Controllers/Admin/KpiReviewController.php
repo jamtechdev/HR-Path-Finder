@@ -7,15 +7,75 @@ use App\Models\HrProject;
 use App\Models\OrganizationalKpi;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class KpiReviewController extends Controller
 {
+    /**
+     * All projects that have KPIs (admin picks one to open detail review).
+     */
+    public function listIndex(Request $request): Response
+    {
+        if (! $request->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        $projects = HrProject::with(['company'])->get();
+        $projectIds = $projects->pluck('id')->toArray();
+
+        $kpiCounts = OrganizationalKpi::whereIn('hr_project_id', $projectIds)
+            ->selectRaw("hr_project_id, COUNT(*) as total, SUM(CASE WHEN COALESCE(ceo_approval_status, '') = 'approved' OR COALESCE(status, '') = 'approved' THEN 1 ELSE 0 END) as approved, SUM(CASE WHEN COALESCE(ceo_approval_status, '') = 'revision_requested' OR COALESCE(status, '') = 'revision_requested' THEN 1 ELSE 0 END) as revision_requested")
+            ->groupBy('hr_project_id')
+            ->get()
+            ->keyBy('hr_project_id');
+
+        $kpiProjects = $projects->map(function (HrProject $project) use ($kpiCounts) {
+            $counts = $kpiCounts->get($project->id);
+            $kpiTotal = $counts ? (int) $counts->total : 0;
+            $kpiApproved = $counts ? (int) $counts->approved : 0;
+            $kpiRevisionRequested = $counts ? (int) $counts->revision_requested : 0;
+            $perfStatus = $project->step_statuses['performance'] ?? 'not_started';
+            $kpiStatus = 'none';
+            if ($kpiTotal > 0) {
+                if ($kpiApproved >= $kpiTotal) {
+                    $kpiStatus = 'approved';
+                } elseif ($kpiRevisionRequested > 0) {
+                    $kpiStatus = 'revision_requested';
+                } else {
+                    $kpiStatus = in_array($perfStatus, ['in_progress', 'submitted'], true) ? 'pending' : 'in_progress';
+                }
+            }
+
+            return [
+                'id' => $project->id,
+                'company' => $project->company ? [
+                    'id' => $project->company->id,
+                    'name' => $project->company->name,
+                ] : null,
+                'kpi_total' => $kpiTotal,
+                'kpi_approved' => $kpiApproved,
+                'kpi_review_status' => $kpiStatus,
+                'created_at' => $project->created_at,
+            ];
+        })->filter(fn (array $row) => $row['kpi_total'] > 0)->values();
+
+        return Inertia::render('Admin/KpiReview/Index', [
+            'projects' => $kpiProjects,
+            'stats' => [
+                'total_projects' => $projects->count(),
+                'kpi_projects' => $kpiProjects->count(),
+                'pending_kpi_review' => $kpiProjects->where('kpi_review_status', 'pending')->count(),
+                'completed_kpi_review' => $kpiProjects->where('kpi_review_status', 'approved')->count(),
+            ],
+        ]);
+    }
+
     /**
      * Show Admin KPI review page.
      */
     public function index(Request $request, HrProject $hrProject)
     {
-        if (!$request->user()->hasRole('admin')) {
+        if (! $request->user()->hasRole('admin')) {
             abort(403);
         }
 
@@ -25,12 +85,12 @@ class KpiReviewController extends Controller
             ->orderBy('organization_name')
             ->orderBy('created_at', 'desc')
             ->get();
-        
+
         // Remove duplicates - keep the one with highest ID (most recent)
         $uniqueKpis = collect($allKpis)->unique(function ($kpi) {
-            return strtolower(trim($kpi->organization_name)) . '::' . strtolower(trim($kpi->kpi_name));
+            return strtolower(trim($kpi->organization_name)).'::'.strtolower(trim($kpi->kpi_name));
         })->values();
-        
+
         $kpis = $uniqueKpis;
 
         // Load org chart mappings for reference
@@ -49,7 +109,7 @@ class KpiReviewController extends Controller
      */
     public function store(Request $request, HrProject $hrProject)
     {
-        if (!$request->user()->hasRole('admin')) {
+        if (! $request->user()->hasRole('admin')) {
             abort(403);
         }
 
@@ -60,7 +120,7 @@ class KpiReviewController extends Controller
             OrganizationalKpi::where('hr_project_id', $hrProject->id)
                 ->update([
                     'ceo_approval_status' => 'approved',
-                    'status' => 'approved'
+                    'status' => 'approved',
                 ]);
 
             // Mark performance step as approved

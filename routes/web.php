@@ -1,9 +1,8 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
@@ -31,6 +30,7 @@ Route::get('/login', function (Request $request) {
     if ($request->user()) {
         return redirect()->route('dashboard');
     }
+
     return Inertia::render('auth/login', [
         'canResetPassword' => true,
         'canRegister' => Features::enabled(Features::registration()),
@@ -297,7 +297,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('contact-us', [\App\Http\Controllers\Admin\ContactUsSubmissionController::class, 'index'])->name('contact-us.index');
         Route::get('beta-access', [\App\Http\Controllers\Admin\BetaAccessController::class, 'index'])->name('beta-access.index');
         Route::post('beta-access/{user}/approve', [\App\Http\Controllers\Admin\BetaAccessController::class, 'approve'])->name('beta-access.approve');
-        Route::get('project-tree', [\App\Http\Controllers\Admin\DashboardController::class, 'projectTree'])->name('project-tree');
+        Route::get('project-view', [\App\Http\Controllers\Admin\DashboardController::class, 'projectTree'])->name('project-view');
+        Route::get('project-tree', function () {
+            return redirect()->route('admin.project-view')->setStatusCode(301);
+        })->name('project-tree');
         Route::post('projects/{hrProject}/reset', [\App\Http\Controllers\Admin\DashboardController::class, 'resetProject'])->name('projects.reset');
         Route::delete('projects/{hrProject}', [\App\Http\Controllers\Admin\DashboardController::class, 'destroyProject'])->name('projects.destroy');
 
@@ -305,18 +308,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('hr-projects', [\App\Http\Controllers\HrProjectController::class, 'index'])->name('hr-projects.index');
         Route::get('hr-projects/{hrProject}', [\App\Http\Controllers\HrProjectController::class, 'show'])->name('hr-projects.show');
 
-        // Review
+        // Review (list must be registered before {hrProject})
+        Route::get('review', [\App\Http\Controllers\AdminReviewController::class, 'list'])->name('review.list');
         Route::get('review/{hrProject}', [\App\Http\Controllers\AdminReviewController::class, 'index'])->name('review.index');
         Route::post('review/{hrProject}/comment', [\App\Http\Controllers\AdminReviewController::class, 'addComment'])->name('review.comment');
 
-        // KPI Review
+        // KPI Review (list before {hrProject})
+        Route::get('kpi-review', [\App\Http\Controllers\Admin\KpiReviewController::class, 'listIndex'])->name('kpi-review.list');
         Route::get('kpi-review/{hrProject}', [\App\Http\Controllers\Admin\KpiReviewController::class, 'index'])->name('kpi-review.index');
         Route::post('kpi-review/{hrProject}', [\App\Http\Controllers\Admin\KpiReviewController::class, 'store'])->name('kpi-review.store');
 
         // CEO Questions Management
         Route::resource('questions/ceo', \App\Http\Controllers\Admin\DiagnosisQuestionController::class)
             ->parameters([
-                'ceo' => 'diagnosisQuestion'
+                'ceo' => 'diagnosisQuestion',
             ])
             ->names([
                 'index' => 'questions.ceo.index',
@@ -332,7 +337,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Policy Snapshot Questions
         Route::resource('policy-snapshot', \App\Http\Controllers\Admin\PolicySnapshotController::class)
             ->parameters([
-                'policy-snapshot' => 'policySnapshotQuestion'
+                'policy-snapshot' => 'policySnapshotQuestion',
             ])
             ->names([
                 'index' => 'policy-snapshot.index',
@@ -346,7 +351,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // HR Issues Management
         Route::resource('hr-issues', \App\Http\Controllers\Admin\HrIssueController::class)
             ->parameters([
-                'hr-issues' => 'hrIssue'
+                'hr-issues' => 'hrIssue',
             ])
             ->names([
                 'index' => 'hr-issues.index',
@@ -386,7 +391,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('ceos.destroy');
         // Industry Subcategories Management (Full CRUD)
         Route::resource('subcategories', \App\Http\Controllers\Admin\IndustrySubCategoryController::class)->parameters([
-            'subcategories' => 'subCategory'
+            'subcategories' => 'subCategory',
         ])->names([
             'index' => 'subcategories.index',
             'create' => 'subcategories.create',
@@ -450,7 +455,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             \App\Http\Controllers\Admin\PerformanceSnapshotQuestionController::class
         )
             ->parameters([
-                'performance-snapshot' => 'performanceSnapshotQuestion'
+                'performance-snapshot' => 'performanceSnapshotQuestion',
             ])
             ->names([
                 'index' => 'performance-snapshot.index',
@@ -584,4 +589,4 @@ Route::get('kpi-review/token/{token}', [\App\Http\Controllers\KpiReviewControlle
 Route::get('kpi-review/token/{token}/organization/{organizationName}', [\App\Http\Controllers\KpiReviewController::class, 'getKpisForOrganization'])->name('kpi-review.token.organization');
 Route::post('kpi-review/token/{token}', [\App\Http\Controllers\KpiReviewController::class, 'store'])->name('kpi-review.token.store');
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';
