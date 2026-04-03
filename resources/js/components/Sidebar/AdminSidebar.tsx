@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Settings, LayoutGrid, HelpCircle, FileText, Building2, AlertCircle, Database, Layers, Target, DollarSign, Languages, ChevronRight, ChevronDown, Users, Eye, Mail } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface AdminSidebarProps {
@@ -8,30 +9,34 @@ interface AdminSidebarProps {
 }
 
 export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps) {
+    const { t } = useTranslation();
     const { url, props } = usePage();
     const currentPath = url.split('?')[0];
     const [clientOpsOpen, setClientOpsOpen] = useState(true);
     const [contentMgmtOpen, setContentMgmtOpen] = useState(true);
     const [systemConfigOpen, setSystemConfigOpen] = useState(true);
-    const [translationsOpen, setTranslationsOpen] = useState(currentPath.startsWith('/admin/translations'));
+    const [translationsOpen, setTranslationsOpen] = useState(
+        currentPath.startsWith('/admin/translations') || currentPath === '/admin/hr-translations',
+    );
 
     const user = (props as any).auth?.user;
     const isAdmin = user?.roles?.some((role: { name: string }) => role.name === 'admin') || false;
 
-    const appName = (props as any).appConfig?.name || 'HR Path-Finder';
+    const appName = (props as any).appConfig?.name || t('admin_ui.sidebar.app_name');
     const appLogo = (props as any).appConfig?.logo || '/logo.svg';
 
     const translationPages = [
-        { key: 'all', label: 'All Translations', path: '/admin/translations?page=all' },
-        { key: 'landing-page', label: 'Landing Page', path: '/admin/landing-page' },
-        { key: 'auth', label: 'Authentication', path: '/admin/translations?page=auth' },
-        { key: 'auth.login', label: 'Login Page', path: '/admin/translations?page=auth.login' },
-        { key: 'auth.register', label: 'Register Page', path: '/admin/translations?page=auth.register' },
-        { key: 'dashboard', label: 'Dashboard', path: '/admin/translations?page=dashboard' },
-        { key: 'common', label: 'Common', path: '/admin/translations?page=common' },
-        { key: 'navigation', label: 'Navigation', path: '/admin/translations?page=navigation' },
-        { key: 'buttons', label: 'Buttons', path: '/admin/translations?page=buttons' },
-        { key: 'messages', label: 'Messages', path: '/admin/translations?page=messages' },
+        { key: 'all', label: t('admin_ui.sidebar.translation_pages.all'), path: '/admin/translations?page=all' },
+        { key: 'landing-page', label: t('admin_ui.sidebar.translation_pages.landing_page'), path: '/admin/landing-page' },
+        { key: 'hr-translations', label: t('admin_ui.sidebar.translation_pages.hr_translations'), path: '/admin/hr-translations' },
+        { key: 'auth', label: t('admin_ui.sidebar.translation_pages.auth'), path: '/admin/translations?page=auth' },
+        { key: 'auth.login', label: t('admin_ui.sidebar.translation_pages.auth_login'), path: '/admin/translations?page=auth.login' },
+        { key: 'auth.register', label: t('admin_ui.sidebar.translation_pages.auth_register'), path: '/admin/translations?page=auth.register' },
+        { key: 'dashboard', label: t('admin_ui.sidebar.translation_pages.dashboard'), path: '/admin/translations?page=dashboard' },
+        { key: 'common', label: t('admin_ui.sidebar.translation_pages.common'), path: '/admin/translations?page=common' },
+        { key: 'navigation', label: t('admin_ui.sidebar.translation_pages.navigation'), path: '/admin/translations?page=navigation' },
+        { key: 'buttons', label: t('admin_ui.sidebar.translation_pages.buttons'), path: '/admin/translations?page=buttons' },
+        { key: 'messages', label: t('admin_ui.sidebar.translation_pages.messages'), path: '/admin/translations?page=messages' },
     ];
 
     const isActivePath = (path: string) => {
@@ -73,7 +78,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                 {!isCollapsed && (
                     <div className="flex flex-col gap-1">
                         <span className="font-semibold text-sidebar-foreground text-lg leading-none">{appName}</span>
-                        <span className="text-xs text-sidebar-foreground/60 leading-none">by BetterCompany</span>
+                        <span className="text-xs text-sidebar-foreground/60 leading-none">{t('admin_ui.sidebar.by_bettercompany')}</span>
                     </div>
                 )}
             </div>
@@ -83,7 +88,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                     <div className={cn('transition-all duration-200', isCollapsed ? 'space-y-2' : 'space-y-2')}>
                         {isAdmin && (
                             <>
-                                {!isCollapsed && <div className={sectionTitleClass}>Dashboard</div>}
+                                {!isCollapsed && <div className={sectionTitleClass}>{t('admin_ui.sidebar.sections.dashboard')}</div>}
                                 <Link
                                     href="/admin/dashboard"
                                     className={cn(
@@ -95,7 +100,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                     )}
                                 >
                                     <LayoutGrid className={cn('flex-shrink-0', isCollapsed ? 'w-6 h-6' : 'w-5 h-5')} />
-                                    {!isCollapsed && <span className="flex-1 text-left truncate">Dashboard</span>}
+                                    {!isCollapsed && <span className="flex-1 text-left truncate">{t('admin_ui.sidebar.menu.dashboard')}</span>}
                                 </Link>
 
                                 <Link
@@ -109,10 +114,10 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                     )}
                                 >
                                     <Mail className={cn('flex-shrink-0', isCollapsed ? 'w-6 h-6' : 'w-5 h-5')} />
-                                    {!isCollapsed && <span className="flex-1 text-left truncate">Contact Us</span>}
+                                    {!isCollapsed && <span className="flex-1 text-left truncate">{t('admin_ui.sidebar.menu.contact_us')}</span>}
                                 </Link>
 
-                                {!isCollapsed && <div className={sectionTitleClass}>Client ops</div>}
+                                {!isCollapsed && <div className={sectionTitleClass}>{t('admin_ui.sidebar.sections.client_ops')}</div>}
                                 <div className={sectionWrapClass}>
                                     <button
                                         type="button"
@@ -125,7 +130,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                         <Database className={cn('flex-shrink-0', isCollapsed ? 'w-6 h-6' : 'w-5 h-5')} />
                                         {!isCollapsed && (
                                             <>
-                                                <span className="flex-1 text-left truncate">Client Ops</span>
+                                                <span className="flex-1 text-left truncate">{t('admin_ui.sidebar.menu.client_ops')}</span>
                                                 {clientOpsOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                                             </>
                                         )}
@@ -143,7 +148,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 )}
                                             >
                                                 <Users className="w-4 h-4" />
-                                                <span className="truncate">Users &amp; Beta Access</span>
+                                                <span className="truncate">{t('admin_ui.sidebar.menu.users_beta_access')}</span>
                                             </Link>
                                             <Link
                                                 href="/admin/project-view"
@@ -156,7 +161,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 )}
                                             >
                                                 <Eye className="w-4 h-4" />
-                                                <span className="truncate">All Projects</span>
+                                                <span className="truncate">{t('admin_ui.sidebar.menu.all_projects')}</span>
                                             </Link>
                                             <Link
                                                 href="/admin/hr-projects"
@@ -169,13 +174,13 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 )}
                                             >
                                                 <Building2 className="w-4 h-4" />
-                                                <span className="truncate">All Companies</span>
+                                                <span className="truncate">{t('admin_ui.sidebar.menu.all_companies')}</span>
                                             </Link>
                                         </div>
                                     )}
                                 </div>
 
-                                {!isCollapsed && <div className={sectionTitleClass}>Content mgmt</div>}
+                                {!isCollapsed && <div className={sectionTitleClass}>{t('admin_ui.sidebar.sections.content_mgmt')}</div>}
                                 <div className={sectionWrapClass}>
                                     <button
                                         type="button"
@@ -189,7 +194,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                         <FileText className={cn('flex-shrink-0', isCollapsed ? 'w-6 h-6' : 'w-5 h-5')} />
                                         {!isCollapsed && (
                                             <>
-                                                <span className="flex-1 text-left truncate">Content Mgmt</span>
+                                                <span className="flex-1 text-left truncate">{t('admin_ui.sidebar.menu.content_mgmt')}</span>
                                                 {contentMgmtOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                                             </>
                                         )}
@@ -207,7 +212,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 )}
                                             >
                                                 <HelpCircle className="w-4 h-4" />
-                                                <span>CEO Questions</span>
+                                                <span>{t('admin_ui.sidebar.menu.ceo_questions')}</span>
                                             </Link>
                                             <Link
                                                 href="/admin/policy-snapshot"
@@ -220,7 +225,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 )}
                                             >
                                                 <FileText className="w-4 h-4" />
-                                                <span>Policy Snapshot</span>
+                                                <span>{t('admin_ui.sidebar.menu.policy_snapshot')}</span>
                                             </Link>
                                             <Link
                                                 href="/admin/performance-snapshot"
@@ -233,7 +238,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 )}
                                             >
                                                 <Target className="w-4 h-4" />
-                                                <span>Performance Snapshot</span>
+                                                <span>{t('admin_ui.sidebar.menu.performance_snapshot')}</span>
                                             </Link>
                                             <Link
                                                 href="/admin/compensation-snapshot"
@@ -246,7 +251,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 )}
                                             >
                                                 <DollarSign className="w-4 h-4" />
-                                                <span>Compensation Snapshot</span>
+                                                <span>{t('admin_ui.sidebar.menu.compensation_snapshot')}</span>
                                             </Link>
                                             <Link
                                                 href="/admin/kpi-templates"
@@ -259,7 +264,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 )}
                                             >
                                                 <Target className="w-4 h-4" />
-                                                <span>KPI Templates</span>
+                                                <span>{t('admin_ui.sidebar.menu.kpi_templates')}</span>
                                             </Link>
                                             <Link
                                                 href="/admin/kpi-review"
@@ -272,13 +277,13 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 )}
                                             >
                                                 <Target className="w-4 h-4" />
-                                                <span>KPI Review</span>
+                                                <span>{t('admin_ui.sidebar.menu.kpi_review')}</span>
                                             </Link>
                                         </div>
                                     )}
                                 </div>
 
-                                {!isCollapsed && <div className={sectionTitleClass}>System config</div>}
+                                {!isCollapsed && <div className={sectionTitleClass}>{t('admin_ui.sidebar.sections.system_config')}</div>}
                                 <div className={sectionWrapClass}>
                                     <button
                                         type="button"
@@ -292,7 +297,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                         <Settings className={cn('flex-shrink-0', isCollapsed ? 'w-6 h-6' : 'w-5 h-5')} />
                                         {!isCollapsed && (
                                             <>
-                                                <span className="flex-1 text-left truncate">System Config</span>
+                                                <span className="flex-1 text-left truncate">{t('admin_ui.sidebar.menu.system_config')}</span>
                                                 {systemConfigOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                                             </>
                                         )}
@@ -310,7 +315,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 )}
                                             >
                                                 <Building2 className="w-4 h-4" />
-                                                <span>Industries</span>
+                                                <span>{t('admin_ui.sidebar.menu.industries')}</span>
                                             </Link>
                                             <Link
                                                 href="/admin/subcategories"
@@ -323,7 +328,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 )}
                                             >
                                                 <Layers className="w-4 h-4" />
-                                                <span>Subcategories</span>
+                                                <span>{t('admin_ui.sidebar.menu.subcategories')}</span>
                                             </Link>
                                             <button
                                                 type="button"
@@ -334,7 +339,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 )}
                                             >
                                                 <Languages className="w-4 h-4" />
-                                                <span className="flex-1 text-left truncate">Translations</span>
+                                                <span className="flex-1 text-left truncate">{t('admin_ui.sidebar.menu.translations')}</span>
                                                 {translationsOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                                             </button>
                                             {translationsOpen && (
@@ -343,6 +348,8 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                         const translationLinkActive =
                                                             page.key === 'landing-page'
                                                                 ? currentPath === '/admin/landing-page'
+                                        : page.key === 'hr-translations'
+                                          ? currentPath === '/admin/hr-translations'
                                                                 : currentPath === page.path.split('?')[0] &&
                                                                   (page.key === 'all' || url.includes(`page=${page.key}`));
 
@@ -375,7 +382,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 )}
                                             >
                                                 <Settings className="w-4 h-4" />
-                                                <span className="truncate">App &amp; account settings</span>
+                                                <span className="truncate">{t('admin_ui.sidebar.menu.app_account_settings')}</span>
                                             </Link>
                                             <Link
                                                 href="/admin/hr-issues"
@@ -388,7 +395,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 )}
                                             >
                                                 <AlertCircle className="w-4 h-4" />
-                                                <span>HR Issues</span>
+                                                <span>{t('admin_ui.sidebar.menu.hr_issues')}</span>
                                             </Link>
                                         </div>
                                     )}
@@ -407,7 +414,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                             )}
                         >
                             <Settings className={cn('flex-shrink-0', isCollapsed ? 'w-6 h-6' : 'w-5 h-5')} />
-                            {!isCollapsed && <span className="flex-1 text-left truncate">App &amp; account</span>}
+                            {!isCollapsed && <span className="flex-1 text-left truncate">{t('admin_ui.sidebar.menu.app_account')}</span>}
                         </Link>
                     </div>
                 </div>

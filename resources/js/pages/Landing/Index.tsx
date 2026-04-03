@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { LandingNav } from '@/components/landing/LandingNav';
+import { useTranslation } from 'react-i18next';
 
 type PayBand = {
     lbl: string;
@@ -12,9 +13,8 @@ type PayBand = {
 const contactHref = '/contact';
 const registerHref = '/register';
 
-function calcBands(a: number, b: number): PayBand[] {
+function calcBands(a: number, b: number, gradeLabels: string[]): PayBand[] {
     const anchor = { min: 4000, tgt: 4720, max: 5200, sMax: 11000 };
-    const labels = ['Grade A', 'Grade B', 'Grade C', 'Grade D', 'Grade E'];
     const steps = 5;
     const raw = [{ min: anchor.min, tgt: anchor.tgt, max: anchor.max }];
 
@@ -25,9 +25,9 @@ function calcBands(a: number, b: number): PayBand[] {
 
     const scale = anchor.sMax / raw[steps - 1].max;
     const bands = raw.map((row, i) => {
-        if (i === 0) return { lbl: labels[i], min: row.min, tgt: row.tgt, max: row.max };
+        if (i === 0) return { lbl: gradeLabels[i] ?? 'Grade A', min: row.min, tgt: row.tgt, max: row.max };
         return {
-            lbl: labels[i],
+            lbl: gradeLabels[i] ?? `Grade ${String.fromCharCode(65 + i)}`,
             min: Math.round(row.min * scale),
             tgt: Math.round(row.tgt * scale),
             max: Math.round(row.max * scale),
@@ -41,11 +41,14 @@ function fmt(v: number): string {
     return Math.round(v).toLocaleString();
 }
 
-function fmtAx(v: number): string {
-    return v >= 10000 ? `${(v / 10000).toFixed(1)}억` : `${(v / 1000).toFixed(0)}천`;
+function fmtAx(v: number, unitLarge: string, unitSmall: string): string {
+    return v >= 10000 ? `${(v / 10000).toFixed(1)}${unitLarge}` : `${(v / 1000).toFixed(0)}${unitSmall}`;
 }
 
 function PayBandChart({ bands }: { bands: PayBand[] }) {
+    const { t } = useTranslation();
+    const unitLarge = t('landing.payband_showcase.chart.units.large');
+    const unitSmall = t('landing.payband_showcase.chart.units.small');
     const width = 900;
     const height = 360;
     const pad = { top: 28, right: 20, bottom: 54, left: 72 };
@@ -72,9 +75,9 @@ function PayBandChart({ bands }: { bands: PayBand[] }) {
     const points = bands.map((row, i) => `${xC(i)},${pad.top + yS(row.tgt)}`).join(' ');
 
     return (
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" role="img" aria-label="Pay band chart">
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" role="img" aria-label={t('landing.payband_showcase.chart.aria_label')}>
             <text x={pad.left} y={pad.top - 8} textAnchor="start" fontSize="10" fill="#9CA3AF">
-                단위: 만원
+                {t('landing.payband_showcase.chart.unit')}
             </text>
             {ticks.map((t) => {
                 const y = pad.top + yS(t);
@@ -82,7 +85,7 @@ function PayBandChart({ bands }: { bands: PayBand[] }) {
                     <g key={`tick-${t}`}>
                         <line x1={pad.left} y1={y} x2={width - pad.right} y2={y} stroke="rgba(27,46,75,.06)" strokeWidth="0.8" />
                         <text x={pad.left - 8} y={y + 4} textAnchor="end" fontSize="11" fill="#9CA3AF">
-                            {fmtAx(t)}
+                            {fmtAx(t, unitLarge, unitSmall)}
                         </text>
                     </g>
                 );
@@ -123,36 +126,38 @@ function PayBandChart({ bands }: { bands: PayBand[] }) {
 
 export default function LandingPage({ canRegister }: { canRegister?: boolean }) {
     const theme: 'dark' | 'light' = 'dark';
-    const lang: 'ko' | 'en' = 'ko';
+    const { t, i18n } = useTranslation();
     const [factorA, setFactorA] = useState(20);
     const [factorB, setFactorB] = useState(85);
+
+    const gradeLabels = ['A', 'B', 'C', 'D', 'E'].map((g) => t(`landing.payband_showcase.grades.${g}`));
 
     // Benchmark bar chart: value-proportional bars for clear visual comparison.
     const minBenchmarkWidthPercent = 12;
     const benchmarkCardRows = [
         {
-            label: '우리 회사',
+            label: t('landing.benchmark.our_company'),
             value: 100,
             keyName: 'our',
             isOurCompany: true,
             barBackground: 'linear-gradient(90deg, rgba(255,255,255,0.98), rgba(228,236,249,0.72))',
         },
         {
-            label: '업종 전체',
+            label: t('landing.benchmark.industry_overall'),
             value: 127,
             keyName: 'industry',
             isOurCompany: false,
             barBackground: 'linear-gradient(90deg, #ff7d7d, #ff4e4e)',
         },
         {
-            label: '타깃 경쟁사',
+            label: t('landing.benchmark.target_competitors'),
             value: 118,
             keyName: 'comp-a',
             isOurCompany: false,
             barBackground: 'linear-gradient(90deg, #ffc24a, #ff8a1f)',
         },
         {
-            label: '유사 제조업',
+            label: t('landing.benchmark.industry_segment'),
             value: 108,
             keyName: 'comp-b',
             isOurCompany: false,
@@ -162,7 +167,10 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
     const maxBenchmarkValue = Math.max(...benchmarkCardRows.map((r) => r.value), 1);
     const valueToPercent = (value: number) => Math.max(minBenchmarkWidthPercent, (value / maxBenchmarkValue) * 100);
 
-    const bands = useMemo(() => calcBands(factorA / 100, factorB / 100), [factorA, factorB]);
+    const bands = useMemo(
+        () => calcBands(factorA / 100, factorB / 100, gradeLabels),
+        [factorA, factorB, i18n.language],
+    );
 
     useEffect(() => {
         document.documentElement.classList.toggle('theme-light', theme === 'light');
@@ -205,7 +213,7 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
 
     return (
         <>
-            <Head title="HR Pathfinder — 전문가 수준의 HR 설계" />
+            <Head title={t('landing.seo.title')} />
             <style>{`
                 :root { --navy-deepest:#060d1a; --navy-deep:#0a1628; --navy-mid:#0f2040; --navy-light:#1a3260; --teal:#00c9a7; --teal-dim:#00a087; --gold:#f0b429; --text-primary:#e8edf5; --text-secondary:#8ba3c4; --text-muted:#4a6080; --border:rgba(255,255,255,0.07); --border-teal:rgba(0,201,167,0.3); }
                 .theme-light { --navy-deepest:#eef2f8; --navy-deep:#f7f9fc; --navy-mid:#ffffff; --navy-light:#dbe6f5; --text-primary:#10213a; --text-secondary:#385170; --text-muted:#667a95; --border:rgba(20,40,70,0.13); --border-teal:rgba(0,160,135,.35); }
@@ -225,34 +233,43 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
                     <div className="relative z-[1]">
                         <div className="inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[.72rem] font-semibold mb-7" style={{ borderColor: 'var(--border-teal)', color: 'var(--teal)', background: 'rgba(0,201,167,.08)' }}>
                             <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--teal)' }} />
-                            조직성장의 속도를 견인하는 HR 정책설계 파워 엔진
+                            {t('landing.hero_revision.badge')}
                         </div>
                         <h1 className="text-[clamp(2.2rem,4vw,3.2rem)] font-extrabold leading-[1.18] tracking-[-.04em] mb-5">
-                            조직의 외형에 맞는
+                            {t('landing.hero_revision.headline.line1')}
                             <br />
-                            체계가 없으면
+                            {t('landing.hero_revision.headline.line2')}
                             <br />
                             <span style={{ color: 'var(--teal)' }}>
-                                불필요한 갈등으로
+                                {t('landing.hero_revision.headline.highlight_line1')}
                                 <br />
-                                조직 역량이 분산됩니다.
+                                {t('landing.hero_revision.headline.highlight_line2')}
                             </span>
                         </h1>
                         <p className="text-base leading-[1.75] mb-9 max-w-[460px]" style={{ color: 'var(--text-secondary)' }}>
-                            일반 컨설팅의 1/4 금액으로 내부 HR 역량 육성과 전문 제도설계 서비스를 모두 받아보세요.
+                            {t('landing.hero_revision.sub')}
                         </p>
                         <div className="flex flex-wrap gap-3 items-center mb-12">
                             <Link href={contactHref} className="inline-flex items-center gap-2 rounded-lg px-7 py-3.5 font-bold text-[.92rem] text-white no-underline" style={{ background: 'var(--teal)' }}>
-                                서비스 문의하기 →
+                                {t('landing.hero_revision.primary_button')} →
                             </Link>
                             <Link href="/contact" className="inline-flex items-center rounded-lg px-6 py-3.5 text-[.88rem] font-semibold no-underline border" style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
-                                전문 컨설팅펌, 베러컴퍼니가 만든 SaaS →
+                                {t('landing.hero_revision.secondary_button')}
                             </Link>
                         </div>
                         <div className="flex gap-8 flex-wrap">
-                            <div><div className="text-3xl font-extrabold leading-none" style={{ color: 'var(--gold)' }}>1개월</div><div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>평균 제도설계 완료</div></div>
-                            <div><div className="text-3xl font-extrabold leading-none" style={{ color: 'var(--gold)' }}>1/4</div><div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>일반 컨설팅 대비 비용</div></div>
-                            <div><div className="text-3xl font-extrabold leading-none" style={{ color: 'var(--gold)' }}>5</div><div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>단계 순차 HR 설계</div></div>
+                            <div>
+                                <div className="text-3xl font-extrabold leading-none" style={{ color: 'var(--gold)' }}>{t('landing.hero_revision.stats.stat1.value')}</div>
+                                <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{t('landing.hero_revision.stats.stat1.label')}</div>
+                            </div>
+                            <div>
+                                <div className="text-3xl font-extrabold leading-none" style={{ color: 'var(--gold)' }}>{t('landing.hero_revision.stats.stat2.value')}</div>
+                                <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{t('landing.hero_revision.stats.stat2.label')}</div>
+                            </div>
+                            <div>
+                                <div className="text-3xl font-extrabold leading-none" style={{ color: 'var(--gold)' }}>{t('landing.hero_revision.stats.stat3.value')}</div>
+                                <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{t('landing.hero_revision.stats.stat3.label')}</div>
+                            </div>
                         </div>
                     </div>
 
@@ -261,14 +278,14 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
                             <div className="px-6 py-5 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
                                 <div className="flex items-center gap-2.5">
                                     <div className="w-2 h-2 rounded-full shadow-[0_0_8px_var(--teal)]" style={{ background: 'var(--teal)' }} />
-                                    <div className="text-[.8rem] font-bold tracking-[.03em]" style={{ color: 'var(--text-secondary)' }}>보상지수 벤치마크 · HR Pathfinder</div>
+                                    <div className="text-[.8rem] font-bold tracking-[.03em]" style={{ color: 'var(--text-secondary)' }}>{t('landing.benchmark_card.header.left_label')}</div>
                                 </div>
                                 <span className="text-[.62rem] font-bold tracking-[.1em] px-2 py-1 rounded border" style={{ color: 'var(--gold)', borderColor: 'rgba(240,180,41,.3)' }}>
-                                    BENCHMARK
+                                    {t('landing.benchmark_card.header.badge')}
                                 </span>
                             </div>
                             <div className="p-6">
-                                <div className="text-[.78rem] font-bold mb-5" style={{ color: 'var(--text-secondary)' }}>연간 총보상 수준 (Annual Total Pay Level) — 귀사 기준 100, 시장 비교</div>
+                                <div className="text-[.78rem] font-bold mb-5" style={{ color: 'var(--text-secondary)' }}>{t('landing.benchmark_card.subtitle')}</div>
                                 {benchmarkCardRows.map((row) => (
                                     <div key={row.keyName} className="mb-4">
                                         <div className="flex justify-between items-center mb-1.5">
@@ -300,12 +317,12 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
                                     </div>
                                 ))}
                                 <div className="mt-5 p-4 rounded-lg border text-[.76rem] leading-relaxed" style={{ background: 'rgba(0,201,167,.06)', borderColor: 'var(--border-teal)', color: 'var(--text-secondary)' }}>
-                                    <strong style={{ color: 'var(--teal)' }}>업종 대비 보상 경쟁력 약 22% 부족</strong> — 이 분석이 HR 시스템 리포트에 포함되어 납품됩니다.
+                                    <strong style={{ color: 'var(--teal)' }}>{t('landing.benchmark_card.insight.strong')}</strong> — {t('landing.benchmark_card.insight.suffix')}
                                 </div>
                             </div>
                             <div className="px-6 py-3.5 border-t flex justify-between text-[.68rem]" style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}>
-                                <span>2025년 2분기 기준 · 74인 규모</span>
-                                <span className="font-bold">HR Pathfinder</span>
+                                <span>{t('landing.benchmark_card.footer.left')}</span>
+                                <span className="font-bold">{t('landing.benchmark_card.footer.right')}</span>
                             </div>
                         </div>
                     </div>
@@ -314,12 +331,12 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
                 <div className="px-4 md:px-12 border-y" style={{ borderColor: 'var(--border)', background: 'var(--navy-deep)' }}>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                         {[
-                            '전문 HR 컨설팅팀 베러컴퍼니가 만든 제도설계 플랫폼',
-                            '평균 1개월 내 제도설계 완료',
-                            '컨설팅팀 대비 압도적인 가격 경쟁력',
-                            '경쟁사 보상지수 벤치마크 포함',
-                        ].map((item) => (
-                            <div key={item} className="px-5 py-4 border-r text-[.78rem]" style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
+                            t('landing.trust_bar.item1'),
+                            t('landing.trust_bar.item2'),
+                            t('landing.trust_bar.item3'),
+                            t('landing.trust_bar.item4'),
+                        ].map((item, idx) => (
+                            <div key={`${idx}-${item}`} className="px-5 py-4 border-r text-[.78rem]" style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
                                 {item}
                             </div>
                         ))}
@@ -328,61 +345,60 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
 
                 <section id="roi" className="py-24 px-4 md:px-12">
                     <div className="max-w-[960px] mx-auto reveal">
-                        <div className="section-label">ROI 비교</div>
-                        <h2 className="text-[clamp(1.8rem,3vw,2.6rem)] font-extrabold tracking-[-.04em] mb-3">일반 컨설팅 대비 Pathfinder</h2>
-                        <p className="text-[.95rem] mb-12 max-w-[520px]" style={{ color: 'var(--text-secondary)' }}>산출물의 품질은 동일합니다. 비용과 시간, 그리고 내부 역량이 달라집니다.</p>
+                        <div className="section-label">{t('landing.roi.eyebrow')}</div>
+                        <h2 className="text-[clamp(1.8rem,3vw,2.6rem)] font-extrabold tracking-[-.04em] mb-3">{t('landing.roi.title')}</h2>
+                        <p className="text-[.95rem] mb-12 max-w-[520px]" style={{ color: 'var(--text-secondary)' }}>{t('landing.roi.description')}</p>
                         <table className="w-full border-collapse border overflow-hidden rounded-xl" style={{ borderColor: 'var(--border)' }}>
                             <thead>
                                 <tr>
-                                    <th className="p-4 text-left text-[.78rem] font-bold" style={{ color: 'var(--text-muted)', background: 'var(--navy-deep)' }}>구분</th>
-                                    <th className="p-4 text-left text-[.78rem] font-bold border-x-2" style={{ color: 'var(--teal)', background: 'rgba(0,201,167,.09)', borderColor: 'var(--teal)' }}>HR Pathfinder</th>
-                                    <th className="p-4 text-left text-[.78rem] font-bold" style={{ color: 'var(--text-muted)', background: 'var(--navy-mid)' }}>일반 컨설팅</th>
+                                    <th className="p-4 text-left text-[.78rem] font-bold" style={{ color: 'var(--text-muted)', background: 'var(--navy-deep)' }}>{t('landing.roi.table.headers.category')}</th>
+                                    <th className="p-4 text-left text-[.78rem] font-bold border-x-2" style={{ color: 'var(--teal)', background: 'rgba(0,201,167,.09)', borderColor: 'var(--teal)' }}>{t('landing.roi.table.headers.hr')}</th>
+                                    <th className="p-4 text-left text-[.78rem] font-bold" style={{ color: 'var(--text-muted)', background: 'var(--navy-mid)' }}>{t('landing.roi.table.headers.traditional')}</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {[
-                                    ['제도 설계 기간', '평균 1개월', '2~8개월'],
-                                    ['비용', 'SaaS 요금', '수천만원~수억원'],
-                                    ['내부 역량 축적', '직접 설계 참여', '외부 의존'],
-                                    ['산출물', '정책 대시보드 + 종합 리포트', 'PPT 장표'],
-                                    ['보상 벤치마크', '업종·경쟁사 비교', '별도 비용'],
-                                ].map(([label, good, bad]) => (
-                                    <tr key={label}>
-                                        <td className="p-4 border-t text-[.8rem]" style={{ borderColor: 'var(--border)', background: 'var(--navy-deep)', color: 'var(--text-secondary)' }}>{label}</td>
-                                        <td className="p-4 border-t border-x-2 font-bold text-[.85rem]" style={{ borderColor: 'rgba(0,201,167,.2)', background: 'rgba(0,201,167,.05)', color: 'var(--teal)' }}>✓ {good}</td>
-                                        <td className="p-4 border-t text-[.85rem]" style={{ borderColor: 'var(--border)', background: 'var(--navy-mid)', color: 'var(--text-muted)' }}>✕ {bad}</td>
-                                    </tr>
-                                ))}
+                                {[1, 2, 3, 4, 5].map((rowIdx) => {
+                                    const label = t(`landing.roi.rows.row_${rowIdx}.label`);
+                                    const good = t(`landing.roi.rows.row_${rowIdx}.good`);
+                                    const bad = t(`landing.roi.rows.row_${rowIdx}.bad`);
+                                    return (
+                                        <tr key={label}>
+                                            <td className="p-4 border-t text-[.8rem]" style={{ borderColor: 'var(--border)', background: 'var(--navy-deep)', color: 'var(--text-secondary)' }}>{label}</td>
+                                            <td className="p-4 border-t border-x-2 font-bold text-[.85rem]" style={{ borderColor: 'rgba(0,201,167,.2)', background: 'rgba(0,201,167,.05)', color: 'var(--teal)' }}>✓ {good}</td>
+                                            <td className="p-4 border-t text-[.85rem]" style={{ borderColor: 'var(--border)', background: 'var(--navy-mid)', color: 'var(--text-muted)' }}>✕ {bad}</td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
-                        <p className="mt-3 text-center text-[.68rem]" style={{ color: 'var(--text-muted)' }}>* 제도 설계 범위와 컨설팅팀에 따라 상이할 수 있습니다.</p>
+                        <p className="mt-3 text-center text-[.68rem]" style={{ color: 'var(--text-muted)' }}>{t('landing.roi.table.note')}</p>
                     </div>
                 </section>
 
                 <section id="process" className="py-24 px-4 md:px-12" style={{ background: 'var(--navy-deep)' }}>
                     <div className="max-w-[1100px] mx-auto">
                         <div className="reveal mb-14">
-                            <div className="section-label">HR 데이터 빌드업 프로세스</div>
+                            <div className="section-label">{t('landing.process.eyebrow')}</div>
                             <h2 className="text-[clamp(1.8rem,3vw,2.6rem)] font-extrabold tracking-[-.04em] leading-tight">
-                                단순한 입력이 아닙니다.
+                                {t('landing.process.lead.line1')}
                                 <br />
-                                <span style={{ color: 'var(--teal)' }}>우리 회사의 HR 데이터를 정교하게 정렬</span>하는 과정입니다.
+                                <span style={{ color: 'var(--teal)' }}>{t('landing.process.lead.highlight')}</span>{t('landing.process.lead.line3')}
                             </h2>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 reveal">
                             {[
-                                ['01', '조직 진단', '현재 조직 구조, 직무 분포, 인력 구성을 진단합니다.'],
-                                ['02', '경영 철학', '조직의 핵심 가치와 경영 방향성을 구체화합니다.'],
-                                ['03', '직무 분석', '사내 직군과 직무를 체계적으로 정렬합니다.'],
-                                ['04', '성과 체계 설계', '평가 프로세스와 목표 관리를 직무 특성 기반으로 설계합니다.'],
-                                ['05', '보상 구조 설계', '보상 벤치마크를 기반으로 경쟁력 있는 보상 구조를 완성합니다.'],
-                            ].map(([num, title, desc]) => (
-                                <div key={num}>
+                                { num: '01', title: t('landing.process.step_01.title'), desc: t('landing.process.step_01.desc') },
+                                { num: '02', title: t('landing.process.step_02.title'), desc: t('landing.process.step_02.desc') },
+                                { num: '03', title: t('landing.process.step_03.title'), desc: t('landing.process.step_03.desc') },
+                                { num: '04', title: t('landing.process.step_04.title'), desc: t('landing.process.step_04.desc') },
+                                { num: '05', title: t('landing.process.step_05.title'), desc: t('landing.process.step_05.desc') },
+                            ].map((step) => (
+                                <div key={step.num}>
                                     <div className="w-14 h-14 rounded-full border-2 flex items-center justify-center mb-4" style={{ borderColor: 'var(--teal)', background: 'var(--navy-deepest)' }}>
-                                        <span className="text-xs font-extrabold" style={{ color: 'var(--teal)' }}>{num}</span>
+                                        <span className="text-xs font-extrabold" style={{ color: 'var(--teal)' }}>{step.num}</span>
                                     </div>
-                                    <h3 className="text-[.95rem] font-bold mb-2">{title}</h3>
-                                    <p className="text-[.8rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{desc}</p>
+                                    <h3 className="text-[.95rem] font-bold mb-2">{step.title}</h3>
+                                    <p className="text-[.8rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{step.desc}</p>
                                 </div>
                             ))}
                         </div>
@@ -393,25 +409,27 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
                     <div className="max-w-[960px] mx-auto reveal">
                         <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
                             <div>
-                                <div className="section-label !text-[#1d9e75] before:!bg-[#1d9e75]">산출물 미리보기</div>
-                                <h2 className="text-[clamp(1.8rem,3vw,2.6rem)] text-[#1b2e4b] font-extrabold tracking-[-.04em]">이렇게 <span className="text-[#1d9e75]">Pay Band</span>가 만들어집니다.</h2>
+                                <div className="section-label !text-[#1d9e75] before:!bg-[#1d9e75]">{t('landing.payband_showcase.eyebrow')}</div>
+                                <h2 className="text-[clamp(1.8rem,3vw,2.6rem)] text-[#1b2e4b] font-extrabold tracking-[-.04em]">
+                                    {t('landing.payband_showcase.title_prefix')} <span className="text-[#1d9e75]">{t('landing.payband_showcase.title_highlight')}</span> {t('landing.payband_showcase.title_suffix')}
+                                </h2>
                             </div>
                             <span className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-[.7rem] font-bold uppercase tracking-[.06em] text-[#92400e] border border-[rgba(217,119,6,.3)] bg-[#fef3c7]">
-                                인터랙티브 샘플
+                                {t('landing.payband_showcase.sample_badge')}
                             </span>
                         </div>
                         <div className="rounded-xl overflow-hidden bg-white border border-[rgba(27,46,75,.18)] shadow-[0_4px_24px_rgba(27,46,75,.1)]">
                             <div className="p-4 border-b border-[rgba(27,46,75,.10)] bg-[#f7f8fa] grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div className="rounded-lg bg-[#1b2e4b] p-3">
                                     <div className="flex justify-between items-start mb-2">
-                                        <span className="text-[.6rem] font-bold tracking-[.09em] text-white/45 uppercase">Factor A</span>
+                                        <span className="text-[.6rem] font-bold tracking-[.09em] text-white/45 uppercase">{t('landing.payband_showcase.factors.factorA.label')}</span>
                                         <span className="text-[1.6rem] leading-none font-extrabold text-white">{factorA}%</span>
                                     </div>
                                     <input type="range" min={5} max={45} value={factorA} onChange={(e) => setFactorA(Number(e.target.value))} className="w-full" />
                                 </div>
                                 <div className="rounded-lg bg-[#1b2e4b] p-3">
                                     <div className="flex justify-between items-start mb-2">
-                                        <span className="text-[.6rem] font-bold tracking-[.09em] text-white/45 uppercase">Factor B</span>
+                                        <span className="text-[.6rem] font-bold tracking-[.09em] text-white/45 uppercase">{t('landing.payband_showcase.factors.factorB.label')}</span>
                                         <span className="text-[1.6rem] leading-none font-extrabold text-white">{factorB}%</span>
                                     </div>
                                     <input type="range" min={60} max={95} value={factorB} onChange={(e) => setFactorB(Number(e.target.value))} className="w-full" />
@@ -427,25 +445,25 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
                 <section id="trust" className="py-24 px-4 md:px-12">
                     <div className="max-w-[1100px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                         <div className="reveal">
-                            <div className="section-label">왜 신뢰할 수 있는가</div>
+                            <div className="section-label">{t('landing.trust_cards.eyebrow')}</div>
                             <h2 className="text-[clamp(1.8rem,3vw,2.6rem)] font-extrabold tracking-[-.04em] leading-tight">
-                                전문 HR 컨설턴트가
+                                {t('landing.trust_section.title_prefix')}
                                 <br />
-                                <span style={{ color: 'var(--teal)' }}>전체 설계를 직접 검수합니다.</span>
+                                <span style={{ color: 'var(--teal)' }}>{t('landing.trust_section.title_highlight')}</span>
                             </h2>
                             <p className="mt-4 text-[.9rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                                시스템이 설계하고, 컨설턴트가 리포트로 보증합니다.
+                                {t('landing.trust_section.description')}
                             </p>
                         </div>
                         <div className="reveal">
                             {[
-                                ['귀사가 직접 진단합니다', '조직 구조, 직무 정의, 성과 체계, 보상 기준을 단계적으로 입력합니다.'],
-                                ['HR 컨설턴트가 분석합니다', '입력된 데이터를 바탕으로 산업·규모·문화에 맞게 체계를 설계합니다.'],
-                                ['HR 시스템 리포트로 납품됩니다', '컨설턴트가 서명한 리포트가 PDF로 제공됩니다.'],
-                            ].map(([title, desc]) => (
-                                <div key={title} className="py-6 border-b" style={{ borderColor: 'var(--border)' }}>
-                                    <h3 className="text-[.88rem] font-bold mb-1">{title}</h3>
-                                    <p className="text-[.78rem] leading-relaxed" style={{ color: 'var(--text-muted)' }}>{desc}</p>
+                                { title: t('landing.trust_cards.card1_title'), desc: t('landing.trust_cards.card1_desc') },
+                                { title: t('landing.trust_cards.card2_title'), desc: t('landing.trust_cards.card2_desc') },
+                                { title: t('landing.trust_cards.card3_title'), desc: t('landing.trust_cards.card3_desc') },
+                            ].map((card) => (
+                                <div key={card.title} className="py-6 border-b" style={{ borderColor: 'var(--border)' }}>
+                                    <h3 className="text-[.88rem] font-bold mb-1">{card.title}</h3>
+                                    <p className="text-[.78rem] leading-relaxed" style={{ color: 'var(--text-muted)' }}>{card.desc}</p>
                                 </div>
                             ))}
                         </div>
@@ -454,26 +472,26 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
 
                 <section id="cta" className="py-24 px-4 md:px-12 text-center" style={{ background: 'var(--navy-deep)' }}>
                     <div className="max-w-[680px] mx-auto reveal">
-                        <div className="section-label justify-center">지금 시작하세요</div>
+                        <div className="section-label justify-center">{t('landing.cta_block.eyebrow')}</div>
                         <h2 className="text-[clamp(2rem,4vw,3rem)] font-extrabold tracking-[-.05em] leading-tight mb-3">
-                            HR 제도설계,
+                            {t('landing.cta_block.title_line1')}
                             <br />
-                            <span style={{ color: 'var(--teal)' }}>지금 바로 시작할 수 있습니다.</span>
+                            <span style={{ color: 'var(--teal)' }}>{t('landing.cta_block.title_highlight')}</span>
                         </h2>
                         <p className="text-[.95rem] mb-8 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                            20~300인 규모의 기업이라면 패스파인더가 가장 빠르고 전문적인 HR 제도설계 경로입니다.
+                            {t('landing.cta_block.description')}
                         </p>
                         <Link href={contactHref} className="inline-flex items-center rounded-lg px-8 py-3.5 font-bold text-white no-underline" style={{ background: 'var(--teal)' }}>
-                            서비스 문의하기 →
+                            {t('landing.cta_block.button')}
                         </Link>
                     </div>
                 </section>
 
                 <footer className="py-8 px-4 md:px-12 border-t flex flex-col md:flex-row items-center justify-between gap-3" style={{ borderColor: 'var(--border)', background: 'var(--navy-deepest)' }}>
-                    <div className="text-sm font-bold" style={{ color: 'var(--text-muted)' }}>HR <span style={{ color: 'var(--teal)' }}>Pathfinder</span> by BetterCompany</div>
-                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>© 2025 (주)에버데어. All rights reserved.</div>
+                    <div className="text-sm font-bold" style={{ color: 'var(--text-muted)' }}>{t('landing.footer.brand_line')}</div>
+                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('landing.footer.copyright')}</div>
                     <Link href={contactHref} className="text-xs no-underline" style={{ color: 'var(--text-muted)' }}>
-                        문의하기
+                        {t('landing.footer.contact_link')}
                     </Link>
                 </footer>
             </div>

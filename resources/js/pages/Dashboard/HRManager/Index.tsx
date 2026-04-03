@@ -1,6 +1,7 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { TrendingUp, Users, Calendar, CheckCircle2, Target, DollarSign, Building2, UserPlus, Mail, X, Award, Sparkles, Clock, ArrowRight, Lock } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import ProgressTracker from '@/components/Dashboard/HRManager/ProgressTracker';
 import StepCard from '@/components/Dashboard/HRManager/StepCard';
 import { Badge } from '@/components/ui/badge';
@@ -49,47 +50,46 @@ interface Props {
     canSwitchToCeo?: boolean;
 }
 
-// All 5 steps matching sidebar: Diagnosis, Job Analysis, Performance, Compensation, Final Dashboard
-const STEP_CONFIG = [
-    {
-        id: 'diagnosis' as StepKey,
-        step: 1,
-        title: 'Diagnosis',
-        desc: 'Input company information, business profile, workforce details, and organizational culture.',
-        icon: CheckCircle2,
-    },
-    {
-        id: 'job_analysis' as StepKey,
-        step: 2,
-        title: 'Job Analysis',
-        desc: 'Define job roles, responsibilities, competencies, and organizational mapping.',
-        icon: Building2,
-    },
-    {
-        id: 'performance' as StepKey,
-        step: 3,
-        title: 'Performance System',
-        desc: 'Design evaluation units, performance management methods, and assessment structures.',
-        icon: Target,
-    },
-    {
-        id: 'compensation' as StepKey,
-        step: 4,
-        title: 'Compensation System',
-        desc: 'Define compensation structure, differentiation methods, and incentive components.',
-        icon: DollarSign,
-    },
-    {
-        id: 'hr_policy_os' as StepKey,
-        step: 5,
-        title: 'Final Dashboard',
-        desc: 'Design Progress summary — review all stages and submit for CEO approval.',
-        icon: Award,
-    },
-];
-
 export default function HrManagerDashboard({ user, activeProject, company, progress, ceoPhilosophyStatus, canSwitchToCeo }: Props) {
+    const { t } = useTranslation();
     const stepStatuses = activeProject?.step_statuses ?? {};
+    const stepConfig = [
+        {
+            id: 'diagnosis' as StepKey,
+            step: 1,
+            title: t('steps.diagnosis'),
+            desc: t('hr_dashboard.steps.diagnosis_desc'),
+            icon: CheckCircle2,
+        },
+        {
+            id: 'job_analysis' as StepKey,
+            step: 2,
+            title: t('steps.job_analysis'),
+            desc: t('hr_dashboard.steps.job_analysis_desc'),
+            icon: Building2,
+        },
+        {
+            id: 'performance' as StepKey,
+            step: 3,
+            title: t('steps.performance'),
+            desc: t('hr_dashboard.steps.performance_desc'),
+            icon: Target,
+        },
+        {
+            id: 'compensation' as StepKey,
+            step: 4,
+            title: t('steps.compensation'),
+            desc: t('hr_dashboard.steps.compensation_desc'),
+            icon: DollarSign,
+        },
+        {
+            id: 'hr_policy_os' as StepKey,
+            step: 5,
+            title: t('steps.hr_policy_os'),
+            desc: t('hr_dashboard.steps.final_dashboard_desc'),
+            icon: Award,
+        },
+    ];
 
     const roleSwitchForm = useForm({
         company_id: company?.id || null,
@@ -103,7 +103,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
             return stepKey === 'diagnosis' ? 'current' : 'locked';
         }
         
-        const stepIndex = STEP_CONFIG.findIndex(s => s.id === stepKey);
+        const stepIndex = stepConfig.findIndex(s => s.id === stepKey);
         const status = stepStatuses[stepKey] as StepStatus | undefined;
         const diagnosisStatus = stepStatuses['diagnosis'] as StepStatus | undefined;
         const isDiagnosisSubmitted = diagnosisStatus && ['submitted', 'approved', 'locked', 'completed'].includes(diagnosisStatus);
@@ -153,7 +153,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
             // Allow progression after submission (submitted status) while CEO approval is pending
             let allPreviousVerified = true;
             for (let i = 0; i < stepIndex; i++) {
-                const prevStep = STEP_CONFIG[i];
+                const prevStep = stepConfig[i];
                 const prevStatus = stepStatuses[prevStep.id] as StepStatus | undefined;
                 
                 // For diagnosis, must be submitted/approved/locked to unlock next step
@@ -196,7 +196,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
         }
         
         const status = stepStatuses[stepKey] as StepStatus | undefined;
-        const stepIndex = STEP_CONFIG.findIndex(s => s.id === stepKey);
+        const stepIndex = stepConfig.findIndex(s => s.id === stepKey);
         
         // If step is currently active, it should NOT be locked (user can be on it)
         if (progress.currentStepKey === stepKey) {
@@ -228,7 +228,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
         // Check if all previous steps are SUBMITTED, APPROVED, or LOCKED to unlock this step
         // This allows HR to continue working after submission while CEO approval is pending
         for (let i = 0; i < stepIndex; i++) {
-            const prevStep = STEP_CONFIG[i];
+            const prevStep = stepConfig[i];
             const prevStatus = stepStatuses[prevStep.id] as StepStatus | undefined;
             
             // Previous step must be SUBMITTED, APPROVED, or LOCKED to unlock next step
@@ -285,23 +285,23 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
     const getCurrentStepName = (): string => {
         if (!activeProject) return 'Step 1';
         if (!progress.currentStepKey) return 'Step 1';
-        const step = STEP_CONFIG.find(s => s.id === progress.currentStepKey);
-        return step ? `Step ${step.step}` : 'Step 1';
+        const step = stepConfig.find(s => s.id === progress.currentStepKey);
+        return step ? t('hr_dashboard.step_n', { n: step.step }) : t('hr_dashboard.step_n', { n: 1 });
     };
 
     return (
         <AppLayout>
-            <Head title="HR Manager Dashboard" />
+            <Head title={t('hr_dashboard.page_title')} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="space-y-8">
                             {/* Welcome Section */}
                             <div className="flex items-center justify-between flex-wrap gap-4">
                                 <div>
-                                    <h1 className="text-4xl font-bold text-foreground mb-2">Welcome back, {user.name}</h1>
+                                    <h1 className="text-4xl font-bold text-foreground mb-2">{t('hr_dashboard.welcome_back', { name: user.name })}</h1>
                                     <p className="text-muted-foreground text-lg">
                                         {activeProject 
-                                            ? `Continue building ${activeProject.company.name}'s HR system.`
-                                            : 'Start building your company\'s HR system.'}
+                                            ? t('hr_dashboard.continue_building', { company: activeProject.company.name })
+                                            : t('hr_dashboard.start_building')}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-3 flex-wrap">
@@ -319,7 +319,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                             className="bg-purple-800 hover:bg-purple-700 text-white shadow-md ml-2"
                                         >
                                             <UserPlus className="w-4 h-4 mr-2" />
-                                            {roleSwitchForm.processing ? 'Switching...' : 'Switch to CEO Role'}
+                                            {roleSwitchForm.processing ? t('admin_ui.header.menu.switching') : t('hr_dashboard.switch_to_ceo_role')}
                                         </Button>
                                     )}
                                 </div>
@@ -342,7 +342,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                 </Badge>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-muted-foreground mb-1">Overall Progress</p>
+                                                <p className="text-sm font-medium text-muted-foreground mb-1">{t('hr_dashboard.overall_progress')}</p>
                                                 <p className="text-3xl font-bold text-foreground mb-2">
                                                     {progress.completed}<span className="text-xl text-muted-foreground">/{progress.total}</span>
                                                 </p>
@@ -365,23 +365,23 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                 {company && company.hasCeo && (
                                                     <Badge variant="outline" className="border-green-500/30 text-green-600">
                                                         <CheckCircle2 className="w-3 h-3 mr-1" />
-                                                        CEO Assigned
+                                                        {t('hr_dashboard.ceo_assigned')}
                                                     </Badge>
                                                 )}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-muted-foreground mb-1">CEO Survey</p>
+                                                <p className="text-sm font-medium text-muted-foreground mb-1">{t('hr_dashboard.ceo_survey')}</p>
                                                 <p className="text-2xl font-bold text-foreground">
                                                     {ceoPhilosophyStatus === 'completed' 
-                                                        ? 'Completed' 
+                                                        ? t('hr_dashboard.status.completed')
                                                         : ceoPhilosophyStatus === 'in_progress'
-                                                        ? 'In Progress'
-                                                        : 'Not Started'}
+                                                        ? t('hr_dashboard.status.in_progress')
+                                                        : t('hr_dashboard.status.not_started')}
                                                 </p>
                                                 {ceoPhilosophyStatus === 'completed' && (
                                                     <div className="flex items-center gap-1 mt-2">
                                                         <CheckCircle2 className="w-4 h-4 text-green-600" />
-                                                        <span className="text-xs text-green-600">Verified</span>
+                                                        <span className="text-xs text-green-600">{t('hr_dashboard.verified')}</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -397,15 +397,15 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                     <Clock className="w-7 h-7 text-blue-600 dark:text-blue-400" />
                                                 </div>
                                                 <Badge variant="outline" className="border-blue-500/30 text-blue-600">
-                                                    Active
+                                                    {t('hr_dashboard.status.active')}
                                                 </Badge>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-muted-foreground mb-1">Current Step</p>
+                                                <p className="text-sm font-medium text-muted-foreground mb-1">{t('hr_dashboard.current_step')}</p>
                                                 <p className="text-2xl font-bold text-foreground">{getCurrentStepName()}</p>
                                                 {progress.currentStepKey && (
                                                     <p className="text-xs text-muted-foreground mt-1">
-                                                        {STEP_CONFIG.find(s => s.id === progress.currentStepKey)?.title}
+                                                        {stepConfig.find(s => s.id === progress.currentStepKey)?.title}
                                                     </p>
                                                 )}
                                             </div>
@@ -422,12 +422,12 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                 </div>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-muted-foreground mb-1">Steps Remaining</p>
+                                                <p className="text-sm font-medium text-muted-foreground mb-1">{t('hr_dashboard.steps_remaining')}</p>
                                                 <p className="text-3xl font-bold text-foreground">
                                                     {progress.total - progress.completed}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground mt-1">
-                                                    {progress.completed === progress.total ? 'All completed!' : 'Keep going!'}
+                                                    {progress.completed === progress.total ? t('hr_dashboard.all_completed') : t('hr_dashboard.keep_going')}
                                                 </p>
                                             </div>
                                         </CardContent>
@@ -442,13 +442,13 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                         <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
                                             <Sparkles className="w-10 h-10 text-primary" />
                                         </div>
-                                        <h3 className="text-2xl font-bold mb-2">Get Started</h3>
+                                        <h3 className="text-2xl font-bold mb-2">{t('hr_dashboard.get_started')}</h3>
                                         <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                                            Start your HR system design journey by creating a new project and completing the Diagnosis step.
+                                            {t('hr_dashboard.get_started_desc')}
                                         </p>
                                         <Link href="/hr-manager/diagnosis">
                                             <Button size="lg" className="gap-2">
-                                                Start Diagnosis
+                                                {t('hr_dashboard.start_diagnosis')}
                                                 <ArrowRight className="w-4 h-4" />
                                             </Button>
                                         </Link>
@@ -459,7 +459,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                             {/* HR System Design Progress Bar */}
                             {activeProject && (
                                 <ProgressTracker
-                                    stepCards={STEP_CONFIG}
+                                    stepCards={stepConfig}
                                     stepStatuses={stepStatuses}
                                     getStepState={getStepState}
                                 />
@@ -469,18 +469,18 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                             <div>
                                 <div className="flex items-center justify-between mb-6">
                                     <div>
-                                        <h2 className="text-3xl font-bold text-foreground">Design Steps</h2>
+                                        <h2 className="text-3xl font-bold text-foreground">{t('hr_dashboard.design_steps')}</h2>
                                         <p className="text-muted-foreground mt-1">
                                             {ceoPhilosophyStatus === 'completed' 
-                                                ? 'Complete each step to unlock the next one'
+                                                ? t('hr_dashboard.unlock_next')
                                                 : ceoPhilosophyStatus === 'in_progress'
-                                                ? 'Waiting for CEO to complete the survey...'
-                                                : 'Complete each step to unlock the next one'}
+                                                ? t('hr_dashboard.waiting_for_ceo_survey')
+                                                : t('hr_dashboard.unlock_next')}
                                         </p>
                                     </div>
                                     {activeProject && (
                                         <Badge variant="outline" className="text-sm px-4 py-2">
-                                            {progress.completed} of {progress.total} completed
+                                            {t('hr_dashboard.completed_of_total', { completed: progress.completed, total: progress.total })}
                                         </Badge>
                                     )}
                                 </div>
@@ -492,9 +492,9 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                             <div className="flex items-center gap-3">
                                                 <Clock className="w-5 h-5 text-yellow-600" />
                                                 <div className="flex-1">
-                                                    <p className="font-medium text-foreground">Waiting for CEO Survey</p>
+                                                    <p className="font-medium text-foreground">{t('hr_dashboard.waiting_for_ceo_survey_title')}</p>
                                                     <p className="text-sm text-muted-foreground">
-                                                        Diagnosis has been submitted. All steps are ready but locked until CEO completes the Management Philosophy Survey.
+                                                        {t('hr_dashboard.waiting_for_ceo_survey_desc')}
                                                     </p>
                                                 </div>
                                             </div>
@@ -503,7 +503,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                 )}
                                 
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    {STEP_CONFIG.map((step) => {
+                                    {stepConfig.map((step) => {
                                         const state = getStepState(step.id);
                                         // If no project, Step 1 is 'not_started', others are 'locked'
                                         const status = activeProject 
@@ -517,9 +517,9 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                         // Determine button label - "View" for submitted/completed steps, "Continue" for current
                                         const getButtonLabel = () => {
                                             if (status === 'submitted' || isCompleted) {
-                                                return step.id === 'diagnosis' ? 'View →' : 'Review →';
+                                                return step.id === 'diagnosis' ? t('buttons.view') + ' \u2192' : t('buttons.review') + ' \u2192';
                                             }
-                                            return 'Continue →';
+                                            return t('buttons.continue') + ' \u2192';
                                         };
                                         
                                         return (
@@ -581,36 +581,36 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                                         isActuallyLocked && "border-muted text-muted-foreground"
                                                                     )}
                                                                 >
-                                                                    Step {step.step}
+                                                                    {t('hr_dashboard.step_n', { n: step.step })}
                                                                 </Badge>
                                                                 {isCurrent && (
                                                                     <Badge className="bg-green-800 text-white border-green-800 shadow-md">
                                                                         <CheckCircle2 className="w-3 h-3 mr-1" />
-                                                                        Current Step
+                                                                        {t('hr_dashboard.current_step')}
                                                                     </Badge>
                                                                 )}
                                                                 {isCompleted && !isCurrent && (
                                                                     <Badge className="bg-green-50 text-green-600 border-green-200">
                                                                         <CheckCircle2 className="w-3 h-3 mr-1" />
-                                                                        Completed
+                                                                        {t('hr_dashboard.status.completed')}
                                                                     </Badge>
                                                                 )}
                                                                 {status === 'submitted' && !isCurrent && !isCompleted && (
                                                                     <Badge className="bg-blue-50 text-blue-600 border-blue-200">
                                                                         <CheckCircle2 className="w-3 h-3 mr-1" />
-                                                                        Submitted
+                                                                        {t('hr_dashboard.status.submitted')}
                                                                     </Badge>
                                                                 )}
                                                                 {!isCurrent && !isCompleted && status !== 'submitted' && !isActuallyLocked && (
                                                                     <Badge className="bg-primary/10 text-primary border-primary/30">
                                                                         <Clock className="w-3 h-3 mr-1" />
-                                                                        In Progress
+                                                                        {t('hr_dashboard.status.in_progress')}
                                                                     </Badge>
                                                                 )}
                                                                 {isActuallyLocked && (
                                                                     <Badge variant="outline" className="border-muted text-muted-foreground">
                                                                         <Lock className="w-3 h-3 mr-1" />
-                                                                        Locked
+                                                                        {t('hr_dashboard.status.locked')}
                                                                     </Badge>
                                                                 )}
                                                             </div>
@@ -642,8 +642,8 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                                     <Lock className="w-4 h-4" />
                                                                     <span>
                                                                         {ceoPhilosophyStatus !== 'completed' && stepStatuses['diagnosis'] === 'submitted'
-                                                                            ? 'Waiting for CEO survey completion'
-                                                                            : 'Complete previous steps to unlock'}
+                                                                            ? t('hr_dashboard.waiting_for_ceo_survey_completion')
+                                                                            : t('hr_dashboard.complete_previous_unlock')}
                                                                     </span>
                                                                 </div>
                                                             )}
@@ -662,17 +662,17 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                     <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                         <div>
                                             <p className="font-semibold text-lg">
-                                                {activeProject ? 'Ready to continue?' : 'Ready to start?'}
+                                                {activeProject ? t('hr_dashboard.ready_continue') : t('hr_dashboard.ready_start')}
                                             </p>
                                             <p className="text-sm opacity-90 mt-1">
                                                 {activeProject 
-                                                    ? 'Pick up where you left off and complete your HR system design.'
-                                                    : 'Begin your HR system design by starting with the Diagnosis step.'}
+                                                    ? t('hr_dashboard.ready_continue_desc')
+                                                    : t('hr_dashboard.ready_start_desc')}
                                             </p>
                                         </div>
                                         <Link href={getCurrentStepRoute()}>
                                             <Button variant="secondary" size="lg" className="whitespace-nowrap">
-                                                {activeProject ? `Continue ${getCurrentStepName()}` : 'Start Step 1'} →
+                                                {activeProject ? t('hr_dashboard.continue_step', { step: getCurrentStepName() }) : t('hr_dashboard.start_step_1')} →
                                             </Button>
                                         </Link>
                                     </CardContent>

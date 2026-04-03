@@ -31,13 +31,13 @@ export function LandingNav({
     getStartedLabel = '',
     dashboardLabel = 'Dashboard',
 }: LandingNavProps) {
-    const { i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
     const lang = i18n.language?.startsWith('en') ? 'en' : 'ko';
 
     const contactLabel = ctaLabel || (lang === 'ko' ? '문의하기 →' : 'Inquiry →');
     const startLabel = getStartedLabel || (lang === 'ko' ? '시작하기' : 'Get Started');
     const signInText = signInLabel || (lang === 'ko' ? '로그인' : 'Log in');
-    const contactUsText = 'Contact Us';
+    const contactUsText = t('landing.nav.cta_label');
     const externalInquiryHref = 'https://better.odw.co.kr';
 
     return (

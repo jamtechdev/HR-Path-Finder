@@ -2,6 +2,8 @@
  * Bilingual labels for Diagnosis steps (English / 한국어).
  * Use for section titles, form labels, callouts, and buttons.
  */
+import i18n from '@/lib/i18n';
+
 export const t = {
   // Common
   back: { en: 'Back', ko: '이전' },
@@ -311,19 +313,29 @@ export const t = {
 
 export type Lang = 'en' | 'ko';
 
-/** Get current language from document or default to 'en'. Can be extended to use a context/store. */
+/** Get current language from i18next or default to 'en'. */
 export function getLang(): Lang {
-  if (typeof document !== 'undefined' && document.documentElement.lang === 'ko') return 'ko';
-  return 'en';
+  const l = (i18n.language || 'en').toLowerCase();
+  return l.startsWith('ko') ? 'ko' : 'en';
 }
 
 /** Get both languages for a key so UI can show translation. */
 export function both<K extends keyof typeof t>(key: K): { en: string; ko: string } {
-  return t[key];
+  return {
+    en: tr(key, 'en'),
+    ko: tr(key, 'ko'),
+  };
 }
 
 /** Get single translation for current language. */
 export function tr<K extends keyof typeof t>(key: K, lang?: Lang): string {
   const lang_ = lang ?? getLang();
+  const overrideKey = `diagnosis_overrides.${String(key)}`;
+  const fixedT = i18n.getFixedT(lang_);
+  const overrideValue = fixedT(overrideKey);
+
+  // When a key is missing, i18next returns the key path itself.
+  if (typeof overrideValue === 'string' && overrideValue !== overrideKey) return overrideValue;
+
   return t[key][lang_];
 }

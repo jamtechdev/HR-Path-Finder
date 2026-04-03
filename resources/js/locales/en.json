@@ -158,8 +158,10 @@
       "dashboard": "Dashboard"
     },
     "footer": {
-      "copyright": "© 2026 (주)Everthere. All rights reserved.",
-      "company_sub": "powered by BetterCompany"
+      "copyright": "© 2025 (주)에버데어. All rights reserved.",
+      "company_sub": "powered by BetterCompany",
+      "brand_line": "HR Pathfinder by BetterCompany",
+      "contact_link": "Contact Us"
     },
     "nav": {
       "process": "Process",
@@ -172,7 +174,28 @@
       "sub": "Build internal HR capability and get full expert policy design at about one-quarter the cost of traditional consulting.",
       "primary_button": "Contact Us",
       "firm_sub": "SaaS by a professional consulting firm",
-      "firm_name": "Better Company →"
+      "firm_name": "Better Company →",
+      "secondary_button": "SaaS made by a professional consulting firm, Better Company →",
+      "headline": {
+        "line1": "If your organization",
+        "line2": "doesn’t have the right structure,",
+        "highlight_line1": "you create unnecessary conflict,",
+        "highlight_line2": "and capabilities get fragmented."
+      },
+      "stats": {
+        "stat1": {
+          "value": "1 month",
+          "label": "Average policy design completion"
+        },
+        "stat2": {
+          "value": "1/4",
+          "label": "Cost vs. traditional consulting"
+        },
+        "stat3": {
+          "value": "5",
+          "label": "Sequential HR design steps"
+        }
+      }
     },
     "trust_bar": {
       "item1": "Policy design platform by Better Company, a professional HR consulting firm",
@@ -183,6 +206,31 @@
     "process": {
       "eyebrow": "HR data build-up process",
       "description": "Each step feeds the next. When all four steps are complete, an HR consultant certifies your system with a tailored HR system report.",
+      "lead": {
+        "line1": "It isn’t just data entry.",
+        "highlight": "We precisely sort and structure your company’s HR data",
+        "line3": " for a better outcome."
+      },
+      "step_01": {
+        "title": "Organization diagnosis",
+        "desc": "Diagnose your current organizational structure, job distribution, and headcount composition."
+      },
+      "step_02": {
+        "title": "Business philosophy",
+        "desc": "Clarify your organization’s core values and strategic direction."
+      },
+      "step_03": {
+        "title": "Job analysis",
+        "desc": "Systematically align your internal job families and roles."
+      },
+      "step_04": {
+        "title": "Performance system design",
+        "desc": "Design evaluation processes and goal management based on job characteristics."
+      },
+      "step_05": {
+        "title": "Compensation structure design",
+        "desc": "Build a competitive compensation structure based on compensation benchmarks."
+      },
       "result_title": "HR consultant’s HR system report",
       "result_sub": "Consultant review complete · PDF provided"
     },
@@ -204,7 +252,9 @@
     "cta_block": {
       "eyebrow": "Get started now",
       "title": "Design your company’s HR system today.",
-      "description": "After a short diagnosis, see your HR health score and top improvement priorities right away.",
+      "title_line1": "HR System Design,",
+      "title_highlight": "Start right away.",
+      "description": "If your company has 20–300 employees, Pathfinder is the fastest and most expert route to HR system design.",
       "button": "Contact Us →"
     },
     "benchmark": {
@@ -214,6 +264,95 @@
       "industry_segment": "Industry Segment",
       "our_company": "Our Company",
       "summary": "Your company's compensation level is 78% compared to the overall industry and 84% compared to target competitors."
+    },
+    "benchmark_card": {
+      "header": {
+        "left_label": "Compensation Index Benchmark · HR Pathfinder",
+        "badge": "BENCHMARK"
+      },
+      "subtitle": "Annual Total Pay Level (Your company = 100) — market comparison",
+      "insight": {
+        "strong": "About 22% less competitive vs. the industry",
+        "suffix": "This analysis is included in your HR system report and delivered to you."
+      },
+      "footer": {
+        "left": "As of Q2 2025 · Company size: 74 employees",
+        "right": "HR Pathfinder"
+      }
+    },
+    "roi": {
+      "eyebrow": "ROI Comparison",
+      "title": "Pathfinder vs. Traditional Consulting",
+      "description": "The quality of deliverables is the same. What changes is cost, time, and internal capability.",
+      "table": {
+        "headers": {
+          "category": "Category",
+          "hr": "HR Pathfinder",
+          "traditional": "Traditional Consulting"
+        },
+        "rows": {
+          "row_1": {
+            "label": "Policy design timeline",
+            "good": "Average 1 month",
+            "bad": "2–8 months"
+          },
+          "row_2": {
+            "label": "Cost",
+            "good": "SaaS fee",
+            "bad": "Tens of millions KRW ~ hundreds of millions KRW"
+          },
+          "row_3": {
+            "label": "Building internal capability",
+            "good": "Hands-on design participation",
+            "bad": "External dependency"
+          },
+          "row_4": {
+            "label": "Deliverables",
+            "good": "Policy dashboard + comprehensive report",
+            "bad": "PPT materials"
+          },
+          "row_5": {
+            "label": "Compensation benchmark",
+            "good": "Industry & competitor comparison",
+            "bad": "Additional cost"
+          }
+        },
+        "note": "* Timeline and cost may vary depending on scope and team involvement."
+      }
+    },
+    "trust_section": {
+      "title_prefix": "Professional HR consultants",
+      "title_highlight": "personally review the entire design.",
+      "description": "The system designs, and consultants validate it in the final report."
+    },
+    "payband_showcase": {
+      "eyebrow": "Output preview",
+      "title_prefix": "This is how",
+      "title_highlight": "Pay Band",
+      "title_suffix": "is created.",
+      "sample_badge": "Interactive sample",
+      "factors": {
+        "factorA": { "label": "Factor A" },
+        "factorB": { "label": "Factor B" }
+      },
+      "grades": {
+        "A": "Grade A",
+        "B": "Grade B",
+        "C": "Grade C",
+        "D": "Grade D",
+        "E": "Grade E"
+      },
+      "chart": {
+        "aria_label": "Pay band chart",
+        "unit": "Unit: 10,000 KRW",
+        "units": {
+          "large": "100M KRW",
+          "small": "10M KRW"
+        }
+      }
+    },
+    "seo": {
+      "title": "HR Pathfinder — Expert-Grade HR System Design"
     },
     "better_company": "We operate the platform together with Better Company, a practical HR consulting firm."
   },
@@ -280,6 +419,324 @@
     "delete_confirm": "Are you sure you want to delete?",
     "unsaved_changes": "You have unsaved changes"
   },
+  "admin_ui": {
+    "header": {
+      "app_name": "HR Path-Finder",
+      "breadcrumb": {
+        "admin": "Admin",
+        "ceo": "CEO",
+        "companies": "Companies",
+        "dashboard": "Dashboard",
+        "diagnosis": "Diagnosis",
+        "job_analysis": "Job Analysis",
+        "performance_system": "Performance System",
+        "compensation_system": "Compensation System",
+        "final_dashboard": "Final Dashboard",
+        "report": "Report",
+        "settings": "Settings"
+      },
+      "notifications": {
+        "title": "Email / Notification Logs",
+        "unread_count": "{{count}} unread",
+        "empty": "No logs yet.",
+        "kpi_review_sent": "KPI Review Email Sent",
+        "company_fallback": "Company"
+      },
+      "user": {
+        "initial": "U",
+        "fallback_name": "User"
+      },
+      "menu": {
+        "settings": "Settings",
+        "profile": "Profile",
+        "switching": "Switching...",
+        "switch_to_hr": "Switch to HR Manager",
+        "logout": "Logout"
+      }
+    },
+    "sidebar": {
+      "app_name": "HR Path-Finder",
+      "by_bettercompany": "by BetterCompany",
+      "sections": {
+        "dashboard": "Dashboard",
+        "client_ops": "Client ops",
+        "content_mgmt": "Content mgmt",
+        "system_config": "System config"
+      },
+      "menu": {
+        "dashboard": "Dashboard",
+        "contact_us": "Contact Us",
+        "client_ops": "Client Ops",
+        "users_beta_access": "Users & Beta Access",
+        "all_projects": "All Projects",
+        "all_companies": "All Companies",
+        "content_mgmt": "Content Mgmt",
+        "ceo_questions": "CEO Questions",
+        "policy_snapshot": "Policy Snapshot",
+        "performance_snapshot": "Performance Snapshot",
+        "compensation_snapshot": "Compensation Snapshot",
+        "kpi_templates": "KPI Templates",
+        "kpi_review": "KPI Review",
+        "system_config": "System Config",
+        "industries": "Industries",
+        "subcategories": "Subcategories",
+        "translations": "Translations",
+        "app_account_settings": "App & account settings",
+        "hr_issues": "HR Issues",
+        "app_account": "App & account"
+      },
+      "translation_pages": {
+        "all": "All Translations",
+        "landing_page": "Landing Page",
+        "hr_translations": "HR Translations",
+        "auth": "Authentication",
+        "auth_login": "Login Page",
+        "auth_register": "Register Page",
+        "dashboard": "Dashboard",
+        "common": "Common",
+        "navigation": "Navigation",
+        "buttons": "Buttons",
+        "messages": "Messages"
+      }
+    }
+  },
+  "admin_users": {
+    "page_title": "Users & Beta Access",
+    "heading": "Users & Beta Access",
+    "subheading": "Manage all non-admin users (CEO/HR) and approve pending accounts when admin approval is enabled.",
+    "open_pending_title": "Open pending users list",
+    "search_placeholder": "Search by name, email, or company...",
+    "filter_role": "Filter role",
+    "create_cta": "Create CEO/HR",
+    "roles": {
+      "all": "All roles",
+      "hr_manager": "HR Manager"
+    },
+    "tabs": {
+      "all": "All",
+      "pending": "Pending",
+      "active": "Active"
+    },
+    "stats": {
+      "total_hr": "Total HR",
+      "total_ceo": "Total CEO",
+      "pending_approval": "Pending approval"
+    },
+    "dialogs": {
+      "create": {
+        "title": "Create CEO/HR user",
+        "description": "Admin creates an account and attaches it to a company."
+      },
+      "edit": {
+        "title": "Edit user profile",
+        "description": "Update name, contact, and location. Profile photo is optional."
+      }
+    },
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "company": "Company",
+      "select_role": "Select role",
+      "select_company": "Select company",
+      "select_none": "Select...",
+      "no_photo": "No photo",
+      "upload_photo": "Upload photo",
+      "phone": "Phone",
+      "address": "Address",
+      "city": "City",
+      "state": "State",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "role_companies": "Role / Companies (read-only)"
+    },
+    "actions": {
+      "creating": "Creating...",
+      "create_user": "Create User",
+      "saving": "Saving...",
+      "save_changes": "Save Changes",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "edit_user": "Edit user"
+    },
+    "confirm": {
+      "delete_title": "Delete user",
+      "access_title": "Change user access",
+      "delete_desc": "Delete {{email}}? This action cannot be undone.",
+      "access_desc": "{{action}} access for {{email}}?"
+    },
+    "table": {
+      "title": "Users list",
+      "description": "CEO/HR users excluding admin",
+      "no_users": "No users",
+      "no_users_desc": "Nothing to show for this filter.",
+      "yes": "Yes",
+      "no": "No",
+      "columns": {
+        "user": "User",
+        "role": "Role",
+        "company": "Company",
+        "phone": "Phone",
+        "address": "Address",
+        "email_verified": "Email verified",
+        "access": "Access",
+        "created": "Created",
+        "action": "Action"
+      }
+    }
+  },
+  "admin_ceo": {
+    "page_title": "CEO Management - Admin",
+    "heading": "CEO Management",
+    "subheading": "View all CEO invitations and manage CEO accounts",
+    "create_cta": "Create CEO",
+    "confirm_delete": "Are you sure you want to delete this CEO?",
+    "na": "N/A",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    },
+    "create_dialog": {
+      "title": "Create New CEO",
+      "description": "Create a new CEO user account and optionally assign them to a company. A temporary password will be generated."
+    },
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "name_placeholder": "CEO Name",
+      "email_placeholder": "ceo@example.com",
+      "company_optional": "Assign to Company (Optional)",
+      "select_company": "Select a company",
+      "none_without_company": "None - Create CEO without company",
+      "company_help": "If you select a company, the CEO will be assigned to it and HR will see them."
+    },
+    "actions": {
+      "creating": "Creating...",
+      "create_ceo": "Create CEO"
+    },
+    "stats": {
+      "total_ceos": "Total CEOs",
+      "pending_invitations": "Pending Invitations",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    },
+    "tabs": {
+      "active_ceos": "Active CEOs"
+    },
+    "filters": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    },
+    "invitation_list": {
+      "empty": "No invitations found"
+    },
+    "active_ceos": {
+      "title": "Active CEOs",
+      "empty": "No CEOs found"
+    }
+  },
+  "hr_dashboard": {
+    "page_title": "HR Manager Dashboard",
+    "welcome_back": "Welcome back, {{name}}",
+    "continue_building": "Continue building {{company}}'s HR system.",
+    "start_building": "Start building your company's HR system.",
+    "switch_to_ceo_role": "Switch to CEO Role",
+    "overall_progress": "Overall Progress",
+    "ceo_assigned": "CEO Assigned",
+    "ceo_survey": "CEO Survey",
+    "verified": "Verified",
+    "current_step": "Current Step",
+    "steps_remaining": "Steps Remaining",
+    "all_completed": "All completed!",
+    "keep_going": "Keep going!",
+    "get_started": "Get Started",
+    "get_started_desc": "Start your HR system design journey by creating a new project and completing the Diagnosis step.",
+    "start_diagnosis": "Start Diagnosis",
+    "design_steps": "Design Steps",
+    "unlock_next": "Complete each step to unlock the next one",
+    "waiting_for_ceo_survey": "Waiting for CEO to complete the survey...",
+    "waiting_for_ceo_survey_title": "Waiting for CEO Survey",
+    "waiting_for_ceo_survey_desc": "Diagnosis has been submitted. All steps are ready but locked until CEO completes the Management Philosophy Survey.",
+    "step_n": "Step {{n}}",
+    "waiting_for_ceo_survey_completion": "Waiting for CEO survey completion",
+    "complete_previous_unlock": "Complete previous steps to unlock",
+    "ready_continue": "Ready to continue?",
+    "ready_start": "Ready to start?",
+    "ready_continue_desc": "Pick up where you left off and complete your HR system design.",
+    "ready_start_desc": "Begin your HR system design by starting with the Diagnosis step.",
+    "continue_step": "Continue {{step}}",
+    "completed_of_total": "{{completed}} of {{total}} completed",
+    "start_step_1": "Start Step 1",
+    "status": {
+      "completed": "Completed",
+      "in_progress": "In Progress",
+      "not_started": "Not Started",
+      "active": "Active",
+      "submitted": "Submitted",
+      "locked": "Locked"
+    },
+    "steps": {
+      "diagnosis_desc": "Input company information, business profile, workforce details, and organizational culture.",
+      "job_analysis_desc": "Define job roles, responsibilities, competencies, and organizational mapping.",
+      "performance_desc": "Design evaluation units, performance management methods, and assessment structures.",
+      "compensation_desc": "Define compensation structure, differentiation methods, and incentive components.",
+      "final_dashboard_desc": "Design Progress summary — review all stages and submit for CEO approval."
+    }
+  },
+  "hr_report": {
+    "page_title": "Report - {{company}}",
+    "eyebrow": "For HR Manager · CEO",
+    "title": "Consultant Report",
+    "completion": {
+      "title": "Completion Notification",
+      "line1_prefix": "The initial HR system design for",
+      "line1_suffix": "has been completed.",
+      "line2": "Once the consultant review and final report upload are finished, a separate email notification will be sent to the HR Manager of {{company}}.",
+      "line3": "Please use the link provided in the email to review the report and decide whether to request revisions or proceed with final confirmation."
+    },
+    "review_status": {
+      "title": "Consultant Review Status",
+      "step1_line1": "Client Draft",
+      "step1_line2": "Review Complete",
+      "step2_line1": "Comment Review",
+      "step2_line2": "In Progress",
+      "step3_line1": "Report Preparation",
+      "step3_line2": "In Progress",
+      "step4_line1": "Report",
+      "step4_line2": "Finalized"
+    },
+    "comment": {
+      "title": "Consultant Brief Comment",
+      "by_admin": "(by admin)",
+      "empty": "No comment has been added yet."
+    },
+    "actions": {
+      "view_report": "View Report",
+      "download_report": "Download Report",
+      "contact_consultant": "Contact Consultant Before Final Confirmation",
+      "final_confirmation": "Final Confirmation"
+    },
+    "dialogs": {
+      "ok": "OK",
+      "missing_report": {
+        "title": "Report Not Uploaded Yet",
+        "description": "A consultant is reviewing your company's entire design draft and writing a report. An alarm email will be sent to the HR manager upon completion, so please refer to this."
+      },
+      "contact": {
+        "title": "Contact Consultant",
+        "description": "Please contact your consultant or admin team for revision requests before final confirmation."
+      },
+      "final_confirm": {
+        "title": "Proceed with Final Confirmation?",
+        "description": "Once you proceed with final confirmation, the current HR system will be officially established, and further modifications or consultant review will no longer be available."
+      }
+    }
+  },
+  "hr_tree": {
+    "page_title": "Final Board - {{company}}"
+  },
   "diagnosis": {
     "executives": {
       "card_title": "Executive Position Settings",
@@ -291,5 +748,6 @@
       "add_custom": "Add custom executive position",
       "custom_placeholder": "Position name (e.g. CPO, Vice Chair)"
     }
-  }
+  },
+  "diagnosis_overrides": {}
 }

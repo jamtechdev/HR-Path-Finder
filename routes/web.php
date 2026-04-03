@@ -533,6 +533,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('landing-page', [\App\Http\Controllers\Admin\LandingPageController::class, 'index'])->name('landing-page.index');
         Route::put('landing-page', [\App\Http\Controllers\Admin\LandingPageController::class, 'update'])->name('landing-page.update');
 
+        // HR / Diagnosis translations (admin editable overrides)
+        Route::get('hr-translations', [\App\Http\Controllers\Admin\HrTranslationsController::class, 'index'])->name('hr-translations.index');
+        Route::put('hr-translations', [\App\Http\Controllers\Admin\HrTranslationsController::class, 'update'])->name('hr-translations.update');
+
         // Intro Texts Management
         Route::resource('intro-texts', \App\Http\Controllers\Admin\IntroTextController::class)->names([
             'index' => 'intro-texts.index',

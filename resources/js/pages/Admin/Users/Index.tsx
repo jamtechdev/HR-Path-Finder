@@ -2,6 +2,7 @@ import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { CheckCircle2, Clock, ShieldCheck, Trash2, UserCheck } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import {
@@ -94,6 +95,7 @@ export default function AdminUsersIndex({
     require_admin_approval,
     companies,
 }: Props) {
+    const { t } = useTranslation();
     const page = usePage();
     const { flash } = page.props as { flash?: { success?: string; info?: string; error?: string } };
     const flashSig = useRef<string>('');
@@ -272,7 +274,7 @@ export default function AdminUsersIndex({
                 <SidebarInset className="flex flex-col overflow-hidden bg-background">
                     <AppHeader />
                     <main className="flex-1 overflow-auto bg-background">
-                        <Head title="Users & Beta Access" />
+                        <Head title={t('admin_users.page_title')} />
 
                         <div className="p-6 md:p-8 max-w-7xl mx-auto">
                             <div className="mb-6">
@@ -281,9 +283,9 @@ export default function AdminUsersIndex({
                                         <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
                                             <UserCheck className="w-6 h-6 text-primary" />
                                         </div>
-                                        <h1 className="mt-3 text-3xl font-bold text-foreground">Users &amp; Beta Access</h1>
+                                        <h1 className="mt-3 text-3xl font-bold text-foreground">{t('admin_users.heading')}</h1>
                                         <p className="text-muted-foreground text-sm mt-1 max-w-2xl">
-                                            Manage all non-admin users (CEO/HR) and approve pending accounts when admin approval is enabled.
+                                            {t('admin_users.subheading')}
                                         </p>
                                         <p className="text-xs text-muted-foreground mt-2">
                                             Pending approval means the account is waiting for you to grant access (
@@ -310,24 +312,24 @@ export default function AdminUsersIndex({
                                 <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
                                     <Card>
                                         <CardContent className="p-5">
-                                            <p className="text-sm text-muted-foreground">Total HR</p>
+                                            <p className="text-sm text-muted-foreground">{t('admin_users.stats.total_hr')}</p>
                                             <p className="text-3xl font-bold text-foreground">{total_hr_users}</p>
                                         </CardContent>
                                     </Card>
                                     <Card>
                                         <CardContent className="p-5">
-                                            <p className="text-sm text-muted-foreground">Total CEO</p>
+                                            <p className="text-sm text-muted-foreground">{t('admin_users.stats.total_ceo')}</p>
                                             <p className="text-3xl font-bold text-foreground">{total_ceo_users}</p>
                                         </CardContent>
                                     </Card>
                                     <Card>
                                         <CardContent className="p-5">
-                                            <p className="text-sm text-muted-foreground">Pending approval</p>
+                                            <p className="text-sm text-muted-foreground">{t('admin_users.stats.pending_approval')}</p>
                                             <button
                                                 type="button"
                                                 className="text-3xl font-bold text-foreground hover:underline"
                                                 onClick={() => navigateToTab('pending')}
-                                                title="Open pending users list"
+                                                title={t('admin_users.open_pending_title')}
                                             >
                                                 {pending_users_count}
                                             </button>
@@ -341,7 +343,7 @@ export default function AdminUsersIndex({
                                     <Input
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
-                                        placeholder="Search by name, email, or company..."
+                                        placeholder={t('admin_users.search_placeholder')}
                                     />
                                 </div>
                                 <div className="md:col-span-3">
@@ -350,25 +352,25 @@ export default function AdminUsersIndex({
                                         onValueChange={(v) => setRoleFilter(v as 'all' | UserRole)}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Filter role" />
+                                            <SelectValue placeholder={t('admin_users.filter_role')} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="all">All roles</SelectItem>
-                                            <SelectItem value="hr_manager">HR Manager</SelectItem>
+                                            <SelectItem value="all">{t('admin_users.roles.all')}</SelectItem>
+                                            <SelectItem value="hr_manager">{t('admin_users.roles.hr_manager')}</SelectItem>
                                             <SelectItem value="ceo">CEO</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                                 <div className="md:col-span-4 flex justify-start md:justify-end">
-                                    <Button onClick={() => setCreateOpen(true)}>Create CEO/HR</Button>
+                                    <Button onClick={() => setCreateOpen(true)}>{t('admin_users.create_cta')}</Button>
                                 </div>
                             </div>
 
                             <Tabs value={tab} onValueChange={(v) => navigateToTab(v as typeof tab)} className="mt-2">
                                 <TabsList className="w-full justify-start">
-                                    <TabsTrigger value="all">All ({filteredAll.length})</TabsTrigger>
-                                    <TabsTrigger value="pending">Pending ({filteredPending.length})</TabsTrigger>
-                                    <TabsTrigger value="active">Active ({filteredActive.length})</TabsTrigger>
+                                    <TabsTrigger value="all">{t('admin_users.tabs.all')} ({filteredAll.length})</TabsTrigger>
+                                    <TabsTrigger value="pending">{t('admin_users.tabs.pending')} ({filteredPending.length})</TabsTrigger>
+                                    <TabsTrigger value="active">{t('admin_users.tabs.active')} ({filteredActive.length})</TabsTrigger>
                                 </TabsList>
 
                                 <TabsContent value="all">
@@ -401,16 +403,16 @@ export default function AdminUsersIndex({
                             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                                 <DialogContent className="max-w-2xl">
                                     <DialogHeader>
-                                        <DialogTitle>Create CEO/HR user</DialogTitle>
+                                        <DialogTitle>{t('admin_users.dialogs.create.title')}</DialogTitle>
                                         <DialogDescription>
-                                            Admin creates an account and attaches it to a company.
+                                            {t('admin_users.dialogs.create.description')}
                                         </DialogDescription>
                                     </DialogHeader>
 
                                     <form onSubmit={handleCreate} className="space-y-4">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <Label htmlFor="create-name">Name</Label>
+                                                <Label htmlFor="create-name">{t('admin_users.fields.name')}</Label>
                                                 <Input
                                                     id="create-name"
                                                     value={createForm.data.name}
@@ -422,7 +424,7 @@ export default function AdminUsersIndex({
                                             </div>
 
                                             <div className="space-y-2">
-                                                <Label htmlFor="create-email">Email</Label>
+                                                <Label htmlFor="create-email">{t('admin_users.fields.email')}</Label>
                                                 <Input
                                                     id="create-email"
                                                     type="email"
@@ -437,16 +439,16 @@ export default function AdminUsersIndex({
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <Label>Role</Label>
+                                                <Label>{t('admin_users.fields.role')}</Label>
                                                 <Select
                                                     value={createForm.data.role}
                                                     onValueChange={(v) => createForm.setData('role', v as UserRole)}
                                                 >
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Select role" />
+                                                        <SelectValue placeholder={t('admin_users.fields.select_role')} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="hr_manager">HR Manager</SelectItem>
+                                                        <SelectItem value="hr_manager">{t('admin_users.roles.hr_manager')}</SelectItem>
                                                         <SelectItem value="ceo">CEO</SelectItem>
                                                     </SelectContent>
                                                 </Select>
@@ -456,7 +458,7 @@ export default function AdminUsersIndex({
                                             </div>
 
                                             <div className="space-y-2">
-                                                <Label>Company</Label>
+                                                <Label>{t('admin_users.fields.company')}</Label>
                                                 <Select
                                                     value={createForm.data.company_id ? String(createForm.data.company_id) : 'none'}
                                                     onValueChange={(v) =>
@@ -464,10 +466,10 @@ export default function AdminUsersIndex({
                                                     }
                                                 >
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Select company" />
+                                                        <SelectValue placeholder={t('admin_users.fields.select_company')} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="none">Select...</SelectItem>
+                                                        <SelectItem value="none">{t('admin_users.fields.select_none')}</SelectItem>
                                                         {companies.map((c) => (
                                                             <SelectItem key={c.id} value={String(c.id)}>
                                                                 {c.name}
@@ -483,7 +485,7 @@ export default function AdminUsersIndex({
 
                                         <DialogFooter>
                                             <Button type="submit" disabled={createForm.processing}>
-                                                {createForm.processing ? 'Creating...' : 'Create User'}
+                                                {createForm.processing ? t('admin_users.actions.creating') : t('admin_users.actions.create_user')}
                                             </Button>
                                         </DialogFooter>
                                     </form>
@@ -500,9 +502,9 @@ export default function AdminUsersIndex({
                             >
                                 <DialogContent className="max-w-3xl">
                                     <DialogHeader>
-                                        <DialogTitle>Edit user profile</DialogTitle>
+                                        <DialogTitle>{t('admin_users.dialogs.edit.title')}</DialogTitle>
                                         <DialogDescription>
-                                            Update name, contact, and location. Profile photo is optional.
+                                            {t('admin_users.dialogs.edit.description')}
                                         </DialogDescription>
                                     </DialogHeader>
 
@@ -518,12 +520,12 @@ export default function AdminUsersIndex({
                                                                 className="w-full h-full object-cover"
                                                             />
                                                         ) : (
-                                                            <span className="text-sm text-muted-foreground">No photo</span>
+                                                            <span className="text-sm text-muted-foreground">{t('admin_users.fields.no_photo')}</span>
                                                         )}
                                                     </div>
                                                     <div className="mt-2">
                                                         <Label htmlFor="edit-profile-photo" className="cursor-pointer">
-                                                            Upload photo
+                                                            {t('admin_users.fields.upload_photo')}
                                                         </Label>
                                                         <Input
                                                             id="edit-profile-photo"
@@ -544,7 +546,7 @@ export default function AdminUsersIndex({
                                                 <div className="flex-1 space-y-4">
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div className="space-y-2">
-                                                            <Label htmlFor="edit-name">Name</Label>
+                                                            <Label htmlFor="edit-name">{t('admin_users.fields.name')}</Label>
                                                             <Input
                                                                 id="edit-name"
                                                                 value={editForm.data.name}
@@ -556,7 +558,7 @@ export default function AdminUsersIndex({
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <Label htmlFor="edit-email">Email</Label>
+                                                            <Label htmlFor="edit-email">{t('admin_users.fields.email')}</Label>
                                                             <Input
                                                                 id="edit-email"
                                                                 type="email"
@@ -571,7 +573,7 @@ export default function AdminUsersIndex({
 
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div className="space-y-2">
-                                                            <Label htmlFor="edit-phone">Phone</Label>
+                                                            <Label htmlFor="edit-phone">{t('admin_users.fields.phone')}</Label>
                                                             <Input
                                                                 id="edit-phone"
                                                                 value={editForm.data.phone}
@@ -583,7 +585,7 @@ export default function AdminUsersIndex({
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <Label htmlFor="edit-address">Address</Label>
+                                                            <Label htmlFor="edit-address">{t('admin_users.fields.address')}</Label>
                                                             <Input
                                                                 id="edit-address"
                                                                 value={editForm.data.address}
@@ -597,7 +599,7 @@ export default function AdminUsersIndex({
 
                                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                         <div className="space-y-2">
-                                                            <Label htmlFor="edit-city">City</Label>
+                                                            <Label htmlFor="edit-city">{t('admin_users.fields.city')}</Label>
                                                             <Input
                                                                 id="edit-city"
                                                                 value={editForm.data.city}
@@ -605,7 +607,7 @@ export default function AdminUsersIndex({
                                                             />
                                                         </div>
                                                         <div className="space-y-2">
-                                                            <Label htmlFor="edit-state">State</Label>
+                                                            <Label htmlFor="edit-state">{t('admin_users.fields.state')}</Label>
                                                             <Input
                                                                 id="edit-state"
                                                                 value={editForm.data.state}
@@ -613,7 +615,7 @@ export default function AdminUsersIndex({
                                                             />
                                                         </div>
                                                         <div className="space-y-2">
-                                                            <Label htmlFor="edit-latitude">Latitude</Label>
+                                                            <Label htmlFor="edit-latitude">{t('admin_users.fields.latitude')}</Label>
                                                             <Input
                                                                 id="edit-latitude"
                                                                 type="number"
@@ -629,7 +631,7 @@ export default function AdminUsersIndex({
 
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div className="space-y-2">
-                                                            <Label htmlFor="edit-longitude">Longitude</Label>
+                                                            <Label htmlFor="edit-longitude">{t('admin_users.fields.longitude')}</Label>
                                                             <Input
                                                                 id="edit-longitude"
                                                                 type="number"
@@ -642,9 +644,9 @@ export default function AdminUsersIndex({
                                                             )}
                                                         </div>
                                                         <div className="space-y-2">
-                                                            <Label>Role / Companies (read-only)</Label>
+                                                            <Label>{t('admin_users.fields.role_companies')}</Label>
                                                             <div className="rounded-md border p-3 text-sm text-muted-foreground">
-                                                                {editUser.role === 'ceo' ? 'CEO' : 'HR Manager'} /{' '}
+                                                                {editUser.role === 'ceo' ? 'CEO' : t('admin_users.roles.hr_manager')} /{' '}
                                                                 {editUser.companyNames.length > 0
                                                                     ? editUser.companyNames.join(', ')
                                                                     : '-'}
@@ -660,7 +662,7 @@ export default function AdminUsersIndex({
 
                                             <DialogFooter>
                                                 <Button type="submit" disabled={editForm.processing}>
-                                                    {editForm.processing ? 'Saving...' : 'Save Changes'}
+                                                    {editForm.processing ? t('admin_users.actions.saving') : t('admin_users.actions.save_changes')}
                                                 </Button>
                                             </DialogFooter>
                                         </form>
@@ -676,23 +678,23 @@ export default function AdminUsersIndex({
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            {confirmAction?.type === 'delete' ? 'Delete user' : 'Change user access'}
+                            {confirmAction?.type === 'delete' ? t('admin_users.confirm.delete_title') : t('admin_users.confirm.access_title')}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {confirmAction?.type === 'delete'
-                                ? `Delete ${confirmAction.user.email}? This action cannot be undone.`
+                                ? t('admin_users.confirm.delete_desc', { email: confirmAction.user.email })
                                 : confirmAction
-                                  ? `${confirmAction.nextActive ? 'Activate' : 'Deactivate'} access for ${confirmAction.user.email}?`
+                                  ? t('admin_users.confirm.access_desc', { action: confirmAction.nextActive ? t('admin_users.actions.activate') : t('admin_users.actions.deactivate'), email: confirmAction.user.email })
                                   : ''}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                             className={confirmAction?.type === 'delete' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}
                             onClick={runConfirmedAction}
                         >
-                            {confirmAction?.type === 'delete' ? 'Delete' : 'Confirm'}
+                            {confirmAction?.type === 'delete' ? t('common.delete') : t('common.confirm')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -712,6 +714,7 @@ function UsersTable({
     onToggleAccess: (u: UserRow) => void;
     onDeleteUser: (u: UserRow) => void;
 }) {
+    const { t } = useTranslation();
     if (users.length === 0) {
         return (
             <Card className="mt-6">
@@ -719,8 +722,8 @@ function UsersTable({
                     <div className="mx-auto w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-4">
                         <Clock className="w-7 h-7 text-muted-foreground" />
                     </div>
-                    <p className="font-medium text-foreground">No users</p>
-                    <p className="text-muted-foreground text-sm mt-2">Nothing to show for this filter.</p>
+                    <p className="font-medium text-foreground">{t('admin_users.table.no_users')}</p>
+                    <p className="text-muted-foreground text-sm mt-2">{t('admin_users.table.no_users_desc')}</p>
                 </CardContent>
             </Card>
         );
@@ -731,24 +734,24 @@ function UsersTable({
             <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5 text-primary" />
-                    Users list
+                    {t('admin_users.table.title')}
                 </CardTitle>
-                <CardDescription>CEO/HR users excluding admin</CardDescription>
+                <CardDescription>{t('admin_users.table.description')}</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>User</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead>Company</TableHead>
-                                        <TableHead>Phone</TableHead>
-                                        <TableHead>Address</TableHead>
-                                <TableHead>Email verified</TableHead>
-                                <TableHead>Access</TableHead>
-                                <TableHead>Created</TableHead>
-                                <TableHead className="text-right">Action</TableHead>
+                                <TableHead>{t('admin_users.table.columns.user')}</TableHead>
+                                <TableHead>{t('admin_users.table.columns.role')}</TableHead>
+                                <TableHead>{t('admin_users.table.columns.company')}</TableHead>
+                                <TableHead>{t('admin_users.table.columns.phone')}</TableHead>
+                                <TableHead>{t('admin_users.table.columns.address')}</TableHead>
+                                <TableHead>{t('admin_users.table.columns.email_verified')}</TableHead>
+                                <TableHead>{t('admin_users.table.columns.access')}</TableHead>
+                                <TableHead>{t('admin_users.table.columns.created')}</TableHead>
+                                <TableHead className="text-right">{t('admin_users.table.columns.action')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -762,7 +765,7 @@ function UsersTable({
                                                 <span className="text-xs text-muted-foreground">{u.email}</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell>{u.role === 'ceo' ? 'CEO' : 'HR Manager'}</TableCell>
+                                        <TableCell>{u.role === 'ceo' ? 'CEO' : t('admin_users.roles.hr_manager')}</TableCell>
                                         <TableCell>
                                             {u.companyNames.length > 0 ? (
                                                 <div className="flex flex-wrap gap-2">
@@ -787,11 +790,11 @@ function UsersTable({
                                         <TableCell>
                                             {u.email_verified_at ? (
                                                 <Badge variant="outline" className="bg-green-50 text-green-800 border-green-200">
-                                                    Yes
+                                                    {t('admin_users.table.yes')}
                                                 </Badge>
                                             ) : (
                                                 <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
-                                                    No
+                                                    {t('admin_users.table.no')}
                                                 </Badge>
                                             )}
                                         </TableCell>
@@ -800,14 +803,14 @@ function UsersTable({
                                                 <Badge variant="outline" className="bg-yellow-50 text-yellow-800 border-yellow-200">
                                                     <span className="inline-flex items-center gap-1">
                                                         <Clock className="w-3 h-3" />
-                                                        Pending
+                                                        {t('admin_users.tabs.pending')}
                                                     </span>
                                                 </Badge>
                                             ) : (
                                                 <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-200">
                                                     <span className="inline-flex items-center gap-1">
                                                         <CheckCircle2 className="w-3 h-3" />
-                                                        Active
+                                                        {t('admin_users.tabs.active')}
                                                     </span>
                                                 </Badge>
                                             )}
@@ -822,10 +825,10 @@ function UsersTable({
                                                     variant={isPending ? 'default' : 'destructive'}
                                                     onClick={() => onToggleAccess(u)}
                                                 >
-                                                    {isPending ? 'Activate' : 'Deactivate'}
+                                                    {isPending ? t('admin_users.actions.activate') : t('admin_users.actions.deactivate')}
                                                 </Button>
                                                 <Button size="sm" variant="outline" onClick={() => onEditUser(u)}>
-                                                    Edit user
+                                                    {t('admin_users.actions.edit_user')}
                                                 </Button>
                                                 <Button
                                                     size="sm"

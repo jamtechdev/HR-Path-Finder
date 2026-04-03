@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { AlertCircle, Check, Download, Eye, List, OctagonAlert } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -59,6 +60,7 @@ export default function HrReportIndex({
     projectId,
     reportUploads = [],
 }: Props) {
+    const { t } = useTranslation();
     const [showMissingReportDialog, setShowMissingReportDialog] = useState(false);
     const [showFinalConfirmDialog, setShowFinalConfirmDialog] = useState(false);
     const [showContactDialog, setShowContactDialog] = useState(false);
@@ -88,13 +90,13 @@ export default function HrReportIndex({
 
     return (
         <AppLayout showWorkflowSteps={true} stepStatuses={stepStatuses} projectId={projectId}>
-            <Head title={`Report - ${project.company.name}`} />
+            <Head title={t('hr_report.page_title', { company: project.company.name })} />
             <div className="px-6 py-12 md:px-8 md:py-12 max-w-[760px] mx-auto space-y-4">
                 <div className="mb-6">
                     <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-[#4F8EF7]">
-                        For HR Manager · CEO
+                        {t('hr_report.eyebrow')}
                     </p>
-                    <h1 className="text-[28px] leading-[1.2] font-serif font-normal text-[#1A1744] mt-2">Consultant Report</h1>
+                    <h1 className="text-[28px] leading-[1.2] font-serif font-normal text-[#1A1744] mt-2">{t('hr_report.title')}</h1>
                     <p className="text-[13px] text-[#6b6a66] mt-[6px]">
                         {project.company.name} · HR System Design
                     </p>
@@ -103,19 +105,16 @@ export default function HrReportIndex({
                 <Card className="rounded-xl border border-[#eeede9] shadow-sm bg-[#fafaf8] border-l-[3px] border-l-[#1A1744]">
                     <CardContent className="px-8 py-7">
                         <p className="text-[11px] font-semibold tracking-[0.10em] uppercase text-[#aaa9a3] mb-3">
-                            Completion Notification
+                            {t('hr_report.completion.title')}
                         </p>
                         <p className="text-[14px] leading-[1.75] text-[#2e2e2c]">
-                            The initial HR system design for <strong>{project.company.name}</strong> has
-                            been completed.
+                            {t('hr_report.completion.line1_prefix')} <strong>{project.company.name}</strong> {t('hr_report.completion.line1_suffix')}
                         </p>
                         <p className="text-[14px] leading-[1.75] text-[#2e2e2c] mt-[10px]">
-                            Once the consultant review and final report upload are finished, a separate
-                            email notification will be sent to the HR Manager of {project.company.name}.
+                            {t('hr_report.completion.line2', { company: project.company.name })}
                         </p>
                         <p className="text-[14px] leading-[1.75] text-[#2e2e2c] mt-[10px]">
-                            Please use the link provided in the email to review the report and decide
-                            whether to request revisions or proceed with final confirmation.
+                            {t('hr_report.completion.line3')}
                         </p>
                     </CardContent>
                 </Card>
@@ -123,7 +122,7 @@ export default function HrReportIndex({
                 <Card className="rounded-xl border border-[#eeede9] shadow-sm">
                     <CardContent className="px-8 py-7">
                         <p className="text-[11px] font-semibold tracking-[0.10em] uppercase text-[#aaa9a3] mb-5">
-                            Consultant Review Status
+                            {t('hr_report.review_status.title')}
                         </p>
                         <div className="grid grid-cols-4 gap-2">
                             {[1, 2, 3, 4].map((i) => {
@@ -152,30 +151,30 @@ export default function HrReportIndex({
                                         <p className={`mt-2 text-[11px] leading-[1.4] ${active ? 'text-[#4F8EF7] font-semibold' : done ? 'text-[#1A1744] font-medium' : 'text-[#aaa9a3]'}`}>
                                             {i === 1 && (
                                                 <>
-                                                    Client Draft
+                                                    {t('hr_report.review_status.step1_line1')}
                                                     <br />
-                                                    Review Complete
+                                                    {t('hr_report.review_status.step1_line2')}
                                                 </>
                                             )}
                                             {i === 2 && (
                                                 <>
-                                                    Comment Review
+                                                    {t('hr_report.review_status.step2_line1')}
                                                     <br />
-                                                    In Progress
+                                                    {t('hr_report.review_status.step2_line2')}
                                                 </>
                                             )}
                                             {i === 3 && (
                                                 <>
-                                                    Report Preparation
+                                                    {t('hr_report.review_status.step3_line1')}
                                                     <br />
-                                                    In Progress
+                                                    {t('hr_report.review_status.step3_line2')}
                                                 </>
                                             )}
                                             {i === 4 && (
                                                 <>
-                                                    Report
+                                                    {t('hr_report.review_status.step4_line1')}
                                                     <br />
-                                                    Finalized
+                                                    {t('hr_report.review_status.step4_line2')}
                                                 </>
                                             )}
                                         </p>
@@ -189,10 +188,10 @@ export default function HrReportIndex({
                 <Card className="rounded-xl border border-[#eeede9] shadow-sm">
                     <CardContent className="px-8 py-7">
                         <p className="text-[11px] font-semibold tracking-[0.10em] uppercase text-[#aaa9a3] mb-3">
-                            Consultant Brief Comment <span className="normal-case tracking-normal font-normal">(by admin)</span>
+                            {t('hr_report.comment.title')} <span className="normal-case tracking-normal font-normal">{t('hr_report.comment.by_admin')}</span>
                         </p>
                         <div className="rounded-lg border border-[#eeede9] bg-[#f8f8f6] min-h-[90px] px-[18px] py-4 text-[14px] leading-[1.7] text-[#aaa9a3] italic">
-                            No comment has been added yet.
+                            {t('hr_report.comment.empty')}
                         </div>
                         <hr className="my-5 border-[#eeede9]" />
                         <div className="flex gap-3 flex-wrap">
@@ -202,11 +201,11 @@ export default function HrReportIndex({
                                 onClick={openOrWarn}
                             >
                                 <Eye className="w-4 h-4 mr-2" />
-                                View Report
+                                {t('hr_report.actions.view_report')}
                             </Button>
                             <Button className="h-10 px-5 rounded-lg bg-[#1A1744] hover:bg-[#2a2660] text-white" onClick={openOrWarn}>
                                 <Download className="w-4 h-4 mr-2" />
-                                Download Report
+                                {t('hr_report.actions.download_report')}
                             </Button>
                         </div>
                     </CardContent>
@@ -221,7 +220,7 @@ export default function HrReportIndex({
                                 onClick={() => setShowContactDialog(true)}
                             >
                                 <List className="w-4 h-4 mr-2" />
-                                Contact Consultant Before Final Confirmation
+                                {t('hr_report.actions.contact_consultant')}
                             </Button>
                             <Button
                                 variant="outline"
@@ -229,7 +228,7 @@ export default function HrReportIndex({
                                 onClick={() => setShowFinalConfirmDialog(true)}
                             >
                                 <OctagonAlert className="w-4 h-4 mr-2" />
-                                Final Confirmation
+                                {t('hr_report.actions.final_confirmation')}
                             </Button>
                         </div>
                     </CardContent>
@@ -241,15 +240,14 @@ export default function HrReportIndex({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <AlertCircle className="w-5 h-5 text-amber-500" />
-                            Report Not Uploaded Yet
+                            {t('hr_report.dialogs.missing_report.title')}
                         </DialogTitle>
                         <DialogDescription className="text-sm leading-6 text-[#4b5563] pt-2">
-                            A consultant is reviewing your company's entire design draft and writing a report.
-                            An alarm email will be sent to the HR manager upon completion, so please refer to this.
+                            {t('hr_report.dialogs.missing_report.description')}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button onClick={() => setShowMissingReportDialog(false)}>OK</Button>
+                        <Button onClick={() => setShowMissingReportDialog(false)}>{t('hr_report.dialogs.ok')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -257,13 +255,13 @@ export default function HrReportIndex({
             <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
                 <DialogContent className="sm:max-w-[520px] rounded-[14px]">
                     <DialogHeader>
-                        <DialogTitle>Contact Consultant</DialogTitle>
+                        <DialogTitle>{t('hr_report.dialogs.contact.title')}</DialogTitle>
                         <DialogDescription className="text-sm leading-6 text-[#4b5563] pt-2">
-                            Please contact your consultant or admin team for revision requests before final confirmation.
+                            {t('hr_report.dialogs.contact.description')}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button onClick={() => setShowContactDialog(false)}>OK</Button>
+                        <Button onClick={() => setShowContactDialog(false)}>{t('hr_report.dialogs.ok')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -273,22 +271,21 @@ export default function HrReportIndex({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-[#1A1744]">
                             <OctagonAlert className="w-5 h-5 text-[#dc2626]" />
-                            Proceed with Final Confirmation?
+                            {t('hr_report.dialogs.final_confirm.title')}
                         </DialogTitle>
                         <DialogDescription className="text-sm leading-6 text-[#4b5563] pt-2">
-                            Once you proceed with final confirmation, the current HR system will be officially
-                            established, and further modifications or consultant review will no longer be available.
+                            {t('hr_report.dialogs.final_confirm.description')}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setShowFinalConfirmDialog(false)}>
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                         <Button
                             className="bg-[#dc2626] hover:bg-[#b91c1c]"
                             onClick={() => setShowFinalConfirmDialog(false)}
                         >
-                            Confirm
+                            {t('common.confirm')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

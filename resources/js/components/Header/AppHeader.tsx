@@ -20,38 +20,40 @@ import {
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { clearClientDraftCaches } from '@/lib/clientDraftCleanup';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
-function getBreadcrumbLabel(path: string): string {
-    if (path.startsWith('/admin')) return 'Admin';
-    if (path.startsWith('/ceo')) return 'CEO';
-    if (path === '/companies' || path.startsWith('/companies/') || path === '/hr-manager/companies' || path.startsWith('/hr-manager/companies/')) return 'Companies';
-    if (path.startsWith('/hr-manager/dashboard') || path === '/dashboard') return 'Dashboard';
-    if (path.startsWith('/hr-manager/diagnosis')) return 'Diagnosis';
-    if (path.startsWith('/hr-manager/job-analysis')) return 'Job Analysis';
-    if (path.startsWith('/hr-manager/performance-system')) return 'Performance System';
-    if (path.startsWith('/hr-manager/compensation-system')) return 'Compensation System';
-    if (path.startsWith('/hr-manager/hr-policy-os')) return 'Final Dashboard';
-    if (path.startsWith('/hr-manager/tree')) return 'Final Dashboard';
-    if (path.startsWith('/hr-manager/report')) return 'Report';
-    if (path.startsWith('/ceo/hr-policy-os')) return 'Final Dashboard';
-    if (path.startsWith('/ceo/tree')) return 'Final Dashboard';
-    if (path.startsWith('/ceo/report')) return 'Report';
-    if (path.startsWith('/admin/hr-policy-os')) return 'Final Dashboard';
-    if (path.startsWith('/admin/tree')) return 'Final Dashboard';
-    if (path.startsWith('/admin/report')) return 'Report';
-    if (path.startsWith('/settings')) return 'Settings';
-    return 'Dashboard';
+function getBreadcrumbKey(path: string): string {
+    if (path.startsWith('/admin')) return 'admin_ui.header.breadcrumb.admin';
+    if (path.startsWith('/ceo')) return 'admin_ui.header.breadcrumb.ceo';
+    if (path === '/companies' || path.startsWith('/companies/') || path === '/hr-manager/companies' || path.startsWith('/hr-manager/companies/')) return 'admin_ui.header.breadcrumb.companies';
+    if (path.startsWith('/hr-manager/dashboard') || path === '/dashboard') return 'admin_ui.header.breadcrumb.dashboard';
+    if (path.startsWith('/hr-manager/diagnosis')) return 'admin_ui.header.breadcrumb.diagnosis';
+    if (path.startsWith('/hr-manager/job-analysis')) return 'admin_ui.header.breadcrumb.job_analysis';
+    if (path.startsWith('/hr-manager/performance-system')) return 'admin_ui.header.breadcrumb.performance_system';
+    if (path.startsWith('/hr-manager/compensation-system')) return 'admin_ui.header.breadcrumb.compensation_system';
+    if (path.startsWith('/hr-manager/hr-policy-os')) return 'admin_ui.header.breadcrumb.final_dashboard';
+    if (path.startsWith('/hr-manager/tree')) return 'admin_ui.header.breadcrumb.final_dashboard';
+    if (path.startsWith('/hr-manager/report')) return 'admin_ui.header.breadcrumb.report';
+    if (path.startsWith('/ceo/hr-policy-os')) return 'admin_ui.header.breadcrumb.final_dashboard';
+    if (path.startsWith('/ceo/tree')) return 'admin_ui.header.breadcrumb.final_dashboard';
+    if (path.startsWith('/ceo/report')) return 'admin_ui.header.breadcrumb.report';
+    if (path.startsWith('/admin/hr-policy-os')) return 'admin_ui.header.breadcrumb.final_dashboard';
+    if (path.startsWith('/admin/tree')) return 'admin_ui.header.breadcrumb.final_dashboard';
+    if (path.startsWith('/admin/report')) return 'admin_ui.header.breadcrumb.report';
+    if (path.startsWith('/settings')) return 'admin_ui.header.breadcrumb.settings';
+    return 'admin_ui.header.breadcrumb.dashboard';
 }
 
 export default function AppHeader() {
+    const { t } = useTranslation();
     const page = usePage<any>();
     const { auth, activeRole, canSwitchToHr, notifications, appConfig } = page.props;
     const user = auth?.user;
-    const appName = appConfig?.name || 'HR Path-Finder';
+    const appName = appConfig?.name || t('admin_ui.header.app_name');
     const notificationItems = Array.isArray(notifications?.items) ? notifications.items : [];
     const unreadCount = Number(notifications?.unread_count ?? 0);
     const path = (page as { url?: string }).url?.split('?')[0] ?? '';
-    const breadcrumbLabel = getBreadcrumbLabel(path);
+    const breadcrumbLabel = t(getBreadcrumbKey(path));
     
     const switchForm = useForm({});
     
@@ -112,12 +114,12 @@ export default function AppHeader() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-96 max-h-[70vh] overflow-auto">
                             <DropdownMenuLabel className="flex items-center justify-between">
-                                <span>Email / Notification Logs</span>
-                                <span className="text-xs text-muted-foreground">{unreadCount} unread</span>
+                                <span>{t('admin_ui.header.notifications.title')}</span>
+                                <span className="text-xs text-muted-foreground">{t('admin_ui.header.notifications.unread_count', { count: unreadCount })}</span>
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             {notificationItems.length === 0 ? (
-                                <div className="px-3 py-6 text-sm text-muted-foreground text-center">No logs yet.</div>
+                                <div className="px-3 py-6 text-sm text-muted-foreground text-center">{t('admin_ui.header.notifications.empty')}</div>
                             ) : (
                                 notificationItems.map((item: any) => {
                                     const orgName = item?.data?.organization_name;
@@ -131,10 +133,10 @@ export default function AppHeader() {
                                             {href ? (
                                                 <Link href={href} className="flex flex-col items-start gap-0.5 py-2 cursor-pointer">
                                                     <div className="text-xs font-semibold">
-                                                        {isCeoKpi ? 'KPI Review Email Sent' : item?.type}
+                                                        {isCeoKpi ? t('admin_ui.header.notifications.kpi_review_sent') : item?.type}
                                                     </div>
                                                     <div className="text-xs text-muted-foreground">
-                                                        {companyName ? `${companyName}` : 'Company'}{orgName ? ` - ${orgName}` : ''}
+                                                        {companyName ? `${companyName}` : t('admin_ui.header.notifications.company_fallback')}{orgName ? ` - ${orgName}` : ''}
                                                     </div>
                                                     <div className="text-[11px] text-muted-foreground">{createdAt}</div>
                                                 </Link>
@@ -161,11 +163,11 @@ export default function AppHeader() {
                             )}>
                                 <div className="w-[30px] h-[30px] rounded-lg bg-[var(--hr-navy)] flex items-center justify-center flex-shrink-0 shadow-sm">
                                     <span className="text-[11px] font-bold text-[var(--hr-mint)]">
-                                        {user?.name ? getInitials(user.name) : 'U'}
+                                        {user?.name ? getInitials(user.name) : t('admin_ui.header.user.initial')}
                                     </span>
                                 </div>
                                 <div className="hidden md:block text-left">
-                                    <p className={cn('text-[12px] font-semibold leading-tight', headerDark ? 'text-white' : 'text-[var(--hr-gray-800)]')}>{user?.name || 'User'}</p>
+                                    <p className={cn('text-[12px] font-semibold leading-tight', headerDark ? 'text-white' : 'text-[var(--hr-gray-800)]')}>{user?.name || t('admin_ui.header.user.fallback_name')}</p>
                                     <p className={cn('text-[10px]', headerDark ? 'text-white/60' : 'text-[var(--hr-gray-400)]')}>{user?.email || ''}</p>
                                 </div>
                                 <ChevronDown className={cn('h-4 w-4 hidden md:block', headerDark ? 'text-white/60' : 'text-[var(--hr-gray-400)]')} />
@@ -177,7 +179,7 @@ export default function AppHeader() {
                         >
                             <DropdownMenuLabel>
                                 <div className="flex flex-col space-y-1">
-                                    <p className="text-sm font-medium">{user?.name || 'User'}</p>
+                                    <p className="text-sm font-medium">{user?.name || t('admin_ui.header.user.fallback_name')}</p>
                                     <p className="text-xs text-muted-foreground">{user?.email || ''}</p>
                                 </div>
                             </DropdownMenuLabel>
@@ -185,13 +187,13 @@ export default function AppHeader() {
                             <DropdownMenuItem asChild>
                                 <Link href="/settings/index" className="flex items-center cursor-pointer">
                                     <Settings className="mr-2 h-4 w-4" />
-                                    Settings
+                                    {t('admin_ui.header.menu.settings')}
                                 </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                                 <Link href="/settings/profile" className="flex items-center cursor-pointer">
                                     <User className="mr-2 h-4 w-4" />
-                                    Profile
+                                    {t('admin_ui.header.menu.profile')}
                                 </Link>
                             </DropdownMenuItem>
                             {canSwitchToHr && (
@@ -203,7 +205,7 @@ export default function AppHeader() {
                                         className="cursor-pointer"
                                     >
                                         <Repeat className="mr-2 h-4 w-4" />
-                                        {switchForm.processing ? 'Switching...' : 'Switch to HR Manager'}
+                                        {switchForm.processing ? t('admin_ui.header.menu.switching') : t('admin_ui.header.menu.switch_to_hr')}
                                     </DropdownMenuItem>
                                 </>
                             )}
@@ -220,7 +222,7 @@ export default function AppHeader() {
                                     }}
                                 >
                                     <LogOut className="mr-2 h-4 w-4" />
-                                    Logout
+                                    {t('admin_ui.header.menu.logout')}
                                 </Link>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
