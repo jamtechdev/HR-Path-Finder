@@ -15,8 +15,10 @@ import { Toaster } from '@/components/ui/toaster';
 import { toast } from '@/hooks/use-toast';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 export default function CreateCompany() {
+    const { t } = useTranslation();
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const submitInFlight = useRef(false);
@@ -36,7 +38,7 @@ export default function CreateCompany() {
             // Validate file type
             const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
             if (!validTypes.includes(file.type)) {
-                alert('Please upload a valid image file (JPG, PNG, GIF, or WebP).');
+                alert(t('companies_create.alert_invalid_image'));
                 if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                 }
@@ -46,7 +48,7 @@ export default function CreateCompany() {
             // Validate file size (5MB max)
             const maxSize = 5 * 1024 * 1024; // 5MB in bytes
             if (file.size > maxSize) {
-                alert('File size must be less than 5MB. Please choose a smaller image.');
+                alert(t('companies_create.alert_file_size'));
                 if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                 }
@@ -84,14 +86,14 @@ export default function CreateCompany() {
             return;
         }
         submitInFlight.current = true;
-        toast({ title: 'Creating your company…' });
+        toast({ title: t('companies_create.creating_toast') });
         post('/hr-manager/companies', {
             forceFormData: true,
             onSuccess: () => {
                 setLogoPreview(null);
                 toast({
-                    title: 'Project created successfully',
-                    description: 'Your company workspace is ready.',
+                    title: t('companies_create.success_title'),
+                    description: t('companies_create.success_desc'),
                     variant: 'success',
                 });
                 // Laravel redirects, but some environments may not move the user quickly enough.
@@ -100,7 +102,7 @@ export default function CreateCompany() {
             },
             onError: (errs) => {
                 if (errs.logo && String(errs.logo).includes('too large')) {
-                    alert('File size is too large. Please upload an image smaller than 5MB.');
+                    alert(t('companies_create.alert_file_size'));
                 }
             },
             onFinish: () => {
@@ -119,7 +121,7 @@ export default function CreateCompany() {
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-muted/30">
                
-                    <Head title="Create Company Workspace" />
+                    <Head title={t('companies_create.page_title')} />
                     <div className="p-6 md:p-8 max-w-5xl mx-auto">
                         {/* Header Section */}
                         <div className="mb-8">
@@ -128,9 +130,9 @@ export default function CreateCompany() {
                                     <Building2 className="w-6 h-6 text-primary" />
                                 </div>
                                 <div>
-                                    <h1 className="text-3xl font-bold text-foreground">Create Company Workspace</h1>
+                                    <h1 className="text-3xl font-bold text-foreground">{t('companies_create.heading')}</h1>
                                     <p className="text-muted-foreground mt-1">
-                                        Set up your company profile to begin building your HR system
+                                        {t('companies_create.subheading')}
                                     </p>
                                 </div>
                             </div>
@@ -138,9 +140,9 @@ export default function CreateCompany() {
 
                         <Card className="shadow-lg border-border/50">
                             <CardHeader className="border-b border-border/50">
-                                <CardTitle className="text-xl">Company Information</CardTitle>
+                                <CardTitle className="text-xl">{t('companies_create.info_title')}</CardTitle>
                                 <CardDescription>
-                                    Provide your company details to get started. All fields marked with * are required.
+                                    {t('companies_create.info_desc')}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="pt-6">
@@ -149,7 +151,7 @@ export default function CreateCompany() {
                                     <div className="space-y-2">
                                         <Label htmlFor="name" className="text-sm font-semibold flex items-center gap-2">
                                             <Building2 className="w-4 h-4 text-primary" />
-                                            Company Name *
+                                            {t('companies_create.fields.company_name')}
                                         </Label>
                                         <Input
                                             id="name"
@@ -158,7 +160,7 @@ export default function CreateCompany() {
                                                 setData('name', e.target.value);
                                                 clearInertiaFieldError(clearErrors, 'name');
                                             }}
-                                            placeholder="Enter your company name"
+                                            placeholder={t('companies_create.fields.company_name_placeholder')}
                                             className={cn(
                                                 "h-11",
                                                 errors.name && "border-destructive focus-visible:ring-destructive"
@@ -178,7 +180,7 @@ export default function CreateCompany() {
                                         <div className="space-y-2">
                                             <Label htmlFor="registration_number" className="text-sm font-semibold flex items-center gap-2">
                                                 <FileText className="w-4 h-4 text-muted-foreground" />
-                                                Registration Number
+                                                {t('companies_create.fields.registration_number')}
                                             </Label>
                                             <Input
                                                 id="registration_number"
@@ -187,7 +189,7 @@ export default function CreateCompany() {
                                                     setData('registration_number', e.target.value);
                                                     clearInertiaFieldError(clearErrors, 'registration_number');
                                                 }}
-                                                placeholder="e.g., 123-45-67890"
+                                                placeholder={t('companies_create.fields.registration_number_placeholder')}
                                                 className={cn(
                                                     "h-11",
                                                     errors.registration_number && "border-destructive focus-visible:ring-destructive"
@@ -200,14 +202,14 @@ export default function CreateCompany() {
                                                 </p>
                                             )}
                                             <p className="text-xs text-muted-foreground mt-1">
-                                                Optional: Your company's official registration number
+                                                {t('companies_create.fields.registration_number_help')}
                                             </p>
                                         </div>
 
                                         <div className="space-y-2">
                                             <Label htmlFor="hq_location" className="text-sm font-semibold flex items-center gap-2">
                                                 <MapPin className="w-4 h-4 text-muted-foreground" />
-                                                Headquarters Location
+                                                {t('companies_create.fields.hq_location')}
                                             </Label>
                                             <Input
                                                 id="hq_location"
@@ -216,7 +218,7 @@ export default function CreateCompany() {
                                                     setData('hq_location', e.target.value);
                                                     clearInertiaFieldError(clearErrors, 'hq_location');
                                                 }}
-                                                placeholder="e.g., New York, USA"
+                                                placeholder={t('companies_create.fields.hq_location_placeholder')}
                                                 className={cn(
                                                     "h-11",
                                                     errors.hq_location && "border-destructive focus-visible:ring-destructive"
@@ -229,7 +231,7 @@ export default function CreateCompany() {
                                                 </p>
                                             )}
                                             <p className="text-xs text-muted-foreground mt-1">
-                                                Optional: Your company's headquarters location
+                                                {t('companies_create.fields.hq_location_help')}
                                             </p>
                                         </div>
                                     </div>
@@ -237,7 +239,7 @@ export default function CreateCompany() {
                                     {/* Public Listing Status */}
                                     <div className="space-y-2">
                                         <Label htmlFor="public_listing_status" className="text-sm font-semibold">
-                                            Public Listing Status *
+                                            {t('companies_create.fields.public_listing_status')}
                                         </Label>
                                         <Select
                                             value={data.public_listing_status}
@@ -250,9 +252,9 @@ export default function CreateCompany() {
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="public">Public Company</SelectItem>
-                                                <SelectItem value="private">Private Company</SelectItem>
-                                                <SelectItem value="not_applicable">Not Applicable</SelectItem>
+                                                <SelectItem value="public">{t('companies_create.fields.public_company')}</SelectItem>
+                                                <SelectItem value="private">{t('companies_create.fields.private_company')}</SelectItem>
+                                                <SelectItem value="not_applicable">{t('companies_create.fields.not_applicable')}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         {errors.public_listing_status && (
@@ -262,7 +264,7 @@ export default function CreateCompany() {
                                             </p>
                                         )}
                                         <p className="text-xs text-muted-foreground mt-1">
-                                            Select whether your company is publicly listed on a stock exchange
+                                            {t('companies_create.fields.public_listing_help')}
                                         </p>
                                     </div>
 
@@ -270,7 +272,7 @@ export default function CreateCompany() {
                                     <div className="space-y-2">
                                         <Label htmlFor="logo" className="text-sm font-semibold flex items-center gap-2">
                                             <Upload className="w-4 h-4 text-muted-foreground" />
-                                            Company Logo
+                                            {t('companies_create.fields.company_logo')}
                                         </Label>
                                         <div className="space-y-4">
                                             {logoPreview ? (
@@ -301,10 +303,10 @@ export default function CreateCompany() {
                                                         </div>
                                                         <div className="text-center">
                                                             <p className="text-sm font-medium text-foreground">
-                                                                Click to upload logo
+                                                                {t('companies_create.fields.click_upload')}
                                                             </p>
                                                             <p className="text-xs text-muted-foreground mt-1">
-                                                                PNG, JPG, GIF, or WebP (max 5MB)
+                                                                {t('companies_create.fields.upload_formats')}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -326,7 +328,7 @@ export default function CreateCompany() {
                                                     className="w-full sm:w-auto"
                                                 >
                                                     <Upload className="w-4 h-4 mr-2" />
-                                                    Choose File
+                                                    {t('companies_create.fields.choose_file')}
                                                 </Button>
                                             )}
                                         </div>
@@ -337,7 +339,7 @@ export default function CreateCompany() {
                                             </p>
                                         )}
                                         <p className="text-xs text-muted-foreground">
-                                            Optional: Upload your company logo. Recommended size: 200x200px or larger
+                                            {t('companies_create.fields.logo_help')}
                                         </p>
                                     </div>
 
@@ -350,7 +352,7 @@ export default function CreateCompany() {
                                             disabled={processing}
                                             className="w-full sm:w-auto"
                                         >
-                                            Cancel
+                                            {t('common.cancel')}
                                         </Button>
                                         <Button
                                             type="submit"
@@ -360,12 +362,12 @@ export default function CreateCompany() {
                                             {processing ? (
                                                 <>
                                                     <Spinner className="mr-2 h-4 w-4" />
-                                                    Creating...
+                                                    {t('companies_create.actions.creating')}
                                                 </>
                                             ) : (
                                                 <>
                                                     <CheckCircle2 className="w-4 h-4 mr-2" />
-                                                    Create Company
+                                                    {t('companies_create.actions.create')}
                                                 </>
                                             )}
                                         </Button>
@@ -383,10 +385,10 @@ export default function CreateCompany() {
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-sm font-medium text-foreground mb-1">
-                                            What happens next?
+                                            {t('companies_create.next_title')}
                                         </p>
                                         <p className="text-xs text-muted-foreground">
-                                            After creating your company workspace, you'll be able to start the diagnosis process and begin building your comprehensive HR system.
+                                            {t('companies_create.next_desc')}
                                         </p>
                                     </div>
                                 </div>

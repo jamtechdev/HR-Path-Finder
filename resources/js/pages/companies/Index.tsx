@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
+import { useTranslation } from 'react-i18next';
 
 interface CEO {
     id: number;
@@ -55,6 +56,7 @@ interface Props {
 }
 
 export default function CompaniesIndex({ companies }: Props) {
+    const { t } = useTranslation();
     const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
     const [showInviteDialog, setShowInviteDialog] = useState(false);
     const [expandedCompanies, setExpandedCompanies] = useState<Set<number>>(new Set());
@@ -110,7 +112,7 @@ export default function CompaniesIndex({ companies }: Props) {
     };
 
     const handleDeleteInvitation = (invitationId: number) => {
-        if (!confirm('Are you sure you want to delete this invitation? This action cannot be undone.')) {
+        if (!confirm(t('companies_index.confirm_delete_invitation'))) {
             return;
         }
         
@@ -141,7 +143,7 @@ export default function CompaniesIndex({ companies }: Props) {
     };
 
     const formatDate = (date: string | null) => {
-        if (!date) return 'N/A';
+        if (!date) return t('companies_index.na');
         return new Date(date).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
@@ -155,7 +157,7 @@ export default function CompaniesIndex({ companies }: Props) {
 
     return (
         <AppLayout>
-            <Head title={hasNoCompanies ? 'Create Company - HR Manager' : 'Companies - HR Manager'} />
+            <Head title={hasNoCompanies ? t('companies_index.page_title_create') : t('companies_index.page_title')} />
             <div className="p-6 md:p-8 max-w-7xl mx-auto">
                 {hasNoCompanies ? (
                     /* No company yet: show create-company page (this page) */
@@ -171,7 +173,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                 <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
                                     <Building2 className="w-8 h-8 text-primary" />
                                 </div>
-                                <h3 className="text-xl font-semibold mb-2">No company yet</h3>
+                                <h3 className="text-xl font-semibold mb-2">{t('companies_index.no_company_title')}</h3>
                                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                                     Create your first company to get started with HR Path-Finder. After creating a company, you will see your dashboard with design steps and progress.
                                 </p>
@@ -189,7 +191,7 @@ export default function CompaniesIndex({ companies }: Props) {
                     <>
                 <div className="mb-6 flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-foreground">My Companies</h1>
+                        <h1 className="text-3xl font-bold text-foreground">{t('companies_index.my_companies')}</h1>
                         <p className="text-muted-foreground mt-1">
                             Manage your companies and CEO assignments
                         </p>
@@ -252,12 +254,12 @@ export default function CompaniesIndex({ companies }: Props) {
                                                             className="bg-green-600 hover:bg-green-700"
                                                         >
                                                             <UserPlus className="w-4 h-4 mr-2" />
-                                                            Invite CEO
+                                                            {t('companies_index.invite_ceo')}
                                                         </Button>
                                                     )}
                                                     <Link href={`/hr-manager/companies/${company.id}`}>
                                                         <Button variant="outline" size="sm">
-                                                            View Details
+                                                            {t('companies_index.view_details')}
                                                         </Button>
                                                     </Link>
                                                 </div>
@@ -314,7 +316,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                                                     className="mt-4"
                                                                 >
                                                                     <UserPlus className="w-4 h-4 mr-2" />
-                                                                    Invite CEO
+                                                                    {t('companies_index.invite_ceo')}
                                                                 </Button>
                                                             </div>
                                                         )}
@@ -342,7 +344,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                                                                 <TableRow key={invitation.id}>
                                                                                     <TableCell className="font-medium">{invitation.email}</TableCell>
                                                                                     <TableCell>{getStatusBadge(invitation.status)}</TableCell>
-                                                                                    <TableCell>{invitation.invited_by?.name || 'N/A'}</TableCell>
+                                                                                    <TableCell>{invitation.invited_by?.name || t('companies_index.na')}</TableCell>
                                                                                     <TableCell>{formatDate(invitation.invited_at)}</TableCell>
                                                                                     <TableCell>{formatDate(invitation.expires_at)}</TableCell>
                                                                                     <TableCell>
@@ -350,7 +352,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                                                                             ? formatDate(invitation.accepted_at)
                                                                                             : invitation.rejected_at 
                                                                                                 ? formatDate(invitation.rejected_at)
-                                                                                                : 'N/A'}
+                                                                                                : t('companies_index.na')}
                                                                                     </TableCell>
                                                                                     <TableCell className="whitespace-nowrap">
                                                                                         {isPending ? (
@@ -363,7 +365,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                                                                                     className="h-8 px-3 text-xs"
                                                                                                 >
                                                                                                     <RefreshCw className={`w-3 h-3 mr-1 ${resendingInvitation === invitation.id ? 'animate-spin' : ''}`} />
-                                                                                                    {resendingInvitation === invitation.id ? 'Resending...' : 'Resend'}
+                                                                                                    {resendingInvitation === invitation.id ? t('companies_index.resending') : t('companies_index.resend')}
                                                                                                 </Button>
                                                                                                 <Button
                                                                                                     variant="outline"
@@ -373,11 +375,11 @@ export default function CompaniesIndex({ companies }: Props) {
                                                                                                     className="h-8 px-3 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800"
                                                                                                 >
                                                                                                     <Trash2 className={`w-3 h-3 mr-1 ${deletingInvitation === invitation.id ? 'animate-pulse' : ''}`} />
-                                                                                                    {deletingInvitation === invitation.id ? 'Deleting...' : 'Delete'}
+                                                                                                    {deletingInvitation === invitation.id ? t('companies_index.deleting') : t('companies_index.delete')}
                                                                                                 </Button>
                                                                                             </div>
                                                                                         ) : (
-                                                                                            <span className="text-xs text-muted-foreground">No actions</span>
+                                                                                            <span className="text-xs text-muted-foreground">{t('companies_index.no_actions')}</span>
                                                                                         )}
                                                                                     </TableCell>
                                                                                 </TableRow>
@@ -389,7 +391,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                                         ) : (
                                                             <div className="text-center py-8 text-muted-foreground">
                                                                 <Mail className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                                                                <p>No invitations sent yet</p>
+                                                                <p>{t('companies_index.no_invitations')}</p>
                                                             </div>
                                                         )}
                                                     </TabsContent>
@@ -409,7 +411,7 @@ export default function CompaniesIndex({ companies }: Props) {
                     <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
                         <DialogContent className="max-w-lg">
                             <DialogHeader>
-                                <DialogTitle>Invite CEO for {selectedCompany.name}</DialogTitle>
+                                <DialogTitle>{t('companies_index.invite_dialog.title', { company: selectedCompany.name })}</DialogTitle>
                                 <DialogDescription>
                                     {selectedCompany.activeProject 
                                         ? `Invite a CEO to join ${selectedCompany.name} and complete the Management Philosophy Survey for this HR project. The CEO will receive an invitation email and can accept it.`
@@ -453,7 +455,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                         Cancel
                                     </Button>
                                     <Button type="submit" disabled={processing} className="bg-green-600 hover:bg-green-700">
-                                        {processing ? 'Sending...' : 'Send Invitation'}
+                                        {processing ? t('companies_index.sending') : t('companies_index.send_invitation')}
                                     </Button>
                                 </div>
                             </form>

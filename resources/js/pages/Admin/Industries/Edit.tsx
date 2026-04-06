@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
+import { useTranslation } from 'react-i18next';
 
 interface IndustrySubCategory {
     id: number;
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export default function IndustriesEdit({ category }: Props) {
+    const { t } = useTranslation();
     const [showAddSubCategory, setShowAddSubCategory] = useState(false);
     const [editingSubCategory, setEditingSubCategory] = useState<number | null>(null);
 
@@ -85,7 +87,7 @@ export default function IndustriesEdit({ category }: Props) {
     };
 
     const handleDeleteSubCategory = (subCategoryId: number) => {
-        if (confirm('Are you sure you want to delete this sub industry?')) {
+        if (confirm(t('admin_industries_edit.confirm_delete_sub_industry'))) {
             router.delete(`/admin/industries/subcategories/${subCategoryId}`, {
                 preserveScroll: true,
             });
@@ -100,18 +102,18 @@ export default function IndustriesEdit({ category }: Props) {
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title={`Edit Industry - ${category?.name || 'Industry'}`} />
+                    <Head title={t('admin_industries_edit.page_title', { name: category?.name || t('admin_industries_edit.fallback_industry') })} />
                     <div className="p-6 md:p-8 max-w-4xl mx-auto">
                         <div className="mb-6">
                             <Link href="/admin/industries">
                                 <Button variant="ghost" className="mb-4">
                                     <ArrowLeft className="w-4 h-4 mr-2" />
-                                    Back to Industries
+                                    {t('admin_industries_edit.back')}
                                 </Button>
                             </Link>
-                            <h1 className="text-3xl font-bold mb-2">Edit Industry</h1>
+                            <h1 className="text-3xl font-bold mb-2">{t('admin_industries_edit.heading')}</h1>
                             <p className="text-muted-foreground">
-                                Update industry details and manage sub industries
+                                {t('admin_industries_edit.subheading')}
                             </p>
                         </div>
 
@@ -119,12 +121,12 @@ export default function IndustriesEdit({ category }: Props) {
                             {/* Edit Category */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Industry Details</CardTitle>
+                                    <CardTitle>{t('admin_industries_edit.details_title')}</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <form onSubmit={handleSubmit} className="space-y-4">
                                         <div>
-                                            <Label htmlFor="name">Industry Name *</Label>
+                                            <Label htmlFor="name">{t('admin_industries_edit.fields.name')}</Label>
                                             <Input
                                                 id="name"
                                                 value={data.name}
@@ -140,7 +142,7 @@ export default function IndustriesEdit({ category }: Props) {
                                         </div>
 
                                         <div>
-                                            <Label htmlFor="order">Order *</Label>
+                                            <Label htmlFor="order">{t('admin_industries_edit.fields.order_required')}</Label>
                                             <Input
                                                 id="order"
                                                 type="number"
@@ -158,7 +160,7 @@ export default function IndustriesEdit({ category }: Props) {
 
                                         <div className="flex items-center gap-3 pt-4">
                                             <Button type="submit" disabled={processing}>
-                                                {processing ? 'Updating...' : 'Update Industry'}
+                                                {processing ? t('admin_industries_edit.actions.updating') : t('admin_industries_edit.actions.update_industry')}
                                             </Button>
                                         </div>
                                     </form>
@@ -169,13 +171,13 @@ export default function IndustriesEdit({ category }: Props) {
                             <Card>
                                 <CardHeader>
                                     <div className="flex items-center justify-between">
-                                        <CardTitle>Sub Industries</CardTitle>
+                                        <CardTitle>{t('admin_industries_edit.sub_industries.title')}</CardTitle>
                                         <Button
                                             onClick={() => setShowAddSubCategory(!showAddSubCategory)}
                                             size="sm"
                                         >
                                             <Plus className="w-4 h-4 mr-2" />
-                                            Add Sub Industry
+                                            {t('admin_industries_edit.sub_industries.add')}
                                         </Button>
                                     </div>
                                 </CardHeader>
@@ -183,7 +185,7 @@ export default function IndustriesEdit({ category }: Props) {
                                     {showAddSubCategory && (
                                         <form onSubmit={handleAddSubCategory} className="p-4 border rounded-lg space-y-3">
                                             <div>
-                                                <Label htmlFor="sub_name">Sub Industry Name *</Label>
+                                                <Label htmlFor="sub_name">{t('admin_industries_edit.sub_industries.name_required')}</Label>
                                                 <Input
                                                     id="sub_name"
                                                     value={subCategoryForm.data.name}
@@ -191,11 +193,11 @@ export default function IndustriesEdit({ category }: Props) {
                                                         subCategoryForm.setData('name', e.target.value);
                                                         clearInertiaFieldError(subCategoryForm.clearErrors, 'name');
                                                     }}
-                                                    placeholder="e.g., Automotive"
+                                                    placeholder={t('admin_industries_edit.sub_industries.name_placeholder')}
                                                 />
                                             </div>
                                             <div>
-                                                <Label htmlFor="sub_order">Order (optional)</Label>
+                                                <Label htmlFor="sub_order">{t('admin_industries_edit.sub_industries.order_optional')}</Label>
                                                 <Input
                                                     id="sub_order"
                                                     type="number"
@@ -204,13 +206,13 @@ export default function IndustriesEdit({ category }: Props) {
                                                         subCategoryForm.setData('order', e.target.value);
                                                         clearInertiaFieldError(subCategoryForm.clearErrors, 'order');
                                                     }}
-                                                    placeholder="Leave empty for auto-order"
+                                                    placeholder={t('admin_industries_edit.sub_industries.order_placeholder')}
                                                     min="0"
                                                 />
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Button type="submit" size="sm" disabled={subCategoryForm.processing}>
-                                                    Add
+                                                    {t('admin_industries_edit.actions.add')}
                                                 </Button>
                                                 <Button
                                                     type="button"
@@ -221,7 +223,7 @@ export default function IndustriesEdit({ category }: Props) {
                                                         subCategoryForm.reset();
                                                     }}
                                                 >
-                                                    Cancel
+                                                    {t('common.cancel')}
                                                 </Button>
                                             </div>
                                         </form>
@@ -257,7 +259,7 @@ export default function IndustriesEdit({ category }: Props) {
                                                             min="0"
                                                         />
                                                         <Button type="submit" size="sm" disabled={editSubCategoryForm.processing}>
-                                                            Save
+                                                            {t('common.save')}
                                                         </Button>
                                                         <Button
                                                             type="button"
@@ -268,7 +270,7 @@ export default function IndustriesEdit({ category }: Props) {
                                                                 editSubCategoryForm.reset();
                                                             }}
                                                         >
-                                                            Cancel
+                                                            {t('common.cancel')}
                                                         </Button>
                                                     </form>
                                                 ) : (
@@ -299,7 +301,7 @@ export default function IndustriesEdit({ category }: Props) {
                                         ))}
                                         {(!category.subCategories || category.subCategories.length === 0) && !showAddSubCategory && (
                                             <p className="text-sm text-muted-foreground text-center py-4">
-                                                No sub industries yet. Click "Add Sub Industry" to create one.
+                                                {t('admin_industries_edit.sub_industries.empty')}
                                             </p>
                                         )}
                                     </div>

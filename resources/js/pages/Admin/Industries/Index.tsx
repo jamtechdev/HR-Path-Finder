@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/sidebar';
 import { toast } from '@/hooks/use-toast';
 import { toastCopy } from '@/lib/toastCopy';
+import { useTranslation } from 'react-i18next';
 
 interface IndustrySubCategory {
     id: number;
@@ -32,6 +33,7 @@ interface Props {
 }
 
 export default function IndustriesIndex({ categories }: Props) {
+    const { t } = useTranslation();
     const { flash } = usePage().props as any;
 
     useEffect(() => {
@@ -46,9 +48,7 @@ export default function IndustriesIndex({ categories }: Props) {
 
     const handleDelete = (categoryId: number) => {
         if (
-            confirm(
-                'Are you sure you want to delete this industry? This will also delete all sub industries.',
-            )
+            confirm(t('admin_industries.confirm_delete'))
         ) {
             router.delete(`/admin/industries/${categoryId}`, {
                 preserveScroll: true,
@@ -64,21 +64,21 @@ export default function IndustriesIndex({ categories }: Props) {
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="Industries Management" />
+                    <Head title={t('admin_industries.page_title')} />
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
                                 <h1 className="mb-2 text-3xl font-bold text-foreground">
-                                    Industries Management
+                                    {t('admin_industries.heading')}
                                 </h1>
                                 <p className="text-muted-foreground">
-                                    Manage industries and sub industries
+                                    {t('admin_industries.subheading')}
                                 </p>
                             </div>
                             <Link href="/admin/industries/create">
                                 <Button>
                                     <Plus className="mr-2 h-4 w-4" />
-                                    Add Industry
+                                    {t('admin_industries.actions.add_industry')}
                                 </Button>
                             </Link>
                         </div>
@@ -93,7 +93,7 @@ export default function IndustriesIndex({ categories }: Props) {
                                                     {category.name}
                                                 </CardTitle>
                                                 <Badge variant="outline">
-                                                    Order: {category.order}
+                                                    {t('admin_industries.fields.order')}: {category.order}
                                                 </Badge>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -105,7 +105,7 @@ export default function IndustriesIndex({ categories }: Props) {
                                                         size="sm"
                                                     >
                                                         <Edit className="mr-2 h-4 w-4" />
-                                                        Edit
+                                                        {t('common.edit')}
                                                     </Button>
                                                 </Link>
                                                 <Button
@@ -127,7 +127,7 @@ export default function IndustriesIndex({ categories }: Props) {
                                         category.subCategories.length > 0 ? (
                                             <div className="space-y-2">
                                                 <p className="mb-2 text-sm font-medium text-muted-foreground">
-                                                    Sub Industries:
+                                                    {t('admin_industries.fields.sub_industries')}:
                                                 </p>
                                                 <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
                                                     {category.subCategories.map(
@@ -158,8 +158,7 @@ export default function IndustriesIndex({ categories }: Props) {
                                             </div>
                                         ) : (
                                             <p className="text-sm text-muted-foreground">
-                                                No sub industries yet. Edit to
-                                                add sub industries.
+                                                {t('admin_industries.empty.no_sub_industries')}
                                             </p>
                                         )}
                                     </CardContent>
@@ -169,8 +168,7 @@ export default function IndustriesIndex({ categories }: Props) {
                                 <Card>
                                     <CardContent className="p-12 text-center">
                                         <p className="text-muted-foreground">
-                                            No industries found. Create one to
-                                            get started.
+                                            {t('admin_industries.empty.no_industries')}
                                         </p>
                                     </CardContent>
                                 </Card>

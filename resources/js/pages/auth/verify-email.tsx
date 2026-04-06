@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { logout, home } from '@/routes';
 import type { SharedData } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 export default function VerifyEmail({ status, smtpConfigured = true }: { status?: string; smtpConfigured?: boolean }) {
+    const { t } = useTranslation();
     const { flash, auth } = usePage<SharedData>().props;
     const [isVerifying, setIsVerifying] = React.useState(false);
     const [remoteVerified, setRemoteVerified] = React.useState(false);
@@ -66,7 +68,7 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
     }, []);
     
     const handleManualVerify = () => {
-        if (confirm('Are you sure you want to manually verify your email? This option is only available when SMTP is not configured.')) {
+        if (confirm(t('auth_verify_email.confirm_manual_verify'))) {
             setIsVerifying(true);
             router.post('/email/verify-manual', {}, {
                 onSuccess: () => {
@@ -152,7 +154,7 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
             {/* Right Side - Form */}
             <div className="w-full lg:w-1/2 lg:flex-shrink-0 flex items-center justify-center p-6 md:p-12 bg-background/95 backdrop-blur-sm relative z-10">
                 <div className="w-full max-w-md">
-                    <Head title="Email verification" />
+                    <Head title={t('auth_verify_email.page_title')} />
 
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex items-center gap-3 justify-center mb-8 animate-in fade-in slide-in-from-top-4">
@@ -171,7 +173,7 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                     <div className="mb-4">
                         <Link href={home()} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                             <ArrowLeft className="w-4 h-4" />
-                            Back to home
+                            {t('auth_verify_email.back_to_home')}
                         </Link>
                     </div>
 
@@ -183,10 +185,10 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                                 <Mail className="w-8 h-8 text-white" />
                             </div>
                             <h2 className="text-3xl font-display font-bold">
-                                Check your email
+                                {t('auth_verify_email.heading')}
                             </h2>
                             <p className="text-muted-foreground mt-2 text-sm">
-                                We've sent a verification link to your email address. Click the link in the email to verify your account.
+                                {t('auth_verify_email.subheading')}
                             </p>
                         </div>
 
@@ -221,41 +223,41 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                         {status === 'verification-link-sent' && (
                             <div className="p-4 rounded-lg bg-success/10 border border-success/20 text-center text-sm font-medium text-success animate-in fade-in slide-in-from-top-4">
                                 <CheckCircle className="w-5 h-5 mx-auto mb-2" />
-                                A new verification link has been sent to your email address.
+                                {t('auth_verify_email.link_sent')}
                             </div>
                         )}
 
                         {remoteVerified && (
                             <div className="p-4 rounded-lg bg-success/10 border border-success/20 text-center text-sm font-medium text-success animate-in fade-in slide-in-from-top-4">
                                 <CheckCircle className="w-5 h-5 mx-auto mb-2" />
-                                Email verified successfully.
+                                {t('auth_verify_email.verified_success')}
                             </div>
                         )}
 
                         {isRedirecting && (
                             <div className="p-4 rounded-lg bg-[#EAF7F3] border border-[#2ECFAB]/30 text-center text-sm font-medium text-[#1A8C6F] animate-in fade-in slide-in-from-top-4">
-                                Redirecting to dashboard...
+                                {t('auth_verify_email.redirecting')}
                             </div>
                         )}
 
                         {/* Info Box */}
                         <div className="rounded-lg bg-muted/40 p-5 border border-border">
-                            <p className="text-sm font-semibold mb-2">What happens next?</p>
+                            <p className="text-sm font-semibold mb-2">{t('auth_verify_email.what_next')}</p>
                             <p className="text-sm text-muted-foreground mb-3">
-                                If you do not see the message within a few minutes, check your spam or promotions folder. The subject line usually mentions verifying your email address.
+                                {t('auth_verify_email.what_next_desc')}
                             </p>
                             <ul className="space-y-2 text-sm text-muted-foreground">
                                 <li className="flex items-start gap-2">
                                     <CheckCircle className="w-4 h-4 mt-0.5 text-success flex-shrink-0" />
-                                    <span>Check your inbox for the verification email</span>
+                                    <span>{t('auth_verify_email.steps.check_inbox')}</span>
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <CheckCircle className="w-4 h-4 mt-0.5 text-success flex-shrink-0" />
-                                    <span>Click the "Verify Email Address" button</span>
+                                    <span>{t('auth_verify_email.steps.click_verify')}</span>
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <CheckCircle className="w-4 h-4 mt-0.5 text-success flex-shrink-0" />
-                                    <span>Get instant access to your dashboard</span>
+                                    <span>{t('auth_verify_email.steps.access_dashboard')}</span>
                                 </li>
                             </ul>
                         </div>
@@ -267,10 +269,10 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                                 <AlertDescription className="space-y-3">
                                     <div>
                                         <p className="font-semibold text-orange-900 dark:text-orange-100 mb-1">
-                                            SMTP Configuration Required
+                                            {t('auth_verify_email.smtp_required_title')}
                                         </p>
                                         <p className="text-sm text-orange-800 dark:text-orange-200">
-                                            Email services are not configured. Verification emails cannot be sent until SMTP settings are configured.
+                                            {t('auth_verify_email.smtp_required_desc')}
                                         </p>
                                     </div>
                                     <div className="space-y-2">
@@ -283,7 +285,7 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                                             className="w-full border-orange-600 text-orange-700 hover:bg-orange-100 dark:text-orange-300 dark:hover:bg-orange-900/30"
                                         >
                                             <Settings className="w-4 h-4 mr-2" />
-                                            Configure SMTP Settings
+                                            {t('auth_verify_email.configure_smtp')}
                                         </Button>
                                         <Button
                                             onClick={handleManualVerify}
@@ -295,12 +297,12 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                                             {isVerifying ? (
                                                 <>
                                                     <Spinner className="w-4 h-4 mr-2" />
-                                                    Verifying...
+                                                    {t('auth_verify_email.verifying')}
                                                 </>
                                             ) : (
                                                 <>
                                                     <CheckCircle className="w-4 h-4 mr-2" />
-                                                    Verify Email Manually
+                                                    {t('auth_verify_email.verify_manually')}
                                                 </>
                                             )}
                                         </Button>
@@ -327,12 +329,12 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                                 {form.processing ? (
                                     <>
                                         <Spinner className="mr-2" />
-                                        Sending...
+                                        {t('auth_verify_email.sending')}
                                     </>
                                 ) : (
                                     <>
                                         <Mail className="mr-2 h-4 w-4" />
-                                        Resend verification email
+                                        {t('auth_verify_email.resend')}
                                     </>
                                 )}
                             </Button>
@@ -342,7 +344,7 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                                     href={logout()}
                                     className="block text-center text-sm text-muted-foreground hover:text-[#0a1629] transition-colors"
                                 >
-                                    Log out and use a different account
+                                    {t('auth_verify_email.logout_use_different')}
                                 </TextLink>
                             </div>
                         </form>
@@ -350,7 +352,7 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                         {/* Security Note */}
                         <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4">
                             <p className="text-xs text-destructive font-medium">
-                                🔒 Security Note: If you did not create an account, you can safely ignore this email.
+                                {t('auth_verify_email.security_note')}
                             </p>
                         </div>
                     </div>

@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
+import { useTranslation } from 'react-i18next';
 
 interface Invitation {
     id: number;
@@ -56,6 +57,7 @@ interface Props {
 }
 
 export default function ShowCompany({ company }: Props) {
+    const { t } = useTranslation();
     const { auth, flash } = usePage().props as any;
     const user = auth?.user;
     const isHrManager = user?.roles?.some((role: { name: string }) => role.name === 'hr_manager') || false;
@@ -97,7 +99,7 @@ export default function ShowCompany({ company }: Props) {
     };
 
     const handleDeleteInvitation = (invitationId: number) => {
-        if (!confirm('Are you sure you want to delete this invitation? This action cannot be undone.')) {
+        if (!confirm(t('companies_show.confirm_delete_invitation'))) {
             return;
         }
         
@@ -115,17 +117,17 @@ export default function ShowCompany({ company }: Props) {
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'accepted':
-                return <Badge variant="outline" className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />Accepted</Badge>;
+                return <Badge variant="outline" className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />{t('companies_show.status.accepted')}</Badge>;
             case 'rejected':
-                return <Badge variant="outline" className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
+                return <Badge variant="outline" className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800"><XCircle className="w-3 h-3 mr-1" />{t('companies_show.status.rejected')}</Badge>;
             case 'pending':
             default:
-                return <Badge variant="outline" className="bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
+                return <Badge variant="outline" className="bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800"><Clock className="w-3 h-3 mr-1" />{t('companies_show.status.pending')}</Badge>;
         }
     };
 
     const formatDate = (date: string | null) => {
-        if (!date) return 'N/A';
+        if (!date) return t('companies_show.na');
         return new Date(date).toLocaleString('en-US', {
             year: 'numeric',
             month: 'short',
@@ -142,7 +144,7 @@ export default function ShowCompany({ company }: Props) {
 
     return (
         <AppLayout>
-            <Head title={`${company.name} - Company Details`} />
+            <Head title={t('companies_show.page_title', { company: company.name })} />
             <div className="p-6 md:p-8 max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-6 flex items-center justify-between">
@@ -150,18 +152,18 @@ export default function ShowCompany({ company }: Props) {
                         <Link href="/hr-manager/companies">
                             <Button variant="ghost" size="sm">
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back
+                                {t('common.back')}
                             </Button>
                         </Link>
                         <div>
                             <h1 className="text-3xl font-bold text-foreground">{company.name}</h1>
-                            <p className="text-muted-foreground mt-1">Company Details & Management</p>
+                            <p className="text-muted-foreground mt-1">{t('companies_show.subheading')}</p>
                         </div>
                     </div>
                     {isHrManager && (
                         <Button onClick={() => setShowInviteDialog(true)}>
                             <UserPlus className="w-4 h-4 mr-2" />
-                            Invite CEO
+                            {t('companies_show.invite_ceo')}
                         </Button>
                     )}
                 </div>
@@ -186,7 +188,7 @@ export default function ShowCompany({ company }: Props) {
                             )}
                             <div className="flex-1">
                                 <CardTitle className="text-2xl">{company.name}</CardTitle>
-                                <CardDescription>Company Information</CardDescription>
+                                <CardDescription>{t('companies_show.company_info')}</CardDescription>
                             </div>
                         </div>
                     </CardHeader>
@@ -196,7 +198,7 @@ export default function ShowCompany({ company }: Props) {
                                 <div className="flex items-start gap-3">
                                     <Hash className="w-5 h-5 text-muted-foreground mt-0.5" />
                                     <div>
-                                        <p className="text-sm font-medium text-muted-foreground">Registration Number</p>
+                                        <p className="text-sm font-medium text-muted-foreground">{t('companies_show.registration_number')}</p>
                                         <p className="text-base font-semibold">{company.registration_number}</p>
                                     </div>
                                 </div>
@@ -205,7 +207,7 @@ export default function ShowCompany({ company }: Props) {
                                 <div className="flex items-start gap-3">
                                     <MapPin className="w-5 h-5 text-muted-foreground mt-0.5" />
                                     <div>
-                                        <p className="text-sm font-medium text-muted-foreground">HQ Location</p>
+                                        <p className="text-sm font-medium text-muted-foreground">{t('companies_show.hq_location')}</p>
                                         <p className="text-base font-semibold">{company.hq_location}</p>
                                     </div>
                                 </div>
@@ -213,7 +215,7 @@ export default function ShowCompany({ company }: Props) {
                             <div className="flex items-start gap-3">
                                 <Globe className="w-5 h-5 text-muted-foreground mt-0.5" />
                                 <div>
-                                    <p className="text-sm font-medium text-muted-foreground">Public Listing</p>
+                                    <p className="text-sm font-medium text-muted-foreground">{t('companies_show.public_listing')}</p>
                                     <p className="text-base font-semibold capitalize">{company.public_listing_status.replace('_', ' ')}</p>
                                 </div>
                             </div>
@@ -226,11 +228,11 @@ export default function ShowCompany({ company }: Props) {
                     <TabsList>
                         <TabsTrigger value="team">
                             <Users className="w-4 h-4 mr-2" />
-                            Team Members ({company.users?.length || 0})
+                            {t('companies_show.tabs.team_members', { count: company.users?.length || 0 })}
                         </TabsTrigger>
                         <TabsTrigger value="invitations">
                             <Mail className="w-4 h-4 mr-2" />
-                            Invitations ({company.invitations && Array.isArray(company.invitations) ? company.invitations.length : 0})
+                            {t('companies_show.tabs.invitations', { count: company.invitations && Array.isArray(company.invitations) ? company.invitations.length : 0 })}
                         </TabsTrigger>
                     </TabsList>
 
@@ -238,8 +240,8 @@ export default function ShowCompany({ company }: Props) {
                     <TabsContent value="team" className="space-y-4">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Team Members</CardTitle>
-                                <CardDescription>People associated with this company</CardDescription>
+                                <CardTitle>{t('companies_show.team_members_title')}</CardTitle>
+                                <CardDescription>{t('companies_show.team_members_desc')}</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 {company.users && Array.isArray(company.users) && company.users.length > 0 ? (
@@ -248,11 +250,11 @@ export default function ShowCompany({ company }: Props) {
                                             user && (
                                                 <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
                                                     <div>
-                                                        <p className="font-medium">{user.name || 'N/A'}</p>
-                                                        <p className="text-sm text-muted-foreground">{user.email || 'N/A'}</p>
+                                                        <p className="font-medium">{user.name || t('companies_show.na')}</p>
+                                                        <p className="text-sm text-muted-foreground">{user.email || t('companies_show.na')}</p>
                                                     </div>
                                                     <Badge variant="outline" className="capitalize">
-                                                        {user.role ? user.role.replace('_', ' ') : 'N/A'}
+                                                        {user.role ? user.role.replace('_', ' ') : t('companies_show.na')}
                                                     </Badge>
                                                 </div>
                                             )
@@ -261,7 +263,7 @@ export default function ShowCompany({ company }: Props) {
                                 ) : (
                                     <div className="text-center py-8 text-muted-foreground">
                                         <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                                        <p>No team members yet</p>
+                                        <p>{t('companies_show.no_team_members')}</p>
                                     </div>
                                 )}
                             </CardContent>
@@ -272,8 +274,8 @@ export default function ShowCompany({ company }: Props) {
                     <TabsContent value="invitations" className="space-y-4">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Invitations</CardTitle>
-                                <CardDescription>CEO invitation history</CardDescription>
+                                <CardTitle>{t('companies_show.invitations_title')}</CardTitle>
+                                <CardDescription>{t('companies_show.invitations_desc')}</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 {company.invitations && Array.isArray(company.invitations) && company.invitations.length > 0 ? (
@@ -281,21 +283,21 @@ export default function ShowCompany({ company }: Props) {
                                         <Table>
                                             <TableHeader>
                                                 <TableRow>
-                                                    <TableHead>Email</TableHead>
-                                                    <TableHead>Status</TableHead>
-                                                    <TableHead>Invited By</TableHead>
-                                                    <TableHead>Invited At</TableHead>
-                                                    <TableHead>Expires At</TableHead>
-                                                    <TableHead>Actions</TableHead>
+                                                    <TableHead>{t('companies_show.table.email')}</TableHead>
+                                                    <TableHead>{t('companies_show.table.status')}</TableHead>
+                                                    <TableHead>{t('companies_show.table.invited_by')}</TableHead>
+                                                    <TableHead>{t('companies_show.table.invited_at')}</TableHead>
+                                                    <TableHead>{t('companies_show.table.expires_at')}</TableHead>
+                                                    <TableHead>{t('companies_show.table.actions')}</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
                                                 {company.invitations.map((invitation) => (
                                                     invitation && (
                                                         <TableRow key={invitation.id}>
-                                                            <TableCell className="font-medium">{invitation.email || 'N/A'}</TableCell>
+                                                            <TableCell className="font-medium">{invitation.email || t('companies_show.na')}</TableCell>
                                                             <TableCell>{getStatusBadge(invitation.status || 'pending')}</TableCell>
-                                                            <TableCell>{invitation.invited_by?.name || 'N/A'}</TableCell>
+                                                            <TableCell>{invitation.invited_by?.name || t('companies_show.na')}</TableCell>
                                                             <TableCell>{formatDate(invitation.invited_at)}</TableCell>
                                                             <TableCell>{formatDate(invitation.expires_at)}</TableCell>
                                                             <TableCell>
@@ -308,7 +310,7 @@ export default function ShowCompany({ company }: Props) {
                                                                             disabled={resendingInvitation === invitation.id || deletingInvitation === invitation.id}
                                                                         >
                                                                             <RefreshCw className={`w-3 h-3 mr-1 ${resendingInvitation === invitation.id ? 'animate-spin' : ''}`} />
-                                                                            {resendingInvitation === invitation.id ? 'Resending...' : 'Resend'}
+                                                                            {resendingInvitation === invitation.id ? t('companies_show.resending') : t('companies_show.resend')}
                                                                         </Button>
                                                                         <Button
                                                                             variant="outline"
@@ -318,12 +320,12 @@ export default function ShowCompany({ company }: Props) {
                                                                             className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                                                                         >
                                                                             <Trash2 className={`w-3 h-3 mr-1 ${deletingInvitation === invitation.id ? 'animate-pulse' : ''}`} />
-                                                                            {deletingInvitation === invitation.id ? 'Deleting...' : 'Delete'}
+                                                                            {deletingInvitation === invitation.id ? t('companies_show.deleting') : t('companies_show.delete')}
                                                                         </Button>
                                                                     </div>
                                                                 )}
                                                                 {invitation.status !== 'pending' && (
-                                                                    <span className="text-xs text-muted-foreground">No actions</span>
+                                                                    <span className="text-xs text-muted-foreground">{t('companies_show.no_actions')}</span>
                                                                 )}
                                                             </TableCell>
                                                         </TableRow>
@@ -335,7 +337,7 @@ export default function ShowCompany({ company }: Props) {
                                 ) : (
                                     <div className="text-center py-8 text-muted-foreground">
                                         <Mail className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                                        <p>No invitations sent yet</p>
+                                        <p>{t('companies_show.no_invitations')}</p>
                                     </div>
                                 )}
                             </CardContent>
@@ -348,7 +350,7 @@ export default function ShowCompany({ company }: Props) {
                 <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
                     <DialogContent className="max-w-lg">
                         <DialogHeader>
-                            <DialogTitle>Invite CEO for {company.name}</DialogTitle>
+                            <DialogTitle>{t('companies_show.invite_dialog.title', { company: company.name })}</DialogTitle>
                             <DialogDescription>
                                 {activeProject 
                                     ? `Invite a CEO to join ${company.name} and complete the Management Philosophy Survey for this HR project.`
@@ -357,7 +359,7 @@ export default function ShowCompany({ company }: Props) {
                         </DialogHeader>
                         <form onSubmit={handleInviteCeo} className="space-y-4">
                             <div>
-                                <Label htmlFor="ceo-email">CEO Email Address *</Label>
+                                <Label htmlFor="ceo-email">{t('companies_show.invite_dialog.email_label')}</Label>
                                 <Input
                                     id="ceo-email"
                                     type="email"
@@ -366,7 +368,7 @@ export default function ShowCompany({ company }: Props) {
                                         setData('email', e.target.value);
                                         clearInertiaFieldError(clearErrors, 'email');
                                     }}
-                                    placeholder="ceo@example.com"
+                                    placeholder={t('companies_show.invite_dialog.email_placeholder')}
                                     required
                                     className={errors.email ? 'border-red-500' : ''}
                                 />
@@ -383,10 +385,10 @@ export default function ShowCompany({ company }: Props) {
                                         reset();
                                     }}
                                 >
-                                    Cancel
+                                    {t('common.cancel')}
                                 </Button>
                                 <Button type="submit" disabled={processing} className="bg-green-600 hover:bg-green-700">
-                                    {processing ? 'Sending...' : 'Send Invitation'}
+                                    {processing ? t('companies_show.sending') : t('companies_show.send_invitation')}
                                 </Button>
                             </div>
                         </form>

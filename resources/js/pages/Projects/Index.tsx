@@ -6,6 +6,7 @@ import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import { useTranslation } from 'react-i18next';
 
 interface Project {
     id: number;
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export default function ProjectsIndex({ projects }: Props) {
+    const { t } = useTranslation();
     const { url, props } = usePage();
     const currentPath = url.split('?')[0];
     const user = (props as any).auth?.user;
@@ -39,19 +41,19 @@ export default function ProjectsIndex({ projects }: Props) {
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
                 <main className="flex-1 overflow-auto">
-                    <Head title="HR Projects" />
+                    <Head title={t('projects_index.page_title')} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
-                            <h1 className="text-3xl font-bold">HR Projects</h1>
+                            <h1 className="text-3xl font-bold">{t('projects_index.heading')}</h1>
                         </div>
 
                         {projects.length === 0 ? (
                             <Card className="text-center py-12">
                                 <CardHeader>
                                     <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                                    <CardTitle>No Projects</CardTitle>
+                                    <CardTitle>{t('projects_index.empty_title')}</CardTitle>
                                     <CardDescription>
-                                        Create a company to start your first HR project.
+                                        {t('projects_index.empty_description')}
                                     </CardDescription>
                                 </CardHeader>
                             </Card>
@@ -62,19 +64,19 @@ export default function ProjectsIndex({ projects }: Props) {
                                         <CardHeader>
                                             <CardTitle>{project.company.name}</CardTitle>
                                             <CardDescription>
-                                                Project #{project.id} • {project.status}
+                                                {t('projects_index.project_line', { id: project.id, status: project.status })}
                                             </CardDescription>
                                         </CardHeader>
                                         <CardContent>
                                             {project.diagnosis && (
                                                 <p className="text-sm text-muted-foreground mb-4">
-                                                    Diagnosis: {project.diagnosis.status}
+                                                    {t('projects_index.diagnosis')}: {project.diagnosis.status}
                                                 </p>
                                             )}
                                             <Link href={`${projectBasePath}/${project.id}`}>
                                                 <Button variant="outline" className="w-full">
                                                     <FileText className="mr-2 h-4 w-4" />
-                                                    View Project
+                                                    {t('projects_index.view_project')}
                                                 </Button>
                                             </Link>
                                         </CardContent>

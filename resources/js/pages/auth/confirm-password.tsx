@@ -8,8 +8,10 @@ import { Spinner } from '@/components/ui/spinner';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { home } from '@/routes';
 import { store } from '@/routes/password/confirm';
+import { useTranslation } from 'react-i18next';
 
 export default function ConfirmPassword() {
+    const { t } = useTranslation();
     return (
         <div className="min-h-screen gradient-hero flex">
             {/* Left Side - Promotional Section */}
@@ -27,27 +29,27 @@ export default function ConfirmPassword() {
                 </div>
                 <div className="space-y-6">
                     <h2 className="font-display text-4xl font-bold leading-tight">
-                        Confirm your password<br />
-                        to access secure<br />
-                        <span className="text-success">features.</span>
+                        {t('auth_confirm_password.hero_line_1')}<br />
+                        {t('auth_confirm_password.hero_line_2')}<br />
+                        <span className="text-success">{t('auth_confirm_password.hero_highlight')}</span>
                     </h2>
                     <p className="text-white/70 text-lg max-w-md">
-                        This is a secure area of the application. Please confirm your password before continuing.
+                        {t('auth_confirm_password.hero_description')}
                     </p>
                 </div>
                 <div className="flex items-center gap-8 text-white/50 text-sm">
-                    <span>Secure confirmation</span>
+                    <span>{t('auth_confirm_password.footer_secure')}</span>
                     <span>•</span>
-                    <span>Protected access</span>
+                    <span>{t('auth_confirm_password.footer_protected')}</span>
                     <span>•</span>
-                    <span>Privacy first</span>
+                    <span>{t('auth_confirm_password.footer_privacy')}</span>
                 </div>
             </div>
 
             {/* Right Side - Form */}
             <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-background">
                 <div className="w-full max-w-md space-y-8">
-            <Head title="Confirm password" />
+            <Head title={t('auth_confirm_password.page_title')} />
 
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex items-center gap-3 justify-center mb-8">
@@ -66,14 +68,14 @@ export default function ConfirmPassword() {
                     <div className="mb-4">
                         <Link href={home()} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                             <ArrowLeft className="w-4 h-4" />
-                            Back to home
+                            {t('auth_confirm_password.back_to_home')}
                         </Link>
                     </div>
 
                     {/* Header */}
                     <div className="text-center lg:text-left">
-                        <h2 className="text-2xl font-display font-bold">Confirm your password</h2>
-                        <p className="text-muted-foreground mt-2">This is a secure area. Please confirm your password before continuing.</p>
+                        <h2 className="text-2xl font-display font-bold">{t('auth_confirm_password.heading')}</h2>
+                        <p className="text-muted-foreground mt-2">{t('auth_confirm_password.subheading')}</p>
                     </div>
 
                     <Form {...store.form()} resetOnSuccess={['password']} className="space-y-4">
@@ -81,7 +83,7 @@ export default function ConfirmPassword() {
                             <>
                                 <div className="space-y-2">
                                     <Label htmlFor="password" className="text-sm font-medium leading-none">
-                                        Password
+                                        {t('auth_confirm_password.password')}
                                     </Label>
                             <Input
                                 id="password"
@@ -105,12 +107,12 @@ export default function ConfirmPassword() {
                                     {processing ? (
                                         <>
                                             <Spinner className="mr-2" />
-                                            Confirming...
+                                            {t('auth_confirm_password.confirming')}
                                         </>
                                     ) : (
                                         <>
                                             <Lock className="mr-2 h-4 w-4" />
-                                Confirm password
+                                {t('auth_confirm_password.confirm')}
                                             <ArrowRight className="ml-2 h-4 w-4" />
                                         </>
                                     )}

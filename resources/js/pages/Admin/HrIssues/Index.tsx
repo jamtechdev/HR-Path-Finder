@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/sidebar';
 import { toast } from '@/hooks/use-toast';
 import { toastCopy } from '@/lib/toastCopy';
+import { useTranslation } from 'react-i18next';
 
 interface HrIssue {
     id: number;
@@ -40,6 +41,7 @@ export default function HrIssuesIndex({
     categories,
     currentCategory,
 }: Props) {
+    const { t } = useTranslation();
     const { flash } = usePage().props as any;
 
     useEffect(() => {
@@ -53,7 +55,7 @@ export default function HrIssuesIndex({
     }, [flash]);
 
     const handleDelete = (issueId: number) => {
-        if (confirm('Are you sure you want to delete this issue?')) {
+        if (confirm(t('admin_hr_issues.confirm_delete'))) {
             router.delete(`/admin/hr-issues/${issueId}`, {
                 preserveScroll: true,
             });
@@ -68,22 +70,21 @@ export default function HrIssuesIndex({
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="HR Issues Management" />
+                    <Head title={t('admin_hr_issues.page_title')} />
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
                                 <h1 className="mb-2 text-3xl font-bold text-foreground">
-                                    HR Issues Management
+                                    {t('admin_hr_issues.heading')}
                                 </h1>
                                 <p className="text-muted-foreground">
-                                    Manage HR issue items that can be selected
-                                    by HR managers and CEOs
+                                    {t('admin_hr_issues.subheading')}
                                 </p>
                             </div>
                             <Link href="/admin/hr-issues/create">
                                 <Button>
                                     <Plus className="mr-2 h-4 w-4" />
-                                    Add Issue
+                                    {t('admin_hr_issues.actions.add_issue')}
                                 </Button>
                             </Link>
                         </div>
@@ -91,7 +92,7 @@ export default function HrIssuesIndex({
                         <Card>
                             <CardHeader>
                                 <div className="flex items-center justify-between">
-                                    <CardTitle>HR Issues</CardTitle>
+                                    <CardTitle>{t('admin_hr_issues.list_title')}</CardTitle>
                                     <Select
                                         value={currentCategory || 'all'}
                                         onValueChange={(value) => {
@@ -107,7 +108,7 @@ export default function HrIssuesIndex({
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="all">
-                                                All Categories
+                                                {t('admin_hr_issues.filters.all_categories')}
                                             </SelectItem>
                                             {Object.entries(categories).map(
                                                 ([key, label]) => (
@@ -139,7 +140,7 @@ export default function HrIssuesIndex({
                                                     </Badge>
                                                     {!issue.is_active && (
                                                         <Badge variant="destructive">
-                                                            Inactive
+                                                            {t('admin_hr_issues.badges.inactive')}
                                                         </Badge>
                                                     )}
                                                 </div>
@@ -147,7 +148,7 @@ export default function HrIssuesIndex({
                                                     {issue.name}
                                                 </p>
                                                 <p className="mt-1 text-xs text-muted-foreground">
-                                                    Order: {issue.order}
+                                                    {t('admin_hr_issues.fields.order')}: {issue.order}
                                                 </p>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -175,7 +176,7 @@ export default function HrIssuesIndex({
                                     ))}
                                     {issues.length === 0 && (
                                         <p className="py-8 text-center text-muted-foreground">
-                                            No issues found.
+                                            {t('admin_hr_issues.empty')}
                                         </p>
                                     )}
                                 </div>

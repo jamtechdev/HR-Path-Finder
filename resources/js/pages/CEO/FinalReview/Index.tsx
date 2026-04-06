@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import { useTranslation } from 'react-i18next';
 
 interface AdminComment {
     id: number;
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export default function CeoFinalReview({ project, adminComments = [] }: Props) {
+    const { t } = useTranslation();
     const { post, processing } = useForm({});
 
     const handleApprove = () => {
@@ -52,11 +54,11 @@ export default function CeoFinalReview({ project, adminComments = [] }: Props) {
             <SidebarInset className="flex flex-col overflow-hidden dark:bg-slate-900">
                 <AppHeader />
                 <main className="flex-1 overflow-auto dark:bg-slate-900">
-                    <Head title={`Final Review - ${project.company.name}`} />
+                    <Head title={t('ceo_final_review.page_title', { company: project.company.name })} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
-                            <h1 className="text-3xl font-bold mb-2">Final Review</h1>
-                            <p className="text-muted-foreground">Review all steps and admin comments before final approval.</p>
+                            <h1 className="text-3xl font-bold mb-2">{t('ceo_final_review.heading')}</h1>
+                            <p className="text-muted-foreground">{t('ceo_final_review.subheading')}</p>
                         </div>
 
                         <div className="space-y-6">
@@ -67,12 +69,12 @@ export default function CeoFinalReview({ project, adminComments = [] }: Props) {
                                         <div className="flex items-center justify-between">
                                             <CardTitle className="capitalize">{step}</CardTitle>
                                             <Badge>
-                                                {project.step_statuses?.[step] || 'not_started'}
+                                                {project.step_statuses?.[step] || t('ceo_final_review.status.not_started')}
                                             </Badge>
                                         </div>
                                     </CardHeader>
                                     <CardContent>
-                                        <p className="text-sm text-muted-foreground">Step details...</p>
+                                        <p className="text-sm text-muted-foreground">{t('ceo_final_review.step_details')}</p>
                                     </CardContent>
                                 </Card>
                             ))}
@@ -81,7 +83,7 @@ export default function CeoFinalReview({ project, adminComments = [] }: Props) {
                             {adminComments.length > 0 && (
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Admin Comments</CardTitle>
+                                        <CardTitle>{t('ceo_final_review.admin_comments')}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         {adminComments.map((comment) => (
@@ -101,9 +103,9 @@ export default function CeoFinalReview({ project, adminComments = [] }: Props) {
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <h3 className="font-semibold text-lg mb-2">Ready to Approve?</h3>
+                                            <h3 className="font-semibold text-lg mb-2">{t('ceo_final_review.actions.title')}</h3>
                                             <p className="text-sm text-muted-foreground">
-                                                Review all steps and approve to lock the HR system.
+                                                {t('ceo_final_review.actions.description')}
                                             </p>
                                         </div>
                                         <div className="flex gap-3">
@@ -113,14 +115,14 @@ export default function CeoFinalReview({ project, adminComments = [] }: Props) {
                                                 disabled={processing}
                                             >
                                                 <X className="w-4 h-4 mr-2" />
-                                                Request Revisions
+                                                {t('ceo_final_review.actions.request_revisions')}
                                             </Button>
                                             <Button
                                                 onClick={handleApprove}
                                                 disabled={processing}
                                             >
                                                 <CheckCircle2 className="w-4 h-4 mr-2" />
-                                                Approve & Lock
+                                                {t('ceo_final_review.actions.approve_and_lock')}
                                             </Button>
                                         </div>
                                     </div>

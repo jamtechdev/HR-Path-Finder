@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import PasswordController from '@/actions/App/Http/Controllers/Settings/PasswordController';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import AppearanceToggleTab from '@/components/appearance-tabs';
@@ -71,6 +72,7 @@ export default function SettingsIndex({
     activeTab: initialTab = 'profile',
     status 
 }: PageProps) {
+    const { t } = useTranslation();
     const { auth } = usePage<any>().props;
     const isAdmin = Array.isArray(auth?.user?.roles)
         ? auth.user.roles.some((role: { name?: string }) => role?.name === 'admin')
@@ -216,7 +218,7 @@ export default function SettingsIndex({
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
                 <main className="flex-1 overflow-auto">
-                    <Head title="Settings" />
+                    <Head title={t('settings_index.page_title')} />
                     
                     <div className="p-6 md:p-8 max-w-6xl mx-auto">
                         {/* Header */}
@@ -225,10 +227,10 @@ export default function SettingsIndex({
                                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                                     <Settings className="w-5 h-5 text-primary" />
                                 </div>
-                                <h1 className="text-3xl font-display font-bold">Settings</h1>
+                                <h1 className="text-3xl font-display font-bold">{t('settings_index.heading')}</h1>
                             </div>
                             <p className="text-muted-foreground">
-                                Manage your application settings, email configuration, and profile
+                                {t('settings_index.subheading')}
                             </p>
                         </div>
 
@@ -245,12 +247,12 @@ export default function SettingsIndex({
                         {/* Tab-based Settings */}
                         <Tabs value={activeTab} onValueChange={handleTabChange}>
                             <TabsList className="w-full justify-start">
-                                <TabsTrigger value="profile">Profile</TabsTrigger>
-                                <TabsTrigger value="password">Password</TabsTrigger>
-                                {isAdmin && <TabsTrigger value="smtp">SMTP/Email</TabsTrigger>}
-                                {isAdmin && <TabsTrigger value="app">App</TabsTrigger>}
-                                <TabsTrigger value="appearance">Appearance</TabsTrigger>
-                                <TabsTrigger value="security">Security</TabsTrigger>
+                                <TabsTrigger value="profile">{t('settings_index.tabs.profile')}</TabsTrigger>
+                                <TabsTrigger value="password">{t('settings_index.tabs.password')}</TabsTrigger>
+                                {isAdmin && <TabsTrigger value="smtp">{t('settings_index.tabs.smtp')}</TabsTrigger>}
+                                {isAdmin && <TabsTrigger value="app">{t('settings_index.tabs.app')}</TabsTrigger>}
+                                <TabsTrigger value="appearance">{t('settings_index.tabs.appearance')}</TabsTrigger>
+                                <TabsTrigger value="security">{t('settings_index.tabs.security')}</TabsTrigger>
                             </TabsList>
 
                             <div className="space-y-6 mt-6">
@@ -260,9 +262,9 @@ export default function SettingsIndex({
                                 <div className="space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Profile Information</CardTitle>
+                                        <CardTitle>{t('settings_index.profile.title')}</CardTitle>
                                         <CardDescription>
-                                            Update your personal info, contact details, and location
+                                            {t('settings_index.profile.description')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
@@ -277,15 +279,15 @@ export default function SettingsIndex({
                                                         {auth?.user?.profile_photo_url ? (
                                                             <img
                                                                 src={auth.user.profile_photo_url}
-                                                                alt="Profile photo"
+                                                                alt={t('settings_index.profile.photo_alt')}
                                                                 className="w-full h-full object-cover"
                                                             />
                                                         ) : (
-                                                            <span className="text-sm font-semibold text-muted-foreground">No photo</span>
+                                                            <span className="text-sm font-semibold text-muted-foreground">{t('settings_index.profile.no_photo')}</span>
                                                         )}
                                                     </div>
                                                     <Label htmlFor="profile_photo" className="cursor-pointer">
-                                                        Upload photo
+                                                        {t('settings_index.profile.upload_photo')}
                                                     </Label>
                                                     <Input
                                                         id="profile_photo"
@@ -304,7 +306,7 @@ export default function SettingsIndex({
 
                                                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div className="space-y-2">
-                                                        <Label htmlFor="name">Full Name</Label>
+                                                        <Label htmlFor="name">{t('settings_index.profile.fields.full_name')}</Label>
                                                         <Input
                                                             id="name"
                                                             name="name"
@@ -319,7 +321,7 @@ export default function SettingsIndex({
                                                     </div>
 
                                                     <div className="space-y-2">
-                                                        <Label htmlFor="email">Email Address</Label>
+                                                        <Label htmlFor="email">{t('settings_index.profile.fields.email_address')}</Label>
                                                         <Input
                                                             id="email"
                                                             type="email"
@@ -338,7 +340,7 @@ export default function SettingsIndex({
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="phone">Phone number</Label>
+                                                    <Label htmlFor="phone">{t('settings_index.profile.fields.phone')}</Label>
                                                     <Input
                                                         id="phone"
                                                         name="phone"
@@ -348,13 +350,13 @@ export default function SettingsIndex({
                                                             clearInertiaFieldError(profileForm.clearErrors, 'phone');
                                                         }}
                                                         autoComplete="tel"
-                                                        placeholder="Phone number"
+                                                        placeholder={t('settings_index.profile.fields.phone_placeholder')}
                                                     />
                                                     <InputError message={profileForm.errors.phone} />
                                                 </div>
 
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="address">Address</Label>
+                                                    <Label htmlFor="address">{t('settings_index.profile.fields.address')}</Label>
                                                     <Input
                                                         id="address"
                                                         name="address"
@@ -364,7 +366,7 @@ export default function SettingsIndex({
                                                             clearInertiaFieldError(profileForm.clearErrors, 'address');
                                                         }}
                                                         autoComplete="street-address"
-                                                        placeholder="Street address"
+                                                        placeholder={t('settings_index.profile.fields.address_placeholder')}
                                                     />
                                                     <InputError message={profileForm.errors.address} />
                                                 </div>
@@ -372,7 +374,7 @@ export default function SettingsIndex({
 
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="city">City</Label>
+                                                    <Label htmlFor="city">{t('settings_index.profile.fields.city')}</Label>
                                                     <Input
                                                         id="city"
                                                         name="city"
@@ -381,13 +383,13 @@ export default function SettingsIndex({
                                                             profileForm.setData('city', e.target.value);
                                                             clearInertiaFieldError(profileForm.clearErrors, 'city');
                                                         }}
-                                                        placeholder="City"
+                                                        placeholder={t('settings_index.profile.fields.city_placeholder')}
                                                     />
                                                     <InputError message={profileForm.errors.city} />
                                                 </div>
 
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="state">State / Province</Label>
+                                                    <Label htmlFor="state">{t('settings_index.profile.fields.state')}</Label>
                                                     <Input
                                                         id="state"
                                                         name="state"
@@ -396,13 +398,13 @@ export default function SettingsIndex({
                                                             profileForm.setData('state', e.target.value);
                                                             clearInertiaFieldError(profileForm.clearErrors, 'state');
                                                         }}
-                                                        placeholder="State"
+                                                        placeholder={t('settings_index.profile.fields.state_placeholder')}
                                                     />
                                                     <InputError message={profileForm.errors.state} />
                                                 </div>
 
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="latitude">Latitude</Label>
+                                                    <Label htmlFor="latitude">{t('settings_index.profile.fields.latitude')}</Label>
                                                     <Input
                                                         id="latitude"
                                                         name="latitude"
@@ -413,7 +415,7 @@ export default function SettingsIndex({
                                                             profileForm.setData('latitude', e.target.value);
                                                             clearInertiaFieldError(profileForm.clearErrors, 'latitude');
                                                         }}
-                                                        placeholder="Latitude"
+                                                        placeholder={t('settings_index.profile.fields.latitude_placeholder')}
                                                     />
                                                     <InputError message={profileForm.errors.latitude} />
                                                 </div>
@@ -421,7 +423,7 @@ export default function SettingsIndex({
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="longitude">Longitude</Label>
+                                                    <Label htmlFor="longitude">{t('settings_index.profile.fields.longitude')}</Label>
                                                     <Input
                                                         id="longitude"
                                                         name="longitude"
@@ -432,7 +434,7 @@ export default function SettingsIndex({
                                                             profileForm.setData('longitude', e.target.value);
                                                             clearInertiaFieldError(profileForm.clearErrors, 'longitude');
                                                         }}
-                                                        placeholder="Longitude"
+                                                        placeholder={t('settings_index.profile.fields.longitude_placeholder')}
                                                     />
                                                     <InputError message={profileForm.errors.longitude} />
                                                 </div>
@@ -441,18 +443,18 @@ export default function SettingsIndex({
                                             {mustVerifyEmail && auth?.user?.email_verified_at === null && (
                                                 <div>
                                                     <p className="text-sm text-muted-foreground">
-                                                        Your email address is unverified.{' '}
+                                                        {t('settings_index.profile.unverified_message')}{' '}
                                                         <Link
                                                             href={send()}
                                                             as="button"
                                                             className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current dark:decoration-neutral-500"
                                                         >
-                                                            Click here to resend the verification email.
+                                                            {t('settings_index.profile.resend_verification')}
                                                         </Link>
                                                     </p>
                                                     {status === 'verification-link-sent' && (
                                                         <div className="mt-2 text-sm font-medium text-green-600">
-                                                            A new verification link has been sent to your email address.
+                                                            {t('settings_index.profile.verification_sent')}
                                                         </div>
                                                     )}
                                                 </div>
@@ -461,16 +463,16 @@ export default function SettingsIndex({
                                             <div className="flex items-center gap-4">
                                                 <Button type="submit" disabled={profileForm.processing}>
                                                     {profileForm.processing ? (
-                                                        <>Saving...</>
+                                                        <>{t('settings_index.common.saving')}</>
                                                     ) : (
                                                         <>
                                                             <Save className="w-4 h-4 mr-2" />
-                                                            Save Changes
+                                                            {t('settings_index.profile.save_changes')}
                                                         </>
                                                     )}
                                                 </Button>
                                                 {profileForm.recentlySuccessful && (
-                                                    <span className="text-sm text-success">Saved!</span>
+                                                    <span className="text-sm text-success">{t('settings_index.common.saved_bang')}</span>
                                                 )}
                                             </div>
                                         </form>
@@ -485,9 +487,9 @@ export default function SettingsIndex({
                                 <div className="space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Change Password</CardTitle>
+                                        <CardTitle>{t('settings_index.password.title')}</CardTitle>
                                         <CardDescription>
-                                            Update your account password. Ensure your account is using a long, random password to stay secure.
+                                            {t('settings_index.password.description')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
@@ -511,7 +513,7 @@ export default function SettingsIndex({
                                             {({ errors, processing, recentlySuccessful, clearErrors }) => (
                                                 <>
                                                     <div className="grid gap-2">
-                                                        <Label htmlFor="current_password">Current password</Label>
+                                                        <Label htmlFor="current_password">{t('settings_index.password.fields.current_password')}</Label>
                                                         <Input
                                                             id="current_password"
                                                             ref={currentPasswordInput}
@@ -519,14 +521,14 @@ export default function SettingsIndex({
                                                             type="password"
                                                             className="mt-1 block w-full"
                                                             autoComplete="current-password"
-                                                            placeholder="Current password"
+                                                            placeholder={t('settings_index.password.fields.current_password_placeholder')}
                                                             onChange={() => clearInertiaFieldError(clearErrors, 'current_password')}
                                                         />
                                                         <InputError message={errors.current_password} />
                                                     </div>
 
                                                     <div className="grid gap-2">
-                                                        <Label htmlFor="password">New password</Label>
+                                                        <Label htmlFor="password">{t('settings_index.password.fields.new_password')}</Label>
                                                         <Input
                                                             id="password"
                                                             ref={passwordInput}
@@ -534,21 +536,21 @@ export default function SettingsIndex({
                                                             type="password"
                                                             className="mt-1 block w-full"
                                                             autoComplete="new-password"
-                                                            placeholder="New password"
+                                                            placeholder={t('settings_index.password.fields.new_password_placeholder')}
                                                             onChange={() => clearInertiaFieldError(clearErrors, 'password')}
                                                         />
                                                         <InputError message={errors.password} />
                                                     </div>
 
                                                     <div className="grid gap-2">
-                                                        <Label htmlFor="password_confirmation">Confirm password</Label>
+                                                        <Label htmlFor="password_confirmation">{t('settings_index.password.fields.confirm_password')}</Label>
                                                         <Input
                                                             id="password_confirmation"
                                                             name="password_confirmation"
                                                             type="password"
                                                             className="mt-1 block w-full"
                                                             autoComplete="new-password"
-                                                            placeholder="Confirm password"
+                                                            placeholder={t('settings_index.password.fields.confirm_password_placeholder')}
                                                             onChange={() => clearInertiaFieldError(clearErrors, 'password_confirmation')}
                                                         />
                                                         <InputError message={errors.password_confirmation} />
@@ -557,11 +559,11 @@ export default function SettingsIndex({
                                                     <div className="flex items-center gap-4">
                                                         <Button disabled={processing} data-test="update-password-button">
                                                             <Save className="w-4 h-4 mr-2" />
-                                                            Save password
+                                                            {t('settings_index.password.save_password')}
                                                         </Button>
 
                                                         {recentlySuccessful && (
-                                                            <p className="text-sm text-success">Saved</p>
+                                                            <p className="text-sm text-success">{t('settings_index.common.saved')}</p>
                                                         )}
                                                     </div>
                                                 </>
@@ -582,9 +584,9 @@ export default function SettingsIndex({
                                             <CheckCircle2 className="h-4 w-4 text-success" />
                                             <AlertDescription>
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-success font-medium">SMTP is configured and active</span>
+                                                    <span className="text-success font-medium">{t('settings_index.smtp.configured_active')}</span>
                                                     <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                                                        Active
+                                                        {t('settings_index.smtp.active')}
                                                     </Badge>
                                                 </div>
                                             </AlertDescription>
@@ -595,10 +597,10 @@ export default function SettingsIndex({
                                             <AlertDescription>
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-orange-800 dark:text-orange-200 font-medium">
-                                                        SMTP is not configured. Email services are disabled.
+                                                        {t('settings_index.smtp.not_configured')}
                                                     </span>
                                                     <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300">
-                                                        Inactive
+                                                        {t('settings_index.smtp.inactive')}
                                                     </Badge>
                                                 </div>
                                             </AlertDescription>
@@ -609,16 +611,16 @@ export default function SettingsIndex({
                                 {/* SMTP Configuration */}
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Email Configuration</CardTitle>
+                                        <CardTitle>{t('settings_index.smtp.title')}</CardTitle>
                                         <CardDescription>
-                                            Configure SMTP settings for sending emails
+                                            {t('settings_index.smtp.description')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         <form onSubmit={handleSmtpSubmit} className="space-y-4">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="mailer">Mailer Type</Label>
+                                                    <Label htmlFor="mailer">{t('settings_index.smtp.fields.mailer_type')}</Label>
                                                     <select
                                                         id="mailer"
                                                         value={smtpForm.data.mailer}
@@ -638,7 +640,7 @@ export default function SettingsIndex({
                                                 {smtpForm.data.mailer === 'smtp' && (
                                                     <>
                                                         <div className="space-y-2">
-                                                            <Label htmlFor="host">SMTP Host</Label>
+                                                        <Label htmlFor="host">{t('settings_index.smtp.fields.smtp_host')}</Label>
                                                             <Input
                                                                 id="host"
                                                                 value={smtpForm.data.host}
@@ -652,7 +654,7 @@ export default function SettingsIndex({
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <Label htmlFor="port">SMTP Port</Label>
+                                                        <Label htmlFor="port">{t('settings_index.smtp.fields.smtp_port')}</Label>
                                                             <Input
                                                                 id="port"
                                                                 type="number"
@@ -667,7 +669,7 @@ export default function SettingsIndex({
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <Label htmlFor="username">Username</Label>
+                                                        <Label htmlFor="username">{t('settings_index.smtp.fields.username')}</Label>
                                                             <Input
                                                                 id="username"
                                                                 value={smtpForm.data.username}
@@ -675,12 +677,12 @@ export default function SettingsIndex({
                                                                     smtpForm.setData('username', e.target.value);
                                                                     clearInertiaFieldError(smtpForm.clearErrors, 'username');
                                                                 }}
-                                                                placeholder="SMTP username"
+                                                                placeholder={t('settings_index.smtp.fields.username_placeholder')}
                                                             />
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <Label htmlFor="password">Password</Label>
+                                                            <Label htmlFor="password">{t('settings_index.smtp.fields.password')}</Label>
                                                             <Input
                                                                 id="password"
                                                                 type="password"
@@ -689,12 +691,12 @@ export default function SettingsIndex({
                                                                     smtpForm.setData('password', e.target.value);
                                                                     clearInertiaFieldError(smtpForm.clearErrors, 'password');
                                                                 }}
-                                                                placeholder="Leave empty to keep current"
+                                                                placeholder={t('settings_index.smtp.fields.password_placeholder')}
                                                             />
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <Label htmlFor="encryption">Encryption</Label>
+                                                            <Label htmlFor="encryption">{t('settings_index.smtp.fields.encryption')}</Label>
                                                             <select
                                                                 id="encryption"
                                                                 value={smtpForm.data.encryption}
@@ -714,7 +716,7 @@ export default function SettingsIndex({
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="from_address">From Email Address</Label>
+                                                    <Label htmlFor="from_address">{t('settings_index.smtp.fields.from_email')}</Label>
                                                     <Input
                                                         id="from_address"
                                                         type="email"
@@ -729,7 +731,7 @@ export default function SettingsIndex({
                                                 </div>
 
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="from_name">From Name</Label>
+                                                    <Label htmlFor="from_name">{t('settings_index.smtp.fields.from_name')}</Label>
                                                     <Input
                                                         id="from_name"
                                                         value={smtpForm.data.from_name}
@@ -746,11 +748,11 @@ export default function SettingsIndex({
                                             <div className="flex items-center gap-4 pt-4">
                                                 <Button type="submit" disabled={smtpForm.processing}>
                                                     {smtpForm.processing ? (
-                                                        <>Saving...</>
+                                                        <>{t('settings_index.common.saving')}</>
                                                     ) : (
                                                         <>
                                                             <Save className="w-4 h-4 mr-2" />
-                                                            Save SMTP Settings
+                                                            {t('settings_index.smtp.save_settings')}
                                                         </>
                                                     )}
                                                 </Button>
@@ -758,7 +760,7 @@ export default function SettingsIndex({
 
                                             <div className="rounded-lg border bg-muted/50 p-4 mt-4">
                                                 <p className="text-sm text-muted-foreground">
-                                                    <strong>Note:</strong> After updating SMTP settings, you need to update your <code className="text-xs bg-background px-1 py-0.5 rounded">.env</code> file with these values and restart your application.
+                                                    <strong>{t('settings_index.smtp.note_label')}</strong> {t('settings_index.smtp.note_text')} <code className="text-xs bg-background px-1 py-0.5 rounded">.env</code> {t('settings_index.smtp.note_text_tail')}
                                                 </p>
                                             </div>
                                         </form>
@@ -768,15 +770,15 @@ export default function SettingsIndex({
                                 {/* Test Email */}
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Test Email Configuration</CardTitle>
+                                        <CardTitle>{t('settings_index.smtp.test_title')}</CardTitle>
                                         <CardDescription>
-                                            Send a test email to verify your SMTP settings
+                                            {t('settings_index.smtp.test_description')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         <form onSubmit={handleTestEmail} className="space-y-4">
                                             <div className="space-y-2">
-                                                <Label htmlFor="test_email">Test Email Address</Label>
+                                                <Label htmlFor="test_email">{t('settings_index.smtp.fields.test_email')}</Label>
                                                 <Input
                                                     id="test_email"
                                                     type="email"
@@ -795,11 +797,11 @@ export default function SettingsIndex({
                                                 disabled={testingEmail || !smtpConfigured}
                                             >
                                                 {testingEmail ? (
-                                                    <>Sending...</>
+                                                    <>{t('settings_index.smtp.sending')}</>
                                                 ) : (
                                                     <>
                                                         <TestTube className="w-4 h-4 mr-2" />
-                                                        Send Test Email
+                                                        {t('settings_index.smtp.send_test_email')}
                                                     </>
                                                 )}
                                             </Button>
@@ -814,15 +816,15 @@ export default function SettingsIndex({
                             <div className="space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Application Settings</CardTitle>
+                                        <CardTitle>{t('settings_index.app.title')}</CardTitle>
                                         <CardDescription>
-                                            Configure your application name and logo
+                                            {t('settings_index.app.description')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         <form onSubmit={handleAppSubmit} className="space-y-6">
                                             <div className="space-y-2">
-                                                <Label htmlFor="app_name">Application Name</Label>
+                                                <Label htmlFor="app_name">{t('settings_index.app.fields.application_name')}</Label>
                                                 <Input
                                                     id="app_name"
                                                     value={appForm.data.name}
@@ -836,12 +838,12 @@ export default function SettingsIndex({
                                             </div>
 
                                             <div className="space-y-2">
-                                                <Label htmlFor="app_logo">Application Logo</Label>
+                                                <Label htmlFor="app_logo">{t('settings_index.app.fields.application_logo')}</Label>
                                                 <div className="flex items-center gap-4">
                                                     {appSettings.logo && (
                                                         <img 
                                                             src={appSettings.logo} 
-                                                            alt="Current logo" 
+                                                            alt={t('settings_index.app.fields.current_logo_alt')} 
                                                             className="w-16 h-16 object-contain border rounded"
                                                         />
                                                     )}
@@ -860,16 +862,16 @@ export default function SettingsIndex({
                                                     />
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Recommended: SVG or PNG, max 2MB
+                                                    {t('settings_index.app.fields.logo_help')}
                                                 </p>
                                             </div>
 
                                             <div className="space-y-2 border rounded-md p-4 bg-muted/30">
                                                 <div className="flex items-center justify-between gap-4">
                                                     <div>
-                                                        <Label htmlFor="require_admin_approval">Require admin approval for new accounts</Label>
+                                                        <Label htmlFor="require_admin_approval">{t('settings_index.app.fields.require_admin_approval')}</Label>
                                                         <p className="text-xs text-muted-foreground mt-1">
-                                                            When enabled, new users must wait until admin approval before accessing the system.
+                                                            {t('settings_index.app.fields.require_admin_approval_help')}
                                                         </p>
                                                     </div>
                                                     <input
@@ -884,11 +886,11 @@ export default function SettingsIndex({
 
                                             <Button type="submit" disabled={appForm.processing}>
                                                 {appForm.processing ? (
-                                                    <>Saving...</>
+                                                    <>{t('settings_index.common.saving')}</>
                                                 ) : (
                                                     <>
                                                         <Save className="w-4 h-4 mr-2" />
-                                                        Save Application Settings
+                                                        {t('settings_index.app.save_settings')}
                                                     </>
                                                 )}
                                             </Button>
@@ -903,17 +905,17 @@ export default function SettingsIndex({
                                 <div className="space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Appearance Settings</CardTitle>
+                                        <CardTitle>{t('settings_index.appearance.title')}</CardTitle>
                                         <CardDescription>
-                                            Customize the look and feel of your application
+                                            {t('settings_index.appearance.description')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         <div className="space-y-4">
                                             <div>
-                                                <Label>Theme</Label>
+                                                <Label>{t('settings_index.appearance.theme')}</Label>
                                                 <p className="text-sm text-muted-foreground mb-4">
-                                                    Choose your preferred theme
+                                                    {t('settings_index.appearance.theme_help')}
                                                 </p>
                                                 <AppearanceToggleTab />
                                             </div>
@@ -928,17 +930,17 @@ export default function SettingsIndex({
                                 <div className="space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Two-Factor Authentication</CardTitle>
+                                        <CardTitle>{t('settings_index.security.title')}</CardTitle>
                                         <CardDescription>
-                                            Manage your two-factor authentication settings
+                                            {t('settings_index.security.description')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         {twoFactorEnabled ? (
                                             <div className="flex flex-col items-start justify-start space-y-4">
-                                                <Badge variant="default">Enabled</Badge>
+                                                <Badge variant="default">{t('settings_index.security.enabled')}</Badge>
                                                 <p className="text-muted-foreground">
-                                                    With two-factor authentication enabled, you will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.
+                                                    {t('settings_index.security.enabled_help')}
                                                 </p>
 
                                                 <TwoFactorRecoveryCodes
@@ -956,7 +958,7 @@ export default function SettingsIndex({
                                                                 disabled={processing}
                                                             >
                                                                 <ShieldBan className="w-4 h-4 mr-2" />
-                                                                Disable 2FA
+                                                                {t('settings_index.security.disable_2fa')}
                                                             </Button>
                                                         )}
                                                     </Form>
@@ -964,16 +966,16 @@ export default function SettingsIndex({
                                             </div>
                                         ) : (
                                             <div className="flex flex-col items-start justify-start space-y-4">
-                                                <Badge variant="destructive">Disabled</Badge>
+                                                <Badge variant="destructive">{t('settings_index.security.disabled')}</Badge>
                                                 <p className="text-muted-foreground">
-                                                    When you enable two-factor authentication, you will be prompted for a secure pin during login. This pin can be retrieved from a TOTP-supported application on your phone.
+                                                    {t('settings_index.security.disabled_help')}
                                                 </p>
 
                                                 <div>
                                                     {hasSetupData ? (
                                                         <Button onClick={() => setShowSetupModal(true)}>
                                                             <ShieldCheck className="w-4 h-4 mr-2" />
-                                                            Continue Setup
+                                                            {t('settings_index.security.continue_setup')}
                                                         </Button>
                                                     ) : (
                                                         <Form
@@ -983,7 +985,7 @@ export default function SettingsIndex({
                                                             {({ processing }) => (
                                                                 <Button type="submit" disabled={processing}>
                                                                     <ShieldCheck className="w-4 h-4 mr-2" />
-                                                                    Enable 2FA
+                                                                    {t('settings_index.security.enable_2fa')}
                                                                 </Button>
                                                             )}
                                                         </Form>

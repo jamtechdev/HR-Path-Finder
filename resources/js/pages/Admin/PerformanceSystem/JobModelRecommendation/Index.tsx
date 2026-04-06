@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
+import { useTranslation } from 'react-i18next';
 
 interface JobEvaluationModelRecommendation {
     id: number;
@@ -30,6 +31,7 @@ interface Props {
 }
 
 export default function JobModelRecommendationIndex({ recommendations, jobKeywords, modelTypes }: Props) {
+    const { t } = useTranslation();
     const [showAddDialog, setShowAddDialog] = useState(false);
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         job_keyword_id: '',
@@ -60,7 +62,7 @@ export default function JobModelRecommendationIndex({ recommendations, jobKeywor
     };
 
     const handleDelete = (recommendationId: number) => {
-        if (confirm('Are you sure you want to delete this recommendation?')) {
+        if (confirm(t('admin_job_model_recommendation.confirm_delete'))) {
             router.delete(`/admin/job-model-recommendation/${recommendationId}`);
         }
     };
@@ -77,52 +79,52 @@ export default function JobModelRecommendationIndex({ recommendations, jobKeywor
             <SidebarInset>
                 <AppHeader />
                 <div className="p-6 md:p-8 max-w-7xl mx-auto">
-                    <Head title="Job Evaluation Model Recommendations" />
+                    <Head title={t('admin_job_model_recommendation.page_title')} />
                     
                     <div className="mb-6 flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold">Job Evaluation Model Recommendations</h1>
+                            <h1 className="text-3xl font-bold">{t('admin_job_model_recommendation.heading')}</h1>
                             <p className="text-muted-foreground mt-1">
-                                Configure recommended evaluation models for each job keyword
+                                {t('admin_job_model_recommendation.subheading')}
                             </p>
                         </div>
                         <Button onClick={handleAdd}>
                             <Plus className="w-4 h-4 mr-2" />
-                            Add Recommendation
+                            {t('admin_job_model_recommendation.actions.add_recommendation')}
                         </Button>
                     </div>
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Recommendations</CardTitle>
+                            <CardTitle>{t('admin_job_model_recommendation.list_title')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
                                 {recommendations.length === 0 ? (
                                     <div className="text-center py-12 text-muted-foreground">
-                                        No recommendations found. Click "Add Recommendation" to create one.
+                                        {t('admin_job_model_recommendation.empty')}
                                     </div>
                                 ) : (
                                     <div className="overflow-x-auto">
                                         <table className="w-full">
                                             <thead>
                                                 <tr className="border-b">
-                                                    <th className="text-left p-3">Job Keyword</th>
-                                                    <th className="text-left p-3">Recommended Model</th>
-                                                    <th className="text-left p-3">Status</th>
-                                                    <th className="text-right p-3">Actions</th>
+                                                    <th className="text-left p-3">{t('admin_job_model_recommendation.table.job_keyword')}</th>
+                                                    <th className="text-left p-3">{t('admin_job_model_recommendation.table.recommended_model')}</th>
+                                                    <th className="text-left p-3">{t('admin_job_model_recommendation.table.status')}</th>
+                                                    <th className="text-right p-3">{t('admin_job_model_recommendation.table.actions')}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {recommendations.map((rec) => (
                                                     <tr key={rec.id} className="border-b hover:bg-muted/50">
-                                                        <td className="p-3">{rec.job_keyword?.name || 'N/A'}</td>
+                                                        <td className="p-3">{rec.job_keyword?.name || t('admin_job_model_recommendation.na')}</td>
                                                         <td className="p-3">
                                                             <Badge>{modelTypes[rec.recommended_model]}</Badge>
                                                         </td>
                                                         <td className="p-3">
                                                             <Badge variant={rec.is_active ? 'default' : 'secondary'}>
-                                                                {rec.is_active ? 'Active' : 'Inactive'}
+                                                                {rec.is_active ? t('admin_job_model_recommendation.status.active') : t('admin_job_model_recommendation.status.inactive')}
                                                             </Badge>
                                                         </td>
                                                         <td className="p-3 text-right">
@@ -158,20 +160,20 @@ export default function JobModelRecommendationIndex({ recommendations, jobKeywor
                     <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Add Job Model Recommendation</DialogTitle>
+                            <DialogTitle>{t('admin_job_model_recommendation.dialog.title')}</DialogTitle>
                                 <DialogDescription>
-                                    Select a job keyword and its recommended evaluation model
+                                    {t('admin_job_model_recommendation.dialog.description')}
                                 </DialogDescription>
                             </DialogHeader>
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
-                                    <Label htmlFor="job_keyword_id">Job Keyword *</Label>
+                                    <Label htmlFor="job_keyword_id">{t('admin_job_model_recommendation.dialog.job_keyword')}</Label>
                                     <Select
                                         value={data.job_keyword_id}
                                         onValueChange={(value) => setData('job_keyword_id', value)}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select job keyword" />
+                                            <SelectValue placeholder={t('admin_job_model_recommendation.dialog.job_keyword_placeholder')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {availableJobKeywords.map((job) => (
@@ -187,13 +189,13 @@ export default function JobModelRecommendationIndex({ recommendations, jobKeywor
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="recommended_model">Recommended Model *</Label>
+                                    <Label htmlFor="recommended_model">{t('admin_job_model_recommendation.dialog.recommended_model')}</Label>
                                     <Select
                                         value={data.recommended_model}
                                         onValueChange={(value) => setData('recommended_model', value)}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select model" />
+                                            <SelectValue placeholder={t('admin_job_model_recommendation.dialog.model_placeholder')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {Object.entries(modelTypes).map(([key, label]) => (
@@ -214,10 +216,10 @@ export default function JobModelRecommendationIndex({ recommendations, jobKeywor
                                         variant="outline"
                                         onClick={() => setShowAddDialog(false)}
                                     >
-                                        Cancel
+                                        {t('common.cancel')}
                                     </Button>
                                     <Button type="submit" disabled={processing}>
-                                        Create
+                                        {t('common.create')}
                                     </Button>
                                 </div>
                             </form>

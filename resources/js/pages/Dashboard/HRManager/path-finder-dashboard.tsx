@@ -5,10 +5,10 @@ import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/AppLayout';
 
 const STEP_CONFIG = [
-  { id: 'diagnosis', num: 1, name: 'Diagnosis', title: 'Diagnosis', desc: '회사 기본 정보, 업종, 인력 현황, 조직 구조, 핵심 HR 이슈를 입력합니다.' },
-  { id: 'job_analysis', num: 2, name: 'Job Analysis', title: 'Job Analysis', desc: '직무 역할, 책임, 역량, 조직 매핑을 정의합니다.' },
-  { id: 'performance', num: 3, name: 'Performance System', title: 'Performance System', desc: '평가 단위, 성과 관리 방법론, 평가 구조를 설계합니다.' },
-  { id: 'compensation', num: 4, name: 'Compensation System', title: 'Compensation System', desc: '보상 구조, 차등화 방법론, 인센티브 컴포넌트를 정의합니다.' },
+  { id: 'diagnosis', num: 1 },
+  { id: 'job_analysis', num: 2 },
+  { id: 'performance', num: 3 },
+  { id: 'compensation', num: 4 },
 ];
 
 interface StageProgressPercentMap {
@@ -102,23 +102,23 @@ export default function PathFinderDashboard({
 }: PathFinderDashboardProps) {
   const { t } = useTranslation();
   const currentStepKey = progress.currentStepKey ?? 'diagnosis';
-  const currentStepTitle = STEP_CONFIG.find((s) => s.id === currentStepKey)?.title ?? 'Diagnosis';
+  const currentStepTitle = t(`steps.${currentStepKey}`);
   const companyName = company?.name ?? activeProject?.company?.name ?? null;
   const isCurrentStepSubmitted = (stepStatuses[currentStepKey] ?? 'not_started') === 'submitted';
 
   const phaseStatusText = useMemo(() => {
     const status = stepStatuses[currentStepKey] ?? 'not_started';
-    const title = STEP_CONFIG.find((s) => s.id === currentStepKey)?.title ?? 'Current step';
+    const title = t(`steps.${currentStepKey}`);
     if (status === 'submitted') {
       return {
-        title: `${title} submitted — waiting for review`,
-        hint: 'You can continue to the next available step while review is in progress.',
+        title: t('pathfinder_dashboard.phase.submitted_title', { title }),
+        hint: t('pathfinder_dashboard.phase.submitted_hint'),
       };
     }
     if (status === 'in_progress') {
       return {
-        title: `${title} is in progress`,
-        hint: 'Your draft is kept while moving between steps.',
+        title: t('pathfinder_dashboard.phase.in_progress_title', { title }),
+        hint: t('pathfinder_dashboard.phase.in_progress_hint'),
       };
     }
     return null;
@@ -138,6 +138,8 @@ export default function PathFinderDashboard({
     return {
       ...s,
       step: s.num,
+      title: t(`steps.${s.id}`),
+      desc: t(`pathfinder_dashboard.steps.${s.id}_desc`),
       status: state,
       progress: stepProgress,
       stepStatus: stepStatuses[s.id],
@@ -149,7 +151,7 @@ export default function PathFinderDashboard({
     const onboardingProgress = 0;
     return (
       <AppLayout stepStatuses={{}} projectId={undefined} ceoPhilosophyStatus="not_started">
-        <Head title="HR Path-Finder — Dashboard" />
+        <Head title={t('pathfinder_dashboard.page_title')} />
             <div className="min-h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans">
           <div className="py-[30px] px-4 md:px-9">
             <div className="mb-6">
@@ -163,7 +165,7 @@ export default function PathFinderDashboard({
             {/* Blue banner - Step 1 in progress */}
             <div className="bg-gradient-to-br from-[var(--hr-navy)] to-[var(--hr-navy-mid)] rounded-[14px] p-7 md:px-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-6 relative overflow-hidden">
               <div className="relative z-[1]">
-                <h2 className="text-base font-bold text-white mb-1.5">Step 1: Diagnosis {t('dashboard.pathfinder.in_progress')}</h2>
+                <h2 className="text-base font-bold text-white mb-1.5">{t('pathfinder_dashboard.step_1_in_progress')}</h2>
                 <p className="text-[12.5px] text-white/55 max-w-[380px] leading-relaxed">
                   {t('dashboard.pathfinder.banner_desc')}
                 </p>
@@ -198,15 +200,15 @@ export default function PathFinderDashboard({
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#4ecdc4] to-[#3ab5ad]" />
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">Step 1</span>
+                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">{t('pathfinder_dashboard.step_n', { n: 1 })}</span>
                     <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px]">● {t('dashboard.pathfinder.in_progress')}</span>
                   </div>
                 </div>
                 <div className="w-9 h-9 rounded-[10px] bg-[rgba(78,205,196,0.12)] flex items-center justify-center text-base mb-2.5">
                   <Building2 className="w-5 h-5 text-[#4ecdc4]" />
                 </div>
-                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5 tracking-[-0.2px]">Diagnosis</h4>
-                <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed mb-4">{STEP_CONFIG[0].desc}</p>
+                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5 tracking-[-0.2px]">{t('steps.diagnosis')}</h4>
+                <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed mb-4">{t('pathfinder_dashboard.steps.diagnosis_desc')}</p>
                 <div className="mb-4">
                   <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 mb-1">
                     <span>{t('dashboard.pathfinder.progress_label')}</span>
@@ -231,7 +233,7 @@ export default function PathFinderDashboard({
                 <div key={step.id} className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 opacity-70">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">Step {step.num}</span>
+                      <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">{t('pathfinder_dashboard.step_n', { n: step.num })}</span>
                       <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px] inline-flex items-center gap-1">
                         <Lock className="w-3 h-3" />
                         {t('dashboard.pathfinder.locked')}
@@ -241,8 +243,8 @@ export default function PathFinderDashboard({
                       <Lock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                     </div>
                   </div>
-                  <h4 className="text-sm font-bold text-slate-400 dark:text-slate-500 mb-1.5">{step.title}</h4>
-                  <p className="text-[11.5px] text-slate-400 dark:text-slate-500 leading-relaxed mb-4">{step.desc}</p>
+                  <h4 className="text-sm font-bold text-slate-400 dark:text-slate-500 mb-1.5">{t(`steps.${step.id}`)}</h4>
+                  <p className="text-[11.5px] text-slate-400 dark:text-slate-500 leading-relaxed mb-4">{t(`pathfinder_dashboard.steps.${step.id}_desc`)}</p>
                   <div className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500">
                     <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
                     {t('dashboard.pathfinder.prev_step_required_after')}
@@ -258,7 +260,7 @@ export default function PathFinderDashboard({
 
   return (
     <AppLayout stepStatuses={stepStatuses} projectId={projectId ?? undefined} ceoPhilosophyStatus={ceoPhilosophyStatus}>
-      <Head title="HR Path-Finder — Dashboard" />
+      <Head title={t('pathfinder_dashboard.page_title')} />
       <div className="min-h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans">
         <div className="py-[30px] px-4 md:px-9">
             {/* PAGE HEADER + COMPANY TAG */}
@@ -329,7 +331,7 @@ export default function PathFinderDashboard({
                   <span className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.6px]">{t('dashboard.pathfinder.current_step')}</span>
                   <span className="text-[9.5px] font-semibold py-0.5 px-1.5 rounded-[20px] bg-[rgba(78,205,196,0.12)] text-[#2ea89e]">{t('dashboard.pathfinder.active')}</span>
                 </div>
-                <div className="text-[22px] font-bold text-slate-800 dark:text-slate-100 mt-1">Step {progress.currentStepNumber}</div>
+                <div className="text-[22px] font-bold text-slate-800 dark:text-slate-100 mt-1">{t('pathfinder_dashboard.step_n', { n: progress.currentStepNumber })}</div>
                 <div className="text-[11px] text-slate-400 dark:text-slate-500">{currentStepTitle}</div>
                 <div className="absolute bottom-3.5 right-4 opacity-[0.08]">
                   <Target className="w-[22px] h-[22px] text-slate-800 dark:text-slate-100" />
@@ -403,7 +405,7 @@ export default function PathFinderDashboard({
                         </div>
                         <div>
                           <div className="flex gap-1.5 mb-1.5">
-                            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">Step {card.step}</span>
+                            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">{t('pathfinder_dashboard.step_n', { n: card.step })}</span>
                             <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px] inline-flex items-center gap-1">
                               <CheckCircle2 className="w-3 h-3" />{t('dashboard.pathfinder.complete')}
                             </span>
@@ -424,7 +426,7 @@ export default function PathFinderDashboard({
                         </div>
                         <div>
                           <div className="flex gap-1.5 mb-1.5">
-                            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">Step {card.step}</span>
+                            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">{t('pathfinder_dashboard.step_n', { n: card.step })}</span>
                             <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px]">● {t('dashboard.pathfinder.in_progress')}</span>
                           </div>
                           <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">{card.title}</h4>
@@ -447,7 +449,7 @@ export default function PathFinderDashboard({
                         <div className="min-w-0">
                           <div className="flex flex-wrap gap-1.5 mb-1.5">
                             <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">
-                              Step {card.step}
+                              {t('pathfinder_dashboard.step_n', { n: card.step })}
                             </span>
                             <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px]">
                               {t('dashboard.pathfinder.always_open', 'Always open')}
@@ -488,7 +490,7 @@ export default function PathFinderDashboard({
                       <div>
                         <div className="flex gap-1.5 mb-1.5">
                           <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">
-                            Step {card.step}
+                            {t('pathfinder_dashboard.step_n', { n: card.step })}
                           </span>
                           <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">
                             {t('dashboard.pathfinder.locked')}
@@ -513,7 +515,7 @@ export default function PathFinderDashboard({
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">
-                          Step {card.step}
+                          {t('pathfinder_dashboard.step_n', { n: card.step })}
                         </span>
                         <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px] inline-flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3" />
@@ -547,7 +549,7 @@ export default function PathFinderDashboard({
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">
-                          Step {card.step}
+                          {t('pathfinder_dashboard.step_n', { n: card.step })}
                         </span>
                         <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px]">
                           ● {t('dashboard.pathfinder.in_progress')}
@@ -589,7 +591,7 @@ export default function PathFinderDashboard({
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">
-                          Step {card.step}
+                            {t('pathfinder_dashboard.step_n', { n: card.step })}
                         </span>
                         <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px] inline-flex items-center gap-1">
                             <Lock className="w-3 h-3" />

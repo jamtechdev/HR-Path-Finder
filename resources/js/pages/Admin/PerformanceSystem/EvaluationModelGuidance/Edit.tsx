@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
     guidance: {
@@ -32,6 +33,7 @@ interface Props {
 }
 
 export default function EvaluationModelGuidanceEdit({ guidance, modelTypes, jobKeywords }: Props) {
+    const { t } = useTranslation();
     const { data, setData, put, processing, errors, clearErrors } = useForm({
         model_type: guidance.model_type || '',
         concept: guidance.concept || '',
@@ -69,32 +71,32 @@ export default function EvaluationModelGuidanceEdit({ guidance, modelTypes, jobK
             <SidebarInset>
                 <AppHeader />
                 <div className="p-6 md:p-8 max-w-4xl mx-auto">
-                    <Head title="Edit Evaluation Model Guidance" />
+                    <Head title={t('admin_eval_model_guidance_edit.page_title')} />
                     
                     <div className="mb-6">
                         <Link href="/admin/evaluation-model-guidance">
                             <Button variant="ghost" className="mb-4">
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back to List
+                                {t('admin_eval_model_guidance_edit.back')}
                             </Button>
                         </Link>
-                        <h1 className="text-3xl font-bold">Edit Evaluation Model Guidance</h1>
+                        <h1 className="text-3xl font-bold">{t('admin_eval_model_guidance_edit.heading')}</h1>
                         <p className="text-muted-foreground mt-1">
-                            Update guidance content for evaluation models
+                            {t('admin_eval_model_guidance_edit.subheading')}
                         </p>
                     </div>
 
                     <form onSubmit={handleSubmit}>
                         <Card>
                             <CardHeader>
-                                <CardTitle>Guidance Details</CardTitle>
+                                <CardTitle>{t('admin_eval_model_guidance_edit.details_title')}</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 <div>
-                                    <Label htmlFor="model_type">Model Type *</Label>
+                                    <Label htmlFor="model_type">{t('admin_eval_model_guidance_edit.fields.model_type')}</Label>
                                     <Select value={data.model_type} onValueChange={(value) => setData('model_type', value)}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select model type" />
+                                            <SelectValue placeholder={t('admin_eval_model_guidance_edit.fields.model_type_placeholder')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {Object.entries(modelTypes).map(([key, label]) => (
@@ -108,7 +110,7 @@ export default function EvaluationModelGuidanceEdit({ guidance, modelTypes, jobK
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="concept">Concept *</Label>
+                                    <Label htmlFor="concept">{t('admin_eval_model_guidance_edit.fields.concept')}</Label>
                                     <Textarea
                                         id="concept"
                                         value={data.concept}
@@ -119,7 +121,7 @@ export default function EvaluationModelGuidanceEdit({ guidance, modelTypes, jobK
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="key_characteristics">Key Characteristics *</Label>
+                                    <Label htmlFor="key_characteristics">{t('admin_eval_model_guidance_edit.fields.key_characteristics')}</Label>
                                     <Textarea
                                         id="key_characteristics"
                                         value={data.key_characteristics}
@@ -130,7 +132,7 @@ export default function EvaluationModelGuidanceEdit({ guidance, modelTypes, jobK
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="example">Example *</Label>
+                                    <Label htmlFor="example">{t('admin_eval_model_guidance_edit.fields.example')}</Label>
                                     <Textarea
                                         id="example"
                                         value={data.example}
@@ -141,7 +143,7 @@ export default function EvaluationModelGuidanceEdit({ guidance, modelTypes, jobK
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="pros">Pros</Label>
+                                    <Label htmlFor="pros">{t('admin_eval_model_guidance_edit.fields.pros')}</Label>
                                     <Textarea
                                         id="pros"
                                         value={data.pros}
@@ -151,7 +153,7 @@ export default function EvaluationModelGuidanceEdit({ guidance, modelTypes, jobK
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="cons">Cons</Label>
+                                    <Label htmlFor="cons">{t('admin_eval_model_guidance_edit.fields.cons')}</Label>
                                     <Textarea
                                         id="cons"
                                         value={data.cons}
@@ -161,7 +163,7 @@ export default function EvaluationModelGuidanceEdit({ guidance, modelTypes, jobK
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="best_fit_organizations">Best Fit Organizations</Label>
+                                    <Label htmlFor="best_fit_organizations">{t('admin_eval_model_guidance_edit.fields.best_fit')}</Label>
                                     <Textarea
                                         id="best_fit_organizations"
                                         value={data.best_fit_organizations}
@@ -171,7 +173,7 @@ export default function EvaluationModelGuidanceEdit({ guidance, modelTypes, jobK
                                 </div>
 
                                 <div>
-                                    <Label>Recommended Job Keywords</Label>
+                                    <Label>{t('admin_eval_model_guidance_edit.fields.recommended_job_keywords')}</Label>
                                     <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border rounded-lg p-4">
                                         {jobKeywords.map((job) => (
                                             <div key={job.id} className="flex items-center space-x-2">
@@ -190,7 +192,7 @@ export default function EvaluationModelGuidanceEdit({ guidance, modelTypes, jobK
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <Label htmlFor="version">Version</Label>
+                                        <Label htmlFor="version">{t('admin_eval_model_guidance_edit.fields.version')}</Label>
                                         <Input
                                             id="version"
                                             value={data.version}
@@ -204,7 +206,7 @@ export default function EvaluationModelGuidanceEdit({ guidance, modelTypes, jobK
                                             onCheckedChange={(checked) => setData('is_active', checked === true)}
                                         />
                                         <Label htmlFor="is_active" className="cursor-pointer">
-                                            Active
+                                            {t('admin_eval_model_guidance_edit.fields.active')}
                                         </Label>
                                     </div>
                                 </div>
@@ -212,11 +214,11 @@ export default function EvaluationModelGuidanceEdit({ guidance, modelTypes, jobK
                                 <div className="flex justify-end gap-4 pt-4">
                                     <Link href="/admin/evaluation-model-guidance">
                                         <Button type="button" variant="outline">
-                                            Cancel
+                                            {t('common.cancel')}
                                         </Button>
                                     </Link>
                                     <Button type="submit" disabled={processing}>
-                                        Update Guidance
+                                        {t('admin_eval_model_guidance_edit.actions.update')}
                                     </Button>
                                 </div>
                             </CardContent>

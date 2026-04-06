@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
     modelTypes: Record<string, string>;
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export default function EvaluationModelGuidanceCreate({ modelTypes, jobKeywords }: Props) {
+    const { t } = useTranslation();
     const { data, setData, post, processing, errors, clearErrors } = useForm({
         model_type: '',
         concept: '',
@@ -56,32 +58,32 @@ export default function EvaluationModelGuidanceCreate({ modelTypes, jobKeywords 
             <SidebarInset>
                 <AppHeader />
                 <div className="p-6 md:p-8 max-w-4xl mx-auto">
-                    <Head title="Create Evaluation Model Guidance" />
+                    <Head title={t('admin_eval_model_guidance_create.page_title')} />
                     
                     <div className="mb-6">
                         <Link href="/admin/evaluation-model-guidance">
                             <Button variant="ghost" className="mb-4">
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back to List
+                                {t('admin_eval_model_guidance_create.back')}
                             </Button>
                         </Link>
-                        <h1 className="text-3xl font-bold">Create Evaluation Model Guidance</h1>
+                        <h1 className="text-3xl font-bold">{t('admin_eval_model_guidance_create.heading')}</h1>
                         <p className="text-muted-foreground mt-1">
-                            Add guidance content for evaluation models
+                            {t('admin_eval_model_guidance_create.subheading')}
                         </p>
                     </div>
 
                     <form onSubmit={handleSubmit}>
                         <Card>
                             <CardHeader>
-                                <CardTitle>Guidance Details</CardTitle>
+                                <CardTitle>{t('admin_eval_model_guidance_create.details_title')}</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 <div>
-                                    <Label htmlFor="model_type">Model Type *</Label>
+                                    <Label htmlFor="model_type">{t('admin_eval_model_guidance_create.fields.model_type')}</Label>
                                     <Select value={data.model_type} onValueChange={(value) => setData('model_type', value)}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select model type" />
+                                            <SelectValue placeholder={t('admin_eval_model_guidance_create.fields.model_type_placeholder')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {Object.entries(modelTypes).map(([key, label]) => (
@@ -95,76 +97,76 @@ export default function EvaluationModelGuidanceCreate({ modelTypes, jobKeywords 
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="concept">Concept *</Label>
+                                    <Label htmlFor="concept">{t('admin_eval_model_guidance_create.fields.concept')}</Label>
                                     <Textarea
                                         id="concept"
                                         value={data.concept}
                                         onChange={(e) => setData('concept', e.target.value)}
                                         rows={4}
-                                        placeholder="Brief definition explaining what the model is"
+                                        placeholder={t('admin_eval_model_guidance_create.fields.concept_placeholder')}
                                     />
                                     {errors.concept && <p className="text-sm text-destructive mt-1">{errors.concept}</p>}
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="key_characteristics">Key Characteristics *</Label>
+                                    <Label htmlFor="key_characteristics">{t('admin_eval_model_guidance_create.fields.key_characteristics')}</Label>
                                     <Textarea
                                         id="key_characteristics"
                                         value={data.key_characteristics}
                                         onChange={(e) => setData('key_characteristics', e.target.value)}
                                         rows={4}
-                                        placeholder="Key structural and operational characteristics"
+                                        placeholder={t('admin_eval_model_guidance_create.fields.key_characteristics_placeholder')}
                                     />
                                     {errors.key_characteristics && <p className="text-sm text-destructive mt-1">{errors.key_characteristics}</p>}
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="example">Example *</Label>
+                                    <Label htmlFor="example">{t('admin_eval_model_guidance_create.fields.example')}</Label>
                                     <Textarea
                                         id="example"
                                         value={data.example}
                                         onChange={(e) => setData('example', e.target.value)}
                                         rows={4}
-                                        placeholder="Simple example illustrating how it works"
+                                        placeholder={t('admin_eval_model_guidance_create.fields.example_placeholder')}
                                     />
                                     {errors.example && <p className="text-sm text-destructive mt-1">{errors.example}</p>}
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="pros">Pros</Label>
+                                    <Label htmlFor="pros">{t('admin_eval_model_guidance_create.fields.pros')}</Label>
                                     <Textarea
                                         id="pros"
                                         value={data.pros}
                                         onChange={(e) => setData('pros', e.target.value)}
                                         rows={3}
-                                        placeholder="Advantages"
+                                        placeholder={t('admin_eval_model_guidance_create.fields.pros_placeholder')}
                                     />
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="cons">Cons</Label>
+                                    <Label htmlFor="cons">{t('admin_eval_model_guidance_create.fields.cons')}</Label>
                                     <Textarea
                                         id="cons"
                                         value={data.cons}
                                         onChange={(e) => setData('cons', e.target.value)}
                                         rows={3}
-                                        placeholder="Potential drawbacks"
+                                        placeholder={t('admin_eval_model_guidance_create.fields.cons_placeholder')}
                                     />
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="best_fit_organizations">Best Fit Organizations</Label>
+                                    <Label htmlFor="best_fit_organizations">{t('admin_eval_model_guidance_create.fields.best_fit')}</Label>
                                     <Textarea
                                         id="best_fit_organizations"
                                         value={data.best_fit_organizations}
                                         onChange={(e) => setData('best_fit_organizations', e.target.value)}
                                         rows={3}
-                                        placeholder="Types of organizations for which this is most suitable"
+                                        placeholder={t('admin_eval_model_guidance_create.fields.best_fit_placeholder')}
                                     />
                                 </div>
 
                                 <div>
-                                    <Label>Recommended Job Keywords</Label>
+                                    <Label>{t('admin_eval_model_guidance_create.fields.recommended_job_keywords')}</Label>
                                     <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border rounded-lg p-4">
                                         {jobKeywords.map((job) => (
                                             <div key={job.id} className="flex items-center space-x-2">
@@ -183,12 +185,12 @@ export default function EvaluationModelGuidanceCreate({ modelTypes, jobKeywords 
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <Label htmlFor="version">Version</Label>
+                                        <Label htmlFor="version">{t('admin_eval_model_guidance_create.fields.version')}</Label>
                                         <Input
                                             id="version"
                                             value={data.version}
                                             onChange={(e) => setData('version', e.target.value)}
-                                            placeholder="e.g., 1.0"
+                                            placeholder={t('admin_eval_model_guidance_create.fields.version_placeholder')}
                                         />
                                     </div>
                                     <div className="flex items-center space-x-2 pt-8">
@@ -198,7 +200,7 @@ export default function EvaluationModelGuidanceCreate({ modelTypes, jobKeywords 
                                             onCheckedChange={(checked) => setData('is_active', checked === true)}
                                         />
                                         <Label htmlFor="is_active" className="cursor-pointer">
-                                            Active
+                                            {t('admin_eval_model_guidance_create.fields.active')}
                                         </Label>
                                     </div>
                                 </div>
@@ -206,11 +208,11 @@ export default function EvaluationModelGuidanceCreate({ modelTypes, jobKeywords 
                                 <div className="flex justify-end gap-4 pt-4">
                                     <Link href="/admin/evaluation-model-guidance">
                                         <Button type="button" variant="outline">
-                                            Cancel
+                                            {t('common.cancel')}
                                         </Button>
                                     </Link>
                                     <Button type="submit" disabled={processing}>
-                                        Create Guidance
+                                        {t('admin_eval_model_guidance_create.actions.create')}
                                     </Button>
                                 </div>
                             </CardContent>

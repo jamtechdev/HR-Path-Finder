@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout';
+import { useTranslation } from 'react-i18next';
 
 interface JobKeyword {
     id: number;
@@ -41,6 +42,7 @@ export default function CeoReviewJobListSelection({
     industry,
     sizeRange 
 }: Props) {
+    const { t } = useTranslation();
     // Separate selected jobs into ungrouped and grouped
     const ungroupedJobs = selectedJobs.filter(job => !job.grouped_job_keyword_ids || job.grouped_job_keyword_ids.length === 0);
     const groupedJobs = selectedJobs.filter(job => job.grouped_job_keyword_ids && job.grouped_job_keyword_ids.length > 0);
@@ -57,12 +59,12 @@ export default function CeoReviewJobListSelection({
 
     return (
         <AppLayout>
-            <Head title={`Job List Selection Review - ${project?.company?.name || 'Job Analysis'}`} />
+            <Head title={t('ceo_review_job_list.page_title', { company: project?.company?.name || t('ceo_review_job_list.fallback') })} />
             <div className="p-6 md:p-8 max-w-7xl mx-auto dark:bg-slate-900 min-h-screen">
                 <div className="mb-6">
-                    <h1 className="text-3xl font-bold mb-2 dark:text-slate-100">Job List Selection Review</h1>
+                    <h1 className="text-3xl font-bold mb-2 dark:text-slate-100">{t('ceo_review_job_list.heading')}</h1>
                     <p className="text-muted-foreground dark:text-slate-400">
-                        Review the jobs selected by your HR Manager for this project.
+                        {t('ceo_review_job_list.subheading')}
                     </p>
                 </div>
 
@@ -72,7 +74,7 @@ export default function CeoReviewJobListSelection({
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-muted-foreground dark:text-slate-400">Total Selected</p>
+                                    <p className="text-sm text-muted-foreground dark:text-slate-400">{t('ceo_review_job_list.summary.total_selected')}</p>
                                     <p className="text-2xl font-bold dark:text-slate-100">{selectedJobs.length}</p>
                                 </div>
                                 <CheckCircle2 className="w-8 h-8 text-primary" />
@@ -83,7 +85,7 @@ export default function CeoReviewJobListSelection({
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-muted-foreground dark:text-slate-400">Ungrouped Jobs</p>
+                                    <p className="text-sm text-muted-foreground dark:text-slate-400">{t('ceo_review_job_list.summary.ungrouped')}</p>
                                     <p className="text-2xl font-bold dark:text-slate-100">{ungroupedJobs.length}</p>
                                 </div>
                                 <Users className="w-8 h-8 text-blue-500" />
@@ -94,7 +96,7 @@ export default function CeoReviewJobListSelection({
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-muted-foreground dark:text-slate-400">Grouped Jobs</p>
+                                    <p className="text-sm text-muted-foreground dark:text-slate-400">{t('ceo_review_job_list.summary.grouped')}</p>
                                     <p className="text-2xl font-bold dark:text-slate-100">{groupedJobs.length}</p>
                                 </div>
                                 <FolderTree className="w-8 h-8 text-green-500" />
@@ -106,9 +108,9 @@ export default function CeoReviewJobListSelection({
                 {/* Suggested Jobs */}
                 <Card className="mb-6 dark:bg-slate-800 dark:border-slate-700">
                     <CardHeader className="dark:bg-slate-800">
-                        <CardTitle className="dark:text-slate-100">Suggested Jobs</CardTitle>
+                        <CardTitle className="dark:text-slate-100">{t('ceo_review_job_list.suggested.title')}</CardTitle>
                         <CardDescription className="dark:text-slate-400">
-                            Based on industry ({industry || 'N/A'}) and company size ({sizeRange || 'N/A'}), the following jobs were suggested.
+                            {t('ceo_review_job_list.suggested.description', { industry: industry || 'N/A', size: sizeRange || 'N/A' })}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="dark:bg-slate-800">
@@ -143,9 +145,9 @@ export default function CeoReviewJobListSelection({
                 {ungroupedJobs.length > 0 && (
                     <Card className="mb-6 dark:bg-slate-800 dark:border-slate-700">
                         <CardHeader className="dark:bg-slate-800">
-                            <CardTitle className="dark:text-slate-100">Selected Jobs (Ungrouped)</CardTitle>
+                            <CardTitle className="dark:text-slate-100">{t('ceo_review_job_list.ungrouped.title')}</CardTitle>
                             <CardDescription className="dark:text-slate-400">
-                                Individual jobs selected by HR Manager.
+                                {t('ceo_review_job_list.ungrouped.description')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="dark:bg-slate-800">
@@ -163,7 +165,7 @@ export default function CeoReviewJobListSelection({
                                         </div>
                                         {job.is_finalized && (
                                             <Badge variant="secondary" className="mt-2 dark:bg-slate-700 dark:text-slate-200">
-                                                Finalized
+                                                {t('ceo_review_job_list.finalized')}
                                             </Badge>
                                         )}
                                     </div>
@@ -177,9 +179,9 @@ export default function CeoReviewJobListSelection({
                 {groupedJobs.length > 0 && (
                     <Card className="mb-6 dark:bg-slate-800 dark:border-slate-700">
                         <CardHeader className="dark:bg-slate-800">
-                            <CardTitle className="dark:text-slate-100">Selected Jobs (Grouped)</CardTitle>
+                            <CardTitle className="dark:text-slate-100">{t('ceo_review_job_list.grouped.title')}</CardTitle>
                             <CardDescription className="dark:text-slate-400">
-                                Jobs grouped together by HR Manager into single roles.
+                                {t('ceo_review_job_list.grouped.description')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="dark:bg-slate-800">
@@ -199,7 +201,7 @@ export default function CeoReviewJobListSelection({
                                                     {job.job_name}
                                                 </h4>
                                                 {job.is_finalized && (
-                                                    <Badge variant="secondary" className="dark:bg-slate-700 dark:text-slate-200">Finalized</Badge>
+                                                    <Badge variant="secondary" className="dark:bg-slate-700 dark:text-slate-200">{t('ceo_review_job_list.finalized')}</Badge>
                                                 )}
                                             </div>
                                             <div className="flex flex-wrap gap-2 mt-2">
@@ -224,12 +226,12 @@ export default function CeoReviewJobListSelection({
                         onClick={() => router.visit(`/ceo/job-analysis/${project.id}/intro`)}
                         className="dark:border-slate-600 dark:text-slate-300"
                     >
-                        Back to Intro
+                        {t('ceo_review_job_list.back')}
                     </Button>
                     <Button
                         onClick={() => router.visit(`/ceo/review/job-analysis/${project.id}/job-definitions`)}
                     >
-                        View Job Definitions →
+                        {t('ceo_review_job_list.view_job_definitions')}
                     </Button>
                 </div>
             </div>

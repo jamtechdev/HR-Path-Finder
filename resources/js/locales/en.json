@@ -749,5 +749,1158 @@
       "custom_placeholder": "Position name (e.g. CPO, Vice Chair)"
     }
   },
+  "admin_ceo_role_requests": {
+    "page_title": "CEO Role Requests - Admin",
+    "heading": "CEO Role Requests",
+    "subheading": "Review and manage CEO role requests from HR Managers",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "stats": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "pending": {
+      "title": "Pending Requests"
+    },
+    "all": {
+      "title": "All Requests",
+      "empty": "No CEO role requests found."
+    },
+    "fields": {
+      "company": "Company",
+      "requested": "Requested",
+      "reviewed": "Reviewed",
+      "by": "by",
+      "reason": "Reason",
+      "hr_manager": "HR Manager",
+      "email": "Email",
+      "rejection_reason_optional": "Rejection Reason (Optional)",
+      "rejection_reason_placeholder": "Enter reason for rejection..."
+    },
+    "actions": {
+      "approve": "Approve",
+      "approving": "Approving...",
+      "reject": "Reject",
+      "rejecting": "Rejecting...",
+      "reject_request": "Reject Request"
+    },
+    "reject_dialog": {
+      "title": "Reject CEO Role Request",
+      "description": "Are you sure you want to reject this CEO role request? You can provide an optional reason."
+    }
+  },
+  "admin_hr_issues": {
+    "page_title": "HR Issues Management",
+    "heading": "HR Issues Management",
+    "subheading": "Manage HR issue items that can be selected by HR managers and CEOs",
+    "confirm_delete": "Are you sure you want to delete this issue?",
+    "list_title": "HR Issues",
+    "empty": "No issues found.",
+    "actions": {
+      "add_issue": "Add Issue"
+    },
+    "filters": {
+      "all_categories": "All Categories"
+    },
+    "badges": {
+      "inactive": "Inactive"
+    },
+    "fields": {
+      "order": "Order"
+    }
+  },
+  "ceo_review_compensation": {
+    "page_title": "Compensation System Review - {{company}}",
+    "back_to_dashboard": "Back to Dashboard",
+    "heading": "Compensation System Review",
+    "subheading": "Review the compensation system design for {{company}}",
+    "not_submitted_yet": "Compensation system has not been submitted yet. Please wait for HR Manager to complete this step.",
+    "pending_submission_notice": "This compensation system is not yet submitted. Please wait for HR Manager to submit it for review.",
+    "status": {
+      "submitted": "Submitted"
+    },
+    "sections": {
+      "compensation_structure": "Compensation Structure",
+      "differentiation_method": "Differentiation Method",
+      "incentive_components": "Incentive Components"
+    },
+    "fields": {
+      "selected_structure": "Selected Structure:",
+      "selected_method": "Selected Method:",
+      "selected_components": "Selected Components:",
+      "not_specified": "Not specified",
+      "no_incentive_components": "No incentive components selected"
+    },
+    "actions": {
+      "title": "Review Actions",
+      "description": "Approve this compensation system or request revisions from HR Manager.",
+      "request_revision": "Request Revision",
+      "approve_and_lock": "Approve & Lock"
+    }
+  },
+  "ceo_review_job_definitions": {
+    "page_title": "Job Definitions Review - {{company}}",
+    "fallback_job_analysis": "Job Analysis",
+    "heading": "Job Definitions Review",
+    "subheading": "Review the detailed job definitions created by your HR Manager.",
+    "back_to_job_list": "Back to Job List",
+    "job_list": {
+      "title": "Job List",
+      "count_defined": "{{count}} job defined",
+      "count_defined_other": "{{count}} jobs defined"
+    },
+    "labels": {
+      "finalized": "Finalized",
+      "based_on": "Based on"
+    },
+    "tabs": {
+      "description": "Description",
+      "specification": "Specification",
+      "competency": "Competency"
+    },
+    "sections": {
+      "job_description": "Job Description",
+      "job_specification": "Job Specification",
+      "competency_levels": "Competency Levels",
+      "csfs": "Critical Success Factors (CSFs)"
+    },
+    "empty": {
+      "no_description": "No description provided yet.",
+      "no_specification": "No specification provided yet.",
+      "no_competency": "No competency levels defined yet.",
+      "no_csfs": "No CSFs defined yet.",
+      "no_jobs": "No job definitions available yet."
+    }
+  },
+  "ceo_review_diagnosis": {
+    "page_title": "Review Diagnosis - {{company}}",
+    "header": {
+      "title": "Review HR Diagnosis Inputs",
+      "subtitle": "Review and edit the diagnosis data submitted by your HR Manager. All changes will be logged."
+    },
+    "messages": {
+      "saved": "Saved. Your changes have been stored.",
+      "fix_fields": "Please fix the highlighted fields and try again.",
+      "unable_submit": "Unable to submit. Please review the errors and try again."
+    },
+    "metrics": {
+      "total_headcount": "Total headcount",
+      "persons": "persons",
+      "active_tenure_avg": "Active tenure (avg)",
+      "exit_tenure_avg": "Exit tenure (avg)",
+      "years": "yrs",
+      "vs": "vs",
+      "leader_ratio": "Leader ratio",
+      "executive_ratio": "Executive ratio",
+      "total": "total"
+    },
+    "warning_not_submitted": "Diagnosis must be submitted by HR before you can save changes or confirm. Ask your HR Manager to complete and submit the Diagnosis step, then return here to review and save.",
+    "success": {
+      "title": "Thank you",
+      "message": "Thank you for your time. Your part of the process is now complete.\n\n1. Next Step: Our HR Manager will now begin drafting the system design based on your responses.\n2. Final Report: Once the draft is finalized, a professional consultant's report will be delivered within 2 weeks.\n\nWe appreciate your patience while we prepare the best results for you.",
+      "next": "Go to Dashboard"
+    }
+  },
+  "admin_industries": {
+    "page_title": "Industries Management",
+    "heading": "Industries Management",
+    "subheading": "Manage industries and sub industries",
+    "confirm_delete": "Are you sure you want to delete this industry? This will also delete all sub industries.",
+    "actions": {
+      "add_industry": "Add Industry"
+    },
+    "fields": {
+      "order": "Order",
+      "sub_industries": "Sub Industries"
+    },
+    "empty": {
+      "no_sub_industries": "No sub industries yet. Edit to add sub industries.",
+      "no_industries": "No industries found. Create one to get started."
+    }
+  },
+  "admin_industries_create": {
+    "page_title": "Create Industry",
+    "back": "Back to Industries",
+    "heading": "Create Industry",
+    "subheading": "Add a new industry",
+    "details_title": "Industry Details",
+    "fields": {
+      "name": "Industry Name *",
+      "name_placeholder": "e.g., Manufacturing",
+      "order_optional": "Order (optional)",
+      "order_placeholder": "Leave empty for auto-order",
+      "order_help": "Lower numbers appear first. Leave empty to add at the end."
+    },
+    "actions": {
+      "creating": "Creating...",
+      "create": "Create Industry"
+    }
+  },
+  "admin_industries_edit": {
+    "page_title": "Edit Industry - {{name}}",
+    "fallback_industry": "Industry",
+    "back": "Back to Industries",
+    "heading": "Edit Industry",
+    "subheading": "Update industry details and manage sub industries",
+    "details_title": "Industry Details",
+    "confirm_delete_sub_industry": "Are you sure you want to delete this sub industry?",
+    "fields": {
+      "name": "Industry Name *",
+      "order_required": "Order *"
+    },
+    "actions": {
+      "updating": "Updating...",
+      "update_industry": "Update Industry",
+      "add": "Add"
+    },
+    "sub_industries": {
+      "title": "Sub Industries",
+      "add": "Add Sub Industry",
+      "name_required": "Sub Industry Name *",
+      "name_placeholder": "e.g., Automotive",
+      "order_optional": "Order (optional)",
+      "order_placeholder": "Leave empty for auto-order",
+      "empty": "No sub industries yet. Click \"Add Sub Industry\" to create one."
+    }
+  },
+  "admin_kpi_templates": {
+    "page_title": "KPI Templates",
+    "heading": "KPI Templates",
+    "subheading": "Recommended KPIs by organization unit. Managers see these when creating KPIs.",
+    "helper": "Use this page to define reusable default KPI suggestions. Use KPI Review for approving or revising live submitted KPI data by project.",
+    "confirm_delete": "Are you sure you want to delete this KPI template?",
+    "actions": {
+      "add_template": "Add Template"
+    },
+    "filters": {
+      "title": "Filters",
+      "company": "Company",
+      "all": "All",
+      "org_unit_name": "Org unit name",
+      "org_unit_placeholder": "Filter by org unit",
+      "apply": "Apply"
+    },
+    "templates_title": "Templates",
+    "badges": {
+      "inactive": "Inactive"
+    },
+    "fields": {
+      "category": "Category",
+      "weight": "Weight"
+    },
+    "empty": "No KPI templates yet. Create one to suggest KPIs to managers."
+  },
+  "admin_kpi_templates_create": {
+    "page_title": "Create KPI Template",
+    "back": "Back to KPI Templates",
+    "heading": "Create KPI Template",
+    "details_title": "Template details",
+    "fields": {
+      "company_optional": "Company (optional - leave empty for global)",
+      "global": "Global",
+      "org_unit_optional": "Org unit name (optional - leave empty for company-wide)",
+      "org_unit_placeholder": "e.g. Sales Team",
+      "kpi_name": "KPI Name *",
+      "purpose": "Purpose",
+      "category": "Category",
+      "category_placeholder": "e.g. Monthly",
+      "weight": "Weight (%)",
+      "formula": "Formula",
+      "formula_placeholder": "e.g. Completed / Total × 100",
+      "measurement_method": "Measurement method",
+      "sort_order": "Sort order",
+      "active": "Active"
+    }
+  },
+  "admin_kpi_templates_edit": {
+    "page_title": "Edit KPI Template",
+    "back": "Back to KPI Templates",
+    "heading": "Edit KPI Template",
+    "details_title": "Template details",
+    "fields": {
+      "company_optional": "Company (optional)",
+      "global": "Global",
+      "org_unit_optional": "Org unit name (optional)",
+      "kpi_name": "KPI Name *",
+      "purpose": "Purpose",
+      "category": "Category",
+      "weight": "Weight (%)",
+      "formula": "Formula",
+      "measurement_method": "Measurement method",
+      "sort_order": "Sort order",
+      "active": "Active"
+    }
+  },
+  "admin_eval_model_guidance": {
+    "page_title": "Evaluation Model Guidance Management",
+    "heading": "Evaluation Model Guidance",
+    "subheading": "Manage guidance content for MBO, BSC, and OKR evaluation models",
+    "confirm_delete": "Are you sure you want to delete this guidance?",
+    "search_placeholder": "Search by model type or concept...",
+    "empty": "No guidance found. Click \"Add Guidance\" to create one.",
+    "badges": {
+      "inactive": "Inactive"
+    },
+    "actions": {
+      "add": "Add Guidance"
+    },
+    "fields": {
+      "concept": "Concept",
+      "key_characteristics": "Key Characteristics"
+    }
+  },
+  "admin_eval_model_guidance_create": {
+    "page_title": "Create Evaluation Model Guidance",
+    "back": "Back to List",
+    "heading": "Create Evaluation Model Guidance",
+    "subheading": "Add guidance content for evaluation models",
+    "details_title": "Guidance Details",
+    "actions": {
+      "create": "Create Guidance"
+    },
+    "fields": {
+      "model_type": "Model Type *",
+      "model_type_placeholder": "Select model type",
+      "concept": "Concept *",
+      "concept_placeholder": "Brief definition explaining what the model is",
+      "key_characteristics": "Key Characteristics *",
+      "key_characteristics_placeholder": "Key structural and operational characteristics",
+      "example": "Example *",
+      "example_placeholder": "Simple example illustrating how it works",
+      "pros": "Pros",
+      "pros_placeholder": "Advantages",
+      "cons": "Cons",
+      "cons_placeholder": "Potential drawbacks",
+      "best_fit": "Best Fit Organizations",
+      "best_fit_placeholder": "Types of organizations for which this is most suitable",
+      "recommended_job_keywords": "Recommended Job Keywords",
+      "version": "Version",
+      "version_placeholder": "e.g., 1.0",
+      "active": "Active"
+    }
+  },
+  "admin_eval_model_guidance_edit": {
+    "page_title": "Edit Evaluation Model Guidance",
+    "back": "Back to List",
+    "heading": "Edit Evaluation Model Guidance",
+    "subheading": "Update guidance content for evaluation models",
+    "details_title": "Guidance Details",
+    "actions": {
+      "update": "Update Guidance"
+    },
+    "fields": {
+      "model_type": "Model Type *",
+      "model_type_placeholder": "Select model type",
+      "concept": "Concept *",
+      "key_characteristics": "Key Characteristics *",
+      "example": "Example *",
+      "pros": "Pros",
+      "cons": "Cons",
+      "best_fit": "Best Fit Organizations",
+      "recommended_job_keywords": "Recommended Job Keywords",
+      "version": "Version",
+      "active": "Active"
+    }
+  },
+  "ceo_final_review": {
+    "page_title": "Final Review - {{company}}",
+    "heading": "Final Review",
+    "subheading": "Review all steps and admin comments before final approval.",
+    "status": {
+      "not_started": "not_started"
+    },
+    "step_details": "Step details...",
+    "admin_comments": "Admin Comments",
+    "actions": {
+      "title": "Ready to Approve?",
+      "description": "Review all steps and approve to lock the HR system.",
+      "request_revisions": "Request Revisions",
+      "approve_and_lock": "Approve & Lock"
+    }
+  },
+  "admin_eval_option_guidance": {
+    "page_title": "Evaluation Option Guidance Management",
+    "heading": "Evaluation Option Guidance",
+    "subheading": "Manage guidance content for evaluation structure options",
+    "confirm_delete": "Are you sure you want to delete this guidance?",
+    "search_placeholder": "Search by option key or value...",
+    "all_option_keys": "All Option Keys",
+    "empty": "No guidance found. Click \"Add Guidance\" to create one.",
+    "badges": { "inactive": "Inactive" },
+    "actions": { "add": "Add Guidance" }
+  },
+  "admin_eval_option_guidance_create": {
+    "page_title": "Create Evaluation Option Guidance",
+    "back": "Back to List",
+    "heading": "Create Evaluation Option Guidance",
+    "subheading": "Add guidance content for evaluation structure options",
+    "details_title": "Guidance Details",
+    "actions": { "create": "Create Guidance" },
+    "fields": {
+      "option_key": "Option Key *",
+      "option_key_placeholder": "Select option key",
+      "option_value": "Option Value *",
+      "option_value_placeholder": "e.g., annual, 3-level, top_down",
+      "concept": "Concept",
+      "concept_placeholder": "Brief definition",
+      "key_characteristics": "Key Characteristics",
+      "example": "Example",
+      "pros": "Pros",
+      "cons": "Cons",
+      "best_fit": "Best Fit Organizations",
+      "active": "Active"
+    }
+  },
+  "admin_eval_option_guidance_edit": {
+    "page_title": "Edit Evaluation Option Guidance",
+    "back": "Back to List",
+    "heading": "Edit Evaluation Option Guidance",
+    "subheading": "Update guidance content for evaluation structure options",
+    "details_title": "Guidance Details",
+    "actions": { "update": "Update Guidance" },
+    "fields": {
+      "option_key": "Option Key *",
+      "option_key_placeholder": "Select option key",
+      "option_value": "Option Value *",
+      "concept": "Concept",
+      "key_characteristics": "Key Characteristics",
+      "example": "Example",
+      "pros": "Pros",
+      "cons": "Cons",
+      "best_fit": "Best Fit Organizations",
+      "active": "Active"
+    }
+  },
+  "admin_job_model_recommendation": {
+    "page_title": "Job Evaluation Model Recommendations",
+    "heading": "Job Evaluation Model Recommendations",
+    "subheading": "Configure recommended evaluation models for each job keyword",
+    "confirm_delete": "Are you sure you want to delete this recommendation?",
+    "list_title": "Recommendations",
+    "empty": "No recommendations found. Click \"Add Recommendation\" to create one.",
+    "na": "N/A",
+    "status": { "active": "Active", "inactive": "Inactive" },
+    "actions": { "add_recommendation": "Add Recommendation" },
+    "table": {
+      "job_keyword": "Job Keyword",
+      "recommended_model": "Recommended Model",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "dialog": {
+      "title": "Add Job Model Recommendation",
+      "description": "Select a job keyword and its recommended evaluation model",
+      "job_keyword": "Job Keyword *",
+      "job_keyword_placeholder": "Select job keyword",
+      "recommended_model": "Recommended Model *",
+      "model_placeholder": "Select model"
+    }
+  },
+  "admin_kpi_edit_history": {
+    "page_title": "KPI Edit History",
+    "heading": "KPI Edit History",
+    "subheading": "View all modifications made to organizational KPIs",
+    "log_title": "Edit History Log",
+    "empty": "No edit history found.",
+    "na": "N/A",
+    "kpi_modified": "KPI modified",
+    "view_changes": "View Changes",
+    "old": "Old",
+    "new": "New",
+    "table": {
+      "date_time": "Date & Time",
+      "kpi": "KPI",
+      "organization": "Organization",
+      "project": "Project",
+      "edited_by": "Edited By",
+      "editor_type": "Editor Type",
+      "description": "Description"
+    }
+  },
+  "admin_kpi_edit_history_show": {
+    "page_title": "KPI Edit History - {{kpi}}",
+    "back": "Back to List",
+    "heading": "KPI Edit History",
+    "list_title": "Edit History",
+    "empty": "No edit history found for this KPI.",
+    "edited_by": "Edited by",
+    "old_values": "Old Values",
+    "new_values": "New Values"
+  },
+  "ceo_review_job_list": {
+    "page_title": "Job List Selection Review - {{company}}",
+    "fallback": "Job Analysis",
+    "heading": "Job List Selection Review",
+    "subheading": "Review the jobs selected by your HR Manager for this project.",
+    "finalized": "Finalized",
+    "back": "Back to Intro",
+    "view_job_definitions": "View Job Definitions →",
+    "summary": {
+      "total_selected": "Total Selected",
+      "ungrouped": "Ungrouped Jobs",
+      "grouped": "Grouped Jobs"
+    },
+    "suggested": {
+      "title": "Suggested Jobs",
+      "description": "Based on industry ({{industry}}) and company size ({{size}}), the following jobs were suggested."
+    },
+    "ungrouped": {
+      "title": "Selected Jobs (Ungrouped)",
+      "description": "Individual jobs selected by HR Manager."
+    },
+    "grouped": {
+      "title": "Selected Jobs (Grouped)",
+      "description": "Jobs grouped together by HR Manager into single roles."
+    }
+  },
+  "ceo_job_analysis": {
+    "page_title": "Job Analysis - {{company}}",
+    "fallback": "Review",
+    "heading": "Job Analysis Review",
+    "subheading": "Review and verify the job analysis data submitted by HR Manager",
+    "submitted": "Submitted",
+    "before_begin": "Before You Begin",
+    "policy_snapshot_answers": "Policy Snapshot Answers",
+    "details": "Details",
+    "not_answered": "Not answered",
+    "job_list_selection": "Job List Selection",
+    "jobs_count_one": "{{count}} Job",
+    "jobs_count_other": "{{count}} Jobs",
+    "view_details": "View Details",
+    "industry": "Industry",
+    "size": "Size",
+    "grouped": "Grouped",
+    "job_definitions": "Job Definitions",
+    "view_all": "View All",
+    "org_chart_mappings": "Organization Chart Mappings",
+    "units_count_one": "{{count}} Unit",
+    "units_count_other": "{{count}} Units",
+    "organization_head": "Organization Head",
+    "mapped_jobs": "Mapped Jobs",
+    "job_id": "Job {{id}}",
+    "no_description": "No description",
+    "answer": { "yes": "Yes", "no": "No", "not_sure": "Not sure" },
+    "sections": {
+      "job_description": "Job Description",
+      "competency_levels": "Competency Levels",
+      "csf": "Critical Success Factors"
+    },
+    "verification": {
+      "title": "Verification Actions",
+      "description": "Review the job analysis data and verify or request revisions if needed.",
+      "request_revision": "Request Revision",
+      "verify_approve": "Verify & Approve"
+    },
+    "alerts": {
+      "reopened": "Job Analysis reopened for revision.",
+      "verified": "Job Analysis verified and approved successfully."
+    }
+  },
+  "admin_review": {
+    "page_title": "Admin Review",
+    "heading": "Admin Review",
+    "subheading": "Browse projects on the left, then inspect structured step data and add comments for the CEO/HR team.",
+    "note": "Admin note: this page is for data control. Select a project, verify actual user inputs per step, and leave actionable comments.",
+    "projects": "Projects",
+    "no_projects": "No projects yet.",
+    "selected": "Selected",
+    "step_status": "Step status",
+    "no_statuses": "No statuses recorded",
+    "submitted_step_data": "Submitted step data",
+    "no_step_payloads": "No submitted step payloads for this project yet.",
+    "not_started_no_data": "Not started / no data",
+    "add_comment": "Add comment",
+    "step": "Step",
+    "select_step": "Select step",
+    "comment": "Comment",
+    "comment_placeholder": "Add your comment...",
+    "add_comment_button": "Add comment",
+    "comment_history": "Comment history",
+    "select_project_hint": "Select a project from the list to view submitted data and comments.",
+    "open_project_view": "Open Project View"
+  },
+  "projects_show": {
+    "page_title": "{{company}} - HR Project",
+    "back": "Back to Projects",
+    "project_id": "HR Project #{{id}}",
+    "project_status": "Project Status",
+    "workflow_steps": "Workflow Steps",
+    "not_started": "not_started",
+    "quick_actions": "Quick Actions",
+    "review_project": "Review Project",
+    "view_overview": "View Overview",
+    "continue_diagnosis": "Continue Diagnosis"
+  },
+  "ceo_review_performance": {
+    "page_title": "Review Performance System - {{company}}",
+    "back_to_dashboard": "Back to Dashboard",
+    "heading": "Review Performance System",
+    "subheading": "Review the performance management system designed by your HR Manager.",
+    "not_set": "Not set",
+    "status": {
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "in_progress": "In Progress"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "snapshot": "Snapshot",
+      "models": "Models",
+      "structure": "Structure"
+    },
+    "configuration": {
+      "title": "Performance System Configuration",
+      "evaluation_unit": "Evaluation Unit",
+      "performance_method": "Performance Method",
+      "evaluation_type": "Evaluation Type",
+      "evaluation_scale": "Evaluation Scale"
+    },
+    "summary": {
+      "snapshot_responses": "Snapshot Responses",
+      "organizational_kpis": "Organizational KPIs",
+      "model_assignments": "Model Assignments",
+      "job_definitions": "Job Definitions"
+    },
+    "snapshot": {
+      "title": "Strategic Performance Snapshot",
+      "description": "Responses to performance management philosophy questions",
+      "no_response": "No response provided"
+    },
+    "kpis": { "empty": "No KPIs defined yet." },
+    "models": { "empty": "No model assignments defined yet." },
+    "structure": { "empty": "Evaluation structure not configured yet." },
+    "submitted_card": {
+      "title": "Performance System Submitted",
+      "description": "This performance system has been submitted by HR Manager and is ready for your review."
+    },
+    "actions": {
+      "request_revision": "Request Revision",
+      "approve": "Approve"
+    }
+  },
+  "auth_forgot_password": {
+    "page_title": "Forgot password",
+    "back_to_home": "Back to home",
+    "heading": "Forgot password?",
+    "subheading": "Enter your email to receive a 6-digit OTP code",
+    "email_label": "Email address",
+    "email_placeholder": "you@company.com",
+    "sending_otp": "Sending OTP...",
+    "send_otp": "Send OTP Code",
+    "remember_password": "Remember your password?",
+    "sign_in": "Sign in",
+    "hero_line_1": "Reset your password",
+    "hero_line_2": "with secure",
+    "hero_highlight": "OTP verification.",
+    "hero_description": "Enter your email address and we'll send you a 6-digit OTP code to reset your password securely.",
+    "footer_security": "🔐 OTP-based security",
+    "footer_validity": "5-minute validity",
+    "footer_one_time": "One-time use"
+  },
+  "auth_reset_password": {
+    "page_title": "Reset password",
+    "back_to_home": "Back to home",
+    "heading": "Reset password",
+    "subheading": "Please enter your new password below",
+    "email": "Email",
+    "new_password": "New Password",
+    "confirm_password": "Confirm Password",
+    "resetting": "Resetting...",
+    "reset": "Reset password",
+    "hero_line_1": "Set a new password",
+    "hero_line_2": "and secure your",
+    "hero_highlight": "account.",
+    "hero_description": "Choose a strong password to protect your HR system design workspace.",
+    "footer_secure_reset": "Secure reset",
+    "footer_one_time": "One-time link",
+    "footer_instant": "Instant access"
+  },
+  "auth_confirm_password": {
+    "page_title": "Confirm password",
+    "back_to_home": "Back to home",
+    "heading": "Confirm your password",
+    "subheading": "This is a secure area. Please confirm your password before continuing.",
+    "password": "Password",
+    "confirming": "Confirming...",
+    "confirm": "Confirm password",
+    "hero_line_1": "Confirm your password",
+    "hero_line_2": "to access secure",
+    "hero_highlight": "features.",
+    "hero_description": "This is a secure area of the application. Please confirm your password before continuing.",
+    "footer_secure": "Secure confirmation",
+    "footer_protected": "Protected access",
+    "footer_privacy": "Privacy first"
+  },
+  "auth_verify_otp": {
+    "page_title": "Verify OTP",
+    "back_to_home": "Back to home",
+    "heading": "Verify OTP",
+    "subheading": "Enter the 6-digit code sent to {{email}}",
+    "enter_otp": "Enter 6-digit OTP",
+    "verifying": "Verifying...",
+    "verify": "Verify OTP",
+    "resend": "Resend OTP",
+    "did_not_receive": "Didn't receive the code? Check your spam folder or",
+    "resend_lower": "resend OTP",
+    "remember_password": "Remember your password?",
+    "sign_in": "Sign in",
+    "hero_line_1": "Verify your",
+    "hero_line_2": "identity with",
+    "hero_highlight": "OTP code.",
+    "hero_description": "Enter the 6-digit code sent to your email address to continue with password reset.",
+    "footer_secure": "🔐 Secure verification",
+    "footer_validity": "5-minute validity",
+    "footer_one_time": "One-time use"
+  },
+  "auth_verify_email": {
+    "page_title": "Email verification",
+    "back_to_home": "Back to home",
+    "heading": "Check your email",
+    "subheading": "We've sent a verification link to your email address. Click the link in the email to verify your account.",
+    "link_sent": "A new verification link has been sent to your email address.",
+    "verified_success": "Email verified successfully.",
+    "redirecting": "Redirecting to dashboard...",
+    "what_next": "What happens next?",
+    "what_next_desc": "If you do not see the message within a few minutes, check your spam or promotions folder. The subject line usually mentions verifying your email address.",
+    "steps": {
+      "check_inbox": "Check your inbox for the verification email",
+      "click_verify": "Click the \"Verify Email Address\" button",
+      "access_dashboard": "Get instant access to your dashboard"
+    },
+    "smtp_required_title": "SMTP Configuration Required",
+    "smtp_required_desc": "Email services are not configured. Verification emails cannot be sent until SMTP settings are configured.",
+    "configure_smtp": "Configure SMTP Settings",
+    "verifying": "Verifying...",
+    "verify_manually": "Verify Email Manually",
+    "sending": "Sending...",
+    "resend": "Resend verification email",
+    "logout_use_different": "Log out and use a different account",
+    "security_note": "🔒 Security Note: If you did not create an account, you can safely ignore this email.",
+    "confirm_manual_verify": "Are you sure you want to manually verify your email? This option is only available when SMTP is not configured."
+  },
+  "projects_index": {
+    "page_title": "HR Projects",
+    "heading": "HR Projects",
+    "empty_title": "No Projects",
+    "empty_description": "Create a company to start your first HR project.",
+    "project_line": "Project #{{id}} • {{status}}",
+    "diagnosis": "Diagnosis",
+    "view_project": "View Project"
+  },
+  "companies_index": {
+    "page_title": "Companies - HR Manager",
+    "page_title_create": "Create Company - HR Manager",
+    "my_companies": "My Companies",
+    "no_company_title": "No company yet",
+    "invite_ceo": "Invite CEO",
+    "view_details": "View Details",
+    "confirm_delete_invitation": "Are you sure you want to delete this invitation? This action cannot be undone.",
+    "na": "N/A",
+    "resending": "Resending...",
+    "resend": "Resend",
+    "deleting": "Deleting...",
+    "delete": "Delete",
+    "no_actions": "No actions",
+    "no_invitations": "No invitations sent yet",
+    "sending": "Sending...",
+    "send_invitation": "Send Invitation",
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    },
+    "invite_dialog": {
+      "title": "Invite CEO for {{company}}"
+    }
+  },
+  "companies_create": {
+    "page_title": "Create Company Workspace",
+    "heading": "Create Company Workspace",
+    "subheading": "Set up your company profile to begin building your HR system",
+    "info_title": "Company Information",
+    "info_desc": "Provide your company details to get started. All fields marked with * are required.",
+    "creating_toast": "Creating your company...",
+    "success_title": "Project created successfully",
+    "success_desc": "Your company workspace is ready.",
+    "alert_invalid_image": "Please upload a valid image file (JPG, PNG, GIF, or WebP).",
+    "alert_file_size": "File size must be less than 5MB. Please choose a smaller image.",
+    "fields": {
+      "company_name": "Company Name *",
+      "company_name_placeholder": "Enter your company name",
+      "registration_number": "Registration Number",
+      "registration_number_placeholder": "e.g., 123-45-67890",
+      "registration_number_help": "Optional: Your company's official registration number",
+      "hq_location": "Headquarters Location",
+      "hq_location_placeholder": "e.g., New York, USA",
+      "hq_location_help": "Optional: Your company's headquarters location",
+      "public_listing_status": "Public Listing Status *",
+      "public_company": "Public Company",
+      "private_company": "Private Company",
+      "not_applicable": "Not Applicable",
+      "public_listing_help": "Select whether your company is publicly listed on a stock exchange",
+      "company_logo": "Company Logo",
+      "click_upload": "Click to upload logo",
+      "upload_formats": "PNG, JPG, GIF, or WebP (max 5MB)",
+      "choose_file": "Choose File",
+      "logo_help": "Optional: Upload your company logo. Recommended size: 200x200px or larger"
+    },
+    "actions": {
+      "creating": "Creating...",
+      "create": "Create Company"
+    },
+    "next_title": "What happens next?",
+    "next_desc": "After creating your company workspace, you'll be able to start the diagnosis process and begin building your comprehensive HR system."
+  },
+  "consultant_dashboard": {
+    "page_title": "Consultant Dashboard",
+    "heading": "Welcome to Consultant Dashboard",
+    "subheading": "Dashboard content will be available here."
+  },
+  "companies_show": {
+    "page_title": "{{company}} - Company Details",
+    "subheading": "Company Details & Management",
+    "confirm_delete_invitation": "Are you sure you want to delete this invitation? This action cannot be undone.",
+    "invite_ceo": "Invite CEO",
+    "company_info": "Company Information",
+    "registration_number": "Registration Number",
+    "hq_location": "HQ Location",
+    "public_listing": "Public Listing",
+    "na": "N/A",
+    "tabs": {
+      "team_members": "Team Members ({{count}})",
+      "invitations": "Invitations ({{count}})"
+    },
+    "team_members_title": "Team Members",
+    "team_members_desc": "People associated with this company",
+    "no_team_members": "No team members yet",
+    "invitations_title": "Invitations",
+    "invitations_desc": "CEO invitation history",
+    "table": {
+      "email": "Email",
+      "status": "Status",
+      "invited_by": "Invited By",
+      "invited_at": "Invited At",
+      "expires_at": "Expires At",
+      "actions": "Actions"
+    },
+    "resending": "Resending...",
+    "resend": "Resend",
+    "deleting": "Deleting...",
+    "delete": "Delete",
+    "no_actions": "No actions",
+    "no_invitations": "No invitations sent yet",
+    "sending": "Sending...",
+    "send_invitation": "Send Invitation",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    },
+    "invite_dialog": {
+      "title": "Invite CEO for {{company}}",
+      "email_label": "CEO Email Address *",
+      "email_placeholder": "ceo@example.com"
+    }
+  },
+  "admin_dashboard": {
+    "page_title": "Admin Dashboard",
+    "heading": "Admin Dashboard",
+    "subheading": "Overview of all HR projects and system statistics",
+    "stats": {
+      "total_hr": "Total HR",
+      "total_ceo": "Total CEO",
+      "total_projects": "Total Projects",
+      "total_companies": "Total Companies",
+      "active_projects": "Active Projects",
+      "completed": "Completed",
+      "pending_approval": "Pending Approval",
+      "pending_approval_hint": "access_granted_at = null"
+    },
+    "users": {
+      "title": "All Users (CEO/HR)",
+      "manage": "Manage",
+      "no_users": "No users found",
+      "hr_manager": "HR Manager",
+      "active": "Active",
+      "pending": "Pending",
+      "table": {
+        "name": "Name",
+        "role": "Role",
+        "company": "Company",
+        "email_verified": "Email verified",
+        "access": "Access"
+      }
+    },
+    "pending_survey": {
+      "title": "Pending CEO Survey",
+      "description": "Projects waiting for CEO philosophy survey",
+      "view_all_projects": "View All Projects"
+    },
+    "recommendations": {
+      "performance_title": "Performance Recommendations Needed",
+      "performance_desc": "Projects where Step 3 (Job Analysis) is confirmed but performance recommendation is not yet prepared.",
+      "compensation_title": "Compensation Recommendations Needed",
+      "compensation_desc": "Projects where Step 4 (Performance) is completed but compensation recommendation is not yet prepared."
+    },
+    "recent_projects": {
+      "title": "Recent Projects",
+      "empty": "No projects yet"
+    },
+    "view_all": "View All"
+  },
+  "ceo_dashboard": {
+    "page_title": "CEO Dashboard",
+    "heading": "CEO Dashboard",
+    "subheading": "Review and manage your company's HR projects",
+    "stats": {
+      "total_projects": "Total Projects",
+      "pending_review": "Pending Review",
+      "pending_survey": "Pending Survey",
+      "completed": "Completed",
+      "survey_completed": "Survey Completed",
+      "pending_kpi_review": "Pending KPI Review"
+    },
+    "all_companies_title": "All Companies (Simple Table)",
+    "table": {
+      "company": "Company",
+      "diagnosis": "Diagnosis",
+      "survey": "Survey",
+      "kpi": "KPI",
+      "actions": "Actions"
+    },
+    "completed": "Completed",
+    "pending": "Pending",
+    "actions": {
+      "verify": "Verify",
+      "view_diagnosis": "View Diagnosis",
+      "start_survey": "Start Survey",
+      "kpi_review": "KPI Review"
+    },
+    "action_required": "Action Required: Diagnosis Review",
+    "pending_reviews_count": "You have {{count}} project waiting for your review",
+    "view_all_pending": "View All Pending Reviews ({{count}})",
+    "kpi_review_title": "KPI Review",
+    "view_all_kpi": "View All KPI Reviews ({{count}})",
+    "kpi_review_empty": "KPI review will appear here after HR sends KPI draft to Leader/CEO flow.",
+    "needs_attention": {
+      "title": "Projects Needing Attention"
+    },
+    "view_all": "View All",
+    "survey_required": "Survey Required",
+    "review_diagnosis": "Review Diagnosis",
+    "quick_actions": {
+      "title": "Quick Actions",
+      "view_all_projects": "View All Projects",
+      "view_all_projects_desc": "Manage and review all your projects",
+      "start_survey": "Start Survey",
+      "pending_reviews": "Pending Reviews"
+    }
+  },
+  "settings_index": {
+    "page_title": "Settings",
+    "heading": "Settings",
+    "subheading": "Manage your application settings, email configuration, and profile",
+    "tabs": {
+      "profile": "Profile",
+      "password": "Password",
+      "smtp": "SMTP/Email",
+      "app": "App",
+      "appearance": "Appearance",
+      "security": "Security"
+    },
+    "common": {
+      "saving": "Saving...",
+      "saved": "Saved",
+      "saved_bang": "Saved!"
+    },
+    "profile": {
+      "title": "Profile Information",
+      "description": "Update your personal info, contact details, and location",
+      "photo_alt": "Profile photo",
+      "no_photo": "No photo",
+      "upload_photo": "Upload photo",
+      "unverified_message": "Your email address is unverified.",
+      "resend_verification": "Click here to resend the verification email.",
+      "verification_sent": "A new verification link has been sent to your email address.",
+      "save_changes": "Save Changes",
+      "fields": {
+        "full_name": "Full Name",
+        "email_address": "Email Address",
+        "phone": "Phone number",
+        "phone_placeholder": "Phone number",
+        "address": "Address",
+        "address_placeholder": "Street address",
+        "city": "City",
+        "city_placeholder": "City",
+        "state": "State / Province",
+        "state_placeholder": "State",
+        "latitude": "Latitude",
+        "latitude_placeholder": "Latitude",
+        "longitude": "Longitude",
+        "longitude_placeholder": "Longitude"
+      }
+    },
+    "password": {
+      "title": "Change Password",
+      "description": "Update your account password. Ensure your account is using a long, random password to stay secure.",
+      "save_password": "Save password",
+      "fields": {
+        "current_password": "Current password",
+        "current_password_placeholder": "Current password",
+        "new_password": "New password",
+        "new_password_placeholder": "New password",
+        "confirm_password": "Confirm password",
+        "confirm_password_placeholder": "Confirm password"
+      }
+    },
+    "smtp": {
+      "configured_active": "SMTP is configured and active",
+      "active": "Active",
+      "not_configured": "SMTP is not configured. Email services are disabled.",
+      "inactive": "Inactive",
+      "title": "Email Configuration",
+      "description": "Configure SMTP settings for sending emails",
+      "save_settings": "Save SMTP Settings",
+      "test_title": "Test Email Configuration",
+      "test_description": "Send a test email to verify your SMTP settings",
+      "sending": "Sending...",
+      "send_test_email": "Send Test Email",
+      "note_label": "Note:",
+      "note_text": "After updating SMTP settings, you need to update your",
+      "note_text_tail": "file with these values and restart your application.",
+      "fields": {
+        "mailer_type": "Mailer Type",
+        "smtp_host": "SMTP Host",
+        "smtp_port": "SMTP Port",
+        "username": "Username",
+        "username_placeholder": "SMTP username",
+        "password": "Password",
+        "password_placeholder": "Leave empty to keep current",
+        "encryption": "Encryption",
+        "from_email": "From Email Address",
+        "from_name": "From Name",
+        "test_email": "Test Email Address"
+      }
+    },
+    "app": {
+      "title": "Application Settings",
+      "description": "Configure your application name and logo",
+      "save_settings": "Save Application Settings",
+      "fields": {
+        "application_name": "Application Name",
+        "application_logo": "Application Logo",
+        "current_logo_alt": "Current logo",
+        "logo_help": "Recommended: SVG or PNG, max 2MB",
+        "require_admin_approval": "Require admin approval for new accounts",
+        "require_admin_approval_help": "When enabled, new users must wait until admin approval before accessing the system."
+      }
+    },
+    "appearance": {
+      "title": "Appearance Settings",
+      "description": "Customize the look and feel of your application",
+      "theme": "Theme",
+      "theme_help": "Choose your preferred theme"
+    },
+    "security": {
+      "title": "Two-Factor Authentication",
+      "description": "Manage your two-factor authentication settings",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "enabled_help": "With two-factor authentication enabled, you will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.",
+      "disabled_help": "When you enable two-factor authentication, you will be prompted for a secure pin during login. This pin can be retrieved from a TOTP-supported application on your phone.",
+      "disable_2fa": "Disable 2FA",
+      "continue_setup": "Continue Setup",
+      "enable_2fa": "Enable 2FA"
+    }
+  },
+  "settings_profile": {
+    "page_title": "Profile settings",
+    "sr_title": "Profile Settings",
+    "heading_title": "Profile information",
+    "heading_description": "Update your name, contact details, and location",
+    "photo_alt": "Profile photo",
+    "no_photo": "No photo",
+    "upload_photo": "Upload photo",
+    "unverified": "Your email address is unverified.",
+    "resend_verification": "Click here to resend the verification email.",
+    "verification_sent": "A new verification link has been sent to your email address.",
+    "save": "Save",
+    "saved": "Saved",
+    "fields": {
+      "name": "Name",
+      "name_placeholder": "Full name",
+      "email": "Email address",
+      "email_placeholder": "Email address",
+      "phone": "Phone number",
+      "phone_placeholder": "Phone number",
+      "address": "Address",
+      "address_placeholder": "Street address",
+      "city": "City",
+      "city_placeholder": "City",
+      "state": "State / Province",
+      "state_placeholder": "State",
+      "latitude": "Latitude",
+      "latitude_placeholder": "Latitude",
+      "longitude": "Longitude",
+      "longitude_placeholder": "Longitude"
+    }
+  },
+  "settings_password": {
+    "page_title": "Password settings",
+    "sr_title": "Password Settings",
+    "heading_title": "Update password",
+    "heading_description": "Ensure your account is using a long, random password to stay secure",
+    "save_password": "Save password",
+    "saved": "Saved",
+    "fields": {
+      "current_password": "Current password",
+      "current_password_placeholder": "Current password",
+      "new_password": "New password",
+      "new_password_placeholder": "New password",
+      "confirm_password": "Confirm password",
+      "confirm_password_placeholder": "Confirm password"
+    }
+  },
+  "settings_two_factor": {
+    "page_title": "Two-Factor Authentication",
+    "sr_title": "Two-Factor Authentication Settings",
+    "heading_title": "Two-Factor Authentication",
+    "heading_description": "Manage your two-factor authentication settings",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "enabled_help": "With two-factor authentication enabled, you will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.",
+    "disabled_help": "When you enable two-factor authentication, you will be prompted for a secure pin during login. This pin can be retrieved from a TOTP-supported application on your phone.",
+    "disable": "Disable 2FA",
+    "continue_setup": "Continue Setup",
+    "enable": "Enable 2FA"
+  },
+  "settings_appearance": {
+    "page_title": "Appearance settings",
+    "sr_title": "Appearance Settings",
+    "heading_title": "Appearance settings",
+    "heading_description": "Update your account's appearance settings"
+  },
+  "pathfinder_dashboard": {
+    "page_title": "HR Path-Finder - Dashboard",
+    "step_n": "Step {{n}}",
+    "step_1_in_progress": "Step 1: Diagnosis In Progress",
+    "phase": {
+      "submitted_title": "{{title}} submitted - waiting for review",
+      "submitted_hint": "You can continue to the next available step while review is in progress.",
+      "in_progress_title": "{{title}} is in progress",
+      "in_progress_hint": "Your draft is kept while moving between steps."
+    },
+    "steps": {
+      "diagnosis_desc": "Enter company basics, industry, workforce status, organization structure, and key HR issues.",
+      "job_analysis_desc": "Define job roles, responsibilities, competencies, and organization mapping.",
+      "performance_desc": "Design evaluation units, performance methodology, and review structure.",
+      "compensation_desc": "Define compensation structure, differentiation methodology, and incentive components."
+    }
+  },
   "diagnosis_overrides": {}
 }

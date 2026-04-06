@@ -12,12 +12,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
     optionKeys: Record<string, string>;
 }
 
 export default function EvaluationOptionGuidanceCreate({ optionKeys }: Props) {
+    const { t } = useTranslation();
     const { data, setData, post, processing, errors, clearErrors } = useForm({
         option_key: '',
         option_value: '',
@@ -43,32 +45,32 @@ export default function EvaluationOptionGuidanceCreate({ optionKeys }: Props) {
             <SidebarInset>
                 <AppHeader />
                 <div className="p-6 md:p-8 max-w-4xl mx-auto">
-                    <Head title="Create Evaluation Option Guidance" />
+                    <Head title={t('admin_eval_option_guidance_create.page_title')} />
                     
                     <div className="mb-6">
                         <Link href="/admin/evaluation-option-guidance">
                             <Button variant="ghost" className="mb-4">
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back to List
+                                {t('admin_eval_option_guidance_create.back')}
                             </Button>
                         </Link>
-                        <h1 className="text-3xl font-bold">Create Evaluation Option Guidance</h1>
+                        <h1 className="text-3xl font-bold">{t('admin_eval_option_guidance_create.heading')}</h1>
                         <p className="text-muted-foreground mt-1">
-                            Add guidance content for evaluation structure options
+                            {t('admin_eval_option_guidance_create.subheading')}
                         </p>
                     </div>
 
                     <form onSubmit={handleSubmit}>
                         <Card>
                             <CardHeader>
-                                <CardTitle>Guidance Details</CardTitle>
+                                <CardTitle>{t('admin_eval_option_guidance_create.details_title')}</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 <div>
-                                    <Label htmlFor="option_key">Option Key *</Label>
+                                    <Label htmlFor="option_key">{t('admin_eval_option_guidance_create.fields.option_key')}</Label>
                                     <Select value={data.option_key} onValueChange={(value) => setData('option_key', value)}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select option key" />
+                                            <SelectValue placeholder={t('admin_eval_option_guidance_create.fields.option_key_placeholder')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {Object.entries(optionKeys).map(([key, label]) => (
@@ -82,29 +84,29 @@ export default function EvaluationOptionGuidanceCreate({ optionKeys }: Props) {
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="option_value">Option Value *</Label>
+                                    <Label htmlFor="option_value">{t('admin_eval_option_guidance_create.fields.option_value')}</Label>
                                     <Input
                                         id="option_value"
                                         value={data.option_value}
                                         onChange={(e) => setData('option_value', e.target.value)}
-                                        placeholder="e.g., annual, 3-level, top_down"
+                                        placeholder={t('admin_eval_option_guidance_create.fields.option_value_placeholder')}
                                     />
                                     {errors.option_value && <p className="text-sm text-destructive mt-1">{errors.option_value}</p>}
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="concept">Concept</Label>
+                                    <Label htmlFor="concept">{t('admin_eval_option_guidance_create.fields.concept')}</Label>
                                     <Textarea
                                         id="concept"
                                         value={data.concept}
                                         onChange={(e) => setData('concept', e.target.value)}
                                         rows={3}
-                                        placeholder="Brief definition"
+                                        placeholder={t('admin_eval_option_guidance_create.fields.concept_placeholder')}
                                     />
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="key_characteristics">Key Characteristics</Label>
+                                    <Label htmlFor="key_characteristics">{t('admin_eval_option_guidance_create.fields.key_characteristics')}</Label>
                                     <Textarea
                                         id="key_characteristics"
                                         value={data.key_characteristics}
@@ -114,7 +116,7 @@ export default function EvaluationOptionGuidanceCreate({ optionKeys }: Props) {
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="example">Example</Label>
+                                    <Label htmlFor="example">{t('admin_eval_option_guidance_create.fields.example')}</Label>
                                     <Textarea
                                         id="example"
                                         value={data.example}
@@ -124,7 +126,7 @@ export default function EvaluationOptionGuidanceCreate({ optionKeys }: Props) {
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="pros">Pros</Label>
+                                    <Label htmlFor="pros">{t('admin_eval_option_guidance_create.fields.pros')}</Label>
                                     <Textarea
                                         id="pros"
                                         value={data.pros}
@@ -134,7 +136,7 @@ export default function EvaluationOptionGuidanceCreate({ optionKeys }: Props) {
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="cons">Cons</Label>
+                                    <Label htmlFor="cons">{t('admin_eval_option_guidance_create.fields.cons')}</Label>
                                     <Textarea
                                         id="cons"
                                         value={data.cons}
@@ -144,7 +146,7 @@ export default function EvaluationOptionGuidanceCreate({ optionKeys }: Props) {
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="best_fit_organizations">Best Fit Organizations</Label>
+                                    <Label htmlFor="best_fit_organizations">{t('admin_eval_option_guidance_create.fields.best_fit')}</Label>
                                     <Textarea
                                         id="best_fit_organizations"
                                         value={data.best_fit_organizations}
@@ -160,18 +162,18 @@ export default function EvaluationOptionGuidanceCreate({ optionKeys }: Props) {
                                         onCheckedChange={(checked) => setData('is_active', checked === true)}
                                     />
                                     <Label htmlFor="is_active" className="cursor-pointer">
-                                        Active
+                                        {t('admin_eval_option_guidance_create.fields.active')}
                                     </Label>
                                 </div>
 
                                 <div className="flex justify-end gap-4 pt-4">
                                     <Link href="/admin/evaluation-option-guidance">
                                         <Button type="button" variant="outline">
-                                            Cancel
+                                            {t('common.cancel')}
                                         </Button>
                                     </Link>
                                     <Button type="submit" disabled={processing}>
-                                        Create Guidance
+                                        {t('admin_eval_option_guidance_create.actions.create')}
                                     </Button>
                                 </div>
                             </CardContent>

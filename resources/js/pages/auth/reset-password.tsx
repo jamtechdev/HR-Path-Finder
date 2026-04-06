@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { home } from '@/routes';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
     email: string;
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export default function ResetPassword({ email, status }: Props) {
+    const { t } = useTranslation();
     const form = useForm({
         email: email || '',
         password: '',
@@ -44,27 +46,27 @@ export default function ResetPassword({ email, status }: Props) {
                 </div>
                 <div className="space-y-6">
                     <h2 className="font-display text-4xl font-bold leading-tight">
-                        Set a new password<br />
-                        and secure your<br />
-                        <span className="text-success">account.</span>
+                        {t('auth_reset_password.hero_line_1')}<br />
+                        {t('auth_reset_password.hero_line_2')}<br />
+                        <span className="text-success">{t('auth_reset_password.hero_highlight')}</span>
                     </h2>
                     <p className="text-white/70 text-lg max-w-md">
-                        Choose a strong password to protect your HR system design workspace.
+                        {t('auth_reset_password.hero_description')}
                     </p>
                 </div>
                 <div className="flex items-center gap-8 text-white/50 text-sm">
-                    <span>Secure reset</span>
+                    <span>{t('auth_reset_password.footer_secure_reset')}</span>
                     <span>•</span>
-                    <span>One-time link</span>
+                    <span>{t('auth_reset_password.footer_one_time')}</span>
                     <span>•</span>
-                    <span>Instant access</span>
+                    <span>{t('auth_reset_password.footer_instant')}</span>
                 </div>
             </div>
 
             {/* Right Side - Form */}
             <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-background">
                 <div className="w-full max-w-md space-y-8">
-            <Head title="Reset password" />
+            <Head title={t('auth_reset_password.page_title')} />
 
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex items-center gap-3 justify-center mb-8">
@@ -83,14 +85,14 @@ export default function ResetPassword({ email, status }: Props) {
                     <div className="mb-4">
                         <Link href={home()} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                             <ArrowLeft className="w-4 h-4" />
-                            Back to home
+                            {t('auth_reset_password.back_to_home')}
                         </Link>
                     </div>
 
                     {/* Header */}
                     <div className="text-center lg:text-left">
-                        <h2 className="text-2xl font-display font-bold">Reset password</h2>
-                        <p className="text-muted-foreground mt-2">Please enter your new password below</p>
+                        <h2 className="text-2xl font-display font-bold">{t('auth_reset_password.heading')}</h2>
+                        <p className="text-muted-foreground mt-2">{t('auth_reset_password.subheading')}</p>
                     </div>
 
             {status && (
@@ -102,7 +104,7 @@ export default function ResetPassword({ email, status }: Props) {
             <form onSubmit={submit} className="space-y-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="email" className="text-sm font-medium leading-none">
-                                        Email
+                                        {t('auth_reset_password.email')}
                                     </Label>
                             <Input
                                 id="email"
@@ -116,7 +118,7 @@ export default function ResetPassword({ email, status }: Props) {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="password" className="text-sm font-medium leading-none">
-                                        New Password
+                                        {t('auth_reset_password.new_password')}
                                     </Label>
                             <Input
                                 id="password"
@@ -137,7 +139,7 @@ export default function ResetPassword({ email, status }: Props) {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="password_confirmation" className="text-sm font-medium leading-none">
-                                        Confirm Password
+                                        {t('auth_reset_password.confirm_password')}
                             </Label>
                             <Input
                                 id="password_confirmation"
@@ -164,12 +166,12 @@ export default function ResetPassword({ email, status }: Props) {
                     {form.processing ? (
                                         <>
                                             <Spinner className="mr-2" />
-                                            Resetting...
+                                            {t('auth_reset_password.resetting')}
                                         </>
                                     ) : (
                                         <>
                                             <Lock className="mr-2 h-4 w-4" />
-                            Reset password
+                            {t('auth_reset_password.reset')}
                                             <ArrowRight className="ml-2 h-4 w-4" />
                                         </>
                                     )}

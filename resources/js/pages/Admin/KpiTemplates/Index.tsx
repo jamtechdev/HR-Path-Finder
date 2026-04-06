@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Sidebar, SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { toast } from '@/hooks/use-toast';
 import { toastCopy } from '@/lib/toastCopy';
+import { useTranslation } from 'react-i18next';
 
 interface Company {
     id: number;
@@ -45,6 +46,7 @@ interface Props {
 }
 
 export default function KpiTemplatesIndex({ templates, companies }: Props) {
+    const { t } = useTranslation();
     const { flash } = usePage().props as any;
     const [companyFilter, setCompanyFilter] = useState<string>('');
     const [orgFilter, setOrgFilter] = useState<string>('');
@@ -55,7 +57,7 @@ export default function KpiTemplatesIndex({ templates, companies }: Props) {
     }, [flash]);
 
     const handleDelete = (id: number) => {
-        if (confirm('Are you sure you want to delete this KPI template?')) {
+        if (confirm(t('admin_kpi_templates.confirm_delete'))) {
             router.delete(`/admin/kpi-templates/${id}`, { preserveScroll: true });
         }
     };
@@ -77,39 +79,39 @@ export default function KpiTemplatesIndex({ templates, companies }: Props) {
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="KPI Templates" />
+                    <Head title={t('admin_kpi_templates.page_title')} />
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
-                                <h1 className="mb-2 text-3xl font-bold text-foreground">KPI Templates</h1>
+                                <h1 className="mb-2 text-3xl font-bold text-foreground">{t('admin_kpi_templates.heading')}</h1>
                                 <p className="text-muted-foreground">
-                                    Recommended KPIs by organization unit. Managers see these when creating KPIs.
+                                    {t('admin_kpi_templates.subheading')}
                                 </p>
                                 <p className="text-xs text-muted-foreground mt-2">
-                                    Use this page to define reusable default KPI suggestions. Use KPI Review for approving or revising live submitted KPI data by project.
+                                    {t('admin_kpi_templates.helper')}
                                 </p>
                             </div>
                             <Link href="/admin/kpi-templates/create">
                                 <Button>
                                     <Plus className="mr-2 h-4 w-4" />
-                                    Add Template
+                                    {t('admin_kpi_templates.actions.add_template')}
                                 </Button>
                             </Link>
                         </div>
 
                         <Card className="mb-6">
                             <CardHeader>
-                                <CardTitle>Filters</CardTitle>
+                                <CardTitle>{t('admin_kpi_templates.filters.title')}</CardTitle>
                             </CardHeader>
                             <CardContent className="flex flex-wrap gap-4">
                                 <div>
-                                    <Label>Company</Label>
+                                    <Label>{t('admin_kpi_templates.filters.company')}</Label>
                                     <select
                                         className="mt-1 h-9 rounded-md border border-input bg-background px-3"
                                         value={companyFilter}
                                         onChange={(e) => setCompanyFilter(e.target.value)}
                                     >
-                                        <option value="">All</option>
+                                        <option value="">{t('admin_kpi_templates.filters.all')}</option>
                                         {companies.map((c) => (
                                             <option key={c.id} value={c.id}>
                                                 {c.name}
@@ -118,54 +120,54 @@ export default function KpiTemplatesIndex({ templates, companies }: Props) {
                                     </select>
                                 </div>
                                 <div>
-                                    <Label>Org unit name</Label>
+                                    <Label>{t('admin_kpi_templates.filters.org_unit_name')}</Label>
                                     <Input
                                         className="mt-1 w-48"
                                         value={orgFilter}
                                         onChange={(e) => setOrgFilter(e.target.value)}
-                                        placeholder="Filter by org unit"
+                                        placeholder={t('admin_kpi_templates.filters.org_unit_placeholder')}
                                     />
                                 </div>
                                 <Button className="mt-6" onClick={applyFilters}>
-                                    Apply
+                                    {t('admin_kpi_templates.filters.apply')}
                                 </Button>
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader>
-                                <CardTitle>Templates</CardTitle>
+                                <CardTitle>{t('admin_kpi_templates.templates_title')}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-2">
                                     {list.length === 0 ? (
-                                        <p className="py-4 text-muted-foreground">No KPI templates yet. Create one to suggest KPIs to managers.</p>
+                                        <p className="py-4 text-muted-foreground">{t('admin_kpi_templates.empty')}</p>
                                     ) : (
-                                        list.map((t) => (
+                                        list.map((tpl) => (
                                             <div
-                                                key={t.id}
+                                                key={tpl.id}
                                                 className="flex flex-wrap items-center justify-between gap-4 rounded-lg border p-4 hover:bg-muted/50"
                                             >
                                                 <div className="min-w-0 flex-1">
                                                     <div className="mb-1 flex items-center gap-2">
-                                                        <span className="font-semibold">{t.kpi_name}</span>
-                                                        {!t.is_active && <Badge variant="secondary">Inactive</Badge>}
-                                                        {t.org_unit_name && (
-                                                            <Badge variant="outline">{t.org_unit_name}</Badge>
+                                                        <span className="font-semibold">{tpl.kpi_name}</span>
+                                                        {!tpl.is_active && <Badge variant="secondary">{t('admin_kpi_templates.badges.inactive')}</Badge>}
+                                                        {tpl.org_unit_name && (
+                                                            <Badge variant="outline">{tpl.org_unit_name}</Badge>
                                                         )}
-                                                        {t.company && (
-                                                            <Badge variant="outline">{t.company.name}</Badge>
+                                                        {tpl.company && (
+                                                            <Badge variant="outline">{tpl.company.name}</Badge>
                                                         )}
                                                     </div>
-                                                    {t.purpose && (
-                                                        <p className="text-sm text-muted-foreground line-clamp-1">{t.purpose}</p>
+                                                    {tpl.purpose && (
+                                                        <p className="text-sm text-muted-foreground line-clamp-1">{tpl.purpose}</p>
                                                     )}
                                                     <p className="text-xs text-muted-foreground">
-                                                        Category: {t.category || '—'} · Weight: {t.weight}%
+                                                        {t('admin_kpi_templates.fields.category')}: {tpl.category || '—'} · {t('admin_kpi_templates.fields.weight')}: {tpl.weight}%
                                                     </p>
                                                 </div>
                                                 <div className="flex gap-2">
-                                                    <Link href={`/admin/kpi-templates/${t.id}/edit`}>
+                                                    <Link href={`/admin/kpi-templates/${tpl.id}/edit`}>
                                                         <Button variant="outline" size="sm">
                                                             <Edit className="h-4 w-4" />
                                                         </Button>
@@ -174,7 +176,7 @@ export default function KpiTemplatesIndex({ templates, companies }: Props) {
                                                         variant="outline"
                                                         size="sm"
                                                         className="text-destructive hover:bg-destructive/10"
-                                                        onClick={() => handleDelete(t.id)}
+                                                        onClick={() => handleDelete(tpl.id)}
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>

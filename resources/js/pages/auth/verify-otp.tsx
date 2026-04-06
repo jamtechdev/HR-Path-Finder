@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { login, home } from '@/routes';
+import { useTranslation } from 'react-i18next';
 
 interface PageProps {
     email: string;
@@ -16,6 +17,7 @@ interface PageProps {
 }
 
 export default function VerifyOtp({ email, status }: PageProps) {
+    const { t } = useTranslation();
     const form = useForm({
         email: email || '',
         otp: '',
@@ -95,27 +97,27 @@ export default function VerifyOtp({ email, status }: PageProps) {
                 </div>
                 <div className="space-y-6">
                     <h2 className="font-display text-4xl font-bold leading-tight">
-                        Verify your<br />
-                        identity with<br />
-                        <span className="text-success">OTP code.</span>
+                        {t('auth_verify_otp.hero_line_1')}<br />
+                        {t('auth_verify_otp.hero_line_2')}<br />
+                        <span className="text-success">{t('auth_verify_otp.hero_highlight')}</span>
                     </h2>
                     <p className="text-white/70 text-lg max-w-md">
-                        Enter the 6-digit code sent to your email address to continue with password reset.
+                        {t('auth_verify_otp.hero_description')}
                     </p>
                 </div>
                 <div className="flex items-center gap-8 text-white/50 text-sm">
-                    <span>🔐 Secure verification</span>
+                    <span>{t('auth_verify_otp.footer_secure')}</span>
                     <span>•</span>
-                    <span>5-minute validity</span>
+                    <span>{t('auth_verify_otp.footer_validity')}</span>
                     <span>•</span>
-                    <span>One-time use</span>
+                    <span>{t('auth_verify_otp.footer_one_time')}</span>
                 </div>
             </div>
 
             {/* Right Side - Form */}
             <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-background">
                 <div className="w-full max-w-md space-y-8">
-                    <Head title="Verify OTP" />
+                    <Head title={t('auth_verify_otp.page_title')} />
 
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex items-center gap-3 justify-center mb-8">
@@ -134,15 +136,15 @@ export default function VerifyOtp({ email, status }: PageProps) {
                     <div className="mb-4">
                         <Link href={home()} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                             <ArrowLeft className="w-4 h-4" />
-                            Back to home
+                            {t('auth_verify_otp.back_to_home')}
                         </Link>
                     </div>
 
                     {/* Header */}
                     <div className="text-center lg:text-left">
-                        <h2 className="text-2xl font-display font-bold">Verify OTP</h2>
+                        <h2 className="text-2xl font-display font-bold">{t('auth_verify_otp.heading')}</h2>
                         <p className="text-muted-foreground mt-2">
-                            Enter the 6-digit code sent to <strong>{email}</strong>
+                            {t('auth_verify_otp.subheading', { email })}
                         </p>
                     </div>
 
@@ -156,7 +158,7 @@ export default function VerifyOtp({ email, status }: PageProps) {
                         {/* OTP Input Fields */}
                         <div className="space-y-4">
                             <Label className="text-sm font-medium leading-none text-center block">
-                                Enter 6-digit OTP
+                                {t('auth_verify_otp.enter_otp')}
                             </Label>
                             <div className="flex justify-center gap-2">
                                 {otpDigits.map((digit, index) => (
@@ -187,12 +189,12 @@ export default function VerifyOtp({ email, status }: PageProps) {
                             {form.processing ? (
                                 <>
                                     <Spinner className="mr-2" />
-                                    Verifying...
+                                    {t('auth_verify_otp.verifying')}
                                 </>
                             ) : (
                                 <>
                                     <Shield className="mr-2 h-4 w-4" />
-                                    Verify OTP
+                                    {t('auth_verify_otp.verify')}
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </>
                             )}
@@ -207,24 +209,24 @@ export default function VerifyOtp({ email, status }: PageProps) {
                             onClick={handleResend}
                         >
                             <RotateCcw className="mr-2 h-4 w-4" />
-                            Resend OTP
+                            {t('auth_verify_otp.resend')}
                         </Button>
 
                         <p className="text-center text-sm text-muted-foreground">
-                            Didn't receive the code? Check your spam folder or{' '}
+                            {t('auth_verify_otp.did_not_receive')}{' '}
                             <button
                                 type="button"
                                 onClick={handleResend}
                                 className="text-[#0a1629] font-medium hover:underline"
                             >
-                                resend OTP
+                                {t('auth_verify_otp.resend_lower')}
                             </button>
                         </p>
 
                         <p className="text-center text-sm text-muted-foreground">
-                            Remember your password?{' '}
+                            {t('auth_verify_otp.remember_password')}{' '}
                             <TextLink href={login()} className="text-primary font-medium hover:underline">
-                                Sign in
+                                {t('auth_verify_otp.sign_in')}
                             </TextLink>
                         </p>
                     </div>

@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout';
+import { useTranslation } from 'react-i18next';
 
 interface Project {
     id: number;
@@ -89,6 +90,7 @@ export default function CeoJobAnalysisIndex({
     introCompleted = false,
     stepStatuses = {},
 }: Props) {
+    const { t } = useTranslation();
     const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['intro', 'policy-answers']));
     const [expandedJobs, setExpandedJobs] = useState<Set<number>>(new Set());
 
@@ -124,7 +126,7 @@ All inputs are confidential and will not be shared with other employees.`;
 
     return (
         <AppLayout>
-            <Head title={`Job Analysis - ${project?.company?.name || 'Review'}`} />
+            <Head title={t('ceo_job_analysis.page_title', { company: project?.company?.name || t('ceo_job_analysis.fallback') })} />
             <div className="space-y-6">
                 {/* Header */}
                 <div className="bg-white dark:bg-slate-900 border-b dark:border-slate-700">
@@ -132,16 +134,16 @@ All inputs are confidential and will not be shared with other employees.`;
                         <div className="flex items-center justify-between">
                             <div>
                                 <h1 className="text-3xl font-bold text-gray-800 dark:text-slate-100 mb-2">
-                                    Job Analysis Review
+                                    {t('ceo_job_analysis.heading')}
                                 </h1>
                                 <p className="text-lg text-gray-600 dark:text-slate-400">
-                                    Review and verify the job analysis data submitted by HR Manager
+                                    {t('ceo_job_analysis.subheading')}
                                 </p>
                             </div>
                             {isSubmitted && (
                                 <Badge className="bg-green-500 text-white px-4 py-2">
                                     <CheckCircle2 className="w-4 h-4 mr-2" />
-                                    Submitted
+                                    {t('ceo_job_analysis.submitted')}
                                 </Badge>
                             )}
                         </div>
@@ -158,7 +160,7 @@ All inputs are confidential and will not be shared with other employees.`;
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <FileText className="w-6 h-6 text-primary" />
-                                    <CardTitle className="text-xl dark:text-slate-100">Before You Begin</CardTitle>
+                                    <CardTitle className="text-xl dark:text-slate-100">{t('ceo_job_analysis.before_begin')}</CardTitle>
                                 </div>
                                 {expandedSections.has('intro') ? (
                                     <ChevronUp className="w-5 h-5 text-muted-foreground" />
@@ -192,7 +194,7 @@ All inputs are confidential and will not be shared with other employees.`;
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <Shield className="w-6 h-6 text-primary" />
-                                        <CardTitle className="text-xl dark:text-slate-100">Policy Snapshot Answers</CardTitle>
+                                        <CardTitle className="text-xl dark:text-slate-100">{t('ceo_job_analysis.policy_snapshot_answers')}</CardTitle>
                                     </div>
                                     {expandedSections.has('policy-answers') ? (
                                         <ChevronUp className="w-5 h-5 text-muted-foreground" />
@@ -218,16 +220,16 @@ All inputs are confidential and will not be shared with other employees.`;
                                                             {answer ? (
                                                                 <div className="space-y-2">
                                                                     <Badge variant={answer.answer === 'yes' ? 'default' : answer.answer === 'no' ? 'secondary' : 'outline'}>
-                                                                        {answer.answer === 'yes' ? 'Yes' : answer.answer === 'no' ? 'No' : 'Not sure'}
+                                                                        {answer.answer === 'yes' ? t('ceo_job_analysis.answer.yes') : answer.answer === 'no' ? t('ceo_job_analysis.answer.no') : t('ceo_job_analysis.answer.not_sure')}
                                                                     </Badge>
                                                                     {answer.conditional_text && (
                                                                         <p className="text-sm text-muted-foreground mt-2">
-                                                                            <strong>Details:</strong> {answer.conditional_text}
+                                                                            <strong>{t('ceo_job_analysis.details')}:</strong> {answer.conditional_text}
                                                                         </p>
                                                                     )}
                                                                 </div>
                                                             ) : (
-                                                                <Badge variant="outline">Not answered</Badge>
+                                                                <Badge variant="outline">{t('ceo_job_analysis.not_answered')}</Badge>
                                                             )}
                                                         </div>
                                                     </div>
@@ -250,9 +252,9 @@ All inputs are confidential and will not be shared with other employees.`;
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <List className="w-6 h-6 text-primary" />
-                                    <CardTitle className="text-xl dark:text-slate-100">Job List Selection</CardTitle>
+                                    <CardTitle className="text-xl dark:text-slate-100">{t('ceo_job_analysis.job_list_selection')}</CardTitle>
                                     <Badge variant="secondary">
-                                        {jobDefinitions.length} Job{jobDefinitions.length !== 1 ? 's' : ''}
+                                        {t('ceo_job_analysis.jobs_count', { count: jobDefinitions.length })}
                                     </Badge>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -265,7 +267,7 @@ All inputs are confidential and will not be shared with other employees.`;
                                         }}
                                     >
                                         <Eye className="w-4 h-4 mr-2" />
-                                        View Details
+                                        {t('ceo_job_analysis.view_details')}
                                     </Button>
                                     {expandedSections.has('job-list') ? (
                                         <ChevronUp className="w-5 h-5 text-muted-foreground" />
@@ -279,14 +281,14 @@ All inputs are confidential and will not be shared with other employees.`;
                             <CardContent className="dark:bg-slate-800">
                                 <div className="space-y-2">
                                     <p className="text-sm text-muted-foreground mb-4 dark:text-slate-400">
-                                        Industry: <strong>{industry || 'N/A'}</strong> | Size: <strong>{sizeRange || 'N/A'}</strong>
+                                        {t('ceo_job_analysis.industry')}: <strong>{industry || 'N/A'}</strong> | {t('ceo_job_analysis.size')}: <strong>{sizeRange || 'N/A'}</strong>
                                     </p>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                         {jobDefinitions.map((job) => (
                                             <Badge key={job.id} variant="secondary" className="p-2 justify-center dark:bg-slate-700 dark:text-slate-200">
                                                 {job.job_name}
                                                 {job.grouped_job_keyword_ids && (
-                                                    <span className="ml-1 text-xs">(Grouped)</span>
+                                                    <span className="ml-1 text-xs">({t('ceo_job_analysis.grouped')})</span>
                                                 )}
                                             </Badge>
                                         ))}
@@ -308,7 +310,7 @@ All inputs are confidential and will not be shared with other employees.`;
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <FileText className="w-6 h-6 text-primary" />
-                                        <CardTitle className="text-xl dark:text-slate-100">Job Definitions</CardTitle>
+                                        <CardTitle className="text-xl dark:text-slate-100">{t('ceo_job_analysis.job_definitions')}</CardTitle>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Button
@@ -320,7 +322,7 @@ All inputs are confidential and will not be shared with other employees.`;
                                             }}
                                         >
                                             <Eye className="w-4 h-4 mr-2" />
-                                            View All
+                                            {t('ceo_job_analysis.view_all')}
                                         </Button>
                                         {expandedSections.has('job-definitions') ? (
                                             <ChevronUp className="w-5 h-5 text-muted-foreground" />
@@ -351,7 +353,7 @@ All inputs are confidential and will not be shared with other employees.`;
                                                 <CardContent className="space-y-4 dark:bg-slate-700/30">
                                                     {job.job_description && (
                                                         <div>
-                                                            <h4 className="font-semibold mb-2 dark:text-slate-200">Job Description</h4>
+                                                            <h4 className="font-semibold mb-2 dark:text-slate-200">{t('ceo_job_analysis.sections.job_description')}</h4>
                                                             <p className="text-sm text-muted-foreground whitespace-pre-wrap dark:text-slate-400">
                                                                 {job.job_description}
                                                             </p>
@@ -359,11 +361,11 @@ All inputs are confidential and will not be shared with other employees.`;
                                                     )}
                                                     {job.competency_levels && job.competency_levels.length > 0 && (
                                                         <div>
-                                                            <h4 className="font-semibold mb-2 dark:text-slate-200">Competency Levels</h4>
+                                                            <h4 className="font-semibold mb-2 dark:text-slate-200">{t('ceo_job_analysis.sections.competency_levels')}</h4>
                                                             <div className="space-y-2">
                                                                 {job.competency_levels.map((level: any, idx: number) => (
                                                                     <div key={idx} className="text-sm dark:text-slate-300">
-                                                                        <strong>{level.level}:</strong> {level.description || 'No description'}
+                                                                        <strong>{level.level}:</strong> {level.description || t('ceo_job_analysis.no_description')}
                                                                     </div>
                                                                 ))}
                                                             </div>
@@ -371,7 +373,7 @@ All inputs are confidential and will not be shared with other employees.`;
                                                     )}
                                                     {job.csfs && job.csfs.length > 0 && (
                                                         <div>
-                                                            <h4 className="font-semibold mb-2 dark:text-slate-200">Critical Success Factors</h4>
+                                                            <h4 className="font-semibold mb-2 dark:text-slate-200">{t('ceo_job_analysis.sections.csf')}</h4>
                                                             <div className="space-y-2">
                                                                 {job.csfs.map((csf: any, idx: number) => (
                                                                     <div key={idx} className="text-sm p-2 bg-muted rounded dark:bg-slate-600/50">
@@ -383,7 +385,7 @@ All inputs are confidential and will not be shared with other employees.`;
                                                                                 </Badge>
                                                                             )}
                                                                         </div>
-                                                                        <p className="text-muted-foreground dark:text-slate-400">{csf.description || 'No description'}</p>
+                                                                        <p className="text-muted-foreground dark:text-slate-400">{csf.description || t('ceo_job_analysis.no_description')}</p>
                                                                     </div>
                                                                 ))}
                                                             </div>
@@ -410,8 +412,8 @@ All inputs are confidential and will not be shared with other employees.`;
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <List className="w-6 h-6 text-primary" />
-                                        <CardTitle className="text-xl dark:text-slate-100">Organization Chart Mappings</CardTitle>
-                                        <Badge variant="secondary">{orgMappings.length} Unit{orgMappings.length !== 1 ? 's' : ''}</Badge>
+                                        <CardTitle className="text-xl dark:text-slate-100">{t('ceo_job_analysis.org_chart_mappings')}</CardTitle>
+                                        <Badge variant="secondary">{t('ceo_job_analysis.units_count', { count: orgMappings.length })}</Badge>
                                     </div>
                                     {expandedSections.has('org-mappings') ? (
                                         <ChevronUp className="w-5 h-5 text-muted-foreground" />
@@ -430,7 +432,7 @@ All inputs are confidential and will not be shared with other employees.`;
                                             <CardContent className="space-y-3">
                                                 {mapping.org_head_name && (
                                                     <div className="dark:text-slate-300">
-                                                        <strong>Organization Head:</strong> {mapping.org_head_name}
+                                                        <strong>{t('ceo_job_analysis.organization_head')}:</strong> {mapping.org_head_name}
                                                         {mapping.org_head_rank && ` (${mapping.org_head_rank})`}
                                                         {mapping.org_head_title && ` - ${mapping.org_head_title}`}
                                                         {mapping.org_head_email && ` - ${mapping.org_head_email}`}
@@ -438,7 +440,7 @@ All inputs are confidential and will not be shared with other employees.`;
                                                 )}
                                                 {mapping.job_keyword_ids && mapping.job_keyword_ids.length > 0 && (
                                                     <div>
-                                                        <strong className="dark:text-slate-200">Mapped Jobs:</strong>
+                                                        <strong className="dark:text-slate-200">{t('ceo_job_analysis.mapped_jobs')}:</strong>
                                                         <div className="flex flex-wrap gap-2 mt-2">
                                                             {mapping.job_keyword_ids.map((jobId) => {
                                                                 const job = jobDefinitions.find(j => 
@@ -447,7 +449,7 @@ All inputs are confidential and will not be shared with other employees.`;
                                                                 );
                                                                 return (
                                                                     <Badge key={jobId} variant="outline">
-                                                                        {job?.job_name || `Job ${jobId}`}
+                                                                        {job?.job_name || t('ceo_job_analysis.job_id', { id: jobId })}
                                                                     </Badge>
                                                                 );
                                                             })}
@@ -470,9 +472,9 @@ All inputs are confidential and will not be shared with other employees.`;
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h3 className="font-semibold text-lg mb-2 dark:text-slate-100">Verification Actions</h3>
+                                        <h3 className="font-semibold text-lg mb-2 dark:text-slate-100">{t('ceo_job_analysis.verification.title')}</h3>
                                         <p className="text-sm text-muted-foreground dark:text-slate-400">
-                                            Review the job analysis data and verify or request revisions if needed.
+                                            {t('ceo_job_analysis.verification.description')}
                                         </p>
                                     </div>
                                     <div className="flex gap-3">
@@ -483,12 +485,12 @@ All inputs are confidential and will not be shared with other employees.`;
                                                     step: 'job_analysis',
                                                 }, {
                                                     onSuccess: () => {
-                                                        alert('Job Analysis reopened for revision.');
+                                                        alert(t('ceo_job_analysis.alerts.reopened'));
                                                     },
                                                 });
                                             }}
                                         >
-                                            Request Revision
+                                            {t('ceo_job_analysis.verification.request_revision')}
                                         </Button>
                                         <Button
                                             onClick={() => {
@@ -496,14 +498,14 @@ All inputs are confidential and will not be shared with other employees.`;
                                                     step: 'job_analysis',
                                                 }, {
                                                     onSuccess: () => {
-                                                        alert('Job Analysis verified and approved successfully.');
+                                                        alert(t('ceo_job_analysis.alerts.verified'));
                                                         router.visit('/ceo/dashboard');
                                                     },
                                                 });
                                             }}
                                         >
                                             <CheckCircle2 className="w-4 h-4 mr-2" />
-                                            Verify & Approve
+                                            {t('ceo_job_analysis.verification.verify_approve')}
                                         </Button>
                                     </div>
                                 </div>

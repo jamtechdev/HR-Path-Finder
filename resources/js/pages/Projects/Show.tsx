@@ -6,6 +6,7 @@ import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import { useTranslation } from 'react-i18next';
 
 interface Project {
     id: number;
@@ -38,6 +39,7 @@ interface Props {
 }
 
 export default function ShowProject({ project }: Props) {
+    const { t } = useTranslation();
     const { url, props } = usePage();
     const currentPath = url.split('?')[0];
     const user = (props as any).auth?.user;
@@ -67,22 +69,22 @@ export default function ShowProject({ project }: Props) {
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
                 <main className="flex-1 overflow-auto">
-                    <Head title={`${project.company.name} - HR Project`} />
+                    <Head title={t('projects_show.page_title', { company: project.company.name })} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
                             <Link href={projectsListPath}>
                                 <Button variant="ghost" className="mb-4">
                                     <ArrowLeft className="w-4 h-4 mr-2" />
-                                    Back to Projects
+                                    {t('projects_show.back')}
                                 </Button>
                             </Link>
                             <h1 className="text-3xl font-bold">{project.company.name}</h1>
-                            <p className="text-muted-foreground">HR Project #{project.id}</p>
+                            <p className="text-muted-foreground">{t('projects_show.project_id', { id: project.id })}</p>
                         </div>
 
                         <Card className="mb-6">
                             <CardHeader>
-                                <CardTitle>Project Status</CardTitle>
+                                <CardTitle>{t('projects_show.project_status')}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <p className="capitalize font-medium">{project.status}</p>
@@ -92,7 +94,7 @@ export default function ShowProject({ project }: Props) {
                         <div className="grid gap-4">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Workflow Steps</CardTitle>
+                                    <CardTitle>{t('projects_show.workflow_steps')}</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-4">
@@ -103,7 +105,7 @@ export default function ShowProject({ project }: Props) {
                                                     <span className="font-medium">{step.label}</span>
                                                 </div>
                                                 <span className="text-sm text-muted-foreground capitalize">
-                                                    {step.status || 'not_started'}
+                                                    {step.status || t('projects_show.not_started')}
                                                 </span>
                                             </div>
                                         ))}
@@ -114,25 +116,25 @@ export default function ShowProject({ project }: Props) {
                             {project.diagnosis && (
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Quick Actions</CardTitle>
+                                        <CardTitle>{t('projects_show.quick_actions')}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="flex gap-4">
                                         {isAdmin ? (
                                             <>
                                                 <Link href={`/admin/review/${project.id}`}>
-                                                    <Button>Review Project</Button>
+                                                    <Button>{t('projects_show.review_project')}</Button>
                                                 </Link>
                                                 <Link href={`/admin/hr-system/${project.id}`}>
-                                                    <Button variant="outline">View Overview</Button>
+                                                    <Button variant="outline">{t('projects_show.view_overview')}</Button>
                                                 </Link>
                                             </>
                                         ) : (
                                             <>
                                                 <Link href={`/hr-manager/diagnosis/${project.id}/overview`}>
-                                                    <Button>Continue Diagnosis</Button>
+                                                    <Button>{t('projects_show.continue_diagnosis')}</Button>
                                                 </Link>
                                                 <Link href={`/hr-system/${project.id}`}>
-                                                    <Button variant="outline">View Overview</Button>
+                                                    <Button variant="outline">{t('projects_show.view_overview')}</Button>
                                                 </Link>
                                             </>
                                         )}
