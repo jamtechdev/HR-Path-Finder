@@ -1,6 +1,8 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
@@ -27,20 +29,24 @@ interface Props {
 }
 
 export default function PolicySnapshotIndex({ questions }: Props) {
+    const { t } = useTranslation();
     const { flash } = usePage().props as any;
 
     useEffect(() => {
         if (flash?.success) {
             toast({ title: toastCopy.success, description: flash.success });
         }
-
         if (flash?.error) {
-            toast({ title: toastCopy.error, description: flash.error, variant: 'destructive' });
+            toast({
+                title: toastCopy.error,
+                description: flash.error,
+                variant: 'destructive',
+            });
         }
     }, [flash]);
 
     const handleDelete = (questionId: number) => {
-        if (confirm('Are you sure you want to delete this question?')) {
+        if (confirm(t('admin_policy_snapshot_index.delete_confirm'))) {
             router.delete(`/admin/policy-snapshot/${questionId}`, {
                 preserveScroll: true,
             });
@@ -48,7 +54,7 @@ export default function PolicySnapshotIndex({ questions }: Props) {
     };
 
     return (
-        <SidebarProvider defaultOpen={true}>
+        <SidebarProvider defaultOpen>
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
@@ -57,32 +63,38 @@ export default function PolicySnapshotIndex({ questions }: Props) {
                 <AppHeader />
 
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="Policy Snapshot Questions" />
+                    <Head title={t('admin_policy_snapshot_index.page_title')} />
 
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
-                        {/* Header */}
                         <div className="mb-6 flex items-center justify-between">
                             <div>
                                 <h1 className="mb-2 text-3xl font-bold text-foreground">
-                                    Policy Snapshot Questions
+                                    {t(
+                                        'admin_policy_snapshot_index.page_title',
+                                    )}
                                 </h1>
                                 <p className="text-muted-foreground">
-                                    Manage questions for the HR Job Analysis
-                                    Policy Snapshot step
+                                    {t(
+                                        'admin_policy_snapshot_index.description',
+                                    )}
                                 </p>
                             </div>
 
                             <Link href="/admin/policy-snapshot/create">
                                 <Button>
                                     <Plus className="mr-2 h-4 w-4" />
-                                    Add Question
+                                    {t(
+                                        'admin_policy_snapshot_index.add_question',
+                                    )}
                                 </Button>
                             </Link>
                         </div>
 
                         <Card>
                             <CardHeader>
-                                <CardTitle>Questions</CardTitle>
+                                <CardTitle>
+                                    {t('admin_policy_snapshot_index.questions')}
+                                </CardTitle>
                             </CardHeader>
 
                             <CardContent>
@@ -96,23 +108,27 @@ export default function PolicySnapshotIndex({ questions }: Props) {
                                                 <div className="mb-1 flex items-center gap-2">
                                                     {question.has_conditional_text && (
                                                         <Badge variant="outline">
-                                                            Has Conditional Text
+                                                            {t(
+                                                                'admin_policy_snapshot_index.has_conditional_text',
+                                                            )}
                                                         </Badge>
                                                     )}
-
                                                     {!question.is_active && (
                                                         <Badge variant="destructive">
-                                                            Inactive
+                                                            {t(
+                                                                'admin_policy_snapshot_index.inactive',
+                                                            )}
                                                         </Badge>
                                                     )}
                                                 </div>
-
                                                 <p className="text-sm">
                                                     {question.question_text}
                                                 </p>
-
                                                 <p className="mt-1 text-xs text-muted-foreground">
-                                                    Order: {question.order}
+                                                    {t(
+                                                        'admin_policy_snapshot_index.order',
+                                                    )}
+                                                    : {question.order}
                                                 </p>
                                             </div>
 
@@ -145,7 +161,9 @@ export default function PolicySnapshotIndex({ questions }: Props) {
 
                                     {questions.length === 0 && (
                                         <p className="py-8 text-center text-muted-foreground">
-                                            No questions found.
+                                            {t(
+                                                'admin_policy_snapshot_index.no_questions_found',
+                                            )}
                                         </p>
                                     )}
                                 </div>

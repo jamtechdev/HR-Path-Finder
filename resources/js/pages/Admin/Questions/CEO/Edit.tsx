@@ -1,6 +1,8 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { ChevronLeft } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import DynamicList from '@/components/Forms/DynamicList';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -22,7 +24,6 @@ import {
     SidebarProvider,
 } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
-import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 interface DiagnosisQuestion {
     id: number;
@@ -46,13 +47,15 @@ export default function CEOQuestionEdit({
     categories,
     questionTypes,
 }: Props) {
+    const { t } = useTranslation();
+
     const [questionType, setQuestionType] = useState<string>(
         question.question_type,
     );
     const [options, setOptions] = useState<string[]>(question.options || []);
     const [metadata, setMetadata] = useState<any>(question.metadata || {});
 
-    const { data, setData, put, processing, errors, clearErrors } = useForm({
+    const { data, setData, put, processing, errors } = useForm({
         category: question.category || '',
         question_text: question.question_text || '',
         question_type: question.question_type || '',
@@ -65,40 +68,29 @@ export default function CEOQuestionEdit({
     useEffect(() => {
         setData('question_type', questionType);
 
-        if (questionType === 'select') {
-            setData('options', options);
-        } else {
-            setData('options', []);
-        }
+        if (questionType === 'select') setData('options', options);
+        else setData('options', []);
 
-        if (
-            questionType === 'likert' ||
-            questionType === 'slider' ||
-            questionType === 'number'
-        ) {
+        if (['likert', 'slider', 'number'].includes(questionType))
             setData('metadata', metadata);
-        } else {
-            setData('metadata', {});
-        }
+        else setData('metadata', {});
     }, [questionType, options, metadata]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
         put(`/admin/questions/ceo/${question.id}`);
     };
 
     return (
-        <SidebarProvider defaultOpen={true}>
+        <SidebarProvider defaultOpen>
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
 
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
-
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="Edit CEO Question" />
+                    <Head title={t('admin_ceo_questions_edit.page_title')} />
 
                     <div className="mx-auto max-w-4xl p-6 md:p-8">
                         <div className="mb-6">
@@ -110,41 +102,50 @@ export default function CEOQuestionEdit({
                                 className="mb-4"
                             >
                                 <ChevronLeft className="mr-2 h-4 w-4" />
-                                Back to Questions
+                                {t(
+                                    'admin_ceo_questions_edit.back_to_questions',
+                                )}
                             </Button>
 
                             <h1 className="text-3xl font-bold">
-                                Edit CEO Question
+                                {t('admin_ceo_questions_edit.page_title')}
                             </h1>
                         </div>
 
                         <form onSubmit={handleSubmit}>
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Question Details</CardTitle>
+                                    <CardTitle>
+                                        {t(
+                                            'admin_ceo_questions_edit.question_details',
+                                        )}
+                                    </CardTitle>
                                 </CardHeader>
 
                                 <CardContent className="space-y-4">
                                     {/* Category */}
-
                                     <div>
                                         <Label>
-                                            Category
+                                            {t(
+                                                'admin_ceo_questions_edit.category',
+                                            )}{' '}
                                             <span className="text-destructive">
                                                 *
                                             </span>
                                         </Label>
-
                                         <Select
                                             defaultValue={data.category}
-                                            onValueChange={(value) =>
-                                                setData('category', value)
+                                            onValueChange={(v) =>
+                                                setData('category', v)
                                             }
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select category" />
+                                                <SelectValue
+                                                    placeholder={t(
+                                                        'admin_ceo_questions_edit.select_category',
+                                                    )}
+                                                />
                                             </SelectTrigger>
-
                                             <SelectContent>
                                                 {Object.entries(categories).map(
                                                     ([key, label]) => (
@@ -158,24 +159,23 @@ export default function CEOQuestionEdit({
                                                 )}
                                             </SelectContent>
                                         </Select>
-
                                         {errors.category && (
-                                            <div className="text-sm text-red-500">
+                                            <div className="text-sm text-destructive">
                                                 {errors.category}
                                             </div>
                                         )}
                                     </div>
 
                                     {/* Question Text */}
-
                                     <div>
                                         <Label>
-                                            Question Text
+                                            {t(
+                                                'admin_ceo_questions_edit.question_text',
+                                            )}{' '}
                                             <span className="text-destructive">
                                                 *
                                             </span>
                                         </Label>
-
                                         <Textarea
                                             value={data.question_text}
                                             onChange={(e) =>
@@ -186,34 +186,34 @@ export default function CEOQuestionEdit({
                                             }
                                             rows={3}
                                         />
-
                                         {errors.question_text && (
-                                            <div className="text-sm text-red-500">
+                                            <div className="text-sm text-destructive">
                                                 {errors.question_text}
                                             </div>
                                         )}
                                     </div>
 
                                     {/* Question Type */}
-
                                     <div>
                                         <Label>
-                                            Question Type
+                                            {t(
+                                                'admin_ceo_questions_edit.question_type',
+                                            )}{' '}
                                             <span className="text-destructive">
                                                 *
                                             </span>
                                         </Label>
-
                                         <Select
                                             defaultValue={questionType}
-                                            onValueChange={(value) =>
-                                                setQuestionType(value)
-                                            }
+                                            onValueChange={setQuestionType}
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select type" />
+                                                <SelectValue
+                                                    placeholder={t(
+                                                        'admin_ceo_questions_edit.question_type',
+                                                    )}
+                                                />
                                             </SelectTrigger>
-
                                             <SelectContent>
                                                 {Object.entries(
                                                     questionTypes,
@@ -229,106 +229,105 @@ export default function CEOQuestionEdit({
                                         </Select>
                                     </div>
 
-                                    {/* SELECT OPTIONS */}
-
+                                    {/* Options */}
                                     {questionType === 'select' && (
                                         <div>
-                                            <Label>Options</Label>
-
+                                            <Label>
+                                                {t(
+                                                    'admin_ceo_questions_edit.options',
+                                                )}
+                                            </Label>
                                             <DynamicList
                                                 label=""
                                                 items={options}
                                                 onChange={setOptions}
                                                 placeholder="Enter option"
-                                                addLabel="Add Option"
+                                                addLabel={t(
+                                                    'admin_ceo_questions_edit.add_option',
+                                                )}
                                             />
                                         </div>
                                     )}
 
-                                    {/* SLIDER / LIKERT */}
-
-                                    {(questionType === 'slider' ||
-                                        questionType === 'likert') && (
-                                        <div className="space-y-4">
-                                            {questionType === 'slider' && (
-                                                <>
-                                                    <div>
-                                                        <Label>Option A</Label>
-
-                                                        <Input
-                                                            value={
-                                                                metadata.option_a ||
-                                                                ''
-                                                            }
-                                                            onChange={(e) =>
-                                                                setMetadata({
-                                                                    ...metadata,
-                                                                    option_a:
-                                                                        e.target
-                                                                            .value,
-                                                                })
-                                                            }
-                                                        />
-                                                    </div>
-
-                                                    <div>
-                                                        <Label>Option B</Label>
-
-                                                        <Input
-                                                            value={
-                                                                metadata.option_b ||
-                                                                ''
-                                                            }
-                                                            onChange={(e) =>
-                                                                setMetadata({
-                                                                    ...metadata,
-                                                                    option_b:
-                                                                        e.target
-                                                                            .value,
-                                                                })
-                                                            }
-                                                        />
-                                                    </div>
-                                                </>
-                                            )}
-
-                                            {questionType === 'likert' && (
-                                                <div>
-                                                    <Label>
-                                                        Scale Labels
-                                                        (comma-separated)
-                                                    </Label>
-
-                                                    <Input
-                                                        value={
-                                                            metadata.labels?.join(
-                                                                ', ',
-                                                            ) || ''
-                                                        }
-                                                        onChange={(e) =>
-                                                            setMetadata({
-                                                                ...metadata,
-                                                                labels: e.target.value
-                                                                    .split(',')
-                                                                    .map((s) =>
-                                                                        s.trim(),
-                                                                    ),
-                                                            })
-                                                        }
-                                                    />
-                                                </div>
-                                            )}
+                                    {/* Slider / Likert */}
+                                    {questionType === 'slider' && (
+                                        <>
+                                            <div>
+                                                <Label>
+                                                    {t(
+                                                        'admin_ceo_questions_edit.option_a',
+                                                    )}
+                                                </Label>
+                                                <Input
+                                                    value={
+                                                        metadata.option_a || ''
+                                                    }
+                                                    onChange={(e) =>
+                                                        setMetadata({
+                                                            ...metadata,
+                                                            option_a:
+                                                                e.target.value,
+                                                        })
+                                                    }
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>
+                                                    {t(
+                                                        'admin_ceo_questions_edit.option_b',
+                                                    )}
+                                                </Label>
+                                                <Input
+                                                    value={
+                                                        metadata.option_b || ''
+                                                    }
+                                                    onChange={(e) =>
+                                                        setMetadata({
+                                                            ...metadata,
+                                                            option_b:
+                                                                e.target.value,
+                                                        })
+                                                    }
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+                                    {questionType === 'likert' && (
+                                        <div>
+                                            <Label>
+                                                {t(
+                                                    'admin_ceo_questions_edit.scale_labels',
+                                                )}
+                                            </Label>
+                                            <Input
+                                                value={
+                                                    metadata.labels?.join(
+                                                        ', ',
+                                                    ) || ''
+                                                }
+                                                onChange={(e) =>
+                                                    setMetadata({
+                                                        ...metadata,
+                                                        labels: e.target.value
+                                                            .split(',')
+                                                            .map((s) =>
+                                                                s.trim(),
+                                                            ),
+                                                    })
+                                                }
+                                                placeholder="Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree"
+                                            />
                                         </div>
                                     )}
 
-                                    {/* NUMBER TYPE */}
-
+                                    {/* Number */}
                                     {questionType === 'number' && (
                                         <div>
                                             <Label>
-                                                Unit (Years, Billions, etc.)
+                                                {t(
+                                                    'admin_ceo_questions_edit.unit',
+                                                )}
                                             </Label>
-
                                             <Input
                                                 value={metadata.unit || ''}
                                                 onChange={(e) =>
@@ -337,15 +336,18 @@ export default function CEOQuestionEdit({
                                                         unit: e.target.value,
                                                     })
                                                 }
+                                                placeholder="Billions of KRW"
                                             />
                                         </div>
                                     )}
 
-                                    {/* ORDER */}
-
+                                    {/* Order */}
                                     <div>
-                                        <Label>Order</Label>
-
+                                        <Label>
+                                            {t(
+                                                'admin_ceo_questions_edit.order',
+                                            )}
+                                        </Label>
                                         <Input
                                             type="number"
                                             value={data.order}
@@ -360,8 +362,7 @@ export default function CEOQuestionEdit({
                                         />
                                     </div>
 
-                                    {/* ACTIVE */}
-
+                                    {/* Active */}
                                     <div className="flex items-center space-x-2">
                                         <Checkbox
                                             checked={data.is_active}
@@ -372,16 +373,16 @@ export default function CEOQuestionEdit({
                                                 )
                                             }
                                         />
-
                                         <Label className="cursor-pointer">
-                                            Active
+                                            {t(
+                                                'admin_ceo_questions_edit.active',
+                                            )}
                                         </Label>
                                     </div>
                                 </CardContent>
                             </Card>
 
-                            {/* BUTTONS */}
-
+                            {/* Buttons */}
                             <div className="mt-6 flex justify-end gap-2">
                                 <Button
                                     type="button"
@@ -390,11 +391,12 @@ export default function CEOQuestionEdit({
                                         router.visit('/admin/questions/ceo')
                                     }
                                 >
-                                    Cancel
+                                    {t('admin_ceo_questions_edit.cancel')}
                                 </Button>
-
                                 <Button type="submit" disabled={processing}>
-                                    Update Question
+                                    {t(
+                                        'admin_ceo_questions_edit.update_question',
+                                    )}
                                 </Button>
                             </div>
                         </form>

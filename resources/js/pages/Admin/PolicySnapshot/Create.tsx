@@ -1,6 +1,7 @@
 import { Head, useForm, router } from '@inertiajs/react';
 import { ChevronLeft } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
@@ -10,10 +11,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
-import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 export default function PolicySnapshotCreate() {
-    const { data, setData, post, processing, errors, clearErrors } = useForm({
+    const { t } = useTranslation();
+    const { data, setData, post, processing, errors } = useForm({
         question_text: '',
         order: 0,
         is_active: true,
@@ -37,7 +38,7 @@ export default function PolicySnapshotCreate() {
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="Create Policy Snapshot Question" />
+                    <Head title={t('policy_snapshot_create.page_title')} />
                     <div className="p-6 md:p-8 max-w-4xl mx-auto">
                         <div className="mb-6">
                             <Button
@@ -46,19 +47,22 @@ export default function PolicySnapshotCreate() {
                                 className="mb-4"
                             >
                                 <ChevronLeft className="w-4 h-4 mr-2" />
-                                Back
+                                {t('policy_snapshot_create.back')}
                             </Button>
-                            <h1 className="text-3xl font-bold">Create Policy Snapshot Question</h1>
+                            <h1 className="text-3xl font-bold">{t('policy_snapshot_create.page_title')}</h1>
                         </div>
 
                         <form onSubmit={handleSubmit}>
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Question Details</CardTitle>
+                                    <CardTitle>{t('policy_snapshot_create.card_title')}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div>
-                                        <Label>Question Text <span className="text-destructive">*</span></Label>
+                                        <Label>
+                                            {t('policy_snapshot_create.question_text')}
+                                            <span className="text-destructive">*</span>
+                                        </Label>
                                         <Textarea
                                             value={data.question_text}
                                             onChange={(e) => setData('question_text', e.target.value)}
@@ -71,7 +75,7 @@ export default function PolicySnapshotCreate() {
                                     </div>
 
                                     <div>
-                                        <Label>Order</Label>
+                                        <Label>{t('policy_snapshot_create.order')}</Label>
                                         <Input
                                             type="number"
                                             value={data.order}
@@ -87,7 +91,7 @@ export default function PolicySnapshotCreate() {
                                             onCheckedChange={(checked) => setData('has_conditional_text', checked as boolean)}
                                         />
                                         <Label htmlFor="has_conditional_text" className="cursor-pointer">
-                                            Has conditional text field (shows text input when "Yes" is selected)
+                                            {t('policy_snapshot_create.has_conditional_text')}
                                         </Label>
                                     </div>
 
@@ -98,7 +102,7 @@ export default function PolicySnapshotCreate() {
                                             onCheckedChange={(checked) => setData('is_active', checked as boolean)}
                                         />
                                         <Label htmlFor="is_active" className="cursor-pointer">
-                                            Active
+                                            {t('policy_snapshot_create.active')}
                                         </Label>
                                     </div>
                                 </CardContent>
@@ -110,10 +114,10 @@ export default function PolicySnapshotCreate() {
                                     variant="outline"
                                     onClick={() => router.visit('/admin/policy-snapshot')}
                                 >
-                                    Cancel
+                                    {t('policy_snapshot_create.cancel')}
                                 </Button>
                                 <Button type="submit" disabled={processing}>
-                                    Create Question
+                                    {t('policy_snapshot_create.create_question')}
                                 </Button>
                             </div>
                         </form>

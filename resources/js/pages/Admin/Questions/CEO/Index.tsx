@@ -1,6 +1,8 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
@@ -42,6 +44,7 @@ export default function CEOQuestionsIndex({
     categories,
     currentCategory,
 }: Props) {
+    const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const { flash } = usePage().props as any;
     const toastShown = useRef(false);
@@ -55,7 +58,11 @@ export default function CEOQuestionsIndex({
         }
 
         if (flash?.error) {
-            toast({ title: toastCopy.error, description: flash.error, variant: 'destructive' });
+            toast({
+                title: toastCopy.error,
+                description: flash.error,
+                variant: 'destructive',
+            });
             toastShown.current = true;
         }
     }, [flash]);
@@ -65,7 +72,7 @@ export default function CEOQuestionsIndex({
     );
 
     const handleDelete = (questionId: number) => {
-        if (confirm('Are you sure you want to delete this question?')) {
+        if (confirm(t('admin_ceo_questions.delete_confirm'))) {
             router.delete(`/admin/questions/ceo/${questionId}`, {
                 preserveScroll: true,
             });
@@ -82,23 +89,23 @@ export default function CEOQuestionsIndex({
                 <AppHeader />
 
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="CEO Questions Management" />
+                    <Head title={t('admin_ceo_questions.page_title')} />
 
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
                                 <h1 className="mb-2 text-3xl font-bold text-foreground">
-                                    CEO Questions Management
+                                    {t('admin_ceo_questions.page_title')}
                                 </h1>
                                 <p className="text-muted-foreground">
-                                    Manage all questions for the CEO survey
+                                    {t('admin_ceo_questions.page_subtitle')}
                                 </p>
                             </div>
 
                             <Link href="/admin/questions/ceo/create">
                                 <Button>
                                     <Plus className="mr-2 h-4 w-4" />
-                                    Add Question
+                                    {t('admin_ceo_questions.add_question')}
                                 </Button>
                             </Link>
                         </div>
@@ -106,7 +113,9 @@ export default function CEOQuestionsIndex({
                         <Card>
                             <CardHeader>
                                 <div className="flex items-center justify-between">
-                                    <CardTitle>Questions</CardTitle>
+                                    <CardTitle>
+                                        {t('admin_ceo_questions.questions')}
+                                    </CardTitle>
 
                                     <div className="flex items-center gap-4">
                                         <Select
@@ -125,7 +134,9 @@ export default function CEOQuestionsIndex({
 
                                             <SelectContent>
                                                 <SelectItem value="all">
-                                                    All Categories
+                                                    {t(
+                                                        'admin_ceo_questions.all_categories',
+                                                    )}
                                                 </SelectItem>
 
                                                 {Object.entries(categories).map(
@@ -145,7 +156,9 @@ export default function CEOQuestionsIndex({
                                             <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
 
                                             <Input
-                                                placeholder="Search questions..."
+                                                placeholder={t(
+                                                    'admin_ceo_questions.search_placeholder',
+                                                )}
                                                 value={searchTerm}
                                                 onChange={(e) =>
                                                     setSearchTerm(
@@ -180,7 +193,9 @@ export default function CEOQuestionsIndex({
 
                                                     {!question.is_active && (
                                                         <Badge variant="destructive">
-                                                            Inactive
+                                                            {t(
+                                                                'admin_ceo_questions.inactive',
+                                                            )}
                                                         </Badge>
                                                     )}
                                                 </div>
@@ -190,7 +205,10 @@ export default function CEOQuestionsIndex({
                                                 </p>
 
                                                 <p className="mt-1 text-xs text-muted-foreground">
-                                                    Order: {question.order}
+                                                    {t(
+                                                        'admin_ceo_questions.order',
+                                                    )}
+                                                    : {question.order}
                                                 </p>
                                             </div>
 
@@ -223,7 +241,9 @@ export default function CEOQuestionsIndex({
 
                                     {filteredQuestions.length === 0 && (
                                         <p className="py-8 text-center text-muted-foreground">
-                                            No questions found.
+                                            {t(
+                                                'admin_ceo_questions.no_questions_found',
+                                            )}
                                         </p>
                                     )}
                                 </div>

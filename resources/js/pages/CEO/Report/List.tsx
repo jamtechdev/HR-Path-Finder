@@ -1,9 +1,15 @@
 import { Head, Link } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
+
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import {
+    Sidebar,
+    SidebarInset,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
 
 interface Project {
     id: number;
@@ -21,7 +27,7 @@ interface Props {
 }
 
 export default function CeoReportList({ projects, stats }: Props) {
-    // Stats are provided by backend, but this page is table-first to match other CEO list pages.
+    const { t } = useTranslation();
     void stats;
 
     return (
@@ -29,52 +35,100 @@ export default function CeoReportList({ projects, stats }: Props) {
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
+
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
+
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="Report - CEO" />
-                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+                    <Head title={t('ceo_report.title')} />
+
+                    <div className="mx-auto max-w-7xl p-6 md:p-8">
+                        {/* Header */}
                         <div className="mb-8 rounded-2xl border bg-gradient-to-r from-slate-50 to-white px-6 py-5">
-                            <h1 className="text-3xl font-bold mb-1">Report</h1>
-                            <p className="text-muted-foreground text-sm">Open company reports project-wise.</p>
+                            <h1 className="mb-1 text-3xl font-bold">
+                                {t('ceo_report.title')}
+                            </h1>
+                            <p className="text-sm text-muted-foreground">
+                                {t('ceo_report.subtitle')}
+                            </p>
                         </div>
+
+                        {/* Table */}
                         {projects.length > 0 ? (
-                            <div className="rounded-lg border overflow-hidden bg-background">
-                                <div className="px-6 py-4 border-b">
-                                    <h2 className="text-lg font-semibold">Projects</h2>
+                            <div className="overflow-hidden rounded-lg border bg-background">
+                                <div className="border-b px-6 py-4">
+                                    <h2 className="text-lg font-semibold">
+                                        {t('ceo_report.projects')}
+                                    </h2>
                                 </div>
+
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead className="bg-muted/50">
                                             <tr className="text-left">
-                                                <th className="px-4 py-3 font-semibold">Company</th>
-                                                <th className="px-4 py-3 font-semibold">Survey</th>
-                                                <th className="px-4 py-3 font-semibold">Action</th>
+                                                <th className="px-4 py-3 font-semibold">
+                                                    {t('ceo_report.company')}
+                                                </th>
+                                                <th className="px-4 py-3 font-semibold">
+                                                    {t('ceo_report.survey')}
+                                                </th>
+                                                <th className="px-4 py-3 font-semibold">
+                                                    {t('ceo_report.action')}
+                                                </th>
                                             </tr>
                                         </thead>
+
                                         <tbody>
                                             {projects.map((project) => (
-                                                <tr key={project.id} className="border-t hover:bg-muted/30 transition-colors">
+                                                <tr
+                                                    key={project.id}
+                                                    className="border-t transition-colors hover:bg-muted/30"
+                                                >
                                                     <td className="px-4 py-3 font-medium">
-                                                        {project.company?.name || `Project #${project.id}`}
+                                                        {project.company
+                                                            ?.name ||
+                                                            `Project #${project.id}`}
                                                     </td>
+
                                                     <td className="px-4 py-3">
                                                         {project.survey_completed ? (
-                                                            <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-200">
-                                                                Survey Completed
+                                                            <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">
+                                                                {t(
+                                                                    'ceo_report.survey_completed',
+                                                                )}
                                                             </Badge>
                                                         ) : (
-                                                            <Badge variant="outline">Pending</Badge>
+                                                            <Badge variant="outline">
+                                                                {t(
+                                                                    'ceo_report.survey_pending',
+                                                                )}
+                                                            </Badge>
                                                         )}
                                                     </td>
+
                                                     <td className="px-4 py-3">
                                                         {project.survey_completed ? (
-                                                            <Link href={`/ceo/report/${project.id}`}>
-                                                                <Button size="sm" variant="outline">View Report</Button>
+                                                            <Link
+                                                                href={`/ceo/report/${project.id}`}
+                                                            >
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                >
+                                                                    {t(
+                                                                        'ceo_report.view_report',
+                                                                    )}
+                                                                </Button>
                                                             </Link>
                                                         ) : (
-                                                            <Button size="sm" variant="outline" disabled>
-                                                                Complete survey first
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                disabled
+                                                            >
+                                                                {t(
+                                                                    'ceo_report.complete_survey_first',
+                                                                )}
                                                             </Button>
                                                         )}
                                                     </td>
@@ -86,8 +140,12 @@ export default function CeoReportList({ projects, stats }: Props) {
                             </div>
                         ) : (
                             <div className="rounded-lg border bg-background p-12 text-center">
-                                <p className="text-lg font-medium mb-2">No Report Projects Available</p>
-                                <p className="text-muted-foreground">Projects will appear here once assigned.</p>
+                                <p className="mb-2 text-lg font-medium">
+                                    {t('ceo_report.no_projects')}
+                                </p>
+                                <p className="text-muted-foreground">
+                                    {t('ceo_report.no_projects_desc')}
+                                </p>
                             </div>
                         )}
                     </div>

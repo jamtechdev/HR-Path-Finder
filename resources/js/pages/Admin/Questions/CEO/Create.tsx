@@ -1,6 +1,8 @@
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { ChevronLeft } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import DynamicList from '@/components/Forms/DynamicList';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -9,22 +11,35 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Sidebar,
+    SidebarInset,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
-import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 interface Props {
     categories: Record<string, string>;
     questionTypes: Record<string, string>;
 }
 
-export default function CEOQuestionCreate({ categories, questionTypes }: Props) {
+export default function CEOQuestionCreate({
+    categories,
+    questionTypes,
+}: Props) {
+    const { t } = useTranslation();
     const [questionType, setQuestionType] = useState<string>('text');
     const [options, setOptions] = useState<string[]>([]);
     const [metadata, setMetadata] = useState<any>({});
 
-    const { data, setData, post, processing, errors, clearErrors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         category: '',
         question_text: '',
         question_type: 'text',
@@ -36,92 +51,143 @@ export default function CEOQuestionCreate({ categories, questionTypes }: Props) 
 
     useEffect(() => {
         setData('question_type', questionType);
-        if (questionType === 'select') {
-            setData('options', options);
-        } else {
-            setData('options', null);
-        }
-        if (questionType === 'likert' || questionType === 'slider' || questionType === 'number') {
+        if (questionType === 'select') setData('options', options);
+        else setData('options', null);
+
+        if (['likert', 'slider', 'number'].includes(questionType))
             setData('metadata', metadata);
-        } else {
-            setData('metadata', null);
-        }
+        else setData('metadata', null);
     }, [questionType, options, metadata]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post('/admin/questions/ceo', {
-            onSuccess: () => {
-                router.visit('/admin/questions/ceo');
-            },
+            onSuccess: () => router.visit('/admin/questions/ceo'),
         });
     };
 
     return (
-        <SidebarProvider defaultOpen={true}>
+        <SidebarProvider defaultOpen>
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
+
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="Create CEO Question" />
-                    <div className="p-6 md:p-8 max-w-4xl mx-auto">
+                    <Head title={t('admin_ceo_questions_create.page_title')} />
+
+                    <div className="mx-auto max-w-4xl p-6 md:p-8">
                         <div className="mb-6">
                             <Button
                                 variant="ghost"
-                                onClick={() => router.visit('/admin/questions/ceo')}
+                                onClick={() =>
+                                    router.visit('/admin/questions/ceo')
+                                }
                                 className="mb-4"
                             >
-                                <ChevronLeft className="w-4 h-4 mr-2" />
-                                Back to Questions
+                                <ChevronLeft className="mr-2 h-4 w-4" />
+                                {t(
+                                    'admin_ceo_questions_create.back_to_questions',
+                                )}
                             </Button>
-                            <h1 className="text-3xl font-bold">Create CEO Question</h1>
+
+                            <h1 className="text-3xl font-bold">
+                                {t('admin_ceo_questions_create.page_title')}
+                            </h1>
                         </div>
 
                         <form onSubmit={handleSubmit}>
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Question Details</CardTitle>
+                                    <CardTitle>
+                                        {t(
+                                            'admin_ceo_questions_create.question_details',
+                                        )}
+                                    </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
+                                    {/* Category */}
                                     <div>
-                                        <Label>Category <span className="text-destructive">*</span></Label>
+                                        <Label>
+                                            {t(
+                                                'admin_ceo_questions_create.category',
+                                            )}{' '}
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
+                                        </Label>
                                         <Select
                                             value={data.category}
-                                            onValueChange={(value) => setData('category', value)}
+                                            onValueChange={(v) =>
+                                                setData('category', v)
+                                            }
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select category" />
+                                                <SelectValue
+                                                    placeholder={t(
+                                                        'admin_ceo_questions_create.select_category',
+                                                    )}
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Object.entries(categories).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
-                                                        {label}
-                                                    </SelectItem>
-                                                ))}
+                                                {Object.entries(categories).map(
+                                                    ([key, label]) => (
+                                                        <SelectItem
+                                                            key={key}
+                                                            value={key}
+                                                        >
+                                                            {label}
+                                                        </SelectItem>
+                                                    ),
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {errors.category && (
-                                            <p className="text-sm text-destructive mt-1">{errors.category}</p>
+                                            <p className="mt-1 text-sm text-destructive">
+                                                {errors.category}
+                                            </p>
                                         )}
                                     </div>
 
+                                    {/* Question Text */}
                                     <div>
-                                        <Label>Question Text <span className="text-destructive">*</span></Label>
+                                        <Label>
+                                            {t(
+                                                'admin_ceo_questions_create.question_text',
+                                            )}{' '}
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
+                                        </Label>
                                         <Textarea
                                             value={data.question_text}
-                                            onChange={(e) => setData('question_text', e.target.value)}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'question_text',
+                                                    e.target.value,
+                                                )
+                                            }
                                             rows={3}
                                             required
                                         />
                                         {errors.question_text && (
-                                            <p className="text-sm text-destructive mt-1">{errors.question_text}</p>
+                                            <p className="mt-1 text-sm text-destructive">
+                                                {errors.question_text}
+                                            </p>
                                         )}
                                     </div>
 
+                                    {/* Question Type */}
                                     <div>
-                                        <Label>Question Type <span className="text-destructive">*</span></Label>
+                                        <Label>
+                                            {t(
+                                                'admin_ceo_questions_create.question_type',
+                                            )}{' '}
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
+                                        </Label>
                                         <Select
                                             value={questionType}
                                             onValueChange={setQuestionType}
@@ -130,8 +196,13 @@ export default function CEOQuestionCreate({ categories, questionTypes }: Props) 
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Object.entries(questionTypes).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
+                                                {Object.entries(
+                                                    questionTypes,
+                                                ).map(([key, label]) => (
+                                                    <SelectItem
+                                                        key={key}
+                                                        value={key}
+                                                    >
                                                         {label}
                                                     </SelectItem>
                                                 ))}
@@ -139,99 +210,178 @@ export default function CEOQuestionCreate({ categories, questionTypes }: Props) 
                                         </Select>
                                     </div>
 
+                                    {/* Options */}
                                     {questionType === 'select' && (
                                         <div>
-                                            <Label>Options</Label>
+                                            <Label>
+                                                {t(
+                                                    'admin_ceo_questions_create.options',
+                                                )}
+                                            </Label>
                                             <DynamicList
                                                 label=""
                                                 items={options}
                                                 onChange={setOptions}
                                                 placeholder="Enter option"
-                                                addLabel="Add Option"
+                                                addLabel={t(
+                                                    'admin_ceo_questions_create.add_option',
+                                                )}
                                             />
                                         </div>
                                     )}
 
-                                    {(questionType === 'likert' || questionType === 'slider') && (
-                                        <div className="space-y-4">
-                                            {questionType === 'slider' && (
-                                                <>
-                                                    <div>
-                                                        <Label>Option A</Label>
-                                                        <Input
-                                                            value={metadata.option_a || ''}
-                                                            onChange={(e) => setMetadata({ ...metadata, option_a: e.target.value })}
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <Label>Option B</Label>
-                                                        <Input
-                                                            value={metadata.option_b || ''}
-                                                            onChange={(e) => setMetadata({ ...metadata, option_b: e.target.value })}
-                                                        />
-                                                    </div>
-                                                </>
-                                            )}
-                                            {questionType === 'likert' && (
-                                                <div>
-                                                    <Label>Scale Labels (comma-separated)</Label>
-                                                    <Input
-                                                        value={metadata.labels?.join(', ') || ''}
-                                                        onChange={(e) => setMetadata({
+                                    {/* Likert / Slider / Number metadata */}
+                                    {questionType === 'slider' && (
+                                        <>
+                                            <div>
+                                                <Label>
+                                                    {t(
+                                                        'admin_ceo_questions_create.option_a',
+                                                    )}
+                                                </Label>
+                                                <Input
+                                                    value={
+                                                        metadata.option_a || ''
+                                                    }
+                                                    onChange={(e) =>
+                                                        setMetadata({
                                                             ...metadata,
-                                                            labels: e.target.value.split(',').map(s => s.trim()),
-                                                        })}
-                                                        placeholder="Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree"
-                                                    />
-                                                </div>
-                                            )}
+                                                            option_a:
+                                                                e.target.value,
+                                                        })
+                                                    }
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>
+                                                    {t(
+                                                        'admin_ceo_questions_create.option_b',
+                                                    )}
+                                                </Label>
+                                                <Input
+                                                    value={
+                                                        metadata.option_b || ''
+                                                    }
+                                                    onChange={(e) =>
+                                                        setMetadata({
+                                                            ...metadata,
+                                                            option_b:
+                                                                e.target.value,
+                                                        })
+                                                    }
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {questionType === 'likert' && (
+                                        <div>
+                                            <Label>
+                                                {t(
+                                                    'admin_ceo_questions_create.scale_labels',
+                                                )}
+                                            </Label>
+                                            <Input
+                                                value={
+                                                    metadata.labels?.join(
+                                                        ', ',
+                                                    ) || ''
+                                                }
+                                                onChange={(e) =>
+                                                    setMetadata({
+                                                        ...metadata,
+                                                        labels: e.target.value
+                                                            .split(',')
+                                                            .map((s) =>
+                                                                s.trim(),
+                                                            ),
+                                                    })
+                                                }
+                                                placeholder="Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree"
+                                            />
                                         </div>
                                     )}
 
                                     {questionType === 'number' && (
                                         <div>
-                                            <Label>Unit (e.g., Billions of KRW, Years, etc.)</Label>
+                                            <Label>
+                                                {t(
+                                                    'admin_ceo_questions_create.unit',
+                                                )}
+                                            </Label>
                                             <Input
                                                 value={metadata.unit || ''}
-                                                onChange={(e) => setMetadata({ ...metadata, unit: e.target.value })}
+                                                onChange={(e) =>
+                                                    setMetadata({
+                                                        ...metadata,
+                                                        unit: e.target.value,
+                                                    })
+                                                }
                                                 placeholder="Billions of KRW"
                                             />
                                         </div>
                                     )}
 
+                                    {/* Order */}
                                     <div>
-                                        <Label>Order</Label>
+                                        <Label>
+                                            {t(
+                                                'admin_ceo_questions_create.order',
+                                            )}
+                                        </Label>
                                         <Input
                                             type="number"
                                             value={data.order}
-                                            onChange={(e) => setData('order', parseInt(e.target.value) || 0)}
-                                            min="0"
+                                            onChange={(e) =>
+                                                setData(
+                                                    'order',
+                                                    parseInt(e.target.value) ||
+                                                        0,
+                                                )
+                                            }
+                                            min={0}
                                         />
                                     </div>
 
+                                    {/* Active */}
                                     <div className="flex items-center space-x-2">
                                         <Checkbox
                                             id="is_active"
                                             checked={data.is_active}
-                                            onCheckedChange={(checked) => setData('is_active', checked as boolean)}
+                                            onCheckedChange={(checked) =>
+                                                setData(
+                                                    'is_active',
+                                                    checked as boolean,
+                                                )
+                                            }
                                         />
-                                        <Label htmlFor="is_active" className="cursor-pointer">
-                                            Active
+                                        <Label
+                                            htmlFor="is_active"
+                                            className="cursor-pointer"
+                                        >
+                                            {t(
+                                                'admin_ceo_questions_create.active',
+                                            )}
                                         </Label>
                                     </div>
                                 </CardContent>
                             </Card>
 
+                            {/* Buttons */}
                             <div className="mt-6 flex justify-end gap-2">
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={() => router.visit('/admin/questions/ceo')}
+                                    onClick={() =>
+                                        router.visit('/admin/questions/ceo')
+                                    }
                                 >
-                                    Cancel
+                                    {t('admin_ceo_questions_create.cancel')}
                                 </Button>
                                 <Button type="submit" disabled={processing}>
-                                    Create Question
+                                    {t(
+                                        'admin_ceo_questions_create.create_question',
+                                    )}
                                 </Button>
                             </div>
                         </form>

@@ -1,23 +1,26 @@
-import { Head, Link } from '@inertiajs/react';
-import {
-    FolderKanban,
-    CheckCircle2,
-    Clock,
-    FileText,
-    AlertCircle,
-    ArrowRight,
-    Eye,
-    Target,
-    ClipboardList
-} from 'lucide-react';
-import React from 'react';
-import StepVerificationCard from '@/components/Dashboard/CEO/StepVerificationCard';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import {
+    Sidebar,
+    SidebarInset,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
+import { Head, Link } from '@inertiajs/react';
+import {
+    AlertCircle,
+    ArrowRight,
+    CheckCircle2,
+    ClipboardList,
+    Clock,
+    Eye,
+    FileText,
+    FolderKanban,
+    Target,
+} from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Project {
     id: number;
@@ -41,6 +44,7 @@ interface Project {
         verified_steps?: number;
         pending_verification?: number;
     };
+    kpi_total?: number; // Added for safety
 }
 
 interface SurveyAvailableProject {
@@ -74,20 +78,53 @@ export default function CeoDashboard({
     stats,
     needsAttention,
 }: Props) {
-    const surveyCompletedCount = projects.filter((project) => !!project.ceoPhilosophy).length;
-    const verificationTargetProjectId = pendingReviews[0]?.id ?? projects[0]?.id;
-    const cardBaseClass = 'border-t-6 hover:shadow-lg transition-all duration-200 cursor-pointer min-h-[118px]';
+    const { t } = useTranslation();
+
+    // Calculate survey completed count
+    const surveyCompletedCount = projects.filter(
+        (project) => !!project.ceoPhilosophy,
+    ).length;
+
+    // Get first project ID for verification link fallback
+    const verificationTargetProjectId =
+        pendingReviews[0]?.id ?? projects[0]?.id;
+
+    const cardBaseClass =
+        'border-t-6 hover:shadow-lg transition-all duration-200 cursor-pointer min-h-[118px]';
     const cardContentClass = 'p-6 h-full flex items-center';
-    const statValueClass = 'text-3xl font-bold whitespace-nowrap tabular-nums leading-none text-slate-900';
-    const iconWrapClass = 'w-12 h-12 rounded-xl flex items-center justify-center shrink-0';
+    const statValueClass =
+        'text-3xl font-bold whitespace-nowrap tabular-nums leading-none text-slate-900';
+    const iconWrapClass =
+        'w-12 h-12 rounded-xl flex items-center justify-center shrink-0';
 
     const getStatusBadge = (status: string) => {
-        const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-            'not_started': { label: 'Not Started', variant: 'outline' },
-            'in_progress': { label: 'In Progress', variant: 'secondary' },
-            'submitted': { label: 'Submitted', variant: 'default' },
-            'completed': { label: 'Completed', variant: 'default' },
-            'locked': { label: 'Locked', variant: 'default' },
+        const statusMap: Record<
+            string,
+            {
+                label: string;
+                variant: 'default' | 'secondary' | 'destructive' | 'outline';
+            }
+        > = {
+            not_started: {
+                label: t('ceo_dashboard.status.not_started'),
+                variant: 'outline',
+            },
+            in_progress: {
+                label: t('ceo_dashboard.status.in_progress'),
+                variant: 'secondary',
+            },
+            submitted: {
+                label: t('ceo_dashboard.status.submitted'),
+                variant: 'default',
+            },
+            completed: {
+                label: t('ceo_dashboard.status.completed'),
+                variant: 'default',
+            },
+            locked: {
+                label: t('ceo_dashboard.status.locked'),
+                variant: 'default',
+            },
         };
         return statusMap[status] || { label: status, variant: 'outline' };
     };
@@ -100,108 +137,192 @@ export default function CeoDashboard({
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="CEO Dashboard" />
-                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+                    <Head title={t('ceo_dashboard.title')} />
+
+                    <div className="mx-auto max-w-7xl p-6 md:p-8">
+                        {/* Header */}
                         <div className="mb-8">
-                            <h1 className="text-3xl font-bold mb-2 text-foreground">CEO Dashboard</h1>
+                            <h1 className="mb-2 text-3xl font-bold text-foreground">
+                                {t('ceo_dashboard.title')}
+                            </h1>
                             <p className="text-muted-foreground">
-                                Review and manage your company's HR projects
+                                {t('ceo_dashboard.subtitle')}
                             </p>
                         </div>
 
-                        {/* Statistics Cards */}
-                        {/* 6 cards -> 3 per row (2 rows on desktop) */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        {/* Statistics Cards - 6 cards */}
+                        <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                            {/* Total Projects */}
                             <Link href="/ceo/projects">
-                                <Card className={`${cardBaseClass} border-t-blue-500`}>
+                                <Card
+                                    className={`${cardBaseClass} border-t-blue-500`}
+                                >
                                     <CardContent className={cardContentClass}>
-                                        <div className="flex items-center justify-between w-full gap-4">
+                                        <div className="flex w-full items-center justify-between gap-4">
                                             <div>
-                                                <p className="text-sm text-muted-foreground mb-1">Total Projects</p>
-                                                <p className={statValueClass}>{stats.total_projects}</p>
+                                                <p className="mb-1 text-sm text-muted-foreground">
+                                                    {t(
+                                                        'ceo_dashboard.stats.total_projects',
+                                                    )}
+                                                </p>
+                                                <p className={statValueClass}>
+                                                    {stats.total_projects}
+                                                </p>
                                             </div>
-                                            <div className={`${iconWrapClass} bg-blue-100`}>
-                                                <FolderKanban className="w-5 h-5 text-blue-600" />
+                                            <div
+                                                className={`${iconWrapClass} bg-blue-100 dark:bg-blue-950`}
+                                            >
+                                                <FolderKanban className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                                             </div>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </Link>
 
+                            {/* Pending Review */}
                             <Link href="/ceo/projects">
-                                <Card className={`${cardBaseClass} border-t-orange-500`}>
+                                <Card
+                                    className={`${cardBaseClass} border-t-orange-500`}
+                                >
                                     <CardContent className={cardContentClass}>
-                                        <div className="flex items-center justify-between w-full gap-4">
+                                        <div className="flex w-full items-center justify-between gap-4">
                                             <div>
-                                                <p className="text-sm text-muted-foreground mb-1">Pending Review</p>
-                                                <p className={statValueClass}>{stats.pending_diagnosis_review}</p>
+                                                <p className="mb-1 text-sm text-muted-foreground">
+                                                    {t(
+                                                        'ceo_dashboard.stats.pending_review',
+                                                    )}
+                                                </p>
+                                                <p className={statValueClass}>
+                                                    {
+                                                        stats.pending_diagnosis_review
+                                                    }
+                                                </p>
                                             </div>
-                                            <div className={`${iconWrapClass} bg-orange-100`}>
-                                                <Clock className="w-5 h-5 text-orange-600" />
+                                            <div
+                                                className={`${iconWrapClass} bg-orange-100 dark:bg-orange-950`}
+                                            >
+                                                <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                                             </div>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </Link>
 
-                            <Link href={surveyAvailableProjects.length > 0 ? `/ceo/philosophy/survey/${surveyAvailableProjects[0].id}` : '/ceo/projects'}>
-                                <Card className={`${cardBaseClass} border-t-yellow-500`}>
+                            {/* Pending Survey */}
+                            <Link
+                                href={
+                                    surveyAvailableProjects.length > 0
+                                        ? `/ceo/philosophy/survey/${surveyAvailableProjects[0].id}`
+                                        : '/ceo/projects'
+                                }
+                            >
+                                <Card
+                                    className={`${cardBaseClass} border-t-yellow-500`}
+                                >
                                     <CardContent className={cardContentClass}>
-                                        <div className="flex items-center justify-between w-full gap-4">
+                                        <div className="flex w-full items-center justify-between gap-4">
                                             <div>
-                                                <p className="text-sm text-muted-foreground mb-1">Pending Survey</p>
-                                                <p className={statValueClass}>{stats.pending_ceo_survey}</p>
+                                                <p className="mb-1 text-sm text-muted-foreground">
+                                                    {t(
+                                                        'ceo_dashboard.stats.pending_survey',
+                                                    )}
+                                                </p>
+                                                <p className={statValueClass}>
+                                                    {stats.pending_ceo_survey}
+                                                </p>
                                             </div>
-                                            <div className={`${iconWrapClass} bg-yellow-100`}>
-                                                <FileText className="w-5 h-5 text-yellow-600" />
+                                            <div
+                                                className={`${iconWrapClass} bg-yellow-100 dark:bg-yellow-950`}
+                                            >
+                                                <FileText className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
                                             </div>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </Link>
 
-                            <Link href={verificationTargetProjectId ? `/ceo/projects/${verificationTargetProjectId}/verification` : '/ceo/projects'}>
-                                <Card className={`${cardBaseClass} border-t-green-500`}>
+                            {/* Completed Projects */}
+                            <Link
+                                href={
+                                    verificationTargetProjectId
+                                        ? `/ceo/projects/${verificationTargetProjectId}/verification`
+                                        : '/ceo/projects'
+                                }
+                            >
+                                <Card
+                                    className={`${cardBaseClass} border-t-green-500`}
+                                >
                                     <CardContent className={cardContentClass}>
-                                        <div className="flex items-center justify-between w-full gap-4">
+                                        <div className="flex w-full items-center justify-between gap-4">
                                             <div>
-                                                <p className="text-sm text-muted-foreground mb-1">Completed</p>
-                                                <p className={statValueClass}>{stats.completed_projects}</p>
+                                                <p className="mb-1 text-sm text-muted-foreground">
+                                                    {t(
+                                                        'ceo_dashboard.stats.completed',
+                                                    )}
+                                                </p>
+                                                <p className={statValueClass}>
+                                                    {stats.completed_projects}
+                                                </p>
                                             </div>
-                                            <div className={`${iconWrapClass} bg-green-100`}>
-                                                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                            <div
+                                                className={`${iconWrapClass} bg-green-100 dark:bg-green-950`}
+                                            >
+                                                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
                                             </div>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </Link>
 
+                            {/* Survey Completed */}
                             <Link href="/ceo/projects">
-                                <Card className={`${cardBaseClass} border-t-emerald-500`}>
+                                <Card
+                                    className={`${cardBaseClass} border-t-emerald-500`}
+                                >
                                     <CardContent className={cardContentClass}>
-                                        <div className="flex items-center justify-between w-full gap-4">
+                                        <div className="flex w-full items-center justify-between gap-4">
                                             <div>
-                                                <p className="text-sm text-muted-foreground mb-1">Survey Completed</p>
-                                                <p className={statValueClass}>{surveyCompletedCount}</p>
+                                                <p className="mb-1 text-sm text-muted-foreground">
+                                                    {t(
+                                                        'ceo_dashboard.stats.survey_completed',
+                                                    )}
+                                                </p>
+                                                <p className={statValueClass}>
+                                                    {surveyCompletedCount}
+                                                </p>
                                             </div>
-                                            <div className={`${iconWrapClass} bg-emerald-100`}>
-                                                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                                            <div
+                                                className={`${iconWrapClass} bg-emerald-100 dark:bg-emerald-950`}
+                                            >
+                                                <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                                             </div>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </Link>
 
+                            {/* Pending KPI Review */}
                             <Link href="/ceo/kpi-review">
-                                <Card className={`${cardBaseClass} border-t-cyan-500`}>
+                                <Card
+                                    className={`${cardBaseClass} border-t-cyan-500`}
+                                >
                                     <CardContent className={cardContentClass}>
-                                        <div className="flex items-center justify-between w-full gap-4">
+                                        <div className="flex w-full items-center justify-between gap-4">
                                             <div>
-                                                <p className="text-sm text-muted-foreground mb-1">Pending KPI Review</p>
-                                                <p className={statValueClass}>{stats.pending_kpi_review ?? 0}</p>
+                                                <p className="mb-1 text-sm text-muted-foreground">
+                                                    {t(
+                                                        'ceo_dashboard.stats.pending_kpi_review',
+                                                    )}
+                                                </p>
+                                                <p className={statValueClass}>
+                                                    {stats.pending_kpi_review ??
+                                                        0}
+                                                </p>
                                             </div>
-                                            <div className={`${iconWrapClass} bg-cyan-100`}>
-                                                <Target className="w-5 h-5 text-cyan-600" />
+                                            <div
+                                                className={`${iconWrapClass} bg-cyan-100 dark:bg-cyan-950`}
+                                            >
+                                                <Target className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
                                             </div>
                                         </div>
                                     </CardContent>
@@ -209,55 +330,146 @@ export default function CeoDashboard({
                             </Link>
                         </div>
 
-                        {/* Simple all-project table */}
+                        {/* All Companies Simple Table */}
                         <Card className="mb-8 overflow-hidden">
                             <CardHeader>
-                                <CardTitle>All Companies (Simple Table)</CardTitle>
+                                <CardTitle>
+                                    {t('ceo_dashboard.table.title')}
+                                </CardTitle>
                             </CardHeader>
                             <CardContent className="p-0">
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead className="bg-muted/50">
                                             <tr className="text-left">
-                                                <th className="px-4 py-3 font-semibold">Company</th>
-                                                <th className="px-4 py-3 font-semibold">Diagnosis</th>
-                                                <th className="px-4 py-3 font-semibold">Survey</th>
-                                                <th className="px-4 py-3 font-semibold">KPI</th>
-                                                <th className="px-4 py-3 font-semibold">Actions</th>
+                                                <th className="px-4 py-3 font-semibold">
+                                                    {t(
+                                                        'ceo_dashboard.table.company',
+                                                    )}
+                                                </th>
+                                                <th className="px-4 py-3 font-semibold">
+                                                    {t(
+                                                        'ceo_dashboard.table.diagnosis',
+                                                    )}
+                                                </th>
+                                                <th className="px-4 py-3 font-semibold">
+                                                    {t(
+                                                        'ceo_dashboard.table.survey',
+                                                    )}
+                                                </th>
+                                                <th className="px-4 py-3 font-semibold">
+                                                    {t(
+                                                        'ceo_dashboard.table.kpi',
+                                                    )}
+                                                </th>
+                                                <th className="px-4 py-3 font-semibold">
+                                                    {t(
+                                                        'ceo_dashboard.table.actions',
+                                                    )}
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {projects.map((project) => {
-                                                const surveyDone = !!project.ceoPhilosophy;
+                                                const surveyDone =
+                                                    !!project.ceoPhilosophy;
+                                                const kpiTotal =
+                                                    (project as any)
+                                                        .kpi_total ??
+                                                    project.kpi_total ??
+                                                    0;
+
                                                 return (
-                                                    <tr key={project.id} className="border-t">
+                                                    <tr
+                                                        key={project.id}
+                                                        className="border-t hover:bg-muted/50"
+                                                    >
                                                         <td className="px-4 py-3 font-medium">
-                                                            {project.company?.name || `Project #${project.id}`}
+                                                            {project.company
+                                                                ?.name ||
+                                                                `Project #${project.id}`}
                                                         </td>
                                                         <td className="px-4 py-3">
-                                                            {project.step_statuses?.diagnosis || 'not_started'}
+                                                            {project
+                                                                .step_statuses
+                                                                ?.diagnosis
+                                                                ? t(
+                                                                      `ceo_dashboard.status.${project.step_statuses.diagnosis}`,
+                                                                  )
+                                                                : t(
+                                                                      'ceo_dashboard.status.not_started',
+                                                                  )}
                                                         </td>
-                                                        <td className="px-4 py-3">{surveyDone ? 'Completed' : 'Pending'}</td>
                                                         <td className="px-4 py-3">
-                                                            {(project as any).kpi_total ?? 0} total
+                                                            {surveyDone
+                                                                ? t(
+                                                                      'ceo_dashboard.status.completed',
+                                                                  )
+                                                                : t(
+                                                                      'ceo_dashboard.status.not_started',
+                                                                  )}
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            {t(
+                                                                'ceo_dashboard.table.total_kpi',
+                                                                {
+                                                                    count: kpiTotal,
+                                                                },
+                                                            )}
                                                         </td>
                                                         <td className="px-4 py-3">
                                                             <div className="flex flex-wrap gap-2">
-                                                                <Link href={`/ceo/projects/${project.id}/verification`}>
-                                                                    <Button size="sm" variant="outline">Verify</Button>
+                                                                <Link
+                                                                    href={`/ceo/projects/${project.id}/verification`}
+                                                                >
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                    >
+                                                                        {t(
+                                                                            'ceo_dashboard.buttons.verify',
+                                                                        )}
+                                                                    </Button>
                                                                 </Link>
+
                                                                 {surveyDone ? (
-                                                                    <Link href={`/ceo/review/diagnosis/${project.id}`}>
-                                                                        <Button size="sm" variant="outline">View Diagnosis</Button>
+                                                                    <Link
+                                                                        href={`/ceo/review/diagnosis/${project.id}`}
+                                                                    >
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="outline"
+                                                                        >
+                                                                            {t(
+                                                                                'ceo_dashboard.buttons.view_diagnosis',
+                                                                            )}
+                                                                        </Button>
                                                                     </Link>
                                                                 ) : (
-                                                                    <Link href={`/ceo/philosophy/survey/${project.id}`}>
-                                                                        <Button size="sm" variant="outline">Start Survey</Button>
+                                                                    <Link
+                                                                        href={`/ceo/philosophy/survey/${project.id}`}
+                                                                    >
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="outline"
+                                                                        >
+                                                                            {t(
+                                                                                'ceo_dashboard.buttons.start_survey',
+                                                                            )}
+                                                                        </Button>
                                                                     </Link>
                                                                 )}
-                                                                {((project as any).kpi_total ?? 0) > 0 && (
-                                                                    <Link href={`/ceo/kpi-review/${project.id}`}>
-                                                                        <Button size="sm">KPI Review</Button>
+
+                                                                {kpiTotal >
+                                                                    0 && (
+                                                                    <Link
+                                                                        href={`/ceo/kpi-review/${project.id}`}
+                                                                    >
+                                                                        <Button size="sm">
+                                                                            {t(
+                                                                                'ceo_dashboard.buttons.kpi_review',
+                                                                            )}
+                                                                        </Button>
                                                                     </Link>
                                                                 )}
                                                             </div>
@@ -271,41 +483,60 @@ export default function CeoDashboard({
                             </CardContent>
                         </Card>
 
-                        {/* Action Cards */}
+                        {/* Action Required: Diagnosis Review */}
                         {pendingReviews.length > 0 && (
                             <Card className="mb-8 border-orange-200 dark:border-orange-800">
                                 <CardHeader>
                                     <div className="flex items-center justify-between">
                                         <CardTitle className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
-                                            <AlertCircle className="w-5 h-5" />
-                                            Action Required: Diagnosis Review
+                                            <AlertCircle className="h-5 w-5" />
+                                            {t(
+                                                'ceo_dashboard.sections.action_required',
+                                            )}
                                         </CardTitle>
-                                        <Badge variant="secondary">{pendingReviews.length}</Badge>
+                                        <Badge variant="secondary">
+                                            {pendingReviews.length}
+                                        </Badge>
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-sm text-muted-foreground mb-4">
-                                        You have {pendingReviews.length} project{pendingReviews.length > 1 ? 's' : ''} waiting for your review
+                                    <p className="mb-4 text-sm text-muted-foreground">
+                                        {t(
+                                            'ceo_dashboard.text.pending_review_text',
+                                            { count: pendingReviews.length },
+                                        )}
                                     </p>
-                                    <div className="space-y-2 mb-4">
-                                        {pendingReviews.slice(0, 3).map((project) => (
-                                            <Link
-                                                key={project.id}
-                                                href={`/ceo/review/diagnosis/${project.id}`}
-                                                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                                            >
-                                                <span className="font-medium">
-                                                    {project.company?.name || `Project #${project.id}`}
-                                                </span>
-                                                <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                                            </Link>
-                                        ))}
+                                    <div className="mb-4 space-y-2">
+                                        {pendingReviews
+                                            .slice(0, 3)
+                                            .map((project) => (
+                                                <Link
+                                                    key={project.id}
+                                                    href={`/ceo/review/diagnosis/${project.id}`}
+                                                    className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                                                >
+                                                    <span className="font-medium">
+                                                        {project.company
+                                                            ?.name ||
+                                                            `Project #${project.id}`}
+                                                    </span>
+                                                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                                </Link>
+                                            ))}
                                     </div>
                                     {pendingReviews.length > 3 && (
-                                        <Link href="/ceo/dashboard">
-                                            <Button variant="outline" className="w-full">
-                                                View All Pending Reviews ({pendingReviews.length})
-                                                <ArrowRight className="w-4 h-4 ml-2" />
+                                        <Link href="/ceo/projects">
+                                            <Button
+                                                variant="outline"
+                                                className="w-full"
+                                            >
+                                                {t(
+                                                    'ceo_dashboard.buttons.view_all_pending',
+                                                    {
+                                                        count: pendingReviews.length,
+                                                    },
+                                                )}
+                                                <ArrowRight className="ml-2 h-4 w-4" />
                                             </Button>
                                         </Link>
                                     )}
@@ -313,51 +544,74 @@ export default function CeoDashboard({
                             </Card>
                         )}
 
-                        {/* KPI Review Section - always visible once KPI exists */}
+                        {/* KPI Review Section */}
                         <Card className="mb-8 border-blue-200 dark:border-blue-800">
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <CardTitle className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-                                        <Target className="w-5 h-5" />
-                                        KPI Review
+                                        <Target className="h-5 w-5" />
+                                        {t('ceo_dashboard.sections.kpi_review')}
                                     </CardTitle>
-                                    <Badge variant="secondary">{kpiReviewProjects.length}</Badge>
+                                    <Badge variant="secondary">
+                                        {kpiReviewProjects.length}
+                                    </Badge>
                                 </div>
                             </CardHeader>
                             <CardContent>
                                 {kpiReviewProjects.length > 0 ? (
                                     <>
-                                        <p className="text-sm text-muted-foreground mb-4">
+                                        <p className="mb-4 text-sm text-muted-foreground">
                                             {pendingKpiReviews.length > 0
-                                                ? `${pendingKpiReviews.length} project${pendingKpiReviews.length > 1 ? 's' : ''} waiting for your review`
-                                                : 'All KPI reviews are completed. You can still open any project to view details.'}
+                                                ? t(
+                                                      'ceo_dashboard.text.kpi_reviews',
+                                                      {
+                                                          count: pendingKpiReviews.length,
+                                                      },
+                                                  )
+                                                : t(
+                                                      'ceo_dashboard.text.kpi_completed',
+                                                  )}
                                         </p>
-                                        <div className="space-y-2 mb-4">
-                                            {kpiReviewProjects.slice(0, 3).map((project) => (
-                                                <Link
-                                                    key={project.id}
-                                                    href={`/ceo/kpi-review/${project.id}`}
-                                                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                                                >
-                                                    <span className="font-medium">
-                                                        {project.company?.name || `Project #${project.id}`}
-                                                    </span>
-                                                    <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                                                </Link>
-                                            ))}
+                                        <div className="mb-4 space-y-2">
+                                            {kpiReviewProjects
+                                                .slice(0, 3)
+                                                .map((project) => (
+                                                    <Link
+                                                        key={project.id}
+                                                        href={`/ceo/kpi-review/${project.id}`}
+                                                        className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                                                    >
+                                                        <span className="font-medium">
+                                                            {project.company
+                                                                ?.name ||
+                                                                `Project #${project.id}`}
+                                                        </span>
+                                                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                                    </Link>
+                                                ))}
                                         </div>
                                         {kpiReviewProjects.length > 3 && (
-                                            <Link href="/ceo/dashboard">
-                                                <Button variant="outline" className="w-full">
-                                                    View All KPI Reviews ({kpiReviewProjects.length})
-                                                    <ArrowRight className="w-4 h-4 ml-2" />
+                                            <Link href="/ceo/kpi-review">
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full"
+                                                >
+                                                    {t(
+                                                        'ceo_dashboard.buttons.view_all_kpi',
+                                                        {
+                                                            count: kpiReviewProjects.length,
+                                                        },
+                                                    )}
+                                                    <ArrowRight className="ml-2 h-4 w-4" />
                                                 </Button>
                                             </Link>
                                         )}
                                     </>
                                 ) : (
                                     <p className="text-sm text-muted-foreground">
-                                        KPI review will appear here after HR sends KPI draft to Leader/CEO flow.
+                                        {t(
+                                            'ceo_dashboard.text.kpi_placeholder',
+                                        )}
                                     </p>
                                 )}
                             </CardContent>
@@ -368,11 +622,17 @@ export default function CeoDashboard({
                             <Card className="mb-8">
                                 <CardHeader>
                                     <div className="flex items-center justify-between">
-                                        <CardTitle>Projects Needing Attention</CardTitle>
-                                        <Link href="/hr-projects">
+                                        <CardTitle>
+                                            {t(
+                                                'ceo_dashboard.sections.projects_attention',
+                                            )}
+                                        </CardTitle>
+                                        <Link href="/ceo/projects">
                                             <Button variant="ghost" size="sm">
-                                                View All
-                                                <ArrowRight className="w-4 h-4 ml-2" />
+                                                {t(
+                                                    'ceo_dashboard.buttons.view_all',
+                                                )}
+                                                <ArrowRight className="ml-2 h-4 w-4" />
                                             </Button>
                                         </Link>
                                     </div>
@@ -380,57 +640,112 @@ export default function CeoDashboard({
                                 <CardContent>
                                     <div className="space-y-3">
                                         {needsAttention.map((project) => {
-                                            const diagnosisStatus = project.step_statuses?.diagnosis || 'not_started';
-                                            const statusBadge = getStatusBadge(diagnosisStatus);
-                                            const needsSurvey = diagnosisStatus === 'submitted' && !project.ceoPhilosophy;
-                                            const hrProgress = project.hr_progress;
-                                            const ceoProgress = project.ceo_progress;
-                                            
+                                            const diagnosisStatus =
+                                                project.step_statuses
+                                                    ?.diagnosis ||
+                                                'not_started';
+                                            const statusBadge =
+                                                getStatusBadge(diagnosisStatus);
+                                            const needsSurvey =
+                                                diagnosisStatus ===
+                                                    'submitted' &&
+                                                !project.ceoPhilosophy;
+                                            const hrProgress =
+                                                project.hr_progress;
+                                            const ceoProgress =
+                                                project.ceo_progress;
+
                                             return (
                                                 <Link
                                                     key={project.id}
-                                                    href={needsSurvey 
-                                                        ? `/ceo/philosophy/survey/${project.id}`
-                                                        : `/ceo/review/diagnosis/${project.id}`
+                                                    href={
+                                                        needsSurvey
+                                                            ? `/ceo/philosophy/survey/${project.id}`
+                                                            : `/ceo/review/diagnosis/${project.id}`
                                                     }
-                                                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                                                    className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50"
                                                 >
                                                     <div className="flex-1">
-                                                        <div className="flex items-center gap-3 mb-1">
+                                                        <div className="mb-1 flex items-center gap-3">
                                                             <p className="font-medium">
-                                                                {project.company?.name || `Project #${project.id}`}
+                                                                {project.company
+                                                                    ?.name ||
+                                                                    `Project #${project.id}`}
                                                             </p>
-                                                            <Badge variant={statusBadge.variant}>
-                                                                {statusBadge.label}
+                                                            <Badge
+                                                                variant={
+                                                                    statusBadge.variant
+                                                                }
+                                                            >
+                                                                {
+                                                                    statusBadge.label
+                                                                }
                                                             </Badge>
                                                             {needsSurvey && (
-                                                                <Badge variant="outline" className="text-orange-600">
-                                                                    Survey Required
+                                                                <Badge
+                                                                    variant="outline"
+                                                                    className="text-orange-600 dark:text-orange-400"
+                                                                >
+                                                                    {t(
+                                                                        'ceo_dashboard.badges.survey_required',
+                                                                    )}
                                                                 </Badge>
                                                             )}
                                                         </div>
-                                                        <div className="flex items-center gap-4 mt-2">
+                                                        <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
                                                             {hrProgress && (
-                                                                <p className="text-xs text-muted-foreground">
-                                                                    HR: {hrProgress.completed}/{hrProgress.total} steps
-                                                                    {hrProgress.in_progress > 0 && ` (${hrProgress.in_progress} in progress)`}
+                                                                <p>
+                                                                    {t(
+                                                                        'ceo_dashboard.text.hr_progress',
+                                                                        {
+                                                                            completed:
+                                                                                hrProgress.completed,
+                                                                            total: hrProgress.total,
+                                                                            in_progress:
+                                                                                hrProgress.in_progress,
+                                                                        },
+                                                                    )}
                                                                 </p>
                                                             )}
                                                             {ceoProgress && (
-                                                                <p className="text-xs text-muted-foreground">
-                                                                    CEO: {ceoProgress.diagnosis_review === 'completed' ? '✓ Review' : '○ Review'} | 
-                                                                    {ceoProgress.survey === 'completed' ? ' ✓ Survey' : ' ○ Survey'}
+                                                                <p>
+                                                                    {t(
+                                                                        'ceo_dashboard.text.ceo_progress',
+                                                                        {
+                                                                            review:
+                                                                                ceoProgress.diagnosis_review ===
+                                                                                'completed'
+                                                                                    ? t(
+                                                                                          'ceo_dashboard.text.review_done',
+                                                                                      )
+                                                                                    : t(
+                                                                                          'ceo_dashboard.text.review_pending',
+                                                                                      ),
+                                                                            survey:
+                                                                                ceoProgress.survey ===
+                                                                                'completed'
+                                                                                    ? t(
+                                                                                          'ceo_dashboard.text.survey_done',
+                                                                                      )
+                                                                                    : t(
+                                                                                          'ceo_dashboard.text.survey_pending',
+                                                                                      ),
+                                                                        },
+                                                                    )}
                                                                 </p>
                                                             )}
                                                         </div>
-                                                        <p className="text-xs text-muted-foreground mt-1">
-                                                            {needsSurvey 
-                                                                ? 'Complete CEO Philosophy Survey'
-                                                                : 'Review Diagnosis'
-                                                            }
+                                                        <p className="mt-1 text-xs text-muted-foreground">
+                                                            {needsSurvey
+                                                                ? t(
+                                                                      'ceo_dashboard.text.complete_survey',
+                                                                  )
+                                                                : t(
+                                                                      'ceo_dashboard.text.review_diagnosis',
+                                                                  )}
                                                         </p>
                                                     </div>
-                                                    <Eye className="w-5 h-5 text-muted-foreground" />
+                                                    <Eye className="h-5 w-5 text-muted-foreground" />
                                                 </Link>
                                             );
                                         })}
@@ -442,71 +757,114 @@ export default function CeoDashboard({
                         {/* Quick Actions */}
                         <Card className="mb-8">
                             <CardHeader>
-                                <CardTitle>Quick Actions</CardTitle>
+                                <CardTitle>
+                                    {t('ceo_dashboard.sections.quick_actions')}
+                                </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    {/* View All Projects */}
                                     <Link href="/ceo/projects">
-                                        <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary/50">
+                                        <Card className="cursor-pointer border-2 transition-shadow hover:border-primary/50 hover:shadow-lg">
                                             <CardContent className="p-6">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                                                        <FolderKanban className="w-6 h-6 text-primary" />
+                                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                                                        <FolderKanban className="h-6 w-6 text-primary" />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <p className="font-semibold mb-1">View All Projects</p>
+                                                        <p className="mb-1 font-semibold">
+                                                            {t(
+                                                                'ceo_dashboard.text.manage_projects',
+                                                            )}
+                                                        </p>
                                                         <p className="text-sm text-muted-foreground">
-                                                            Manage and review all your projects
+                                                            {t(
+                                                                'ceo_dashboard.text.manage_projects',
+                                                            )}
                                                         </p>
                                                     </div>
-                                                    <ArrowRight className="w-5 h-5 text-muted-foreground" />
+                                                    <ArrowRight className="h-5 w-5 text-muted-foreground" />
                                                 </div>
                                             </CardContent>
                                         </Card>
                                     </Link>
+
+                                    {/* Start Survey */}
                                     {surveyAvailableProjects.length > 0 && (
-                                        <Link href={`/ceo/philosophy/survey/${surveyAvailableProjects[0].id}`}>
-                                            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 border-emerald-200 dark:border-emerald-800 hover:border-emerald-400 dark:hover:border-emerald-600">
+                                        <Link
+                                            href={`/ceo/philosophy/survey/${surveyAvailableProjects[0].id}`}
+                                        >
+                                            <Card className="cursor-pointer border-2 border-emerald-200 transition-shadow hover:border-emerald-400 hover:shadow-lg dark:border-emerald-800 dark:hover:border-emerald-600">
                                                 <CardContent className="p-6">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center">
-                                                            <ClipboardList className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/20">
+                                                            <ClipboardList className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                                                         </div>
                                                         <div className="flex-1">
-                                                            <p className="font-semibold mb-1">Start Survey</p>
+                                                            <p className="mb-1 font-semibold">
+                                                                {t(
+                                                                    'ceo_dashboard.buttons.start_survey',
+                                                                )}
+                                                            </p>
                                                             <p className="text-sm text-muted-foreground">
-                                                                Complete Management Philosophy Survey
-                                                                {surveyAvailableProjects.length > 1
+                                                                {t(
+                                                                    'ceo_dashboard.text.survey_description',
+                                                                )}
+                                                                {surveyAvailableProjects.length >
+                                                                1
                                                                     ? ` (${surveyAvailableProjects.length} projects)`
-                                                                    : surveyAvailableProjects[0].company?.name
-                                                                        ? ` — ${surveyAvailableProjects[0].company.name}`
-                                                                        : ''}
+                                                                    : surveyAvailableProjects[0]
+                                                                            .company
+                                                                            ?.name
+                                                                      ? ` — ${surveyAvailableProjects[0].company.name}`
+                                                                      : ''}
                                                             </p>
                                                         </div>
-                                                        <Badge variant="secondary" className="text-lg px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                                                            {surveyAvailableProjects.length}
+                                                        <Badge
+                                                            variant="secondary"
+                                                            className="bg-emerald-100 px-3 py-1 text-lg text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                                                        >
+                                                            {
+                                                                surveyAvailableProjects.length
+                                                            }
                                                         </Badge>
                                                     </div>
                                                 </CardContent>
                                             </Card>
                                         </Link>
                                     )}
+
+                                    {/* Pending Reviews Quick Action */}
                                     {pendingReviews.length > 0 && (
                                         <Link href="/ceo/projects">
-                                            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 border-orange-200 hover:border-orange-300">
+                                            <Card className="cursor-pointer border-2 border-orange-200 transition-shadow hover:border-orange-300 hover:shadow-lg dark:border-orange-800 dark:hover:border-orange-600">
                                                 <CardContent className="p-6">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
-                                                            <Clock className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 dark:bg-orange-900/20">
+                                                            <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                                                         </div>
                                                         <div className="flex-1">
-                                                            <p className="font-semibold mb-1">Pending Reviews</p>
+                                                            <p className="mb-1 font-semibold">
+                                                                {t(
+                                                                    'ceo_dashboard.stats.pending_review',
+                                                                )}
+                                                            </p>
                                                             <p className="text-sm text-muted-foreground">
-                                                                {pendingReviews.length} project{pendingReviews.length > 1 ? 's' : ''} waiting for review
+                                                                {t(
+                                                                    'ceo_dashboard.text.pending_reviews',
+                                                                    {
+                                                                        count: pendingReviews.length,
+                                                                    },
+                                                                )}
                                                             </p>
                                                         </div>
-                                                        <Badge variant="secondary" className="text-lg px-3 py-1">
-                                                            {pendingReviews.length}
+                                                        <Badge
+                                                            variant="secondary"
+                                                            className="px-3 py-1 text-lg"
+                                                        >
+                                                            {
+                                                                pendingReviews.length
+                                                            }
                                                         </Badge>
                                                     </div>
                                                 </CardContent>

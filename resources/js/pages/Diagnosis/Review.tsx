@@ -14,6 +14,7 @@ import { both, tr } from '@/config/diagnosisTranslations';
 import { clearClientDraftCaches } from '@/lib/clientDraftCleanup';
 import { mergeTabDraftsIntoDiagnosis } from '@/lib/diagnosisDraftStorage';
 import { getOrgChartDraftFiles, getLogoDraftFile } from '@/lib/diagnosisFileDrafts';
+import { useTranslation } from 'react-i18next';
 
 // HR issue categories for grouping on review (id, color, issue strings)
 const HR_ISSUE_CATEGORIES = [
@@ -23,6 +24,7 @@ const HR_ISSUE_CATEGORIES = [
     { id: 'reward', color: '#c8a84b', issues: ['Pay too evolved that it is not in a system', 'Same pay across levels that pushes talent out', 'Pay not linked to performance or contribution', 'Pay gap between line and new employees', 'Lack of reward for high performers', 'Excessive overload that is not rewarded', 'No clear ownership of reward decisions', 'Benefits not visible or valued'] },
     { id: 'upskilling', color: '#7c3aed', issues: ['Few employees at all levels have learning and development set', 'Limited budget for learning and development', 'Lack of leadership development programs', 'Lack of steps or programs to become a manager'] },
 ];
+
 const HR_ISSUE_CATEGORY_LABELS: Record<string, string> = {
     retention: 'Retention',
     org: 'Org Structure',
@@ -56,14 +58,9 @@ function pyramidShape(grades: { name: string; headcount: number }[]): { label: s
     const topIsMax = top === max;
     const bottomIsMax = bottom === max;
 
-    // Classification based on where the "peak" sits:
-    // - bottom peak => lower grades are thick (healthy pyramid)
-    // - top peak => top-heavy (inverted pyramid)
-    // - otherwise => diamond / mixed concentration
     if (bottomIsMax && !topIsMax) return { label: tr('pyramidHealthy'), color: '#2aab6e', desc: tr('pyramidHealthyDesc') };
     if (topIsMax && !bottomIsMax) return { label: tr('pyramidInverted'), color: '#e8622a', desc: tr('pyramidInvertedDesc') };
 
-    // Fallback: if strictly monotonic, keep the old behavior.
     let inc = 0, dec = 0;
     for (let i = 0; i < grades.length - 1; i++) {
         if (grades[i].headcount < grades[i + 1].headcount) inc++;
@@ -110,7 +107,6 @@ function ReviewCard({
         </div>
     );
 }
-
 
 interface Diagnosis {
     id: number;
@@ -181,6 +177,8 @@ export default function Review({
     stepStatuses,
     projectId,
 }: Props) {
+    const { t } = useTranslation();
+
     const [processing, setProcessing] = useState(false);
     const [submitError, setSubmitError] = useState('');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -191,16 +189,44 @@ export default function Review({
     const [pageErrors, setPageErrors] = useState<Record<string, string>>({});
     const submitErrorRef = useRef<HTMLDivElement>(null);
 
-    // Bilingual (EN / KO) modal content
+    // Bilingual (EN / KO) modal content using new translation keys
     const submitSuccessTitle = both('diagnosisSubmitSuccessTitle');
     const submitSuccessDesc = both('diagnosisSubmitSuccessDesc');
-    const ceoEmailAddressLabel = both('ceoEmailAddressLabel');
-    const inviteCeoLabel = both('inviteCeoLabel');
-    const inviteSendingLabel = both('inviteSendingLabel');
-    const skipForNowLabel = both('skipForNowLabel');
-    const invitationSentTitle = both('invitationSentTitle');
-    const invitationSentDesc = both('invitationSentDesc');
-    const doneLabel = both('doneLabel');
+
+    const ceoEmailAddressLabel = {
+        en: t('diagnosis_review.ceoEmailLabel'),
+        ko: t('diagnosis_review.ceoEmailLabel_ko', t('diagnosis_review.ceoEmailLabel'))
+    };
+
+    const inviteCeoLabel = {
+        en: t('diagnosis_review.inviteCeo'),
+        ko: t('diagnosis_review.inviteCeo_ko', t('diagnosis_review.inviteCeo'))
+    };
+
+    const inviteSendingLabel = {
+        en: t('diagnosis_review.sending'),
+        ko: t('diagnosis_review.sending_ko', t('diagnosis_review.sending'))
+    };
+
+    const skipForNowLabel = {
+        en: t('diagnosis_review.skipForNow'),
+        ko: t('diagnosis_review.skipForNow_ko', t('diagnosis_review.skipForNow'))
+    };
+
+    const invitationSentTitle = {
+        en: t('diagnosis_review.invitationSentTitle'),
+        ko: t('diagnosis_review.invitationSentTitle_ko', t('diagnosis_review.invitationSentTitle'))
+    };
+
+    const invitationSentDesc = {
+        en: t('diagnosis_review.invitationSentDesc'),
+        ko: t('diagnosis_review.invitationSentDesc_ko', t('diagnosis_review.invitationSentDesc'))
+    };
+
+    const doneLabel = {
+        en: t('diagnosis_review.done'),
+        ko: t('diagnosis_review.done_ko', t('diagnosis_review.done'))
+    };
 
     const renderEmailTemplate = (template: string) => {
         const [before, after] = template.split('{{email}}');
@@ -224,7 +250,7 @@ export default function Review({
         const errors = props.errors;
         if (errors && typeof errors === 'object') {
             const flat = flattenErrors(errors as Record<string, string | string[]>);
-            setSubmitError(flat[0] ?? '');
+            setSubmitError(flat[0] ?? t('diagnosis_review.submitFailed'));
             const o: Record<string, string> = {};
             for (const [k, v] of Object.entries(errors)) {
                 const m = Array.isArray(v) ? v[0] : v;
@@ -232,21 +258,21 @@ export default function Review({
             }
             setPageErrors(o);
         }
-    }, [props.errors]);
+    }, [props.errors, t]);
 
     useEffect(() => {
         if (!submitError) return;
-        const t = window.setTimeout(() => {
+        const timeout = window.setTimeout(() => {
             submitErrorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
-        return () => window.clearTimeout(t);
+        return () => window.clearTimeout(timeout);
     }, [submitError]);
 
     const handleSubmit = () => {
         setSubmitError('');
         setPageErrors({});
         if (!projectId) {
-            setSubmitError('Project not loaded. Please refresh or go back to the dashboard.');
+            setSubmitError(t('diagnosis_review.projectNotLoaded'));
             return;
         }
         setProcessing(true);
@@ -278,7 +304,7 @@ export default function Review({
             onError: (payload: Record<string, unknown>) => {
                 const errors = (payload?.errors ?? payload) as Record<string, string | string[]>;
                 const lines = flattenErrors(errors);
-                setSubmitError(lines[0] ?? 'Submission failed. Please try again.');
+                setSubmitError(lines[0] ?? t('diagnosis_review.submitFailed'));
                 const o: Record<string, string> = {};
                 for (const [k, v] of Object.entries(errors)) {
                     const m = Array.isArray(v) ? v[0] : v;
@@ -301,7 +327,7 @@ export default function Review({
         setInviteSuccess(false);
 
         if (!inviteEmail || !inviteEmail.includes('@')) {
-            setInviteError('Please enter a valid email address');
+            setInviteError(t('diagnosis_review.invalidEmail'));
             return;
         }
 
@@ -317,7 +343,7 @@ export default function Review({
                 setInviteError('');
             },
             onError: (errors: { email?: string }) => {
-                const errMsg = errors.email || 'Failed to send invitation. Please try again.';
+                const errMsg = errors.email || t('diagnosis_review.inviteFailed');
                 setInviteError(errMsg);
                 setInviteProcessing(false);
             },
@@ -331,7 +357,6 @@ export default function Review({
         setInviteEmail('');
         setInviteError('');
         setInviteSuccess(false);
-        // Redirect to dashboard after closing modal
         router.visit('/hr-manager/dashboard');
     };
 
@@ -393,7 +418,6 @@ export default function Review({
         return [];
     };
 
-    // Parse org structure explanations
     const getOrgStructureExplanations = (): Record<string, string> => {
         if (!preview?.org_structure_explanations) return {};
         if (typeof preview.org_structure_explanations === 'object') {
@@ -405,8 +429,6 @@ export default function Review({
     const jobGradesForPyramid = useMemo(() => {
         const names = preview?.job_grade_names ?? [];
         const headcounts = (preview?.job_grade_headcounts ?? {}) as Record<string, number>;
-        // Ensure visual orientation: top = Department Head (highest grade), bottom = Staff (lowest grade).
-        // job_grade_names are stored from low->high in the editor, so reverse for the pyramid.
         return names
             .map((name) => ({ name, headcount: Number(headcounts[name]) || 0 }))
             .reverse();
@@ -481,8 +503,8 @@ export default function Review({
 
     return (
         <>
-            <Head title={`Review & Submit - ${company?.name || project?.company?.name || 'Company'}`} />
-            
+            <Head title={`${t('diagnosis_review.title')} - ${company?.name || project?.company?.name || 'Company'}`} />
+
             {/* Success Modal with Invite CEO */}
             <Dialog open={showSuccessModal} onOpenChange={(open) => {
                 if (!open) {
@@ -605,7 +627,7 @@ export default function Review({
             </Dialog>
 
             <FormLayout
-                title={tr('reviewDashboardTitle')}
+                title={t('diagnosis_review.title')}
                 project={project}
                 diagnosis={diagnosis}
                 activeTab={activeTab}
@@ -654,14 +676,14 @@ export default function Review({
                             <div ref={submitErrorRef}>
                                 <Alert variant="destructive" className="mb-6">
                                     <AlertCircle className="h-4 w-4" />
-                                    <AlertTitle>Submission failed</AlertTitle>
+                                    <AlertTitle>{t('diagnosis_review.submitFailed')}</AlertTitle>
                                     <AlertDescription>{submitError}</AlertDescription>
                                 </Alert>
                             </div>
                         )}
                         {!projectId && diagnosisStatus !== 'submitted' && (
                             <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-800">
-                                <p className="text-sm font-medium">Project not loaded. Please refresh or go back to the dashboard.</p>
+                                <p className="text-sm font-medium">{t('diagnosis_review.projectNotLoaded')}</p>
                             </div>
                         )}
                         {diagnosisStatus === 'submitted' && (
@@ -673,10 +695,10 @@ export default function Review({
                         {/* Page header */}
                         <header className="mb-8">
                             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                                {tr('reviewDashboardTitle')}
+                                {t('diagnosis_review.title')}
                             </h1>
                             <p className="mt-1.5 text-sm text-slate-500">
-                                {tr('reviewDashboardDescShort')}
+                                {t('diagnosis_review.subtitle')}
                             </p>
                         </header>
 
@@ -688,26 +710,26 @@ export default function Review({
                                 </p>
                                 <div className="flex flex-wrap items-end gap-8 sm:gap-10">
                                     <div>
-                                        <p className="text-xs font-medium uppercase tracking-wider text-slate-400">{tr('totalHeadcount')}</p>
+                                        <p className="text-xs font-medium uppercase tracking-wider text-slate-400">{t('diagnosis_review.totalHeadcount')}</p>
                                         <p className="mt-0.5 text-3xl font-bold tracking-tight">
                                             {totalHeadcount}
-                                            <span className="ml-1 text-base font-medium text-slate-400">{tr('personsUnit')}</span>
+                                            <span className="ml-1 text-base font-medium text-slate-400">{t('diagnosis_review.personsUnit')}</span>
                                         </p>
                                     </div>
                                     <div className="h-12 w-px bg-white/15" />
                                     <div>
-                                        <p className="text-xs font-medium uppercase tracking-wider text-slate-400">{tr('executiveHeadcountLabel')}</p>
+                                        <p className="text-xs font-medium uppercase tracking-wider text-slate-400">{t('diagnosis_review.executiveHeadcountLabel')}</p>
                                         <p className="mt-0.5 text-3xl font-bold tracking-tight text-amber-400">
                                             {execTotal}
-                                            <span className="ml-1 text-base font-medium text-slate-400">{tr('personsUnit')}</span>
+                                            <span className="ml-1 text-base font-medium text-slate-400">{t('diagnosis_review.personsUnit')}</span>
                                         </p>
                                     </div>
                                     <div className="h-12 w-px bg-white/15" />
                                     <div>
-                                        <p className="text-xs font-medium uppercase tracking-wider text-slate-400">{tr('leaderHeadcountLabel')}</p>
+                                        <p className="text-xs font-medium uppercase tracking-wider text-slate-400">{t('diagnosis_review.leaderHeadcountLabel')}</p>
                                         <p className="mt-0.5 text-3xl font-bold tracking-tight text-amber-400">
                                             {leaderHeadcount}
-                                            <span className="ml-1 text-base font-medium text-slate-400">{tr('personsUnit')}</span>
+                                            <span className="ml-1 text-base font-medium text-slate-400">{t('diagnosis_review.personsUnit')}</span>
                                         </p>
                                     </div>
                                     <div className="h-12 w-px bg-white/15" />
@@ -768,7 +790,7 @@ export default function Review({
 
                         {/* Dashboard grid — Company, Workforce, Grade pyramid, HR issues */}
                         <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2">
-                            <ReviewCard title={tr('companyCardTitle')} icon="🏢" editUrl={getEditUrl(STEP_MAP.company)}>
+                            <ReviewCard title={t('diagnosis_review.companyCardTitle')} icon="🏢" editUrl={getEditUrl(STEP_MAP.company)}>
                                 <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                                     {[
                                         [tr('foundedDate'), formatValue(company?.foundation_date) || '—'],
@@ -783,7 +805,7 @@ export default function Review({
                                     ))}
                                 </div>
                             </ReviewCard>
-                            <ReviewCard title={tr('workforceCardTitle')} icon="👥" editUrl={getEditUrl(STEP_MAP.workforce)}>
+                            <ReviewCard title={t('diagnosis_review.workforceCardTitle')} icon="👥" editUrl={getEditUrl(STEP_MAP.workforce)}>
                                 <div className="flex flex-wrap gap-4">
                                     <div className="min-w-[100px] flex-1 rounded-xl bg-slate-50 p-4">
                                         <p className="text-xs font-medium text-slate-500">{tr('workforceFullTimeLabel')}</p>
@@ -810,7 +832,7 @@ export default function Review({
                                 </div>
                             </ReviewCard>
                             <div className="md:col-span-2">
-                                <ReviewCard title={tr('gradePyramidTitle')} icon="📊" editUrl={getEditUrl(STEP_MAP.jobGrades)}>
+                                <ReviewCard title={t('diagnosis_review.gradePyramidTitle')} icon="📊" editUrl={getEditUrl(STEP_MAP.jobGrades)}>
                                     <div className="space-y-3">
                                         {jobGradesForPyramid.length ? (
                                             <>
@@ -863,7 +885,7 @@ export default function Review({
                                 </ReviewCard>
                             </div>
                             <div className="md:col-span-2">
-                                <ReviewCard title={tr('currentIssuesTitle')} icon="⚠️" editUrl={getEditUrl(STEP_MAP.hrIssues)}>
+                                <ReviewCard title={t('diagnosis_review.currentIssuesTitle')} icon="⚠️" editUrl={getEditUrl(STEP_MAP.hrIssues)}>
                                     <div className="space-y-3">
                                         {hrIssuesByCategory.length ? (
                                             hrIssuesByCategory.map((cat, catIdx) => (
@@ -893,7 +915,7 @@ export default function Review({
 
                         {/* Org chart + Org structure */}
                         <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2">
-                            <ReviewCard title={tr('currentOrgChartTitle')} icon="🗂️" editUrl={getEditUrl(STEP_MAP.orgCharts)}>
+                            <ReviewCard title={t('diagnosis_review.currentOrgChartTitle')} icon="🗂️" editUrl={getEditUrl(STEP_MAP.orgCharts)}>
                                 <div className="flex min-h-[200px] flex-col items-center justify-center">
                                     {currentOrgChartUrl ? (
                                         <img src={currentOrgChartUrl} alt="Org chart" className="max-h-[240px] max-w-full rounded-xl border border-slate-200 object-contain shadow-inner" />
@@ -912,7 +934,7 @@ export default function Review({
                                     )}
                                 </div>
                             </ReviewCard>
-                            <ReviewCard title={tr('orgStructureCardTitle')} icon="🏗️" editUrl={getEditUrl(STEP_MAP.orgStructure)}>
+                            <ReviewCard title={t('diagnosis_review.orgStructureCardTitle')} icon="🏗️" editUrl={getEditUrl(STEP_MAP.orgStructure)}>
                                 <div className="flex flex-col gap-2">
                                     {preview?.org_structure_types && preview.org_structure_types.length > 0 ? (
                                         <div className="inline-flex items-center gap-3 self-start rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -931,13 +953,13 @@ export default function Review({
                         {/* Submit footer */}
                         <footer className="flex flex-wrap items-center justify-between gap-6 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 px-6 py-6 text-white shadow-xl">
                             <div>
-                                <h3 className="text-base font-bold text-white">{tr('submitConfirmTitle')}</h3>
-                                <p className="mt-1 text-sm text-slate-400">{tr('submitConfirmDesc')}</p>
+                                <h3 className="text-base font-bold text-white">{t('diagnosis_review.submitConfirmTitle')}</h3>
+                                <p className="mt-1 text-sm text-slate-400">{t('diagnosis_review.submitConfirmDesc')}</p>
                             </div>
                             <div className="flex items-center gap-4">
                                 <Link href={getEditUrl('hr-issues')}>
                                     <Button variant="outline" size="sm" className="border-slate-500/60 bg-transparent font-medium text-slate-300 hover:bg-white/10 hover:text-white">
-                                        {tr('backBtn')}
+                                        {t('diagnosis_review.backBtn')}
                                     </Button>
                                 </Link>
                                 <Button
@@ -948,12 +970,12 @@ export default function Review({
                                     {diagnosisStatus === 'submitted' ? (
                                         <>
                                             <CheckCircle2 className="mr-2 h-4 w-4" />
-                                            Submitted
+                                            {t('diagnosis_review.submitted')}
                                         </>
                                     ) : processing ? (
-                                        'Submitting…'
+                                        t('diagnosis_review.submitting')
                                     ) : (
-                                        tr('submitDiagnosisBtn')
+                                        t('diagnosis_review.submitDiagnosisBtn')
                                     )}
                                 </Button>
                             </div>

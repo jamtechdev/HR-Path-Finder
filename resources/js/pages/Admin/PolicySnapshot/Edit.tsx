@@ -1,6 +1,7 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { ChevronLeft } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
@@ -8,11 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Sidebar,
-    SidebarInset,
-    SidebarProvider,
-} from '@/components/ui/sidebar';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
@@ -29,6 +26,7 @@ interface Props {
 }
 
 export default function Edit({ question }: Props) {
+    const { t } = useTranslation();
     const { data, setData, put, processing, errors, clearErrors } = useForm({
         question_text: question.question_text || '',
         order: question.order || 0,
@@ -57,7 +55,7 @@ export default function Edit({ question }: Props) {
                 <AppHeader />
 
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="Edit Policy Snapshot Question" />
+                    <Head title={t('policy_snapshot_edit.page_title')} />
 
                     <div className="mx-auto max-w-4xl p-6 md:p-8">
                         {/* Header */}
@@ -70,29 +68,26 @@ export default function Edit({ question }: Props) {
                                 className="mb-4"
                             >
                                 <ChevronLeft className="mr-2 h-4 w-4" />
-                                Back
+                                {t('policy_snapshot_edit.back')}
                             </Button>
 
                             <h1 className="text-3xl font-bold">
-                                Edit Policy Snapshot Question
+                                {t('policy_snapshot_edit.page_title')}
                             </h1>
                         </div>
 
                         <form onSubmit={handleSubmit}>
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Question Details</CardTitle>
+                                    <CardTitle>{t('policy_snapshot_edit.card_title')}</CardTitle>
                                 </CardHeader>
 
                                 <CardContent className="space-y-4">
                                     {/* Question Text */}
                                     <div>
                                         <Label>
-                                            Question Text
-                                            <span className="text-destructive">
-                                                {' '}
-                                                *
-                                            </span>
+                                            {t('policy_snapshot_edit.question_text')}
+                                            <span className="text-destructive"> *</span>
                                         </Label>
 
                                         <Textarea
@@ -114,7 +109,7 @@ export default function Edit({ question }: Props) {
 
                                     {/* Order */}
                                     <div>
-                                        <Label>Order</Label>
+                                        <Label>{t('policy_snapshot_edit.order')}</Label>
 
                                         <Input
                                             type="number"
@@ -122,8 +117,7 @@ export default function Edit({ question }: Props) {
                                             onChange={(e) =>
                                                 setData(
                                                     'order',
-                                                    parseInt(e.target.value) ||
-                                                        0,
+                                                    parseInt(e.target.value) || 0,
                                                 )
                                             }
                                             min="0"
@@ -144,7 +138,7 @@ export default function Edit({ question }: Props) {
                                         />
 
                                         <Label htmlFor="has_conditional_text">
-                                            Has conditional text field
+                                            {t('policy_snapshot_edit.has_conditional_text')}
                                         </Label>
                                     </div>
 
@@ -162,7 +156,7 @@ export default function Edit({ question }: Props) {
                                         />
 
                                         <Label htmlFor="is_active">
-                                            Active
+                                            {t('policy_snapshot_edit.active')}
                                         </Label>
                                     </div>
                                 </CardContent>
@@ -177,11 +171,11 @@ export default function Edit({ question }: Props) {
                                         router.visit('/admin/policy-snapshot')
                                     }
                                 >
-                                    Cancel
+                                    {t('policy_snapshot_edit.cancel')}
                                 </Button>
 
                                 <Button type="submit" disabled={processing}>
-                                    Update Question
+                                    {t('policy_snapshot_edit.update_question')}
                                 </Button>
                             </div>
                         </form>

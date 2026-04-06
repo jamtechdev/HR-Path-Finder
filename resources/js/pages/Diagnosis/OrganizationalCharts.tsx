@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
-import { both, tr } from '@/config/diagnosisTranslations';
+import { useTranslation } from 'react-i18next';
 import { setOrgChartDraftFile, getOrgChartDraftFiles } from '@/lib/diagnosisFileDrafts';
 import { cn } from '@/lib/utils';
 
@@ -30,9 +30,9 @@ interface Props {
 const REQUIRED_YEARS = [...DIAGNOSIS_ORG_CHART_REQUIRED_YEARS];
 
 const YEAR_LABELS: Record<string, { title: string; subtitle: string }> = {
-    '2023.12': { title: '2023.12', subtitle: '2년 전 조직도' },
-    '2024.12': { title: '2024.12', subtitle: '작년 조직도' },
-    '2025.12': { title: '현재', subtitle: '최신(현재) 조직도' },
+    '2023.12': { title: '2023.12', subtitle: '' },
+    '2024.12': { title: '2024.12', subtitle: '' },
+    '2025.12': { title: '2025.12', subtitle: '' },
 };
 
 export default function OrganizationalCharts({
@@ -48,14 +48,14 @@ export default function OrganizationalCharts({
     embedData,
     embedSetData,
 }: Props) {
+    const { t } = useTranslation();
+
     const [existingImages, setExistingImages] = useState<Record<string, string>>(() => {
         const images: Record<string, string> = {};
         const orgCharts = diagnosis?.organizational_charts;
 
-        // Current format: { "2023.12": "storage/path", ... }
         if (orgCharts && typeof orgCharts === 'object') {
             if (Array.isArray(orgCharts)) {
-                // Legacy format (older implementations): [{ year, file_url }, ...]
                 orgCharts.forEach((item: any) => {
                     if (!item || typeof item !== 'object') return;
                     const year = item.year;
@@ -72,7 +72,6 @@ export default function OrganizationalCharts({
                 });
             }
         }
-
         return images;
     });
 
@@ -89,6 +88,7 @@ export default function OrganizationalCharts({
     const useEmbed = embedMode && embedData != null && embedSetData;
     const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
     const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
+
     const inertiaOrgChartErr =
         typeof internalForm.errors.organizational_charts === 'string'
             ? internalForm.errors.organizational_charts
@@ -121,6 +121,7 @@ export default function OrganizationalCharts({
         if (file) {
             setChartFiles((prev) => ({ ...prev, [year]: [file] }));
             setExistingImages((prev) => ({ ...prev, [year]: '' }));
+
             if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onloadend = () => setFilePreviews((p) => ({ ...p, [year]: reader.result as string }));
@@ -137,12 +138,13 @@ export default function OrganizationalCharts({
     const handleFileSelect = (year: string, e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+
         if (!['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'].includes(file.type)) {
-            alert('Please upload a JPG, PNG, or PDF file.');
+            alert(t('diagnosis_org_chart.invalidFileType'));
             return;
         }
         if (file.size > 10 * 1024 * 1024) {
-            alert('File size must be less than 10MB.');
+            alert(t('diagnosis_org_chart.fileSizeLimit'));
             return;
         }
         handleFileChange(year, file);
@@ -166,7 +168,7 @@ export default function OrganizationalCharts({
     const validateBeforeNext = (): true | string => {
         const missing = REQUIRED_YEARS.filter((y) => !hasFile(y));
         if (missing.length === 0) return true;
-        return 'Upload organizational charts for all required years (2023.12, 2024.12, 2025.12).';
+        return t('diagnosis_org_chart.validationMissing');
     };
 
     const formatFileMeta = (file: File) => {
@@ -176,232 +178,232 @@ export default function OrganizationalCharts({
     };
 
     const innerContent = (
-                <div className="space-y-6">
-                    <div>
-                        <p className="text-[12.5px] text-muted-foreground leading-relaxed">
-                            {both('orgChartDesc').en}
-                            <span className="text-[10px] font-semibold text-[#4ecdc4] ml-1">{tr('required')}</span>
-                        </p>
-                        <p className="text-[11px] text-muted-foreground/80 mt-1">{both('orgChartDesc').ko}</p>
-                    </div>
+        <div className="space-y-6">
+            <div>
+                <p className="text-[12.5px] text-muted-foreground leading-relaxed">
+                    {t('diagnosis_org_chart.description')}
+                </p>
+            </div>
 
-                    {/* Timeline */}
-                    <div className="flex flex-wrap sm:flex-nowrap items-center justify-center sm:justify-between gap-2 sm:gap-0 mb-4 sm:mb-5">
-                        <div className="flex items-center gap-1 sm:gap-0 flex-wrap justify-center sm:justify-start w-full sm:w-auto">
-                            {REQUIRED_YEARS.map((year, idx) => (
-                                <React.Fragment key={year}>
-                                    <button
-                                        type="button"
-                                        onClick={() => fileInputRefs.current[year]?.click()}
-                                        className={cn(
-                                            'flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg transition-colors min-h-[44px] flex-1 sm:flex-none',
-                                            hasFile(year) && 'bg-[rgba(78,205,196,0.12)]',
-                                            activeYear === year && 'bg-[rgba(78,205,196,0.12)] shadow-sm',
-                                            !hasFile(year) && activeYear !== year && 'opacity-70'
-                                        )}
-                                    >
-                                        <span
-                                            className={cn(
-                                                'w-7 h-7 rounded-full border-2 flex items-center justify-center text-[11px] font-bold flex-shrink-0 transition-colors',
-                                                hasFile(year)
-                                                    ? 'border-[#4ecdc4] bg-[#4ecdc4] text-[#111d35]'
-                                                    : activeYear === year
-                                                    ? 'border-[#1a2744] dark:border-slate-700 bg-[#1a2744] dark:bg-slate-800 text-white'
-                                                    : 'border-muted-foreground/40 bg-white dark:bg-slate-800 text-muted-foreground'
-                                            )}
-                                        >
-                                            {hasFile(year) ? '✓' : idx + 1}
-                                        </span>
-                                        <span
-                                            className={cn(
-                                                'text-[13px] font-semibold',
-                                                hasFile(year) ? 'text-[#2ea89e]' : activeYear === year ? 'text-slate-800 dark:text-slate-100' : 'text-muted-foreground'
-                                            )}
-                                        >
-                                            {YEAR_LABELS[year]?.title ?? year}
-                                        </span>
-                                        {hasFile(year) && (
-                                            <span className="text-[9.5px] font-semibold px-1.5 py-0.5 rounded-md bg-[rgba(78,205,196,0.15)] text-[#2ea89e]">
-                                                {tr('uploadComplete')}
-                                            </span>
-                                        )}
-                                        {activeYear === year && !hasFile(year) && (
-                                            <span className="text-[9.5px] font-semibold px-1.5 py-0.5 rounded-md bg-[rgba(201,168,76,0.15)] text-[#a07c20]">
-                                                In progress
-                                            </span>
-                                        )}
-                                    </button>
-                                    {idx < REQUIRED_YEARS.length - 1 && (
-                                        <span className="text-base text-muted-foreground/60 px-1">→</span>
-                                    )}
-                                </React.Fragment>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="flex items-center justify-center gap-1.5 text-xs sm:text-[11.5px] text-muted-foreground mb-4 sm:mb-5">
-                        {REQUIRED_YEARS.map((_, i) => (
-                            <span
-                                key={i}
-                                className={cn(
-                                    'w-1.5 h-1.5 rounded-full',
-                                    i < uploadedCount ? 'bg-[#4ecdc4]' : i === uploadedCount ? 'bg-[#1a2744] dark:bg-slate-700' : 'bg-border'
-                                )}
-                            />
-                        ))}
-                        <span className="ml-1 whitespace-nowrap">{uploadedCount} / 3 {tr('complete')}</span>
-                    </div>
-
-                    {/* 3-card grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                        {REQUIRED_YEARS.map((year) => {
-                            const existingPath = existingImages[year];
-                            const existingUrl = existingPath ? getImageUrl(existingPath) : '';
-                            const hasNewFile = (chartFiles[year]?.length ?? 0) > 0;
-                            const isUploaded = hasFile(year);
-                            const isActive = activeYear === year;
-                            const label = YEAR_LABELS[year] ?? { title: year, subtitle: '' };
-                            const file = chartFiles[year]?.[0];
-                            const displayName = file?.name ?? (existingPath ? existingPath.split('/').pop() ?? '' : '');
-                            const displayMeta = file ? formatFileMeta(file) : existingPath ? 'PDF · 2.3MB · 업로드됨' : '';
-
-                            return (
-                                <div
-                                    key={year}
-                                    onClick={() => !isUploaded && fileInputRefs.current[year]?.click()}
-                                    onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                                    onDrop={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        const f = e.dataTransfer.files?.[0];
-                                        if (f && ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'].includes(f.type) && f.size <= 10 * 1024 * 1024) {
-                                            handleFileChange(year, f);
-                                        }
-                                    }}
+            {/* Timeline */}
+            <div className="flex flex-wrap sm:flex-nowrap items-center justify-center sm:justify-between gap-2 sm:gap-0 mb-4 sm:mb-5">
+                <div className="flex items-center gap-1 sm:gap-0 flex-wrap justify-center sm:justify-start w-full sm:w-auto">
+                    {REQUIRED_YEARS.map((year, idx) => {
+                        const label = YEAR_LABELS[year] ?? { title: year, subtitle: '' };
+                        return (
+                            <React.Fragment key={year}>
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRefs.current[year]?.click()}
                                     className={cn(
-                                        'rounded-[14px] overflow-hidden transition-all cursor-pointer border-[1.5px] bg-white dark:bg-slate-900',
-                                        isUploaded && 'border-[#4ecdc4] border-solid',
-                                        isActive && !isUploaded && 'border-[#1a2744] dark:border-slate-700 border-solid shadow-md',
-                                        !isUploaded && !isActive && 'border-dashed border-muted-foreground/40'
+                                        'flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg transition-colors min-h-[44px] flex-1 sm:flex-none',
+                                        hasFile(year) && 'bg-[rgba(78,205,196,0.12)]',
+                                        activeYear === year && 'bg-[rgba(78,205,196,0.12)] shadow-sm',
+                                        !hasFile(year) && activeYear !== year && 'opacity-70'
                                     )}
                                 >
-                                    <div
+                                    <span
                                         className={cn(
-                                            'px-4 py-4 pb-3 border-b flex items-center justify-between',
-                                            isActive && !isUploaded && 'bg-gradient-to-br from-[#1a2744] to-[#223058] border-white/10'
+                                            'w-7 h-7 rounded-full border-2 flex items-center justify-center text-[11px] font-bold flex-shrink-0 transition-colors',
+                                            hasFile(year)
+                                                ? 'border-[#4ecdc4] bg-[#4ecdc4] text-[#111d35]'
+                                                : activeYear === year
+                                                ? 'border-[#1a2744] bg-[#1a2744] text-white'
+                                                : 'border-muted-foreground/40 bg-white text-muted-foreground'
                                         )}
                                     >
-                                        <div>
-                                            <div className={cn('text-[15px] font-bold tracking-tight', isActive && !isUploaded && 'text-white')}>
-                                                {label.title}
-                                            </div>
-                                            <div className={cn('text-[10.5px] mt-0.5', isActive && !isUploaded ? 'text-white/45' : 'text-muted-foreground')}>
-                                                {label.subtitle}
-                                            </div>
+                                        {hasFile(year) ? '✓' : idx + 1}
+                                    </span>
+                                    <div>
+                                        <div className={cn('text-[13px] font-semibold', hasFile(year) ? 'text-[#2ea89e]' : '')}>
+                                            {label.title}
                                         </div>
-                                        <span
-                                            className={cn(
-                                                'text-[10px] font-semibold px-2 py-1 rounded-full',
-                                                isUploaded && 'bg-[rgba(78,205,196,0.15)] text-[#2ea89e]',
-                                                isActive && !isUploaded && 'bg-white/15 text-white',
-                                                !isUploaded && !isActive && 'bg-[rgba(201,168,76,0.12)] text-[#a07c20]'
-                                            )}
-                                        >
-                                            {isUploaded ? tr('uploadComplete') : isActive ? `● ${tr('uploadRequired')}` : tr('uploadPending')}
-                                        </span>
+                                        {label.subtitle && (
+                                            <div className="text-[10.5px] text-muted-foreground">{label.subtitle}</div>
+                                        )}
                                     </div>
+                                    {hasFile(year) && (
+                                        <span className="text-[9.5px] font-semibold px-1.5 py-0.5 rounded-md bg-[rgba(78,205,196,0.15)] text-[#2ea89e]">
+                                            {t('diagnosis_org_chart.uploadComplete')}
+                                        </span>
+                                    )}
+                                    {activeYear === year && !hasFile(year) && (
+                                        <span className="text-[9.5px] font-semibold px-1.5 py-0.5 rounded-md bg-[rgba(201,168,76,0.15)] text-[#a07c20]">
+                                            {t('diagnosis_org_chart.inProgress')}
+                                        </span>
+                                    )}
+                                </button>
+                                {idx < REQUIRED_YEARS.length - 1 && (
+                                    <span className="text-base text-muted-foreground/60 px-1">→</span>
+                                )}
+                            </React.Fragment>
+                        );
+                    })}
+                </div>
+            </div>
 
-                                    <input
-                                        ref={(el) => { fileInputRefs.current[year] = el; }}
-                                        type="file"
-                                        accept="image/jpeg,image/jpg,image/png,application/pdf"
-                                        onChange={(e) => handleFileSelect(year, e)}
-                                        className="hidden"
-                                    />
+            <div className="flex items-center justify-center gap-1.5 text-xs sm:text-[11.5px] text-muted-foreground mb-4 sm:mb-5">
+                {REQUIRED_YEARS.map((_, i) => (
+                    <span
+                        key={i}
+                        className={cn(
+                            'w-1.5 h-1.5 rounded-full',
+                            i < uploadedCount ? 'bg-[#4ecdc4]' : i === uploadedCount ? 'bg-[#1a2744]' : 'bg-border'
+                        )}
+                    />
+                ))}
+                <span className="ml-1 whitespace-nowrap">
+                    {uploadedCount} / 3 {t('diagnosis_org_chart.complete')}
+                </span>
+            </div>
 
-                                    {isUploaded ? (
-                                        <>
-                                            <div className="flex items-center gap-3 p-4 min-h-[100px]">
-                                                <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-[#e8f4f3] to-[#d0eeec] border border-[rgba(78,205,196,0.2)] flex items-center justify-center text-2xl flex-shrink-0">
-                                                    🗂
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="text-[12.5px] font-semibold text-foreground truncate">{displayName || 'File'}</div>
-                                                    <div className="text-[11px] text-muted-foreground">{displayMeta}</div>
-                                                </div>
-                                            </div>
-                                            <div className="px-4 pb-4 flex gap-1.5">
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        const url = file ? filePreviews[year] : existingUrl;
-                                                        if (url) window.open(url, '_blank');
-                                                        else if (existingUrl) window.open(existingUrl, '_blank');
-                                                    }}
-                                                    className="h-7 px-2.5 rounded-md border border-border bg-background text-[11px] font-medium text-muted-foreground hover:bg-muted"
-                                                >
-                                                    <Eye className="w-3 h-3 inline mr-1" />
-                                                    {tr('preview')}
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleFileChange(year, null);
-                                                        const el = fileInputRefs.current[year];
-                                                        if (el) el.value = '';
-                                                    }}
-                                                    className="h-7 px-2.5 rounded-md border border-border bg-background text-[11px] font-medium text-muted-foreground hover:border-destructive hover:text-destructive hover:bg-destructive/5"
-                                                >
-                                                    <X className="w-3 h-3 inline mr-1" />
-                                                    {tr('delete')}
-                                                </button>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <div
-                                            className={cn(
-                                                'py-6 px-4 flex flex-col items-center gap-2 min-h-[160px] justify-center',
-                                                !isActive && 'opacity-60'
-                                            )}
-                                        >
-                                            <div
-                                                className={cn(
-                                                    'w-11 h-11 rounded-xl flex items-center justify-center text-xl transition-colors',
-                                                    isActive ? 'bg-[rgba(78,205,196,0.12)]' : 'bg-muted'
-                                                )}
-                                            >
-                                                <Upload className="w-5 h-5 text-muted-foreground" />
-                                            </div>
-                                            <div className={cn('text-[13px] font-semibold text-center', isActive ? 'text-slate-600 dark:text-slate-300' : 'text-muted-foreground')}>
-                                                {tr('clickOrDrag')}
-                                            </div>
-                                            <div className="text-[11px] text-muted-foreground text-center">
-                                                {tr('currentOrgChart')}
-                                            </div>
-                                            <div className="flex gap-1 mt-0.5">
-                                                {['PNG', 'JPG', 'PDF', '최대 10MB'].map((t) => (
-                                                    <span key={t} className="text-[9.5px] font-semibold px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground">
-                                                        {t}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
+            {/* Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                {REQUIRED_YEARS.map((year) => {
+                    const existingPath = existingImages[year];
+                    const existingUrl = existingPath ? getImageUrl(existingPath) : '';
+                    const hasNewFile = (chartFiles[year]?.length ?? 0) > 0;
+                    const isUploaded = hasFile(year);
+                    const isActive = activeYear === year;
+                    const label = YEAR_LABELS[year] ?? { title: year, subtitle: '' };
+                    const file = chartFiles[year]?.[0];
+                    const displayName = file?.name ?? (existingPath ? existingPath.split('/').pop() ?? '' : '');
+                    const displayMeta = file ? formatFileMeta(file) : existingPath ? 'PDF · 업로드됨' : '';
+
+                    return (
+                        <div
+                            key={year}
+                            onClick={() => !isUploaded && fileInputRefs.current[year]?.click()}
+                            onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            onDrop={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const f = e.dataTransfer.files?.[0];
+                                if (f && ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'].includes(f.type) && f.size <= 10 * 1024 * 1024) {
+                                    handleFileChange(year, f);
+                                }
+                            }}
+                            className={cn(
+                                'rounded-[14px] overflow-hidden transition-all cursor-pointer border-[1.5px] bg-white',
+                                isUploaded && 'border-[#4ecdc4]',
+                                isActive && !isUploaded && 'border-[#1a2744] shadow-md',
+                                !isUploaded && !isActive && 'border-dashed border-muted-foreground/40'
+                            )}
+                        >
+                            <div className={cn(
+                                'px-4 py-4 pb-3 border-b flex items-center justify-between',
+                                isActive && !isUploaded && 'bg-gradient-to-br from-[#1a2744] to-[#223058] text-white'
+                            )}>
+                                <div>
+                                    <div className="text-[15px] font-bold tracking-tight">{label.title}</div>
+                                    {label.subtitle && (
+                                        <div className="text-[10.5px] mt-0.5 opacity-75">{label.subtitle}</div>
                                     )}
                                 </div>
-                            );
-                        })}
-                    </div>
-                    <DiagnosisFieldErrorMessage fieldKey="organizational_charts" inertiaError={inertiaOrgChartErr} />
-                </div>
-            );
+                                <span className={cn(
+                                    'text-[10px] font-semibold px-2 py-1 rounded-full',
+                                    isUploaded && 'bg-[rgba(78,205,196,0.15)] text-[#2ea89e]',
+                                    isActive && !isUploaded && 'bg-white/15 text-white',
+                                    !isUploaded && !isActive && 'bg-amber-100 text-amber-700'
+                                )}>
+                                    {isUploaded 
+                                        ? t('diagnosis_org_chart.uploadComplete')
+                                        : isActive 
+                                        ? t('diagnosis_org_chart.uploadRequired')
+                                        : t('diagnosis_org_chart.uploadPending')
+                                    }
+                                </span>
+                            </div>
+
+                            <input
+                                ref={(el) => { fileInputRefs.current[year] = el; }}
+                                type="file"
+                                accept="image/jpeg,image/jpg,image/png,application/pdf"
+                                onChange={(e) => handleFileSelect(year, e)}
+                                className="hidden"
+                            />
+
+                            {isUploaded ? (
+                                <>
+                                    <div className="flex items-center gap-3 p-4 min-h-[100px]">
+                                        <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-[#e8f4f3] to-[#d0eeec] border border-[#4ecdc4]/20 flex items-center justify-center text-2xl">
+                                            🗂
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-[12.5px] font-semibold truncate">{displayName || 'File'}</div>
+                                            <div className="text-[11px] text-muted-foreground">{displayMeta}</div>
+                                        </div>
+                                    </div>
+                                    <div className="px-4 pb-4 flex gap-1.5">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                const url = file ? filePreviews[year] : existingUrl;
+                                                if (url) window.open(url, '_blank');
+                                            }}
+                                            className="h-7 px-2.5 rounded-md border border-border bg-background text-[11px] font-medium hover:bg-muted flex items-center gap-1"
+                                        >
+                                            <Eye className="w-3 h-3" />
+                                            {t('diagnosis_org_chart.preview')}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleFileChange(year, null);
+                                                const el = fileInputRefs.current[year];
+                                                if (el) el.value = '';
+                                            }}
+                                            className="h-7 px-2.5 rounded-md border border-border bg-background text-[11px] font-medium hover:border-red-500 hover:text-red-500 flex items-center gap-1"
+                                        >
+                                            <X className="w-3 h-3" />
+                                            {t('diagnosis_org_chart.delete')}
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className={cn(
+                                    'py-6 px-4 flex flex-col items-center gap-2 min-h-[160px] justify-center',
+                                    !isActive && 'opacity-60'
+                                )}>
+                                    <div className={cn(
+                                        'w-11 h-11 rounded-xl flex items-center justify-center text-xl',
+                                        isActive ? 'bg-[#4ecdc4]/10' : 'bg-muted'
+                                    )}>
+                                        <Upload className="w-5 h-5 text-muted-foreground" />
+                                    </div>
+                                    <div className="text-[13px] font-semibold text-center">
+                                        {t('diagnosis_org_chart.clickOrDrag')}
+                                    </div>
+                                    <div className="text-[11px] text-muted-foreground text-center">
+                                        {t('diagnosis_org_chart.supportedFormats')}
+                                    </div>
+                                    <div className="flex gap-1 mt-1">
+                                        {['PNG', 'JPG', 'PDF', '10MB'].map((item) => (
+                                            <span key={item} className="text-[9.5px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                                {item}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+
+            <DiagnosisFieldErrorMessage fieldKey="organizational_charts" inertiaError={inertiaOrgChartErr} />
+        </div>
+    );
+
     if (embedMode) return <>{innerContent}</>;
+
     return (
         <>
             <Head title={`Organizational Charts - ${company?.name || project?.company?.name || 'Company'}`} />
             <FormLayout
-                title="Organizational Chart"
+                title={t('diagnosis_org_chart.title')}
                 project={project}
                 diagnosis={diagnosis}
                 activeTab={activeTab}

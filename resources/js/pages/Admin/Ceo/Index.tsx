@@ -1,17 +1,3 @@
-import { Head, Link, useForm } from '@inertiajs/react';
-import { usePage } from '@inertiajs/react';
-import {
-    Building2,
-    Calendar,
-    CheckCircle2,
-    Clock,
-    Mail,
-    UserPlus,
-    Users,
-    XCircle,
-} from 'lucide-react';
-import React, { useState } from 'react';
-import { useEffect } from 'react';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +43,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { toastCopy } from '@/lib/toastCopy';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import {
+    Building2,
+    Calendar,
+    CheckCircle2,
+    Clock,
+    Mail,
+    UserPlus,
+    Users,
+    XCircle,
+} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface Invitation {
@@ -111,30 +109,35 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
 
     const { flash } = usePage().props as any;
 
-        useEffect(() => {
-            if (flash?.success) {
-                toast({ title: toastCopy.success, description: flash.success });
-            }
+    useEffect(() => {
+        if (flash?.success) {
+            toast({ title: toastCopy.success, description: flash.success });
+        }
 
-            if (flash?.error) {
-                toast({ title: toastCopy.error, description: flash.error, variant: 'destructive' });
-            }
+        if (flash?.error) {
+            toast({
+                title: toastCopy.error,
+                description: flash.error,
+                variant: 'destructive',
+            });
+        }
 
-            if (flash?.message) {
-                toast({ title: toastCopy.info, description: flash.message });
-            }
-        }, [flash]);
-    
+        if (flash?.message) {
+            toast({ title: toastCopy.info, description: flash.message });
+        }
+    }, [flash]);
+
     const [statusFilter, setStatusFilter] = useState<
         'all' | 'pending' | 'accepted' | 'rejected'
-        >('all');
+    >('all');
     const [showCreateCeoDialog, setShowCreateCeoDialog] = useState(false);
 
-    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
-        name: '',
-        email: '',
-        company_id: null as number | null,
-    });
+    const { data, setData, post, processing, errors, reset, clearErrors } =
+        useForm({
+            name: '',
+            email: '',
+            company_id: null as number | null,
+        });
 
     const handleCreateCeo = (e: React.FormEvent) => {
         e.preventDefault();
@@ -236,8 +239,7 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                     {t('admin_ceo.heading')}
                                 </h1>
                                 <p className="text-muted-foreground">
-                                    View all CEO invitations and manage CEO
-                                    accounts
+                                    {t('admin_ceo.description')}
                                 </p>
                             </div>
                             <Dialog
@@ -256,10 +258,7 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                             {t('admin_ceo.create_dialog.title')}
                                         </DialogTitle>
                                         <DialogDescription>
-                                            Create a new CEO user account and
-                                            optionally assign them to a company.
-                                            A temporary password will be
-                                            generated.
+                                            {t('admin_ceo.create_dialog.desc')}
                                         </DialogDescription>
                                     </DialogHeader>
                                     <form
@@ -268,15 +267,21 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                     >
                                         <div>
                                             <Label htmlFor="ceo-name">
-                                                Name
+                                                {t('admin_ceo.fields.name')}
                                             </Label>
                                             <Input
                                                 id="ceo-name"
                                                 type="text"
                                                 value={data.name}
                                                 onChange={(e) => {
-                                                    setData('name', e.target.value);
-                                                    clearInertiaFieldError(clearErrors, 'name');
+                                                    setData(
+                                                        'name',
+                                                        e.target.value,
+                                                    );
+                                                    clearInertiaFieldError(
+                                                        clearErrors,
+                                                        'name',
+                                                    );
                                                 }}
                                                 placeholder="CEO Name"
                                                 required
@@ -294,17 +299,25 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                         </div>
                                         <div>
                                             <Label htmlFor="ceo-email">
-                                                Email
+                                                {t('admin_ceo.fields.email')}
                                             </Label>
                                             <Input
                                                 id="ceo-email"
                                                 type="email"
                                                 value={data.email}
                                                 onChange={(e) => {
-                                                    setData('email', e.target.value);
-                                                    clearInertiaFieldError(clearErrors, 'email');
+                                                    setData(
+                                                        'email',
+                                                        e.target.value,
+                                                    );
+                                                    clearInertiaFieldError(
+                                                        clearErrors,
+                                                        'email',
+                                                    );
                                                 }}
-                                                placeholder="ceo@example.com"
+                                                placeholder={t(
+                                                    'admin_ceo.placeholders.email',
+                                                )}
                                                 required
                                                 className={
                                                     errors.email
@@ -320,7 +333,9 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                         </div>
                                         <div>
                                             <Label htmlFor="company_id">
-                                                Assign to Company (Optional)
+                                                {
+                                                    'admin_ceo.fields.assign_company'
+                                                }
                                             </Label>
                                             <Select
                                                 value={
@@ -337,7 +352,10 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                             ? null
                                                             : Number(value),
                                                     );
-                                                    clearInertiaFieldError(clearErrors, 'company_id');
+                                                    clearInertiaFieldError(
+                                                        clearErrors,
+                                                        'company_id',
+                                                    );
                                                 }}
                                             >
                                                 <SelectTrigger
@@ -347,11 +365,17 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                             : ''
                                                     }
                                                 >
-                                                    <SelectValue placeholder="Select a company" />
+                                                    <SelectValue
+                                                        placeholder={t(
+                                                            'admin_ceo.fields.select_company',
+                                                        )}
+                                                    />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="none">
-                                                        {t('admin_ceo.fields.none_without_company')}
+                                                        {t(
+                                                            'admin_ceo.fields.none_without_company',
+                                                        )}
                                                     </SelectItem>
                                                     {companies.map(
                                                         (company) => (
@@ -373,9 +397,9 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                 </p>
                                             )}
                                             <p className="mt-1 text-xs text-muted-foreground">
-                                                If you select a company, the CEO
-                                                will be assigned to it and HR
-                                                will see them.
+                                                {t(
+                                                    'admin_ceo.fields.company_help',
+                                                )}
                                             </p>
                                         </div>
                                         <div className="flex justify-end gap-2">
@@ -383,19 +407,25 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                 type="button"
                                                 variant="outline"
                                                 onClick={() => {
-                                                    setShowCreateCeoDialog(false);
+                                                    setShowCreateCeoDialog(
+                                                        false,
+                                                    );
                                                     reset();
                                                 }}
                                             >
-                                                Cancel
+                                                {t('common.cancel')}
                                             </Button>
                                             <Button
                                                 type="submit"
                                                 disabled={processing}
                                             >
                                                 {processing
-                                                    ? t('admin_ceo.actions.creating')
-                                                    : t('admin_ceo.actions.create_ceo')}
+                                                    ? t(
+                                                          'admin_ceo.actions.creating',
+                                                      )
+                                                    : t(
+                                                          'admin_ceo.actions.create_ceo',
+                                                      )}
                                             </Button>
                                         </div>
                                     </form>
@@ -410,7 +440,9 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <p className="mb-1 text-sm text-muted-foreground">
-                                                {t('admin_ceo.stats.total_ceos')}
+                                                {t(
+                                                    'admin_ceo.stats.total_ceos',
+                                                )}
                                             </p>
                                             <p className="text-3xl font-bold text-foreground">
                                                 {ceos.length}
@@ -428,7 +460,9 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <p className="mb-1 text-sm text-muted-foreground">
-                                                {t('admin_ceo.stats.pending_invitations')}
+                                                {t(
+                                                    'admin_ceo.stats.pending_invitations',
+                                                )}
                                             </p>
                                             <p className="text-3xl font-bold text-foreground">
                                                 {pendingCount}
@@ -482,10 +516,12 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                         <Tabs defaultValue="invitations" className="space-y-6">
                             <TabsList>
                                 <TabsTrigger value="invitations">
-                                    CEO Invitations ({invitations.length})
+                                    {t('admin_ceo.tabs.invitations')} (
+                                    {invitations.length})
                                 </TabsTrigger>
                                 <TabsTrigger value="ceos">
-                                    {t('admin_ceo.tabs.active_ceos')} ({ceos.length})
+                                    {t('admin_ceo.tabs.active_ceos')} (
+                                    {ceos.length})
                                 </TabsTrigger>
                             </TabsList>
 
@@ -498,11 +534,14 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <CardTitle>
-                                                    CEO Invitation Listings
+                                                    {t(
+                                                        'admin_ceo.invitation_list.title',
+                                                    )}
                                                 </CardTitle>
                                                 <CardDescription>
-                                                    All CEO invitations with
-                                                    their status and details
+                                                    {t(
+                                                        'admin_ceo.invitation_list.description',
+                                                    )}
                                                 </CardDescription>
                                             </div>
                                             <div className="flex gap-2">
@@ -516,7 +555,8 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                             : 'bg-muted hover:bg-muted/80'
                                                     }`}
                                                 >
-                                                    All ({invitations.length})
+                                                    {t('admin_ceo.filters.all')}{' '}
+                                                    ({invitations.length})
                                                 </button>
                                                 <button
                                                     onClick={() =>
@@ -531,7 +571,10 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                             : 'bg-muted hover:bg-muted/80'
                                                     }`}
                                                 >
-                                                    {t('admin_ceo.filters.pending')} ({pendingCount})
+                                                    {t(
+                                                        'admin_ceo.filters.pending',
+                                                    )}{' '}
+                                                    ({pendingCount})
                                                 </button>
                                                 <button
                                                     onClick={() =>
@@ -546,7 +589,10 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                             : 'bg-muted hover:bg-muted/80'
                                                     }`}
                                                 >
-                                                    {t('admin_ceo.filters.accepted')} ({acceptedCount})
+                                                    {t(
+                                                        'admin_ceo.filters.accepted',
+                                                    )}{' '}
+                                                    ({acceptedCount})
                                                 </button>
                                                 <button
                                                     onClick={() =>
@@ -561,7 +607,10 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                             : 'bg-muted hover:bg-muted/80'
                                                     }`}
                                                 >
-                                                    {t('admin_ceo.filters.rejected')} ({rejectedCount})
+                                                    {t(
+                                                        'admin_ceo.filters.rejected',
+                                                    )}{' '}
+                                                    ({rejectedCount})
                                                 </button>
                                             </div>
                                         </div>
@@ -571,7 +620,9 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                             <div className="py-12 text-center">
                                                 <Mail className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
                                                 <p className="text-muted-foreground">
-                                                    {t('admin_ceo.invitation_list.empty')}
+                                                    {t(
+                                                        'admin_ceo.invitation_list.empty',
+                                                    )}
                                                 </p>
                                             </div>
                                         ) : (
@@ -580,23 +631,34 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                     <TableHeader>
                                                         <TableRow>
                                                             <TableHead>
-                                                                Email
+                                                                {t(
+                                                                    'admin_ceo.table.email',
+                                                                )}
                                                             </TableHead>
                                                             <TableHead>
-                                                                Company
+                                                                {t(
+                                                                    'admin_ceo.table.company',
+                                                                )}
                                                             </TableHead>
                                                             <TableHead>
-                                                                Status
+                                                                {t(
+                                                                    'admin_ceo.table.status',
+                                                                )}
                                                             </TableHead>
                                                             <TableHead>
-                                                                Invited By
+                                                                {t(
+                                                                    'admin_ceo.table.invited_by',
+                                                                )}
                                                             </TableHead>
                                                             <TableHead>
-                                                                Invited At
+                                                                {t(
+                                                                    'admin_ceo.table.invited_at',
+                                                                )}
                                                             </TableHead>
                                                             <TableHead>
-                                                                Accepted/Rejected
-                                                                At
+                                                                {t(
+                                                                    'admin_ceo.table.action_date',
+                                                                )}
                                                             </TableHead>
                                                         </TableRow>
                                                     </TableHeader>
@@ -628,7 +690,9 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                                             </div>
                                                                         ) : (
                                                                             <span className="text-muted-foreground">
-                                                                                {t('admin_ceo.na')}
+                                                                                {t(
+                                                                                    'admin_ceo.na',
+                                                                                )}
                                                                             </span>
                                                                         )}
                                                                     </TableCell>
@@ -657,7 +721,9 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                                             </div>
                                                                         ) : (
                                                                             <span className="text-muted-foreground">
-                                                                                {t('admin_ceo.na')}
+                                                                                {t(
+                                                                                    'admin_ceo.na',
+                                                                                )}
                                                                             </span>
                                                                         )}
                                                                     </TableCell>
@@ -711,10 +777,13 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                             <TabsContent value="ceos" className="space-y-4">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>{t('admin_ceo.active_ceos.title')}</CardTitle>
+                                        <CardTitle>
+                                            {t('admin_ceo.active_ceos.title')}
+                                        </CardTitle>
                                         <CardDescription>
-                                            All users with CEO role and their
-                                            associated companies
+                                            {t(
+                                                'admin_ceo.active_ceos.description',
+                                            )}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
@@ -722,7 +791,9 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                             <div className="py-12 text-center">
                                                 <Users className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
                                                 <p className="text-muted-foreground">
-                                                    {t('admin_ceo.active_ceos.empty')}
+                                                    {t(
+                                                        'admin_ceo.active_ceos.empty',
+                                                    )}
                                                 </p>
                                             </div>
                                         ) : (
@@ -731,16 +802,24 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                     <TableHeader>
                                                         <TableRow>
                                                             <TableHead>
-                                                                Name
+                                                                {t(
+                                                                    'admin_ceo.table.name',
+                                                                )}
                                                             </TableHead>
                                                             <TableHead>
-                                                                Email
+                                                                {t(
+                                                                    'admin_ceo.table.email',
+                                                                )}
                                                             </TableHead>
                                                             <TableHead>
-                                                                Companies
+                                                                {t(
+                                                                    'admin_ceo.table.companies',
+                                                                )}
                                                             </TableHead>
                                                             <TableHead className="text-right">
-                                                                Action
+                                                                {t(
+                                                                    'admin_ceo.table.action',
+                                                                )}
                                                             </TableHead>
                                                         </TableRow>
                                                     </TableHeader>
@@ -781,8 +860,9 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                                         </div>
                                                                     ) : (
                                                                         <span className="text-muted-foreground">
-                                                                            No
-                                                                            companies
+                                                                            {t(
+                                                                                'admin_ceo.no_companies',
+                                                                            )}
                                                                         </span>
                                                                     )}
                                                                 </TableCell>
@@ -794,7 +874,9 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                                             variant="outline"
                                                                             size="sm"
                                                                         >
-                                                                            Show
+                                                                            {t(
+                                                                                'common.show',
+                                                                            )}
                                                                         </Button>
                                                                     </Link>
                                                                     <Link
@@ -804,7 +886,9 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                                             variant="secondary"
                                                                             size="sm"
                                                                         >
-                                                                            Edit
+                                                                            {t(
+                                                                                'common.edit',
+                                                                            )}
                                                                         </Button>
                                                                     </Link>
                                                                     <Button
@@ -816,7 +900,9 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                                                                             )
                                                                         }
                                                                     >
-                                                                        Delete
+                                                                        {t(
+                                                                            'common.delete',
+                                                                        )}
                                                                     </Button>
                                                                 </TableCell>
                                                             </TableRow>

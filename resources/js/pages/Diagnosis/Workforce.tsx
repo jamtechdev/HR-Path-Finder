@@ -1,11 +1,11 @@
-import { Head, useForm } from '@inertiajs/react';
-import { Info, TrendingUp, Users, Minus, Plus } from 'lucide-react';
-import React, { useEffect, useRef } from 'react';
 import { DiagnosisFieldShell } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { tr } from '@/config/diagnosisTranslations';
 import { loadAllTabDrafts } from '@/lib/diagnosisDraftStorage';
 import { cn } from '@/lib/utils';
+import { Head, useForm } from '@inertiajs/react';
+import { Info, TrendingUp, Users } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 interface Diagnosis {
     id: number;
@@ -34,8 +34,8 @@ interface Props {
     projectId?: number;
     embedMode?: boolean;
     readOnly?: boolean;
-    embedData?: Record<string, unknown>;
-    embedSetData?: (key: string, value: unknown) => void;
+    embedData?: Record<string, any>;
+    embedSetData?: (key: string, value: any) => void;
 }
 
 export default function Workforce({
@@ -66,385 +66,430 @@ export default function Workforce({
         gender_female: diagnosis?.gender_female ?? 0,
         gender_other: diagnosis?.gender_other ?? 0,
     });
+
     const useEmbed = embedMode && embedData != null && embedSetData;
-    const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
-    const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
+    const data = useEmbed
+        ? { ...internalForm.data, ...embedData }
+        : internalForm.data;
+    const setData = useEmbed
+        ? (k: string, v: any) => embedSetData(k, v)
+        : internalForm.setData;
     const errors = internalForm.errors;
 
-    const wfDraft = useRef(false);
+    // 1. Load Drafts
+    const wfDraftRef = useRef(false);
     useEffect(() => {
-        if (wfDraft.current || !projectId || readOnly || embedMode) return;
-        wfDraft.current = true;
+        if (wfDraftRef.current || !projectId || readOnly || embedMode) return;
+        wfDraftRef.current = true;
         const p = loadAllTabDrafts(projectId).workforce;
         if (!p) return;
-        (Object.keys(internalForm.data) as Array<keyof typeof internalForm.data>).forEach((k) => {
-            if (p[k as string] !== undefined) setData(k as string, p[k as string] as never);
-        });
-    }, [projectId, readOnly, embedMode, setData]);
 
+        Object.keys(internalForm.data).forEach((key) => {
+            const k = key as keyof typeof internalForm.data;
+            if (p[k] !== undefined) {
+                internalForm.setData(k, p[k] as any);
+            }
+        });
+    }, [projectId, readOnly, embedMode]);
+
+    // 2. Sync present_headcount with FT + Contract
     useEffect(() => {
-        if (embedMode) return;
         const ft = Number(data.full_time_headcount) || 0;
         const ct = Number(data.contract_headcount) || 0;
         const sum = ft + ct;
         if (sum !== (Number(data.present_headcount) || 0)) {
             setData('present_headcount', sum);
         }
-    }, [data.full_time_headcount, data.contract_headcount, data.present_headcount, embedMode, setData]);
+    }, [data.full_time_headcount, data.contract_headcount]);
 
+    // Derived Stats
     const ft = Number(data.full_time_headcount) || 0;
     const ct = Number(data.contract_headcount) || 0;
     const total = ft + ct;
-    const male = data.gender_male || 0;
-    const female = data.gender_female || 0;
-    const genderSum = male + female + (data.gender_other || 0);
-    const malePct = total > 0 && genderSum > 0 ? Math.round((male / genderSum) * 100) : 0;
-    const femalePct = total > 0 && genderSum > 0 ? Math.round((female / genderSum) * 100) : 0;
-    const genderMismatch = total > 0 && (male + female) !== total;
+    const male = Number(data.gender_male) || 0;
+    const female = Number(data.gender_female) || 0;
+    const other = Number(data.gender_other) || 0;
+    const genderSum = male + female + other;
 
-    const adjustFullTime = (delta: number) => {
-        const next = Math.max(0, ft + delta);
-        setData('full_time_headcount', next);
-    };
+    const malePct = genderSum > 0 ? Math.round((male / genderSum) * 100) : 0;
+    const femalePct =
+        genderSum > 0 ? Math.round((female / genderSum) * 100) : 0;
 
-    const adjustContract = (delta: number) => {
-        const next = Math.max(0, ct + delta);
-        setData('contract_headcount', next);
-    };
+    // Warning if headcount sum doesn't match gender sum (only if numbers are entered)
+    const genderMismatch = total > 0 && genderSum > 0 && genderSum !== total;
 
-    const adjustForecast = (key: 'expected_headcount_1y' | 'expected_headcount_2y' | 'expected_headcount_3y', delta: number) => {
-        const next = Math.max(0, (data[key] || 0) + delta);
-        setData(key, next);
+    const adjustValue = (
+        key: keyof typeof internalForm.data,
+        delta: number,
+    ) => {
+        const current = Number(data[key]) || 0;
+        setData(key as any, Math.max(0, current + delta));
     };
 
     const cardContent = (
-        <div className="rounded-[14px] border border-[#E2E6ED] bg-white overflow-hidden shadow-[0_4px_20px_rgba(27,43,91,0.09)]">
-            {/* Hero strip: Workforce Overview */}
-            <div className="bg-gradient-to-br from-[#1B2B5B] to-[#243877] px-7 py-5 flex flex-wrap items-center gap-4">
-                <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center shrink-0 text-[#2EC4A9]">
-                    <Users className="w-[22px] h-[22px]" />
+        <div className="overflow-hidden rounded-[14px] border border-[#E2E6ED] bg-white shadow-[0_4px_20px_rgba(27,43,91,0.09)]">
+            {/* Hero strip */}
+            <div className="flex flex-wrap items-center gap-4 bg-gradient-to-br from-[#1B2B5B] to-[#243877] px-7 py-5">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#2EC4A9]">
+                    <Users className="h-[22px] w-[22px]" />
                 </div>
-                <div className="flex-1 min-w-0">
-                    <h2 className="text-[15px] font-bold text-white">{tr('workforceHeroTitle')}</h2>
-                    <p className="text-[12px] text-white/55 mt-0.5">
+                <div className="min-w-0 flex-1">
+                    <h2 className="text-[15px] font-bold text-white">
+                        {tr('workforceHeroTitle')}
+                    </h2>
+                    <p className="mt-0.5 text-[12px] text-white/55">
                         {tr('workforceHeroDesc')}
                     </p>
                 </div>
-                <div className="bg-white/10 rounded-lg py-2 px-4 text-center min-w-[80px]">
-                    <div className="text-[22px] font-extrabold text-white leading-none">{total}</div>
-                    <div className="text-[10px] text-white/50 mt-0.5">{tr('totalEmployees')}</div>
+                <div className="min-w-[80px] rounded-lg bg-white/10 px-4 py-2 text-center">
+                    <div className="text-[22px] leading-none font-extrabold text-white">
+                        {total}
+                    </div>
+                    <div className="mt-0.5 text-[10px] text-white/50">
+                        {tr('totalEmployees')}
+                    </div>
                 </div>
             </div>
 
-            <div className="p-6 space-y-6">
-                {/* 전체 재직 인원 | 성별 구성 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Left: 전체 재직 인원 */}
-                    <DiagnosisFieldShell fieldKey="present_headcount" inertiaError={errors.present_headcount}>
+            <div className="space-y-6 p-6">
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                    {/* Left: Headcount Breakdown */}
+                    <DiagnosisFieldShell
+                        fieldKey="present_headcount"
+                        inertiaError={errors.present_headcount}
+                    >
                         {({ borderCn, ErrorLine }) => (
-                    <div>
-                        <h3 className="text-[13px] font-bold text-[#3A4356] mb-3">{tr('presentHeadcountTitle')}</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-stretch">
-                            <div className={cn('rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4', borderCn)}>
-                                <p className="text-[12px] font-bold text-[#3A4356] mb-2">{tr('workforceFullTimeLabel')}</p>
-                                <div className="flex items-center gap-2 mb-2">
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        value={data.full_time_headcount ?? ''}
-                                        onChange={(e) =>
-                                            setData('full_time_headcount', parseInt(e.target.value, 10) || 0)
-                                        }
-                                        disabled={readOnly}
-                                        className="w-full h-10 text-center text-lg font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-lg bg-white"
-                                    />
-                                    <span className="text-[13px] font-bold text-[#3A4356] shrink-0">{tr('persons')}</span>
+                            <div>
+                                <h3 className="mb-3 text-[13px] font-bold text-[#3A4356]">
+                                    {tr('presentHeadcountTitle')}
+                                </h3>
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                    <div
+                                        className={cn(
+                                            'rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4',
+                                            borderCn,
+                                        )}
+                                    >
+                                        <p className="mb-2 text-[12px] font-bold text-[#3A4356]">
+                                            {tr('workforceFullTimeLabel')}
+                                        </p>
+                                        <div className="mb-2 flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                value={data.full_time_headcount}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        'full_time_headcount',
+                                                        parseInt(
+                                                            e.target.value,
+                                                        ) || 0,
+                                                    )
+                                                }
+                                                disabled={readOnly}
+                                                className="h-10 w-full rounded-lg border border-[#E2E6ED] bg-white text-center text-lg font-bold text-[#1B2B5B]"
+                                            />
+                                            <span className="shrink-0 text-[13px] font-bold text-[#3A4356]">
+                                                {tr('persons')}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {[-10, -1, 1, 10].map((d) => (
+                                                <button
+                                                    key={`ft-${d}`}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        adjustValue(
+                                                            'full_time_headcount',
+                                                            d,
+                                                        )
+                                                    }
+                                                    disabled={readOnly}
+                                                    className="h-7 rounded border bg-white px-2 text-xs font-semibold hover:bg-gray-50"
+                                                >
+                                                    - {d > 0 ? `+${d}` : d}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4">
+                                        <p className="mb-2 text-[12px] font-bold text-[#3A4356]">
+                                            {tr('workforceContractLabel')}
+                                        </p>
+                                        <div className="mb-2 flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                value={data.contract_headcount}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        'contract_headcount',
+                                                        parseInt(
+                                                            e.target.value,
+                                                        ) || 0,
+                                                    )
+                                                }
+                                                disabled={readOnly}
+                                                className="h-10 w-full rounded-lg border border-[#E2E6ED] bg-white text-center text-lg font-bold text-[#1B2B5B]"
+                                            />
+                                            <span className="shrink-0 text-[13px] font-bold text-[#3A4356]">
+                                                {tr('persons')}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {[-10, -1, 1, 10].map((d) => (
+                                                <button
+                                                    key={`ct-${d}`}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        adjustValue(
+                                                            'contract_headcount',
+                                                            d,
+                                                        )
+                                                    }
+                                                    disabled={readOnly}
+                                                    className="h-7 rounded border bg-white px-2 text-xs font-semibold hover:bg-gray-50"
+                                                >
+                                                    {d > 0 ? `+${d}` : d}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col items-center justify-center rounded-xl border-2 border-[#1B2B5B] bg-[#1B2B5B]/[0.04] p-4 text-center">
+                                        <p className="text-[10px] font-bold text-[#6B7585] uppercase">
+                                            {tr('workforceTotalLabel')}
+                                        </p>
+                                        <p className="text-[28px] font-extrabold text-[#1B2B5B]">
+                                            {total}
+                                        </p>
+                                        <p className="text-[10px] font-semibold text-[#9AA3B2]">
+                                            {tr('persons')}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {([-10, -1, 1, 10] as const).map((d) => (
-                                        <button
-                                            key={`ft-${d}`}
-                                            type="button"
-                                            onClick={() => adjustFullTime(d)}
-                                            disabled={readOnly}
-                                            className="h-8 px-3 rounded-lg border border-[#E2E6ED] bg-white text-[#3A4356] font-semibold text-xs hover:bg-[#E2E6ED] disabled:opacity-50"
-                                        >
-                                            {d > 0 ? `+${d}` : d}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4">
-                                <p className="text-[12px] font-bold text-[#3A4356] mb-2">{tr('workforceContractLabel')}</p>
-                                <div className="flex items-center gap-2 mb-2">
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        value={data.contract_headcount ?? ''}
-                                        onChange={(e) =>
-                                            setData('contract_headcount', parseInt(e.target.value, 10) || 0)
-                                        }
-                                        disabled={readOnly}
-                                        className="w-full h-10 text-center text-lg font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-lg bg-white"
-                                    />
-                                    <span className="text-[13px] font-bold text-[#3A4356] shrink-0">{tr('persons')}</span>
-                                </div>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {([-10, -1, 1, 10] as const).map((d) => (
-                                        <button
-                                            key={`ct-${d}`}
-                                            type="button"
-                                            onClick={() => adjustContract(d)}
-                                            disabled={readOnly}
-                                            className="h-8 px-3 rounded-lg border border-[#E2E6ED] bg-white text-[#3A4356] font-semibold text-xs hover:bg-[#E2E6ED] disabled:opacity-50"
-                                        >
-                                            {d > 0 ? `+${d}` : d}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="rounded-xl border-2 border-[#1B2B5B] bg-[#1B2B5B]/[0.04] p-4 flex flex-col items-center justify-center text-center">
-                                <p className="text-[12px] font-bold uppercase tracking-wide text-[#6B7585] mb-1">
-                                    {tr('workforceTotalLabel')}
+                                <p className="mt-3 text-[12px] text-[#6B7585]">
+                                    {tr('includeAllHint')}
                                 </p>
-                                <p className="text-[32px] font-extrabold text-[#1B2B5B] leading-none">{total}</p>
-                                <p className="text-[11px] font-semibold text-[#9AA3B2] mt-1">{tr('persons')}</p>
+                                {ErrorLine}
                             </div>
-                        </div>
-                        <p className="mt-4 text-[13px] font-bold text-[#3A4356] leading-snug text-center sm:text-left">
-                            {tr('includeAllHint')}
-                        </p>
-                        {ErrorLine}
-                    </div>
                         )}
                     </DiagnosisFieldShell>
 
-                    {/* Right: 성별 구성 */}
+                    {/* Right: Gender Composition */}
                     <div>
-                        <h3 className="text-[13px] font-bold text-[#3A4356] mb-3">{tr('genderCompositionTitle')}</h3>
+                        <h3 className="mb-3 text-[13px] font-bold text-[#3A4356]">
+                            {tr('genderCompositionTitle')}
+                        </h3>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4">
-                                <div className="w-10 h-10 rounded-full bg-[#1B2B5B]/10 flex items-center justify-center mb-2">
-                                    <span className="text-[#1B2B5B] font-bold text-sm">M</span>
-                                </div>
-                                <p className="text-[12px] font-semibold text-[#3A4356]">{tr('maleWithEn')}</p>
-                                <div className="flex items-baseline gap-1 mt-1">
+                                <span className="text-[11px] font-bold text-[#1B2B5B]">
+                                    MALE
+                                </span>
+                                <div className="mt-1 flex items-center gap-2">
                                     <input
                                         type="number"
-                                        min={0}
-                                        value={data.gender_male ?? ''}
-                                        onChange={(e) => setData('gender_male', parseInt(e.target.value, 10) || 0)}
+                                        value={data.gender_male}
+                                        onChange={(e) =>
+                                            setData(
+                                                'gender_male',
+                                                parseInt(e.target.value) || 0,
+                                            )
+                                        }
                                         disabled={readOnly}
-                                        className="w-14 h-8 text-center text-sm font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-md bg-white"
+                                        className="h-8 w-full rounded-md border px-2 text-sm font-bold"
                                     />
-                                    <span className="text-[12px] text-[#6B7585]">{tr('persons')}</span>
+                                    <span className="text-xs text-[#9AA3B2]">
+                                        {tr('persons')}
+                                    </span>
                                 </div>
                             </div>
                             <div className="rounded-xl border-2 border-[#2EC4A9]/40 bg-[#E6F9F6]/50 p-4">
-                                <div className="w-10 h-10 rounded-full bg-[#2EC4A9]/20 flex items-center justify-center mb-2">
-                                    <span className="text-[#25A891] font-bold text-sm">F</span>
-                                </div>
-                                <p className="text-[12px] font-semibold text-[#3A4356]">{tr('femaleWithEn')}</p>
-                                <div className="flex items-baseline gap-1 mt-1">
+                                <span className="text-[11px] font-bold text-[#25A891]">
+                                    FEMALE
+                                </span>
+                                <div className="mt-1 flex items-center gap-2">
                                     <input
                                         type="number"
-                                        min={0}
-                                        value={data.gender_female ?? ''}
-                                        onChange={(e) => setData('gender_female', parseInt(e.target.value, 10) || 0)}
+                                        value={data.gender_female}
+                                        onChange={(e) =>
+                                            setData(
+                                                'gender_female',
+                                                parseInt(e.target.value) || 0,
+                                            )
+                                        }
                                         disabled={readOnly}
-                                        className="w-14 h-8 text-center text-sm font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-md bg-white"
+                                        className="h-8 w-full rounded-md border px-2 text-sm font-bold"
                                     />
-                                    <span className="text-[12px] text-[#6B7585]">{tr('persons')}</span>
+                                    <span className="text-xs text-[#9AA3B2]">
+                                        {tr('persons')}
+                                    </span>
                                 </div>
                             </div>
                         </div>
-                        {/* Ratio bar */}
+
                         {genderSum > 0 && (
                             <div className="mt-4">
-                                <div className="flex h-3 rounded-full overflow-hidden bg-[#E2E6ED]">
+                                <div className="flex h-2.5 overflow-hidden rounded-full bg-[#E2E6ED]">
                                     <div
-                                        className="h-full bg-[#1B2B5B] transition-all duration-300"
+                                        className="h-full bg-[#1B2B5B] transition-all"
                                         style={{ width: `${malePct}%` }}
                                     />
                                     <div
-                                        className="h-full bg-[#2EC4A9] transition-all duration-300"
+                                        className="h-full bg-[#2EC4A9] transition-all"
                                         style={{ width: `${femalePct}%` }}
                                     />
                                 </div>
-                                <div className="flex justify-between mt-1.5 text-[11px] font-semibold text-[#6B7585]">
-                                    <span>{tr('ratioMale').replace('{{pct}}', String(malePct))}</span>
-                                    <span>{tr('ratioFemale').replace('{{pct}}', String(femalePct))}</span>
+                                <div className="mt-2 flex justify-between text-[11px] font-bold text-[#6B7585]">
+                                    <span>{malePct}% Male</span>
+                                    <span>{femalePct}% Female</span>
                                 </div>
-                                <p className="text-[11px] text-[#9AA3B2] mt-0.5">
-                                    {tr('ratioText').replace('{{m}}', String(malePct)).replace('{{f}}', String(femalePct))}
-                                </p>
                             </div>
                         )}
+
                         {genderMismatch && (
-                            <div className="mt-3 flex items-center gap-2 p-3 rounded-lg border border-[#E05252] bg-[#FEF2F2] text-[#E05252] text-[12px] font-semibold">
-                                <span className="shrink-0">⚠</span>
+                            <div className="mt-3 flex gap-2 rounded border border-amber-200 bg-amber-50 p-2 text-[11px] text-amber-700">
+                                <span>⚠️</span>
                                 <span>{tr('genderMismatchWarn')}</span>
                             </div>
                         )}
-                        {(errors.gender_male || errors.gender_female) && (
-                            <p className="mt-1 text-sm text-[#E05252]">
-                                {errors.gender_male || errors.gender_female}
-                            </p>
-                        )}
                     </div>
                 </div>
 
-                {/* Average tenure & age */}
                 <hr className="border-[#E2E6ED]" />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                        <label className="flex items-center gap-1.5 text-[12px] font-bold text-[#3A4356] mb-2">
-                            <Info className="w-3.5 h-3.5 text-[#9AA3B2]" />
-                            {tr('avgTenureActiveLabel')}
-                        </label>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="number"
-                                step={0.1}
-                                min={0}
-                                value={data.average_tenure_active ?? ''}
-                                onChange={(e) => setData('average_tenure_active', parseFloat(e.target.value) || 0)}
-                                disabled={readOnly}
-                                className="flex-1 h-10 px-3 border border-[#E2E6ED] rounded-lg text-sm font-bold text-[#1B2B5B] focus:border-[#2EC4A9] outline-none"
-                            />
-                            <span className="text-[12px] text-[#9AA3B2] font-medium">{tr('unitYrShort')}</span>
+
+                {/* Tenure and Age */}
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                    {[
+                        {
+                            key: 'average_tenure_active',
+                            label: tr('avgTenureActiveLabel'),
+                        },
+                        {
+                            key: 'average_tenure_leavers',
+                            label: tr('avgTenureLeaversLabel'),
+                        },
+                        {
+                            key: 'average_age',
+                            label: tr('avgAgeLabel'),
+                            max: 100,
+                        },
+                    ].map((f) => (
+                        <div key={f.key}>
+                            <label className="mb-2 flex items-center gap-1.5 text-[12px] font-bold text-[#3A4356]">
+                                <Info className="h-3.5 w-3.5 text-[#9AA3B2]" />
+                                {f.label}
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    step={0.1}
+                                    min={0}
+                                    max={f.max}
+                                    value={data[f.key as keyof typeof data]}
+                                    onChange={(e) => {
+                                        const val =
+                                            parseFloat(e.target.value) || 0;
+                                        setData(
+                                            f.key as any,
+                                            f.max ? Math.min(f.max, val) : val,
+                                        );
+                                    }}
+                                    disabled={readOnly}
+                                    className="h-10 flex-1 rounded-lg border px-3 text-sm font-bold text-[#1B2B5B]"
+                                />
+                                <span className="text-[12px] font-medium text-[#9AA3B2]">
+                                    {tr('unitYrShort')}
+                                </span>
+                            </div>
                         </div>
-                        {errors.average_tenure_active && (
-                            <p className="mt-1 text-xs text-[#E05252]">{errors.average_tenure_active}</p>
-                        )}
-                    </div>
-                    <div>
-                        <label className="flex items-center gap-1.5 text-[12px] font-bold text-[#3A4356] mb-2">
-                            <Info className="w-3.5 h-3.5 text-[#9AA3B2]" />
-                            {tr('avgTenureLeaversLabel')}
-                        </label>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="number"
-                                step={0.1}
-                                min={0}
-                                value={data.average_tenure_leavers ?? ''}
-                                onChange={(e) => setData('average_tenure_leavers', parseFloat(e.target.value) || 0)}
-                                disabled={readOnly}
-                                className="flex-1 h-10 px-3 border border-[#E2E6ED] rounded-lg text-sm font-bold text-[#1B2B5B] focus:border-[#2EC4A9] outline-none"
-                            />
-                            <span className="text-[12px] text-[#9AA3B2] font-medium">{tr('unitYrShort')}</span>
-                        </div>
-                        {errors.average_tenure_leavers && (
-                            <p className="mt-1 text-xs text-[#E05252]">{errors.average_tenure_leavers}</p>
-                        )}
-                    </div>
-                    <div>
-                        <label className="flex items-center gap-1.5 text-[12px] font-bold text-[#3A4356] mb-2">
-                            <Info className="w-3.5 h-3.5 text-[#9AA3B2]" />
-                            {tr('avgAgeLabel')}
-                        </label>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="number"
-                                step={0.1}
-                                min={0}
-                                max={100}
-                                value={data.average_age ?? ''}
-                                onChange={(e) => {
-                                    const v = parseFloat(e.target.value);
-                                    setData('average_age', isNaN(v) ? 0 : Math.min(100, Math.max(0, v)));
-                                }}
-                                disabled={readOnly}
-                                className="flex-1 h-10 px-3 border border-[#E2E6ED] rounded-lg text-sm font-bold text-[#1B2B5B] focus:border-[#2EC4A9] outline-none"
-                            />
-                            <span className="text-[12px] text-[#9AA3B2] font-medium">{tr('unitYrShort')}</span>
-                        </div>
-                        {errors.average_age && (
-                            <p className="mt-1 text-xs text-[#E05252]">{errors.average_age}</p>
-                        )}
-                    </div>
+                    ))}
                 </div>
 
-                {/* 예상 인력 규모 */}
-                <div>
-                    <div className="flex items-center gap-2 mb-4">
-                        <span className="text-[11.5px] font-bold text-[#9AA3B2] uppercase tracking-wider">
+                {/* Forecasting Section */}
+                <div className="pt-4">
+                    <div className="mb-4 flex items-center gap-2">
+                        <span className="text-[11px] font-bold tracking-wider text-[#9AA3B2] uppercase">
                             {tr('forecastSectionLabel')}
                         </span>
-                        <span className="flex-1 h-px bg-[#E2E6ED]" />
+                        <span className="h-px flex-1 bg-[#E2E6ED]" />
                     </div>
 
-                    <div className="rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] overflow-hidden">
-                        <div className="px-5 py-4 flex items-center gap-3 border-b border-[#E2E6ED] bg-white">
-                            <div className="w-10 h-10 rounded-lg bg-[#2EC4A9]/15 flex items-center justify-center text-[#2EC4A9]">
-                                <TrendingUp className="w-5 h-5" />
-                            </div>
+                    <div className="overflow-hidden rounded-xl border border-[#E2E6ED] bg-[#F8F9FB]">
+                        <div className="flex items-center gap-3 border-b bg-white px-5 py-4">
+                            <TrendingUp className="h-5 w-5 text-[#2EC4A9]" />
                             <div>
-                                <h4 className="text-[14px] font-bold text-[#1B2B5B]">
-                                    {tr('forecastCardTitle')} <span className="text-[#E05252]">*</span>
+                                <h4 className="text-sm font-bold text-[#1B2B5B]">
+                                    {tr('forecastCardTitle')} *
                                 </h4>
                                 <p className="text-[11px] text-[#9AA3B2]">
                                     {tr('forecastCardDesc')}
                                 </p>
                             </div>
                         </div>
-                        <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {[
-                                { key: 'expected_headcount_1y' as const, label: tr('after1y') },
-                                { key: 'expected_headcount_2y' as const, label: tr('after2y') },
-                                { key: 'expected_headcount_3y' as const, label: tr('after3y') },
-                            ].map(({ key, label }) => (
+                        <div className="grid grid-cols-1 gap-4 p-5 md:grid-cols-3">
+                            {(
+                                [
+                                    'expected_headcount_1y',
+                                    'expected_headcount_2y',
+                                    'expected_headcount_3y',
+                                ] as const
+                            ).map((key, i) => (
                                 <div
                                     key={key}
-                                    className="rounded-lg border border-[#E2E6ED] bg-white p-4 relative"
+                                    className="rounded-lg border bg-white p-4"
                                 >
-                                    <p className="text-[12px] font-semibold text-[#3A4356] mb-2">{label}</p>
+                                    <p className="mb-2 text-[12px] font-semibold">
+                                        {tr(`after${i + 1}y`)}
+                                    </p>
                                     <div className="flex items-center gap-2">
                                         <button
                                             type="button"
-                                            onClick={() => adjustForecast(key, -1)}
-                                            disabled={readOnly}
-                                            className="w-8 h-8 rounded-md border border-[#E2E6ED] bg-[#F8F9FB] flex items-center justify-center text-[#6B7585] hover:bg-[#E2E6ED] disabled:opacity-50"
+                                            onClick={() => adjustValue(key, -1)}
+                                            className="rounded border p-1"
                                         >
-                                            <Minus className="w-3.5 h-3.5" />
+                                            -
                                         </button>
                                         <input
                                             type="number"
-                                            min={0}
-                                            value={data[key] ?? ''}
-                                            onChange={(e) => setData(key, parseInt(e.target.value, 10) || 0)}
-                                            disabled={readOnly}
-                                            className="flex-1 h-9 text-center text-sm font-bold text-[#1B2B5B] border border-[#E2E6ED] rounded-md"
+                                            value={data[key]}
+                                            onChange={(e) =>
+                                                setData(
+                                                    key,
+                                                    parseInt(e.target.value) ||
+                                                        0,
+                                                )
+                                            }
+                                            className="flex-1 border-none bg-transparent text-center text-sm font-bold"
                                         />
                                         <button
                                             type="button"
-                                            onClick={() => adjustForecast(key, 1)}
-                                            disabled={readOnly}
-                                            className="w-8 h-8 rounded-md border border-[#E2E6ED] bg-[#F8F9FB] flex items-center justify-center text-[#6B7585] hover:bg-[#E2E6ED] disabled:opacity-50"
+                                            onClick={() => adjustValue(key, 1)}
+                                            className="rounded border p-1"
                                         >
-                                            <Plus className="w-3.5 h-3.5" />
+                                            +
                                         </button>
-                                        <span className="text-[11px] text-[#9AA3B2] font-medium">{tr('persons')}</span>
+                                        <span className="text-[11px] text-[#9AA3B2]">
+                                            {tr('persons')}
+                                        </span>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
-                    {(errors.expected_headcount_1y || errors.expected_headcount_2y || errors.expected_headcount_3y) && (
-                        <p className="mt-1 text-sm text-[#E05252]">
-                            {errors.expected_headcount_1y || errors.expected_headcount_2y || errors.expected_headcount_3y}
-                        </p>
-                    )}
                 </div>
             </div>
         </div>
     );
 
-    if (embedMode) return <>{cardContent}</>;
+    if (embedMode) return <div className="w-full">{cardContent}</div>;
+
     return (
         <>
-            <Head title={`${tr('workforcePageTitle')} - ${company?.name || project?.company?.name || 'Company'}`} />
+            <Head
+                title={`${tr('workforcePageTitle')} - ${company?.name || project?.company?.name || 'Company'}`}
+            />
             <FormLayout
                 title={tr('workforcePageTitle')}
                 project={project}
@@ -456,7 +501,9 @@ export default function Workforce({
                 backRoute="company-info"
                 nextRoute="executives"
                 formData={data}
-                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
+                saveRoute={
+                    projectId ? `/hr-manager/diagnosis/${projectId}` : undefined
+                }
             >
                 {cardContent}
             </FormLayout>

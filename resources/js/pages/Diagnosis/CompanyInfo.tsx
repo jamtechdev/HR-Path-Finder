@@ -1,17 +1,22 @@
-import { Head, useForm, router } from '@inertiajs/react';
-import { Upload, X } from 'lucide-react';
-import React, { useEffect, useState, useRef } from 'react';
 import { DiagnosisFieldShell } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { tr } from '@/config/diagnosisTranslations';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { loadAllTabDrafts, saveTabDraft } from '@/lib/diagnosisDraftStorage';
 import { getLogoDraftFile, setLogoDraftFile } from '@/lib/diagnosisFileDrafts';
 import { cn } from '@/lib/utils';
+import { Head, useForm } from '@inertiajs/react';
+import { Upload } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface Company {
     id: number;
@@ -56,12 +61,9 @@ interface Props {
     stepStatuses: Record<string, string>;
     projectId?: number;
     industryCategories?: IndustryCategory[];
-    hqLocations?: string[]; // Admin-configurable locations
-    /** When true, render only inner content (no FormLayout/Head). Used when embedded in CEO review. */
+    hqLocations?: string[];
     embedMode?: boolean;
-    /** When true, all inputs are disabled (view-only). */
     readOnly?: boolean;
-    /** When embedMode, optional form data from parent (CEO page) so one Save submits all. */
     embedData?: Record<string, unknown>;
     embedSetData?: (key: string, value: unknown) => void;
 }
@@ -81,17 +83,23 @@ export default function CompanyInfo({
     embedData,
     embedSetData,
 }: Props) {
-    const normalizedProjectId = typeof projectId === 'string' ? Number(projectId) : projectId;
-    // Format registration number as 000-00-00000 while typing.
+    const { t } = useTranslation();
+
+    const normalizedProjectId =
+        typeof projectId === 'string' ? Number(projectId) : projectId;
+
     const formatRegistrationNumber = (value: string): string => {
         if (!value) return '';
         const digits = value.replace(/\D/g, '').slice(0, 10);
         if (digits.length <= 3) return digits;
-        if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+        if (digits.length <= 5)
+            return `${digits.slice(0, 3)}-${digits.slice(3)}`;
         return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
     };
 
-    const [logoPreview, setLogoPreview] = useState<string | null>(company.logo_path || null);
+    const [logoPreview, setLogoPreview] = useState<string | null>(
+        company.logo_path || null,
+    );
     const [customHqInput, setCustomHqInput] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const draftHydrated = useRef(false);
@@ -111,7 +119,9 @@ export default function CompanyInfo({
         logo: File | null;
     }>({
         company_name: company.name || '',
-        registration_number: formatRegistrationNumber(company.registration_number || ''),
+        registration_number: formatRegistrationNumber(
+            company.registration_number || '',
+        ),
         hq_location: company.hq_location || '',
         is_public: company.is_public ?? false,
         industry_category: diagnosis?.industry_category || '',
@@ -122,83 +132,92 @@ export default function CompanyInfo({
         foundation_date: company.foundation_date || '',
         logo: null,
     });
+
     const useEmbed = embedMode && embedData != null && embedSetData;
-    const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
-    const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v as never) : internalForm.setData;
+    const data = useEmbed
+        ? ({ ...internalForm.data, ...embedData } as typeof internalForm.data)
+        : internalForm.data;
+    const setData = useEmbed
+        ? (k: string, v: unknown) => embedSetData!(k, v as never)
+        : internalForm.setData;
     const errors = internalForm.errors;
+
     const hqOptions = React.useMemo(() => {
         const base = [...hqLocations];
-        const current = typeof data.hq_location === 'string' ? data.hq_location.trim() : '';
+        const current =
+            typeof data.hq_location === 'string' ? data.hq_location.trim() : '';
         if (current && !base.includes(current)) {
-            // Ensure current value is visible even if not in admin-configured options yet.
             return [current, ...base];
         }
         return base;
     }, [hqLocations, data.hq_location]);
+
     const isCustomHqSelected = React.useMemo(() => {
-        const current = typeof data.hq_location === 'string' ? data.hq_location.trim() : '';
+        const current =
+            typeof data.hq_location === 'string' ? data.hq_location.trim() : '';
         if (!current) return false;
         return !hqOptions.includes(current);
     }, [data.hq_location, hqOptions]);
 
-    const isNonEmptyString = (v: unknown): boolean => typeof v === 'string' && v.trim().length > 0;
-    const isFilledString = (v: unknown): boolean => v !== undefined && v !== null && String(v).trim().length > 0;
+    const isFilledString = (v: unknown): boolean =>
+        v !== undefined && v !== null && String(v).trim().length > 0;
 
     const serializeDraft = (formData: any): Record<string, unknown> => {
-        if (!formData || typeof formData !== 'object') return {};
         try {
-            const json = JSON.stringify(formData, (_k, v) => (v instanceof File ? undefined : v));
-            return JSON.parse(json) as Record<string, unknown>;
+            const json = JSON.stringify(formData, (_k, v) =>
+                v instanceof File ? undefined : v,
+            );
+            return JSON.parse(json);
         } catch {
             return {};
         }
     };
 
-    // Removed auto-save - only save on review and submit
-
-    // Load existing logo if available
+    // Load existing logo
     useEffect(() => {
         if (company.logo_path) {
-            // If logo_path is a full URL, use it directly
-            if (company.logo_path.startsWith('http') || company.logo_path.startsWith('/')) {
+            if (
+                company.logo_path.startsWith('http') ||
+                company.logo_path.startsWith('/')
+            ) {
                 setLogoPreview(company.logo_path);
             } else {
-                // Otherwise, construct the storage URL
                 setLogoPreview(`/storage/${company.logo_path}`);
             }
         }
     }, [company.logo_path]);
 
-    // If the user uploaded a logo earlier, rehydrate the preview from in-memory file drafts
-    // so it doesn't disappear after navigation.
+    // Rehydrate logo draft preview
     useEffect(() => {
-        if (!normalizedProjectId) return;
-        if (logoDraftPreviewHydrated.current) return;
+        if (!normalizedProjectId || logoDraftPreviewHydrated.current) return;
         const draftLogo = getLogoDraftFile(normalizedProjectId);
         if (!draftLogo) return;
-        logoDraftPreviewHydrated.current = true;
 
-        // Only populate the form's `logo` File when not embedded.
-        // In embedded mode we only need the preview (the draft file is handled at submit time anyway).
+        logoDraftPreviewHydrated.current = true;
         if (!useEmbed) {
             internalForm.setData('logo', draftLogo);
         }
         const reader = new FileReader();
-        reader.onloadend = () => {
-            setLogoPreview(reader.result as string);
-        };
+        reader.onloadend = () => setLogoPreview(reader.result as string);
         reader.readAsDataURL(draftLogo);
-    }, [normalizedProjectId]);
+    }, [normalizedProjectId, useEmbed]);
 
+    // Load draft data
     useEffect(() => {
-        if (draftHydrated.current || !normalizedProjectId || readOnly || embedMode) return;
+        if (
+            draftHydrated.current ||
+            !normalizedProjectId ||
+            readOnly ||
+            embedMode
+        )
+            return;
         draftHydrated.current = true;
         const p = loadAllTabDrafts(normalizedProjectId)['company-info'];
         if (!p) return;
+
         Object.entries(p).forEach(([k, v]) => {
             if (v === undefined || v === null || k === 'logo') return;
-            // Sometimes drafts come back as a truncated prefix (e.g. "S" from "Seoul, South Korea").
-            // If the draft value looks like a 1-char prefix and we can uniquely match it, repair it.
+
             if (
                 k === 'hq_location' &&
                 typeof v === 'string' &&
@@ -206,9 +225,14 @@ export default function CompanyInfo({
                 hqLocations.length > 0
             ) {
                 const prefix = v.trim().toLowerCase();
-                const matches = hqLocations.filter((loc) => loc.toLowerCase().startsWith(prefix));
+                const matches = hqLocations.filter((loc) =>
+                    loc.toLowerCase().startsWith(prefix),
+                );
                 if (matches.length === 1) {
-                    setData(k as keyof typeof internalForm.data, matches[0] as never);
+                    setData(
+                        k as keyof typeof internalForm.data,
+                        matches[0] as never,
+                    );
                     return;
                 }
             }
@@ -216,53 +240,49 @@ export default function CompanyInfo({
         });
     }, [normalizedProjectId, readOnly, embedMode, setData, hqLocations]);
 
-    // Embed mode (CEO review) does not use local draft hydration; repair 1-char HQ values here too.
+    // Repair short HQ in embed mode
     useEffect(() => {
-        const current = typeof data.hq_location === 'string' ? data.hq_location.trim() : '';
+        const current =
+            typeof data.hq_location === 'string' ? data.hq_location.trim() : '';
         if (current.length !== 1 || hqOptions.length === 0) return;
         const prefix = current.toLowerCase();
-        const matches = hqOptions.filter((loc) => loc.toLowerCase().startsWith(prefix));
+        const matches = hqOptions.filter((loc) =>
+            loc.toLowerCase().startsWith(prefix),
+        );
         if (matches.length === 1 && matches[0] !== data.hq_location) {
             setData('hq_location', matches[0]);
         }
     }, [data.hq_location, hqOptions, setData]);
 
     useEffect(() => {
-        const current = typeof data.hq_location === 'string' ? data.hq_location.trim() : '';
+        const current =
+            typeof data.hq_location === 'string' ? data.hq_location.trim() : '';
         if (current && !hqOptions.includes(current)) {
             setCustomHqInput(current);
         }
     }, [data.hq_location, hqOptions]);
 
-    // Validate registration number format (exactly 10 digits => 000-00-00000)
     const validateRegistrationNumber = (value: string): boolean => {
-        if (!value) return true; // Allow empty for optional fields
+        if (!value) return true;
         const regex = /^\d{3}-\d{2}-\d{5}$/;
         return regex.test(value);
     };
 
-    // Handle file upload
     const handleFileChange = (file: File) => {
-        // Validate file type
         if (!file.type.match(/^image\/(png|jpeg|jpg)$/)) {
-            alert(tr('fileTypeError'));
+            alert(t('company_info.fileTypeError'));
             return;
         }
-        
-        // Validate file size (2MB)
         if (file.size > 2 * 1024 * 1024) {
-            alert(tr('fileSizeError'));
+            alert(t('company_info.fileSizeError'));
             return;
         }
 
         setData('logo', file);
         if (normalizedProjectId) setLogoDraftFile(normalizedProjectId, file);
 
-        // Create preview
         const reader = new FileReader();
-        reader.onloadend = () => {
-            setLogoPreview(reader.result as string);
-        };
+        reader.onloadend = () => setLogoPreview(reader.result as string);
         reader.readAsDataURL(file);
     };
 
@@ -271,19 +291,24 @@ export default function CompanyInfo({
         const draft = serializeDraft({ ...data, is_public: data.is_public });
         saveTabDraft(projectId, 'company-info', draft);
         toast({
-            title: 'Draft saved',
-            description: 'You can come back later without losing your progress.',
+            title: t('company_info.save_draft'),
+            description: t('company_info.save_draft_hint'),
             variant: 'success',
         });
     };
 
     const primaryIndustryFilled =
         (data.industry_category && data.industry_category !== 'Others') ||
-        (data.industry_category === 'Others' && !!data.industry_category_other?.trim());
+        (data.industry_category === 'Others' &&
+            !!data.industry_category_other?.trim());
+
     const subIndustryFilled =
         !data.industry_category ||
         data.industry_category === 'Others' ||
-        (!!data.industry_subcategory?.trim() && (data.industry_subcategory !== 'Others' || !!data.industry_other?.trim()));
+        (!!data.industry_subcategory?.trim() &&
+            (data.industry_subcategory !== 'Others' ||
+                !!data.industry_other?.trim()));
+
     const requiredFields = [
         isFilledString(data.company_name),
         isFilledString(data.registration_number),
@@ -293,339 +318,441 @@ export default function CompanyInfo({
         isFilledString(data.hq_location),
         data.is_public !== undefined && data.is_public !== null,
     ];
-    const requiredCount = requiredFields.filter(Boolean).length;
-    const completionPct = Math.round((requiredCount / requiredFields.length) * 100);
+
+    const completionPct = Math.round(
+        (requiredFields.filter(Boolean).length / requiredFields.length) * 100,
+    );
 
     const cardContent = (
         <div
             className={cn(
-                'rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm',
-                embedMode ? 'max-w-4xl mx-auto' : 'w-full'
+                'overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm',
+                embedMode ? 'mx-auto max-w-4xl' : 'w-full',
             )}
         >
             {/* Hero strip */}
-            <div className="bg-[#1e293b] px-6 py-5 flex flex-wrap items-center justify-between text-white">
+            <div className="flex flex-wrap items-center justify-between bg-[#1e293b] px-6 py-5 text-white">
                 <div className="flex items-center gap-4">
-                    <div className="bg-teal-500/20 p-3 rounded-lg text-teal-400">
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+                    <div className="rounded-lg bg-teal-500/20 p-3 text-teal-400">
+                        <svg
+                            className="h-5 w-5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={1.8}
+                        >
                             <rect x="4" y="3" width="16" height="18" rx="2" />
                             <path d="M8 7h8M8 11h8M8 15h5" />
                         </svg>
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold leading-snug">{tr('companyInfoHeroTitle')}</h2>
-                        <p className="text-gray-400 text-sm mt-0.5">
-                            {tr('companyInfoHeroDesc')}
+                        <h2 className="text-xl leading-snug font-bold">
+                            {t('company_info.companyInfoHeroTitle')}
+                        </h2>
+                        <p className="mt-0.5 text-sm text-gray-400">
+                            {t('company_info.companyInfoHeroDesc')}
                         </p>
                     </div>
                 </div>
-                <div className="flex flex-wrap gap-2 mt-3 md:mt-0">
+                <div className="mt-3 flex flex-wrap gap-2 md:mt-0">
                     {data.company_name && (
-                        <span className="bg-gray-700/50 px-3 py-1 rounded-full text-xs border border-gray-600 max-w-[120px] truncate">
+                        <span className="max-w-[120px] truncate rounded-full border border-gray-600 bg-gray-700/50 px-3 py-1 text-xs">
                             {data.company_name}
                         </span>
                     )}
                     {data.industry_category && (
-                        <span className="bg-gray-700/50 px-3 py-1 rounded-full text-xs border border-gray-600">
+                        <span className="rounded-full border border-gray-600 bg-gray-700/50 px-3 py-1 text-xs">
                             {data.industry_category}
                         </span>
                     )}
                     {data.hq_location && (
-                        <span className="bg-gray-700/50 px-3 py-1 rounded-full text-xs border border-gray-600">
+                        <span className="rounded-full border border-gray-600 bg-gray-700/50 px-3 py-1 text-xs">
                             {data.hq_location}
                         </span>
                     )}
                 </div>
             </div>
 
-            <div className="p-8 space-y-10">
-                {/* 두 개 컬럼 영역 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                    {/* Left: 회사 식별 정보 */}
+            <div className="space-y-10 p-8">
+                <div className="grid grid-cols-1 gap-x-12 gap-y-8 md:grid-cols-2">
+                    {/* Left Column - Company Identity */}
                     <div className="space-y-6">
-                        <h3 className="text-gray-500 font-bold text-sm mb-1">{tr('companyIdentitySection')}</h3>
+                        <h3 className="mb-1 text-sm font-bold text-gray-500">
+                            {t('company_info.companyIdentitySection')}
+                        </h3>
 
                         {/* Company Name */}
                         <div>
-                            <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="company_name">
-                                {tr('companyNameLabel')} <span className="text-red-500">*</span>
+                            <Label
+                                className="mb-2 block text-sm font-bold text-gray-700"
+                                htmlFor="company_name"
+                            >
+                                {t('company_info.companyNameLabel')}{' '}
+                                <span className="text-red-500">*</span>
                             </Label>
                             <Input
                                 id="company_name"
                                 value={data.company_name}
-                                onChange={(e) => setData('company_name', e.target.value)}
-                                placeholder={tr('companyNamePlaceholder')}
+                                onChange={(e) =>
+                                    setData('company_name', e.target.value)
+                                }
+                                placeholder={t(
+                                    'company_info.companyNamePlaceholder',
+                                )}
                                 className={cn(
-                                    'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 px-3 text-sm focus-visible:ring-2 focus-visible:ring-teal-500',
-                                    errors.company_name && 'border-red-500'
+                                    'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 px-3 text-sm focus-visible:ring-2 focus-visible:ring-teal-500',
+                                    errors.company_name && 'border-red-500',
                                 )}
                                 required
                                 disabled={readOnly}
                             />
                             {errors.company_name && (
-                                <p className="mt-1 text-xs text-red-500">{errors.company_name}</p>
+                                <p className="mt-1 text-xs text-red-500">
+                                    {errors.company_name}
+                                </p>
                             )}
                         </div>
 
                         {/* Registration Number */}
                         <div>
-                            <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="registration_number">
-                                {tr('registrationNumberLabel')} <span className="text-red-500">*</span>
+                            <Label
+                                className="mb-2 block text-sm font-bold text-gray-700"
+                                htmlFor="registration_number"
+                            >
+                                {t('company_info.registrationNumberLabel')}{' '}
+                                <span className="text-red-500">*</span>
                             </Label>
                             <Input
                                 id="registration_number"
                                 value={data.registration_number}
-                                onChange={(e) => {
-                                    setData('registration_number', formatRegistrationNumber(e.target.value));
-                                }}
+                                onChange={(e) =>
+                                    setData(
+                                        'registration_number',
+                                        formatRegistrationNumber(
+                                            e.target.value,
+                                        ),
+                                    )
+                                }
                                 placeholder="000-00-00000"
                                 className={cn(
-                                    'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 px-3 text-sm',
-                                    errors.registration_number && 'border-red-500'
+                                    'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 px-3 text-sm',
+                                    errors.registration_number &&
+                                        'border-red-500',
                                 )}
                                 required
                                 maxLength={13}
                                 disabled={readOnly}
                             />
                             {errors.registration_number && (
-                                <p className="mt-1 text-xs text-red-500">{errors.registration_number}</p>
-                            )}
-                            {data.registration_number && !validateRegistrationNumber(data.registration_number) ? (
                                 <p className="mt-1 text-xs text-red-500">
-                                    Enter exactly 10 digits. It auto-formats to 000-00-00000.
+                                    {errors.registration_number}
                                 </p>
-                            ) : (
-                                <p className="mt-1 text-xs text-amber-600">{tr('registrationNumberFormatHint')}</p>
                             )}
+                            <p className="mt-1 text-xs text-amber-600">
+                                {t('company_info.registrationNumberFormatHint')}
+                            </p>
                         </div>
 
                         {/* Brand Name */}
                         <div>
-                            <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="brand_name">
-                                {tr('brandNameLabel')}
+                            <Label
+                                className="mb-2 block text-sm font-bold text-gray-700"
+                                htmlFor="brand_name"
+                            >
+                                {t('company_info.brandNameLabel')}
                             </Label>
                             <Input
                                 id="brand_name"
                                 value={data.brand_name}
-                                onChange={(e) => setData('brand_name', e.target.value)}
-                                placeholder="패스파인더hr"
-                                className="w-full h-11 rounded-lg border border-gray-200 px-3 text-sm"
+                                onChange={(e) =>
+                                    setData('brand_name', e.target.value)
+                                }
+                                placeholder={t(
+                                    'company_info.brandNamePlaceholder',
+                                )}
+                                className="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm"
                                 disabled={readOnly}
                             />
                         </div>
 
-                        {/* Foundation Date + Public Listing row */}
-                        <div className="flex flex-col md:flex-row gap-4">
+                        {/* Foundation Date + Public Listing */}
+                        <div className="flex flex-col gap-4 md:flex-row">
                             <div className="flex-1">
-                                <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="foundation_date">
-                                    {tr('foundationDateLabel')} <span className="text-red-500">*</span>
+                                <Label
+                                    className="mb-2 block text-sm font-bold text-gray-700"
+                                    htmlFor="foundation_date"
+                                >
+                                    {t('company_info.foundationDateLabel')}{' '}
+                                    <span className="text-red-500">*</span>
                                 </Label>
-                                <div className="relative">
-                                    <Input
-                                        id="foundation_date"
-                                        type="date"
-                                        value={data.foundation_date}
-                                        onChange={(e) => setData('foundation_date', e.target.value)}
-                                        className={cn(
-                                            'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 pr-10 text-sm',
-                                            errors.foundation_date && 'border-red-500'
-                                        )}
-                                        required
-                                        disabled={readOnly}
-                                    />
-                                </div>
+                                <Input
+                                    id="foundation_date"
+                                    type="date"
+                                    value={data.foundation_date}
+                                    onChange={(e) =>
+                                        setData(
+                                            'foundation_date',
+                                            e.target.value,
+                                        )
+                                    }
+                                    className={cn(
+                                        'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 pr-10 text-sm',
+                                        errors.foundation_date &&
+                                            'border-red-500',
+                                    )}
+                                    required
+                                    disabled={readOnly}
+                                />
                                 {errors.foundation_date && (
-                                    <p className="mt-1 text-xs text-red-500">{errors.foundation_date}</p>
+                                    <p className="mt-1 text-xs text-red-500">
+                                        {errors.foundation_date}
+                                    </p>
                                 )}
                             </div>
 
                             <div className="flex-1">
-                                <Label className="block text-sm font-bold text-gray-700 mb-2">
-                                    {tr('publicListingLabel')} <span className="text-red-500">*</span>
+                                <Label className="mb-2 block text-sm font-bold text-gray-700">
+                                    {t('company_info.publicListingLabel')}{' '}
+                                    <span className="text-red-500">*</span>
                                 </Label>
-                                <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm font-semibold">
+                                <div className="flex overflow-hidden rounded-lg border border-gray-200 text-sm font-semibold">
                                     <button
                                         type="button"
-                                        onClick={() => !readOnly && setData('is_public', true)}
+                                        onClick={() =>
+                                            !readOnly &&
+                                            setData('is_public', true)
+                                        }
                                         className={cn(
-                                            'flex-1 py-2.5 flex items-center justify-center gap-2 text-gray-500 bg-white',
-                                            data.is_public && 'bg-gray-100 text-gray-800'
+                                            'flex flex-1 items-center justify-center gap-2 bg-white py-2.5 text-gray-500',
+                                            data.is_public &&
+                                                'bg-gray-100 text-gray-800',
                                         )}
                                         disabled={readOnly}
                                     >
-                                        <span className="text-xs">{tr('listedLabel')}</span>
+                                        {t('company_info.listedLabel')}
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => !readOnly && setData('is_public', false)}
+                                        onClick={() =>
+                                            !readOnly &&
+                                            setData('is_public', false)
+                                        }
                                         className={cn(
-                                            'flex-1 py-2.5 flex items-center justify-center gap-2',
-                                            !data.is_public ? 'bg-[#1e293b] text-white' : 'bg-white text-gray-500'
+                                            'flex flex-1 items-center justify-center gap-2 py-2.5',
+                                            !data.is_public
+                                                ? 'bg-[#1e293b] text-white'
+                                                : 'bg-white text-gray-500',
                                         )}
                                         disabled={readOnly}
                                     >
-                                        <span className="text-xs font-bold">{tr('privateLabel')}</span>
+                                        {t('company_info.privateLabel')}
                                     </button>
                                 </div>
-                                {errors.is_public && (
-                                    <p className="mt-1 text-xs text-red-500">{errors.is_public}</p>
-                                )}
                             </div>
                         </div>
                     </div>
 
-                    {/* Right: 산업 및 위치 + completion bar */}
+                    {/* Right Column - Industry & Location */}
                     <div className="space-y-6">
-                        <h3 className="text-gray-500 font-bold text-sm mb-1">{tr('industryLocationSection')}</h3>
+                        <h3 className="mb-1 text-sm font-bold text-gray-500">
+                            {t('company_info.industryLocationSection')}
+                        </h3>
 
                         {/* Primary Industry */}
-                        <DiagnosisFieldShell fieldKey="industry_category" inertiaError={errors.industry_category}>
+                        <DiagnosisFieldShell
+                            fieldKey="industry_category"
+                            inertiaError={errors.industry_category}
+                        >
                             {({ borderCn, ErrorLine }) => (
-                        <div>
-                            <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="industry_category">
-                                {tr('primaryIndustryLabel')} <span className="text-red-500">*</span>
-                            </Label>
-                            <Select
-                                value={data.industry_category}
-                                onValueChange={(value) => {
-                                    setData('industry_category', value);
-                                    setData('industry_subcategory', '');
-                                    setData('industry_other', '');
-                                    if (value !== 'Others') setData('industry_category_other', '');
-                                }}
-                                disabled={readOnly}
-                            >
-                                <SelectTrigger
-                                    className={cn(
-                                        'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 text-sm',
-                                        borderCn
-                                    )}
-                                >
-                                    <SelectValue placeholder={tr('primaryIndustryPlaceholder')} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {industryCategories.length > 0 ? (
-                                        industryCategories.map((category) => (
-                                            <SelectItem key={category.id} value={category.name}>
-                                                {category.name}
-                                            </SelectItem>
-                                        ))
-                                    ) : null}
-                                    <SelectItem value="Others">{tr('othersLabel')}</SelectItem>
-                                    {industryCategories.length === 0 && (
-                                        <SelectItem value="" disabled>
-                                            No industries available
-                                        </SelectItem>
-                                    )}
-                                </SelectContent>
-                            </Select>
-                            {data.industry_category === 'Others' && (
-                                <div className="mt-2">
-                                    <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="industry_category_other">
-                                        {tr('primaryIndustryLabel')} ({tr('specifyPlaceholder')}) <span className="text-red-500">*</span>
-                                    </Label>
-                                    <Input
-                                        id="industry_category_other"
-                                        value={data.industry_category_other ?? ''}
-                                        onChange={(e) => setData('industry_category_other', e.target.value)}
-                                        placeholder={tr('specifyPlaceholder')}
-                                        className={cn(
-                                            'w-full h-11 rounded-lg border border-gray-200 px-3 text-sm',
-                                            errors.industry_category_other && 'border-red-500'
-                                        )}
-                                        required
-                                        disabled={readOnly}
-                                    />
-                                    {errors.industry_category_other && (
-                                        <p className="mt-1 text-xs text-red-500">{errors.industry_category_other}</p>
-                                    )}
-                                </div>
-                            )}
-                            {ErrorLine}
-                        </div>
-                            )}
-                        </DiagnosisFieldShell>
-
-                        {/* Sub Industry Category — only when Primary is not "Others" */}
-                        {data.industry_category && data.industry_category !== 'Others' && (() => {
-                            const selectedCategory = industryCategories.find(
-                                (cat) => cat.name === data.industry_category
-                            );
-                            const subCategories = selectedCategory?.subCategories || [];
-
-                            if (!subCategories.length) return null;
-
-                            return (
                                 <div>
                                     <Label
-                                        className="block text-sm font-bold text-gray-700 mb-2"
-                                        htmlFor="industry_subcategory"
+                                        className="mb-2 block text-sm font-bold text-gray-700"
+                                        htmlFor="industry_category"
                                     >
-                                        {tr('subIndustryLabel')} <span className="text-red-500">*</span>
+                                        {t('company_info.primaryIndustryLabel')}{' '}
+                                        <span className="text-red-500">*</span>
                                     </Label>
                                     <Select
-                                        value={data.industry_subcategory}
+                                        value={data.industry_category}
                                         onValueChange={(value) => {
-                                            setData('industry_subcategory', value);
-                                            if (value !== 'Others') setData('industry_other', '');
+                                            setData('industry_category', value);
+                                            setData('industry_subcategory', '');
+                                            setData('industry_other', '');
+                                            if (value !== 'Others')
+                                                setData(
+                                                    'industry_category_other',
+                                                    '',
+                                                );
                                         }}
                                         disabled={readOnly}
                                     >
                                         <SelectTrigger
                                             className={cn(
-                                                'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 text-sm',
-                                                errors.industry_subcategory && 'border-red-500'
+                                                'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 text-sm',
+                                                borderCn,
                                             )}
                                         >
-                                            <SelectValue placeholder={tr('subIndustryPlaceholder')} />
+                                            <SelectValue
+                                                placeholder={t(
+                                                    'company_info.primaryIndustryPlaceholder',
+                                                )}
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {subCategories.map((sub) => (
-                                                <SelectItem key={sub.id} value={sub.name}>
-                                                    {sub.name}
-                                                </SelectItem>
-                                            ))}
+                                            {industryCategories.map(
+                                                (category) => (
+                                                    <SelectItem
+                                                        key={category.id}
+                                                        value={category.name}
+                                                    >
+                                                        {category.name}
+                                                    </SelectItem>
+                                                ),
+                                            )}
+                                            <SelectItem value="Others">
+                                                {t('company_info.othersLabel')}
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    {errors.industry_subcategory && (
-                                        <p className="mt-1 text-xs text-red-500">
-                                            {errors.industry_subcategory}
-                                        </p>
-                                    )}
-                                    {data.industry_subcategory === 'Others' && (
+
+                                    {data.industry_category === 'Others' && (
                                         <div className="mt-2">
+                                            <Label
+                                                className="mb-2 block text-sm font-bold text-gray-700"
+                                                htmlFor="industry_category_other"
+                                            >
+                                                {t(
+                                                    'company_info.primaryIndustryLabel',
+                                                )}{' '}
+                                                (
+                                                {t(
+                                                    'company_info.specifyPlaceholder',
+                                                )}
+                                                ){' '}
+                                                <span className="text-red-500">
+                                                    *
+                                                </span>
+                                            </Label>
                                             <Input
-                                                value={data.industry_other}
-                                                onChange={(e) => setData('industry_other', e.target.value)}
-                                                placeholder="Please specify"
-                                                className="w-full h-11 rounded-lg border border-gray-200 px-3 text-sm"
+                                                id="industry_category_other"
+                                                value={
+                                                    data.industry_category_other ??
+                                                    ''
+                                                }
+                                                onChange={(e) =>
+                                                    setData(
+                                                        'industry_category_other',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder={t(
+                                                    'company_info.specifyPlaceholder',
+                                                )}
+                                                className={cn(
+                                                    'h-11 w-full rounded-lg border border-gray-200 px-3 text-sm',
+                                                    errors.industry_category_other &&
+                                                        'border-red-500',
+                                                )}
                                                 required
                                                 disabled={readOnly}
                                             />
-                                            {errors.industry_other && (
-                                                <p className="mt-1 text-xs text-red-500">
-                                                    {errors.industry_other}
-                                                </p>
-                                            )}
                                         </div>
                                     )}
+                                    {ErrorLine}
                                 </div>
-                            );
-                        })()}
+                            )}
+                        </DiagnosisFieldShell>
+
+                        {/* Sub Industry */}
+                        {data.industry_category &&
+                            data.industry_category !== 'Others' &&
+                            (() => {
+                                const selectedCategory =
+                                    industryCategories.find(
+                                        (cat) =>
+                                            cat.name === data.industry_category,
+                                    );
+                                const subCategories =
+                                    selectedCategory?.subCategories || [];
+                                if (!subCategories.length) return null;
+
+                                return (
+                                    <div>
+                                        <Label
+                                            className="mb-2 block text-sm font-bold text-gray-700"
+                                            htmlFor="industry_subcategory"
+                                        >
+                                            {t('company_info.subIndustryLabel')}{' '}
+                                            <span className="text-red-500">
+                                                *
+                                            </span>
+                                        </Label>
+                                        <Select
+                                            value={data.industry_subcategory}
+                                            onValueChange={(value) => {
+                                                setData(
+                                                    'industry_subcategory',
+                                                    value,
+                                                );
+                                                if (value !== 'Others')
+                                                    setData(
+                                                        'industry_other',
+                                                        '',
+                                                    );
+                                            }}
+                                            disabled={readOnly}
+                                        >
+                                            <SelectTrigger
+                                                className={cn(
+                                                    'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 text-sm',
+                                                    errors.industry_subcategory &&
+                                                        'border-red-500',
+                                                )}
+                                            >
+                                                <SelectValue
+                                                    placeholder={t(
+                                                        'company_info.subIndustryPlaceholder',
+                                                    )}
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {subCategories.map((sub) => (
+                                                    <SelectItem
+                                                        key={sub.id}
+                                                        value={sub.name}
+                                                    >
+                                                        {sub.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                );
+                            })()}
 
                         {/* HQ Location */}
                         <div>
-                            <Label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="hq_location">
-                                {tr('hqLocationLabel')} <span className="text-red-500">*</span>
+                            <Label
+                                className="mb-2 block text-sm font-bold text-gray-700"
+                                htmlFor="hq_location"
+                            >
+                                {t('company_info.hqLocationLabel')}{' '}
+                                <span className="text-red-500">*</span>
                             </Label>
                             <div className="relative">
                                 {hqOptions.length > 0 ? (
                                     <Select
-                                        value={isCustomHqSelected ? '__custom__' : data.hq_location}
+                                        value={
+                                            isCustomHqSelected
+                                                ? '__custom__'
+                                                : data.hq_location
+                                        }
                                         onValueChange={(value) => {
                                             if (value === '__custom__') {
-                                                const nextCustom = customHqInput.trim();
-                                                setData('hq_location', nextCustom);
+                                                setData(
+                                                    'hq_location',
+                                                    customHqInput.trim(),
+                                                );
                                                 return;
                                             }
                                             setData('hq_location', value);
@@ -634,39 +761,55 @@ export default function CompanyInfo({
                                     >
                                         <SelectTrigger
                                             className={cn(
-                                                'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 text-sm pr-9',
-                                                errors.hq_location && 'border-red-500'
+                                                'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 pr-9 text-sm',
+                                                errors.hq_location &&
+                                                    'border-red-500',
                                             )}
                                         >
-                                            <SelectValue placeholder={tr('hqLocationPlaceholder')} />
+                                            <SelectValue
+                                                placeholder={t(
+                                                    'company_info.hqLocationPlaceholder',
+                                                )}
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {hqOptions.map((location) => (
-                                                <SelectItem key={location} value={location}>
+                                                <SelectItem
+                                                    key={location}
+                                                    value={location}
+                                                >
                                                     {location}
                                                 </SelectItem>
                                             ))}
                                             {!readOnly && (
-                                                <SelectItem value="__custom__">Custom location...</SelectItem>
+                                                <SelectItem value="__custom__">
+                                                    Custom location...
+                                                </SelectItem>
                                             )}
                                         </SelectContent>
                                     </Select>
                                 ) : (
                                     <Input
-                                        id="hq_location"
                                         value={data.hq_location}
-                                        onChange={(e) => setData('hq_location', e.target.value)}
-                                        placeholder={tr('hqLocationPlaceholder')}
-                                        className={cn(
-                                            'w-full h-11 rounded-lg border border-teal-100 bg-teal-50/10 pr-9 text-sm',
-                                            errors.hq_location && 'border-red-500'
+                                        onChange={(e) =>
+                                            setData(
+                                                'hq_location',
+                                                e.target.value,
+                                            )
+                                        }
+                                        placeholder={t(
+                                            'company_info.hqLocationPlaceholder',
                                         )}
-                                        required
+                                        className={cn(
+                                            'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 pr-9 text-sm',
+                                            errors.hq_location &&
+                                                'border-red-500',
+                                        )}
                                         disabled={readOnly}
                                     />
                                 )}
                                 <svg
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                                    className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-gray-400"
                                     viewBox="0 0 24 24"
                                     fill="none"
                                     stroke="currentColor"
@@ -676,41 +819,48 @@ export default function CompanyInfo({
                                     <circle cx="12" cy="11" r="2.5" />
                                 </svg>
                             </div>
-                            {hqOptions.length > 0 && !readOnly && isCustomHqSelected && (
-                                <div className="mt-2">
-                                    <Input
-                                        value={customHqInput}
-                                        onChange={(e) => {
-                                            const v = e.target.value;
-                                            setCustomHqInput(v);
-                                            setData('hq_location', v);
-                                        }}
-                                        placeholder="Enter custom location"
-                                        className="w-full h-11 rounded-lg border border-gray-200 px-3 text-sm"
-                                    />
-                                </div>
-                            )}
+
+                            {hqOptions.length > 0 &&
+                                !readOnly &&
+                                isCustomHqSelected && (
+                                    <div className="mt-2">
+                                        <Input
+                                            value={customHqInput}
+                                            onChange={(e) => {
+                                                const v = e.target.value;
+                                                setCustomHqInput(v);
+                                                setData('hq_location', v);
+                                            }}
+                                            placeholder="Enter custom location"
+                                            className="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm"
+                                        />
+                                    </div>
+                                )}
                             {errors.hq_location && (
-                                <p className="mt-1 text-xs text-red-500">{errors.hq_location}</p>
+                                <p className="mt-1 text-xs text-red-500">
+                                    {errors.hq_location}
+                                </p>
                             )}
                         </div>
 
-                        {/* Page completion (right side, bottom) */}
-                        <div className="pt-6 mt-2">
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-teal-600 font-bold text-xs">이 페이지 완성도</span>
-                                <span className="text-teal-600 font-bold text-xs">
+                        {/* Completion Bar */}
+                        <div className="mt-2 pt-6">
+                            <div className="mb-2 flex items-center justify-between">
+                                <span className="text-xs font-bold text-teal-600">
+                                    {t('company_info.completion_title')}
+                                </span>
+                                <span className="text-xs font-bold text-teal-600">
                                     {completionPct}%
                                 </span>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                            <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
                                 <div
-                                    className="bg-teal-400 h-2 rounded-full transition-all duration-300"
+                                    className="h-2 rounded-full bg-teal-400 transition-all duration-300"
                                     style={{ width: `${completionPct}%` }}
                                 />
                             </div>
-                            <p className="text-[10px] text-gray-400 mt-2">
-                                필수 항목을 모두 입력하면 다음 단계로 이동할 수 있습니다
+                            <p className="mt-2 text-[10px] text-gray-400">
+                                {t('company_info.completion_description')}
                             </p>
                         </div>
 
@@ -719,12 +869,12 @@ export default function CompanyInfo({
                                 <button
                                     type="button"
                                     onClick={handleSaveDraft}
-                                    className="w-full h-10 rounded-lg bg-teal-500 text-white font-bold text-sm shadow-sm hover:bg-teal-400 transition-colors"
+                                    className="h-10 w-full rounded-lg bg-teal-500 text-sm font-bold text-white shadow-sm transition-colors hover:bg-teal-400"
                                 >
-                                    Save Draft
+                                    {t('company_info.save_draft')}
                                 </button>
-                                <p className="text-[10px] text-gray-400 mt-2">
-                                    Session에 임시 저장됩니다.
+                                <p className="mt-2 text-[10px] text-gray-400">
+                                    {t('company_info.save_draft_hint')}
                                 </p>
                             </div>
                         )}
@@ -733,66 +883,78 @@ export default function CompanyInfo({
 
                 <hr className="border-gray-100" />
 
-                {/* Company logo section */}
+                {/* Logo Section */}
                 <div>
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="bg-teal-50 p-2 rounded-lg">
-                            <Upload className="w-4 h-4 text-teal-500" />
+                    <div className="mb-4 flex items-center gap-3">
+                        <div className="rounded-lg bg-teal-50 p-2">
+                            <Upload className="h-4 w-4 text-teal-500" />
                         </div>
                         <div>
-                            <h4 className="font-bold text-gray-700 text-sm">Company Logo</h4>
-                            <p className="text-xs text-gray-400 font-medium">
-                                보고서 및 진단 결과서에 표시됩니다 (선택)
+                            <h4 className="text-sm font-bold text-gray-700">
+                                {t('company_info.logoUploadTitle')}
+                            </h4>
+                            <p className="text-xs font-medium text-gray-400">
+                                {t('company_info.logoUploadHint')}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                                {t('company_info.logoUploadSpec')}
                             </p>
                         </div>
                     </div>
 
                     <div
-                        onClick={() => !readOnly && fileInputRef.current?.click()}
-                        onDragOver={(e) => !readOnly && (e.preventDefault(), e.stopPropagation())}
+                        onClick={() =>
+                            !readOnly && fileInputRef.current?.click()
+                        }
+                        onDragOver={(e) =>
+                            !readOnly &&
+                            (e.preventDefault(), e.stopPropagation())
+                        }
                         onDrop={(e) => {
                             if (readOnly) return;
                             e.preventDefault();
                             e.stopPropagation();
-                            const files = e.dataTransfer.files;
-                            if (files.length > 0) handleFileChange(files[0]);
+                            if (e.dataTransfer.files.length > 0)
+                                handleFileChange(e.dataTransfer.files[0]);
                         }}
                         className={cn(
-                            'border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-colors',
-                            !readOnly && 'cursor-pointer hover:border-teal-400/70 hover:bg-teal-50/30'
+                            'flex flex-col items-center justify-between gap-6 rounded-xl border-2 border-dashed border-gray-200 p-8 transition-colors md:flex-row',
+                            !readOnly &&
+                                'cursor-pointer hover:border-teal-400/70 hover:bg-teal-50/30',
                         )}
                     >
                         <input
                             ref={fileInputRef}
                             type="file"
                             accept="image/png,image/jpeg,image/jpg"
-                            onChange={(e) => {
-                                if (e.target.files && e.target.files[0]) {
-                                    handleFileChange(e.target.files[0]);
-                                }
-                            }}
+                            onChange={(e) =>
+                                e.target.files?.[0] &&
+                                handleFileChange(e.target.files[0])
+                            }
                             className="hidden"
                         />
 
-                        <div className="flex items-center gap-6 w-full md:w-auto">
-                            <div className="w-16 h-16 bg-[#1e293b] rounded-lg flex items-center justify-center overflow-hidden">
+                        <div className="flex w-full items-center gap-6 md:w-auto">
+                            <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg bg-[#1e293b]">
                                 {logoPreview ? (
                                     <img
                                         src={logoPreview}
-                                        alt={tr('logoAlt')}
-                                        className="w-full h-full object-cover"
+                                        alt={t('company_info.logoAlt')}
+                                        className="h-full w-full object-cover"
                                     />
                                 ) : (
-                                    <Upload className="w-7 h-7 text-white/40" />
+                                    <Upload className="h-7 w-7 text-white/40" />
                                 )}
                             </div>
                             <div className="space-y-1 text-left">
-                                <p className="font-bold text-sm text-gray-700">{tr('logoUploadTitle')}</p>
-                                <p className="text-xs text-gray-400">
-                                    {tr('logoUploadHint')}
+                                <p className="text-sm font-bold text-gray-700">
+                                    {t('company_info.logoUploadTitle')}
                                 </p>
                                 <p className="text-xs text-gray-400">
-                                    {tr('logoUploadSpec')}
+                                    {t('company_info.logoUploadHint')}
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                    {t('company_info.logoUploadSpec')}
                                 </p>
                             </div>
                         </div>
@@ -804,10 +966,10 @@ export default function CompanyInfo({
                                 if (readOnly) return;
                                 fileInputRef.current?.click();
                             }}
-                            className="px-6 py-2 border border-gray-300 rounded-lg text-sm font-bold text-gray-600 bg-white shrink-0"
+                            className="shrink-0 rounded-lg border border-gray-300 bg-white px-6 py-2 text-sm font-bold text-gray-600"
                             disabled={readOnly}
                         >
-                            {tr('chooseFileBtn')}
+                            {t('company_info.chooseFileBtn')}
                         </button>
                     </div>
                 </div>
@@ -816,11 +978,14 @@ export default function CompanyInfo({
     );
 
     if (embedMode) return <>{cardContent}</>;
+
     return (
         <>
-            <Head title={`${tr('companyInfoPageTitle')} - ${company?.name || project?.company?.name || 'Company'}`} />
+            <Head
+                title={`${t('company_info.companyInfoPageTitle')} - ${company?.name || project?.company?.name || 'Company'}`}
+            />
             <FormLayout
-                title={tr('companyInfoPageTitle')}
+                title={t('company_info.companyInfoPageTitle')}
                 project={project}
                 diagnosis={diagnosis}
                 activeTab={activeTab}
@@ -828,11 +993,10 @@ export default function CompanyInfo({
                 stepStatuses={stepStatuses}
                 projectId={projectId}
                 nextRoute="workforce"
-                formData={{
-                    ...data,
-                    is_public: data.is_public,
-                }}
-                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
+                formData={{ ...data, is_public: data.is_public }}
+                saveRoute={
+                    projectId ? `/hr-manager/diagnosis/${projectId}` : undefined
+                }
             >
                 {cardContent}
             </FormLayout>

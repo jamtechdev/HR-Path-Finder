@@ -1,6 +1,3 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Edit, GripVertical, Plus, Search, Trash2 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +11,10 @@ import {
 } from '@/components/ui/sidebar';
 import { toast } from '@/hooks/use-toast';
 import { toastCopy } from '@/lib/toastCopy';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Edit, GripVertical, Plus, Search, Trash2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface PerformanceSnapshotQuestion {
     id: number;
@@ -34,22 +35,26 @@ export default function PerformanceSnapshotIndex({
     questions,
     answerTypes,
 }: Props) {
+    const { t } = useTranslation();
     const { flash } = usePage().props as any;
-
-    useEffect(() => {
-        if (flash?.success) {
-            toast({ title: toastCopy.success, description: flash.success });
-        }
-
-        if (flash?.error) {
-            toast({ title: toastCopy.error, description: flash.error, variant: 'destructive' });
-        }
-    }, [flash]);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [localQuestions, setLocalQuestions] = useState(questions);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (flash?.success) {
+            toast({ title: toastCopy.success, description: flash.success });
+        }
+        if (flash?.error) {
+            toast({
+                title: toastCopy.error,
+                description: flash.error,
+                variant: 'destructive',
+            });
+        }
+    }, [flash]);
 
     // Update local questions when props change
     React.useEffect(() => {
@@ -61,7 +66,7 @@ export default function PerformanceSnapshotIndex({
     );
 
     const handleDelete = (questionId: number) => {
-        if (confirm('Are you sure you want to delete this question?')) {
+        if (confirm(t('performance_snapshot_index.confirm_delete'))) {
             router.delete(`/admin/performance-snapshot/${questionId}`, {
                 preserveScroll: true,
             });
@@ -96,7 +101,6 @@ export default function PerformanceSnapshotIndex({
         const [removed] = newQuestions.splice(draggedIndex, 1);
         newQuestions.splice(dropIndex, 0, removed);
 
-        // Update order values
         const updatedQuestions = newQuestions.map((q, idx) => ({
             ...q,
             order: idx + 1,
@@ -105,28 +109,22 @@ export default function PerformanceSnapshotIndex({
         setLocalQuestions(updatedQuestions);
         setDraggedIndex(null);
 
-        // Save new order to backend
         router.post(
             '/admin/performance-snapshot/reorder',
             {
-                questions: updatedQuestions.map((q, idx) => ({
+                questions: updatedQuestions.map((q) => ({
                     id: q.id,
-                    order: idx + 1,
+                    order: q.order,
                 })),
             },
             {
                 preserveScroll: true,
-                onSuccess: () => {
-                    // Reload to get updated data
-                    router.reload({ only: ['questions'] });
-                },
+                onSuccess: () => router.reload({ only: ['questions'] }),
             },
         );
     };
 
-    const getAnswerTypeLabel = (type: string) => {
-        return answerTypes[type] || type;
-    };
+    const getAnswerTypeLabel = (type: string) => answerTypes[type] || type;
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -136,22 +134,27 @@ export default function PerformanceSnapshotIndex({
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="Performance Snapshot Questions Management" />
+                    <Head title={t('performance_snapshot_index.page_title')} />
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
                                 <h1 className="mb-2 text-3xl font-bold text-foreground">
-                                    Performance Snapshot Questions
+                                    {t(
+                                        'performance_snapshot_index.header_title',
+                                    )}
                                 </h1>
                                 <p className="text-muted-foreground">
-                                    Manage all questions for the Strategic
-                                    Performance Snapshot (Stage 4-1)
+                                    {t(
+                                        'performance_snapshot_index.header_description',
+                                    )}
                                 </p>
                             </div>
                             <Link href="/admin/performance-snapshot/create">
                                 <Button>
                                     <Plus className="mr-2 h-4 w-4" />
-                                    Add Question
+                                    {t(
+                                        'performance_snapshot_index.add_question',
+                                    )}
                                 </Button>
                             </Link>
                         </div>
@@ -160,12 +163,17 @@ export default function PerformanceSnapshotIndex({
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <CardTitle>
-                                        Questions ({filteredQuestions.length})
+                                        {t(
+                                            'performance_snapshot_index.questions_count',
+                                            { count: filteredQuestions.length },
+                                        )}
                                     </CardTitle>
                                     <div className="relative w-64">
                                         <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
                                         <Input
-                                            placeholder="Search questions..."
+                                            placeholder={t(
+                                                'performance_snapshot_index.search_placeholder',
+                                            )}
                                             value={searchTerm}
                                             onChange={(e) =>
                                                 setSearchTerm(e.target.value)
@@ -175,6 +183,7 @@ export default function PerformanceSnapshotIndex({
                                     </div>
                                 </div>
                             </CardHeader>
+
                             <CardContent>
                                 <div className="space-y-2">
                                     {filteredQuestions.map(
@@ -234,11 +243,16 @@ export default function PerformanceSnapshotIndex({
                                                                 )}
                                                                 {!question.is_active && (
                                                                     <Badge variant="destructive">
-                                                                        Inactive
+                                                                        {t(
+                                                                            'performance_snapshot_index.inactive_badge',
+                                                                        )}
                                                                     </Badge>
                                                                 )}
                                                                 <span className="text-xs text-muted-foreground">
-                                                                    Order:{' '}
+                                                                    {t(
+                                                                        'performance_snapshot_index.order_label',
+                                                                    )}
+                                                                    :{' '}
                                                                     {
                                                                         question.order
                                                                     }
@@ -255,7 +269,9 @@ export default function PerformanceSnapshotIndex({
                                                                     0 && (
                                                                     <div className="text-xs text-muted-foreground">
                                                                         <span className="font-medium">
-                                                                            Options
+                                                                            {t(
+                                                                                'performance_snapshot_index.options_label',
+                                                                            )}{' '}
                                                                             (
                                                                             {
                                                                                 question
@@ -296,12 +312,16 @@ export default function PerformanceSnapshotIndex({
                                                                                     variant="outline"
                                                                                     className="text-xs"
                                                                                 >
-                                                                                    +
-                                                                                    {question
-                                                                                        .options
-                                                                                        .length -
-                                                                                        5}{' '}
-                                                                                    more
+                                                                                    {t(
+                                                                                        'performance_snapshot_index.more_options',
+                                                                                        {
+                                                                                            count:
+                                                                                                question
+                                                                                                    .options
+                                                                                                    .length -
+                                                                                                5,
+                                                                                        },
+                                                                                    )}
                                                                                 </Badge>
                                                                             )}
                                                                         </div>
@@ -339,8 +359,12 @@ export default function PerformanceSnapshotIndex({
                                     {filteredQuestions.length === 0 && (
                                         <p className="py-8 text-center text-muted-foreground">
                                             {searchTerm
-                                                ? 'No questions found matching your search.'
-                                                : 'No questions found. Create your first question!'}
+                                                ? t(
+                                                      'performance_snapshot_index.no_questions_search',
+                                                  )
+                                                : t(
+                                                      'performance_snapshot_index.no_questions',
+                                                  )}
                                         </p>
                                     )}
                                 </div>

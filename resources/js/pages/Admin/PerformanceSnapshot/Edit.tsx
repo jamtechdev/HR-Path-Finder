@@ -1,6 +1,3 @@
-import { Head, useForm, router } from '@inertiajs/react';
-import { ChevronLeft } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
 import DynamicList from '@/components/Forms/DynamicList';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -9,10 +6,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Sidebar,
+    SidebarInset,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
-import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
+import { Head, router, useForm } from '@inertiajs/react';
+import { ChevronLeft } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface PerformanceSnapshotQuestion {
     id: number;
@@ -30,11 +40,15 @@ interface Props {
     answerTypes: Record<string, string>;
 }
 
-export default function PerformanceSnapshotEdit({ question, answerTypes }: Props) {
+export default function PerformanceSnapshotEdit({
+    question,
+    answerTypes,
+}: Props) {
+    const { t } = useTranslation();
     const [answerType, setAnswerType] = useState<string>(question.answer_type);
     const [options, setOptions] = useState<string[]>(question.options || []);
 
-    const { data, setData, put, processing, errors, clearErrors } = useForm({
+    const { data, setData, put, processing, errors } = useForm({
         question_text: question.question_text,
         answer_type: question.answer_type,
         options: question.options || [],
@@ -66,41 +80,81 @@ export default function PerformanceSnapshotEdit({ question, answerTypes }: Props
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="Edit Performance Snapshot Question" />
-                    <div className="p-6 md:p-8 max-w-4xl mx-auto">
+                    <Head
+                        title={t(
+                            'admin_performance_snapshot_question_edit.page_title',
+                        )}
+                    />
+                    <div className="mx-auto max-w-4xl p-6 md:p-8">
                         <div className="mb-6">
                             <Button
                                 variant="ghost"
-                                onClick={() => router.visit('/admin/performance-snapshot')}
+                                onClick={() =>
+                                    router.visit('/admin/performance-snapshot')
+                                }
                                 className="mb-4"
                             >
-                                <ChevronLeft className="w-4 h-4 mr-2" />
-                                Back to Questions
+                                <ChevronLeft className="mr-2 h-4 w-4" />
+                                {t(
+                                    'admin_performance_snapshot_question_edit.back_to_questions',
+                                )}
                             </Button>
-                            <h1 className="text-3xl font-bold">Edit Performance Snapshot Question</h1>
+                            <h1 className="text-3xl font-bold">
+                                {t(
+                                    'admin_performance_snapshot_question_edit.header_title',
+                                )}
+                            </h1>
                         </div>
 
                         <form onSubmit={handleSubmit}>
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Question Details</CardTitle>
+                                    <CardTitle>
+                                        {t(
+                                            'admin_performance_snapshot_question_edit.question_details',
+                                        )}
+                                    </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div>
-                                        <Label>Question Text <span className="text-destructive">*</span></Label>
+                                        <Label>
+                                            {t(
+                                                'admin_performance_snapshot_question_edit.question_text',
+                                            )}{' '}
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
+                                        </Label>
                                         <Textarea
                                             value={data.question_text}
-                                            onChange={(e) => setData('question_text', e.target.value)}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'question_text',
+                                                    e.target.value,
+                                                )
+                                            }
                                             rows={3}
                                             required
+                                            placeholder={t(
+                                                'admin_performance_snapshot_question_edit.question_text_placeholder',
+                                            )}
                                         />
                                         {errors.question_text && (
-                                            <p className="text-sm text-destructive mt-1">{errors.question_text}</p>
+                                            <p className="mt-1 text-sm text-destructive">
+                                                {errors.question_text}
+                                            </p>
                                         )}
                                     </div>
 
                                     <div>
-                                        <Label>Answer Type <span className="text-destructive">*</span></Label>
+                                        <Label>
+                                            {t(
+                                                'admin_performance_snapshot_question_edit.answer_type',
+                                            )}{' '}
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
+                                        </Label>
                                         <Select
                                             value={answerType}
                                             onValueChange={setAnswerType}
@@ -109,59 +163,106 @@ export default function PerformanceSnapshotEdit({ question, answerTypes }: Props
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Object.entries(answerTypes).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
+                                                {Object.entries(
+                                                    answerTypes,
+                                                ).map(([key, label]) => (
+                                                    <SelectItem
+                                                        key={key}
+                                                        value={key}
+                                                    >
                                                         {label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                         {errors.answer_type && (
-                                            <p className="text-sm text-destructive mt-1">{errors.answer_type}</p>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <Label>Answer Options <span className="text-destructive">*</span></Label>
-                                        <p className="text-xs text-muted-foreground mb-2">
-                                            Add all possible answer options for this question
-                                        </p>
-                                        <DynamicList
-                                            label=""
-                                            items={options}
-                                            onChange={setOptions}
-                                            placeholder="Enter option text"
-                                            addLabel="Add Option"
-                                        />
-                                        {errors.options && (
-                                            <p className="text-sm text-destructive mt-1">{errors.options}</p>
-                                        )}
-                                        {options.length === 0 && (
-                                            <p className="text-sm text-muted-foreground mt-1">
-                                                At least one option is required
+                                            <p className="mt-1 text-sm text-destructive">
+                                                {errors.answer_type}
                                             </p>
                                         )}
                                     </div>
 
                                     <div>
-                                        <Label>Order</Label>
+                                        <Label>
+                                            {t(
+                                                'admin_performance_snapshot_question_edit.answer_options',
+                                            )}{' '}
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
+                                        </Label>
+                                        <p className="mb-2 text-xs text-muted-foreground">
+                                            {t(
+                                                'admin_performance_snapshot_question_edit.answer_options_description',
+                                            )}
+                                        </p>
+                                        <DynamicList
+                                            label=""
+                                            items={options}
+                                            onChange={setOptions}
+                                            placeholder={t(
+                                                'admin_performance_snapshot_question_edit.option_placeholder',
+                                            )}
+                                            addLabel={t(
+                                                'admin_performance_snapshot_question_edit.add_option',
+                                            )}
+                                        />
+                                        {errors.options && (
+                                            <p className="mt-1 text-sm text-destructive">
+                                                {errors.options}
+                                            </p>
+                                        )}
+                                        {options.length === 0 && (
+                                            <p className="mt-1 text-sm text-muted-foreground">
+                                                {t(
+                                                    'admin_performance_snapshot_question_edit.options_required',
+                                                )}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <Label>
+                                            {t(
+                                                'admin_performance_snapshot_question_edit.order',
+                                            )}
+                                        </Label>
                                         <Input
                                             type="number"
                                             value={data.order}
-                                            onChange={(e) => setData('order', parseInt(e.target.value) || 0)}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'order',
+                                                    parseInt(e.target.value) ||
+                                                        0,
+                                                )
+                                            }
                                             min="0"
                                         />
                                     </div>
 
                                     <div>
-                                        <Label>Version (Optional)</Label>
+                                        <Label>
+                                            {t(
+                                                'admin_performance_snapshot_question_edit.version_optional',
+                                            )}
+                                        </Label>
                                         <Input
                                             value={data.version}
-                                            onChange={(e) => setData('version', e.target.value)}
-                                            placeholder="e.g., 1.0, 2.0"
+                                            onChange={(e) =>
+                                                setData(
+                                                    'version',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder={t(
+                                                'admin_performance_snapshot_question_edit.version_placeholder',
+                                            )}
                                         />
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            For versioning/effective date handling
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                            {t(
+                                                'admin_performance_snapshot_question_edit.version_description',
+                                            )}
                                         </p>
                                     </div>
 
@@ -169,10 +270,20 @@ export default function PerformanceSnapshotEdit({ question, answerTypes }: Props
                                         <Checkbox
                                             id="is_active"
                                             checked={data.is_active}
-                                            onCheckedChange={(checked) => setData('is_active', checked as boolean)}
+                                            onCheckedChange={(checked) =>
+                                                setData(
+                                                    'is_active',
+                                                    checked as boolean,
+                                                )
+                                            }
                                         />
-                                        <Label htmlFor="is_active" className="cursor-pointer">
-                                            Active (question will be shown to HR Managers)
+                                        <Label
+                                            htmlFor="is_active"
+                                            className="cursor-pointer"
+                                        >
+                                            {t(
+                                                'admin_performance_snapshot_question_edit.is_active_label',
+                                            )}
                                         </Label>
                                     </div>
                                 </CardContent>
@@ -182,12 +293,25 @@ export default function PerformanceSnapshotEdit({ question, answerTypes }: Props
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={() => router.visit('/admin/performance-snapshot')}
+                                    onClick={() =>
+                                        router.visit(
+                                            '/admin/performance-snapshot',
+                                        )
+                                    }
                                 >
-                                    Cancel
+                                    {t(
+                                        'admin_performance_snapshot_question_edit.cancel',
+                                    )}
                                 </Button>
-                                <Button type="submit" disabled={processing || options.length === 0}>
-                                    Update Question
+                                <Button
+                                    type="submit"
+                                    disabled={
+                                        processing || options.length === 0
+                                    }
+                                >
+                                    {t(
+                                        'admin_performance_snapshot_question_edit.update_question',
+                                    )}
                                 </Button>
                             </div>
                         </form>

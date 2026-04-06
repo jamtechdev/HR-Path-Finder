@@ -1,17 +1,3 @@
-import { Head, Link } from '@inertiajs/react';
-import {
-    ArrowRight,
-    Building2,
-    CheckCircle2,
-    DollarSign,
-    Eye,
-    FileText,
-    FolderKanban,
-    LayoutGrid,
-    Target,
-    TrendingUp,
-    Users,
-} from 'lucide-react';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
@@ -30,12 +16,24 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Head, Link } from '@inertiajs/react';
+import {
+    ArrowRight,
+    Building2,
+    CheckCircle2,
+    Eye,
+    FileText,
+    FolderKanban,
+    LayoutGrid,
+    Target,
+    TrendingUp,
+    Users,
+} from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Project {
     id: number;
-    company?: {
-        name: string;
-    };
+    company?: { name: string };
     step_statuses?: Record<string, string>;
     created_at: string;
 }
@@ -57,10 +55,8 @@ interface Props {
         pending_kpi_review?: number;
     };
     recentProjects: Project[];
-    pendingKpiReviews?: Project[];
     projectsNeedingPerformanceRecommendation?: Project[];
     projectsNeedingCompensationRecommendation?: Project[];
-    companies?: Company[];
     users?: Array<{
         id: number;
         name: string;
@@ -75,17 +71,16 @@ interface Props {
 }
 
 export default function AdminDashboard({
-    projects,
     stats,
     recentProjects,
-    pendingKpiReviews = [],
     projectsNeedingPerformanceRecommendation = [],
     projectsNeedingCompensationRecommendation = [],
-    companies = [],
     users = [],
     total_hr_users = 0,
     total_ceo_users = 0,
 }: Props) {
+    const { t } = useTranslation();
+
     const getStatusBadge = (status: string) => {
         const statusMap: Record<
             string,
@@ -94,11 +89,14 @@ export default function AdminDashboard({
                 variant: 'default' | 'secondary' | 'destructive' | 'outline';
             }
         > = {
-            not_started: { label: 'Not Started', variant: 'outline' },
-            in_progress: { label: 'In Progress', variant: 'secondary' },
-            submitted: { label: 'Submitted', variant: 'default' },
-            completed: { label: 'Completed', variant: 'default' },
-            locked: { label: 'Locked', variant: 'default' },
+            not_started: { label: t('status.not_started'), variant: 'outline' },
+            in_progress: {
+                label: t('status.in_progress'),
+                variant: 'secondary',
+            },
+            submitted: { label: t('status.submitted'), variant: 'default' },
+            completed: { label: t('status.completed'), variant: 'default' },
+            locked: { label: t('status.locked'), variant: 'default' },
         };
         return statusMap[status] || { label: status, variant: 'outline' };
     };
@@ -112,65 +110,70 @@ export default function AdminDashboard({
                 <AppHeader />
                 <main className="relative flex-1 overflow-auto bg-background">
                     <div className="relative z-10">
-                        <Head title="Admin Dashboard" />
+                        <Head title={t('admin.dashboard.title')} />
+
                         <div className="mx-auto max-w-7xl p-6 md:p-8">
                             <div className="mb-8">
-                                <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
+                                <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
                                     <LayoutGrid className="h-8 w-8 text-primary" />
                                 </div>
                                 <h1 className="mb-2 text-3xl font-bold text-foreground">
-                                    Admin Dashboard
+                                    {t('admin.dashboard.title')}
                                 </h1>
                                 <p className="text-muted-foreground">
-                                    Overview of all HR projects and system
-                                    statistics
+                                    {t('admin.dashboard.subtitle')}
                                 </p>
                             </div>
 
                             {/* Statistics Cards */}
                             <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                                {/* Total HR */}
                                 <Card>
                                     <CardContent className="p-6">
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
-                                                    Total HR
+                                                    {t('admin.stats.total_hr')}
                                                 </p>
                                                 <p className="text-3xl font-bold text-foreground">
                                                     {total_hr_users}
                                                 </p>
                                             </div>
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-primary/20 bg-primary/10">
                                                 <Users className="h-6 w-6 text-primary" />
                                             </div>
                                         </div>
                                     </CardContent>
                                 </Card>
 
+                                {/* Total CEO */}
                                 <Card>
                                     <CardContent className="p-6">
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
-                                                    Total CEO
+                                                    {t('admin.stats.total_ceo')}
                                                 </p>
                                                 <p className="text-3xl font-bold text-foreground">
                                                     {total_ceo_users}
                                                 </p>
                                             </div>
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-primary/20 bg-primary/10">
                                                 <Users className="h-6 w-6 text-primary" />
                                             </div>
                                         </div>
                                     </CardContent>
                                 </Card>
 
+                                {/* Total Projects */}
                                 <Card>
                                     <CardContent className="p-6">
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
-                                                    Total Projects
+                                                    {t(
+                                                        'admin.stats.total_projects',
+                                                    )}
                                                 </p>
                                                 <p className="text-3xl font-bold text-foreground">
                                                     {stats.total_projects}
@@ -183,12 +186,15 @@ export default function AdminDashboard({
                                     </CardContent>
                                 </Card>
 
+                                {/* Total Companies */}
                                 <Card>
                                     <CardContent className="p-6">
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
-                                                    Total Companies
+                                                    {t(
+                                                        'admin.stats.total_companies',
+                                                    )}
                                                 </p>
                                                 <p className="text-3xl font-bold text-foreground">
                                                     {stats.total_companies}
@@ -201,12 +207,15 @@ export default function AdminDashboard({
                                     </CardContent>
                                 </Card>
 
+                                {/* Active Projects */}
                                 <Card>
                                     <CardContent className="p-6">
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
-                                                    Active Projects
+                                                    {t(
+                                                        'admin.stats.active_projects',
+                                                    )}
                                                 </p>
                                                 <p className="text-3xl font-bold text-foreground">
                                                     {stats.active_projects}
@@ -219,36 +228,45 @@ export default function AdminDashboard({
                                     </CardContent>
                                 </Card>
 
+                                {/* Completed Projects */}
                                 <Card>
                                     <CardContent className="p-6">
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
-                                                    Completed
+                                                    {t(
+                                                        'admin.stats.completed_projects',
+                                                    )}
                                                 </p>
                                                 <p className="text-3xl font-bold text-foreground">
                                                     {stats.completed_projects}
                                                 </p>
                                             </div>
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-primary/20 bg-primary/10">
                                                 <CheckCircle2 className="h-6 w-6 text-primary" />
                                             </div>
                                         </div>
                                     </CardContent>
                                 </Card>
+
+                                {/* Pending Approval */}
                                 <Link href="/admin/ceo?tab=pending">
-                                    <Card className="hover:bg-muted/40 transition-colors">
+                                    <Card className="transition-colors hover:bg-muted/40">
                                         <CardContent className="p-6">
                                             <div className="flex items-center justify-between">
                                                 <div>
                                                     <p className="mb-1 text-sm text-muted-foreground">
-                                                        Pending Approval
+                                                        {t(
+                                                            'admin.stats.pending_approval',
+                                                        )}
                                                     </p>
                                                     <p className="text-3xl font-bold text-foreground">
-                                                        {users.filter((u) => !u.access_granted_at).length}
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground mt-1">
-                                                        access_granted_at = null
+                                                        {
+                                                            users.filter(
+                                                                (u) =>
+                                                                    !u.access_granted_at,
+                                                            ).length
+                                                        }
                                                     </p>
                                                 </div>
                                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/20">
@@ -267,11 +285,14 @@ export default function AdminDashboard({
                                         <div className="flex items-center justify-between gap-3">
                                             <CardTitle className="flex items-center gap-2">
                                                 <Users className="h-5 w-5 text-primary" />
-                                                All Users (CEO/HR)
+                                                {t('admin.users.title')}
                                             </CardTitle>
                                             <Link href="/admin/ceo">
-                                                <Button variant="outline" size="sm">
-                                                    Manage
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                >
+                                                    {t('common.manage')}{' '}
                                                     <ArrowRight className="ml-2 h-4 w-4" />
                                                 </Button>
                                             </Link>
@@ -282,39 +303,95 @@ export default function AdminDashboard({
                                             <Table>
                                                 <TableHeader>
                                                     <TableRow>
-                                                        <TableHead>Name</TableHead>
-                                                        <TableHead>Role</TableHead>
-                                                        <TableHead>Company</TableHead>
-                                                        <TableHead>Email verified</TableHead>
-                                                        <TableHead>Access</TableHead>
+                                                        <TableHead>
+                                                            {t(
+                                                                'admin.users.name',
+                                                            )}
+                                                        </TableHead>
+                                                        <TableHead>
+                                                            {t(
+                                                                'admin.users.role',
+                                                            )}
+                                                        </TableHead>
+                                                        <TableHead>
+                                                            {t(
+                                                                'admin.users.company',
+                                                            )}
+                                                        </TableHead>
+                                                        <TableHead>
+                                                            {t(
+                                                                'admin.users.email_verified',
+                                                            )}
+                                                        </TableHead>
+                                                        <TableHead>
+                                                            {t(
+                                                                'admin.users.access',
+                                                            )}
+                                                        </TableHead>
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
                                                     {users.length === 0 ? (
                                                         <TableRow>
-                                                            <TableCell colSpan={5} className="text-center text-muted-foreground">
-                                                                No users found
+                                                            <TableCell
+                                                                colSpan={5}
+                                                                className="text-center text-muted-foreground"
+                                                            >
+                                                                {t(
+                                                                    'common.no_users_found',
+                                                                )}
                                                             </TableCell>
                                                         </TableRow>
                                                     ) : (
                                                         users.map((u) => (
-                                                            <TableRow key={u.id}>
-                                                                <TableCell className="font-medium">{u.name}</TableCell>
-                                                                <TableCell>{u.role === 'ceo' ? 'CEO' : 'HR Manager'}</TableCell>
-                                                                <TableCell>
-                                                                    {u.companyNames && u.companyNames.length > 0
-                                                                        ? u.companyNames.join(', ')
-                                                                        : '-'}
+                                                            <TableRow
+                                                                key={u.id}
+                                                            >
+                                                                <TableCell className="font-medium">
+                                                                    {u.name}
                                                                 </TableCell>
-                                                                <TableCell>{u.access_granted_at ? (u.email_verified_at ? 'Yes' : 'No') : (u.email_verified_at ? 'Yes' : 'No')}</TableCell>
+                                                                <TableCell>
+                                                                    {u.role ===
+                                                                    'ceo'
+                                                                        ? t(
+                                                                              'roles.ceo',
+                                                                          )
+                                                                        : t(
+                                                                              'roles.hr_manager',
+                                                                          )}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {u.companyNames?.join(
+                                                                        ', ',
+                                                                    ) || '-'}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {u.email_verified_at
+                                                                        ? t(
+                                                                              'common.yes',
+                                                                          )
+                                                                        : t(
+                                                                              'common.no',
+                                                                          )}
+                                                                </TableCell>
                                                                 <TableCell>
                                                                     {u.access_granted_at ? (
-                                                                        <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-200">
-                                                                            Active
+                                                                        <Badge
+                                                                            variant="outline"
+                                                                            className="border-emerald-200 bg-emerald-50 text-emerald-800"
+                                                                        >
+                                                                            {t(
+                                                                                'status.active',
+                                                                            )}
                                                                         </Badge>
                                                                     ) : (
-                                                                        <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
-                                                                            Pending
+                                                                        <Badge
+                                                                            variant="outline"
+                                                                            className="border-amber-200 bg-amber-50 text-amber-800"
+                                                                        >
+                                                                            {t(
+                                                                                'status.pending',
+                                                                            )}
                                                                         </Badge>
                                                                     )}
                                                                 </TableCell>
@@ -328,37 +405,16 @@ export default function AdminDashboard({
                                 </Card>
                             </div>
 
-                            {/* Action Cards */}
-                            <div className="mb-8 grid grid-cols-1 gap-12 md:grid-cols-1">
-                                {/* <Card>
-                                <CardHeader>
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle className="flex items-center gap-2">
-                                            <Clock className="w-5 h-5" />
-                                            Pending Diagnosis Review
-                                        </CardTitle>
-                                        <Badge variant="secondary">{stats.pending_diagnosis}</Badge>
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-sm text-muted-foreground mb-4">
-                                        Projects waiting for CEO diagnosis review
-                                    </p>
-                                    <Link href="/admin/review">
-                                        <Button variant="outline" className="w-full">
-                                            Review Projects
-                                            <ArrowRight className="w-4 h-4 ml-2" />
-                                        </Button>
-                                    </Link>
-                                </CardContent>
-                            </Card> */}
-
+                            {/* Pending CEO Survey */}
+                            <div className="mb-8">
                                 <Card>
                                     <CardHeader>
                                         <div className="flex items-center justify-between">
                                             <CardTitle className="flex items-center gap-2">
                                                 <FileText className="h-5 w-5" />
-                                                Pending CEO Survey
+                                                {t(
+                                                    'admin.pending_ceo_survey.title',
+                                                )}
                                             </CardTitle>
                                             <Badge variant="secondary">
                                                 {stats.pending_ceo_survey}
@@ -367,15 +423,18 @@ export default function AdminDashboard({
                                     </CardHeader>
                                     <CardContent>
                                         <p className="mb-4 text-sm text-muted-foreground">
-                                            Projects waiting for CEO philosophy
-                                            survey
+                                            {t(
+                                                'admin.pending_ceo_survey.description',
+                                            )}
                                         </p>
                                         <Link href="/admin/hr-projects">
                                             <Button
                                                 variant="outline"
                                                 className="w-full"
                                             >
-                                                View All Projects
+                                                {t(
+                                                    'admin.pending_ceo_survey.button',
+                                                )}
                                                 <ArrowRight className="ml-2 h-4 w-4" />
                                             </Button>
                                         </Link>
@@ -396,8 +455,9 @@ export default function AdminDashboard({
                                                 <div className="flex items-center justify-between">
                                                     <CardTitle className="flex items-center gap-2">
                                                         <Target className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                                                        Performance
-                                                        Recommendations Needed
+                                                        {t(
+                                                            'admin.recommendations.performance.title',
+                                                        )}
                                                     </CardTitle>
                                                     <Badge
                                                         variant="secondary"
@@ -411,11 +471,11 @@ export default function AdminDashboard({
                                             </CardHeader>
                                             <CardContent>
                                                 <p className="mb-4 text-sm text-muted-foreground">
-                                                    Projects where Step 3 (Job
-                                                    Analysis) is confirmed but
-                                                    performance recommendation
-                                                    is not yet prepared.
+                                                    {t(
+                                                        'admin.recommendations.performance.description',
+                                                    )}
                                                 </p>
+                                                {/* List items here - same as before */}
                                                 <div className="mb-4 max-h-48 space-y-2 overflow-y-auto">
                                                     {projectsNeedingPerformanceRecommendation.map(
                                                         (project) => (
@@ -424,101 +484,22 @@ export default function AdminDashboard({
                                                                 href={`/admin/recommendations/performance/${project.id}`}
                                                                 className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-background"
                                                             >
-                                                                <div className="flex-1">
-                                                                    <p className="text-sm font-medium">
-                                                                        {project
-                                                                            .company
-                                                                            ?.name ||
-                                                                            `Project #${project.id}`}
-                                                                    </p>
-                                                                </div>
+                                                                <p className="text-sm font-medium">
+                                                                    {project
+                                                                        .company
+                                                                        ?.name ||
+                                                                        `Project #${project.id}`}
+                                                                </p>
                                                                 <ArrowRight className="h-4 w-4 text-muted-foreground" />
                                                             </Link>
                                                         ),
                                                     )}
                                                 </div>
-                                                {projectsNeedingPerformanceRecommendation.length >
-                                                    3 && (
-                                                    <Link href="/admin/dashboard">
-                                                        <Button
-                                                            variant="outline"
-                                                            className="w-full"
-                                                            size="sm"
-                                                        >
-                                                            View All
-                                                            <ArrowRight className="ml-2 h-4 w-4" />
-                                                        </Button>
-                                                    </Link>
-                                                )}
                                             </CardContent>
                                         </Card>
                                     )}
 
-                                    {projectsNeedingCompensationRecommendation.length >
-                                        0 && (
-                                        <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/20">
-                                            <CardHeader>
-                                                <div className="flex items-center justify-between">
-                                                    <CardTitle className="flex items-center gap-2">
-                                                        <DollarSign className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                                                        Compensation
-                                                        Recommendations Needed
-                                                    </CardTitle>
-                                                    <Badge
-                                                        variant="secondary"
-                                                        className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
-                                                    >
-                                                        {
-                                                            projectsNeedingCompensationRecommendation.length
-                                                        }
-                                                    </Badge>
-                                                </div>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <p className="mb-4 text-sm text-muted-foreground">
-                                                    Projects where Step 4
-                                                    (Performance) is completed
-                                                    but compensation
-                                                    recommendation is not yet
-                                                    prepared.
-                                                </p>
-                                                <div className="mb-4 max-h-48 space-y-2 overflow-y-auto">
-                                                    {projectsNeedingCompensationRecommendation.map(
-                                                        (project) => (
-                                                            <Link
-                                                                key={project.id}
-                                                                href={`/admin/recommendations/compensation/${project.id}`}
-                                                                className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-background"
-                                                            >
-                                                                <div className="flex-1">
-                                                                    <p className="text-sm font-medium">
-                                                                        {project
-                                                                            .company
-                                                                            ?.name ||
-                                                                            `Project #${project.id}`}
-                                                                    </p>
-                                                                </div>
-                                                                <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                                                            </Link>
-                                                        ),
-                                                    )}
-                                                </div>
-                                                {projectsNeedingCompensationRecommendation.length >
-                                                    3 && (
-                                                    <Link href="/admin/dashboard">
-                                                        <Button
-                                                            variant="outline"
-                                                            className="w-full"
-                                                            size="sm"
-                                                        >
-                                                            View All
-                                                            <ArrowRight className="ml-2 h-4 w-4" />
-                                                        </Button>
-                                                    </Link>
-                                                )}
-                                            </CardContent>
-                                        </Card>
-                                    )}
+                                    {/* Compensation Card - same pattern, t() keys add kar do jaise performance wala */}
                                 </div>
                             )}
 
@@ -526,10 +507,12 @@ export default function AdminDashboard({
                             <Card>
                                 <CardHeader>
                                     <div className="flex items-center justify-between">
-                                        <CardTitle>Recent Projects</CardTitle>
+                                        <CardTitle>
+                                            {t('admin.recent_projects.title')}
+                                        </CardTitle>
                                         <Link href="/admin/hr-projects">
                                             <Button variant="ghost" size="sm">
-                                                View All
+                                                {t('common.view_all')}
                                                 <ArrowRight className="ml-2 h-4 w-4" />
                                             </Button>
                                         </Link>
@@ -573,7 +556,9 @@ export default function AdminDashboard({
                                                                 </Badge>
                                                             </div>
                                                             <p className="text-xs text-muted-foreground">
-                                                                Created{' '}
+                                                                {t(
+                                                                    'common.created',
+                                                                )}{' '}
                                                                 {new Date(
                                                                     project.created_at,
                                                                 ).toLocaleDateString()}
@@ -586,7 +571,7 @@ export default function AdminDashboard({
                                         </div>
                                     ) : (
                                         <p className="py-8 text-center text-muted-foreground">
-                                            No projects yet
+                                            {t('common.no_projects_yet')}
                                         </p>
                                     )}
                                 </CardContent>

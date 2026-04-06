@@ -12,17 +12,20 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
-import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
     answerTypes: Record<string, string>;
 }
 
 export default function PerformanceSnapshotCreate({ answerTypes }: Props) {
+    const { t } = useTranslation();
+    const key = 'admin_performance_snapshot_question_create';
+
     const [answerType, setAnswerType] = useState<string>('select_one');
     const [options, setOptions] = useState<string[]>([]);
 
-    const { data, setData, post, processing, errors, clearErrors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         question_text: '',
         answer_type: 'select_one',
         options: [] as string[],
@@ -40,9 +43,7 @@ export default function PerformanceSnapshotCreate({ answerTypes }: Props) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post('/admin/performance-snapshot', {
-            onSuccess: () => {
-                router.visit('/admin/performance-snapshot');
-            },
+            onSuccess: () => router.visit('/admin/performance-snapshot'),
         });
     };
 
@@ -54,7 +55,7 @@ export default function PerformanceSnapshotCreate({ answerTypes }: Props) {
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="Create Performance Snapshot Question" />
+                    <Head title={t(`${key}.page_title`)} />
                     <div className="p-6 md:p-8 max-w-4xl mx-auto">
                         <div className="mb-6">
                             <Button
@@ -63,25 +64,27 @@ export default function PerformanceSnapshotCreate({ answerTypes }: Props) {
                                 className="mb-4"
                             >
                                 <ChevronLeft className="w-4 h-4 mr-2" />
-                                Back to Questions
+                                {t(`${key}.back_to_questions`)}
                             </Button>
-                            <h1 className="text-3xl font-bold">Create Performance Snapshot Question</h1>
+                            <h1 className="text-3xl font-bold">{t(`${key}.header_title`)}</h1>
                         </div>
 
                         <form onSubmit={handleSubmit}>
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Question Details</CardTitle>
+                                    <CardTitle>{t(`${key}.question_details`)}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div>
-                                        <Label>Question Text <span className="text-destructive">*</span></Label>
+                                        <Label>
+                                            {t(`${key}.question_text`)} <span className="text-destructive">*</span>
+                                        </Label>
                                         <Textarea
                                             value={data.question_text}
                                             onChange={(e) => setData('question_text', e.target.value)}
                                             rows={3}
                                             required
-                                            placeholder="Enter the question text..."
+                                            placeholder={t(`${key}.question_text_placeholder`)}
                                         />
                                         {errors.question_text && (
                                             <p className="text-sm text-destructive mt-1">{errors.question_text}</p>
@@ -89,11 +92,10 @@ export default function PerformanceSnapshotCreate({ answerTypes }: Props) {
                                     </div>
 
                                     <div>
-                                        <Label>Answer Type <span className="text-destructive">*</span></Label>
-                                        <Select
-                                            value={answerType}
-                                            onValueChange={setAnswerType}
-                                        >
+                                        <Label>
+                                            {t(`${key}.answer_type`)} <span className="text-destructive">*</span>
+                                        </Label>
+                                        <Select value={answerType} onValueChange={setAnswerType}>
                                             <SelectTrigger>
                                                 <SelectValue />
                                             </SelectTrigger>
@@ -111,51 +113,43 @@ export default function PerformanceSnapshotCreate({ answerTypes }: Props) {
                                     </div>
 
                                     <div>
-                                        <Label>Answer Options <span className="text-destructive">*</span></Label>
-                                        <p className="text-xs text-muted-foreground mb-2">
-                                            Add all possible answer options for this question
-                                        </p>
+                                        <Label>{t(`${key}.answer_options`)} <span className="text-destructive">*</span></Label>
+                                        <p className="text-xs text-muted-foreground mb-2">{t(`${key}.answer_options_description`)}</p>
                                         <DynamicList
                                             label=""
                                             items={options}
                                             onChange={setOptions}
-                                            placeholder="Enter option text"
-                                            addLabel="Add Option"
+                                            placeholder={t(`${key}.option_placeholder`)}
+                                            addLabel={t(`${key}.add_option`)}
                                         />
                                         {errors.options && (
                                             <p className="text-sm text-destructive mt-1">{errors.options}</p>
                                         )}
                                         {options.length === 0 && (
-                                            <p className="text-sm text-muted-foreground mt-1">
-                                                At least one option is required
-                                            </p>
+                                            <p className="text-sm text-muted-foreground mt-1">{t(`${key}.options_required`)}</p>
                                         )}
                                     </div>
 
                                     <div>
-                                        <Label>Order</Label>
+                                        <Label>{t(`${key}.order`)}</Label>
                                         <Input
                                             type="number"
                                             value={data.order}
                                             onChange={(e) => setData('order', parseInt(e.target.value) || 0)}
-                                            min="0"
-                                            placeholder="Auto-assigned if left empty"
+                                            min={0}
+                                            placeholder={t(`${key}.order_placeholder`)}
                                         />
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            Lower numbers appear first. Leave empty to auto-assign.
-                                        </p>
+                                        <p className="text-xs text-muted-foreground mt-1">{t(`${key}.order_description`)}</p>
                                     </div>
 
                                     <div>
-                                        <Label>Version (Optional)</Label>
+                                        <Label>{t(`${key}.version_optional`)}</Label>
                                         <Input
                                             value={data.version}
                                             onChange={(e) => setData('version', e.target.value)}
-                                            placeholder="e.g., 1.0, 2.0"
+                                            placeholder={t(`${key}.version_placeholder`)}
                                         />
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            For versioning/effective date handling
-                                        </p>
+                                        <p className="text-xs text-muted-foreground mt-1">{t(`${key}.version_description`)}</p>
                                     </div>
 
                                     <div className="flex items-center space-x-2">
@@ -165,22 +159,18 @@ export default function PerformanceSnapshotCreate({ answerTypes }: Props) {
                                             onCheckedChange={(checked) => setData('is_active', checked as boolean)}
                                         />
                                         <Label htmlFor="is_active" className="cursor-pointer">
-                                            Active (question will be shown to HR Managers)
+                                            {t(`${key}.is_active_label`)}
                                         </Label>
                                     </div>
                                 </CardContent>
                             </Card>
 
                             <div className="mt-6 flex justify-end gap-2">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => router.visit('/admin/performance-snapshot')}
-                                >
-                                    Cancel
+                                <Button type="button" variant="outline" onClick={() => router.visit('/admin/performance-snapshot')}>
+                                    {t(`${key}.cancel`)}
                                 </Button>
                                 <Button type="submit" disabled={processing || options.length === 0}>
-                                    Create Question
+                                    {t(`${key}.create_question`)}
                                 </Button>
                             </div>
                         </form>

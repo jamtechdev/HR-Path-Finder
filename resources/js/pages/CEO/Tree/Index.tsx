@@ -1,7 +1,9 @@
-import { Head } from '@inertiajs/react';
-import React from 'react';
-import FinalBoard, { type StageProgressPercent } from '@/components/Dashboard/HRManager/FinalBoard';
+import FinalBoard, {
+    type StageProgressPercent,
+} from '@/components/Dashboard/HRManager/FinalBoard';
 import AppLayout from '@/layouts/AppLayout';
+import { Head } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 
 interface JobDefinition {
     id: number;
@@ -64,12 +66,19 @@ export default function CeoTreeIndex({
     activeTab = 'overview',
     hrSystemSnapshot,
 }: Props) {
+    const { t } = useTranslation(); // i18n hook
     void jobDefinitions;
     void activeTab;
 
     return (
-        <AppLayout showWorkflowSteps={true} stepStatuses={stepStatuses} projectId={projectId}>
-            <Head title={`Final Board - ${project.company.name}`} />
+        <AppLayout
+            showWorkflowSteps={true}
+            stepStatuses={stepStatuses}
+            projectId={projectId}
+        >
+            <Head
+                title={`${t('ceo_tree_details.final_board')} - ${project.company.name}`}
+            />
             <FinalBoard
                 projectId={projectId}
                 companyName={project.company.name}

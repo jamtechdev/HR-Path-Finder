@@ -1,11 +1,22 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Building2, FileText } from 'lucide-react';
-import React from 'react';
+import { useTranslation } from 'react-i18next';
+
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import {
+    Sidebar,
+    SidebarInset,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
 
 interface Project {
     id: number;
@@ -24,12 +35,12 @@ interface Props {
     projects: Project[];
 }
 
-export default function ProjectsIndex({ projects }: Props) {
-    const { url, props } = usePage();
-    const currentPath = url.split('?')[0];
+export default function AdminHRProjects({ projects }: Props) {
+    const { t } = useTranslation();
+    const { props } = usePage();
     const user = (props as any).auth?.user;
-    const isAdmin = user?.roles?.some((role: { name: string }) => role.name === 'admin') || false;
-    const projectBasePath = isAdmin ? '/admin/hr-projects' : '/hr-projects';
+
+    const projectBasePath = '/admin/hr-projects';
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -39,19 +50,26 @@ export default function ProjectsIndex({ projects }: Props) {
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
                 <main className="flex-1 overflow-auto">
-                    <Head title="HR Projects" />
-                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+                    <Head title={t('admin_hr_projects.title')} />
+
+                    <div className="mx-auto max-w-7xl p-6 md:p-8">
                         <div className="mb-6">
-                            <h1 className="text-3xl font-bold">HR Projects</h1>
+                            <h1 className="text-3xl font-bold">
+                                {t('admin_hr_projects.heading')}
+                            </h1>
                         </div>
 
                         {projects.length === 0 ? (
-                            <Card className="text-center py-12">
+                            <Card className="py-12 text-center">
                                 <CardHeader>
-                                    <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                                    <CardTitle>No Projects</CardTitle>
+                                    <Building2 className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                                    <CardTitle>
+                                        {t('admin_hr_projects.no_projects')}
+                                    </CardTitle>
                                     <CardDescription>
-                                        Create a company to start your first HR project.
+                                        {t(
+                                            'admin_hr_projects.no_projects_desc',
+                                        )}
                                     </CardDescription>
                                 </CardHeader>
                             </Card>
@@ -60,21 +78,36 @@ export default function ProjectsIndex({ projects }: Props) {
                                 {projects.map((project) => (
                                     <Card key={project.id}>
                                         <CardHeader>
-                                            <CardTitle>{project.company.name}</CardTitle>
+                                            <CardTitle>
+                                                {project.company.name}
+                                            </CardTitle>
                                             <CardDescription>
-                                                Project #{project.id} • {project.status}
+                                                {t(
+                                                    'admin_hr_projects.project_number',
+                                                )}{' '}
+                                                #{project.id} • {project.status}
                                             </CardDescription>
                                         </CardHeader>
                                         <CardContent>
                                             {project.diagnosis && (
-                                                <p className="text-sm text-muted-foreground mb-4">
-                                                    Diagnosis: {project.diagnosis.status}
+                                                <p className="mb-4 text-sm text-muted-foreground">
+                                                    {t(
+                                                        'admin_hr_projects.diagnosis',
+                                                    )}
+                                                    : {project.diagnosis.status}
                                                 </p>
                                             )}
-                                            <Link href={`${projectBasePath}/${project.id}`}>
-                                                <Button variant="outline" className="w-full">
+                                            <Link
+                                                href={`${projectBasePath}/${project.id}`}
+                                            >
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full"
+                                                >
                                                     <FileText className="mr-2 h-4 w-4" />
-                                                    View Project
+                                                    {t(
+                                                        'admin_hr_projects.view_project',
+                                                    )}
                                                 </Button>
                                             </Link>
                                         </CardContent>

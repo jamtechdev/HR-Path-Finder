@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface Diagnosis {
@@ -91,6 +92,7 @@ export default function Executives({
     embedData,
     embedSetData,
 }: Props) {
+    const { t } = useTranslation();
     const [selected, setSelected] = useState<Set<string>>(() => {
         const positions = parsePositions(diagnosis);
         const set = new Set<string>();
@@ -220,11 +222,17 @@ export default function Executives({
     const isReadOnly = readOnly || isReadOnlyStatus;
 
     const innerContent = (
-        <div className="rounded-[14px] border border-[#E2E6ED] bg-white overflow-hidden shadow-[0_4px_20px_rgba(27,43,91,0.09)] mb-5">
+        <div className="mb-5 overflow-hidden rounded-[14px] border border-[#E2E6ED] bg-white shadow-[0_4px_20px_rgba(27,43,91,0.09)]">
             {/* Hero strip */}
-            <div className="bg-gradient-to-br from-[#1B2B5B] to-[#243877] px-7 py-5 flex items-center gap-4">
-                <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center shrink-0 text-[#2EC4A9]">
-                    <svg className="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+            <div className="flex items-center gap-4 bg-gradient-to-br from-[#1B2B5B] to-[#243877] px-7 py-5">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#2EC4A9]">
+                    <svg
+                        className="h-[22px] w-[22px]"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={1.8}
+                    >
                         <circle cx="12" cy="8" r="4" />
                         <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
                         <path d="M16 3.5c1.5.5 3 2 3 4.5" />
@@ -232,23 +240,35 @@ export default function Executives({
                     </svg>
                 </div>
                 <div>
-                    <h2 className="text-[15px] font-bold text-white">임원 포지션 설정</h2>
-                    <p className="text-[12px] text-white/55 mt-0.5">해당되는 임원을 선택하고 인원수를 입력하세요</p>
+                    <h2 className="text-[15px] font-bold text-white">
+                        {t('diagnosis_executives.heroTitle')}
+                    </h2>
+                    <p className="mt-0.5 text-[12px] text-white/55">
+                        {t('diagnosis_executives.heroDesc')}
+                    </p>
                 </div>
                 <div className="ml-auto flex gap-2">
-                    <div className="bg-white/10 rounded-lg py-1.5 px-3.5 text-center min-w-[60px]">
-                        <div className="text-[22px] font-extrabold text-white leading-none">{totalPos}</div>
-                        <div className="text-[10px] text-white/50 mt-0.5">포지션 수</div>
+                    <div className="min-w-[60px] rounded-lg bg-white/10 px-3.5 py-1.5 text-center">
+                        <div className="text-[22px] leading-none font-extrabold text-white">
+                            {totalPos}
+                        </div>
+                        <div className="mt-0.5 text-[10px] text-white/50">
+                            {t('diagnosis_executives.positionCount')}
+                        </div>
                     </div>
-                    <div className="bg-white/10 rounded-lg py-1.5 px-3.5 text-center min-w-[60px]">
-                        <div className="text-[22px] font-extrabold text-white leading-none">{totalHead}</div>
-                        <div className="text-[10px] text-white/50 mt-0.5">총 임원</div>
+                    <div className="min-w-[60px] rounded-lg bg-white/10 px-3.5 py-1.5 text-center">
+                        <div className="text-[22px] leading-none font-extrabold text-white">
+                            {totalHead}
+                        </div>
+                        <div className="mt-0.5 text-[10px] text-white/50">
+                            {t('diagnosis_executives.totalExecutives')}
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Position grid */}
-            <div className="p-6 px-7 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 p-6 px-7 sm:grid-cols-2 lg:grid-cols-3">
                 {PRESET_EXECUTIVES.map((e) => {
                     const active = selected.has(e.id);
                     const count = counts[e.id] ?? 1;
@@ -258,43 +278,71 @@ export default function Executives({
                             role="button"
                             tabIndex={0}
                             onClick={() => !isReadOnly && toggleCard(e.id)}
-                            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && !isReadOnly && toggleCard((e.target as HTMLElement).closest('[data-role]')?.getAttribute('data-role') || '')}
+                            onKeyDown={(e) =>
+                                (e.key === 'Enter' || e.key === ' ') &&
+                                !isReadOnly &&
+                                toggleCard(
+                                    (e.target as HTMLElement)
+                                        .closest('[data-role]')
+                                        ?.getAttribute('data-role') || '',
+                                )
+                            }
                             data-role={e.id}
                             className={cn(
-                                'relative rounded-lg border-2 p-4 transition-all cursor-pointer select-none text-left',
+                                'relative cursor-pointer rounded-lg border-2 p-4 text-left transition-all select-none',
                                 active
                                     ? 'border-[#2EC4A9] bg-[#E6F9F6] shadow-[0_0_0_3px_rgba(46,196,169,0.1)]'
-                                    : 'border-[#E2E6ED] bg-white hover:border-[#CBD0DA] hover:shadow-[0_1px_4px_rgba(27,43,91,0.07)]'
+                                    : 'border-[#E2E6ED] bg-white hover:border-[#CBD0DA] hover:shadow-[0_1px_4px_rgba(27,43,91,0.07)]',
                             )}
                         >
                             <div
                                 className={cn(
-                                    'absolute top-3 right-3 w-5 h-5 rounded-full border-2 flex items-center justify-center bg-white',
-                                    active ? 'border-[#2EC4A9] bg-[#2EC4A9]' : 'border-[#CBD0DA]'
+                                    'absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full border-2 bg-white',
+                                    active
+                                        ? 'border-[#2EC4A9] bg-[#2EC4A9]'
+                                        : 'border-[#CBD0DA]',
                                 )}
                             >
-                                {active && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+                                {active && (
+                                    <Check
+                                        className="h-2.5 w-2.5 text-white"
+                                        strokeWidth={3}
+                                    />
+                                )}
                             </div>
-                            <div className="flex items-start gap-2.5 mb-3 pr-7">
+                            <div className="mb-3 flex items-start gap-2.5 pr-7">
                                 <div
                                     className={cn(
-                                        'w-9 h-9 rounded-lg flex items-center justify-center text-[17px] shrink-0',
-                                        active ? 'bg-[rgba(46,196,169,0.15)]' : 'bg-[#F0F2F5]'
+                                        'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[17px]',
+                                        active
+                                            ? 'bg-[rgba(46,196,169,0.15)]'
+                                            : 'bg-[#F0F2F5]',
                                     )}
                                 >
                                     {e.icon}
                                 </div>
                                 <div>
-                                    <div className="text-[15px] font-extrabold text-[#1B2B5B]">{e.role}</div>
-                                    <div className={cn('text-[11px] mt-0.5', active ? 'text-[#25A891]' : 'text-[#9AA3B2]')}>
+                                    <div className="text-[15px] font-extrabold text-[#1B2B5B]">
+                                        {e.role}
+                                    </div>
+                                    <div
+                                        className={cn(
+                                            'mt-0.5 text-[11px]',
+                                            active
+                                                ? 'text-[#25A891]'
+                                                : 'text-[#9AA3B2]',
+                                        )}
+                                    >
                                         {e.full}
                                     </div>
                                 </div>
                             </div>
                             <div
                                 className={cn(
-                                    'flex items-center rounded-lg overflow-hidden border bg-white transition-all',
-                                    active ? 'border-[#B2EDE5]' : 'border-[#E2E6ED] opacity-35'
+                                    'flex items-center overflow-hidden rounded-lg border bg-white transition-all',
+                                    active
+                                        ? 'border-[#B2EDE5]'
+                                        : 'border-[#E2E6ED] opacity-35',
                                 )}
                             >
                                 <button
@@ -303,7 +351,7 @@ export default function Executives({
                                         ev.stopPropagation();
                                         adjustCount(e.id, -1);
                                     }}
-                                    className="w-[34px] h-[34px] flex items-center justify-center bg-[#F8F9FB] text-[#6B7585] font-bold text-base hover:bg-[#E6F9F6] hover:text-[#25A891]"
+                                    className="flex h-[34px] w-[34px] items-center justify-center bg-[#F8F9FB] text-base font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891]"
                                 >
                                     −
                                 </button>
@@ -317,8 +365,13 @@ export default function Executives({
                                         ev.currentTarget.select();
                                     }}
                                     onFocus={(ev) => ev.currentTarget.select()}
-                                    onChange={(ev) => syncCount(e.id, parseInt(ev.target.value, 10) || 1)}
-                                    className="flex-1 border-0 bg-transparent text-center text-base font-extrabold text-[#1B2B5B] min-w-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    onChange={(ev) =>
+                                        syncCount(
+                                            e.id,
+                                            parseInt(ev.target.value, 10) || 1,
+                                        )
+                                    }
+                                    className="min-w-0 flex-1 [appearance:textfield] border-0 bg-transparent text-center text-base font-extrabold text-[#1B2B5B] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                 />
                                 <button
                                     type="button"
@@ -326,12 +379,12 @@ export default function Executives({
                                         ev.stopPropagation();
                                         adjustCount(e.id, 1);
                                     }}
-                                    className="w-[34px] h-[34px] flex items-center justify-center bg-[#F8F9FB] text-[#6B7585] font-bold text-base hover:bg-[#E6F9F6] hover:text-[#25A891]"
+                                    className="flex h-[34px] w-[34px] items-center justify-center bg-[#F8F9FB] text-base font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891]"
                                 >
                                     +
                                 </button>
-                                <span className="px-2.5 text-[11px] font-semibold text-[#9AA3B2] border-l border-[#E2E6ED] bg-[#F8F9FB] h-[34px] flex items-center">
-                                    명
+                                <span className="flex h-[34px] items-center border-l border-[#E2E6ED] bg-[#F8F9FB] px-2.5 text-[11px] font-semibold text-[#9AA3B2]">
+                                    {t('diagnosis_executives.unit')}
                                 </span>
                             </div>
                         </div>
@@ -346,39 +399,49 @@ export default function Executives({
                         <div
                             key={r.id}
                             className={cn(
-                                'relative rounded-lg border-2 p-4 transition-all cursor-pointer select-none text-left',
-                                active && 'border-[#2EC4A9] bg-[#E6F9F6] shadow-[0_0_0_3px_rgba(46,196,169,0.1)]'
+                                'relative cursor-pointer rounded-lg border-2 p-4 text-left transition-all select-none',
+                                active &&
+                                    'border-[#2EC4A9] bg-[#E6F9F6] shadow-[0_0_0_3px_rgba(46,196,169,0.1)]',
                             )}
                         >
-                            <div className="absolute top-3 right-3 w-5 h-5 rounded-full border-2 border-[#2EC4A9] bg-[#2EC4A9] flex items-center justify-center">
-                                <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                            <div className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full border-2 border-[#2EC4A9] bg-[#2EC4A9]">
+                                <Check
+                                    className="h-2.5 w-2.5 text-white"
+                                    strokeWidth={3}
+                                />
                             </div>
                             {!isReadOnly && (
                                 <button
                                     type="button"
                                     onClick={() => removeCustom(r.id)}
-                                    className="absolute top-2.5 right-9 w-5 h-5 rounded-full border border-[#E2E6ED] bg-white flex items-center justify-center text-[#9AA3B2] text-sm hover:bg-[#E05252] hover:text-white hover:border-[#E05252] z-[2]"
+                                    className="absolute top-2.5 right-9 z-[2] flex h-5 w-5 items-center justify-center rounded-full border border-[#E2E6ED] bg-white text-sm text-[#9AA3B2] hover:border-[#E05252] hover:bg-[#E05252] hover:text-white"
                                 >
                                     ×
                                 </button>
                             )}
-                            <div className="flex items-start gap-2.5 mb-3 pr-7">
-                                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[17px] shrink-0 bg-[rgba(46,196,169,0.15)]">
+                            <div className="mb-3 flex items-start gap-2.5 pr-7">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[rgba(46,196,169,0.15)] text-[17px]">
                                     🏷
                                 </div>
                                 <div>
-                                    <div className="text-[15px] font-extrabold text-[#1B2B5B]">{r.name}</div>
-                                    <div className="text-[11px] mt-0.5 text-[#25A891]">커스텀 포지션</div>
+                                    <div className="text-[15px] font-extrabold text-[#1B2B5B]">
+                                        {r.name}
+                                    </div>
+                                    <div className="mt-0.5 text-[11px] text-[#25A891]">
+                                        {t(
+                                            'diagnosis_executives.customPosition',
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-center rounded-lg overflow-hidden border border-[#B2EDE5] bg-white">
+                            <div className="flex items-center overflow-hidden rounded-lg border border-[#B2EDE5] bg-white">
                                 <button
                                     type="button"
                                     onClick={(ev) => {
                                         ev.stopPropagation();
                                         adjustCount(r.id, -1);
                                     }}
-                                    className="w-[34px] h-[34px] flex items-center justify-center bg-[#F8F9FB] text-[#6B7585] font-bold hover:bg-[#E6F9F6] hover:text-[#25A891]"
+                                    className="flex h-[34px] w-[34px] items-center justify-center bg-[#F8F9FB] font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891]"
                                 >
                                     −
                                 </button>
@@ -392,8 +455,13 @@ export default function Executives({
                                         ev.currentTarget.select();
                                     }}
                                     onFocus={(ev) => ev.currentTarget.select()}
-                                    onChange={(ev) => syncCount(r.id, parseInt(ev.target.value, 10) || 1)}
-                                    className="flex-1 border-0 bg-transparent text-center text-base font-extrabold text-[#1B2B5B] min-w-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    onChange={(ev) =>
+                                        syncCount(
+                                            r.id,
+                                            parseInt(ev.target.value, 10) || 1,
+                                        )
+                                    }
+                                    className="min-w-0 flex-1 [appearance:textfield] border-0 bg-transparent text-center text-base font-extrabold text-[#1B2B5B] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                 />
                                 <button
                                     type="button"
@@ -401,12 +469,12 @@ export default function Executives({
                                         ev.stopPropagation();
                                         adjustCount(r.id, 1);
                                     }}
-                                    className="w-[34px] h-[34px] flex items-center justify-center bg-[#F8F9FB] text-[#6B7585] font-bold hover:bg-[#E6F9F6] hover:text-[#25A891]"
+                                    className="flex h-[34px] w-[34px] items-center justify-center bg-[#F8F9FB] font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891]"
                                 >
                                     +
                                 </button>
-                                <span className="px-2.5 text-[11px] font-semibold text-[#9AA3B2] border-l border-[#E2E6ED] bg-[#F8F9FB] h-[34px] flex items-center">
-                                    명
+                                <span className="flex h-[34px] items-center border-l border-[#E2E6ED] bg-[#F8F9FB] px-2.5 text-[11px] font-semibold text-[#9AA3B2]">
+                                    {t('diagnosis_executives.unit')}
                                 </span>
                             </div>
                         </div>
@@ -418,41 +486,56 @@ export default function Executives({
                     role="button"
                     tabIndex={0}
                     onClick={() => !isReadOnly && setCustomInputVisible(true)}
-                    onKeyDown={(e) => e.key === 'Enter' && !isReadOnly && setCustomInputVisible(true)}
+                    onKeyDown={(e) =>
+                        e.key === 'Enter' &&
+                        !isReadOnly &&
+                        setCustomInputVisible(true)
+                    }
                     className={cn(
-                        'rounded-lg border-2 border-dashed border-[#E2E6ED] p-4 flex flex-col items-center justify-center min-h-[100px] text-[#9AA3B2] cursor-pointer hover:border-[#2EC4A9] hover:text-[#2EC4A9] transition-colors',
-                        customInputVisible && 'border-[#B2EDE5] bg-[#E6F9F6]'
+                        'flex min-h-[100px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-[#E2E6ED] p-4 text-[#9AA3B2] transition-colors hover:border-[#2EC4A9] hover:text-[#2EC4A9]',
+                        customInputVisible && 'border-[#B2EDE5] bg-[#E6F9F6]',
                     )}
                 >
                     {!customInputVisible ? (
                         <>
-                            <div className="w-9 h-9 rounded-lg bg-[#F0F2F5] flex items-center justify-center mb-2 hover:bg-[#E6F9F6]">
-                                <Plus className="w-[18px] h-[18px]" strokeWidth={2.2} />
+                            <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-[#F0F2F5] hover:bg-[#E6F9F6]">
+                                <Plus
+                                    className="h-[18px] w-[18px]"
+                                    strokeWidth={2.2}
+                                />
                             </div>
-                            <span className="text-[12.5px] font-semibold">커스텀 임원 포지션 추가</span>
+                            <span className="text-[12.5px] font-semibold">
+                                {t('diagnosis_executives.addCustom')}
+                            </span>
                         </>
                     ) : (
-                        <div className="w-full space-y-2" onClick={(e) => e.stopPropagation()}>
+                        <div
+                            className="w-full space-y-2"
+                            onClick={(e) => e.stopPropagation()}
+                        >
                             <input
                                 type="text"
                                 value={customName}
                                 onChange={(e) => setCustomName(e.target.value)}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') confirmCustom();
-                                    if (e.key === 'Escape') setCustomInputVisible(false);
+                                    if (e.key === 'Escape')
+                                        setCustomInputVisible(false);
                                 }}
-                                placeholder="예: CIO, CDO, CRO…"
+                                placeholder={t(
+                                    'diagnosis_executives.customPlaceholder',
+                                )}
                                 maxLength={20}
                                 autoFocus
-                                className="w-full h-[38px] px-3 border-[1.5px] border-[#B2EDE5] rounded-lg text-[13px] font-semibold text-[#1B2B5B] outline-none focus:border-[#2EC4A9] focus:ring-[3px] focus:ring-[rgba(46,196,169,0.12)]"
+                                className="h-[38px] w-full rounded-lg border-[1.5px] border-[#B2EDE5] px-3 text-[13px] font-semibold text-[#1B2B5B] outline-none focus:border-[#2EC4A9] focus:ring-[3px] focus:ring-[rgba(46,196,169,0.12)]"
                             />
                             <div className="flex gap-1.5">
                                 <button
                                     type="button"
                                     onClick={confirmCustom}
-                                    className="flex-1 h-[34px] rounded-lg bg-[#2EC4A9] text-white text-[12.5px] font-bold hover:bg-[#25A891]"
+                                    className="h-[34px] flex-1 rounded-lg bg-[#2EC4A9] text-[12.5px] font-bold text-white hover:bg-[#25A891]"
                                 >
-                                    추가하기
+                                    {t('diagnosis_executives.addButton')}
                                 </button>
                                 <button
                                     type="button"
@@ -460,7 +543,7 @@ export default function Executives({
                                         setCustomInputVisible(false);
                                         setCustomName('');
                                     }}
-                                    className="w-[34px] h-[34px] rounded-lg border-[1.5px] border-[#E2E6ED] bg-white text-[#6B7585] flex items-center justify-center hover:border-[#E05252] hover:text-[#E05252]"
+                                    className="flex h-[34px] w-[34px] items-center justify-center rounded-lg border-[1.5px] border-[#E2E6ED] bg-white text-[#6B7585] hover:border-[#E05252] hover:text-[#E05252]"
                                 >
                                     ×
                                 </button>
@@ -471,19 +554,23 @@ export default function Executives({
             </div>
 
             {/* Summary bar */}
-            <div className="mx-7 mb-6 py-3.5 px-4 bg-[#F8F9FB] border border-[#E2E6ED] rounded-lg flex items-center gap-4 flex-wrap">
-                <span className="text-[12px] font-semibold text-[#6B7585]">선택된 포지션</span>
-                <div className="flex gap-1.5 flex-wrap flex-1">
+            <div className="mx-7 mb-6 flex flex-wrap items-center gap-4 rounded-lg border border-[#E2E6ED] bg-[#F8F9FB] px-4 py-3.5">
+                <span className="text-[12px] font-semibold text-[#6B7585]">
+                    {t('diagnosis_executives.selectedPositions')}
+                </span>
+                <div className="flex flex-1 flex-wrap gap-1.5">
                     {allSelected.length === 0 ? (
-                        <span className="text-[12px] text-[#CBD0DA] italic">선택된 포지션이 없습니다</span>
+                        <span className="text-[12px] text-[#CBD0DA] italic">
+                            {t('diagnosis_executives.noPositions')}
+                        </span>
                     ) : (
                         allSelected.map((r) => (
                             <div
                                 key={r.name}
-                                className="flex items-center gap-1.5 bg-white border-[1.5px] border-[#B2EDE5] rounded-[20px] py-0.5 px-2.5 text-[12px] font-semibold text-[#1B2B5B]"
+                                className="flex items-center gap-1.5 rounded-[20px] border-[1.5px] border-[#B2EDE5] bg-white px-2.5 py-0.5 text-[12px] font-semibold text-[#1B2B5B]"
                             >
                                 {r.name}
-                                <span className="bg-[#2EC4A9] text-white rounded-[10px] px-1.5 text-[10.5px] font-extrabold">
+                                <span className="rounded-[10px] bg-[#2EC4A9] px-1.5 text-[10.5px] font-extrabold text-white">
                                     {r.count}
                                 </span>
                             </div>
@@ -507,9 +594,11 @@ export default function Executives({
     if (embedMode) return <>{innerContent}</>;
     return (
         <>
-            <Head title={`Executives - ${company?.name || project?.company?.name || 'Company'}`} />
+            <Head
+                title={`Executives - ${company?.name || project?.company?.name || 'Company'}`}
+            />
             <FormLayout
-                title="Executives"
+                title={t('diagnosis_executives.pageTitle')}
                 project={project}
                 diagnosis={diagnosis}
                 activeTab={activeTab}
@@ -522,7 +611,9 @@ export default function Executives({
                     total_executives: data.total_executives,
                     executive_positions: data.executive_positions,
                 }}
-                saveRoute={projectId ? `/hr-manager/diagnosis/${projectId}` : undefined}
+                saveRoute={
+                    projectId ? `/hr-manager/diagnosis/${projectId}` : undefined
+                }
             >
                 {innerContent}
             </FormLayout>
