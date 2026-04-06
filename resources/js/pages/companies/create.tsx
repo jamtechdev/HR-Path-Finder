@@ -27,23 +27,10 @@ import { Toaster } from '@/components/ui/toaster';
 import { toast } from '@/hooks/use-toast';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { cn } from '@/lib/utils';
-import { Head, router, useForm } from '@inertiajs/react';
-import {
-    AlertCircle,
-    Building2,
-    CheckCircle2,
-    FileText,
-    MapPin,
-    Upload,
-    X,
-} from 'lucide-react';
-import type { FormEventHandler } from 'react';
-import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export default function CreateCompany() {
     const { t } = useTranslation();
-
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const submitInFlight = useRef(false);
@@ -68,15 +55,19 @@ export default function CreateCompany() {
                 'image/webp',
             ];
             if (!validTypes.includes(file.type)) {
-                alert(t('create_company_page.invalid_file'));
-                if (fileInputRef.current) fileInputRef.current.value = '';
+                alert(t('companies_create.alert_invalid_image'));
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
                 return;
             }
 
             const maxSize = 5 * 1024 * 1024;
             if (file.size > maxSize) {
-                alert(t('create_company_page.file_size'));
-                if (fileInputRef.current) fileInputRef.current.value = '';
+                alert(t('companies_create.alert_file_size'));
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
                 return;
             }
 
@@ -105,22 +96,21 @@ export default function CreateCompany() {
         if (processing || submitInFlight.current) return;
 
         submitInFlight.current = true;
-        toast({ title: t('create_company_page.toast_creating') });
-
+        toast({ title: t('companies_create.creating_toast') });
         post('/hr-manager/companies', {
             forceFormData: true,
             onSuccess: () => {
                 setLogoPreview(null);
                 toast({
-                    title: t('create_company_page.toast_success'),
-                    description: t('create_company_page.toast_desc'),
+                    title: t('companies_create.success_title'),
+                    description: t('companies_create.success_desc'),
                     variant: 'success',
                 });
                 router.get('/hr-manager/dashboard', {}, { replace: true });
             },
             onError: (errs) => {
                 if (errs.logo && String(errs.logo).includes('too large')) {
-                    alert(t('create_company_page.file_size'));
+                    alert(t('companies_create.alert_file_size'));
                 }
             },
             onFinish: () => (submitInFlight.current = false),
@@ -136,20 +126,19 @@ export default function CreateCompany() {
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-muted/30">
-                    <Head title={t('create_company_page.title')} />
-                    <div className="mx-auto max-w-5xl p-6 md:p-8">
-                        {/* Header */}
+               
+                    <Head title={t('companies_create.page_title')} />
+                    <div className="p-6 md:p-8 max-w-5xl mx-auto">
+                        {/* Header Section */}
                         <div className="mb-8">
                             <div className="mb-3 flex items-center gap-3">
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                                     <Building2 className="h-6 w-6 text-primary" />
                                 </div>
                                 <div>
-                                    <h1 className="text-3xl font-bold text-foreground">
-                                        {t('create_company_page.title')}
-                                    </h1>
-                                    <p className="mt-1 text-muted-foreground">
-                                        {t('create_company_page.subtitle')}
+                                    <h1 className="text-3xl font-bold text-foreground">{t('companies_create.heading')}</h1>
+                                    <p className="text-muted-foreground mt-1">
+                                        {t('companies_create.subheading')}
                                     </p>
                                 </div>
                             </div>
@@ -158,23 +147,18 @@ export default function CreateCompany() {
                         {/* Company Form Card */}
                         <Card className="border-border/50 shadow-lg">
                             <CardHeader className="border-b border-border/50">
-                                <CardTitle>
-                                    {t('create_company_page.company_info')}
-                                </CardTitle>
+                                <CardTitle className="text-xl">{t('companies_create.info_title')}</CardTitle>
                                 <CardDescription>
-                                    {t('create_company_page.company_desc')}
+                                    {t('companies_create.info_desc')}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="pt-6">
                                 <form onSubmit={submit} className="space-y-6">
                                     {/* Company Name */}
                                     <div className="space-y-2">
-                                        <Label
-                                            htmlFor="name"
-                                            className="flex items-center gap-2 text-sm font-semibold"
-                                        >
-                                            <Building2 className="h-4 w-4 text-primary" />
-                                            {t('create_company_page.name')} *
+                                        <Label htmlFor="name" className="text-sm font-semibold flex items-center gap-2">
+                                            <Building2 className="w-4 h-4 text-primary" />
+                                            {t('companies_create.fields.company_name')}
                                         </Label>
                                         <Input
                                             id="name"
@@ -186,9 +170,7 @@ export default function CreateCompany() {
                                                     'name',
                                                 );
                                             }}
-                                            placeholder={t(
-                                                'create_company_page.name_placeholder',
-                                            )}
+                                            placeholder={t('companies_create.fields.company_name_placeholder')}
                                             className={cn(
                                                 'h-11',
                                                 errors.name &&
@@ -207,14 +189,9 @@ export default function CreateCompany() {
                                     {/* Registration & HQ */}
                                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                         <div className="space-y-2">
-                                            <Label
-                                                htmlFor="registration_number"
-                                                className="flex items-center gap-2 text-sm font-semibold"
-                                            >
-                                                <FileText className="h-4 w-4 text-muted-foreground" />
-                                                {t(
-                                                    'create_company_page.registration_number',
-                                                )}
+                                            <Label htmlFor="registration_number" className="text-sm font-semibold flex items-center gap-2">
+                                                <FileText className="w-4 h-4 text-muted-foreground" />
+                                                {t('companies_create.fields.registration_number')}
                                             </Label>
                                             <Input
                                                 id="registration_number"
@@ -229,7 +206,7 @@ export default function CreateCompany() {
                                                         'registration_number',
                                                     );
                                                 }}
-                                                placeholder="e.g., 123-45-67890"
+                                                placeholder={t('companies_create.fields.registration_number_placeholder')}
                                                 className={cn(
                                                     'h-11',
                                                     errors.registration_number &&
@@ -242,22 +219,15 @@ export default function CreateCompany() {
                                                     {errors.registration_number}
                                                 </p>
                                             )}
-                                            <p className="mt-1 text-xs text-muted-foreground">
-                                                {t(
-                                                    'create_company_page.registration_hint',
-                                                )}
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                {t('companies_create.fields.registration_number_help')}
                                             </p>
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Label
-                                                htmlFor="hq_location"
-                                                className="flex items-center gap-2 text-sm font-semibold"
-                                            >
-                                                <MapPin className="h-4 w-4 text-muted-foreground" />
-                                                {t(
-                                                    'create_company_page.hq_location',
-                                                )}
+                                            <Label htmlFor="hq_location" className="text-sm font-semibold flex items-center gap-2">
+                                                <MapPin className="w-4 h-4 text-muted-foreground" />
+                                                {t('companies_create.fields.hq_location')}
                                             </Label>
                                             <Input
                                                 id="hq_location"
@@ -272,7 +242,7 @@ export default function CreateCompany() {
                                                         'hq_location',
                                                     );
                                                 }}
-                                                placeholder="e.g., New York, USA"
+                                                placeholder={t('companies_create.fields.hq_location_placeholder')}
                                                 className={cn(
                                                     'h-11',
                                                     errors.hq_location &&
@@ -285,24 +255,16 @@ export default function CreateCompany() {
                                                     {errors.hq_location}
                                                 </p>
                                             )}
-                                            <p className="mt-1 text-xs text-muted-foreground">
-                                                {t(
-                                                    'create_company_page.hq_hint',
-                                                )}
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                {t('companies_create.fields.hq_location_help')}
                                             </p>
                                         </div>
                                     </div>
 
                                     {/* Public Listing */}
                                     <div className="space-y-2">
-                                        <Label
-                                            htmlFor="public_listing_status"
-                                            className="text-sm font-semibold"
-                                        >
-                                            {t(
-                                                'create_company_page.public_status',
-                                            )}{' '}
-                                            *
+                                        <Label htmlFor="public_listing_status" className="text-sm font-semibold">
+                                            {t('companies_create.fields.public_listing_status')}
                                         </Label>
                                         <Select
                                             value={data.public_listing_status}
@@ -321,21 +283,9 @@ export default function CreateCompany() {
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="public">
-                                                    {t(
-                                                        'create_company_page.public',
-                                                    )}
-                                                </SelectItem>
-                                                <SelectItem value="private">
-                                                    {t(
-                                                        'create_company_page.private',
-                                                    )}
-                                                </SelectItem>
-                                                <SelectItem value="not_applicable">
-                                                    {t(
-                                                        'create_company_page.na',
-                                                    )}
-                                                </SelectItem>
+                                                <SelectItem value="public">{t('companies_create.fields.public_company')}</SelectItem>
+                                                <SelectItem value="private">{t('companies_create.fields.private_company')}</SelectItem>
+                                                <SelectItem value="not_applicable">{t('companies_create.fields.not_applicable')}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         {errors.public_listing_status && (
@@ -344,21 +294,16 @@ export default function CreateCompany() {
                                                 {errors.public_listing_status}
                                             </p>
                                         )}
-                                        <p className="mt-1 text-xs text-muted-foreground">
-                                            {t(
-                                                'create_company_page.public_hint',
-                                            )}
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            {t('companies_create.fields.public_listing_help')}
                                         </p>
                                     </div>
 
                                     {/* Logo */}
                                     <div className="space-y-2">
-                                        <Label
-                                            htmlFor="logo"
-                                            className="flex items-center gap-2 text-sm font-semibold"
-                                        >
-                                            <Upload className="h-4 w-4 text-muted-foreground" />
-                                            {t('create_company_page.logo')}
+                                        <Label htmlFor="logo" className="text-sm font-semibold flex items-center gap-2">
+                                            <Upload className="w-4 h-4 text-muted-foreground" />
+                                            {t('companies_create.fields.company_logo')}
                                         </Label>
                                         <div className="space-y-4">
                                             {logoPreview ? (
@@ -391,14 +336,10 @@ export default function CreateCompany() {
                                                         </div>
                                                         <div className="text-center">
                                                             <p className="text-sm font-medium text-foreground">
-                                                                {t(
-                                                                    'create_company_page.upload',
-                                                                )}
+                                                                {t('companies_create.fields.click_upload')}
                                                             </p>
-                                                            <p className="mt-1 text-xs text-muted-foreground">
-                                                                PNG, JPG, GIF,
-                                                                or WebP (max
-                                                                5MB)
+                                                            <p className="text-xs text-muted-foreground mt-1">
+                                                                {t('companies_create.fields.upload_formats')}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -421,10 +362,8 @@ export default function CreateCompany() {
                                                     }
                                                     className="w-full sm:w-auto"
                                                 >
-                                                    <Upload className="mr-2 h-4 w-4" />
-                                                    {t(
-                                                        'create_company_page.choose_file',
-                                                    )}
+                                                    <Upload className="w-4 h-4 mr-2" />
+                                                    {t('companies_create.fields.choose_file')}
                                                 </Button>
                                             )}
                                         </div>
@@ -435,7 +374,7 @@ export default function CreateCompany() {
                                             </p>
                                         )}
                                         <p className="text-xs text-muted-foreground">
-                                            {t('create_company_page.logo_hint')}
+                                            {t('companies_create.fields.logo_help')}
                                         </p>
                                     </div>
 
@@ -460,16 +399,12 @@ export default function CreateCompany() {
                                             {processing ? (
                                                 <>
                                                     <Spinner className="mr-2 h-4 w-4" />
-                                                    {t(
-                                                        'create_company_page.creating',
-                                                    )}
+                                                    {t('companies_create.actions.creating')}
                                                 </>
                                             ) : (
                                                 <>
-                                                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                                                    {t(
-                                                        'create_company_page.create',
-                                                    )}
+                                                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                                                    {t('companies_create.actions.create')}
                                                 </>
                                             )}
                                         </Button>
@@ -486,13 +421,11 @@ export default function CreateCompany() {
                                         <FileText className="h-4 w-4 text-primary" />
                                     </div>
                                     <div className="flex-1">
-                                        <p className="mb-1 text-sm font-medium text-foreground">
-                                            {t(
-                                                'create_company_page.next_title',
-                                            )}
+                                        <p className="text-sm font-medium text-foreground mb-1">
+                                            {t('companies_create.next_title')}
                                         </p>
                                         <p className="text-xs text-muted-foreground">
-                                            {t('create_company_page.next_desc')}
+                                            {t('companies_create.next_desc')}
                                         </p>
                                     </div>
                                 </div>

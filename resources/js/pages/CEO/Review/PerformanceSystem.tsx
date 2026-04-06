@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTranslation } from 'react-i18next';
 
 interface PerformanceSystem {
     id?: number;
@@ -141,6 +142,7 @@ export default function CeoReviewPerformanceSystem({
     kpiReviewTokens = {},
     stepStatuses = {},
 }: Props) {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('overview');
     const tabOrder = ['overview', 'snapshot', 'kpis', 'models', 'structure'] as const;
     const activeTabIndex = tabOrder.indexOf(activeTab as (typeof tabOrder)[number]);
@@ -166,7 +168,7 @@ export default function CeoReviewPerformanceSystem({
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
                 <main className="flex-1 overflow-auto dark:bg-slate-900">
-                    <Head title={`Review Performance System - ${project.company.name}`} />
+                    <Head title={t('ceo_review_performance.page_title', { company: project.company.name })} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         {/* Header */}
                         <div className="mb-8">
@@ -175,15 +177,15 @@ export default function CeoReviewPerformanceSystem({
                                 className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back to Dashboard
+                                {t('ceo_review_performance.back_to_dashboard')}
                             </Link>
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                                        Review Performance System
+                                        {t('ceo_review_performance.heading')}
                                     </h1>
                                     <p className="text-lg text-muted-foreground leading-relaxed">
-                                        Review the performance management system designed by your HR Manager.
+                                        {t('ceo_review_performance.subheading')}
                                     </p>
                                 </div>
                                 <Badge 
@@ -193,9 +195,9 @@ export default function CeoReviewPerformanceSystem({
                                         'bg-yellow-500'
                                     } text-white border-0`}
                                 >
-                                    {performanceStatus === 'submitted' ? 'Submitted' :
-                                     performanceStatus === 'approved' || performanceStatus === 'locked' ? 'Approved' :
-                                     'In Progress'}
+                                    {performanceStatus === 'submitted' ? t('ceo_review_performance.status.submitted') :
+                                     performanceStatus === 'approved' || performanceStatus === 'locked' ? t('ceo_review_performance.status.approved') :
+                                     t('ceo_review_performance.status.in_progress')}
                                 </Badge>
                             </div>
                         </div>
@@ -204,11 +206,11 @@ export default function CeoReviewPerformanceSystem({
                             <TabsList className="grid w-full grid-cols-5">
                                 <TabsTrigger value="overview" className="flex items-center gap-2">
                                     <FileText className="w-4 h-4" />
-                                    Overview
+                                    {t('ceo_review_performance.tabs.overview')}
                                 </TabsTrigger>
                                 <TabsTrigger value="snapshot" className="flex items-center gap-2">
                                     <Target className="w-4 h-4" />
-                                    Snapshot
+                                    {t('ceo_review_performance.tabs.snapshot')}
                                 </TabsTrigger>
                                 <TabsTrigger value="kpis" className="flex items-center gap-2">
                                     <TrendingUp className="w-4 h-4" />
@@ -216,11 +218,11 @@ export default function CeoReviewPerformanceSystem({
                                 </TabsTrigger>
                                 <TabsTrigger value="models" className="flex items-center gap-2">
                                     <Settings className="w-4 h-4" />
-                                    Models
+                                    {t('ceo_review_performance.tabs.models')}
                                 </TabsTrigger>
                                 <TabsTrigger value="structure" className="flex items-center gap-2">
                                     <Building2 className="w-4 h-4" />
-                                    Structure
+                                    {t('ceo_review_performance.tabs.structure')}
                                 </TabsTrigger>
                             </TabsList>
 
@@ -228,43 +230,43 @@ export default function CeoReviewPerformanceSystem({
                             <TabsContent value="overview" className="space-y-6">
                                 <Card className="shadow-sm border">
                                     <CardHeader>
-                                        <CardTitle>Performance System Configuration</CardTitle>
+                                        <CardTitle>{t('ceo_review_performance.configuration.title')}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="p-6 space-y-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-2">
-                                                <Label className="text-sm font-semibold">Evaluation Unit</Label>
+                                                <Label className="text-sm font-semibold">{t('ceo_review_performance.configuration.evaluation_unit')}</Label>
                                                 <div className="p-3 bg-muted rounded-lg border">
                                                     <p className="font-medium">
                                                         {performanceSystem?.evaluation_unit 
                                                             ? UNIT_LABELS[performanceSystem.evaluation_unit] || performanceSystem.evaluation_unit
-                                                            : 'Not set'}
+                                                            : t('ceo_review_performance.not_set')}
                                                     </p>
                                                 </div>
                                             </div>
                                             <div className="space-y-2">
-                                                <Label className="text-sm font-semibold">Performance Method</Label>
+                                                <Label className="text-sm font-semibold">{t('ceo_review_performance.configuration.performance_method')}</Label>
                                                 <div className="p-3 bg-muted rounded-lg border">
                                                     <p className="font-medium">
                                                         {performanceSystem?.performance_method 
                                                             ? METHOD_LABELS[performanceSystem.performance_method] || performanceSystem.performance_method.toUpperCase()
-                                                            : 'Not set'}
+                                                            : t('ceo_review_performance.not_set')}
                                                     </p>
                                                 </div>
                                             </div>
                                             <div className="space-y-2">
-                                                <Label className="text-sm font-semibold">Evaluation Type</Label>
+                                                <Label className="text-sm font-semibold">{t('ceo_review_performance.configuration.evaluation_type')}</Label>
                                                 <div className="p-3 bg-muted rounded-lg border">
                                                     <p className="font-medium">
-                                                        {performanceSystem?.evaluation_type || 'Not set'}
+                                                        {performanceSystem?.evaluation_type || t('ceo_review_performance.not_set')}
                                                     </p>
                                                 </div>
                                             </div>
                                             <div className="space-y-2">
-                                                <Label className="text-sm font-semibold">Evaluation Scale</Label>
+                                                <Label className="text-sm font-semibold">{t('ceo_review_performance.configuration.evaluation_scale')}</Label>
                                                 <div className="p-3 bg-muted rounded-lg border">
                                                     <p className="font-medium">
-                                                        {performanceSystem?.evaluation_scale || 'Not set'}
+                                                        {performanceSystem?.evaluation_scale || t('ceo_review_performance.not_set')}
                                                     </p>
                                                 </div>
                                             </div>
@@ -278,7 +280,7 @@ export default function CeoReviewPerformanceSystem({
                                         <CardContent className="p-4">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="text-sm font-medium text-blue-900">Snapshot Responses</p>
+                                                    <p className="text-sm font-medium text-blue-900">{t('ceo_review_performance.summary.snapshot_responses')}</p>
                                                     <p className="text-2xl font-bold text-blue-700">
                                                         {project.performance_snapshot_responses?.length || 0}
                                                     </p>
@@ -291,7 +293,7 @@ export default function CeoReviewPerformanceSystem({
                                         <CardContent className="p-4">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="text-sm font-medium text-green-900">Organizational KPIs</p>
+                                                    <p className="text-sm font-medium text-green-900">{t('ceo_review_performance.summary.organizational_kpis')}</p>
                                                     <p className="text-2xl font-bold text-green-700">
                                                         {project.organizational_kpis?.length || 0}
                                                     </p>
@@ -304,7 +306,7 @@ export default function CeoReviewPerformanceSystem({
                                         <CardContent className="p-4">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="text-sm font-medium text-purple-900">Model Assignments</p>
+                                                    <p className="text-sm font-medium text-purple-900">{t('ceo_review_performance.summary.model_assignments')}</p>
                                                     <p className="text-2xl font-bold text-purple-700">
                                                         {project.evaluation_model_assignments?.length || 0}
                                                     </p>
@@ -317,7 +319,7 @@ export default function CeoReviewPerformanceSystem({
                                         <CardContent className="p-4">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="text-sm font-medium text-orange-900">Job Definitions</p>
+                                                    <p className="text-sm font-medium text-orange-900">{t('ceo_review_performance.summary.job_definitions')}</p>
                                                     <p className="text-2xl font-bold text-orange-700">
                                                         {jobDefinitions.length}
                                                     </p>
@@ -333,9 +335,9 @@ export default function CeoReviewPerformanceSystem({
                             <TabsContent value="snapshot" className="space-y-6">
                                 <Card className="shadow-sm border">
                                     <CardHeader>
-                                        <CardTitle>Strategic Performance Snapshot</CardTitle>
+                                        <CardTitle>{t('ceo_review_performance.snapshot.title')}</CardTitle>
                                         <CardDescription>
-                                            Responses to performance management philosophy questions
+                                            {t('ceo_review_performance.snapshot.description')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="p-6">
@@ -367,7 +369,7 @@ export default function CeoReviewPerformanceSystem({
                                                                 )}
                                                             </div>
                                                         ) : (
-                                                            <p className="text-sm text-muted-foreground italic">No response provided</p>
+                                                            <p className="text-sm text-muted-foreground italic">{t('ceo_review_performance.snapshot.no_response')}</p>
                                                         )}
                                                     </div>
                                                 );
@@ -437,7 +439,7 @@ export default function CeoReviewPerformanceSystem({
                                         ) : (
                                             <div className="text-center py-12">
                                                 <Target className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-                                                <p className="text-muted-foreground">No KPIs defined yet.</p>
+                                                <p className="text-muted-foreground">{t('ceo_review_performance.kpis.empty')}</p>
                                             </div>
                                         )}
                                     </CardContent>
@@ -480,7 +482,7 @@ export default function CeoReviewPerformanceSystem({
                                         ) : (
                                             <div className="text-center py-12">
                                                 <Settings className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-                                                <p className="text-muted-foreground">No model assignments defined yet.</p>
+                                                <p className="text-muted-foreground">{t('ceo_review_performance.models.empty')}</p>
                                             </div>
                                         )}
                                     </CardContent>
@@ -502,13 +504,13 @@ export default function CeoReviewPerformanceSystem({
                                                 <div className="space-y-2">
                                                     <Label className="text-sm font-semibold">Evaluation Cycle</Label>
                                                     <div className="p-3 bg-muted rounded-lg border">
-                                                        <p>{project.evaluation_structure.individual_evaluation_cycle || 'Not set'}</p>
+                                                        <p>{project.evaluation_structure.individual_evaluation_cycle || t('ceo_review_performance.not_set')}</p>
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
                                                     <Label className="text-sm font-semibold">Evaluation Timing</Label>
                                                     <div className="p-3 bg-muted rounded-lg border">
-                                                        <p>{project.evaluation_structure.individual_evaluation_timing || 'Not set'}</p>
+                                                        <p>{project.evaluation_structure.individual_evaluation_timing || t('ceo_review_performance.not_set')}</p>
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
@@ -521,14 +523,14 @@ export default function CeoReviewPerformanceSystem({
                                                                 ))}
                                                             </div>
                                                         ) : (
-                                                            <p className="text-muted-foreground">Not set</p>
+                                                            <p className="text-muted-foreground">{t('ceo_review_performance.not_set')}</p>
                                                         )}
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
                                                     <Label className="text-sm font-semibold">Rating Scale</Label>
                                                     <div className="p-3 bg-muted rounded-lg border">
-                                                        <p>{project.evaluation_structure.individual_rating_scale || 'Not set'}</p>
+                                                        <p>{project.evaluation_structure.individual_rating_scale || t('ceo_review_performance.not_set')}</p>
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2 md:col-span-2">
@@ -541,7 +543,7 @@ export default function CeoReviewPerformanceSystem({
                                                                 ))}
                                                             </div>
                                                         ) : (
-                                                            <p className="text-muted-foreground">Not set</p>
+                                                            <p className="text-muted-foreground">{t('ceo_review_performance.not_set')}</p>
                                                         )}
                                                     </div>
                                                 </div>
@@ -549,7 +551,7 @@ export default function CeoReviewPerformanceSystem({
                                         ) : (
                                             <div className="text-center py-12">
                                                 <Building2 className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-                                                <p className="text-muted-foreground">Evaluation structure not configured yet.</p>
+                                                <p className="text-muted-foreground">{t('ceo_review_performance.structure.empty')}</p>
                                             </div>
                                         )}
                                     </CardContent>
@@ -567,7 +569,7 @@ export default function CeoReviewPerformanceSystem({
                                 className="min-w-[120px]"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back
+                                {t('common.back')}
                             </Button>
                             <Button
                                 type="button"
@@ -575,7 +577,7 @@ export default function CeoReviewPerformanceSystem({
                                 disabled={!canGoNextTab}
                                 className="min-w-[120px]"
                             >
-                                Next
+                                {t('common.next')}
                                 <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
                         </div>
@@ -589,9 +591,9 @@ export default function CeoReviewPerformanceSystem({
                                             <CheckCircle2 className="w-6 h-6 text-primary" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-foreground">Performance System Submitted</h3>
+                                            <h3 className="text-xl font-bold text-foreground">{t('ceo_review_performance.submitted_card.title')}</h3>
                                             <p className="text-muted-foreground text-sm">
-                                                This performance system has been submitted by HR Manager and is ready for your review.
+                                                {t('ceo_review_performance.submitted_card.description')}
                                             </p>
                                         </div>
                                     </div>
@@ -601,7 +603,7 @@ export default function CeoReviewPerformanceSystem({
                                             onClick={() => router.post(`/ceo/revision/step/${project.id}`, { step: 'performance' })}
                                             size="lg"
                                         >
-                                            Request Revision
+                                            {t('ceo_review_performance.actions.request_revision')}
                                         </Button>
                                         <Button
                                             onClick={() => router.post(`/ceo/verify/step/${project.id}`, { step: 'performance' })}
@@ -609,7 +611,7 @@ export default function CeoReviewPerformanceSystem({
                                             className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
                                         >
                                             <CheckCircle2 className="w-4 h-4 mr-2" />
-                                            Approve
+                                            {t('ceo_review_performance.actions.approve')}
                                         </Button>
                                     </div>
                                 </CardContent>

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useTranslation } from 'react-i18next';
 
 interface KpiEditHistory {
     id: number;
@@ -43,6 +44,7 @@ interface Props {
 }
 
 export default function KpiEditHistoryIndex({ editHistory, projectId }: Props) {
+    const { t } = useTranslation();
     const getEditorTypeBadge = (type: string) => {
         const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
             hr_manager: 'default',
@@ -60,36 +62,36 @@ export default function KpiEditHistoryIndex({ editHistory, projectId }: Props) {
             <SidebarInset>
                 <AppHeader />
                 <div className="p-6 md:p-8 max-w-7xl mx-auto">
-                    <Head title="KPI Edit History" />
+                    <Head title={t('admin_kpi_edit_history.page_title')} />
                     
                     <div className="mb-6">
-                        <h1 className="text-3xl font-bold">KPI Edit History</h1>
+                        <h1 className="text-3xl font-bold">{t('admin_kpi_edit_history.heading')}</h1>
                         <p className="text-muted-foreground mt-1">
-                            View all modifications made to organizational KPIs
+                            {t('admin_kpi_edit_history.subheading')}
                         </p>
                     </div>
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Edit History Log</CardTitle>
+                            <CardTitle>{t('admin_kpi_edit_history.log_title')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             {editHistory.data.length === 0 ? (
                                 <div className="text-center py-12 text-muted-foreground">
-                                    No edit history found.
+                                    {t('admin_kpi_edit_history.empty')}
                                 </div>
                             ) : (
                                 <div className="overflow-x-auto">
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Date & Time</TableHead>
-                                                <TableHead>KPI</TableHead>
-                                                <TableHead>Organization</TableHead>
-                                                <TableHead>Project</TableHead>
-                                                <TableHead>Edited By</TableHead>
-                                                <TableHead>Editor Type</TableHead>
-                                                <TableHead>Description</TableHead>
+                                                <TableHead>{t('admin_kpi_edit_history.table.date_time')}</TableHead>
+                                                <TableHead>{t('admin_kpi_edit_history.table.kpi')}</TableHead>
+                                                <TableHead>{t('admin_kpi_edit_history.table.organization')}</TableHead>
+                                                <TableHead>{t('admin_kpi_edit_history.table.project')}</TableHead>
+                                                <TableHead>{t('admin_kpi_edit_history.table.edited_by')}</TableHead>
+                                                <TableHead>{t('admin_kpi_edit_history.table.editor_type')}</TableHead>
+                                                <TableHead>{t('admin_kpi_edit_history.table.description')}</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -99,16 +101,16 @@ export default function KpiEditHistoryIndex({ editHistory, projectId }: Props) {
                                                         {new Date(history.created_at).toLocaleString()}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {history.organizational_kpi?.kpi_name || 'N/A'}
+                                                        {history.organizational_kpi?.kpi_name || t('admin_kpi_edit_history.na')}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {history.organizational_kpi?.organization_name || 'N/A'}
+                                                        {history.organizational_kpi?.organization_name || t('admin_kpi_edit_history.na')}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {history.organizational_kpi?.hr_project?.company?.name || 'N/A'}
+                                                        {history.organizational_kpi?.hr_project?.company?.name || t('admin_kpi_edit_history.na')}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {history.edited_by_name || 'N/A'}
+                                                        {history.edited_by_name || t('admin_kpi_edit_history.na')}
                                                     </TableCell>
                                                     <TableCell>
                                                         {getEditorTypeBadge(history.edited_by_type)}
@@ -116,22 +118,22 @@ export default function KpiEditHistoryIndex({ editHistory, projectId }: Props) {
                                                     <TableCell>
                                                         <div className="max-w-xs">
                                                             <p className="text-sm text-muted-foreground line-clamp-2">
-                                                                {history.changes?.description || 'KPI modified'}
+                                                                {history.changes?.description || t('admin_kpi_edit_history.kpi_modified')}
                                                             </p>
                                                             {history.changes?.old_values && history.changes?.new_values && (
                                                                 <details className="mt-1">
                                                                     <summary className="text-xs text-primary cursor-pointer">
-                                                                        View Changes
+                                                                        {t('admin_kpi_edit_history.view_changes')}
                                                                     </summary>
                                                                     <div className="mt-2 text-xs space-y-1">
                                                                         <div>
-                                                                            <strong>Old:</strong>
+                                                                            <strong>{t('admin_kpi_edit_history.old')}:</strong>
                                                                             <pre className="bg-muted p-2 rounded mt-1 overflow-auto">
                                                                                 {JSON.stringify(history.changes.old_values, null, 2)}
                                                                             </pre>
                                                                         </div>
                                                                         <div>
-                                                                            <strong>New:</strong>
+                                                                            <strong>{t('admin_kpi_edit_history.new')}:</strong>
                                                                             <pre className="bg-muted p-2 rounded mt-1 overflow-auto">
                                                                                 {JSON.stringify(history.changes.new_values, null, 2)}
                                                                             </pre>

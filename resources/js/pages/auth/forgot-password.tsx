@@ -8,8 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { login, home } from '@/routes';
+import { useTranslation } from 'react-i18next';
 
 export default function ForgotPassword({ status }: { status?: string }) {
+    const { t } = useTranslation();
     const form = useForm({
         email: '',
     });
@@ -38,27 +40,27 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 </div>
                 <div className="space-y-6">
                     <h2 className="font-display text-4xl font-bold leading-tight">
-                        Reset your password<br />
-                        with secure<br />
-                        <span className="text-success">OTP verification.</span>
+                        {t('auth_forgot_password.hero_line_1')}<br />
+                        {t('auth_forgot_password.hero_line_2')}<br />
+                        <span className="text-success">{t('auth_forgot_password.hero_highlight')}</span>
                     </h2>
                     <p className="text-white/70 text-lg max-w-md">
-                        Enter your email address and we'll send you a 6-digit OTP code to reset your password securely.
+                        {t('auth_forgot_password.hero_description')}
                     </p>
                 </div>
                 <div className="flex items-center gap-8 text-white/50 text-sm">
-                    <span>🔐 OTP-based security</span>
+                    <span>{t('auth_forgot_password.footer_security')}</span>
                     <span>•</span>
-                    <span>5-minute validity</span>
+                    <span>{t('auth_forgot_password.footer_validity')}</span>
                     <span>•</span>
-                    <span>One-time use</span>
+                    <span>{t('auth_forgot_password.footer_one_time')}</span>
                 </div>
             </div>
 
             {/* Right Side - Form */}
             <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-background">
                 <div className="w-full max-w-md space-y-8">
-            <Head title="Forgot password" />
+            <Head title={t('auth_forgot_password.page_title')} />
 
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex items-center gap-3 justify-center mb-8">
@@ -77,14 +79,14 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     <div className="mb-4">
                         <Link href={home()} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                             <ArrowLeft className="w-4 h-4" />
-                            Back to home
+                            {t('auth_forgot_password.back_to_home')}
                         </Link>
                     </div>
 
                     {/* Header */}
                     <div className="text-center lg:text-left">
-                        <h2 className="text-2xl font-display font-bold">Forgot password?</h2>
-                        <p className="text-muted-foreground mt-2">Enter your email to receive a 6-digit OTP code</p>
+                        <h2 className="text-2xl font-display font-bold">{t('auth_forgot_password.heading')}</h2>
+                        <p className="text-muted-foreground mt-2">{t('auth_forgot_password.subheading')}</p>
                     </div>
 
             {status && (
@@ -96,7 +98,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     <form onSubmit={submit} className="space-y-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="email" className="text-sm font-medium leading-none">
-                                        Email address
+                                        {t('auth_forgot_password.email_label')}
                                     </Label>
                                 <Input
                                     id="email"
@@ -108,7 +110,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                 }}
                                 autoComplete="email"
                                     autoFocus
-                                        placeholder="you@company.com"
+                                        placeholder={t('auth_forgot_password.email_placeholder')}
                                         className="h-10 w-full"
                                 required
                                 />
@@ -123,21 +125,21 @@ export default function ForgotPassword({ status }: { status?: string }) {
                             {form.processing ? (
                                         <>
                                             <Spinner className="mr-2" />
-                                    Sending OTP...
+                                    {t('auth_forgot_password.sending_otp')}
                                         </>
                                     ) : (
                                         <>
                                             <Mail className="mr-2 h-4 w-4" />
-                                    Send OTP Code
+                                    {t('auth_forgot_password.send_otp')}
                                         </>
                                     )}
                                 </Button>
                     </form>
 
                     <p className="text-center text-sm text-muted-foreground">
-                        Remember your password?{' '}
+                        {t('auth_forgot_password.remember_password')}{' '}
                         <TextLink href={login()} className="text-[#0a1629] font-medium hover:underline">
-                            Sign in
+                            {t('auth_forgot_password.sign_in')}
                         </TextLink>
                     </p>
                 </div>

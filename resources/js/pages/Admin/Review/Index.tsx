@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
+import { useTranslation } from 'react-i18next';
 
 interface Project {
     id: number;
@@ -53,6 +54,7 @@ export default function AdminReview({
     comments = [],
     stepData = {},
 }: Props) {
+    const { t } = useTranslation();
     const [selectedProjectId, setSelectedProjectId] = useState<number | null>(project?.id ?? null);
 
     useEffect(() => {
@@ -89,16 +91,16 @@ export default function AdminReview({
                 <AppHeader />
 
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="Admin Review" />
+                    <Head title={t('admin_review.page_title')} />
 
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
                         <div className="mb-6">
-                            <h1 className="mb-2 text-3xl font-bold">Admin Review</h1>
+                            <h1 className="mb-2 text-3xl font-bold">{t('admin_review.heading')}</h1>
                             <p className="text-muted-foreground">
-                                Browse projects on the left, then inspect structured step data and add comments for the CEO/HR team.
+                                {t('admin_review.subheading')}
                             </p>
                             <p className="text-sm text-blue-600 mt-2">
-                                Admin note: this page is for data control. Select a project, verify actual user inputs per step, and leave actionable comments.
+                                {t('admin_review.note')}
                             </p>
                         </div>
 
@@ -106,7 +108,7 @@ export default function AdminReview({
                             <div className="lg:col-span-1">
                                 <Card>
                                     <CardHeader className="py-3">
-                                        <CardTitle className="text-base">Projects</CardTitle>
+                                        <CardTitle className="text-base">{t('admin_review.projects')}</CardTitle>
                                     </CardHeader>
 
                                     <CardContent className="space-y-1.5 pt-0">
@@ -129,7 +131,7 @@ export default function AdminReview({
                                             </Link>
                                         ))}
                                         {projects.length === 0 && (
-                                            <p className="text-sm text-muted-foreground">No projects yet.</p>
+                                            <p className="text-sm text-muted-foreground">{t('admin_review.no_projects')}</p>
                                         )}
                                     </CardContent>
                                 </Card>
@@ -144,15 +146,15 @@ export default function AdminReview({
                                                     <CardTitle className="text-lg">
                                                         {selectedProject.company?.name ?? `Project #${selectedProject.id}`}
                                                     </CardTitle>
-                                                    <Badge variant="secondary">Selected</Badge>
+                                                    <Badge variant="secondary">{t('admin_review.selected')}</Badge>
                                                 </div>
                                             </CardHeader>
 
                                             <CardContent className="space-y-2 pt-0">
-                                                <p className="text-xs font-medium text-muted-foreground">Step status</p>
+                                                <p className="text-xs font-medium text-muted-foreground">{t('admin_review.step_status')}</p>
                                                 <div className="flex flex-wrap gap-1.5">
                                                     {Object.keys(selectedProject.step_statuses ?? {}).length === 0 ? (
-                                                        <span className="text-xs text-muted-foreground">No statuses recorded</span>
+                                                        <span className="text-xs text-muted-foreground">{t('admin_review.no_statuses')}</span>
                                                     ) : (
                                                         Object.entries(selectedProject.step_statuses ?? {}).map(([step, status]) => (
                                                             <Badge key={step} variant="outline" className="text-xs font-normal">
@@ -166,11 +168,11 @@ export default function AdminReview({
 
                                         <Card>
                                             <CardHeader className="py-3">
-                                                <CardTitle className="text-base">Submitted step data</CardTitle>
+                                                <CardTitle className="text-base">{t('admin_review.submitted_step_data')}</CardTitle>
                                             </CardHeader>
                                             <CardContent className="space-y-4 pt-0">
                                                 {Object.keys(stepData).length === 0 ? (
-                                                    <p className="text-sm text-muted-foreground">No submitted step payloads for this project yet.</p>
+                                                    <p className="text-sm text-muted-foreground">{t('admin_review.no_step_payloads')}</p>
                                                 ) : (
                                                     Object.entries(stepData).map(([key, value]) => {
                                                         if (value === null || value === undefined) {
@@ -179,7 +181,7 @@ export default function AdminReview({
                                                                     <div className="border-b bg-muted/40 px-3 py-2 text-sm font-medium">
                                                                         {STEP_LABELS[key] ?? key}
                                                                     </div>
-                                                                    <p className="p-3 text-xs text-muted-foreground">Not started / no data</p>
+                                                                    <p className="p-3 text-xs text-muted-foreground">{t('admin_review.not_started_no_data')}</p>
                                                                 </div>
                                                             );
                                                         }
@@ -201,12 +203,12 @@ export default function AdminReview({
 
                                         <Card>
                                             <CardHeader className="py-3">
-                                                <CardTitle className="text-base">Add comment</CardTitle>
+                                                <CardTitle className="text-base">{t('admin_review.add_comment')}</CardTitle>
                                             </CardHeader>
 
                                             <CardContent className="space-y-4 pt-0">
                                                 <div>
-                                                    <Label htmlFor="step">Step</Label>
+                                                    <Label htmlFor="step">{t('admin_review.step')}</Label>
                                                     <select
                                                         id="step"
                                                         value={data.step}
@@ -216,7 +218,7 @@ export default function AdminReview({
                                                         }}
                                                         className="mt-1 w-full rounded-md border border-input bg-background p-2 text-sm"
                                                     >
-                                                        <option value="">Select step</option>
+                                                        <option value="">{t('admin_review.select_step')}</option>
                                                         <option value="diagnosis">Diagnosis</option>
                                                         <option value="organization">Organization</option>
                                                         <option value="performance">Performance</option>
@@ -226,7 +228,7 @@ export default function AdminReview({
                                                 </div>
 
                                                 <div>
-                                                    <Label htmlFor="comment">Comment</Label>
+                                                    <Label htmlFor="comment">{t('admin_review.comment')}</Label>
                                                     <Textarea
                                                         id="comment"
                                                         value={data.comment}
@@ -234,7 +236,7 @@ export default function AdminReview({
                                                             setData('comment', e.target.value);
                                                             clearInertiaFieldError(clearErrors, 'comment');
                                                         }}
-                                                        placeholder="Add your comment..."
+                                                        placeholder={t('admin_review.comment_placeholder')}
                                                         rows={4}
                                                         className="mt-1"
                                                     />
@@ -244,7 +246,7 @@ export default function AdminReview({
                                                     onClick={handleAddComment}
                                                     disabled={processing || !data.comment || !data.step}
                                                 >
-                                                    Add comment
+                                                    {t('admin_review.add_comment_button')}
                                                 </Button>
                                             </CardContent>
                                         </Card>
@@ -252,7 +254,7 @@ export default function AdminReview({
                                         {comments.length > 0 && (
                                             <Card>
                                                 <CardHeader className="py-3">
-                                                    <CardTitle className="text-base">Comment history</CardTitle>
+                                                    <CardTitle className="text-base">{t('admin_review.comment_history')}</CardTitle>
                                                 </CardHeader>
 
                                                 <CardContent className="space-y-3 pt-0">
@@ -275,10 +277,10 @@ export default function AdminReview({
                                     <Card>
                                         <CardContent className="p-10 text-center">
                                             <p className="text-muted-foreground text-sm">
-                                                Select a project from the list to view submitted data and comments.
+                                                {t('admin_review.select_project_hint')}
                                             </p>
                                             <Button asChild variant="outline" className="mt-4">
-                                                <Link href="/admin/project-view">Open Project View</Link>
+                                                <Link href="/admin/project-view">{t('admin_review.open_project_view')}</Link>
                                             </Button>
                                         </CardContent>
                                     </Card>

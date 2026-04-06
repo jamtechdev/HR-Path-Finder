@@ -21,6 +21,7 @@ import Leaders from '@/pages/Diagnosis/Leaders';
 import OrganizationalCharts from '@/pages/Diagnosis/OrganizationalCharts';
 import OrganizationalStructure from '@/pages/Diagnosis/OrganizationalStructure';
 import Workforce from '@/pages/Diagnosis/Workforce';
+import { useTranslation } from 'react-i18next';
 
 const formatValue = (value: unknown): string => {
     if (value === null || value === undefined || value === '') return '—';
@@ -127,6 +128,7 @@ export default function CeoReviewDiagnosis({
     hqLocations = [],
     hrIssues = [],
 }: Props) {
+    const { t } = useTranslation();
     const REQUIRED_ORG_CHART_YEARS = ['2023.12', '2024.12', '2025.12'] as const;
     const tabOrder = [
         'company-info',
@@ -203,12 +205,12 @@ export default function CeoReviewDiagnosis({
         post(`/ceo/review/diagnosis/${project.id}/update`, {
             preserveScroll: true,
             onSuccess: () => {
-                setSaveNotice('Saved. Your changes have been stored.');
+                setSaveNotice(t('ceo_review_diagnosis.messages.saved'));
                 router.reload({
                     only: ['diagnosis', 'company', 'reviewLogs'],
                 });
             },
-            onError: () => setPageError('Please fix the highlighted fields and try again.'),
+            onError: () => setPageError(t('ceo_review_diagnosis.messages.fix_fields')),
         });
     };
 
@@ -221,7 +223,7 @@ export default function CeoReviewDiagnosis({
             },
             onError: () => {
                 // Validation/backend errors are shared via Inertia; ensure user sees feedback
-                setPageError('Unable to submit. Please review the errors and try again.');
+                setPageError(t('ceo_review_diagnosis.messages.unable_submit'));
                 router.reload({ only: ['diagnosis', 'company'] });
             },
         });
@@ -304,7 +306,7 @@ export default function CeoReviewDiagnosis({
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-slate-50/50 dark:bg-slate-900">
-                    <Head title={`Review Diagnosis - ${project.company.name}`} />
+                    <Head title={t('ceo_review_diagnosis.page_title', { company: project.company.name })} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <InlineErrorSummary className="mb-6" message={pageError} errors={errors as any} />
                         {saveNotice && (
@@ -313,8 +315,8 @@ export default function CeoReviewDiagnosis({
                             </Alert>
                         )}
                         <DiagnosisHeader
-                            title="Review HR Diagnosis Inputs"
-                            subtitle="Review and edit the diagnosis data submitted by your HR Manager. All changes will be logged."
+                            title={t('ceo_review_diagnosis.header.title')}
+                            subtitle={t('ceo_review_diagnosis.header.subtitle')}
                             status={diagnosis?.status}
                         />
 
@@ -325,39 +327,39 @@ export default function CeoReviewDiagnosis({
                                 </div>
                                 <div className="flex flex-wrap items-end gap-6">
                                     <div>
-                                        <div className="mb-0.5 text-[9px] text-slate-400">Total headcount</div>
+                                        <div className="mb-0.5 text-[9px] text-slate-400">{t('ceo_review_diagnosis.metrics.total_headcount')}</div>
                                         <div className="text-2xl font-extrabold leading-none text-white">
                                             {totalHeadcount}
-                                            <span className="ml-0.5 text-xs font-medium text-slate-400">persons</span>
+                                            <span className="ml-0.5 text-xs font-medium text-slate-400">{t('ceo_review_diagnosis.metrics.persons')}</span>
                                         </div>
                                     </div>
                                     <div className="flex items-end gap-2">
                                         <div>
-                                            <div className="mb-0.5 text-[9px] text-slate-400">Active tenure (avg)</div>
+                                            <div className="mb-0.5 text-[9px] text-slate-400">{t('ceo_review_diagnosis.metrics.active_tenure_avg')}</div>
                                             <div className="text-2xl font-extrabold leading-none text-emerald-400">
                                                 {formatNumber((data as any)?.average_tenure_active)}
-                                                <span className="ml-0.5 text-xs font-medium text-slate-400">yrs</span>
+                                                <span className="ml-0.5 text-xs font-medium text-slate-400">{t('ceo_review_diagnosis.metrics.years')}</span>
                                             </div>
                                         </div>
-                                        <div className="pb-1 text-[10px] text-white/20">vs</div>
+                                        <div className="pb-1 text-[10px] text-white/20">{t('ceo_review_diagnosis.metrics.vs')}</div>
                                         <div>
-                                            <div className="mb-0.5 text-[9px] text-slate-400">Exit tenure (avg)</div>
+                                            <div className="mb-0.5 text-[9px] text-slate-400">{t('ceo_review_diagnosis.metrics.exit_tenure_avg')}</div>
                                             <div className="text-2xl font-extrabold leading-none text-slate-400">
                                                 {formatNumber((data as any)?.average_tenure_leavers)}
-                                                <span className="ml-0.5 text-xs font-medium text-slate-400">yrs</span>
+                                                <span className="ml-0.5 text-xs font-medium text-slate-400">{t('ceo_review_diagnosis.metrics.years')}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="h-11 w-px self-center bg-white/10" />
                                     <div>
-                                        <div className="mb-0.5 text-[9px] text-slate-400">Leader ratio</div>
+                                        <div className="mb-0.5 text-[9px] text-slate-400">{t('ceo_review_diagnosis.metrics.leader_ratio')}</div>
                                         <div className="text-2xl font-extrabold leading-none text-[#c8a84b]">{leaderRatio}%</div>
                                         <div className="mt-0.5 text-[9px] text-slate-400">
-                                            {leaderCountFromGrades} / {totalHeadcount} total
+                                            {leaderCountFromGrades} / {totalHeadcount} {t('ceo_review_diagnosis.metrics.total')}
                                         </div>
                                     </div>
                                     <div>
-                                        <div className="mb-0.5 text-[9px] text-slate-400">Executive ratio</div>
+                                        <div className="mb-0.5 text-[9px] text-slate-400">{t('ceo_review_diagnosis.metrics.executive_ratio')}</div>
                                         <div className="text-2xl font-extrabold leading-none text-sky-300">{execRatio}%</div>
                                         <div className="mt-0.5 text-[9px] text-slate-400">
                                             {execTotal} · {execPositionsStr || '—'}
@@ -371,7 +373,7 @@ export default function CeoReviewDiagnosis({
                             <Alert className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
                                 <AlertCircle className="h-4 w-4 text-amber-600" />
                                 <AlertDescription>
-                                    Diagnosis must be submitted by HR before you can save changes or confirm. Ask your HR Manager to complete and submit the Diagnosis step, then return here to review and save.
+                                    {t('ceo_review_diagnosis.warning_not_submitted')}
                                 </AlertDescription>
                             </Alert>
                         )}
@@ -460,18 +462,18 @@ export default function CeoReviewDiagnosis({
             <SuccessModal
                 isOpen={showSuccessModal}
                 onClose={() => setShowSuccessModal(false)}
-                title="Thank you"
-                message="Thank you for your time. Your part of the process is now complete.\n\n1. Next Step: Our HR Manager will now begin drafting the system design based on your responses.\n2. Final Report: Once the draft is finalized, a professional consultant's report will be delivered within 2 weeks.\n\nWe appreciate your patience while we prepare the best results for you."
-                nextStepLabel="Go to Dashboard"
+                title={t('ceo_review_diagnosis.success.title')}
+                message={t('ceo_review_diagnosis.success.message')}
+                nextStepLabel={t('ceo_review_diagnosis.success.next')}
                 onNextStep={handleNextStep}
             />
 
             <SuccessModal
                 isOpen={showCeoDoneModal}
                 onClose={() => setShowCeoDoneModal(false)}
-                title="Thank you"
-                message="Thank you for your time. Your part of the process is now complete.\n\n1. Next Step: Our HR Manager will now begin drafting the system design based on your responses.\n2. Final Report: Once the draft is finalized, a professional consultant's report will be delivered within 2 weeks.\n\nWe appreciate your patience while we prepare the best results for you."
-                nextStepLabel="Go to Dashboard"
+                title={t('ceo_review_diagnosis.success.title')}
+                message={t('ceo_review_diagnosis.success.message')}
+                nextStepLabel={t('ceo_review_diagnosis.success.next')}
                 onNextStep={handleNextStep}
             />
         </SidebarProvider>

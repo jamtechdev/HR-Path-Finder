@@ -21,21 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout';
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import {
-    ArrowLeft,
-    Building2,
-    CheckCircle2,
-    Clock,
-    Mail,
-    RefreshCw,
-    ShieldCheck,
-    Trash2,
-    UserPlus,
-    Users,
-    XCircle,
-} from 'lucide-react';
-import React, { useState } from 'react';
+import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { useTranslation } from 'react-i18next';
 
 interface Invitation {
@@ -115,7 +101,10 @@ export default function ShowCompany({ company }: Props) {
     };
 
     const handleDeleteInvitation = (invitationId: number) => {
-        if (!confirm(t('company_details.confirm_delete_invite'))) return;
+        if (!confirm(t('companies_show.confirm_delete_invitation'))) {
+            return;
+        }
+        
         setDeletingInvitation(invitationId);
         router.delete(`/invitations/${invitationId}`, {
             onSuccess: () => setDeletingInvitation(null),
@@ -124,40 +113,20 @@ export default function ShowCompany({ company }: Props) {
     };
 
     const getStatusBadge = (status: string) => {
-        const styles = {
-            accepted:
-                'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400',
-            rejected:
-                'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-400',
-            pending:
-                'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400',
-        };
-
-        if (status === 'accepted')
-            return (
-                <Badge variant="outline" className={styles.accepted}>
-                    <CheckCircle2 className="mr-1 h-3 w-3" />
-                    {t('company_details.status_accepted')}
-                </Badge>
-            );
-        if (status === 'rejected')
-            return (
-                <Badge variant="outline" className={styles.rejected}>
-                    <XCircle className="mr-1 h-3 w-3" />
-                    {t('company_details.status_rejected')}
-                </Badge>
-            );
-        return (
-            <Badge variant="outline" className={styles.pending}>
-                <Clock className="mr-1 h-3 w-3" />
-                {t('company_details.status_pending')}
-            </Badge>
-        );
+        switch (status) {
+            case 'accepted':
+                return <Badge variant="outline" className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />{t('companies_show.status.accepted')}</Badge>;
+            case 'rejected':
+                return <Badge variant="outline" className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800"><XCircle className="w-3 h-3 mr-1" />{t('companies_show.status.rejected')}</Badge>;
+            case 'pending':
+            default:
+                return <Badge variant="outline" className="bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800"><Clock className="w-3 h-3 mr-1" />{t('companies_show.status.pending')}</Badge>;
+        }
     };
 
     const formatDate = (date: string | null) => {
-        if (!date) return '—';
-        return new Date(date).toLocaleDateString(undefined, {
+        if (!date) return t('companies_show.na');
+        return new Date(date).toLocaleString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -172,302 +141,230 @@ export default function ShowCompany({ company }: Props) {
 
     return (
         <AppLayout>
-            <Head
-                title={`${company.name} | ${t('company_details.page_title')}`}
-            />
-
-            <div className="mx-auto max-w-7xl space-y-8 p-6 md:p-10">
+            <Head title={t('companies_show.page_title', { company: company.name })} />
+            <div className="p-6 md:p-8 max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="flex flex-col justify-between gap-4 border-b pb-6 md:flex-row md:items-center">
-                    <div className="space-y-1">
-                        <Link
-                            href="/hr-manager/companies"
-                            className="mb-2 flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
-                        >
-                            <ArrowLeft className="h-4 w-4" />{' '}
-                            {t('company_details.back_to_list')}
+                <div className="mb-6 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Link href="/hr-manager/companies">
+                            <Button variant="ghost" size="sm">
+                                <ArrowLeft className="w-4 h-4 mr-2" />
+                                {t('common.back')}
+                            </Button>
                         </Link>
-                        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
-                            {company.name}
-                        </h1>
-                        <p className="text-muted-foreground">
-                            {t('company_details.subtitle')}
-                        </p>
+                        <div>
+                            <h1 className="text-3xl font-bold text-foreground">{company.name}</h1>
+                            <p className="text-muted-foreground mt-1">{t('companies_show.subheading')}</p>
+                        </div>
                     </div>
                     {isHrManager && (
-                        <Button
-                            onClick={() => setShowInviteDialog(true)}
-                            className="shadow-sm"
-                        >
-                            <UserPlus className="mr-2 h-4 w-4" />
-                            {t('company_details.invite_ceo_btn')}
+                        <Button onClick={() => setShowInviteDialog(true)}>
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            {t('companies_show.invite_ceo')}
                         </Button>
                     )}
                 </div>
 
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                    {/* Left Card */}
-                    <Card className="border-none bg-card/50 shadow-lg backdrop-blur lg:col-span-1">
-                        <CardHeader className="text-center">
-                            <div className="mx-auto mb-4">
-                                {companyLogo ? (
-                                    <img
-                                        src={companyLogo}
-                                        alt={company.name}
-                                        className="mx-auto h-24 w-24 rounded-2xl object-cover shadow-xl ring-4 ring-background"
-                                    />
+                {/* Flash Messages */}
+                {flash?.success && (
+                    <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-700 dark:text-green-400">
+                        {flash.success}
+                    </div>
+                )}
+
+                {/* Company Info Card */}
+                <Card className="mb-6">
+                    <CardHeader>
+                        <div className="flex items-center gap-4">
+                            {companyLogo && (
+                                <img 
+                                    src={companyLogo} 
+                                    alt={company.name}
+                                    className="w-20 h-20 rounded-lg object-cover border-2 border-border"
+                                />
+                            )}
+                            <div className="flex-1">
+                                <CardTitle className="text-2xl">{company.name}</CardTitle>
+                                <CardDescription>{t('companies_show.company_info')}</CardDescription>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            {company.registration_number && (
+                                <div className="flex items-start gap-3">
+                                    <Hash className="w-5 h-5 text-muted-foreground mt-0.5" />
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">{t('companies_show.registration_number')}</p>
+                                        <p className="text-base font-semibold">{company.registration_number}</p>
+                                    </div>
+                                </div>
+                            )}
+                            {company.hq_location && (
+                                <div className="flex items-start gap-3">
+                                    <MapPin className="w-5 h-5 text-muted-foreground mt-0.5" />
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">{t('companies_show.hq_location')}</p>
+                                        <p className="text-base font-semibold">{company.hq_location}</p>
+                                    </div>
+                                </div>
+                            )}
+                            <div className="flex items-start gap-3">
+                                <Globe className="w-5 h-5 text-muted-foreground mt-0.5" />
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground">{t('companies_show.public_listing')}</p>
+                                    <p className="text-base font-semibold capitalize">{company.public_listing_status.replace('_', ' ')}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Tabs */}
+                <Tabs defaultValue="team" className="space-y-4">
+                    <TabsList>
+                        <TabsTrigger value="team">
+                            <Users className="w-4 h-4 mr-2" />
+                            {t('companies_show.tabs.team_members', { count: company.users?.length || 0 })}
+                        </TabsTrigger>
+                        <TabsTrigger value="invitations">
+                            <Mail className="w-4 h-4 mr-2" />
+                            {t('companies_show.tabs.invitations', { count: company.invitations && Array.isArray(company.invitations) ? company.invitations.length : 0 })}
+                        </TabsTrigger>
+                    </TabsList>
+
+                    {/* Team Members Tab */}
+                    <TabsContent value="team" className="space-y-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>{t('companies_show.team_members_title')}</CardTitle>
+                                <CardDescription>{t('companies_show.team_members_desc')}</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {company.users && Array.isArray(company.users) && company.users.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {company.users.map((user) => (
+                                            user && (
+                                                <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
+                                                    <div>
+                                                        <p className="font-medium">{user.name || t('companies_show.na')}</p>
+                                                        <p className="text-sm text-muted-foreground">{user.email || t('companies_show.na')}</p>
+                                                    </div>
+                                                    <Badge variant="outline" className="capitalize">
+                                                        {user.role ? user.role.replace('_', ' ') : t('companies_show.na')}
+                                                    </Badge>
+                                                </div>
+                                            )
+                                        ))}
+                                    </div>
                                 ) : (
-                                    <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl bg-primary/10 shadow-md">
-                                        <Building2 className="h-12 w-12 text-primary" />
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                                        <p>{t('companies_show.no_team_members')}</p>
                                     </div>
                                 )}
-                            </div>
-                            <CardTitle>
-                                {t('company_details.profile_title')}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex justify-between rounded-xl border bg-background/50 p-3">
-                                <span className="text-sm font-medium text-muted-foreground">
-                                    {t('company_details.reg_no')}
-                                </span>
-                                <span className="text-sm font-semibold">
-                                    {company.registration_number || '—'}
-                                </span>
-                            </div>
-                            <div className="flex justify-between rounded-xl border bg-background/50 p-3">
-                                <span className="text-sm font-medium text-muted-foreground">
-                                    {t('company_details.location')}
-                                </span>
-                                <span className="text-sm font-semibold">
-                                    {company.hq_location || '—'}
-                                </span>
-                            </div>
-                            <div className="flex justify-between rounded-xl border bg-background/50 p-3">
-                                <span className="text-sm font-medium text-muted-foreground">
-                                    {t('company_details.listing')}
-                                </span>
-                                <Badge variant="outline" className="capitalize">
-                                    {company.public_listing_status.replace(
-                                        '_',
-                                        ' ',
-                                    )}
-                                </Badge>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
 
-                    {/* Right Tabs */}
-                    <div className="space-y-6 lg:col-span-2">
-                        <Tabs defaultValue="team">
-                            <TabsList className="grid w-full grid-cols-2 rounded-xl bg-muted/50 p-1">
-                                <TabsTrigger
-                                    value="team"
-                                    className="rounded-lg py-2.5"
-                                >
-                                    <Users className="mr-2 h-4 w-4" />{' '}
-                                    {t('company_details.tab_team')}
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value="invitations"
-                                    className="rounded-lg py-2.5"
-                                >
-                                    <Mail className="mr-2 h-4 w-4" />{' '}
-                                    {t('company_details.tab_invitations')}
-                                </TabsTrigger>
-                            </TabsList>
-
-                            <TabsContent value="team" className="mt-6">
-                                <Card className="border-none shadow-md">
-                                    <Table>
-                                        <TableHeader className="bg-muted/30">
-                                            <TableRow>
-                                                <TableHead>
-                                                    {t(
-                                                        'company_details.table_name',
-                                                    )}
-                                                </TableHead>
-                                                <TableHead>
-                                                    {t(
-                                                        'company_details.table_role',
-                                                    )}
-                                                </TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {company.users?.length ? (
-                                                company.users.map((u) => (
-                                                    <TableRow key={u.id}>
-                                                        <TableCell>
-                                                            <div className="flex flex-col">
-                                                                <span className="font-semibold">
-                                                                    {u.name}
-                                                                </span>
-                                                                <span className="text-xs text-muted-foreground">
-                                                                    {u.email}
-                                                                </span>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Badge
-                                                                variant="secondary"
-                                                                className="capitalize"
-                                                            >
-                                                                <ShieldCheck className="mr-1 h-3 w-3" />
-                                                                {u.role.replace(
-                                                                    '_',
-                                                                    ' ',
-                                                                )}
-                                                            </Badge>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))
-                                            ) : (
+                    {/* Invitations Tab */}
+                    <TabsContent value="invitations" className="space-y-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>{t('companies_show.invitations_title')}</CardTitle>
+                                <CardDescription>{t('companies_show.invitations_desc')}</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {company.invitations && Array.isArray(company.invitations) && company.invitations.length > 0 ? (
+                                    <div className="border rounded-lg overflow-hidden">
+                                        <Table>
+                                            <TableHeader>
                                                 <TableRow>
-                                                    <TableCell
-                                                        colSpan={2}
-                                                        className="h-32 text-center text-muted-foreground"
-                                                    >
-                                                        {t(
-                                                            'company_details.no_members',
-                                                        )}
-                                                    </TableCell>
+                                                    <TableHead>{t('companies_show.table.email')}</TableHead>
+                                                    <TableHead>{t('companies_show.table.status')}</TableHead>
+                                                    <TableHead>{t('companies_show.table.invited_by')}</TableHead>
+                                                    <TableHead>{t('companies_show.table.invited_at')}</TableHead>
+                                                    <TableHead>{t('companies_show.table.expires_at')}</TableHead>
+                                                    <TableHead>{t('companies_show.table.actions')}</TableHead>
                                                 </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </Card>
-                            </TabsContent>
-
-                            <TabsContent value="invitations" className="mt-6">
-                                <Card className="overflow-hidden border-none shadow-md">
-                                    <Table>
-                                        <TableHeader className="bg-muted/30">
-                                            <TableRow>
-                                                <TableHead>
-                                                    {t(
-                                                        'company_details.table_email',
-                                                    )}
-                                                </TableHead>
-                                                <TableHead>
-                                                    {t(
-                                                        'company_details.table_status',
-                                                    )}
-                                                </TableHead>
-                                                <TableHead className="text-right">
-                                                    {t(
-                                                        'company_details.table_actions',
-                                                    )}
-                                                </TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {company.invitations?.length ? (
-                                                company.invitations.map(
-                                                    (inv) => (
-                                                        <TableRow key={inv.id}>
-                                                            <TableCell className="text-sm">
-                                                                {inv.email}
-                                                            </TableCell>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {company.invitations.map((invitation) => (
+                                                    invitation && (
+                                                        <TableRow key={invitation.id}>
+                                                            <TableCell className="font-medium">{invitation.email || t('companies_show.na')}</TableCell>
+                                                            <TableCell>{getStatusBadge(invitation.status || 'pending')}</TableCell>
+                                                            <TableCell>{invitation.invited_by?.name || t('companies_show.na')}</TableCell>
+                                                            <TableCell>{formatDate(invitation.invited_at)}</TableCell>
+                                                            <TableCell>{formatDate(invitation.expires_at)}</TableCell>
                                                             <TableCell>
-                                                                {getStatusBadge(
-                                                                    inv.status,
+                                                                {invitation.status === 'pending' && isHrManager && (
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            onClick={() => handleResendInvitation(invitation.id)}
+                                                                            disabled={resendingInvitation === invitation.id || deletingInvitation === invitation.id}
+                                                                        >
+                                                                            <RefreshCw className={`w-3 h-3 mr-1 ${resendingInvitation === invitation.id ? 'animate-spin' : ''}`} />
+                                                                            {resendingInvitation === invitation.id ? t('companies_show.resending') : t('companies_show.resend')}
+                                                                        </Button>
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            onClick={() => handleDeleteInvitation(invitation.id)}
+                                                                            disabled={resendingInvitation === invitation.id || deletingInvitation === invitation.id}
+                                                                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                                        >
+                                                                            <Trash2 className={`w-3 h-3 mr-1 ${deletingInvitation === invitation.id ? 'animate-pulse' : ''}`} />
+                                                                            {deletingInvitation === invitation.id ? t('companies_show.deleting') : t('companies_show.delete')}
+                                                                        </Button>
+                                                                    </div>
                                                                 )}
-                                                            </TableCell>
-                                                            <TableCell className="text-right">
-                                                                {inv.status ===
-                                                                    'pending' &&
-                                                                    isHrManager && (
-                                                                        <div className="flex justify-end gap-1">
-                                                                            <Button
-                                                                                variant="ghost"
-                                                                                size="icon"
-                                                                                onClick={() =>
-                                                                                    handleResendInvitation(
-                                                                                        inv.id,
-                                                                                    )
-                                                                                }
-                                                                                disabled={
-                                                                                    !!resendingInvitation
-                                                                                }
-                                                                            >
-                                                                                <RefreshCw
-                                                                                    className={`h-4 w-4 ${resendingInvitation === inv.id ? 'animate-spin' : ''}`}
-                                                                                />
-                                                                            </Button>
-                                                                            <Button
-                                                                                variant="ghost"
-                                                                                size="icon"
-                                                                                onClick={() =>
-                                                                                    handleDeleteInvitation(
-                                                                                        inv.id,
-                                                                                    )
-                                                                                }
-                                                                                className="text-rose-500"
-                                                                            >
-                                                                                <Trash2 className="h-4 w-4" />
-                                                                            </Button>
-                                                                        </div>
-                                                                    )}
+                                                                {invitation.status !== 'pending' && (
+                                                                    <span className="text-xs text-muted-foreground">{t('companies_show.no_actions')}</span>
+                                                                )}
                                                             </TableCell>
                                                         </TableRow>
-                                                    ),
-                                                )
-                                            ) : (
-                                                <TableRow>
-                                                    <TableCell
-                                                        colSpan={3}
-                                                        className="h-32 text-center text-muted-foreground"
-                                                    >
-                                                        {t(
-                                                            'company_details.no_invitations',
-                                                        )}
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </Card>
-                            </TabsContent>
-                        </Tabs>
-                    </div>
-                </div>
+                                                    )
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <Mail className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                                        <p>{t('companies_show.no_invitations')}</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
 
-                {/* Invite Modal */}
-                <Dialog
-                    open={showInviteDialog}
-                    onOpenChange={setShowInviteDialog}
-                >
-                    <DialogContent className="overflow-hidden rounded-2xl border-none p-0">
-                        <div className="bg-primary p-6 text-primary-foreground">
-                            <DialogHeader>
-                                <DialogTitle className="text-xl">
-                                    {t('company_details.modal_title')}
-                                </DialogTitle>
-                                <DialogDescription className="pt-2 text-primary-foreground/80">
-                                    {company.hrProjects?.some(
-                                        (p) => p.status === 'active',
-                                    )
-                                        ? t(
-                                              'company_details.modal_desc_project',
-                                          )
-                                        : t(
-                                              'company_details.modal_desc_general',
-                                          )}
-                                </DialogDescription>
-                            </DialogHeader>
-                        </div>
-                        <form
-                            onSubmit={handleInviteCeo}
-                            className="space-y-4 bg-card p-6"
-                        >
-                            <div className="space-y-2">
-                                <Label>
-                                    {t('company_details.email_label')}
-                                </Label>
+                </Tabs>
+
+                {/* Invite CEO Dialog */}
+                <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+                    <DialogContent className="max-w-lg">
+                        <DialogHeader>
+                            <DialogTitle>{t('companies_show.invite_dialog.title', { company: company.name })}</DialogTitle>
+                            <DialogDescription>
+                                {activeProject 
+                                    ? `Invite a CEO to join ${company.name} and complete the Management Philosophy Survey for this HR project.`
+                                    : `Invite a CEO to join ${company.name}. Once you create a project, the CEO will be assigned to it.`}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleInviteCeo} className="space-y-4">
+                            <div>
+                                <Label htmlFor="ceo-email">{t('companies_show.invite_dialog.email_label')}</Label>
                                 <Input
                                     type="email"
                                     value={data.email}
+                                    onChange={(e) => {
+                                        setData('email', e.target.value);
+                                        clearInertiaFieldError(clearErrors, 'email');
+                                    }}
+                                    placeholder={t('companies_show.invite_dialog.email_placeholder')}
                                     required
                                     onChange={(e) =>
                                         setData('email', e.target.value)
@@ -485,16 +382,10 @@ export default function ShowCompany({ company }: Props) {
                                     variant="ghost"
                                     onClick={() => setShowInviteDialog(false)}
                                 >
-                                    {t('company_details.btn_cancel')}
+                                    {t('common.cancel')}
                                 </Button>
-                                <Button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="bg-emerald-600"
-                                >
-                                    {processing
-                                        ? t('company_details.btn_sending')
-                                        : t('company_details.btn_send')}
+                                <Button type="submit" disabled={processing} className="bg-green-600 hover:bg-green-700">
+                                    {processing ? t('companies_show.sending') : t('companies_show.send_invitation')}
                                 </Button>
                             </DialogFooter>
                         </form>

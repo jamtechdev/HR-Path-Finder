@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import { useTranslation } from 'react-i18next';
 
 interface KpiEditHistory {
     id: number;
@@ -32,6 +33,7 @@ interface Props {
 }
 
 export default function KpiEditHistoryShow({ kpi, editHistory }: Props) {
+    const { t } = useTranslation();
     const getEditorTypeBadge = (type: string) => {
         const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
             hr_manager: 'default',
@@ -49,16 +51,16 @@ export default function KpiEditHistoryShow({ kpi, editHistory }: Props) {
             <SidebarInset>
                 <AppHeader />
                 <div className="p-6 md:p-8 max-w-7xl mx-auto">
-                    <Head title={`KPI Edit History - ${kpi.kpi_name}`} />
+                    <Head title={t('admin_kpi_edit_history_show.page_title', { kpi: kpi.kpi_name })} />
                     
                     <div className="mb-6">
                         <Link href="/admin/kpi-edit-history">
                             <Button variant="ghost" className="mb-4">
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back to List
+                                {t('admin_kpi_edit_history_show.back')}
                             </Button>
                         </Link>
-                        <h1 className="text-3xl font-bold">KPI Edit History</h1>
+                        <h1 className="text-3xl font-bold">{t('admin_kpi_edit_history_show.heading')}</h1>
                         <p className="text-muted-foreground mt-1">
                             {kpi.kpi_name} - {kpi.organization_name}
                         </p>
@@ -66,12 +68,12 @@ export default function KpiEditHistoryShow({ kpi, editHistory }: Props) {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Edit History</CardTitle>
+                            <CardTitle>{t('admin_kpi_edit_history_show.list_title')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             {editHistory.length === 0 ? (
                                 <div className="text-center py-12 text-muted-foreground">
-                                    No edit history found for this KPI.
+                                    {t('admin_kpi_edit_history_show.empty')}
                                 </div>
                             ) : (
                                 <div className="space-y-4">
@@ -87,7 +89,7 @@ export default function KpiEditHistoryShow({ kpi, editHistory }: Props) {
                                                     </div>
                                                     {history.edited_by_name && (
                                                         <span className="text-sm text-muted-foreground">
-                                                            Edited by: {history.edited_by_name}
+                                                            {t('admin_kpi_edit_history_show.edited_by')}: {history.edited_by_name}
                                                         </span>
                                                     )}
                                                 </div>
@@ -99,13 +101,13 @@ export default function KpiEditHistoryShow({ kpi, editHistory }: Props) {
                                                 {history.changes?.old_values && history.changes?.new_values && (
                                                     <div className="grid grid-cols-2 gap-4 mt-4">
                                                         <div>
-                                                            <h4 className="text-sm font-semibold mb-2">Old Values</h4>
+                                                            <h4 className="text-sm font-semibold mb-2">{t('admin_kpi_edit_history_show.old_values')}</h4>
                                                             <pre className="bg-muted p-3 rounded text-xs overflow-auto max-h-64">
                                                                 {JSON.stringify(history.changes.old_values, null, 2)}
                                                             </pre>
                                                         </div>
                                                         <div>
-                                                            <h4 className="text-sm font-semibold mb-2">New Values</h4>
+                                                            <h4 className="text-sm font-semibold mb-2">{t('admin_kpi_edit_history_show.new_values')}</h4>
                                                             <pre className="bg-muted p-3 rounded text-xs overflow-auto max-h-64">
                                                                 {JSON.stringify(history.changes.new_values, null, 2)}
                                                             </pre>

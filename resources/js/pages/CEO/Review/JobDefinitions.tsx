@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout';
+import { useTranslation } from 'react-i18next';
 
 interface JobKeyword {
     id: number;
@@ -44,6 +45,7 @@ export default function CeoReviewJobDefinitions({
     industry,
     sizeRange 
 }: Props) {
+    const { t } = useTranslation();
     const [selectedJobId, setSelectedJobId] = React.useState<number | null>(
         jobDefinitions.length > 0 ? jobDefinitions[0].id : null
     );
@@ -52,12 +54,12 @@ export default function CeoReviewJobDefinitions({
 
     return (
         <AppLayout>
-            <Head title={`Job Definitions Review - ${project?.company?.name || 'Job Analysis'}`} />
+            <Head title={t('ceo_review_job_definitions.page_title', { company: project?.company?.name || t('ceo_review_job_definitions.fallback_job_analysis') })} />
             <div className="p-6 md:p-8 max-w-7xl mx-auto dark:bg-slate-900 min-h-screen">
                 <div className="mb-6">
-                    <h1 className="text-3xl font-bold mb-2 dark:text-slate-100">Job Definitions Review</h1>
+                    <h1 className="text-3xl font-bold mb-2 dark:text-slate-100">{t('ceo_review_job_definitions.heading')}</h1>
                     <p className="text-muted-foreground dark:text-slate-400">
-                        Review the detailed job definitions created by your HR Manager.
+                        {t('ceo_review_job_definitions.subheading')}
                     </p>
                 </div>
 
@@ -66,9 +68,9 @@ export default function CeoReviewJobDefinitions({
                     <div className="lg:col-span-1">
                         <Card className="dark:bg-slate-800 dark:border-slate-700">
                             <CardHeader className="dark:bg-slate-800">
-                                <CardTitle className="dark:text-slate-100">Job List</CardTitle>
+                                <CardTitle className="dark:text-slate-100">{t('ceo_review_job_definitions.job_list.title')}</CardTitle>
                                 <CardDescription className="dark:text-slate-400">
-                                    {jobDefinitions.length} job{jobDefinitions.length !== 1 ? 's' : ''} defined
+                                    {t('ceo_review_job_definitions.job_list.count_defined', { count: jobDefinitions.length })}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="p-0 dark:bg-slate-800">
@@ -88,7 +90,7 @@ export default function CeoReviewJobDefinitions({
                                                     <p className="font-medium dark:text-slate-200">{job.job_name}</p>
                                                     {job.is_finalized && (
                                                         <Badge variant="secondary" className="mt-1 text-xs dark:bg-slate-700 dark:text-slate-200">
-                                                            Finalized
+                                                            {t('ceo_review_job_definitions.labels.finalized')}
                                                         </Badge>
                                                     )}
                                                 </div>
@@ -113,27 +115,27 @@ export default function CeoReviewJobDefinitions({
                                             <CardTitle className="dark:text-slate-100">{selectedJob.job_name}</CardTitle>
                                             {selectedJob.job_keyword && (
                                                 <CardDescription className="dark:text-slate-400">
-                                                    Based on: {selectedJob.job_keyword.name}
+                                                    {t('ceo_review_job_definitions.labels.based_on')}: {selectedJob.job_keyword.name}
                                                 </CardDescription>
                                             )}
                                         </div>
                                         {selectedJob.is_finalized && (
-                                            <Badge>Finalized</Badge>
+                                            <Badge>{t('ceo_review_job_definitions.labels.finalized')}</Badge>
                                         )}
                                     </div>
                                 </CardHeader>
                                 <CardContent className="dark:bg-slate-800">
                                     <Tabs defaultValue="description" className="w-full">
                                         <TabsList>
-                                            <TabsTrigger value="description">Description</TabsTrigger>
-                                            <TabsTrigger value="specification">Specification</TabsTrigger>
-                                            <TabsTrigger value="competency">Competency</TabsTrigger>
+                                            <TabsTrigger value="description">{t('ceo_review_job_definitions.tabs.description')}</TabsTrigger>
+                                            <TabsTrigger value="specification">{t('ceo_review_job_definitions.tabs.specification')}</TabsTrigger>
+                                            <TabsTrigger value="competency">{t('ceo_review_job_definitions.tabs.competency')}</TabsTrigger>
                                             <TabsTrigger value="csfs">CSFs</TabsTrigger>
                                         </TabsList>
 
                                         <TabsContent value="description" className="space-y-4">
                                             <div>
-                                                <h3 className="font-semibold mb-2">Job Description</h3>
+                                                <h3 className="font-semibold mb-2">{t('ceo_review_job_definitions.sections.job_description')}</h3>
                                                 <div className="p-4 bg-muted rounded-lg">
                                                     {selectedJob.job_description ? (
                                                         <p className="whitespace-pre-wrap text-sm">
@@ -141,7 +143,7 @@ export default function CeoReviewJobDefinitions({
                                                         </p>
                                                     ) : (
                                                         <p className="text-muted-foreground text-sm italic">
-                                                            No description provided yet.
+                                                            {t('ceo_review_job_definitions.empty.no_description')}
                                                         </p>
                                                     )}
                                                 </div>
@@ -150,7 +152,7 @@ export default function CeoReviewJobDefinitions({
 
                                         <TabsContent value="specification" className="space-y-4">
                                             <div>
-                                                <h3 className="font-semibold mb-2">Job Specification</h3>
+                                                <h3 className="font-semibold mb-2">{t('ceo_review_job_definitions.sections.job_specification')}</h3>
                                                 {selectedJob.job_specification && Object.keys(selectedJob.job_specification).length > 0 ? (
                                                     <div className="space-y-3">
                                                         {Object.entries(selectedJob.job_specification).map(([key, value]) => (
@@ -165,7 +167,7 @@ export default function CeoReviewJobDefinitions({
                                                 ) : (
                                                     <div className="p-4 bg-muted rounded-lg">
                                                         <p className="text-muted-foreground text-sm italic">
-                                                            No specification provided yet.
+                                                            {t('ceo_review_job_definitions.empty.no_specification')}
                                                         </p>
                                                     </div>
                                                 )}
@@ -174,7 +176,7 @@ export default function CeoReviewJobDefinitions({
 
                                         <TabsContent value="competency" className="space-y-4">
                                             <div>
-                                                <h3 className="font-semibold mb-2">Competency Levels</h3>
+                                                <h3 className="font-semibold mb-2">{t('ceo_review_job_definitions.sections.competency_levels')}</h3>
                                                 {selectedJob.competency_levels && Object.keys(selectedJob.competency_levels).length > 0 ? (
                                                     <div className="space-y-3">
                                                         {Object.entries(selectedJob.competency_levels).map(([key, value]) => (
@@ -189,7 +191,7 @@ export default function CeoReviewJobDefinitions({
                                                 ) : (
                                                     <div className="p-4 bg-muted rounded-lg">
                                                         <p className="text-muted-foreground text-sm italic">
-                                                            No competency levels defined yet.
+                                                            {t('ceo_review_job_definitions.empty.no_competency')}
                                                         </p>
                                                     </div>
                                                 )}
@@ -198,7 +200,7 @@ export default function CeoReviewJobDefinitions({
 
                                         <TabsContent value="csfs" className="space-y-4">
                                             <div>
-                                                <h3 className="font-semibold mb-2">Critical Success Factors (CSFs)</h3>
+                                                <h3 className="font-semibold mb-2">{t('ceo_review_job_definitions.sections.csfs')}</h3>
                                                 {selectedJob.csfs && Object.keys(selectedJob.csfs).length > 0 ? (
                                                     <div className="space-y-3">
                                                         {Object.entries(selectedJob.csfs).map(([key, value]) => (
@@ -213,7 +215,7 @@ export default function CeoReviewJobDefinitions({
                                                 ) : (
                                                     <div className="p-4 bg-muted rounded-lg">
                                                         <p className="text-muted-foreground text-sm italic">
-                                                            No CSFs defined yet.
+                                                            {t('ceo_review_job_definitions.empty.no_csfs')}
                                                         </p>
                                                     </div>
                                                 )}
@@ -226,7 +228,7 @@ export default function CeoReviewJobDefinitions({
                             <Card>
                                 <CardContent className="p-8 text-center">
                                     <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                                    <p className="text-muted-foreground">No job definitions available yet.</p>
+                                    <p className="text-muted-foreground">{t('ceo_review_job_definitions.empty.no_jobs')}</p>
                                 </CardContent>
                             </Card>
                         )}
@@ -240,7 +242,7 @@ export default function CeoReviewJobDefinitions({
                         onClick={() => router.visit(`/ceo/review/job-analysis/${project.id}/job-list`)}
                     >
                         <ArrowLeft className="w-4 h-4 mr-2" />
-                        Back to Job List
+                        {t('ceo_review_job_definitions.back_to_job_list')}
                     </Button>
                 </div>
             </div>

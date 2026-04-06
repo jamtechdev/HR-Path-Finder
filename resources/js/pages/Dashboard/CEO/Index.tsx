@@ -3,23 +3,7 @@ import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    Sidebar,
-    SidebarInset,
-    SidebarProvider,
-} from '@/components/ui/sidebar';
-import { Head, Link } from '@inertiajs/react';
-import {
-    AlertCircle,
-    ArrowRight,
-    CheckCircle2,
-    ClipboardList,
-    Clock,
-    Eye,
-    FileText,
-    FolderKanban,
-    Target,
-} from 'lucide-react';
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { useTranslation } from 'react-i18next';
 
 interface Project {
@@ -79,18 +63,9 @@ export default function CeoDashboard({
     needsAttention,
 }: Props) {
     const { t } = useTranslation();
-
-    // Calculate survey completed count
-    const surveyCompletedCount = projects.filter(
-        (project) => !!project.ceoPhilosophy,
-    ).length;
-
-    // Get first project ID for verification link fallback
-    const verificationTargetProjectId =
-        pendingReviews[0]?.id ?? projects[0]?.id;
-
-    const cardBaseClass =
-        'border-t-6 hover:shadow-lg transition-all duration-200 cursor-pointer min-h-[118px]';
+    const surveyCompletedCount = projects.filter((project) => !!project.ceoPhilosophy).length;
+    const verificationTargetProjectId = pendingReviews[0]?.id ?? projects[0]?.id;
+    const cardBaseClass = 'border-t-6 hover:shadow-lg transition-all duration-200 cursor-pointer min-h-[118px]';
     const cardContentClass = 'p-6 h-full flex items-center';
     const statValueClass =
         'text-3xl font-bold whitespace-nowrap tabular-nums leading-none text-slate-900';
@@ -137,16 +112,12 @@ export default function CeoDashboard({
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title={t('ceo_dashboard.title')} />
-
-                    <div className="mx-auto max-w-7xl p-6 md:p-8">
-                        {/* Header */}
+                    <Head title={t('ceo_dashboard.page_title')} />
+                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-8">
-                            <h1 className="mb-2 text-3xl font-bold text-foreground">
-                                {t('ceo_dashboard.title')}
-                            </h1>
+                            <h1 className="text-3xl font-bold mb-2 text-foreground">{t('ceo_dashboard.heading')}</h1>
                             <p className="text-muted-foreground">
-                                {t('ceo_dashboard.subtitle')}
+                                {t('ceo_dashboard.subheading')}
                             </p>
                         </div>
 
@@ -160,14 +131,8 @@ export default function CeoDashboard({
                                     <CardContent className={cardContentClass}>
                                         <div className="flex w-full items-center justify-between gap-4">
                                             <div>
-                                                <p className="mb-1 text-sm text-muted-foreground">
-                                                    {t(
-                                                        'ceo_dashboard.stats.total_projects',
-                                                    )}
-                                                </p>
-                                                <p className={statValueClass}>
-                                                    {stats.total_projects}
-                                                </p>
+                                                <p className="text-sm text-muted-foreground mb-1">{t('ceo_dashboard.stats.total_projects')}</p>
+                                                <p className={statValueClass}>{stats.total_projects}</p>
                                             </div>
                                             <div
                                                 className={`${iconWrapClass} bg-blue-100 dark:bg-blue-950`}
@@ -187,16 +152,8 @@ export default function CeoDashboard({
                                     <CardContent className={cardContentClass}>
                                         <div className="flex w-full items-center justify-between gap-4">
                                             <div>
-                                                <p className="mb-1 text-sm text-muted-foreground">
-                                                    {t(
-                                                        'ceo_dashboard.stats.pending_review',
-                                                    )}
-                                                </p>
-                                                <p className={statValueClass}>
-                                                    {
-                                                        stats.pending_diagnosis_review
-                                                    }
-                                                </p>
+                                                <p className="text-sm text-muted-foreground mb-1">{t('ceo_dashboard.stats.pending_review')}</p>
+                                                <p className={statValueClass}>{stats.pending_diagnosis_review}</p>
                                             </div>
                                             <div
                                                 className={`${iconWrapClass} bg-orange-100 dark:bg-orange-950`}
@@ -222,14 +179,8 @@ export default function CeoDashboard({
                                     <CardContent className={cardContentClass}>
                                         <div className="flex w-full items-center justify-between gap-4">
                                             <div>
-                                                <p className="mb-1 text-sm text-muted-foreground">
-                                                    {t(
-                                                        'ceo_dashboard.stats.pending_survey',
-                                                    )}
-                                                </p>
-                                                <p className={statValueClass}>
-                                                    {stats.pending_ceo_survey}
-                                                </p>
+                                                <p className="text-sm text-muted-foreground mb-1">{t('ceo_dashboard.stats.pending_survey')}</p>
+                                                <p className={statValueClass}>{stats.pending_ceo_survey}</p>
                                             </div>
                                             <div
                                                 className={`${iconWrapClass} bg-yellow-100 dark:bg-yellow-950`}
@@ -255,14 +206,8 @@ export default function CeoDashboard({
                                     <CardContent className={cardContentClass}>
                                         <div className="flex w-full items-center justify-between gap-4">
                                             <div>
-                                                <p className="mb-1 text-sm text-muted-foreground">
-                                                    {t(
-                                                        'ceo_dashboard.stats.completed',
-                                                    )}
-                                                </p>
-                                                <p className={statValueClass}>
-                                                    {stats.completed_projects}
-                                                </p>
+                                                <p className="text-sm text-muted-foreground mb-1">{t('ceo_dashboard.stats.completed')}</p>
+                                                <p className={statValueClass}>{stats.completed_projects}</p>
                                             </div>
                                             <div
                                                 className={`${iconWrapClass} bg-green-100 dark:bg-green-950`}
@@ -282,14 +227,8 @@ export default function CeoDashboard({
                                     <CardContent className={cardContentClass}>
                                         <div className="flex w-full items-center justify-between gap-4">
                                             <div>
-                                                <p className="mb-1 text-sm text-muted-foreground">
-                                                    {t(
-                                                        'ceo_dashboard.stats.survey_completed',
-                                                    )}
-                                                </p>
-                                                <p className={statValueClass}>
-                                                    {surveyCompletedCount}
-                                                </p>
+                                                <p className="text-sm text-muted-foreground mb-1">{t('ceo_dashboard.stats.survey_completed')}</p>
+                                                <p className={statValueClass}>{surveyCompletedCount}</p>
                                             </div>
                                             <div
                                                 className={`${iconWrapClass} bg-emerald-100 dark:bg-emerald-950`}
@@ -309,15 +248,8 @@ export default function CeoDashboard({
                                     <CardContent className={cardContentClass}>
                                         <div className="flex w-full items-center justify-between gap-4">
                                             <div>
-                                                <p className="mb-1 text-sm text-muted-foreground">
-                                                    {t(
-                                                        'ceo_dashboard.stats.pending_kpi_review',
-                                                    )}
-                                                </p>
-                                                <p className={statValueClass}>
-                                                    {stats.pending_kpi_review ??
-                                                        0}
-                                                </p>
+                                                <p className="text-sm text-muted-foreground mb-1">{t('ceo_dashboard.stats.pending_kpi_review')}</p>
+                                                <p className={statValueClass}>{stats.pending_kpi_review ?? 0}</p>
                                             </div>
                                             <div
                                                 className={`${iconWrapClass} bg-cyan-100 dark:bg-cyan-950`}
@@ -333,40 +265,18 @@ export default function CeoDashboard({
                         {/* All Companies Simple Table */}
                         <Card className="mb-8 overflow-hidden">
                             <CardHeader>
-                                <CardTitle>
-                                    {t('ceo_dashboard.table.title')}
-                                </CardTitle>
+                                <CardTitle>{t('ceo_dashboard.all_companies_title')}</CardTitle>
                             </CardHeader>
                             <CardContent className="p-0">
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead className="bg-muted/50">
                                             <tr className="text-left">
-                                                <th className="px-4 py-3 font-semibold">
-                                                    {t(
-                                                        'ceo_dashboard.table.company',
-                                                    )}
-                                                </th>
-                                                <th className="px-4 py-3 font-semibold">
-                                                    {t(
-                                                        'ceo_dashboard.table.diagnosis',
-                                                    )}
-                                                </th>
-                                                <th className="px-4 py-3 font-semibold">
-                                                    {t(
-                                                        'ceo_dashboard.table.survey',
-                                                    )}
-                                                </th>
-                                                <th className="px-4 py-3 font-semibold">
-                                                    {t(
-                                                        'ceo_dashboard.table.kpi',
-                                                    )}
-                                                </th>
-                                                <th className="px-4 py-3 font-semibold">
-                                                    {t(
-                                                        'ceo_dashboard.table.actions',
-                                                    )}
-                                                </th>
+                                                <th className="px-4 py-3 font-semibold">{t('ceo_dashboard.table.company')}</th>
+                                                <th className="px-4 py-3 font-semibold">{t('ceo_dashboard.table.diagnosis')}</th>
+                                                <th className="px-4 py-3 font-semibold">{t('ceo_dashboard.table.survey')}</th>
+                                                <th className="px-4 py-3 font-semibold">{t('ceo_dashboard.table.kpi')}</th>
+                                                <th className="px-4 py-3 font-semibold">{t('ceo_dashboard.table.actions')}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -409,6 +319,7 @@ export default function CeoDashboard({
                                                                       'ceo_dashboard.status.not_started',
                                                                   )}
                                                         </td>
+                                                        <td className="px-4 py-3">{surveyDone ? t('ceo_dashboard.completed') : t('ceo_dashboard.pending')}</td>
                                                         <td className="px-4 py-3">
                                                             {t(
                                                                 'ceo_dashboard.table.total_kpi',
@@ -419,57 +330,22 @@ export default function CeoDashboard({
                                                         </td>
                                                         <td className="px-4 py-3">
                                                             <div className="flex flex-wrap gap-2">
-                                                                <Link
-                                                                    href={`/ceo/projects/${project.id}/verification`}
-                                                                >
-                                                                    <Button
-                                                                        size="sm"
-                                                                        variant="outline"
-                                                                    >
-                                                                        {t(
-                                                                            'ceo_dashboard.buttons.verify',
-                                                                        )}
-                                                                    </Button>
+                                                                <Link href={`/ceo/projects/${project.id}/verification`}>
+                                                                    <Button size="sm" variant="outline">{t('ceo_dashboard.actions.verify')}</Button>
                                                                 </Link>
 
                                                                 {surveyDone ? (
-                                                                    <Link
-                                                                        href={`/ceo/review/diagnosis/${project.id}`}
-                                                                    >
-                                                                        <Button
-                                                                            size="sm"
-                                                                            variant="outline"
-                                                                        >
-                                                                            {t(
-                                                                                'ceo_dashboard.buttons.view_diagnosis',
-                                                                            )}
-                                                                        </Button>
+                                                                    <Link href={`/ceo/review/diagnosis/${project.id}`}>
+                                                                        <Button size="sm" variant="outline">{t('ceo_dashboard.actions.view_diagnosis')}</Button>
                                                                     </Link>
                                                                 ) : (
-                                                                    <Link
-                                                                        href={`/ceo/philosophy/survey/${project.id}`}
-                                                                    >
-                                                                        <Button
-                                                                            size="sm"
-                                                                            variant="outline"
-                                                                        >
-                                                                            {t(
-                                                                                'ceo_dashboard.buttons.start_survey',
-                                                                            )}
-                                                                        </Button>
+                                                                    <Link href={`/ceo/philosophy/survey/${project.id}`}>
+                                                                        <Button size="sm" variant="outline">{t('ceo_dashboard.actions.start_survey')}</Button>
                                                                     </Link>
                                                                 )}
-
-                                                                {kpiTotal >
-                                                                    0 && (
-                                                                    <Link
-                                                                        href={`/ceo/kpi-review/${project.id}`}
-                                                                    >
-                                                                        <Button size="sm">
-                                                                            {t(
-                                                                                'ceo_dashboard.buttons.kpi_review',
-                                                                            )}
-                                                                        </Button>
+                                                                {((project as any).kpi_total ?? 0) > 0 && (
+                                                                    <Link href={`/ceo/kpi-review/${project.id}`}>
+                                                                        <Button size="sm">{t('ceo_dashboard.actions.kpi_review')}</Button>
                                                                     </Link>
                                                                 )}
                                                             </div>
@@ -489,10 +365,8 @@ export default function CeoDashboard({
                                 <CardHeader>
                                     <div className="flex items-center justify-between">
                                         <CardTitle className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
-                                            <AlertCircle className="h-5 w-5" />
-                                            {t(
-                                                'ceo_dashboard.sections.action_required',
-                                            )}
+                                            <AlertCircle className="w-5 h-5" />
+                                            {t('ceo_dashboard.action_required')}
                                         </CardTitle>
                                         <Badge variant="secondary">
                                             {pendingReviews.length}
@@ -500,11 +374,8 @@ export default function CeoDashboard({
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="mb-4 text-sm text-muted-foreground">
-                                        {t(
-                                            'ceo_dashboard.text.pending_review_text',
-                                            { count: pendingReviews.length },
-                                        )}
+                                    <p className="text-sm text-muted-foreground mb-4">
+                                            {t('ceo_dashboard.pending_reviews_count', { count: pendingReviews.length })}
                                     </p>
                                     <div className="mb-4 space-y-2">
                                         {pendingReviews
@@ -525,18 +396,10 @@ export default function CeoDashboard({
                                             ))}
                                     </div>
                                     {pendingReviews.length > 3 && (
-                                        <Link href="/ceo/projects">
-                                            <Button
-                                                variant="outline"
-                                                className="w-full"
-                                            >
-                                                {t(
-                                                    'ceo_dashboard.buttons.view_all_pending',
-                                                    {
-                                                        count: pendingReviews.length,
-                                                    },
-                                                )}
-                                                <ArrowRight className="ml-2 h-4 w-4" />
+                                        <Link href="/ceo/dashboard">
+                                            <Button variant="outline" className="w-full">
+                                                    {t('ceo_dashboard.view_all_pending', { count: pendingReviews.length })}
+                                                <ArrowRight className="w-4 h-4 ml-2" />
                                             </Button>
                                         </Link>
                                     )}
@@ -549,8 +412,8 @@ export default function CeoDashboard({
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <CardTitle className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-                                        <Target className="h-5 w-5" />
-                                        {t('ceo_dashboard.sections.kpi_review')}
+                                        <Target className="w-5 h-5" />
+                                        {t('ceo_dashboard.kpi_review_title')}
                                     </CardTitle>
                                     <Badge variant="secondary">
                                         {kpiReviewProjects.length}
@@ -591,27 +454,17 @@ export default function CeoDashboard({
                                                 ))}
                                         </div>
                                         {kpiReviewProjects.length > 3 && (
-                                            <Link href="/ceo/kpi-review">
-                                                <Button
-                                                    variant="outline"
-                                                    className="w-full"
-                                                >
-                                                    {t(
-                                                        'ceo_dashboard.buttons.view_all_kpi',
-                                                        {
-                                                            count: kpiReviewProjects.length,
-                                                        },
-                                                    )}
-                                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                            <Link href="/ceo/dashboard">
+                                                <Button variant="outline" className="w-full">
+                                                    {t('ceo_dashboard.view_all_kpi', { count: kpiReviewProjects.length })}
+                                                    <ArrowRight className="w-4 h-4 ml-2" />
                                                 </Button>
                                             </Link>
                                         )}
                                     </>
                                 ) : (
                                     <p className="text-sm text-muted-foreground">
-                                        {t(
-                                            'ceo_dashboard.text.kpi_placeholder',
-                                        )}
+                                        {t('ceo_dashboard.kpi_review_empty')}
                                     </p>
                                 )}
                             </CardContent>
@@ -622,17 +475,11 @@ export default function CeoDashboard({
                             <Card className="mb-8">
                                 <CardHeader>
                                     <div className="flex items-center justify-between">
-                                        <CardTitle>
-                                            {t(
-                                                'ceo_dashboard.sections.projects_attention',
-                                            )}
-                                        </CardTitle>
-                                        <Link href="/ceo/projects">
+                                        <CardTitle>{t('ceo_dashboard.needs_attention.title')}</CardTitle>
+                                        <Link href="/hr-projects">
                                             <Button variant="ghost" size="sm">
-                                                {t(
-                                                    'ceo_dashboard.buttons.view_all',
-                                                )}
-                                                <ArrowRight className="ml-2 h-4 w-4" />
+                                                {t('ceo_dashboard.view_all')}
+                                                <ArrowRight className="w-4 h-4 ml-2" />
                                             </Button>
                                         </Link>
                                     </div>
@@ -682,13 +529,8 @@ export default function CeoDashboard({
                                                                 }
                                                             </Badge>
                                                             {needsSurvey && (
-                                                                <Badge
-                                                                    variant="outline"
-                                                                    className="text-orange-600 dark:text-orange-400"
-                                                                >
-                                                                    {t(
-                                                                        'ceo_dashboard.badges.survey_required',
-                                                                    )}
+                                                                <Badge variant="outline" className="text-orange-600">
+                                                                    {t('ceo_dashboard.survey_required')}
                                                                 </Badge>
                                                             )}
                                                         </div>
@@ -735,14 +577,11 @@ export default function CeoDashboard({
                                                                 </p>
                                                             )}
                                                         </div>
-                                                        <p className="mt-1 text-xs text-muted-foreground">
-                                                            {needsSurvey
-                                                                ? t(
-                                                                      'ceo_dashboard.text.complete_survey',
-                                                                  )
-                                                                : t(
-                                                                      'ceo_dashboard.text.review_diagnosis',
-                                                                  )}
+                                                        <p className="text-xs text-muted-foreground mt-1">
+                                                            {needsSurvey 
+                                                                ? 'Complete CEO Philosophy Survey'
+                                                                : t('ceo_dashboard.review_diagnosis')
+                                                            }
                                                         </p>
                                                     </div>
                                                     <Eye className="h-5 w-5 text-muted-foreground" />
@@ -757,9 +596,7 @@ export default function CeoDashboard({
                         {/* Quick Actions */}
                         <Card className="mb-8">
                             <CardHeader>
-                                <CardTitle>
-                                    {t('ceo_dashboard.sections.quick_actions')}
-                                </CardTitle>
+                                <CardTitle>{t('ceo_dashboard.quick_actions.title')}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -772,15 +609,9 @@ export default function CeoDashboard({
                                                         <FolderKanban className="h-6 w-6 text-primary" />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <p className="mb-1 font-semibold">
-                                                            {t(
-                                                                'ceo_dashboard.text.manage_projects',
-                                                            )}
-                                                        </p>
+                                                        <p className="font-semibold mb-1">{t('ceo_dashboard.quick_actions.view_all_projects')}</p>
                                                         <p className="text-sm text-muted-foreground">
-                                                            {t(
-                                                                'ceo_dashboard.text.manage_projects',
-                                                            )}
+                                                            {t('ceo_dashboard.quick_actions.view_all_projects_desc')}
                                                         </p>
                                                     </div>
                                                     <ArrowRight className="h-5 w-5 text-muted-foreground" />
@@ -801,11 +632,7 @@ export default function CeoDashboard({
                                                             <ClipboardList className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                                                         </div>
                                                         <div className="flex-1">
-                                                            <p className="mb-1 font-semibold">
-                                                                {t(
-                                                                    'ceo_dashboard.buttons.start_survey',
-                                                                )}
-                                                            </p>
+                                                            <p className="font-semibold mb-1">{t('ceo_dashboard.quick_actions.start_survey')}</p>
                                                             <p className="text-sm text-muted-foreground">
                                                                 {t(
                                                                     'ceo_dashboard.text.survey_description',
@@ -844,11 +671,7 @@ export default function CeoDashboard({
                                                             <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                                                         </div>
                                                         <div className="flex-1">
-                                                            <p className="mb-1 font-semibold">
-                                                                {t(
-                                                                    'ceo_dashboard.stats.pending_review',
-                                                                )}
-                                                            </p>
+                                                            <p className="font-semibold mb-1">{t('ceo_dashboard.quick_actions.pending_reviews')}</p>
                                                             <p className="text-sm text-muted-foreground">
                                                                 {t(
                                                                     'ceo_dashboard.text.pending_reviews',

@@ -32,22 +32,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import {
-    Building2,
-    CheckCircle2,
-    ChevronDown,
-    ChevronRight,
-    Clock,
-    Mail,
-    Plus,
-    RefreshCw,
-    Trash2,
-    UserPlus,
-    Users,
-    XCircle,
-} from 'lucide-react';
-import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface CEO {
@@ -93,9 +77,7 @@ interface Props {
 
 export default function CompaniesIndex({ companies }: Props) {
     const { t } = useTranslation();
-    const [selectedCompany, setSelectedCompany] = useState<Company | null>(
-        null,
-    );
+    const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
     const [showInviteDialog, setShowInviteDialog] = useState(false);
     const [expandedCompanies, setExpandedCompanies] = useState<Set<number>>(
         new Set(),
@@ -157,8 +139,10 @@ export default function CompaniesIndex({ companies }: Props) {
     };
 
     const handleDeleteInvitation = (invitationId: number) => {
-        if (!confirm(t('companies_page.confirm_delete_invitation'))) return;
-
+        if (!confirm(t('companies_index.confirm_delete_invitation'))) {
+            return;
+        }
+        
         setDeletingInvitation(invitationId);
         router.delete(`/invitations/${invitationId}`, {
             onSuccess: () => {
@@ -222,7 +206,7 @@ export default function CompaniesIndex({ companies }: Props) {
     };
 
     const formatDate = (date: string | null) => {
-        if (!date) return t('common.na');
+        if (!date) return t('companies_index.na');
         return new Date(date).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
@@ -236,14 +220,8 @@ export default function CompaniesIndex({ companies }: Props) {
 
     return (
         <AppLayout>
-            <Head
-                title={
-                    hasNoCompanies
-                        ? t('companies_page.no_company_title')
-                        : t('companies_page.title')
-                }
-            />
-            <div className="mx-auto max-w-7xl p-6 md:p-8">
+            <Head title={hasNoCompanies ? t('companies_index.page_title_create') : t('companies_index.page_title')} />
+            <div className="p-6 md:p-8 max-w-7xl mx-auto">
                 {hasNoCompanies ? (
                     /* No company yet: show create-company page (this page) */
                     <div className="space-y-6">
@@ -260,11 +238,9 @@ export default function CompaniesIndex({ companies }: Props) {
                                 <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10">
                                     <Building2 className="h-8 w-8 text-primary" />
                                 </div>
-                                <h3 className="mb-2 text-xl font-semibold">
-                                    {t('companies_page.no_company_card_title')}
-                                </h3>
-                                <p className="mx-auto mb-6 max-w-md text-muted-foreground">
-                                    {t('companies_page.no_company_card_desc')}
+                                <h3 className="text-xl font-semibold mb-2">{t('companies_index.no_company_title')}</h3>
+                                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                                    Create your first company to get started with HR Path-Finder. After creating a company, you will see your dashboard with design steps and progress.
                                 </p>
                                 <Link href="/hr-manager/companies/create">
                                     <Button size="lg" className="gap-2">
@@ -278,475 +254,221 @@ export default function CompaniesIndex({ companies }: Props) {
                 ) : (
                     /* Company created: show card-style companies list (dashboard-style) */
                     <>
-                        <div className="mb-6 flex items-center justify-between">
-                            <div>
-                                <h1 className="text-3xl font-bold text-foreground">
-                                    {t('companies_page.title')}
-                                </h1>
-                                <p className="mt-1 text-muted-foreground">
-                                    {t('companies_page.subtitle')}
-                                </p>
-                            </div>
-                            <Link href="/hr-manager/companies/create">
-                                <Button>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    {t('companies_page.create_company')}
-                                </Button>
-                            </Link>
-                        </div>
-                        <div className="space-y-4">
-                            {companies.map((company) => {
-                                const isExpanded = expandedCompanies.has(
-                                    company.id,
-                                );
-                                const allCeos = [
-                                    ...company.ceos,
-                                    ...company.invitations
-                                        .filter(
-                                            (inv) => inv.status === 'accepted',
-                                        )
-                                        .map((inv) => ({
-                                            id: 0,
-                                            name: t(
-                                                'companies_page.invited_user',
-                                            ),
-                                            email: inv.email,
-                                            status: 'accepted' as const,
-                                        })),
-                                ];
-                                const totalAssignments =
-                                    allCeos.length +
-                                    company.invitations.filter(
-                                        (inv) => inv.status !== 'accepted',
-                                    ).length;
-
-                                return (
-                                    <Card
-                                        key={company.id}
-                                        className="overflow-hidden"
-                                    >
-                                        <Collapsible
-                                            open={isExpanded}
-                                            onOpenChange={() =>
-                                                toggleCompany(company.id)
-                                            }
-                                        >
-                                            <CardHeader className="cursor-pointer transition-colors hover:bg-muted/50">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex flex-1 items-center gap-3">
-                                                        <CollapsibleTrigger
-                                                            asChild
-                                                        >
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="h-8 w-8"
-                                                            >
-                                                                {isExpanded ? (
-                                                                    <ChevronDown className="h-4 w-4" />
-                                                                ) : (
-                                                                    <ChevronRight className="h-4 w-4" />
-                                                                )}
-                                                            </Button>
-                                                        </CollapsibleTrigger>
-                                                        <div className="flex-1">
-                                                            <CardTitle className="text-xl">
-                                                                {company.name}
-                                                            </CardTitle>
-                                                            <CardDescription className="mt-1">
-                                                                {company.registration_number &&
-                                                                    `Reg: ${company.registration_number} • `}
-                                                                {company.hq_location &&
-                                                                    `${company.hq_location} • `}
-                                                                {
-                                                                    company.public_listing_status
-                                                                }
-                                                            </CardDescription>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="text-right">
-                                                            <div className="text-sm font-medium">
-                                                                {
-                                                                    totalAssignments
-                                                                }{' '}
-                                                                {t(
-                                                                    'companies_page.ceo_count',
-                                                                    {
-                                                                        count: totalAssignments,
-                                                                    },
-                                                                )}
-                                                            </div>
-                                                            <div className="text-xs text-muted-foreground">
-                                                                {
-                                                                    company.ceos
-                                                                        .length
-                                                                }{' '}
-                                                                {t(
-                                                                    'companies_page.active',
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        {!company.hasCeo && (
-                                                            <Button
-                                                                onClick={() =>
-                                                                    openInviteDialog(
-                                                                        company,
-                                                                    )
-                                                                }
-                                                                size="sm"
-                                                                className="bg-green-600 hover:bg-green-700"
-                                                            >
-                                                                <UserPlus className="mr-2 h-4 w-4" />
-                                                                {t(
-                                                                    'companies_page.invite_ceo',
-                                                                )}
-                                                            </Button>
-                                                        )}
-                                                        <Link
-                                                            href={`/hr-manager/companies/${company.id}`}
-                                                        >
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                            >
-                                                                {t(
-                                                                    'companies_page.view_details',
-                                                                )}
-                                                            </Button>
-                                                        </Link>
+                <div className="mb-6 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold text-foreground">{t('companies_index.my_companies')}</h1>
+                        <p className="text-muted-foreground mt-1">
+                            Manage your companies and CEO assignments
+                        </p>
+                    </div>
+                    <Link href="/hr-manager/companies/create">
+                        <Button>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Create Company
+                        </Button>
+                    </Link>
+                </div>
+                <div className="space-y-4">
+                        {companies.map((company) => {
+                            const isExpanded = expandedCompanies.has(company.id);
+                            const allCeos = [...company.ceos, ...company.invitations.filter(inv => inv.status === 'accepted').map(inv => ({
+                                id: 0,
+                                name: 'Invited User',
+                                email: inv.email,
+                                status: 'accepted' as const,
+                            }))];
+                            const totalAssignments = allCeos.length + company.invitations.filter(inv => inv.status !== 'accepted').length;
+                            
+                            return (
+                                <Card key={company.id} className="overflow-hidden">
+                                    <Collapsible open={isExpanded} onOpenChange={() => toggleCompany(company.id)}>
+                                        <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3 flex-1">
+                                                    <CollapsibleTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                            {isExpanded ? (
+                                                                <ChevronDown className="h-4 w-4" />
+                                                            ) : (
+                                                                <ChevronRight className="h-4 w-4" />
+                                                            )}
+                                                        </Button>
+                                                    </CollapsibleTrigger>
+                                                    <div className="flex-1">
+                                                        <CardTitle className="text-xl">{company.name}</CardTitle>
+                                                        <CardDescription className="mt-1">
+                                                            {company.registration_number && `Reg: ${company.registration_number} • `}
+                                                            {company.hq_location && `${company.hq_location} • `}
+                                                            {company.public_listing_status}
+                                                        </CardDescription>
                                                     </div>
                                                 </div>
-                                            </CardHeader>
-                                            <CollapsibleContent>
-                                                <CardContent className="pt-0">
-                                                    <Tabs
-                                                        defaultValue="ceos"
-                                                        className="w-full"
-                                                    >
-                                                        <TabsList className="grid w-full grid-cols-2">
-                                                            <TabsTrigger value="ceos">
-                                                                {t(
-                                                                    'companies_page.tabs.assigned_ceos',
-                                                                )}{' '}
-                                                                (
-                                                                {
-                                                                    company.ceos
-                                                                        .length
-                                                                }
-                                                                )
-                                                            </TabsTrigger>
-                                                            <TabsTrigger value="invitations">
-                                                                {t(
-                                                                    'companies_page.tabs.invitations',
-                                                                )}{' '}
-                                                                (
-                                                                {
-                                                                    company
-                                                                        .invitations
-                                                                        .length
-                                                                }
-                                                                )
-                                                            </TabsTrigger>
-                                                        </TabsList>
-
-                                                        <TabsContent
-                                                            value="ceos"
-                                                            className="mt-4"
+                                                <div className="flex items-center gap-3">
+                                                    <div className="text-right">
+                                                        <div className="text-sm font-medium">
+                                                            {totalAssignments} {totalAssignments === 1 ? 'CEO' : 'CEOs'}
+                                                        </div>
+                                                        <div className="text-xs text-muted-foreground">
+                                                            {company.ceos.length} Active
+                                                        </div>
+                                                    </div>
+                                                    {!company.hasCeo && (
+                                                        <Button
+                                                            onClick={() => openInviteDialog(company)}
+                                                            size="sm"
+                                                            className="bg-green-600 hover:bg-green-700"
                                                         >
-                                                            {company.ceos
-                                                                .length > 0 ? (
-                                                                <div className="overflow-hidden rounded-lg border">
-                                                                    <Table>
-                                                                        <TableHeader>
-                                                                            <TableRow>
-                                                                                <TableHead>
-                                                                                    {t(
-                                                                                        'companies_page.table.name',
-                                                                                    )}
-                                                                                </TableHead>
-                                                                                <TableHead>
-                                                                                    {t(
-                                                                                        'companies_page.table.email',
-                                                                                    )}
-                                                                                </TableHead>
-                                                                                <TableHead>
-                                                                                    {t(
-                                                                                        'companies_page.table.status',
-                                                                                    )}
-                                                                                </TableHead>
-                                                                                <TableHead>
-                                                                                    {t(
-                                                                                        'companies_page.table.actions',
-                                                                                    )}
-                                                                                </TableHead>
+                                                            <UserPlus className="w-4 h-4 mr-2" />
+                                                            {t('companies_index.invite_ceo')}
+                                                        </Button>
+                                                    )}
+                                                    <Link href={`/hr-manager/companies/${company.id}`}>
+                                                        <Button variant="outline" size="sm">
+                                                            {t('companies_index.view_details')}
+                                                        </Button>
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        </CardHeader>
+                                        <CollapsibleContent>
+                                            <CardContent className="pt-0">
+                                                <Tabs defaultValue="ceos" className="w-full">
+                                                    <TabsList className="grid w-full grid-cols-2">
+                                                        <TabsTrigger value="ceos">
+                                                            Assigned CEOs ({company.ceos.length})
+                                                        </TabsTrigger>
+                                                        <TabsTrigger value="invitations">
+                                                            Invitations ({company.invitations.length})
+                                                        </TabsTrigger>
+                                                    </TabsList>
+                                                    
+                                                    <TabsContent value="ceos" className="mt-4">
+                                                        {company.ceos.length > 0 ? (
+                                                            <div className="border rounded-lg overflow-hidden">
+                                                                <Table>
+                                                                    <TableHeader>
+                                                                        <TableRow>
+                                                                            <TableHead>Name</TableHead>
+                                                                            <TableHead>Email</TableHead>
+                                                                            <TableHead>Status</TableHead>
+                                                                            <TableHead>Actions</TableHead>
+                                                                        </TableRow>
+                                                                    </TableHeader>
+                                                                    <TableBody>
+                                                                        {company.ceos.map((ceo) => (
+                                                                            <TableRow key={ceo.id}>
+                                                                                <TableCell className="font-medium">{ceo.name}</TableCell>
+                                                                                <TableCell>{ceo.email}</TableCell>
+                                                                                <TableCell>{getStatusBadge(ceo.status)}</TableCell>
+                                                                                <TableCell>
+                                                                                    <Link href={`/hr-manager/companies/${company.id}`}>
+                                                                                        <Button variant="ghost" size="sm">View</Button>
+                                                                                    </Link>
+                                                                                </TableCell>
                                                                             </TableRow>
-                                                                        </TableHeader>
-                                                                        <TableBody>
-                                                                            {company.ceos.map(
-                                                                                (
-                                                                                    ceo,
-                                                                                ) => (
-                                                                                    <TableRow
-                                                                                        key={
-                                                                                            ceo.id
-                                                                                        }
-                                                                                    >
-                                                                                        <TableCell className="font-medium">
-                                                                                            {
-                                                                                                ceo.name
-                                                                                            }
-                                                                                        </TableCell>
-                                                                                        <TableCell>
-                                                                                            {
-                                                                                                ceo.email
-                                                                                            }
-                                                                                        </TableCell>
-                                                                                        <TableCell>
-                                                                                            {getStatusBadge(
-                                                                                                ceo.status,
-                                                                                            )}
-                                                                                        </TableCell>
-                                                                                        <TableCell>
-                                                                                            <Link
-                                                                                                href={`/hr-manager/companies/${company.id}`}
-                                                                                            >
+                                                                        ))}
+                                                                    </TableBody>
+                                                                </Table>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-center py-8 text-muted-foreground">
+                                                                <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                                                                <p>No CEOs assigned yet</p>
+                                                                <Button
+                                                                    onClick={() => openInviteDialog(company)}
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="mt-4"
+                                                                >
+                                                                    <UserPlus className="w-4 h-4 mr-2" />
+                                                                    {t('companies_index.invite_ceo')}
+                                                                </Button>
+                                                            </div>
+                                                        )}
+                                                    </TabsContent>
+                                                    
+                                                    <TabsContent value="invitations" className="mt-4">
+                                                        {company.invitations.length > 0 ? (
+                                                            <div className="border rounded-lg overflow-hidden">
+                                                                <Table>
+                                                                    <TableHeader>
+                                                                        <TableRow>
+                                                                            <TableHead>Email</TableHead>
+                                                                            <TableHead>Status</TableHead>
+                                                                            <TableHead>Invited By</TableHead>
+                                                                            <TableHead>Invited At</TableHead>
+                                                                            <TableHead>Expires At</TableHead>
+                                                                            <TableHead>Accepted/Rejected At</TableHead>
+                                                                            <TableHead>Actions</TableHead>
+                                                                        </TableRow>
+                                                                    </TableHeader>
+                                                                    <TableBody>
+                                                                        {company.invitations.map((invitation) => {
+                                                                            const isPending = invitation.status === 'pending';
+                                                                            return (
+                                                                                <TableRow key={invitation.id}>
+                                                                                    <TableCell className="font-medium">{invitation.email}</TableCell>
+                                                                                    <TableCell>{getStatusBadge(invitation.status)}</TableCell>
+                                                                                    <TableCell>{invitation.invited_by?.name || t('companies_index.na')}</TableCell>
+                                                                                    <TableCell>{formatDate(invitation.invited_at)}</TableCell>
+                                                                                    <TableCell>{formatDate(invitation.expires_at)}</TableCell>
+                                                                                    <TableCell>
+                                                                                        {invitation.accepted_at 
+                                                                                            ? formatDate(invitation.accepted_at)
+                                                                                            : invitation.rejected_at 
+                                                                                                ? formatDate(invitation.rejected_at)
+                                                                                                : t('companies_index.na')}
+                                                                                    </TableCell>
+                                                                                    <TableCell className="whitespace-nowrap">
+                                                                                        {isPending ? (
+                                                                                            <div className="flex items-center gap-2">
                                                                                                 <Button
-                                                                                                    variant="ghost"
+                                                                                                    variant="outline"
                                                                                                     size="sm"
+                                                                                                    onClick={() => handleResendInvitation(invitation.id)}
+                                                                                                    disabled={resendingInvitation === invitation.id || deletingInvitation === invitation.id}
+                                                                                                    className="h-8 px-3 text-xs"
                                                                                                 >
-                                                                                                    {t(
-                                                                                                        'companies_page.actions.view',
-                                                                                                    )}
+                                                                                                    <RefreshCw className={`w-3 h-3 mr-1 ${resendingInvitation === invitation.id ? 'animate-spin' : ''}`} />
+                                                                                                    {resendingInvitation === invitation.id ? t('companies_index.resending') : t('companies_index.resend')}
                                                                                                 </Button>
-                                                                                            </Link>
-                                                                                        </TableCell>
-                                                                                    </TableRow>
-                                                                                ),
-                                                                            )}
-                                                                        </TableBody>
-                                                                    </Table>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="py-8 text-center text-muted-foreground">
-                                                                    <Users className="mx-auto mb-2 h-12 w-12 opacity-50" />
-                                                                    <p>
-                                                                        {t(
-                                                                            'companies_page.empty.no_ceo',
-                                                                        )}
-                                                                    </p>
-                                                                    <Button
-                                                                        onClick={() =>
-                                                                            openInviteDialog(
-                                                                                company,
-                                                                            )
-                                                                        }
-                                                                        variant="outline"
-                                                                        size="sm"
-                                                                        className="mt-4"
-                                                                    >
-                                                                        <UserPlus className="mr-2 h-4 w-4" />
-                                                                        {t(
-                                                                            'companies_page.invite_ceo',
-                                                                        )}
-                                                                    </Button>
-                                                                </div>
-                                                            )}
-                                                        </TabsContent>
-
-                                                        <TabsContent
-                                                            value="invitations"
-                                                            className="mt-4"
-                                                        >
-                                                            {company.invitations
-                                                                .length > 0 ? (
-                                                                <div className="overflow-hidden rounded-lg border">
-                                                                    <Table>
-                                                                        <TableHeader>
-                                                                            <TableRow>
-                                                                                <TableHead>
-                                                                                    {t(
-                                                                                        'companies_page.table.email',
-                                                                                    )}
-                                                                                </TableHead>
-                                                                                <TableHead>
-                                                                                    {t(
-                                                                                        'companies_page.table.status',
-                                                                                    )}
-                                                                                </TableHead>
-                                                                                <TableHead>
-                                                                                    {t(
-                                                                                        'companies_page.table.invited_by',
-                                                                                    )}
-                                                                                </TableHead>
-                                                                                <TableHead>
-                                                                                    {t(
-                                                                                        'companies_page.table.invited_at',
-                                                                                    )}
-                                                                                </TableHead>
-                                                                                <TableHead>
-                                                                                    {t(
-                                                                                        'companies_page.table.expires_at',
-                                                                                    )}
-                                                                                </TableHead>
-                                                                                <TableHead>
-                                                                                    {t(
-                                                                                        'companies_page.table.accepted_rejected_at',
-                                                                                    )}
-                                                                                </TableHead>
-                                                                                <TableHead>
-                                                                                    {t(
-                                                                                        'companies_page.table.actions',
-                                                                                    )}
-                                                                                </TableHead>
-                                                                            </TableRow>
-                                                                        </TableHeader>
-                                                                        <TableBody>
-                                                                            {company.invitations.map(
-                                                                                (
-                                                                                    invitation,
-                                                                                ) => {
-                                                                                    const isPending =
-                                                                                        invitation.status ===
-                                                                                        'pending';
-                                                                                    return (
-                                                                                        <TableRow
-                                                                                            key={
-                                                                                                invitation.id
-                                                                                            }
-                                                                                        >
-                                                                                            <TableCell className="font-medium">
-                                                                                                {
-                                                                                                    invitation.email
-                                                                                                }
-                                                                                            </TableCell>
-                                                                                            <TableCell>
-                                                                                                {getStatusBadge(
-                                                                                                    invitation.status,
-                                                                                                )}
-                                                                                            </TableCell>
-                                                                                            <TableCell>
-                                                                                                {invitation
-                                                                                                    .invited_by
-                                                                                                    ?.name ||
-                                                                                                    'N/A'}
-                                                                                            </TableCell>
-                                                                                            <TableCell>
-                                                                                                {formatDate(
-                                                                                                    invitation.invited_at,
-                                                                                                )}
-                                                                                            </TableCell>
-                                                                                            <TableCell>
-                                                                                                {formatDate(
-                                                                                                    invitation.expires_at,
-                                                                                                )}
-                                                                                            </TableCell>
-                                                                                            <TableCell>
-                                                                                                {invitation.accepted_at
-                                                                                                    ? formatDate(
-                                                                                                          invitation.accepted_at,
-                                                                                                      )
-                                                                                                    : invitation.rejected_at
-                                                                                                      ? formatDate(
-                                                                                                            invitation.rejected_at,
-                                                                                                        )
-                                                                                                      : 'N/A'}
-                                                                                            </TableCell>
-                                                                                            <TableCell className="whitespace-nowrap">
-                                                                                                {isPending ? (
-                                                                                                    <div className="flex items-center gap-2">
-                                                                                                        <Button
-                                                                                                            variant="outline"
-                                                                                                            size="sm"
-                                                                                                            onClick={() =>
-                                                                                                                handleResendInvitation(
-                                                                                                                    invitation.id,
-                                                                                                                )
-                                                                                                            }
-                                                                                                            disabled={
-                                                                                                                resendingInvitation ===
-                                                                                                                    invitation.id ||
-                                                                                                                deletingInvitation ===
-                                                                                                                    invitation.id
-                                                                                                            }
-                                                                                                            className="h-8 px-3 text-xs"
-                                                                                                        >
-                                                                                                            <RefreshCw
-                                                                                                                className={`mr-1 h-3 w-3 ${resendingInvitation === invitation.id ? 'animate-spin' : ''}`}
-                                                                                                            />
-                                                                                                            {resendingInvitation ===
-                                                                                                            invitation.id
-                                                                                                                ? t(
-                                                                                                                      'companies_page.actions.resending',
-                                                                                                                  )
-                                                                                                                : t(
-                                                                                                                      'companies_page.actions.resend',
-                                                                                                                  )}
-                                                                                                        </Button>
-                                                                                                        <Button
-                                                                                                            variant="outline"
-                                                                                                            size="sm"
-                                                                                                            onClick={() =>
-                                                                                                                handleDeleteInvitation(
-                                                                                                                    invitation.id,
-                                                                                                                )
-                                                                                                            }
-                                                                                                            disabled={
-                                                                                                                resendingInvitation ===
-                                                                                                                    invitation.id ||
-                                                                                                                deletingInvitation ===
-                                                                                                                    invitation.id
-                                                                                                            }
-                                                                                                            className="h-8 border-red-200 px-3 text-xs text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-800 dark:hover:bg-red-900/20"
-                                                                                                        >
-                                                                                                            <Trash2
-                                                                                                                className={`mr-1 h-3 w-3 ${deletingInvitation === invitation.id ? 'animate-pulse' : ''}`}
-                                                                                                            />
-                                                                                                            {deletingInvitation ===
-                                                                                                            invitation.id
-                                                                                                                ? t(
-                                                                                                                      'companies_page.actions.deleting',
-                                                                                                                  )
-                                                                                                                : t(
-                                                                                                                      'companies_page.actions.delete',
-                                                                                                                  )}
-                                                                                                        </Button>
-                                                                                                    </div>
-                                                                                                ) : (
-                                                                                                    <span className="text-xs text-muted-foreground">
-                                                                                                        {t(
-                                                                                                            'companies_page.empty.no_invites',
-                                                                                                        )}
-                                                                                                    </span>
-                                                                                                )}
-                                                                                            </TableCell>
-                                                                                        </TableRow>
-                                                                                    );
-                                                                                },
-                                                                            )}
-                                                                        </TableBody>
-                                                                    </Table>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="py-8 text-center text-muted-foreground">
-                                                                    <Mail className="mx-auto mb-2 h-12 w-12 opacity-50" />
-                                                                    <p>
-                                                                        {t(
-                                                                            'companies_page.no_invitations',
-                                                                        )}
-                                                                    </p>
-                                                                </div>
-                                                            )}
-                                                        </TabsContent>
-                                                    </Tabs>
-                                                </CardContent>
-                                            </CollapsibleContent>
-                                        </Collapsible>
-                                    </Card>
-                                );
-                            })}
-                        </div>
-                    </>
+                                                                                                <Button
+                                                                                                    variant="outline"
+                                                                                                    size="sm"
+                                                                                                    onClick={() => handleDeleteInvitation(invitation.id)}
+                                                                                                    disabled={resendingInvitation === invitation.id || deletingInvitation === invitation.id}
+                                                                                                    className="h-8 px-3 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800"
+                                                                                                >
+                                                                                                    <Trash2 className={`w-3 h-3 mr-1 ${deletingInvitation === invitation.id ? 'animate-pulse' : ''}`} />
+                                                                                                    {deletingInvitation === invitation.id ? t('companies_index.deleting') : t('companies_index.delete')}
+                                                                                                </Button>
+                                                                                            </div>
+                                                                                        ) : (
+                                                                                            <span className="text-xs text-muted-foreground">{t('companies_index.no_actions')}</span>
+                                                                                        )}
+                                                                                    </TableCell>
+                                                                                </TableRow>
+                                                                            );
+                                                                        })}
+                                                                    </TableBody>
+                                                                </Table>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-center py-8 text-muted-foreground">
+                                                                <Mail className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                                                                <p>{t('companies_index.no_invitations')}</p>
+                                                            </div>
+                                                        )}
+                                                    </TabsContent>
+                                                </Tabs>
+                                            </CardContent>
+                                        </CollapsibleContent>
+                                    </Collapsible>
+                                </Card>
+                            );
+                        })}
+                </div>
+                </>
                 )}
 
                 {/* Invite CEO Dialog */}
@@ -757,11 +479,7 @@ export default function CompaniesIndex({ companies }: Props) {
                     >
                         <DialogContent className="max-w-lg">
                             <DialogHeader>
-                                <DialogTitle>
-                                    {t('companies_page.dialog.title', {
-                                        company: selectedCompany.name,
-                                    })}
-                                </DialogTitle>
+                                <DialogTitle>{t('companies_index.invite_dialog.title', { company: selectedCompany.name })}</DialogTitle>
                                 <DialogDescription>
                                     {selectedCompany.activeProject
                                         ? t(
@@ -828,14 +546,8 @@ export default function CompaniesIndex({ companies }: Props) {
                                     >
                                         {t('companies_page.dialog.cancel')}
                                     </Button>
-                                    <Button
-                                        type="submit"
-                                        disabled={processing}
-                                        className="bg-green-600 hover:bg-green-700"
-                                    >
-                                        {processing
-                                            ? t('companies_page.dialog.sending')
-                                            : t('companies_page.dialog.send')}
+                                    <Button type="submit" disabled={processing} className="bg-green-600 hover:bg-green-700">
+                                        {processing ? t('companies_index.sending') : t('companies_index.send_invitation')}
                                     </Button>
                                 </div>
                             </form>

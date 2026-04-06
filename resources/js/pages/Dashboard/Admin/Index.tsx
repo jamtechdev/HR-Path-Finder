@@ -16,19 +16,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Head, Link } from '@inertiajs/react';
-import {
-    ArrowRight,
-    Building2,
-    CheckCircle2,
-    Eye,
-    FileText,
-    FolderKanban,
-    LayoutGrid,
-    Target,
-    TrendingUp,
-    Users,
-} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface Project {
@@ -80,7 +67,6 @@ export default function AdminDashboard({
     total_ceo_users = 0,
 }: Props) {
     const { t } = useTranslation();
-
     const getStatusBadge = (status: string) => {
         const statusMap: Record<
             string,
@@ -110,18 +96,17 @@ export default function AdminDashboard({
                 <AppHeader />
                 <main className="relative flex-1 overflow-auto bg-background">
                     <div className="relative z-10">
-                        <Head title={t('admin.dashboard.title')} />
-
+                    <Head title={t('admin_dashboard.page_title')} />
                         <div className="mx-auto max-w-7xl p-6 md:p-8">
                             <div className="mb-8">
                                 <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
                                     <LayoutGrid className="h-8 w-8 text-primary" />
                                 </div>
                                 <h1 className="mb-2 text-3xl font-bold text-foreground">
-                                    {t('admin.dashboard.title')}
+                                    {t('admin_dashboard.heading')}
                                 </h1>
                                 <p className="text-muted-foreground">
-                                    {t('admin.dashboard.subtitle')}
+                                    {t('admin_dashboard.subheading')}
                                 </p>
                             </div>
 
@@ -133,7 +118,7 @@ export default function AdminDashboard({
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
-                                                    {t('admin.stats.total_hr')}
+                                                    {t('admin_dashboard.stats.total_hr')}
                                                 </p>
                                                 <p className="text-3xl font-bold text-foreground">
                                                     {total_hr_users}
@@ -152,7 +137,7 @@ export default function AdminDashboard({
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
-                                                    {t('admin.stats.total_ceo')}
+                                                    {t('admin_dashboard.stats.total_ceo')}
                                                 </p>
                                                 <p className="text-3xl font-bold text-foreground">
                                                     {total_ceo_users}
@@ -171,9 +156,7 @@ export default function AdminDashboard({
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
-                                                    {t(
-                                                        'admin.stats.total_projects',
-                                                    )}
+                                                    {t('admin_dashboard.stats.total_projects')}
                                                 </p>
                                                 <p className="text-3xl font-bold text-foreground">
                                                     {stats.total_projects}
@@ -192,9 +175,7 @@ export default function AdminDashboard({
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
-                                                    {t(
-                                                        'admin.stats.total_companies',
-                                                    )}
+                                                    {t('admin_dashboard.stats.total_companies')}
                                                 </p>
                                                 <p className="text-3xl font-bold text-foreground">
                                                     {stats.total_companies}
@@ -213,9 +194,7 @@ export default function AdminDashboard({
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
-                                                    {t(
-                                                        'admin.stats.active_projects',
-                                                    )}
+                                                    {t('admin_dashboard.stats.active_projects')}
                                                 </p>
                                                 <p className="text-3xl font-bold text-foreground">
                                                     {stats.active_projects}
@@ -234,9 +213,7 @@ export default function AdminDashboard({
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
-                                                    {t(
-                                                        'admin.stats.completed_projects',
-                                                    )}
+                                                    {t('admin_dashboard.stats.completed')}
                                                 </p>
                                                 <p className="text-3xl font-bold text-foreground">
                                                     {stats.completed_projects}
@@ -256,17 +233,13 @@ export default function AdminDashboard({
                                             <div className="flex items-center justify-between">
                                                 <div>
                                                     <p className="mb-1 text-sm text-muted-foreground">
-                                                        {t(
-                                                            'admin.stats.pending_approval',
-                                                        )}
+                                                        {t('admin_dashboard.stats.pending_approval')}
                                                     </p>
                                                     <p className="text-3xl font-bold text-foreground">
-                                                        {
-                                                            users.filter(
-                                                                (u) =>
-                                                                    !u.access_granted_at,
-                                                            ).length
-                                                        }
+                                                        {users.filter((u) => !u.access_granted_at).length}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        {t('admin_dashboard.stats.pending_approval_hint')}
                                                     </p>
                                                 </div>
                                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/20">
@@ -285,14 +258,11 @@ export default function AdminDashboard({
                                         <div className="flex items-center justify-between gap-3">
                                             <CardTitle className="flex items-center gap-2">
                                                 <Users className="h-5 w-5 text-primary" />
-                                                {t('admin.users.title')}
+                                                {t('admin_dashboard.users.title')}
                                             </CardTitle>
                                             <Link href="/admin/ceo">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                >
-                                                    {t('common.manage')}{' '}
+                                                <Button variant="outline" size="sm">
+                                                    {t('admin_dashboard.users.manage')}
                                                     <ArrowRight className="ml-2 h-4 w-4" />
                                                 </Button>
                                             </Link>
@@ -303,68 +273,25 @@ export default function AdminDashboard({
                                             <Table>
                                                 <TableHeader>
                                                     <TableRow>
-                                                        <TableHead>
-                                                            {t(
-                                                                'admin.users.name',
-                                                            )}
-                                                        </TableHead>
-                                                        <TableHead>
-                                                            {t(
-                                                                'admin.users.role',
-                                                            )}
-                                                        </TableHead>
-                                                        <TableHead>
-                                                            {t(
-                                                                'admin.users.company',
-                                                            )}
-                                                        </TableHead>
-                                                        <TableHead>
-                                                            {t(
-                                                                'admin.users.email_verified',
-                                                            )}
-                                                        </TableHead>
-                                                        <TableHead>
-                                                            {t(
-                                                                'admin.users.access',
-                                                            )}
-                                                        </TableHead>
+                                                        <TableHead>{t('admin_dashboard.users.table.name')}</TableHead>
+                                                        <TableHead>{t('admin_dashboard.users.table.role')}</TableHead>
+                                                        <TableHead>{t('admin_dashboard.users.table.company')}</TableHead>
+                                                        <TableHead>{t('admin_dashboard.users.table.email_verified')}</TableHead>
+                                                        <TableHead>{t('admin_dashboard.users.table.access')}</TableHead>
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
                                                     {users.length === 0 ? (
                                                         <TableRow>
-                                                            <TableCell
-                                                                colSpan={5}
-                                                                className="text-center text-muted-foreground"
-                                                            >
-                                                                {t(
-                                                                    'common.no_users_found',
-                                                                )}
+                                                            <TableCell colSpan={5} className="text-center text-muted-foreground">
+                                                                {t('admin_dashboard.users.no_users')}
                                                             </TableCell>
                                                         </TableRow>
                                                     ) : (
                                                         users.map((u) => (
-                                                            <TableRow
-                                                                key={u.id}
-                                                            >
-                                                                <TableCell className="font-medium">
-                                                                    {u.name}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {u.role ===
-                                                                    'ceo'
-                                                                        ? t(
-                                                                              'roles.ceo',
-                                                                          )
-                                                                        : t(
-                                                                              'roles.hr_manager',
-                                                                          )}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {u.companyNames?.join(
-                                                                        ', ',
-                                                                    ) || '-'}
-                                                                </TableCell>
+                                                            <TableRow key={u.id}>
+                                                                <TableCell className="font-medium">{u.name}</TableCell>
+                                                                <TableCell>{u.role === 'ceo' ? 'CEO' : t('admin_dashboard.users.hr_manager')}</TableCell>
                                                                 <TableCell>
                                                                     {u.email_verified_at
                                                                         ? t(
@@ -376,22 +303,12 @@ export default function AdminDashboard({
                                                                 </TableCell>
                                                                 <TableCell>
                                                                     {u.access_granted_at ? (
-                                                                        <Badge
-                                                                            variant="outline"
-                                                                            className="border-emerald-200 bg-emerald-50 text-emerald-800"
-                                                                        >
-                                                                            {t(
-                                                                                'status.active',
-                                                                            )}
+                                                                        <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-200">
+                                                                            {t('admin_dashboard.users.active')}
                                                                         </Badge>
                                                                     ) : (
-                                                                        <Badge
-                                                                            variant="outline"
-                                                                            className="border-amber-200 bg-amber-50 text-amber-800"
-                                                                        >
-                                                                            {t(
-                                                                                'status.pending',
-                                                                            )}
+                                                                        <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
+                                                                            {t('admin_dashboard.users.pending')}
                                                                         </Badge>
                                                                     )}
                                                                 </TableCell>
@@ -412,9 +329,7 @@ export default function AdminDashboard({
                                         <div className="flex items-center justify-between">
                                             <CardTitle className="flex items-center gap-2">
                                                 <FileText className="h-5 w-5" />
-                                                {t(
-                                                    'admin.pending_ceo_survey.title',
-                                                )}
+                                                {t('admin_dashboard.pending_survey.title')}
                                             </CardTitle>
                                             <Badge variant="secondary">
                                                 {stats.pending_ceo_survey}
@@ -423,18 +338,14 @@ export default function AdminDashboard({
                                     </CardHeader>
                                     <CardContent>
                                         <p className="mb-4 text-sm text-muted-foreground">
-                                            {t(
-                                                'admin.pending_ceo_survey.description',
-                                            )}
+                                            {t('admin_dashboard.pending_survey.description')}
                                         </p>
                                         <Link href="/admin/hr-projects">
                                             <Button
                                                 variant="outline"
                                                 className="w-full"
                                             >
-                                                {t(
-                                                    'admin.pending_ceo_survey.button',
-                                                )}
+                                                {t('admin_dashboard.pending_survey.view_all_projects')}
                                                 <ArrowRight className="ml-2 h-4 w-4" />
                                             </Button>
                                         </Link>
@@ -455,9 +366,7 @@ export default function AdminDashboard({
                                                 <div className="flex items-center justify-between">
                                                     <CardTitle className="flex items-center gap-2">
                                                         <Target className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                                                        {t(
-                                                            'admin.recommendations.performance.title',
-                                                        )}
+                                                        {t('admin_dashboard.recommendations.performance_title')}
                                                     </CardTitle>
                                                     <Badge
                                                         variant="secondary"
@@ -471,11 +380,8 @@ export default function AdminDashboard({
                                             </CardHeader>
                                             <CardContent>
                                                 <p className="mb-4 text-sm text-muted-foreground">
-                                                    {t(
-                                                        'admin.recommendations.performance.description',
-                                                    )}
+                                                    {t('admin_dashboard.recommendations.performance_desc')}
                                                 </p>
-                                                {/* List items here - same as before */}
                                                 <div className="mb-4 max-h-48 space-y-2 overflow-y-auto">
                                                     {projectsNeedingPerformanceRecommendation.map(
                                                         (project) => (
@@ -495,11 +401,83 @@ export default function AdminDashboard({
                                                         ),
                                                     )}
                                                 </div>
+                                                {projectsNeedingPerformanceRecommendation.length >
+                                                    3 && (
+                                                    <Link href="/admin/dashboard">
+                                                        <Button
+                                                            variant="outline"
+                                                            className="w-full"
+                                                            size="sm"
+                                                        >
+                                                            {t('admin_dashboard.view_all')}
+                                                            <ArrowRight className="ml-2 h-4 w-4" />
+                                                        </Button>
+                                                    </Link>
+                                                )}
                                             </CardContent>
                                         </Card>
                                     )}
 
-                                    {/* Compensation Card - same pattern, t() keys add kar do jaise performance wala */}
+                                    {projectsNeedingCompensationRecommendation.length >
+                                        0 && (
+                                        <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/20">
+                                            <CardHeader>
+                                                <div className="flex items-center justify-between">
+                                                    <CardTitle className="flex items-center gap-2">
+                                                        <DollarSign className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                                                        {t('admin_dashboard.recommendations.compensation_title')}
+                                                    </CardTitle>
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
+                                                    >
+                                                        {
+                                                            projectsNeedingCompensationRecommendation.length
+                                                        }
+                                                    </Badge>
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="mb-4 text-sm text-muted-foreground">
+                                                    {t('admin_dashboard.recommendations.compensation_desc')}
+                                                </p>
+                                                <div className="mb-4 max-h-48 space-y-2 overflow-y-auto">
+                                                    {projectsNeedingCompensationRecommendation.map(
+                                                        (project) => (
+                                                            <Link
+                                                                key={project.id}
+                                                                href={`/admin/recommendations/compensation/${project.id}`}
+                                                                className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-background"
+                                                            >
+                                                                <div className="flex-1">
+                                                                    <p className="text-sm font-medium">
+                                                                        {project
+                                                                            .company
+                                                                            ?.name ||
+                                                                            `Project #${project.id}`}
+                                                                    </p>
+                                                                </div>
+                                                                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                                            </Link>
+                                                        ),
+                                                    )}
+                                                </div>
+                                                {projectsNeedingCompensationRecommendation.length >
+                                                    3 && (
+                                                    <Link href="/admin/dashboard">
+                                                        <Button
+                                                            variant="outline"
+                                                            className="w-full"
+                                                            size="sm"
+                                                        >
+                                                            {t('admin_dashboard.view_all')}
+                                                            <ArrowRight className="ml-2 h-4 w-4" />
+                                                        </Button>
+                                                    </Link>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    )}
                                 </div>
                             )}
 
@@ -507,12 +485,10 @@ export default function AdminDashboard({
                             <Card>
                                 <CardHeader>
                                     <div className="flex items-center justify-between">
-                                        <CardTitle>
-                                            {t('admin.recent_projects.title')}
-                                        </CardTitle>
+                                        <CardTitle>{t('admin_dashboard.recent_projects.title')}</CardTitle>
                                         <Link href="/admin/hr-projects">
                                             <Button variant="ghost" size="sm">
-                                                {t('common.view_all')}
+                                                {t('admin_dashboard.view_all')}
                                                 <ArrowRight className="ml-2 h-4 w-4" />
                                             </Button>
                                         </Link>
@@ -571,7 +547,7 @@ export default function AdminDashboard({
                                         </div>
                                     ) : (
                                         <p className="py-8 text-center text-muted-foreground">
-                                            {t('common.no_projects_yet')}
+                                            {t('admin_dashboard.recent_projects.empty')}
                                         </p>
                                     )}
                                 </CardContent>
