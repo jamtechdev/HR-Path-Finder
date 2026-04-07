@@ -136,7 +136,7 @@ export default function JobAnalysisOverview({
             <section className="bg-[#0f172a] text-white px-6 py-10 pb-20 md:px-[10%]">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
                     <div className="font-bold text-lg">
-                        HR Path-Finder <span className="font-normal text-[#64748b] ml-2">/ Job Analysis</span>
+                        {t('job_analysis_pages.overview.brand')} <span className="font-normal text-[#64748b] ml-2">/ {t('job_analysis_pages.overview.breadcrumb')}</span>
                     </div>
                     <div className="bg-white/10 border border-white/20 px-3 py-1 rounded-[20px] text-xs text-[#94a3b8]">
                         {statusLabel}
@@ -157,12 +157,7 @@ export default function JobAnalysisOverview({
                         {t('job_analysis_pages.overview.hero.before_title')}
                     </div>
                     <p className="text-[#e2e8f0] text-sm leading-relaxed m-0">
-                        This stage is not intended to redesign or change your current organizational structure. Its
-                        purpose is to organize and clarify the job standards and role expectations as they are
-                        currently operated within your company. There are no right or wrong answers to any of the
-                        questions. Your responses will be used solely as baseline inputs for the subsequent design of
-                        the performance management and compensation systems. All inputs are confidential and will not
-                        be shared with other employees.
+                        {t('job_analysis_pages.overview.hero.before_body')}
                     </p>
                 </div>
 

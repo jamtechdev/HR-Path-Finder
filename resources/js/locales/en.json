@@ -17,7 +17,8 @@
     "success": "Success",
     "error": "Error",
     "warning": "Warning",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "project_number": "Project #{{id}}"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -2351,7 +2352,7 @@
         "title": "Job Analysis Overview",
         "desc": "Define job standards and role expectations for your organization. Complete each step in sequence to build a consultant-ready job framework.",
         "before_title": "Before you begin",
-        "before_body": "This stage is not intended to redesign your current organizational structure. It organizes current job standards and role expectations to support later performance and compensation design. All answers are used as baseline inputs and kept confidential."
+        "before_body": "This stage is not intended to redesign your current organizational structure. It organizes current job standards and role expectations to support later performance and compensation design. All answers are baseline inputs and are kept confidential."
       },
       "progress": {
         "steps_done": "Steps Done",
@@ -2371,7 +2372,9 @@
       "footer": {
         "completed": "{{completed}} of {{total}} steps completed",
         "start": "Start Job Analysis"
-      }
+      },
+      "brand": "HR Path-Finder",
+      "breadcrumb": "Job Analysis"
     },
     "step1": {
       "title": "Policy Snapshot",
@@ -2409,11 +2412,18 @@
         "subtitle": "Based on your Step 1-2 responses",
         "industry": "Industry",
         "company_size": "Company Size",
-        "framework": "Job framework"
+        "framework": "Job framework",
+        "job_classification": "Job Classification",
+        "role_differentiation": "Role Differentiation",
+        "grade_authority": "Grade Authority",
+        "skill_level_based": "By skill level ✓",
+        "not_defined": "Not defined",
+        "why_matters": "Why this matters:",
+        "why_body": "Jobs marked Core are based on your profile. Pre-selected roles reflect standard essentials."
       },
       "purpose_label": "Purpose:",
       "purpose_text": "Define the scope of jobs that exist in your company based on industry characteristics. This step confirms and finalizes which jobs will be designed and structured.",
-      "info_text": "Based on your industry and organizational size, we suggest common roles. Select only jobs currently operating in your company, and add unique roles if needed.",
+      "info_text": "Based on your industry and organizational size, we suggest common roles in similar companies. Select only jobs currently operating in your company and add unique roles if needed. Pre-configured list for {{industry}} company ({{size}}), {{framework}}.",
       "roles": "roles",
       "selected": "selected",
       "sidebar_framework_with": "with a formal job classification framework",
@@ -2423,7 +2433,14 @@
       "continue": "Save & Continue",
       "complete_min": "Select at least {{min}} jobs to continue",
       "your_industry": "your industry",
-      "your_size": "your size"
+      "your_size": "your size",
+      "continue_to_job_definition": "Continue to Job Definition",
+      "families": {
+        "Corporate & Management Support": "Corporate & Management Support",
+        "Clinical & Medical": "Clinical & Medical",
+        "Operations & Technology": "Operations & Technology",
+        "Other": "Other"
+      }
     }
   },
   "diagnosis_org_structure": {

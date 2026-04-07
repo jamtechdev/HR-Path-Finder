@@ -7,6 +7,7 @@ import { OrgStructureDiagram } from '@/components/Diagnosis/OrgStructureDiagrams
 import { useTranslation } from 'react-i18next';
 import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
 import { cn } from '@/lib/utils';
+import { translateStaticOnly } from '@/lib/translateStaticOnly';
 
 interface Diagnosis {
     id: number;
@@ -81,6 +82,8 @@ export default function OrganizationalStructure({
     embedSetData,
 }: Props) {
     const { t } = useTranslation();
+    const tx = (key: string) =>
+        translateStaticOnly(t, key, ['diagnosis_org_structure.']);
 
     const [selectedIds, setSelectedIds] = useState<string[]>(() =>
         normalizeLoadedTypes(diagnosis?.org_structure_types)
@@ -138,8 +141,8 @@ export default function OrganizationalStructure({
     // Get translated name and description
     const getTranslatedOption = (option: typeof STRUCTURE_OPTIONS[0]) => ({
         id: option.id,
-        name: t(option.nameKey),
-        desc: t(option.descKey),
+        name: tx(option.nameKey),
+        desc: tx(option.descKey),
     });
 
     const innerContent = (
@@ -228,7 +231,7 @@ export default function OrganizationalStructure({
                     ) : (
                         selectedIds.map((id) => {
                             const option = STRUCTURE_OPTIONS.find(o => o.id === id);
-                            const name = option ? t(option.nameKey) : id;
+                            const name = option ? tx(option.nameKey) : id;
                             return (
                                 <span
                                     key={id}

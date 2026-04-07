@@ -48,6 +48,8 @@ interface Props {
 
 export default function CeoProjectsIndex({ projects }: Props) {
     const { t } = useTranslation();
+    const tx = (key: string, fallback: string) =>
+        t(key, { defaultValue: fallback });
 
     const getOverallStatus = (project: Project) => {
         const stepStatuses = project.step_statuses || {};
@@ -151,7 +153,7 @@ export default function CeoProjectsIndex({ projects }: Props) {
                                                             <div className="font-medium">
                                                                 {project.company
                                                                     ?.name ||
-                                                                    `Project #${project.id}`}
+                                                                    tx('common.project_number', `Project #${project.id}`).replace('{{id}}', String(project.id))}
                                                             </div>
                                                         </td>
 
@@ -160,6 +162,7 @@ export default function CeoProjectsIndex({ projects }: Props) {
                                                             <Badge variant="outline">
                                                                 {t(
                                                                     `ceo_project.status_${overallStatus}`,
+                                                                    { defaultValue: overallStatus },
                                                                 )}
                                                             </Badge>
                                                         </td>

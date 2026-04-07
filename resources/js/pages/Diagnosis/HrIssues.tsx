@@ -5,6 +5,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { translateStaticOnly } from '@/lib/translateStaticOnly';
 
 const CATEGORIES = [
     {
@@ -141,6 +142,8 @@ export default function HrIssues({
     embedSetData,
 }: Props) {
     const { t } = useTranslation();
+    const tx = (key: string) =>
+        translateStaticOnly(t, key, ['diagnosis_hr_issues.']);
 
     const [checked, setChecked] = useState<Record<string, string[]>>(() =>
         buildCheckedFromDiagnosis(diagnosis),
@@ -271,7 +274,7 @@ export default function HrIssues({
                             className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all"
                         >
                             <span>{cat.emoji}</span>
-                            <span>{t(cat.nameKey)}</span>
+                            <span>{tx(cat.nameKey)}</span>
                             {count > 0 && (
                                 <span
                                     style={{
@@ -312,7 +315,7 @@ export default function HrIssues({
                         </div>
                         <div>
                             <div className="text-base font-bold text-slate-800">
-                                {t(activeCat.nameKey)}
+                                {tx(activeCat.nameKey)}
                             </div>
                             <div className="mt-0.5 text-xs text-slate-500">
                                 {t('diagnosis_hr_issues.totalItems', {
@@ -387,7 +390,7 @@ export default function HrIssues({
                                             : 'text-slate-600',
                                     )}
                                 >
-                                    {t(issueKey)}
+                                    {tx(issueKey)}
                                 </span>
                             </button>
                         );
@@ -481,7 +484,7 @@ export default function HrIssues({
                                 }}
                                 className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
                             >
-                                {cat.emoji} {t(cat.nameKey)}{' '}
+                                {cat.emoji} {tx(cat.nameKey)}{' '}
                                 {catCheckedCount(cat.id)}
                             </span>
                         ))}
@@ -496,7 +499,13 @@ export default function HrIssues({
     return (
         <>
             <Head
-                title={`Key HR Issues - ${company?.name || project?.company?.name || 'Company'}`}
+                title={t('page_heads.hr_issues', {
+                    company:
+                        company?.name ||
+                        project?.company?.name ||
+                        t('page_head_fallbacks.company'),
+                    defaultValue: `Key HR Issues - ${company?.name || project?.company?.name || t('page_head_fallbacks.company', { defaultValue: 'Company' })}`,
+                })}
             />
             <FormLayout
                 title={t('diagnosis_hr_issues.title')}

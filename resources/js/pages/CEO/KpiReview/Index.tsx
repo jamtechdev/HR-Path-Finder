@@ -33,6 +33,8 @@ interface Props {
 
 export default function CeoKpiReviewIndex({ projects }: Props) {
     const { t } = useTranslation();
+    const tx = (key: string, fallback: string) =>
+        t(key, { defaultValue: fallback });
 
     const getStatusBadge = (status: Project['kpi_review_status']) => {
         if (status === 'approved') {
@@ -127,7 +129,7 @@ export default function CeoKpiReviewIndex({ projects }: Props) {
                                                     <td className="px-4 py-3 font-medium">
                                                         {project.company
                                                             ?.name ||
-                                                            `Project #${project.id}`}
+                                                            tx('common.project_number', `Project #${project.id}`).replace('{{id}}', String(project.id))}
                                                     </td>
 
                                                     {/* KPI Progress */}

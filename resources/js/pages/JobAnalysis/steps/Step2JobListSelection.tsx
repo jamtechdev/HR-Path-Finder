@@ -55,6 +55,14 @@ export default function Step2JobListSelection({
     fieldErrors = {},
 }: Step2JobListSelectionProps) {
     const { t } = useTranslation();
+    const clsStatus = diagnosisContext?.jobClassificationStatus;
+    const clsLabel = clsStatus === 'yes'
+        ? t('job_analysis_pages.step1.options.yes')
+        : clsStatus === 'no'
+          ? t('job_analysis_pages.step1.options.no')
+          : clsStatus === 'not_sure'
+            ? t('job_analysis_pages.step1.options.not_sure')
+            : '—';
     const [selectedJobIds, setSelectedJobIds] = useState<number[]>(
         jobSelections.selected_job_keyword_ids || []
     );
@@ -182,9 +190,11 @@ export default function Step2JobListSelection({
                             <Link2 className="w-5 h-5 text-[#666]" />
                         </div>
                         <p className="text-[13px] leading-relaxed" style={{ lineHeight: 1.5 }}>
-                            {t('job_analysis_pages.step2.info_text')}{' '}
-                            We&apos;ve pre-configured a list for a <strong>{industryLabel} company ({sizeLabel})</strong>{' '}
-                            {frameworkLabel}.
+                            {t('job_analysis_pages.step2.info_text', {
+                                industry: industryLabel,
+                                size: sizeLabel,
+                                framework: frameworkLabel,
+                            })}
                         </p>
                     </div>
 
@@ -433,7 +443,7 @@ export default function Step2JobListSelection({
                                 </div>
                                 <div className="font-bold">
                                     {diagnosisContext.sizeRange
-                                        ? `${diagnosisContext.sizeRange.replace('-', ' - ')} employees`
+                                        ? `${diagnosisContext.sizeRange.replace('-', ' - ')} ${t('job_analysis_pages.step2.sidebar_size_suffix')}`
                                         : '—'}
                                 </div>
                             </div>
@@ -442,7 +452,7 @@ export default function Step2JobListSelection({
                                 style={{ padding: '15px 20px' }}
                             >
                                 <div className="text-[10px] text-[#999] uppercase mb-1">
-                                    Job Classification
+                                    {t('job_analysis_pages.step2.context.job_classification')}
                                 </div>
                                 <div
                                     className={cn(
@@ -450,13 +460,7 @@ export default function Step2JobListSelection({
                                         diagnosisContext.jobClassificationStatus !== 'yes' && 'text-[#d9534f]'
                                     )}
                                 >
-                                    {diagnosisContext.jobClassificationStatus === 'yes'
-                                        ? 'In place'
-                                        : diagnosisContext.jobClassificationStatus === 'no'
-                                        ? 'Not in place'
-                                        : diagnosisContext.jobClassificationStatus === 'not_sure'
-                                        ? 'Not sure'
-                                        : '—'}
+                                    {clsLabel}
                                 </div>
                             </div>
                             <div
@@ -464,23 +468,22 @@ export default function Step2JobListSelection({
                                 style={{ padding: '15px 20px' }}
                             >
                                 <div className="text-[10px] text-[#999] uppercase mb-1">
-                                    Role Differentiation
+                                    {t('job_analysis_pages.step2.context.role_differentiation')}
                                 </div>
-                                <div className="font-bold text-[#5cb85c]">By skill level ✓</div>
+                                <div className="font-bold text-[#5cb85c]">{t('job_analysis_pages.step2.context.skill_level_based')}</div>
                             </div>
                             <div
                                 className="border-b border-[#f0f0f0] px-5 py-4"
                                 style={{ padding: '15px 20px' }}
                             >
                                 <div className="text-[10px] text-[#999] uppercase mb-1">
-                                    Grade Authority
+                                    {t('job_analysis_pages.step2.context.grade_authority')}
                                 </div>
-                                <div className="font-bold text-[#d9534f]">Not defined</div>
+                                <div className="font-bold text-[#d9534f]">{t('job_analysis_pages.step2.context.not_defined')}</div>
                             </div>
                             <div className="p-5 text-xs" style={{ lineHeight: 1.4, padding: 20 }}>
-                                <strong className="text-[#c8963e]">Why this matters:</strong> Jobs
-                                marked <strong>Core</strong> are based on your profile. Pre-selected
-                                roles reflect standard essentials.
+                                <strong className="text-[#c8963e]">{t('job_analysis_pages.step2.context.why_matters')}</strong>{' '}
+                                {t('job_analysis_pages.step2.context.why_body')}
                             </div>
                         </div>
                     </aside>
@@ -494,8 +497,7 @@ export default function Step2JobListSelection({
             >
                 <div className="flex flex-col gap-1 min-w-0 flex-1">
                     <p className="text-[13px] text-[#666]">
-                        Select at least <strong>{MIN_JOBS_REQUIRED} jobs</strong> — {totalConfirmed} selected
-                        so far
+                        {t('job_analysis_pages.step2.complete_min', { min: MIN_JOBS_REQUIRED })} — {totalConfirmed} {t('job_analysis_pages.step2.selected')}
                     </p>
                     <FieldErrorMessage fieldKey="job-selection" errors={fieldErrors} className="!mt-0" />
                 </div>
@@ -508,7 +510,7 @@ export default function Step2JobListSelection({
                         style={{ padding: '10px 25px' }}
                     >
                         <ChevronLeft className="w-4 h-4 mr-1" />
-                        Back
+                        {t('job_analysis_pages.step2.back')}
                     </Button>
                     <Button
                         type="button"
@@ -516,7 +518,7 @@ export default function Step2JobListSelection({
                         className="rounded-md font-bold bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white"
                         style={{ padding: '12px 30px' }}
                     >
-                        Continue to Job Definition
+                        {t('job_analysis_pages.step2.continue_to_job_definition')}
                         <ArrowRight className="w-4 h-4 ml-1" />
                     </Button>
                 </div>

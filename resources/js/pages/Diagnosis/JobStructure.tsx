@@ -5,6 +5,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { translateStaticOnly } from '@/lib/translateStaticOnly';
 
 const SEP = '|';
 
@@ -160,6 +161,8 @@ export default function JobStructure({
     embedSetData,
 }: Props) {
     const { t } = useTranslation();
+    const labelOf = (value: string) =>
+        translateStaticOnly(t, value, ['diagnosis_job_structure.default.']);
 
     const [categories, setCategories] = useState<JobCategory[]>(() =>
         buildCategoriesFromDiagnosis(diagnosis),
@@ -216,7 +219,8 @@ export default function JobStructure({
         const newId = Math.max(0, ...categories.map((c) => c.id)) + 1;
         const newCat: JobCategory = {
             id: newId,
-            nameKey: `diagnosis_job_structure.custom.${Date.now()}`, // unique key for custom
+            // Keep user-entered label as-is for dynamic categories; known keys still translate via labelOf().
+            nameKey: trimmed,
             functions: [],
         };
 
@@ -333,7 +337,7 @@ export default function JobStructure({
                                                     isSelected && 'font-bold',
                                                 )}
                                             >
-                                                {t(cat.nameKey)}
+                                                {labelOf(cat.nameKey)}
                                             </div>
                                             <div
                                                 className={cn(
@@ -364,9 +368,7 @@ export default function JobStructure({
                                                     t(
                                                         'diagnosis_job_structure.confirmRemoveCategory',
                                                         {
-                                                            name: t(
-                                                                cat.nameKey,
-                                                            ),
+                                                            name: labelOf(cat.nameKey),
                                                         },
                                                     ),
                                                 )
@@ -438,7 +440,7 @@ export default function JobStructure({
                             <div className="flex items-center gap-2.5 border-b border-slate-200 bg-slate-50 px-5 py-3.5">
                                 <div className="h-2 w-2 rounded-full bg-yellow-500" />
                                 <span className="text-[15px] font-bold">
-                                    {t(selectedCat.nameKey)}
+                                    {labelOf(selectedCat.nameKey)}
                                 </span>
                                 <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
                                     {t(
@@ -489,7 +491,7 @@ export default function JobStructure({
                                     }
                                     placeholder={t(
                                         'diagnosis_job_structure.addFunctionPlaceholder',
-                                        { category: t(selectedCat.nameKey) },
+                                        { category: labelOf(selectedCat.nameKey) },
                                     )}
                                     className="flex-1 rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm outline-none"
                                 />
@@ -528,7 +530,13 @@ export default function JobStructure({
     return (
         <>
             <Head
-                title={`Job Structure - ${company?.name || project?.company?.name || 'Company'}`}
+                title={t('page_heads.job_structure', {
+                    company:
+                        company?.name ||
+                        project?.company?.name ||
+                        t('page_head_fallbacks.company'),
+                    defaultValue: `Job Structure - ${company?.name || project?.company?.name || t('page_head_fallbacks.company', { defaultValue: 'Company' })}`,
+                })}
             />
             <FormLayout
                 title={t('diagnosis_job_structure.title')}
