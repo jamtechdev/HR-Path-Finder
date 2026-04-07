@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->timestamp('access_granted_at')->nullable();
-        });
+        if (!Schema::hasColumn('users', 'access_granted_at')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->timestamp('access_granted_at')->nullable();
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
-        });
+        if (Schema::hasColumn('users', 'access_granted_at')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->dropColumn('access_granted_at');
+            });
+        }
     }
 };
