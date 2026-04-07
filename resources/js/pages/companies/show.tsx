@@ -154,6 +154,9 @@ export default function ShowCompany({ company }: Props) {
             ? company.logo_path
             : `/storage/${company.logo_path}`
         : null;
+    const activeProject =
+        company.hrProjects?.find((project) => project.status === 'active') ??
+        null;
 
     return (
         <AppLayout>
@@ -365,9 +368,14 @@ export default function ShowCompany({ company }: Props) {
                         <DialogHeader>
                             <DialogTitle>{t('companies_show.invite_dialog.title', { company: company.name })}</DialogTitle>
                             <DialogDescription>
-                                {activeProject 
-                                    ? `Invite a CEO to join ${company.name} and complete the Management Philosophy Survey for this HR project.`
-                                    : `Invite a CEO to join ${company.name}. Once you create a project, the CEO will be assigned to it.`}
+                                {activeProject
+                                    ? t('companies_show.dialog.desc_with_project', {
+                                          company: company.name,
+                                      })
+                                    : t(
+                                          'companies_show.dialog.desc_without_project',
+                                          { company: company.name },
+                                      )}
                             </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={handleInviteCeo} className="space-y-4">
@@ -382,9 +390,6 @@ export default function ShowCompany({ company }: Props) {
                                     }}
                                     placeholder={t('companies_show.invite_dialog.email_placeholder')}
                                     required
-                                    onChange={(e) =>
-                                        setData('email', e.target.value)
-                                    }
                                 />
                                 {errors.email && (
                                     <p className="text-xs text-destructive">

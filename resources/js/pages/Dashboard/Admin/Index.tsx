@@ -81,6 +81,7 @@ export default function AdminDashboard({
     total_ceo_users = 0,
 }: Props) {
     const { t } = useTranslation();
+    const safeUsers = users.filter(Boolean);
     const getStatusBadge = (status: string) => {
         const statusMap: Record<
             string,
@@ -250,7 +251,12 @@ export default function AdminDashboard({
                                                         {t('admin_dashboard.stats.pending_approval')}
                                                     </p>
                                                     <p className="text-3xl font-bold text-foreground">
-                                                        {users.filter((u) => !u.access_granted_at).length}
+                                                        {
+                                                            safeUsers.filter(
+                                                                (u) =>
+                                                                    !u.access_granted_at,
+                                                            ).length
+                                                        }
                                                     </p>
                                                     <p className="text-xs text-muted-foreground mt-1">
                                                         {t('admin_dashboard.stats.pending_approval_hint')}
@@ -295,17 +301,24 @@ export default function AdminDashboard({
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
-                                                    {users.length === 0 ? (
+                                                    {safeUsers.length === 0 ? (
                                                         <TableRow>
                                                             <TableCell colSpan={5} className="text-center text-muted-foreground">
                                                                 {t('admin_dashboard.users.no_users')}
                                                             </TableCell>
                                                         </TableRow>
                                                     ) : (
-                                                        users.map((u) => (
+                                                        safeUsers.map((u) => (
                                                             <TableRow key={u.id}>
                                                                 <TableCell className="font-medium">{u.name}</TableCell>
                                                                 <TableCell>{u.role === 'ceo' ? 'CEO' : t('admin_dashboard.users.hr_manager')}</TableCell>
+                                                                <TableCell>
+                                                                    {u.companyNames?.length
+                                                                        ? u.companyNames.join(
+                                                                              ', ',
+                                                                          )
+                                                                        : '—'}
+                                                                </TableCell>
                                                                 <TableCell>
                                                                     {u.email_verified_at
                                                                         ? t(
