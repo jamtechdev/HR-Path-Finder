@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import type { JobSelection } from '../hooks/useJobAnalysisState';
 
 const MIN_JOBS_REQUIRED = 3;
@@ -53,6 +54,7 @@ export default function Step2JobListSelection({
     diagnosisContext,
     fieldErrors = {},
 }: Step2JobListSelectionProps) {
+    const { t } = useTranslation();
     const [selectedJobIds, setSelectedJobIds] = useState<number[]>(
         jobSelections.selected_job_keyword_ids || []
     );
@@ -138,11 +140,11 @@ export default function Step2JobListSelection({
         ...customJobs,
     ];
 
-    const industryLabel = industry || 'your industry';
-    const sizeLabel = sizeRange ? sizeRange.replace('-', ' - ') + ' employees' : 'your size';
+    const industryLabel = industry || t('job_analysis_pages.step2.your_industry');
+    const sizeLabel = sizeRange ? `${sizeRange.replace('-', ' - ')} ${t('job_analysis_pages.step2.sidebar_size_suffix')}` : t('job_analysis_pages.step2.your_size');
     const frameworkLabel = diagnosisContext?.hasFormalFramework
-        ? 'with a formal job classification framework'
-        : 'without a formal job classification framework';
+        ? t('job_analysis_pages.step2.sidebar_framework_with')
+        : t('job_analysis_pages.step2.sidebar_framework_without');
 
     return (
         <div className="min-h-full flex flex-col bg-[#f6f3eb] text-[#333]">
@@ -155,14 +157,14 @@ export default function Step2JobListSelection({
                         className="text-[#b59461] font-bold text-[11px] mb-1"
                         style={{ marginBottom: 5 }}
                     >
-                        STEP 2 OF 6 — JOB ANALYSIS
+                        {t('job_analysis_pages.step2.stage')}
                     </div>
                     <h1 className="text-[#1a1a3d] font-bold m-0" style={{ fontSize: 28, marginBottom: 10 }}>
-                        Job List Selection
+                        {t('job_analysis_pages.step2.title')}
                     </h1>
                     <p className="text-[#666] mb-4" style={{ marginBottom: 16 }}>
-                        <strong>Purpose:</strong> To define the scope of jobs that exist within the company based on industry characteristics.
-                        This stage is not intended to analyze individual jobs. Instead, it is the step where we confirm and finalize the range of jobs that will be designed and structured for the company.
+                        <strong>{t('job_analysis_pages.step2.purpose_label')}</strong>{' '}
+                        {t('job_analysis_pages.step2.purpose_text')}
                     </p>
 
                     {/* Info box */}
@@ -180,9 +182,7 @@ export default function Step2JobListSelection({
                             <Link2 className="w-5 h-5 text-[#666]" />
                         </div>
                         <p className="text-[13px] leading-relaxed" style={{ lineHeight: 1.5 }}>
-                            Based on your industry and organizational size, we suggest a list of job roles that typically exist in similar companies.
-                            Please select and adjust only the jobs that are currently in operation at your company.
-                            If your company has unique roles not included in the standard job list, please add them (e.g., R&D Planning, Global Operations, Platform Operations).
+                            {t('job_analysis_pages.step2.info_text')}{' '}
                             We&apos;ve pre-configured a list for a <strong>{industryLabel} company ({sizeLabel})</strong>{' '}
                             {frameworkLabel}.
                         </p>
@@ -206,11 +206,11 @@ export default function Step2JobListSelection({
                                         className="font-normal text-[11px] text-[#888] border border-[#ddd] px-2 py-0.5 rounded-[10px]"
                                         style={{ padding: '1px 8px' }}
                                     >
-                                        {jobs.length} roles
+                                        {jobs.length} {t('job_analysis_pages.step2.roles')}
                                     </span>
                                     {selectedInFamily > 0 && (
                                         <span className="text-[#5cb85c] text-[11px]">
-                                            {selectedInFamily} selected
+                                            {selectedInFamily} {t('job_analysis_pages.step2.selected')}
                                         </span>
                                     )}
                                 </div>
@@ -257,7 +257,7 @@ export default function Step2JobListSelection({
                                                                 color: '#2e7d32',
                                                             }}
                                                         >
-                                                            PRE-SELECTED
+                                                            {t('job_analysis_pages.step2.tags.pre_selected')}
                                                         </span>
                                                     )}
                                                     {tags.includes('core') && (
@@ -268,7 +268,7 @@ export default function Step2JobListSelection({
                                                                 color: '#555',
                                                             }}
                                                         >
-                                                            CORE
+                                                            {t('job_analysis_pages.step2.tags.core')}
                                                         </span>
                                                     )}
                                                     {tags.includes('recommended') && (
@@ -279,7 +279,7 @@ export default function Step2JobListSelection({
                                                                 color: '#856404',
                                                             }}
                                                         >
-                                                            RECOMMENDED
+                                                            {t('job_analysis_pages.step2.tags.recommended')}
                                                         </span>
                                                     )}
                                                 </div>
@@ -297,7 +297,7 @@ export default function Step2JobListSelection({
                             className="font-bold text-xs uppercase"
                             style={{ letterSpacing: 0.5 }}
                         >
-                            ADD A CUSTOM JOB
+                            {t('job_analysis_pages.step2.add_custom')}
                         </div>
                         <div className="flex gap-2 mt-2" style={{ marginTop: 10, gap: 10 }}>
                             <Input
@@ -309,7 +309,7 @@ export default function Step2JobListSelection({
                                         handleAddCustomJob();
                                     }
                                 }}
-                                placeholder="e.g., R&D Planning, Global Operations"
+                                placeholder={t('job_analysis_pages.step2.custom_placeholder')}
                                 className="flex-1 border-[#ccc] rounded-md"
                                 style={{ padding: 12 }}
                             />
@@ -319,7 +319,7 @@ export default function Step2JobListSelection({
                                 className="bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white font-bold rounded-md px-6"
                                 style={{ padding: '0 25px' }}
                             >
-                                + Add
+                                {t('job_analysis_pages.step2.add')}
                             </Button>
                         </div>
                     </div>
@@ -340,7 +340,7 @@ export default function Step2JobListSelection({
                         >
                             <div className="font-bold flex items-center gap-2 flex-wrap">
                                 <ClipboardList className="w-4 h-4 shrink-0" />
-                                <span>Confirmed Job Scope for Analysis</span>
+                                <span>{t('job_analysis_pages.step2.confirmed_scope')}</span>
                                 <span
                                     className="text-white text-[10px] font-medium px-2 py-0.5 rounded-[10px]"
                                     style={{ background: '#1a1a3d' }}
@@ -349,7 +349,7 @@ export default function Step2JobListSelection({
                                 </span>
                             </div>
                             <div className="text-[#999] text-[11px]">
-                                Jobs selected above appear here
+                                {t('job_analysis_pages.step2.scope_hint')}
                             </div>
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -409,10 +409,10 @@ export default function Step2JobListSelection({
                             >
                                 <div className="font-bold mb-1 flex items-center gap-2">
                                     <Search className="w-4 h-4" />
-                                    Diagnosis Context
+                                    {t('job_analysis_pages.step2.context.title')}
                                 </div>
                                 <div className="text-[11px] opacity-70">
-                                    Based on your Step 1-2 responses
+                                    {t('job_analysis_pages.step2.context.subtitle')}
                                 </div>
                             </div>
                             <div
@@ -420,7 +420,7 @@ export default function Step2JobListSelection({
                                 style={{ padding: '15px 20px' }}
                             >
                                 <div className="text-[10px] text-[#999] uppercase mb-1">
-                                    Industry
+                                    {t('job_analysis_pages.step2.context.industry')}
                                 </div>
                                 <div className="font-bold">{diagnosisContext.industry || '—'}</div>
                             </div>
@@ -429,7 +429,7 @@ export default function Step2JobListSelection({
                                 style={{ padding: '15px 20px' }}
                             >
                                 <div className="text-[10px] text-[#999] uppercase mb-1">
-                                    Company Size
+                                    {t('job_analysis_pages.step2.context.company_size')}
                                 </div>
                                 <div className="font-bold">
                                     {diagnosisContext.sizeRange

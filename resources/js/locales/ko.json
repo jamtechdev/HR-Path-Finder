@@ -28,14 +28,6 @@
     "profile": "프로필"
   },
   "auth": {
-    "login": "로그인",
-    "register": "회원가입",
-    "email": "이메일",
-    "password": "비밀번호",
-    "forgot_password": "비밀번호 찾기",
-    "remember_me": "로그인 상태 유지",
-    "login_success": "로그인 성공",
-    "login_failed": "로그인 실패",
     "login": {
       "title": "다시 오신 것을 환영합니다",
       "subtitle": "HR 시스템 설계를 계속하려면 로그인하세요",
@@ -85,7 +77,13 @@
       "feature_approval": "실시간 협업 및 승인",
       "trusted": "100개 이상의 회사가 신뢰",
       "enterprise_security": "엔터프라이즈급 보안"
-    }
+    },
+    "email": "이메일",
+    "password": "비밀번호",
+    "forgot_password": "비밀번호 찾기",
+    "remember_me": "로그인 상태 유지",
+    "login_success": "로그인 성공",
+    "login_failed": "로그인 실패"
   },
   "landing": {
     "hero": {
@@ -336,8 +334,12 @@
       "title_suffix": "가 만들어집니다.",
       "sample_badge": "인터랙티브 샘플",
       "factors": {
-        "factorA": { "label": "Factor A" },
-        "factorB": { "label": "Factor B" }
+        "factorA": {
+          "label": "Factor A"
+        },
+        "factorB": {
+          "label": "Factor B"
+        }
       },
       "grades": {
         "A": "Grade A",
@@ -1132,8 +1134,12 @@
     "search_placeholder": "옵션 키 또는 값으로 검색...",
     "all_option_keys": "전체 옵션 키",
     "empty": "\"가이드 추가\"를 눌러 가이드를 생성하세요.",
-    "badges": { "inactive": "비활성" },
-    "actions": { "add": "가이드 추가" }
+    "badges": {
+      "inactive": "비활성"
+    },
+    "actions": {
+      "add": "가이드 추가"
+    }
   },
   "admin_eval_option_guidance_create": {
     "page_title": "평가 옵션 가이드 생성",
@@ -1141,7 +1147,9 @@
     "heading": "평가 옵션 가이드 생성",
     "subheading": "평가 구조 옵션용 가이드 콘텐츠를 추가합니다",
     "details_title": "가이드 상세",
-    "actions": { "create": "가이드 생성" },
+    "actions": {
+      "create": "가이드 생성"
+    },
     "fields": {
       "option_key": "옵션 키 *",
       "option_key_placeholder": "옵션 키 선택",
@@ -1163,7 +1171,9 @@
     "heading": "평가 옵션 가이드 수정",
     "subheading": "평가 구조 옵션용 가이드 콘텐츠를 수정합니다",
     "details_title": "가이드 상세",
-    "actions": { "update": "가이드 수정" },
+    "actions": {
+      "update": "가이드 수정"
+    },
     "fields": {
       "option_key": "옵션 키 *",
       "option_key_placeholder": "옵션 키 선택",
@@ -1185,8 +1195,13 @@
     "list_title": "추천 목록",
     "empty": "\"추천 추가\"를 눌러 추천을 생성하세요.",
     "na": "해당 없음",
-    "status": { "active": "활성", "inactive": "비활성" },
-    "actions": { "add_recommendation": "추천 추가" },
+    "status": {
+      "active": "활성",
+      "inactive": "비활성"
+    },
+    "actions": {
+      "add_recommendation": "추천 추가"
+    },
     "table": {
       "job_keyword": "직무 키워드",
       "recommended_model": "추천 모델",
@@ -1285,7 +1300,11 @@
     "mapped_jobs": "매핑 직무",
     "job_id": "직무 {{id}}",
     "no_description": "설명 없음",
-    "answer": { "yes": "예", "no": "아니오", "not_sure": "확실하지 않음" },
+    "answer": {
+      "yes": "예",
+      "no": "아니오",
+      "not_sure": "확실하지 않음"
+    },
     "sections": {
       "job_description": "직무 설명",
       "competency_levels": "역량 수준",
@@ -1372,9 +1391,15 @@
       "description": "성과관리 철학 질문에 대한 응답",
       "no_response": "응답이 없습니다"
     },
-    "kpis": { "empty": "정의된 KPI가 없습니다." },
-    "models": { "empty": "정의된 모델 배정이 없습니다." },
-    "structure": { "empty": "평가 구조가 아직 설정되지 않았습니다." },
+    "kpis": {
+      "empty": "정의된 KPI가 없습니다."
+    },
+    "models": {
+      "empty": "정의된 모델 배정이 없습니다."
+    },
+    "structure": {
+      "empty": "평가 구조가 아직 설정되지 않았습니다."
+    },
     "submitted_card": {
       "title": "성과 시스템 제출됨",
       "description": "이 성과 시스템은 HR 매니저가 제출했으며 검토할 준비가 되었습니다."
@@ -2311,5 +2336,188 @@
     "landing_page_editor": "랜딩 페이지 편집",
     "landing_page_editor_sub": "JSON 파일에 저장된 랜딩 페이지 콘텐츠를 편집합니다 (한국어 및 영어)"
   },
-  "diagnosis_overrides": {}
+  "diagnosis_overrides": {},
+  "job_analysis_pages": {
+    "overview": {
+      "page_title": "직무분석 개요",
+      "status": {
+        "submitted": "제출 완료",
+        "in_progress": "진행 중",
+        "not_started": "미시작"
+      },
+      "hero": {
+        "stage": "5단계 중 3단계 - 직무분석",
+        "title": "직무분석 개요",
+        "desc": "조직의 직무 기준과 역할 기대치를 정의합니다. 각 단계를 순서대로 완료해 컨설턴트 검토 가능한 직무 프레임워크를 만드세요.",
+        "before_title": "시작 전에 확인하세요",
+        "before_body": "이 단계는 현재 조직 구조를 재설계하기 위한 것이 아닙니다. 현재 운영 중인 직무 기준과 역할 기대치를 정리하여 이후 성과·보상 체계 설계의 기초 데이터를 만드는 단계입니다. 응답 내용은 기준 데이터로만 사용되며 비공개로 관리됩니다."
+      },
+      "progress": {
+        "steps_done": "완료 단계",
+        "steps_completed": "단계 완료",
+        "overall": "전체 진행률",
+        "est_total": "예상 총 {{min}}분"
+      },
+      "card": {
+        "step_of": "전체 {{total}}단계 중 {{current}}단계",
+        "min": "약 {{min}}분",
+        "complete_prev": "먼저 {{step}}단계를 완료하세요",
+        "ready": "시작 가능",
+        "start": "시작",
+        "review": "검토",
+        "locked": "잠김"
+      },
+      "footer": {
+        "completed": "전체 {{total}}단계 중 {{completed}}단계 완료",
+        "start": "직무분석 시작"
+      }
+    },
+    "step1": {
+      "title": "정책 스냅샷",
+      "stage": "6단계 중 1단계 - 직무분석",
+      "answered": "{{total}}개 중 {{count}}개 응답",
+      "help": "도움말",
+      "answered_badge": "응답 완료",
+      "if_yes": "예라면 어떤 직무인가요?",
+      "input_placeholder": "직무명을 입력하세요",
+      "no_questions": "정책 스냅샷 질문이 없습니다.",
+      "complete_to_continue": "{{total}}개 중 {{count}}개 응답 - 계속하려면 모두 입력하세요",
+      "back": "이전",
+      "continue": "저장 후 계속",
+      "options": {
+        "yes": "예",
+        "no": "아니오",
+        "not_sure": "잘 모르겠음"
+      }
+    },
+    "step2": {
+      "title": "직무 목록 선택",
+      "stage": "6단계 중 2단계 - 직무분석",
+      "add_custom": "커스텀 직무 추가",
+      "custom_placeholder": "예: R&D 기획, 글로벌 운영",
+      "add": "+ 추가",
+      "confirmed_scope": "분석 대상 직무 범위",
+      "scope_hint": "위에서 선택한 직무가 여기에 표시됩니다",
+      "tags": {
+        "pre_selected": "사전 선택",
+        "core": "핵심",
+        "recommended": "추천"
+      },
+      "context": {
+        "title": "진단 컨텍스트",
+        "subtitle": "1-2단계 응답 기준",
+        "industry": "업종",
+        "company_size": "기업 규모",
+        "framework": "직무체계"
+      },
+      "purpose_label": "목적:",
+      "purpose_text": "업종 특성을 바탕으로 회사에 존재하는 직무 범위를 정의합니다. 이 단계에서 설계 대상 직무를 확정합니다.",
+      "info_text": "업종과 조직 규모를 기준으로 유사 기업의 직무 목록을 제안합니다. 현재 회사에서 운영 중인 직무만 선택하고, 필요한 고유 직무를 추가하세요.",
+      "roles": "직무",
+      "selected": "선택됨",
+      "sidebar_framework_with": "직무체계가 구축된 상태",
+      "sidebar_framework_without": "직무체계가 미구축된 상태",
+      "sidebar_size_suffix": "명",
+      "back": "이전",
+      "continue": "저장 후 계속",
+      "complete_min": "계속하려면 최소 {{min}}개 직무를 선택하세요",
+      "your_industry": "귀사 업종",
+      "your_size": "귀사 규모"
+    }
+  },
+  "diagnosis_org_structure": {
+    "functional": {
+      "name": "기능별 조직",
+      "desc": "기능 중심으로 부서를 구성하고 보고 체계를 명확히 합니다."
+    },
+    "divisional": {
+      "name": "사업부제 조직",
+      "desc": "사업부제 조직"
+    },
+    "matrix": {
+      "name": "매트릭스 조직",
+      "desc": "매트릭스 조직"
+    },
+    "hq": {
+      "name": "본사-지사 조직",
+      "desc": "본사-지사 조직"
+    },
+    "tft": {
+      "name": "TFT/프로젝트 조직",
+      "desc": "TFT/프로젝트 조직"
+    },
+    "flat": {
+      "name": "수평 조직",
+      "desc": "수평 조직"
+    },
+    "undefined": {
+      "name": "구조 미정/혼합",
+      "desc": "구조 미정/혼합"
+    }
+  },
+  "diagnosis_job_structure": {
+    "default": {
+      "management": "경영관리",
+      "support": "지원",
+      "general": "일반"
+    }
+  },
+  "diagnosis_hr_issues": {
+    "retention": {
+      "name": "채용/이탈",
+      "issue1": "이슈 1",
+      "issue2": "이슈 2",
+      "issue3": "이슈 3",
+      "issue4": "이슈 4",
+      "issue5": "이슈 5",
+      "issue6": "이슈 6"
+    },
+    "org": {
+      "name": "조직/구조",
+      "issue1": "이슈 1",
+      "issue2": "이슈 2",
+      "issue3": "이슈 3",
+      "issue4": "이슈 4",
+      "issue5": "이슈 5",
+      "issue6": "이슈 6",
+      "issue7": "이슈 7",
+      "issue8": "이슈 8",
+      "issue9": "이슈 9",
+      "issue10": "이슈 10",
+      "issue11": "이슈 11",
+      "issue12": "이슈 12"
+    },
+    "culture": {
+      "name": "문화/리더십",
+      "issue1": "이슈 1",
+      "issue2": "이슈 2",
+      "issue3": "이슈 3",
+      "issue4": "이슈 4",
+      "issue5": "이슈 5",
+      "issue6": "이슈 6",
+      "issue7": "이슈 7"
+    },
+    "reward": {
+      "name": "보상/처우",
+      "issue1": "이슈 1",
+      "issue2": "이슈 2",
+      "issue3": "이슈 3",
+      "issue4": "이슈 4",
+      "issue5": "이슈 5",
+      "issue6": "이슈 6",
+      "issue7": "이슈 7",
+      "issue8": "이슈 8"
+    },
+    "upskilling": {
+      "name": "역량개발",
+      "issue1": "이슈 1",
+      "issue2": "이슈 2",
+      "issue3": "이슈 3",
+      "issue4": "이슈 4"
+    },
+    "other": {
+      "name": "기타",
+      "issue1": "이슈 1"
+    }
+  }
 }

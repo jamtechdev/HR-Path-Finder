@@ -28,14 +28,6 @@
     "profile": "Profile"
   },
   "auth": {
-    "login": "Login",
-    "register": "Register",
-    "email": "Email",
-    "password": "Password",
-    "forgot_password": "Forgot Password",
-    "remember_me": "Remember Me",
-    "login_success": "Login successful",
-    "login_failed": "Login failed",
     "login": {
       "title": "Welcome back",
       "subtitle": "Sign in to continue your HR system design",
@@ -85,7 +77,13 @@
       "feature_approval": "Real-time collaboration & approval",
       "trusted": "Trusted by 100+ companies",
       "enterprise_security": "Enterprise-grade security"
-    }
+    },
+    "email": "Email",
+    "password": "Password",
+    "forgot_password": "Forgot Password",
+    "remember_me": "Remember Me",
+    "login_success": "Login successful",
+    "login_failed": "Login failed"
   },
   "landing": {
     "hero": {
@@ -335,8 +333,12 @@
       "title_suffix": "is created.",
       "sample_badge": "Interactive sample",
       "factors": {
-        "factorA": { "label": "Factor A" },
-        "factorB": { "label": "Factor B" }
+        "factorA": {
+          "label": "Factor A"
+        },
+        "factorB": {
+          "label": "Factor B"
+        }
       },
       "grades": {
         "A": "Grade A",
@@ -1133,8 +1135,12 @@
     "search_placeholder": "Search by option key or value...",
     "all_option_keys": "All Option Keys",
     "empty": "No guidance found. Click \"Add Guidance\" to create one.",
-    "badges": { "inactive": "Inactive" },
-    "actions": { "add": "Add Guidance" }
+    "badges": {
+      "inactive": "Inactive"
+    },
+    "actions": {
+      "add": "Add Guidance"
+    }
   },
   "admin_eval_option_guidance_create": {
     "page_title": "Create Evaluation Option Guidance",
@@ -1142,7 +1148,9 @@
     "heading": "Create Evaluation Option Guidance",
     "subheading": "Add guidance content for evaluation structure options",
     "details_title": "Guidance Details",
-    "actions": { "create": "Create Guidance" },
+    "actions": {
+      "create": "Create Guidance"
+    },
     "fields": {
       "option_key": "Option Key *",
       "option_key_placeholder": "Select option key",
@@ -1164,7 +1172,9 @@
     "heading": "Edit Evaluation Option Guidance",
     "subheading": "Update guidance content for evaluation structure options",
     "details_title": "Guidance Details",
-    "actions": { "update": "Update Guidance" },
+    "actions": {
+      "update": "Update Guidance"
+    },
     "fields": {
       "option_key": "Option Key *",
       "option_key_placeholder": "Select option key",
@@ -1186,8 +1196,13 @@
     "list_title": "Recommendations",
     "empty": "No recommendations found. Click \"Add Recommendation\" to create one.",
     "na": "N/A",
-    "status": { "active": "Active", "inactive": "Inactive" },
-    "actions": { "add_recommendation": "Add Recommendation" },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "actions": {
+      "add_recommendation": "Add Recommendation"
+    },
     "table": {
       "job_keyword": "Job Keyword",
       "recommended_model": "Recommended Model",
@@ -1286,7 +1301,11 @@
     "mapped_jobs": "Mapped Jobs",
     "job_id": "Job {{id}}",
     "no_description": "No description",
-    "answer": { "yes": "Yes", "no": "No", "not_sure": "Not sure" },
+    "answer": {
+      "yes": "Yes",
+      "no": "No",
+      "not_sure": "Not sure"
+    },
     "sections": {
       "job_description": "Job Description",
       "competency_levels": "Competency Levels",
@@ -1373,9 +1392,15 @@
       "description": "Responses to performance management philosophy questions",
       "no_response": "No response provided"
     },
-    "kpis": { "empty": "No KPIs defined yet." },
-    "models": { "empty": "No model assignments defined yet." },
-    "structure": { "empty": "Evaluation structure not configured yet." },
+    "kpis": {
+      "empty": "No KPIs defined yet."
+    },
+    "models": {
+      "empty": "No model assignments defined yet."
+    },
+    "structure": {
+      "empty": "Evaluation structure not configured yet."
+    },
     "submitted_card": {
       "title": "Performance System Submitted",
       "description": "This performance system has been submitted by HR Manager and is ready for your review."
@@ -2312,5 +2337,188 @@
     "landing_page_editor": "Landing Page Editor",
     "landing_page_editor_sub": "Edit landing page content stored in JSON files (Korean and English)"
   },
-  "diagnosis_overrides": {}
+  "diagnosis_overrides": {},
+  "job_analysis_pages": {
+    "overview": {
+      "page_title": "Job Analysis Overview",
+      "status": {
+        "submitted": "SUBMITTED",
+        "in_progress": "IN PROGRESS",
+        "not_started": "NOT STARTED"
+      },
+      "hero": {
+        "stage": "STAGE 3 OF 5 - JOB ANALYSIS",
+        "title": "Job Analysis Overview",
+        "desc": "Define job standards and role expectations for your organization. Complete each step in sequence to build a consultant-ready job framework.",
+        "before_title": "Before you begin",
+        "before_body": "This stage is not intended to redesign your current organizational structure. It organizes current job standards and role expectations to support later performance and compensation design. All answers are used as baseline inputs and kept confidential."
+      },
+      "progress": {
+        "steps_done": "Steps Done",
+        "steps_completed": "steps completed",
+        "overall": "Overall Progress",
+        "est_total": "Est. ~{{min}} min total"
+      },
+      "card": {
+        "step_of": "STEP {{current}} OF {{total}}",
+        "min": "~{{min}} min",
+        "complete_prev": "Complete Step {{step}} first",
+        "ready": "Ready to Start",
+        "start": "Start",
+        "review": "Review",
+        "locked": "Locked"
+      },
+      "footer": {
+        "completed": "{{completed}} of {{total}} steps completed",
+        "start": "Start Job Analysis"
+      }
+    },
+    "step1": {
+      "title": "Policy Snapshot",
+      "stage": "STEP 1 OF 6 - JOB ANALYSIS",
+      "answered": "{{count}} / {{total}} answered",
+      "help": "Help",
+      "answered_badge": "Answered",
+      "if_yes": "If yes, which job(s)?",
+      "input_placeholder": "Enter job names",
+      "no_questions": "No policy snapshot questions available.",
+      "complete_to_continue": "{{count}} / {{total}} answered - complete all to continue",
+      "back": "Back",
+      "continue": "Save & Continue",
+      "options": {
+        "yes": "Yes",
+        "no": "No",
+        "not_sure": "Not sure"
+      }
+    },
+    "step2": {
+      "title": "Job List Selection",
+      "stage": "STEP 2 OF 6 - JOB ANALYSIS",
+      "add_custom": "ADD A CUSTOM JOB",
+      "custom_placeholder": "e.g., R&D Planning, Global Operations",
+      "add": "+ Add",
+      "confirmed_scope": "Confirmed Job Scope for Analysis",
+      "scope_hint": "Jobs selected above appear here",
+      "tags": {
+        "pre_selected": "PRE-SELECTED",
+        "core": "CORE",
+        "recommended": "RECOMMENDED"
+      },
+      "context": {
+        "title": "Diagnosis Context",
+        "subtitle": "Based on your Step 1-2 responses",
+        "industry": "Industry",
+        "company_size": "Company Size",
+        "framework": "Job framework"
+      },
+      "purpose_label": "Purpose:",
+      "purpose_text": "Define the scope of jobs that exist in your company based on industry characteristics. This step confirms and finalizes which jobs will be designed and structured.",
+      "info_text": "Based on your industry and organizational size, we suggest common roles. Select only jobs currently operating in your company, and add unique roles if needed.",
+      "roles": "roles",
+      "selected": "selected",
+      "sidebar_framework_with": "with a formal job classification framework",
+      "sidebar_framework_without": "without a formal job classification framework",
+      "sidebar_size_suffix": "employees",
+      "back": "Back",
+      "continue": "Save & Continue",
+      "complete_min": "Select at least {{min}} jobs to continue",
+      "your_industry": "your industry",
+      "your_size": "your size"
+    }
+  },
+  "diagnosis_org_structure": {
+    "functional": {
+      "name": "Functional Structure",
+      "desc": "Departments grouped by function with clear reporting lines."
+    },
+    "divisional": {
+      "name": "Divisional Structure",
+      "desc": "Divisional Structure"
+    },
+    "matrix": {
+      "name": "Matrix Structure",
+      "desc": "Matrix Structure"
+    },
+    "hq": {
+      "name": "HQ + Branch Structure",
+      "desc": "HQ + Branch Structure"
+    },
+    "tft": {
+      "name": "TFT / Project-based Structure",
+      "desc": "TFT / Project-based Structure"
+    },
+    "flat": {
+      "name": "Flat Structure",
+      "desc": "Flat Structure"
+    },
+    "undefined": {
+      "name": "Not Clearly Defined",
+      "desc": "Not Clearly Defined"
+    }
+  },
+  "diagnosis_job_structure": {
+    "default": {
+      "management": "Management",
+      "support": "Support",
+      "general": "General"
+    }
+  },
+  "diagnosis_hr_issues": {
+    "retention": {
+      "name": "Retention & Turnover",
+      "issue1": "Issue 1",
+      "issue2": "Issue 2",
+      "issue3": "Issue 3",
+      "issue4": "Issue 4",
+      "issue5": "Issue 5",
+      "issue6": "Issue 6"
+    },
+    "org": {
+      "name": "Organization & Structure",
+      "issue1": "Issue 1",
+      "issue2": "Issue 2",
+      "issue3": "Issue 3",
+      "issue4": "Issue 4",
+      "issue5": "Issue 5",
+      "issue6": "Issue 6",
+      "issue7": "Issue 7",
+      "issue8": "Issue 8",
+      "issue9": "Issue 9",
+      "issue10": "Issue 10",
+      "issue11": "Issue 11",
+      "issue12": "Issue 12"
+    },
+    "culture": {
+      "name": "Culture & Leadership",
+      "issue1": "Issue 1",
+      "issue2": "Issue 2",
+      "issue3": "Issue 3",
+      "issue4": "Issue 4",
+      "issue5": "Issue 5",
+      "issue6": "Issue 6",
+      "issue7": "Issue 7"
+    },
+    "reward": {
+      "name": "Reward & Compensation",
+      "issue1": "Issue 1",
+      "issue2": "Issue 2",
+      "issue3": "Issue 3",
+      "issue4": "Issue 4",
+      "issue5": "Issue 5",
+      "issue6": "Issue 6",
+      "issue7": "Issue 7",
+      "issue8": "Issue 8"
+    },
+    "upskilling": {
+      "name": "Upskilling & Capability",
+      "issue1": "Issue 1",
+      "issue2": "Issue 2",
+      "issue3": "Issue 3",
+      "issue4": "Issue 4"
+    },
+    "other": {
+      "name": "Other",
+      "issue1": "Issue 1"
+    }
+  }
 }

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import type { PolicyAnswer } from '../hooks/useJobAnalysisState';
 
 interface Question {
@@ -23,12 +24,6 @@ interface Step1PolicySnapshotProps {
     fieldErrors?: FieldErrors;
 }
 
-const OPTIONS = [
-    { value: 'yes', label: 'Yes' },
-    { value: 'no', label: 'No' },
-    { value: 'not_sure', label: 'Not sure' },
-] as const;
-
 export default function Step1PolicySnapshot({
     questions,
     savedAnswers = {},
@@ -37,6 +32,12 @@ export default function Step1PolicySnapshot({
     onBack,
     fieldErrors = {},
 }: Step1PolicySnapshotProps) {
+    const { t } = useTranslation();
+    const OPTIONS = [
+        { value: 'yes', label: t('job_analysis_pages.step1.options.yes') },
+        { value: 'no', label: t('job_analysis_pages.step1.options.no') },
+        { value: 'not_sure', label: t('job_analysis_pages.step1.options.not_sure') },
+    ] as const;
     const [answers, setAnswers] = useState<Record<number, PolicyAnswer>>(savedAnswers);
     const prevAnswersRef = useRef<Record<number, PolicyAnswer>>({});
     const onAnswersChangeRef = useRef(onAnswersChange);
@@ -96,24 +97,21 @@ export default function Step1PolicySnapshot({
             {/* Main content - match HTML .main-content */}
             <main className="max-w-[900px] mx-auto w-full" style={{ margin: '40px auto 120px', padding: '0 20px' }}>
                 <div className="text-[#b18c4d] text-[11px] font-extrabold uppercase mb-2" style={{ letterSpacing: '0.8px', marginBottom: 8 }}>
-                    ● STEP 1 OF 6 — JOB ANALYSIS
+                    ● {t('job_analysis_pages.step1.stage')}
                 </div>
                 <h1 className="text-[#1a1a3d] text-[32px] font-extrabold m-0" style={{ letterSpacing: '-0.5px', marginBottom: 20 }}>
-                    Policy Snapshot
+                    {t('job_analysis_pages.step1.title')}
                 </h1>
 
                 <div
                     className="border-l-2 border-[#b18c4d] py-0.5 text-[#57606a] text-[15px]"
                     style={{ paddingLeft: 25, paddingTop: 2, paddingBottom: 2, marginBottom: 40, lineHeight: 1.6 }}
                 >
-                    This section provides a brief overview of how job roles and responsibilities are
-                    currently operated within your company. The information you provide will be used
-                    solely to support subsequent job analysis and potential adjustments to role and
-                    position frameworks.
+                    {t('job_analysis_pages.overview.hero.before_body')}
                 </div>
 
                 <div className="text-right text-[13px] font-bold text-[#94a3b8]" style={{ marginBottom: 12 }}>
-                    {answeredCount} / {totalCount} answered
+                    {t('job_analysis_pages.step1.answered', { count: answeredCount, total: totalCount })}
                 </div>
 
                 {sortedQuestions.length > 0 ? (
@@ -149,7 +147,7 @@ export default function Step1PolicySnapshot({
 
                                     {isAnswered && (
                                         <div className="absolute text-[#52b788] text-xs font-bold flex items-center gap-1" style={{ right: 45, top: 28 }}>
-                                            ✓ Answered
+                                            ✓ {t('job_analysis_pages.step1.answered_badge')}
                                         </div>
                                     )}
 
@@ -163,7 +161,7 @@ export default function Step1PolicySnapshot({
                                             type="button"
                                             className="shrink-0 rounded-full bg-[#f1f5f9] text-[#94a3b8] flex items-center justify-center cursor-pointer hover:bg-[#e2e8f0]"
                                             style={{ width: 20, height: 20, fontSize: 12 }}
-                                            aria-label="Help"
+                                            aria-label={t('job_analysis_pages.step1.help')}
                                         >
                                             <HelpCircle className="w-3 h-3" />
                                         </button>
@@ -212,14 +210,14 @@ export default function Step1PolicySnapshot({
                                     {question.has_conditional_text && currentAnswer === 'yes' && (
                                         <div className="border-t border-[#f1f5f9]" style={{ padding: '16px 35px' }}>
                                             <Label className="text-sm font-semibold text-[#475569] block mb-2">
-                                                If yes, which job(s)?
+                                                {t('job_analysis_pages.step1.if_yes')}
                                             </Label>
                                             <Input
                                                 value={answers[question.id]?.conditional_text || ''}
                                                 onChange={(e) =>
                                                     handleConditionalTextChange(question.id, e.target.value)
                                                 }
-                                                placeholder="Enter job names"
+                                                placeholder={t('job_analysis_pages.step1.input_placeholder')}
                                                 className="max-w-md border-[#e0ddd5] rounded-lg"
                                             />
                                             <FieldErrorMessage fieldKey={`q-${question.id}-conditional`} errors={fieldErrors} />
@@ -231,7 +229,7 @@ export default function Step1PolicySnapshot({
                     </div>
                 ) : (
                     <div className="text-center py-12 text-[#64748b]">
-                        No policy snapshot questions available.
+                        {t('job_analysis_pages.step1.no_questions')}
                     </div>
                 )}
             </main>
@@ -239,7 +237,7 @@ export default function Step1PolicySnapshot({
             {/* Sticky footer - match HTML .bottom-nav */}
             <footer className="sticky bottom-0 w-full bg-white border-t border-[#e0ddd5] py-[18px] px-6 md:px-[60px] flex flex-wrap items-center justify-between gap-4 z-10 mt-auto">
                 <p className="text-[13px] text-[#94a3b8] font-medium">
-                    {answeredCount} / {totalCount} answered — complete all to continue
+                    {t('job_analysis_pages.step1.complete_to_continue', { count: answeredCount, total: totalCount })}
                 </p>
                 <div className="flex gap-3">
                     <Button
@@ -249,14 +247,14 @@ export default function Step1PolicySnapshot({
                         className="border-[#e0ddd5] font-bold px-8 py-6 rounded-lg"
                     >
                         <ChevronLeft className="w-4 h-4 mr-1" />
-                        Back
+                        {t('job_analysis_pages.step1.back')}
                     </Button>
                     <Button
                         type="button"
                         onClick={onContinue}
                         className="bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white font-bold px-9 py-6 rounded-lg"
                     >
-                        Save & Continue
+                        {t('job_analysis_pages.step1.continue')}
                         <ArrowRight className="w-4 h-4 ml-1" />
                     </Button>
                 </div>

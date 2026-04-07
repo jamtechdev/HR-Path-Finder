@@ -13,6 +13,7 @@ import {
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface StepConfig {
     id: string;
@@ -89,6 +90,7 @@ export default function JobAnalysisOverview({
     completedSteps = new Set(),
     onStepClick,
 }: Props) {
+    const { t } = useTranslation();
     const jobAnalysisStatus = stepStatuses?.job_analysis || 'not_started';
     const isInProgress = jobAnalysisStatus === 'in_progress';
     const isSubmitted = ['submitted', 'approved', 'locked'].includes(jobAnalysisStatus);
@@ -113,7 +115,20 @@ export default function JobAnalysisOverview({
         }
     };
 
-    const statusLabel = isSubmitted ? 'SUBMITTED' : isInProgress ? 'IN PROGRESS' : 'NOT STARTED';
+    const statusLabel = isSubmitted
+        ? t('job_analysis_pages.overview.status.submitted')
+        : isInProgress
+          ? t('job_analysis_pages.overview.status.in_progress')
+          : t('job_analysis_pages.overview.status.not_started');
+
+    const getStepName = (step: StepConfig) =>
+        t(`job_analysis_pages.overview.steps.${step.id}.name`, {
+            defaultValue: step.name,
+        });
+    const getStepDescription = (step: StepConfig) =>
+        t(`job_analysis_pages.overview.steps.${step.id}.description`, {
+            defaultValue: step.description,
+        });
 
     return (
         <div className="min-h-full flex flex-col bg-[#f5f3ef] text-[#1e293b]">
@@ -129,18 +144,17 @@ export default function JobAnalysisOverview({
                 </div>
 
                 <div className="text-[#b38e5d] uppercase text-xs font-bold tracking-wider mb-1">
-                    ● STAGE 3 OF 5 — JOB ANALYSIS
+                    ● {t('job_analysis_pages.overview.hero.stage')}
                 </div>
-                <h1 className="text-3xl md:text-4xl font-bold mt-2 mb-2">Job Analysis Overview</h1>
+                <h1 className="text-3xl md:text-4xl font-bold mt-2 mb-2">{t('job_analysis_pages.overview.hero.title')}</h1>
                 <p className="text-[#94a3b8] max-w-[600px] leading-relaxed">
-                    Define job standards and role expectations for your organization. Complete each step in sequence to
-                    build a consultant-ready job framework.
+                    {t('job_analysis_pages.overview.hero.desc')}
                 </p>
 
                 {/* Before you begin */}
                 <div className="mt-6 p-5 rounded-xl bg-white/5 border border-white/10 max-w-[720px]">
                     <div className="text-[11px] font-bold uppercase tracking-wider text-[#b38e5d] mb-2">
-                        Before you begin
+                        {t('job_analysis_pages.overview.hero.before_title')}
                     </div>
                     <p className="text-[#e2e8f0] text-sm leading-relaxed m-0">
                         This stage is not intended to redesign or change your current organizational structure. Its
@@ -155,15 +169,15 @@ export default function JobAnalysisOverview({
                 {/* Progress Card */}
                 <div className="mt-8 bg-white/5 border border-white/10 rounded-xl p-6 flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
                     <div className="border-r-0 md:border-r md:border-white/10 pr-0 md:pr-10">
-                        <div className="text-[11px] text-[#94a3b8] uppercase">Steps Done</div>
+                        <div className="text-[11px] text-[#94a3b8] uppercase">{t('job_analysis_pages.overview.progress.steps_done')}</div>
                         <strong className="text-2xl text-[#b38e5d]">
                             {completedCount} / {STEPS.length}
                         </strong>
-                        <div className="text-[11px] text-[#64748b]">steps completed</div>
+                        <div className="text-[11px] text-[#64748b]">{t('job_analysis_pages.overview.progress.steps_completed')}</div>
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex justify-between text-xs font-bold mb-2">
-                            <span>Overall Progress</span>
+                            <span>{t('job_analysis_pages.overview.progress.overall')}</span>
                             <span>{progressPct}%</span>
                         </div>
                         <div className="h-1 w-full rounded-sm bg-white/10 overflow-hidden">
@@ -174,7 +188,7 @@ export default function JobAnalysisOverview({
                         </div>
                     </div>
                     <div className="border border-[#b38e5d] px-4 py-2 rounded-[20px] text-white text-[13px] whitespace-nowrap">
-                        ⏱ Est. <b>~{TOTAL_EST_MIN} min</b> total
+                        {t('job_analysis_pages.overview.progress.est_total', { min: TOTAL_EST_MIN })}
                     </div>
                 </div>
             </section>
@@ -216,7 +230,7 @@ export default function JobAnalysisOverview({
                                                 enabled ? 'text-[#b38e5d]' : 'text-[#cbd5e1]'
                                             )}
                                         >
-                                            STEP {index + 1} OF {STEPS.length}
+                                            {t('job_analysis_pages.overview.card.step_of', { current: index + 1, total: STEPS.length })}
                                         </div>
                                         <div
                                             className={cn(
@@ -225,7 +239,7 @@ export default function JobAnalysisOverview({
                                             )}
                                         >
                                             {step.icon}
-                                            {step.name}
+                                            {getStepName(step)}
                                         </div>
                                         <p
                                             className={cn(
@@ -233,13 +247,13 @@ export default function JobAnalysisOverview({
                                                 enabled ? 'text-[#64748b]' : 'text-[#cbd5e1]'
                                             )}
                                         >
-                                            {step.description}
+                                            {getStepDescription(step)}
                                         </p>
                                         <div
                                             className={cn('text-xs', enabled ? 'text-[#94a3b8]' : 'text-[#cbd5e1]')}
                                         >
-                                            ~{step.estMin} min
-                                            {!enabled && index > 0 && ` • Complete Step ${index} first`}
+                                            {t('job_analysis_pages.overview.card.min', { min: step.estMin })}
+                                            {!enabled && index > 0 && ` • ${t('job_analysis_pages.overview.card.complete_prev', { step: index })}`}
                                         </div>
                                     </div>
 
@@ -247,13 +261,13 @@ export default function JobAnalysisOverview({
                                         {enabled && !completed && (
                                             <>
                                                 <div className="bg-[#f8fafc] text-[#64748b] px-3 py-1.5 rounded-lg text-xs">
-                                                    Ready to Start
+                                                    {t('job_analysis_pages.overview.card.ready')}
                                                 </div>
                                                 <Button
                                                     onClick={() => handleStart(step, index)}
                                                     className="bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold px-6 py-2.5 rounded-lg flex items-center gap-2"
                                                 >
-                                                    Start <ArrowRight className="w-4 h-4" />
+                                                    {t('job_analysis_pages.overview.card.start')} <ArrowRight className="w-4 h-4" />
                                                 </Button>
                                             </>
                                         )}
@@ -263,13 +277,13 @@ export default function JobAnalysisOverview({
                                                 variant="outline"
                                                 className="font-bold px-6 py-2.5 rounded-lg flex items-center gap-2"
                                             >
-                                                Review <ArrowRight className="w-4 h-4" />
+                                                {t('job_analysis_pages.overview.card.review')} <ArrowRight className="w-4 h-4" />
                                             </Button>
                                         )}
                                         {!enabled && (
                                             <div className="bg-[#f1f5f9] text-[#94a3b8] px-3 py-2 rounded-lg text-xs flex items-center gap-1.5">
                                                 <Lock className="w-3.5 h-3.5" />
-                                                Locked
+                                                {t('job_analysis_pages.overview.card.locked')}
                                             </div>
                                         )}
                                     </div>
@@ -283,14 +297,14 @@ export default function JobAnalysisOverview({
             {/* Footer */}
             <footer className="sticky bottom-0 w-full bg-white py-4 px-5 md:px-[10%] flex flex-wrap items-center justify-between gap-4 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-10 mt-auto border-t border-[#e2e8f0]">
                 <p className="text-sm text-[#64748b]">
-                    <b>{completedCount}</b> of {STEPS.length} steps completed
+                    {t('job_analysis_pages.overview.footer.completed', { completed: completedCount, total: STEPS.length })}
                 </p>
                 <Button
                     onClick={() => handleStart(STEPS[0], 0)}
                     className="bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold px-8 py-3 rounded-lg"
                 >
                     <Rocket className="w-4 h-4 mr-2" />
-                    Start Job Analysis
+                    {t('job_analysis_pages.overview.footer.start')}
                 </Button>
             </footer>
         </div>
