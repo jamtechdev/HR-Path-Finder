@@ -1,6 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import { ChevronRight, ChevronLeft, FileText } from 'lucide-react';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import ConditionalField from '@/components/Forms/ConditionalField';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export default function PolicySnapshot({ project, questions }: Props) {
+    const { t } = useTranslation();
     const [answers, setAnswers] = useState<Record<number, { answer: string; conditional_text?: string }>>({});
     const [navigating, setNavigating] = useState(false);
 
@@ -90,7 +92,13 @@ export default function PolicySnapshot({ project, questions }: Props) {
 
     return (
         <AppLayout>
-            <Head title={`Policy Snapshot - ${project?.company?.name || 'Job Analysis'}`} />
+            <Head
+                title={t('page_heads.policy_snapshot', {
+                    company:
+                        project?.company?.name ||
+                        t('page_head_fallbacks.job_analysis'),
+                })}
+            />
             <div className="p-6 md:p-8 max-w-5xl mx-auto">
                         <div className="mb-8 text-center">
                             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">

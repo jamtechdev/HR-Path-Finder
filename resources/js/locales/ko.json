@@ -45,6 +45,8 @@
       "forgot_password": "비밀번호를 잊으셨나요?",
       "forgot_password_help": "비밀번호 재설정",
       "sign_in": "로그인",
+      "page_title": "로그인",
+      "admin_page_title": "관리자 로그인",
       "signing_in": "로그인 중...",
       "back_to_home": "홈으로 돌아가기",
       "no_account": "계정이 없으신가요?",
@@ -70,6 +72,7 @@
       "password_confirm_label": "비밀번호 확인",
       "password_confirm_placeholder": "••••••••",
       "create_account": "계정 만들기",
+      "page_title": "계정 만들기",
       "creating_account": "계정 생성 중...",
       "back_to_home": "홈으로 돌아가기",
       "have_account": "이미 계정이 있으신가요?",
@@ -296,34 +299,34 @@
           "hr": "HR Pathfinder",
           "traditional": "일반 컨설팅"
         },
-        "rows": {
-          "row_1": {
-            "label": "제도 설계 기간",
-            "good": "평균 1개월",
-            "bad": "2~8개월"
-          },
-          "row_2": {
-            "label": "비용",
-            "good": "SaaS 요금",
-            "bad": "수천만원~수억원"
-          },
-          "row_3": {
-            "label": "내부 역량 축적",
-            "good": "직접 설계 참여",
-            "bad": "외부 의존"
-          },
-          "row_4": {
-            "label": "산출물",
-            "good": "정책 대시보드 + 종합 리포트",
-            "bad": "PPT 장표"
-          },
-          "row_5": {
-            "label": "보상 벤치마크",
-            "good": "업종·경쟁사 비교",
-            "bad": "별도 비용"
-          }
-        },
         "note": "* 제도 설계 범위와 컨설팅팀에 따라 상이할 수 있습니다."
+      },
+      "rows": {
+        "row_1": {
+          "label": "제도 설계 기간",
+          "good": "평균 1개월",
+          "bad": "2~8개월"
+        },
+        "row_2": {
+          "label": "비용",
+          "good": "SaaS 요금",
+          "bad": "수천만원~수억원"
+        },
+        "row_3": {
+          "label": "내부 역량 축적",
+          "good": "직접 설계 참여",
+          "bad": "외부 의존"
+        },
+        "row_4": {
+          "label": "산출물",
+          "good": "정책 대시보드 + 종합 리포트",
+          "bad": "PPT 장표"
+        },
+        "row_5": {
+          "label": "보상 벤치마크",
+          "good": "업종·경쟁사 비교",
+          "bad": "별도 비용"
+        }
       }
     },
     "payband_showcase": {
@@ -1495,6 +1498,9 @@
     "page_title_create": "회사 생성 - HR 매니저",
     "my_companies": "내 회사",
     "no_company_title": "아직 회사가 없습니다",
+    "no_company_desc": "조직을 위해 HR Path-Finder를 시작하려면 회사 워크스페이스를 만드세요.",
+    "no_company_card_desc": "첫 회사를 만들면 HR Path-Finder를 시작할 수 있습니다. 회사를 만든 뒤에는 설계 단계와 진행 상황이 있는 대시보드를 볼 수 있습니다.",
+    "create_company": "회사 만들기",
     "invite_ceo": "CEO 초대",
     "view_details": "상세 보기",
     "confirm_delete_invitation": "이 초대장을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
@@ -1515,6 +1521,11 @@
     },
     "invite_dialog": {
       "title": "{{company}} CEO 초대"
+    },
+    "dialog": {
+      "desc_with_project": "초대받은 CEO는 {{company}}에 참여하라는 이메일을 받습니다. 초대는 이 회사의 진행 중인 HR 프로젝트와 연결됩니다.",
+      "desc_without_project": "초대받은 CEO는 {{company}}에 참여하라는 이메일을 받습니다. HR 프로젝트가 생성된 뒤에 연결할 수 있습니다.",
+      "cancel": "취소"
     }
   },
   "companies_create": {
@@ -1900,6 +1911,405 @@
       "performance_desc": "평가 단위, 성과 관리 방법론, 평가 구조를 설계합니다.",
       "compensation_desc": "보상 구조, 차등화 방법론, 인센티브 컴포넌트를 정의합니다."
     }
+  },
+  "generic_fallback_dashboard": {
+    "page_title": "대시보드",
+    "heading": "대시보드에 오신 것을 환영합니다",
+    "subheading": "대시보드 콘텐츠가 여기에 표시됩니다."
+  },
+  "pending_approval_page": {
+    "page_title": "승인 대기",
+    "back_home": "홈으로 돌아가기",
+    "heading": "계정 승인 대기 중",
+    "description": "등록이 접수되었습니다. HR Pathfinder를 사용하려면 관리자가 접근을 허용해야 합니다. 베타 테스트 초대를 받으셨다면 계정이 승인되면 알림을 받게 됩니다.",
+    "logout": "로그아웃"
+  },
+  "two_factor_challenge_page": {
+    "page_title": "2단계 인증",
+    "recovery_title": "복구 코드",
+    "recovery_description": "비상 복구 코드 중 하나를 입력하여 계정 접근을 확인하세요.",
+    "recovery_toggle": "인증 코드로 로그인",
+    "auth_title": "인증 코드",
+    "auth_description": "인증 앱에서 제공한 인증 코드를 입력하세요.",
+    "auth_toggle": "복구 코드로 로그인",
+    "recovery_placeholder": "복구 코드 입력",
+    "continue": "계속",
+    "or_you_can": "또는 "
+  },
+  "landing_contact_page": {
+    "page_title": "문의하기",
+    "hero_kicker": "문의하기",
+    "hero_title": "Better Company가 함께합니다.",
+    "hero_subtitle": "필요한 내용을 알려주시면 연락드리겠습니다.",
+    "back_home": "홈으로 돌아가기",
+    "form_kicker": "문의하기",
+    "company_name": "회사명",
+    "company_placeholder": "회사명",
+    "manager_name": "담당자 이름",
+    "manager_placeholder": "담당자 이름",
+    "email": "이메일",
+    "email_placeholder": "you@company.com",
+    "phone_optional": "전화 (선택)",
+    "phone_placeholder": "전화번호",
+    "inquiry": "문의 내용",
+    "inquiry_placeholder": "필요한 내용을 입력하세요...",
+    "privacy_agree": "개인정보 수집·이용에 동의합니다.",
+    "footer_note": "메시지는 저장되며 관리자에게 표시됩니다.",
+    "submitting": "전송 중...",
+    "submit": "문의하기"
+  },
+  "invitation_ceo_set_password": {
+    "page_title": "비밀번호 설정 — HR Path-Finder",
+    "brand": "HR Path-Finder",
+    "by_line": "by BetterCompany",
+    "role_title": "최고경영자(CEO)",
+    "hero_line1": "마지막 한 단계,",
+    "hero_highlight": "계정을 완성하세요",
+    "hero_description": "초대를 수락하셨습니다. 비밀번호를 설정하면 바로 HR 혁신 프로젝트를 시작할 수 있습니다.",
+    "step1_done": "초대 수락 완료",
+    "step2": "비밀번호 설정",
+    "step3": "프로젝트 시작",
+    "trust_1": "100개 이상의 회사가 신뢰",
+    "trust_2": "컨설팅급 정밀도",
+    "trust_3": "엔터프라이즈급 보안",
+    "back_home": "홈으로 돌아가기",
+    "form_title": "비밀번호 설정",
+    "form_subtitle": "계정 보안을 위해 본인만 아는 비밀번호를 설정해 주세요.",
+    "email": "이메일",
+    "new_password": "새 비밀번호",
+    "password_placeholder": "비밀번호를 입력하세요",
+    "confirm_password": "비밀번호 확인",
+    "confirm_placeholder": "비밀번호를 한 번 더 입력하세요",
+    "rule_len": "8자 이상",
+    "rule_num": "숫자 포함",
+    "match_ok": "비밀번호가 일치합니다",
+    "match_bad": "비밀번호가 일치하지 않습니다",
+    "processing": "처리 중…",
+    "submit": "설정 완료 →"
+  },
+  "ceo_hr_policy_os_review": {
+    "page_title": "최종 대시보드 검토",
+    "confirm_approve": "최종 대시보드를 승인하시겠습니까? 전체 HR 시스템이 잠기고 Pathfinder 여정이 완료됩니다.",
+    "back_dashboard": "대시보드로 돌아가기",
+    "heading": "최종 대시보드 및 실행 청사진 검토",
+    "subheading": "마지막 단계: 완성된 HR 시스템 패키지를 검토하고 승인하세요",
+    "badge_pending": "승인 대기",
+    "notice_strong": "최종 승인",
+    "notice_body": "Pathfinder 여정의 마지막 단계입니다. 승인 시 전체 HR 시스템이 잠깁니다. 승인 전 모든 섹션을 신중히 검토하세요.",
+    "tabs": {
+      "policy_manual": "정책 매뉴얼",
+      "handbook": "시스템 핸드북",
+      "roadmap": "로드맵",
+      "analytics": "분석"
+    },
+    "policy_manual": {
+      "title": "HR 정책 매뉴얼",
+      "description": "자동 생성된 정책 문서를 검토하세요",
+      "company_philosophy": "회사 HR 철학",
+      "job_architecture_policy": "직무 아키텍처 정책",
+      "performance_policy": "성과 관리 정책",
+      "compensation_policy": "보상 및 복리후생 정책",
+      "governance": "거버넌스 및 의사결정 권한",
+      "review_policy": "검토 및 변경 관리 정책"
+    },
+    "handbook": {
+      "title": "HR 시스템 핸드북",
+      "description": "시스템 핸드북을 검토하세요",
+      "overview": "시스템 개요",
+      "performance_measurement": "성과 측정",
+      "reward_structure": "보상 구조",
+      "job_roles": "직무 역할 정의",
+      "governance": "거버넌스 및 승인 흐름",
+      "communication": "직원 커뮤니케이션 가이드"
+    },
+    "roadmap": {
+      "title": "실행 로드맵",
+      "description": "실행 계획을 검토하세요",
+      "rollout_sequence": "롤아웃 순서",
+      "pilot_group": "파일럿 그룹",
+      "communication_plan": "커뮤니케이션 계획",
+      "training_responsibility": "교육 책임",
+      "timeline": "일정",
+      "risks": "주요 리스크 및 완화"
+    },
+    "analytics": {
+      "title": "HR 분석 및 KPI 청사진",
+      "description": "분석 지표 정의를 검토하세요",
+      "performance_distribution": "성과 분포 상태",
+      "pay_equity": "임금 형평성 지표",
+      "role_clarity": "역할 명확성 지수",
+      "turnover_risk": "직군별 이직 리스크",
+      "performance_reward_correlation": "성과-보상 상관관계"
+    },
+    "actions": {
+      "approving": "승인 중...",
+      "approve_lock": "승인 및 시스템 잠금"
+    },
+    "status": {
+      "not_started": "시작 전",
+      "in_progress": "진행 중",
+      "submitted": "제출됨",
+      "approved": "승인됨",
+      "locked": "잠김",
+      "completed": "완료"
+    }
+  },
+  "admin_hr_translations": {
+    "page_title": "HR 번역",
+    "heading": "HR 번역",
+    "subheading": "HR/진단 폼 라벨 및 메시지를 업데이트합니다(로케일 JSON 오버라이드로 저장).",
+    "keys_count": "키 {{count}}개",
+    "save": "저장",
+    "search_title": "검색",
+    "label_contains": "키 또는 값 포함",
+    "search_placeholder": "예: upload, job grade, submit...",
+    "clear": "지우기",
+    "col_key": "키",
+    "col_en": "영어 오버라이드",
+    "col_ko": "한국어 오버라이드"
+  },
+  "admin_intro_texts": {
+    "page_title": "인트로 텍스트 관리",
+    "heading": "인트로 텍스트 관리",
+    "subheading": "설문 전 사용자에게 표시되는 인트로 및 동의 텍스트를 관리합니다",
+    "add": "인트로 텍스트 추가",
+    "card_title": "인트로 텍스트",
+    "confirm_delete": "이 인트로 텍스트를 삭제하시겠습니까?",
+    "inactive": "비활성",
+    "edit": "편집",
+    "delete": "삭제",
+    "empty": "인트로 텍스트가 없습니다."
+  },
+  "admin_beta_access": {
+    "page_title": "베타 접근 - 관리자",
+    "heading": "베타 접근",
+    "subheading": "설정 > 앱에서 승인 토글이 켜져 있으면 신규 사용자는 여기서 승인될 때까지 앱을 사용할 수 없습니다. 승인 모드가 꺼져 있으면 이 목록은 비어 있습니다.",
+    "pending_title": "승인 대기 ({{count}})",
+    "no_pending_title": "대기 중인 사용자 없음",
+    "no_pending_desc": "모든 계정이 이미 접근 권한이 있거나, 클로즈드 베타 승인이 활성화되어 있지 않습니다.",
+    "table_name": "이름",
+    "table_email": "이메일",
+    "table_email_verified": "이메일 인증",
+    "table_registered": "등록일",
+    "table_action": "작업",
+    "yes": "예",
+    "no": "아니오",
+    "approve": "승인",
+    "approving": "승인 중..."
+  },
+  "admin_kpi_review": {
+    "page_title": "KPI 검토 - 관리자",
+    "heading": "KPI 검토",
+    "subheading": "KPI가 포함된 모든 프로젝트입니다. 행을 열어 승인하거나 수정을 요청하세요.",
+    "section_projects": "KPI가 있는 프로젝트",
+    "col_company": "회사",
+    "col_progress": "KPI 진행",
+    "col_status": "상태",
+    "col_action": "작업",
+    "empty": "아직 KPI 검토 프로젝트가 없습니다.",
+    "status_approved": "승인됨",
+    "status_revision": "수정 요청",
+    "status_pending": "대기",
+    "status_in_progress": "진행 중",
+    "status_na": "해당 없음",
+    "open_review": "KPI 검토 열기",
+    "project_fallback": "프로젝트 #{{id}}"
+  },
+  "hr_job_analysis_page": {
+    "page_title": "직무 분석",
+    "back_dashboard": "대시보드로 돌아가기",
+    "brand": "HR Path-Finder",
+    "breadcrumb_suffix": "/ 직무 분석",
+    "header_status": {
+      "not_started": "시작 전",
+      "in_progress": "진행 중",
+      "submitted": "제출됨"
+    },
+    "validation_complete_fields": "계속하려면 필수 항목을 완료하세요.",
+    "step_names": {
+      "policy_snapshot": "정책 스냅샷",
+      "job_list_selection": "직무 목록 선택",
+      "job_definition": "직무 정의",
+      "finalization": "확정",
+      "org_chart_mapping": "조직도 매핑",
+      "review_submit": "검토 및 제출"
+    }
+  },
+  "admin_misc_page_titles": {
+    "compensation_snapshot_edit": "보상 스냅샷 질문 편집",
+    "subcategories_index": "하위 산업 관리",
+    "subcategories_create": "하위 산업 생성",
+    "translations_index": "번역 관리",
+    "translations_create": "번역 생성",
+    "translations_edit": "번역 편집",
+    "tree_management_overview": "트리 관리 - 관리자",
+    "performance_snapshot_show": "성과 스냅샷 질문 상세",
+    "ceo_edit": "CEO 편집",
+    "hr_issues_edit": "HR 이슈 편집",
+    "hr_issues_create": "HR 이슈 생성"
+  },
+  "admin_subcategories": {
+    "confirm_delete": "이 하위 산업을 삭제하시겠습니까?",
+    "index_subheading": "하위 산업을 관리합니다",
+    "add_button": "하위 산업 추가",
+    "filter_by_industry": "산업별 필터",
+    "all_industries": "전체 산업",
+    "list_title": "하위 산업",
+    "unknown_industry": "알 수 없는 산업",
+    "order_badge": "순서:",
+    "empty_state": "등록된 하위 산업이 없습니다.",
+    "create_back": "하위 산업 목록으로",
+    "create_subheading": "새 하위 산업을 추가합니다",
+    "details_card_title": "하위 산업 상세",
+    "label_industry": "산업 *",
+    "placeholder_select_industry": "산업을 선택하세요",
+    "label_name": "하위 산업명 *",
+    "placeholder_name": "예: 자동차",
+    "label_order": "순서 (선택)",
+    "placeholder_order": "비우면 자동 순서",
+    "order_hint": "숫자가 작을수록 앞에 표시됩니다. 비우면 맨 끝에 추가됩니다.",
+    "creating": "생성 중...",
+    "create_submit": "하위 산업 생성",
+    "cancel": "취소",
+    "edit_heading": "하위 산업 편집",
+    "edit_subheading": "하위 산업 정보를 수정합니다",
+    "label_order_required": "순서 *",
+    "updating": "저장 중...",
+    "update_submit": "하위 산업 저장"
+  },
+  "admin_translations_mgmt": {
+    "index_confirm_delete": "이 번역을 삭제하시겠습니까?",
+    "index_subheading": "JSON 파일에 저장된 UI 번역을 관리합니다 (한국어 및 영어)",
+    "edit_page_button": "페이지 번역 편집",
+    "filters": "필터",
+    "language": "언어",
+    "page_section": "페이지/섹션",
+    "search_label": "검색",
+    "search_placeholder": "키 또는 값으로 검색...",
+    "translations_count": "번역 ({{count}}개)",
+    "empty_search": "검색 조건에 맞는 번역이 없습니다.",
+    "empty_page": "이 페이지에 대한 번역이 없습니다.",
+    "create_back": "번역 목록으로",
+    "details_card": "번역 상세",
+    "label_language_req": "언어 *",
+    "label_namespace_req": "네임스페이스 *",
+    "label_key_req": "번역 키 *",
+    "key_placeholder": "예: common.save, buttons.continue",
+    "key_hint": "중첩 키는 점(.) 표기를 사용하세요 (예: common.save, buttons.continue)",
+    "label_value_req": "번역 값 *",
+    "value_placeholder": "번역 문구를 입력하세요...",
+    "active_label": "활성 (앱에서 이 번역을 사용합니다)",
+    "create_submit": "번역 생성",
+    "edit_confirm_delete_key": "이 번역 키를 삭제하시겠습니까?",
+    "edit_back": "번역 목록으로",
+    "save_changes": "변경 저장",
+    "add_new_card": "새 번역 추가",
+    "label_key": "키",
+    "label_value": "값",
+    "key_placeholder_short": "예: title, subtitle",
+    "value_placeholder_short": "번역 문구",
+    "add_translation_btn": "번역 추가",
+    "translations_list_count": "번역 ({{count}}개)",
+    "delete": "삭제",
+    "edit_empty_hint": "번역이 없습니다. 위에서 첫 번역을 추가하세요."
+  },
+  "admin_tree": {
+    "heading": "트리 관리",
+    "subheading": "관리자 전용: {{company}} 조직 트리 관리",
+    "notice_strong": "관리자 전용:",
+    "notice_body": "조직 트리를 관리하는 관리자 전용 기능입니다. HR 매니저와 CEO는 이 기능에 접근할 수 없습니다.",
+    "job_definitions": "직무 정의",
+    "job_definitions_desc": "확정된 직무 역할 및 조직 구조",
+    "no_jobs": "직무 정의가 없습니다. 먼저 직무 분석 단계를 완료하세요.",
+    "executive_director": "임원 이사:",
+    "hierarchy": "보고 체계:",
+    "project_status": "프로젝트 상태"
+  },
+  "admin_perf_snapshot_detail": {
+    "back_to_questions": "질문 목록으로",
+    "question_heading": "질문 상세",
+    "edit_question": "질문 편집",
+    "question_info": "질문 정보",
+    "question_text": "질문 문구",
+    "answer_type": "답변 유형",
+    "answer_options": "답변 선택지",
+    "no_options": "정의된 선택지 없음",
+    "order": "순서",
+    "status": "상태",
+    "active": "활성",
+    "inactive": "비활성",
+    "version": "버전",
+    "created_at": "생성일",
+    "updated_at": "수정일",
+    "type_select_one": "하나 선택",
+    "type_select_up_to_2": "최대 2개 선택",
+    "type_select_all": "해당되는 모두 선택"
+  },
+  "admin_ceo_form": {
+    "back": "뒤로",
+    "heading": "CEO 편집",
+    "card_title": "CEO 정보",
+    "name": "이름",
+    "email": "이메일",
+    "company": "회사",
+    "placeholder_company": "회사 선택",
+    "no_company": "회사 없음",
+    "update_ceo": "CEO 저장"
+  },
+  "admin_hr_issue_form": {
+    "back_to_list": "← HR 이슈 목록으로",
+    "create_heading": "HR 이슈 생성",
+    "edit_heading": "HR 이슈 편집",
+    "card_title": "HR 이슈 상세",
+    "issue_name": "이슈 이름",
+    "category": "카테고리",
+    "order": "순서",
+    "order_placeholder": "비우면 자동 배정",
+    "order_hint": "숫자가 작을수록 앞에 표시됩니다.",
+    "active": "활성",
+    "cancel": "취소",
+    "update": "저장",
+    "create": "생성"
+  },
+  "page_head_fallbacks": {
+    "company": "회사",
+    "hr_manager": "HR 매니저",
+    "compensation_system": "보상 체계",
+    "job_analysis": "직무 분석",
+    "org_design": "조직 설계",
+    "performance_system": "성과 체계",
+    "project": "프로젝트",
+    "sub_industry": "하위 산업"
+  },
+  "page_heads": {
+    "diagnosis_review_suffix": "{{title}} - {{company}}",
+    "organizational_structure": "조직 구조 - {{company}}",
+    "organizational_charts": "조직도 - {{company}}",
+    "admin_final_board": "최종 보드 - {{company}}",
+    "ceo_kpi_review": "CEO KPI 검토 - {{company}}",
+    "leader_kpi_review": "리더 KPI 검토 - {{organization}}",
+    "performance_system": "성과 체계 - {{company}}",
+    "management_philosophy_survey": "경영 철학 설문 - {{company}}",
+    "compensation_step4": "4단계: 보상 체계 - {{company}}",
+    "job_list_selection": "직무 목록 선택 - {{company}}",
+    "policy_snapshot": "정책 스냅샷 - {{company}}",
+    "org_chart_mapping": "조직도 매핑 - {{company}}",
+    "job_definition": "직무 정의 - {{company}}",
+    "tree_overview": "트리 - {{company}}",
+    "job_matrix_card": "직무 매트릭스 카드 - {{job}} - {{company}}",
+    "organization_design": "조직 설계 - {{company}}",
+    "job_analysis_intro": "직무 분석 - {{company}}",
+    "finalization": "최종 확정 - {{company}}",
+    "conclusion": "결론 - {{company}}",
+    "compensation_overview": "보상 체계 - {{company}}",
+    "step_verification": "단계 검증 - {{company}}",
+    "edit_sub_industry": "하위 산업 편집 - {{name}}",
+    "tree_recommendations": "트리 추천 - {{company}}",
+    "compensation_recommendation": "4.5단계: 보상 추천 - {{company}}",
+    "performance_recommendation": "3.5단계: 성과 추천 - {{company}}",
+    "admin_ceo_show": "CEO - {{name}}",
+    "landing_page_editor": "랜딩 페이지 편집",
+    "landing_page_editor_sub": "JSON 파일에 저장된 랜딩 페이지 콘텐츠를 편집합니다 (한국어 및 영어)"
   },
   "diagnosis_overrides": {}
 }

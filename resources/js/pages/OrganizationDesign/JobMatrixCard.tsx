@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { Building2, User, Briefcase, Target, TrendingUp } from 'lucide-react';
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -71,6 +72,7 @@ interface Props {
 }
 
 export default function JobMatrixCard({ project, jobDefinition, orgMapping, reportingHierarchy }: Props) {
+    const { t } = useTranslation();
     const spec = jobDefinition.job_specification || {};
     const competencyLevels = jobDefinition.competency_levels || [];
     const csfs = jobDefinition.csfs || [];
@@ -151,7 +153,14 @@ export default function JobMatrixCard({ project, jobDefinition, orgMapping, repo
 
     return (
         <AppLayout>
-            <Head title={`Job Matrix Card - ${jobDefinition.job_name} - ${project?.company?.name || 'Job Analysis'}`} />
+            <Head
+                title={t('page_heads.job_matrix_card', {
+                    job: jobDefinition.job_name,
+                    company:
+                        project?.company?.name ||
+                        t('page_head_fallbacks.job_analysis'),
+                })}
+            />
             <div className="p-6 md:p-8 max-w-7xl mx-auto">
                 {/* Header Banner - Excel-like Design */}
                 <div className="mb-6">

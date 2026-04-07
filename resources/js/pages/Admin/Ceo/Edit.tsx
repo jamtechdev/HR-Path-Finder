@@ -1,5 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, Save } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 
@@ -40,6 +41,7 @@ interface Props {
 }
 
 export default function Edit({ ceo, companies }: Props) {
+    const { t } = useTranslation();
     const { data, setData, put, processing, errors, clearErrors } = useForm({
         name: ceo.name,
         email: ceo.email,
@@ -62,7 +64,7 @@ export default function Edit({ ceo, companies }: Props) {
                 <AppHeader />
 
                 <main className="flex-1 p-6 md:p-8">
-                    <Head title="Edit CEO" />
+                    <Head title={t('admin_misc_page_titles.ceo_edit')} />
 
                     <div className="mx-auto max-w-3xl">
                         {/* Header */}
@@ -70,22 +72,22 @@ export default function Edit({ ceo, companies }: Props) {
                             <Link href="/admin/ceo">
                                 <Button variant="outline" size="sm">
                                     <ArrowLeft className="mr-2 h-4 w-4" />
-                                    Back
+                                    {t('admin_ceo_form.back')}
                                 </Button>
                             </Link>
 
-                            <h1 className="text-2xl font-bold">Edit CEO</h1>
+                            <h1 className="text-2xl font-bold">{t('admin_ceo_form.heading')}</h1>
                         </div>
 
                         <Card>
                             <CardHeader>
-                                <CardTitle>CEO Information</CardTitle>
+                                <CardTitle>{t('admin_ceo_form.card_title')}</CardTitle>
                             </CardHeader>
 
                             <CardContent>
                                 <form onSubmit={submit} className="space-y-4">
                                     <div>
-                                        <Label>Name</Label>
+                                        <Label>{t('admin_ceo_form.name')}</Label>
 
                                         <Input
                                             value={data.name}
@@ -102,7 +104,7 @@ export default function Edit({ ceo, companies }: Props) {
                                     </div>
 
                                     <div>
-                                        <Label>Email</Label>
+                                        <Label>{t('admin_ceo_form.email')}</Label>
 
                                         <Input
                                             value={data.email}
@@ -119,7 +121,7 @@ export default function Edit({ ceo, companies }: Props) {
                                     </div>
 
                                     <div>
-                                        <Label>Company</Label>
+                                        <Label>{t('admin_ceo_form.company')}</Label>
 
                                         <Select
                                             value={
@@ -137,12 +139,16 @@ export default function Edit({ ceo, companies }: Props) {
                                             }
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Company" />
+                                                <SelectValue
+                                                    placeholder={t(
+                                                        'admin_ceo_form.placeholder_company',
+                                                    )}
+                                                />
                                             </SelectTrigger>
 
                                             <SelectContent>
                                                 <SelectItem value="none">
-                                                    No Company
+                                                    {t('admin_ceo_form.no_company')}
                                                 </SelectItem>
 
                                                 {companies.map((company) => (
@@ -165,7 +171,7 @@ export default function Edit({ ceo, companies }: Props) {
                                             disabled={processing}
                                         >
                                             <Save className="mr-2 h-4 w-4" />
-                                            Update CEO
+                                            {t('admin_ceo_form.update_ceo')}
                                         </Button>
                                     </div>
                                 </form>

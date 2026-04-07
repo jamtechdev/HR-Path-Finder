@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ChevronLeft } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
 import { Badge } from '@/components/ui/badge';
@@ -79,14 +80,14 @@ interface Props {
     }>;
 }
 
-const STEPS = [
-    { id: 'policy-snapshot', name: 'Policy Snapshot' },
-    { id: 'job-list-selection', name: 'Job List Selection' },
-    { id: 'job-definition', name: 'Job Definition' },
-    { id: 'finalization', name: 'Finalization' },
-    { id: 'org-chart-mapping', name: 'Org Chart Mapping' },
-    { id: 'review-submit', name: 'Review & Submit' },
-];
+const JOB_ANALYSIS_STEP_ORDER = [
+    'policy-snapshot',
+    'job-list-selection',
+    'job-definition',
+    'finalization',
+    'org-chart-mapping',
+    'review-submit',
+] as const;
 
 function normalizeServerMapping(m: {
     id: number;
@@ -140,6 +141,16 @@ export default function JobAnalysisIndex({
     templates = {},
     mappings: serverMappings = [],
 }: Props) {
+    const { t, i18n } = useTranslation();
+    const steps = useMemo(
+        () =>
+            JOB_ANALYSIS_STEP_ORDER.map((id) => ({
+                id,
+                name: t(`hr_job_analysis_page.step_names.${String(id).replace(/-/g, '_')}`),
+            })),
+        [t, i18n.language],
+    );
+
     const {
         state,
         updatePolicyAnswers,
@@ -170,7 +181,7 @@ export default function JobAnalysisIndex({
         if (!v.isValid) {
             setStepFieldErrors(v.fieldErrors);
             setStepError(
-                v.errors.length ? v.errors.join(' ') : 'Please complete required fields before continuing.'
+                v.errors.length ? v.errors.join(' ') : t('hr_job_analysis_page.validation_complete_fields')
             );
             return false;
         }
@@ -232,7 +243,7 @@ export default function JobAnalysisIndex({
     // Update completed steps based on state
     useEffect(() => {
         const completed = new Set<string>();
-        STEPS.forEach(step => {
+        steps.forEach(step => {
             // Only mark as completed if explicitly marked OR if validation passes AND has actual data
             if (state.stepCompletions[step.id]) {
                 completed.add(step.id);
@@ -278,7 +289,7 @@ export default function JobAnalysisIndex({
 
     // Load active step from URL first; use localStorage only when URL is a step (not overview)
     useEffect(() => {
-        const validStep = initialTab === 'overview' || !STEPS.some(s => s.id === initialTab)
+        const validStep = initialTab === 'overview' || !steps.some(s => s.id === initialTab)
             ? 'overview'
             : initialTab;
 
@@ -289,7 +300,7 @@ export default function JobAnalysisIndex({
         }
 
         const stored = localStorage.getItem(`job-analysis-step-${project.id}`);
-        if (stored && STEPS.some(s => s.id === stored)) {
+        if (stored && steps.some(s => s.id === stored)) {
             setActiveStepLocal(stored);
             setActiveStep(stored);
         } else {
@@ -299,8 +310,8 @@ export default function JobAnalysisIndex({
     }, [project.id, initialTab, setActiveStep]);
 
     const handleStepChange = (stepId: string) => {
-        const stepIndex = STEPS.findIndex(s => s.id === stepId);
-        const currentIndex = STEPS.findIndex(s => s.id === activeStepLocal);
+        const stepIndex = steps.findIndex(s => s.id === stepId);
+        const currentIndex = steps.findIndex(s => s.id === activeStepLocal);
 
         // If going forward, validate current step
         if (stepIndex > currentIndex) {
@@ -402,14 +413,14 @@ export default function JobAnalysisIndex({
     };
 
     const handleBack = () => {
-        const currentIndex = STEPS.findIndex(s => s.id === activeStepLocal);
+        const currentIndex = steps.findIndex(s => s.id === activeStepLocal);
         if (currentIndex <= 0) {
             setActiveStepLocal('overview');
             setActiveStep('overview');
             localStorage.setItem(`job-analysis-step-${project.id}`, 'overview');
             router.get(`/hr-manager/job-analysis/${project.id}/overview`, {}, { preserveState: true, preserveScroll: false });
         } else {
-            handleStepChange(STEPS[currentIndex - 1].id);
+            handleStepChange(steps[currentIndex - 1].id);
         }
     };
 
@@ -532,12 +543,12 @@ export default function JobAnalysisIndex({
         return 'not_started';
     };
 
-    const currentStepIndex = STEPS.findIndex(s => s.id === activeStepLocal);
-    const currentStepLabel = currentStepIndex >= 0 ? STEPS[currentStepIndex].name : '';
+    const currentStepIndex = steps.findIndex(s => s.id === activeStepLocal);
+    const currentStepLabel = currentStepIndex >= 0 ? steps[currentStepIndex].name : '';
 
     return (
         <AppLayout>
-            <Head title="Job Analysis" />
+            <Head title={t('hr_job_analysis_page.page_title')} />
             <div className="min-h-full bg-[#f5f3ef]">
                 {activeStepLocal === 'overview' ? (
                     <div className="space-y-6">
@@ -547,7 +558,7 @@ export default function JobAnalysisIndex({
                                 className="text-sm font-medium text-[#0f2a4a] hover:text-[#1a4070] flex items-center gap-1"
                             >
                                 <ChevronLeft className="w-4 h-4" />
-                                Back to Dashboard
+                                {t('hr_job_analysis_page.back_dashboard')}
                             </Link>
                         </div>
                         {renderStep()}
@@ -558,21 +569,21 @@ export default function JobAnalysisIndex({
                         <header className="bg-[#151535] text-white flex items-center justify-between flex-wrap gap-2 text-sm" style={{ padding: '14px 40px' }}>
                             <div className="flex items-center gap-2 text-sm">
                                 <div className="w-6 h-6 rounded bg-white flex items-center justify-center text-[#1a1a3d] font-black text-xs shrink-0">P</div>
-                                <strong>HR Path-Finder</strong>
-                                <span className="opacity-50 font-normal">/ Job Analysis</span>
+                                <strong>{t('hr_job_analysis_page.brand')}</strong>
+                                <span className="opacity-50 font-normal">{t('hr_job_analysis_page.breadcrumb_suffix')}</span>
                             </div>
                             <span
                                 className="rounded-[20px] px-3.5 py-1 text-[11px] font-semibold text-white shrink-0"
                                 style={{ background: '#c8963e', paddingTop: 4, paddingBottom: 4, paddingLeft: 14, paddingRight: 14 }}
                             >
-                                {getStatusForHeader().replace('_', ' ').toUpperCase()}
+                                {t(`hr_job_analysis_page.header_status.${getStatusForHeader()}`)}
                             </span>
                         </header>
 
                         <div className="p-0 space-y-6">
                             <div className="bg-white border-b border-[#e0ddd5] px-4 py-4 flex justify-center" style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
                                 <StepProgress
-                                    steps={STEPS}
+                                    steps={steps}
                                     activeStep={activeStepLocal}
                                     completedSteps={completedSteps}
                                     onStepClick={handleStepChange}

@@ -2,6 +2,7 @@ import { Head, router } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
 import { ArrowLeft, ArrowRight, CheckCircle2, Clock, Lock, Eye, ClipboardList } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import StepVerificationCard from '@/components/Dashboard/CEO/StepVerificationCard';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function CeoProjectVerification({ project }: Props) {
+    const { t } = useTranslation();
     return (
         <SidebarProvider defaultOpen={true}>
             <Sidebar collapsible="icon" variant="sidebar">
@@ -31,7 +33,13 @@ export default function CeoProjectVerification({ project }: Props) {
             <SidebarInset className="flex flex-col overflow-hidden bg-background dark:bg-slate-900">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-gradient-to-br from-background via-muted/20 to-background">
-                    <Head title={`Step Verification - ${project.company?.name || 'Project'}`} />
+                    <Head
+                        title={t('page_heads.step_verification', {
+                            company:
+                                project.company?.name ||
+                                t('page_head_fallbacks.project'),
+                        })}
+                    />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
                             <Button

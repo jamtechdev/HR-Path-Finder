@@ -1,6 +1,7 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import { CheckCircle2, Clock, UserCheck } from 'lucide-react';
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +37,7 @@ interface Props {
 }
 
 export default function BetaAccessIndex({ pendingUsers }: Props) {
+    const { t } = useTranslation();
     const { flash } = usePage().props as { flash?: { success?: string; info?: string } };
     const flashSig = useRef<string>('');
 
@@ -70,15 +72,14 @@ export default function BetaAccessIndex({ pendingUsers }: Props) {
                 <SidebarInset className="flex flex-col overflow-hidden bg-background">
                     <AppHeader />
                     <main className="flex-1 overflow-auto bg-background">
-                        <Head title="Beta access - Admin" />
+                        <Head title={t('admin_beta_access.page_title')} />
                         <div className="p-6 md:p-8 max-w-5xl mx-auto">
                             <div className="mb-6 flex items-center gap-3">
                                 <UserCheck className="w-9 h-9 text-primary" />
                                 <div>
-                                    <h1 className="text-3xl font-bold text-foreground">Beta access</h1>
+                                    <h1 className="text-3xl font-bold text-foreground">{t('admin_beta_access.heading')}</h1>
                                     <p className="text-muted-foreground text-sm mt-1 max-w-2xl">
-                                        When the approval toggle is enabled in Settings &gt; App, new users cannot use the app until you approve them here.
-                                        If approval mode is off, this list stays empty.
+                                        {t('admin_beta_access.subheading')}
                                     </p>
                                 </div>
                             </div>
@@ -87,7 +88,7 @@ export default function BetaAccessIndex({ pendingUsers }: Props) {
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2 text-lg">
                                         <Clock className="w-5 h-5" />
-                                        Pending approval ({pendingUsers.length})
+                                        {t('admin_beta_access.pending_title', { count: pendingUsers.length })}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
@@ -96,20 +97,20 @@ export default function BetaAccessIndex({ pendingUsers }: Props) {
                                             <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-4">
                                                 <CheckCircle2 className="w-7 h-7 text-muted-foreground" />
                                             </div>
-                                            <p className="text-foreground font-medium">No pending users</p>
+                                            <p className="text-foreground font-medium">{t('admin_beta_access.no_pending_title')}</p>
                                             <p className="text-muted-foreground text-sm mt-2 max-w-md">
-                                                Everyone with an account either has access already, or closed beta approval is not enabled.
+                                                {t('admin_beta_access.no_pending_desc')}
                                             </p>
                                         </div>
                                     ) : (
                                         <Table>
                                             <TableHeader>
                                                 <TableRow>
-                                                    <TableHead>Name</TableHead>
-                                                    <TableHead>Email</TableHead>
-                                                    <TableHead>Email verified</TableHead>
-                                                    <TableHead>Registered</TableHead>
-                                                    <TableHead className="text-right">Action</TableHead>
+                                                    <TableHead>{t('admin_beta_access.table_name')}</TableHead>
+                                                    <TableHead>{t('admin_beta_access.table_email')}</TableHead>
+                                                    <TableHead>{t('admin_beta_access.table_email_verified')}</TableHead>
+                                                    <TableHead>{t('admin_beta_access.table_registered')}</TableHead>
+                                                    <TableHead className="text-right">{t('admin_beta_access.table_action')}</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
@@ -120,11 +121,11 @@ export default function BetaAccessIndex({ pendingUsers }: Props) {
                                                         <TableCell>
                                                             {u.email_verified_at ? (
                                                                 <Badge variant="outline" className="bg-green-50 text-green-800 border-green-200">
-                                                                    Yes
+                                                                    {t('admin_beta_access.yes')}
                                                                 </Badge>
                                                             ) : (
                                                                 <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
-                                                                    No
+                                                                    {t('admin_beta_access.no')}
                                                                 </Badge>
                                                             )}
                                                         </TableCell>
@@ -138,7 +139,7 @@ export default function BetaAccessIndex({ pendingUsers }: Props) {
                                                                 onClick={() => approve(u.id)}
                                                             >
                                                                 <CheckCircle2 className="w-4 h-4" />
-                                                                Approve
+                                                                {t('admin_beta_access.approve')}
                                                             </Button>
                                                         </TableCell>
                                                     </TableRow>

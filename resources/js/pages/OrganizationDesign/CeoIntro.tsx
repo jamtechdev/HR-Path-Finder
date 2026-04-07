@@ -1,6 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import { FileText, Shield, Lock, CheckCircle2, ArrowRight } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export default function CeoJobAnalysisIntro({ project, introText, introCompleted = false, surveyDone = false }: Props) {
+    const { t } = useTranslation();
     const defaultContent = `This stage is not intended to redesign or change your current organizational structure. Its purpose is to organize and clarify the job standards and role expectations as they are currently operated within your company.
 
 There are no right or wrong answers to any of the questions. Your responses will be used solely as baseline inputs for the subsequent design of the performance management and compensation systems.
@@ -32,7 +34,13 @@ All inputs are confidential and will not be shared with other employees.`;
 
     return (
         <AppLayout>
-                    <Head title={`Job Analysis - ${project?.company?.name || 'Organization Design'}`} />
+                    <Head
+                        title={t('page_heads.job_analysis_intro', {
+                            company:
+                                project?.company?.name ||
+                                t('page_head_fallbacks.org_design'),
+                        })}
+                    />
                     
                     {/* Header Section - Image and Content First */}
                     <div className="bg-white border-b">

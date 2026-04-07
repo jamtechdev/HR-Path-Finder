@@ -401,7 +401,14 @@ export default function OrganizationalCharts({
 
     return (
         <>
-            <Head title={`Organizational Charts - ${company?.name || project?.company?.name || 'Company'}`} />
+            <Head
+                title={t('page_heads.organizational_charts', {
+                    company:
+                        company?.name ||
+                        project?.company?.name ||
+                        t('page_head_fallbacks.company'),
+                })}
+            />
             <FormLayout
                 title={t('diagnosis_org_chart.title')}
                 project={project}

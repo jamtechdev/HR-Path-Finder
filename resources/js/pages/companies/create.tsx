@@ -27,6 +27,17 @@ import { Toaster } from '@/components/ui/toaster';
 import { toast } from '@/hooks/use-toast';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { cn } from '@/lib/utils';
+import { Head, router, useForm } from '@inertiajs/react';
+import {
+    AlertCircle,
+    Building2,
+    CheckCircle2,
+    FileText,
+    MapPin,
+    Upload,
+    X,
+} from 'lucide-react';
+import React, { type FormEventHandler, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export default function CreateCompany() {

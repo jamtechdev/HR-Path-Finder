@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Edit, Trash2, Search, Languages, FileText } from 'lucide-react';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +28,7 @@ export default function TranslationsIndex({
     currentPage,
     search: initialSearch 
 }: Props) {
+    const { t } = useTranslation();
     const [search, setSearch] = useState(initialSearch);
 
     const handleFilterChange = (newLocale: string, newPage: string) => {
@@ -52,7 +54,7 @@ export default function TranslationsIndex({
     };
 
     const handleDelete = (key: string) => {
-        if (confirm('Are you sure you want to delete this translation?')) {
+        if (confirm(t('admin_translations_mgmt.index_confirm_delete'))) {
             router.delete('/admin/translations', {
                 data: {
                     locale: currentLocale,
@@ -82,31 +84,35 @@ export default function TranslationsIndex({
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="Translations Management" />
+                    <Head title={t('admin_misc_page_titles.translations_index')} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
-                                <h1 className="text-3xl font-bold mb-2 text-foreground">Translations Management</h1>
+                                <h1 className="text-3xl font-bold mb-2 text-foreground">
+                                    {t('admin_misc_page_titles.translations_index')}
+                                </h1>
                                 <p className="text-muted-foreground">
-                                    Manage UI translations stored in JSON files (Korean and English)
+                                    {t('admin_translations_mgmt.index_subheading')}
                                 </p>
                             </div>
                             <Link href={`/admin/translations/edit?locale=${currentLocale}&page=${currentPage}`}>
                                 <Button>
                                     <FileText className="w-4 h-4 mr-2" />
-                                    Edit Page Translations
+                                    {t('admin_translations_mgmt.edit_page_button')}
                                 </Button>
                             </Link>
                         </div>
 
                         <Card className="mb-6">
                             <CardHeader>
-                                <CardTitle>Filters</CardTitle>
+                                <CardTitle>{t('admin_translations_mgmt.filters')}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
-                                        <label className="text-sm font-medium mb-2 block">Language</label>
+                                        <label className="text-sm font-medium mb-2 block">
+                                            {t('admin_translations_mgmt.language')}
+                                        </label>
                                         <Select value={currentLocale} onValueChange={(v) => {
                                             handleFilterChange(v, currentPage);
                                         }}>
@@ -126,7 +132,9 @@ export default function TranslationsIndex({
                                         </Select>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium mb-2 block">Page/Section</label>
+                                        <label className="text-sm font-medium mb-2 block">
+                                            {t('admin_translations_mgmt.page_section')}
+                                        </label>
                                         <Select value={currentPage} onValueChange={(v) => {
                                             handleFilterChange(currentLocale, v);
                                         }}>
@@ -143,10 +151,14 @@ export default function TranslationsIndex({
                                         </Select>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium mb-2 block">Search</label>
+                                        <label className="text-sm font-medium mb-2 block">
+                                            {t('admin_translations_mgmt.search_label')}
+                                        </label>
                                         <div className="flex gap-2">
                                             <Input
-                                                placeholder="Search by key or value..."
+                                                placeholder={t(
+                                                    'admin_translations_mgmt.search_placeholder',
+                                                )}
                                                 value={search}
                                                 onChange={(e) => setSearch(e.target.value)}
                                                 onKeyDown={(e) => {
@@ -168,7 +180,9 @@ export default function TranslationsIndex({
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <CardTitle>
-                                        Translations ({filteredTranslations.length})
+                                        {t('admin_translations_mgmt.translations_count', {
+                                            count: filteredTranslations.length,
+                                        })}
                                     </CardTitle>
                                     <Badge variant="outline">
                                         {locales[currentLocale]} - {pages[currentPage]}
@@ -210,7 +224,9 @@ export default function TranslationsIndex({
                                     ))}
                                     {filteredTranslations.length === 0 && (
                                         <div className="text-center py-12 text-muted-foreground">
-                                            {search ? 'No translations found matching your search.' : 'No translations found for this page.'}
+                                            {search
+                                                ? t('admin_translations_mgmt.empty_search')
+                                                : t('admin_translations_mgmt.empty_page')}
                                         </div>
                                     )}
                                 </div>

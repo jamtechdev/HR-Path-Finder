@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { CheckCircle2, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -50,11 +51,16 @@ export default function CompensationSystemOverview({
     activeTab, 
     projectId 
 }: Props) {
+    const { t } = useTranslation();
     const [isRationaleOpen, setIsRationaleOpen] = useState(true);
 
     return (
         <AppLayout stepStatuses={stepStatuses} projectId={projectId}>
-            <Head title={`Compensation System - ${project.company.name}`} />
+            <Head
+                title={t('page_heads.compensation_overview', {
+                    company: project.company.name,
+                })}
+            />
             <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
                             <h1 className="text-3xl font-bold mb-2">Compensation & Benefits (C&B)</h1>

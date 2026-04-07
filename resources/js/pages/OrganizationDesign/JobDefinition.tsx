@@ -1,6 +1,7 @@
 import { Head, useForm, router } from '@inertiajs/react';
 import { Plus, ChevronLeft, ChevronRight, X, FileText, User, TrendingUp, Target, Save, CheckCircle2, AlertCircle } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import DynamicList from '@/components/Forms/DynamicList';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -51,6 +52,7 @@ interface Props {
 }
 
 export default function JobDefinitionPage({ project, jobDefinitions, selectedJob, template }: Props) {
+    const { t } = useTranslation();
     const [activeJobId, setActiveJobId] = useState<number | null>(selectedJob?.id || jobDefinitions[0]?.id || null);
     const [activeTab, setActiveTab] = useState('description');
     const [saveSuccess, setSaveSuccess] = useState(false);
@@ -137,7 +139,13 @@ export default function JobDefinitionPage({ project, jobDefinitions, selectedJob
 
     return (
         <AppLayout>
-            <Head title={`Job Definition - ${project?.company?.name || 'Job Analysis'}`} />
+            <Head
+                title={t('page_heads.job_definition', {
+                    company:
+                        project?.company?.name ||
+                        t('page_head_fallbacks.job_analysis'),
+                })}
+            />
             <div className="p-6 md:p-8 max-w-6xl mx-auto">
                         {/* Header */}
                         <div className="mb-8">

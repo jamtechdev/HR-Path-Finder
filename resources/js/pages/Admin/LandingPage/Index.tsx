@@ -1,6 +1,7 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { Save, Eye, Languages, Type, ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +40,7 @@ export default function LandingPageIndex({
     locales, 
     currentLocale
 }: Props) {
+    const { t } = useTranslation();
     const [editedTranslations, setEditedTranslations] = useState<Record<string, any>>({});
     const [locale, setLocale] = useState(currentLocale);
     const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -222,18 +224,16 @@ export default function LandingPageIndex({
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title={locale === 'ko' ? '랜딩 페이지 편집' : 'Landing Page Editor'} />
+                    <Head title={t('page_heads.landing_page_editor')} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         {/* Header */}
                         <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <div>
                                 <h1 className="text-3xl font-bold mb-2 text-foreground">
-                                    {locale === 'ko' ? '랜딩 페이지 편집' : 'Landing Page Editor'}
+                                    {t('page_heads.landing_page_editor')}
                                 </h1>
                                 <p className="text-muted-foreground">
-                                    {locale === 'ko' 
-                                        ? 'JSON 파일에 저장된 랜딩 페이지 콘텐츠를 편집합니다 (한국어 및 영어)'
-                                        : 'Edit landing page content stored in JSON files (Korean and English)'}
+                                    {t('page_heads.landing_page_editor_sub')}
                                 </p>
                             </div>
                             <div className="flex gap-2">

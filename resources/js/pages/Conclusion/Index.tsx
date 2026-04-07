@@ -1,6 +1,7 @@
 import { Head, useForm, router } from '@inertiajs/react';
 import { CheckCircle2, Award } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import WorkflowStepsSidebar from '@/components/Sidebar/WorkflowStepsSidebar';
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export default function ConclusionIndex({ project, stepStatuses, projectId }: Props) {
+    const { t } = useTranslation();
     const { post, processing } = useForm({});
 
     const handleFinalize = () => {
@@ -45,7 +47,11 @@ export default function ConclusionIndex({ project, stepStatuses, projectId }: Pr
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
                 <main className="flex-1 overflow-auto">
-                    <Head title={`Conclusion - ${project.company.name}`} />
+                    <Head
+                        title={t('page_heads.conclusion', {
+                            company: project.company.name,
+                        })}
+                    />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
                             <h1 className="text-3xl font-bold mb-2">Conclusion</h1>

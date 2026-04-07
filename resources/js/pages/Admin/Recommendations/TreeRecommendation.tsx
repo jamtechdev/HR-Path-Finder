@@ -1,6 +1,7 @@
 import { Head, useForm, router } from '@inertiajs/react';
 import { ArrowLeft, Save, CheckCircle2 } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import JobMatrixCard from '@/components/JobMatrix/JobMatrixCard';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -51,6 +52,7 @@ export default function TreeRecommendationPage({
     jobDefinitions,
     existingRecommendation,
 }: Props) {
+    const { t } = useTranslation();
     const { data, setData, post, processing, errors, clearErrors } = useForm({
         comment: existingRecommendation?.comment || '',
     });
@@ -70,7 +72,11 @@ export default function TreeRecommendationPage({
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title={`TREE Recommendations - ${project.company.name}`} />
+                    <Head
+                        title={t('page_heads.tree_recommendations', {
+                            company: project.company.name,
+                        })}
+                    />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
                             <Button

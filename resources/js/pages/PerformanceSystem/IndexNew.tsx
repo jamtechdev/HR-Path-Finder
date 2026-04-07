@@ -8,6 +8,7 @@ import {
     Shield
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout';
 import CeoKpiReviewTab from './tabs/CeoKpiReviewTab';
@@ -67,6 +68,7 @@ export default function PerformanceSystemIndexNew({
     stepStatuses = {},
     projectId,
 }: Props) {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState(initialTab);
 
     // Update active tab when initialTab changes
@@ -150,7 +152,13 @@ export default function PerformanceSystemIndexNew({
 
     return (
         <AppLayout>
-            <Head title={`Performance System - ${project?.company?.name || 'HR Manager'}`} />
+            <Head
+                title={t('page_heads.performance_system', {
+                    company:
+                        project?.company?.name ||
+                        t('page_head_fallbacks.hr_manager'),
+                })}
+            />
             <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg">

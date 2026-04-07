@@ -1,6 +1,7 @@
 import { Head, useForm, router } from '@inertiajs/react';
 import { Plus, X, GripVertical, Layout, List, Info, HelpCircle, CheckCircle2, AlertCircle } from 'lucide-react';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Node, Edge } from 'reactflow';
 import ChartGallery from '@/components/CEO/Review/ChartGallery';
 import DiagramEditor from '@/components/OrgChart/DiagramEditor';
@@ -60,6 +61,7 @@ interface Props {
 }
 
 export default function OrgChartMapping({ project, jobDefinitions, mappings, organizationalCharts, onSubmit: externalOnSubmit }: Props) {
+    const { t } = useTranslation();
     const [viewMode, setViewMode] = useState<'diagram' | 'list'>('diagram');
     const [submitting, setSubmitting] = useState(false);
     const [orgUnits, setOrgUnits] = useState<Array<OrgChartMapping & { id?: number }>>(
@@ -310,7 +312,13 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
 
     return (
         <AppLayout>
-            <Head title={`Org Chart Mapping - ${project?.company?.name || 'Job Analysis'}`} />
+            <Head
+                title={t('page_heads.org_chart_mapping', {
+                    company:
+                        project?.company?.name ||
+                        t('page_head_fallbacks.job_analysis'),
+                })}
+            />
             <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-8">
                             <div className="flex items-start justify-between gap-4 mb-4">

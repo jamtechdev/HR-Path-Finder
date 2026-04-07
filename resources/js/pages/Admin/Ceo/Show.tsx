@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 
 import { ArrowLeft, Building2, Mail, User } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 
@@ -31,6 +32,7 @@ interface Props {
 }
 
 export default function Show({ ceo }: Props) {
+    const { t } = useTranslation();
     return (
         <SidebarProvider defaultOpen={true}>
             <Sidebar collapsible="icon" variant="sidebar">
@@ -41,7 +43,7 @@ export default function Show({ ceo }: Props) {
                 <AppHeader />
 
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title={`CEO - ${ceo.name}`} />
+                    <Head title={t('page_heads.admin_ceo_show', { name: ceo.name })} />
 
                     <div className="mx-auto max-w-5xl p-6 md:p-8">
                         {/* Header */}

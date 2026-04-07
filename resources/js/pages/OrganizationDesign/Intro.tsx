@@ -1,6 +1,7 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { CheckCircle2, FileText, Shield, Lock, ArrowRight } from 'lucide-react';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function JobAnalysisIntro({ project, introText, introCompleted = false }: Props) {
+    const { t } = useTranslation();
     const [agreed, setAgreed] = useState(introCompleted);
     
     const { post, processing } = useForm({
@@ -47,7 +49,13 @@ All inputs are confidential and will not be shared with other employees.`;
 
     return (
         <AppLayout>
-            <Head title={`Job Analysis - ${project?.company?.name || 'Organization Design'}`} />
+            <Head
+                title={t('page_heads.job_analysis_intro', {
+                    company:
+                        project?.company?.name ||
+                        t('page_head_fallbacks.org_design'),
+                })}
+            />
             <div className="p-6 md:p-8 max-w-5xl mx-auto bg-gradient-to-br from-background via-muted/20 to-background">
                         {/* Header Section */}
                         <div className="mb-8 text-center">

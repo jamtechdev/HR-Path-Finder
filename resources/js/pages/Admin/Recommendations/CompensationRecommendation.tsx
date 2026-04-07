@@ -1,6 +1,7 @@
 import { Head, useForm, Link } from '@inertiajs/react';
 import { ArrowLeft, DollarSign, CheckCircle2, Info } from 'lucide-react';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
@@ -73,6 +74,7 @@ export default function CompensationRecommendation({
     existingRecommendation,
     algorithmRecommendations 
 }: Props) {
+    const { t } = useTranslation();
     const { data, setData, post, processing, clearErrors } = useForm({
         recommended_option: existingRecommendation?.recommended_option || '',
         rationale: existingRecommendation?.rationale || '',
@@ -108,7 +110,13 @@ export default function CompensationRecommendation({
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title={`Step 4.5: Compensation Recommendation - ${project?.company?.name || 'Project'}`} />
+                    <Head
+                        title={t('page_heads.compensation_recommendation', {
+                            company:
+                                project?.company?.name ||
+                                t('page_head_fallbacks.project'),
+                        })}
+                    />
                     <div className="p-6 md:p-8 max-w-5xl mx-auto">
                         <div className="mb-6">
                             <Link 

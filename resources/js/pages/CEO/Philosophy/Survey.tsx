@@ -1,6 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
 import { CheckCircle2 } from 'lucide-react';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -62,6 +63,7 @@ export default function CeoPhilosophySurvey({
     locked = false,
     surveyOldInput,
 }: Props) {
+    const { t } = useTranslation();
     const [currentStep, setCurrentStep] = useState(0);
     const [currentVisionChunk, setCurrentVisionChunk] = useState(0);
     const [hasSeenIntro, setHasSeenIntro] = useState(false);
@@ -526,7 +528,13 @@ export default function CeoPhilosophySurvey({
                 </div>
 
                 <main className="flex-1 overflow-auto">
-                    <Head title={`Management Philosophy Survey - ${project?.company?.name || 'Company'}`} />
+                    <Head
+                        title={t('page_heads.management_philosophy_survey', {
+                            company:
+                                project?.company?.name ||
+                                t('page_head_fallbacks.company'),
+                        })}
+                    />
                     <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-10 pb-28 sm:pb-32">
                         <InlineErrorSummary
                             className="mb-4"

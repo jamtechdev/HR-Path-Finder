@@ -1,6 +1,7 @@
 import { Head, useForm, router } from '@inertiajs/react';
 import { ChevronLeft, Save } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export default function TranslationsEdit({ translations, locales, pages, currentLocale, currentPage }: Props) {
+    const { t } = useTranslation();
     const [editedTranslations, setEditedTranslations] = useState<Record<string, string>>({});
     const [newKey, setNewKey] = useState('');
     const [newValue, setNewValue] = useState('');
@@ -92,7 +94,7 @@ export default function TranslationsEdit({ translations, locales, pages, current
     };
 
     const handleDelete = (key: string) => {
-        if (confirm('Are you sure you want to delete this translation key?')) {
+        if (confirm(t('admin_translations_mgmt.edit_confirm_delete_key'))) {
             router.delete('/admin/translations', {
                 data: {
                     locale: currentLocale,
@@ -111,7 +113,7 @@ export default function TranslationsEdit({ translations, locales, pages, current
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="Edit Translations" />
+                    <Head title={t('admin_misc_page_titles.translations_edit')} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
                             <Button
@@ -120,18 +122,20 @@ export default function TranslationsEdit({ translations, locales, pages, current
                                 className="mb-4"
                             >
                                 <ChevronLeft className="w-4 h-4 mr-2" />
-                                Back to Translations
+                                {t('admin_translations_mgmt.edit_back')}
                             </Button>
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h1 className="text-3xl font-bold">Edit Translations</h1>
+                                    <h1 className="text-3xl font-bold">
+                                        {t('admin_misc_page_titles.translations_edit')}
+                                    </h1>
                                     <p className="text-muted-foreground mt-1">
                                         {locales[currentLocale]} - {pages[currentPage]}
                                     </p>
                                 </div>
                                 <Button onClick={handleSave} disabled={Object.keys(editedTranslations).length === 0}>
                                     <Save className="w-4 h-4 mr-2" />
-                                    Save Changes
+                                    {t('admin_translations_mgmt.save_changes')}
                                 </Button>
                             </div>
                         </div>
@@ -139,29 +143,33 @@ export default function TranslationsEdit({ translations, locales, pages, current
                         {/* Add New Translation */}
                         <Card className="mb-6">
                             <CardHeader>
-                                <CardTitle>Add New Translation</CardTitle>
+                                <CardTitle>{t('admin_translations_mgmt.add_new_card')}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
-                                        <Label>Key</Label>
+                                        <Label>{t('admin_translations_mgmt.label_key')}</Label>
                                         <Input
                                             value={newKey}
                                             onChange={(e) => setNewKey(e.target.value)}
-                                            placeholder="e.g., title, subtitle"
+                                            placeholder={t(
+                                                'admin_translations_mgmt.key_placeholder_short',
+                                            )}
                                         />
                                     </div>
                                     <div>
-                                        <Label>Value</Label>
+                                        <Label>{t('admin_translations_mgmt.label_value')}</Label>
                                         <Input
                                             value={newValue}
                                             onChange={(e) => setNewValue(e.target.value)}
-                                            placeholder="Translation text"
+                                            placeholder={t(
+                                                'admin_translations_mgmt.value_placeholder_short',
+                                            )}
                                         />
                                     </div>
                                     <div className="flex items-end">
                                         <Button onClick={handleAddNew} className="w-full">
-                                            Add Translation
+                                            {t('admin_translations_mgmt.add_translation_btn')}
                                         </Button>
                                     </div>
                                 </div>
@@ -171,7 +179,11 @@ export default function TranslationsEdit({ translations, locales, pages, current
                         {/* Edit Translations */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Translations ({Object.keys(allTranslations).length})</CardTitle>
+                                <CardTitle>
+                                    {t('admin_translations_mgmt.translations_list_count', {
+                                        count: Object.keys(allTranslations).length,
+                                    })}
+                                </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-4">
@@ -194,13 +206,13 @@ export default function TranslationsEdit({ translations, locales, pages, current
                                                 onClick={() => handleDelete(key)}
                                                 className="text-destructive"
                                             >
-                                                Delete
+                                                {t('admin_translations_mgmt.delete')}
                                             </Button>
                                         </div>
                                     ))}
                                     {Object.keys(allTranslations).length === 0 && (
                                         <div className="text-center py-12 text-muted-foreground">
-                                            No translations found. Add your first translation above.
+                                            {t('admin_translations_mgmt.edit_empty_hint')}
                                         </div>
                                     )}
                                 </div>

@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
@@ -21,8 +22,9 @@ interface Props {
 }
 
 export default function IntroTextsIndex({ texts }: Props) {
+    const { t } = useTranslation();
     const handleDelete = (textId: number) => {
-        if (confirm('Are you sure you want to delete this intro text?')) {
+        if (confirm(t('admin_intro_texts.confirm_delete'))) {
             router.delete(`/admin/intro-texts/${textId}`, {
                 preserveScroll: true,
             });
@@ -37,26 +39,26 @@ export default function IntroTextsIndex({ texts }: Props) {
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="Intro Texts Management" />
+                    <Head title={t('admin_intro_texts.page_title')} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
-                                <h1 className="text-3xl font-bold mb-2 text-foreground">Intro Texts Management</h1>
+                                <h1 className="text-3xl font-bold mb-2 text-foreground">{t('admin_intro_texts.heading')}</h1>
                                 <p className="text-muted-foreground">
-                                    Manage introductory and consent texts shown to users before surveys
+                                    {t('admin_intro_texts.subheading')}
                                 </p>
                             </div>
                             <Link href="/admin/intro-texts/create">
                                 <Button>
                                     <Plus className="w-4 h-4 mr-2" />
-                                    Add Intro Text
+                                    {t('admin_intro_texts.add')}
                                 </Button>
                             </Link>
                         </div>
 
                         <Card>
                             <CardHeader>
-                                <CardTitle>Intro Texts</CardTitle>
+                                <CardTitle>{t('admin_intro_texts.card_title')}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-2">
@@ -72,7 +74,7 @@ export default function IntroTextsIndex({ texts }: Props) {
                                                         <span className="font-medium">{text.title}</span>
                                                     )}
                                                     {!text.is_active && (
-                                                        <Badge variant="destructive">Inactive</Badge>
+                                                        <Badge variant="destructive">{t('admin_intro_texts.inactive')}</Badge>
                                                     )}
                                                 </div>
                                                 <p className="text-sm text-muted-foreground line-clamp-2">
@@ -97,7 +99,7 @@ export default function IntroTextsIndex({ texts }: Props) {
                                     ))}
                                     {texts.length === 0 && (
                                         <p className="text-center text-muted-foreground py-8">
-                                            No intro texts found.
+                                            {t('admin_intro_texts.empty')}
                                         </p>
                                     )}
                                 </div>

@@ -32,6 +32,22 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import {
+    Building2,
+    CheckCircle2,
+    ChevronDown,
+    ChevronRight,
+    Clock,
+    Mail,
+    Plus,
+    RefreshCw,
+    Trash2,
+    UserPlus,
+    Users,
+    XCircle,
+} from 'lucide-react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface CEO {
@@ -163,7 +179,7 @@ export default function CompaniesIndex({ companies }: Props) {
                         className="border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400"
                     >
                         <CheckCircle2 className="mr-1 h-3 w-3" />
-                        {t('companies_page.status.active')}
+                        {t('companies_index.status.active')}
                     </Badge>
                 );
             case 'pending':
@@ -173,7 +189,7 @@ export default function CompaniesIndex({ companies }: Props) {
                         className="border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
                     >
                         <Clock className="mr-1 h-3 w-3" />
-                        {t('companies_page.status.pending')}
+                        {t('companies_index.status.pending')}
                     </Badge>
                 );
             case 'accepted':
@@ -183,7 +199,7 @@ export default function CompaniesIndex({ companies }: Props) {
                         className="border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400"
                     >
                         <CheckCircle2 className="mr-1 h-3 w-3" />
-                        {t('companies_page.status.accepted')}
+                        {t('companies_index.status.accepted')}
                     </Badge>
                 );
             case 'rejected':
@@ -193,13 +209,13 @@ export default function CompaniesIndex({ companies }: Props) {
                         className="border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
                     >
                         <XCircle className="mr-1 h-3 w-3" />
-                        {t('companies_page.status.rejected')}
+                        {t('companies_index.status.rejected')}
                     </Badge>
                 );
             default:
                 return (
                     <Badge variant="outline">
-                        {t(`companies_page.status.${status}`)}
+                        {t(`companies_index.status.${status}`)}
                     </Badge>
                 );
         }
@@ -227,10 +243,10 @@ export default function CompaniesIndex({ companies }: Props) {
                     <div className="space-y-6">
                         <div>
                             <h1 className="text-2xl font-bold text-foreground">
-                                {t('companies_page.no_company_title')}
+                                {t('companies_index.no_company_title')}
                             </h1>
                             <p className="mt-1 text-muted-foreground">
-                                {t('companies_page.no_company_desc')}
+                                {t('companies_index.no_company_desc')}
                             </p>
                         </div>
                         <Card className="border-2 border-dashed border-muted-foreground/25 bg-muted/30">
@@ -240,12 +256,12 @@ export default function CompaniesIndex({ companies }: Props) {
                                 </div>
                                 <h3 className="text-xl font-semibold mb-2">{t('companies_index.no_company_title')}</h3>
                                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                                    Create your first company to get started with HR Path-Finder. After creating a company, you will see your dashboard with design steps and progress.
+                                    {t('companies_index.no_company_card_desc')}
                                 </p>
                                 <Link href="/hr-manager/companies/create">
                                     <Button size="lg" className="gap-2">
                                         <Plus className="h-5 w-5" />
-                                        {t('companies_page.create_company')}
+                                        {t('companies_index.create_company')}
                                     </Button>
                                 </Link>
                             </CardContent>
@@ -483,13 +499,13 @@ export default function CompaniesIndex({ companies }: Props) {
                                 <DialogDescription>
                                     {selectedCompany.activeProject
                                         ? t(
-                                              'companies_page.dialog.desc_with_project',
+                                              'companies_index.dialog.desc_with_project',
                                               {
                                                   company: selectedCompany.name,
                                               },
                                           )
                                         : t(
-                                              'companies_page.dialog.desc_without_project',
+                                              'companies_index.dialog.desc_without_project',
                                               {
                                                   company: selectedCompany.name,
                                               },
@@ -544,7 +560,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                             setSelectedCompany(null);
                                         }}
                                     >
-                                        {t('companies_page.dialog.cancel')}
+                                        {t('companies_index.dialog.cancel')}
                                     </Button>
                                     <Button type="submit" disabled={processing} className="bg-green-600 hover:bg-green-700">
                                         {processing ? t('companies_index.sending') : t('companies_index.send_invitation')}

@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import FinalBoard, { type StageProgressPercent } from '@/components/Dashboard/HRManager/FinalBoard';
 import AppLayout from '@/layouts/AppLayout';
 
@@ -53,9 +54,14 @@ export default function AdminTreeIndex({
     projectId,
     hrSystemSnapshot,
 }: Props) {
+    const { t } = useTranslation();
     return (
         <AppLayout showWorkflowSteps={true} stepStatuses={stepStatuses} projectId={projectId}>
-            <Head title={`Final Board - ${project.company.name}`} />
+            <Head
+                title={t('page_heads.admin_final_board', {
+                    company: project.company.name,
+                })}
+            />
             <FinalBoard
                 projectId={projectId}
                 companyName={project.company.name}

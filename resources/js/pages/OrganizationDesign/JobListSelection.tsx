@@ -1,6 +1,7 @@
 import { Head, useForm, router } from '@inertiajs/react';
 import { Plus, X, GripVertical, ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -38,6 +39,7 @@ interface Props {
 }
 
 export default function JobListSelection({ project, suggestedJobs, selectedJobs, selectedJobs: initialSelectedJobs }: Props) {
+    const { t } = useTranslation();
     const [selectedJobIds, setSelectedJobIds] = useState<number[]>(
         initialSelectedJobs.map(j => j.job_keyword_id).filter(Boolean)
     );
@@ -215,7 +217,13 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
 
     return (
         <AppLayout>
-            <Head title={`Job List Selection - ${project?.company?.name || 'Job Analysis'}`} />
+            <Head
+                title={t('page_heads.job_list_selection', {
+                    company:
+                        project?.company?.name ||
+                        t('page_head_fallbacks.job_analysis'),
+                })}
+            />
             <div className="p-6 md:p-8 max-w-6xl mx-auto">
                         <div className="mb-6">
                             <h1 className="text-3xl font-bold mb-2">Job List Selection</h1>

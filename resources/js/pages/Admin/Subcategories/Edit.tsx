@@ -1,6 +1,7 @@
 import { Head, useForm, Link } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ interface Props {
 }
 
 export default function SubcategoriesEdit({ subCategory, categories }: Props) {
+    const { t } = useTranslation();
     const { data, setData, put, processing, errors, clearErrors } = useForm({
         industry_category_id: subCategory?.industry_category_id?.toString() || '',
         name: subCategory?.name || '',
@@ -51,29 +53,39 @@ export default function SubcategoriesEdit({ subCategory, categories }: Props) {
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title={`Edit Sub Industry - ${subCategory?.name || 'Sub Industry'}`} />
+                    <Head
+                        title={t('page_heads.edit_sub_industry', {
+                            name:
+                                subCategory?.name ||
+                                t('page_head_fallbacks.sub_industry'),
+                        })}
+                    />
                     <div className="p-6 md:p-8 max-w-3xl mx-auto">
                         <div className="mb-6">
                             <Link href="/admin/subcategories">
                                 <Button variant="ghost" className="mb-4">
                                     <ArrowLeft className="w-4 h-4 mr-2" />
-                                    Back to Sub Industries
+                                    {t('admin_subcategories.create_back')}
                                 </Button>
                             </Link>
-                            <h1 className="text-3xl font-bold mb-2">Edit Sub Industry</h1>
+                            <h1 className="text-3xl font-bold mb-2">
+                                {t('admin_subcategories.edit_heading')}
+                            </h1>
                             <p className="text-muted-foreground">
-                                Update sub industry details
+                                {t('admin_subcategories.edit_subheading')}
                             </p>
                         </div>
 
                         <Card>
                             <CardHeader>
-                                <CardTitle>Sub Industry Details</CardTitle>
+                                <CardTitle>{t('admin_subcategories.details_card_title')}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <form onSubmit={handleSubmit} className="space-y-4">
                                     <div>
-                                        <Label htmlFor="industry_category_id">Industry *</Label>
+                                        <Label htmlFor="industry_category_id">
+                                            {t('admin_subcategories.label_industry')}
+                                        </Label>
                                         <Select
                                             value={data.industry_category_id}
                                             onValueChange={(value) => setData('industry_category_id', value)}
@@ -95,7 +107,9 @@ export default function SubcategoriesEdit({ subCategory, categories }: Props) {
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="name">Sub Industry Name *</Label>
+                                        <Label htmlFor="name">
+                                            {t('admin_subcategories.label_name')}
+                                        </Label>
                                         <Input
                                             id="name"
                                             value={data.name}
@@ -108,7 +122,9 @@ export default function SubcategoriesEdit({ subCategory, categories }: Props) {
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="order">Order *</Label>
+                                        <Label htmlFor="order">
+                                            {t('admin_subcategories.label_order_required')}
+                                        </Label>
                                         <Input
                                             id="order"
                                             type="number"
@@ -123,11 +139,13 @@ export default function SubcategoriesEdit({ subCategory, categories }: Props) {
 
                                     <div className="flex items-center gap-3 pt-4">
                                         <Button type="submit" disabled={processing}>
-                                            {processing ? 'Updating...' : 'Update Sub Industry'}
+                                            {processing
+                                                ? t('admin_subcategories.updating')
+                                                : t('admin_subcategories.update_submit')}
                                         </Button>
                                         <Link href="/admin/subcategories">
                                             <Button type="button" variant="outline">
-                                                Cancel
+                                                {t('admin_subcategories.cancel')}
                                             </Button>
                                         </Link>
                                     </div>

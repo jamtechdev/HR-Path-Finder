@@ -45,6 +45,8 @@
       "forgot_password": "Forgot password?",
       "forgot_password_help": "Reset your password",
       "sign_in": "Sign in",
+      "page_title": "Sign in",
+      "admin_page_title": "Admin Login",
       "signing_in": "Signing in...",
       "back_to_home": "Back to home",
       "no_account": "Don't have an account?",
@@ -70,6 +72,7 @@
       "password_confirm_label": "Confirm Password",
       "password_confirm_placeholder": "••••••••",
       "create_account": "Create account",
+      "page_title": "Create account",
       "creating_account": "Creating account...",
       "back_to_home": "Back to home",
       "have_account": "Already have an account?",
@@ -290,34 +293,34 @@
           "hr": "HR Pathfinder",
           "traditional": "Traditional Consulting"
         },
-        "rows": {
-          "row_1": {
-            "label": "Policy design timeline",
-            "good": "Average 1 month",
-            "bad": "2–8 months"
-          },
-          "row_2": {
-            "label": "Cost",
-            "good": "SaaS fee",
-            "bad": "Tens of millions KRW ~ hundreds of millions KRW"
-          },
-          "row_3": {
-            "label": "Building internal capability",
-            "good": "Hands-on design participation",
-            "bad": "External dependency"
-          },
-          "row_4": {
-            "label": "Deliverables",
-            "good": "Policy dashboard + comprehensive report",
-            "bad": "PPT materials"
-          },
-          "row_5": {
-            "label": "Compensation benchmark",
-            "good": "Industry & competitor comparison",
-            "bad": "Additional cost"
-          }
-        },
         "note": "* Timeline and cost may vary depending on scope and team involvement."
+      },
+      "rows": {
+        "row_1": {
+          "label": "Policy design timeline",
+          "good": "Average 1 month",
+          "bad": "2–8 months"
+        },
+        "row_2": {
+          "label": "Cost",
+          "good": "SaaS fee",
+          "bad": "Tens of millions KRW ~ hundreds of millions KRW"
+        },
+        "row_3": {
+          "label": "Building internal capability",
+          "good": "Hands-on design participation",
+          "bad": "External dependency"
+        },
+        "row_4": {
+          "label": "Deliverables",
+          "good": "Policy dashboard + comprehensive report",
+          "bad": "PPT materials"
+        },
+        "row_5": {
+          "label": "Compensation benchmark",
+          "good": "Industry & competitor comparison",
+          "bad": "Additional cost"
+        }
       }
     },
     "trust_section": {
@@ -1496,6 +1499,9 @@
     "page_title_create": "Create Company - HR Manager",
     "my_companies": "My Companies",
     "no_company_title": "No company yet",
+    "no_company_desc": "Create a company workspace to start HR Path-Finder for your organization.",
+    "no_company_card_desc": "Create your first company to get started with HR Path-Finder. After creating a company, you will see your dashboard with design steps and progress.",
+    "create_company": "Create Company",
     "invite_ceo": "Invite CEO",
     "view_details": "View Details",
     "confirm_delete_invitation": "Are you sure you want to delete this invitation? This action cannot be undone.",
@@ -1516,6 +1522,11 @@
     },
     "invite_dialog": {
       "title": "Invite CEO for {{company}}"
+    },
+    "dialog": {
+      "desc_with_project": "The invited CEO will receive an email to join {{company}}. The invitation is linked to this company's active HR project.",
+      "desc_without_project": "The invited CEO will receive an email to join {{company}}. You can link them to an HR project after one is created.",
+      "cancel": "Cancel"
     }
   },
   "companies_create": {
@@ -1901,6 +1912,405 @@
       "performance_desc": "Design evaluation units, performance methodology, and review structure.",
       "compensation_desc": "Define compensation structure, differentiation methodology, and incentive components."
     }
+  },
+  "generic_fallback_dashboard": {
+    "page_title": "Dashboard",
+    "heading": "Welcome to Dashboard",
+    "subheading": "Dashboard content will be available here."
+  },
+  "pending_approval_page": {
+    "page_title": "Pending approval",
+    "back_home": "Back to home",
+    "heading": "Account pending approval",
+    "description": "Your registration was received. An administrator must enable access before you can use HR Pathfinder. If you were invited for beta testing, you will be notified once your account is approved.",
+    "logout": "Log out"
+  },
+  "two_factor_challenge_page": {
+    "page_title": "Two-Factor Authentication",
+    "recovery_title": "Recovery Code",
+    "recovery_description": "Please confirm access to your account by entering one of your emergency recovery codes.",
+    "recovery_toggle": "login using an authentication code",
+    "auth_title": "Authentication Code",
+    "auth_description": "Enter the authentication code provided by your authenticator application.",
+    "auth_toggle": "login using a recovery code",
+    "recovery_placeholder": "Enter recovery code",
+    "continue": "Continue",
+    "or_you_can": "or you can "
+  },
+  "landing_contact_page": {
+    "page_title": "Contact Us",
+    "hero_kicker": "Contact Us",
+    "hero_title": "Better Company is with you.",
+    "hero_subtitle": "Tell us what you need and we will contact you.",
+    "back_home": "Back to Home",
+    "form_kicker": "Contact Us",
+    "company_name": "Company Name",
+    "company_placeholder": "Company name",
+    "manager_name": "Manager Name",
+    "manager_placeholder": "Manager name",
+    "email": "Email",
+    "email_placeholder": "you@company.com",
+    "phone_optional": "Phone (optional)",
+    "phone_placeholder": "Phone number",
+    "inquiry": "Inquiry",
+    "inquiry_placeholder": "Tell us what you need...",
+    "privacy_agree": "I agree to the collection and use of personal information.",
+    "footer_note": "Your message will be stored and visible to admin.",
+    "submitting": "Submitting...",
+    "submit": "Contact Us"
+  },
+  "invitation_ceo_set_password": {
+    "page_title": "Set password — HR Path-Finder",
+    "brand": "HR Path-Finder",
+    "by_line": "by BetterCompany",
+    "role_title": "Chief Executive Officer",
+    "hero_line1": "One last step —",
+    "hero_highlight": "complete your account",
+    "hero_description": "You accepted the invitation. Set a password to start your HR transformation project.",
+    "step1_done": "Invitation accepted",
+    "step2": "Set password",
+    "step3": "Start project",
+    "trust_1": "Trusted by 100+ companies",
+    "trust_2": "Consulting-grade precision",
+    "trust_3": "Enterprise-grade security",
+    "back_home": "Back to home",
+    "form_title": "Set password",
+    "form_subtitle": "Choose a password only you know to secure your account.",
+    "email": "Email",
+    "new_password": "New password",
+    "password_placeholder": "Enter password",
+    "confirm_password": "Confirm password",
+    "confirm_placeholder": "Re-enter password",
+    "rule_len": "At least 8 characters",
+    "rule_num": "Includes a number",
+    "match_ok": "Passwords match",
+    "match_bad": "Passwords do not match",
+    "processing": "Processing...",
+    "submit": "Complete setup →"
+  },
+  "ceo_hr_policy_os_review": {
+    "page_title": "Review Final Dashboard",
+    "confirm_approve": "Are you sure you want to approve the Final Dashboard? This will lock the entire system and complete the Pathfinder journey.",
+    "back_dashboard": "Back to Dashboard",
+    "heading": "Review Final Dashboard & Implementation Blueprint",
+    "subheading": "Final Step: Review and approve the complete HR system package",
+    "badge_pending": "Pending Approval",
+    "notice_strong": "Final Approval",
+    "notice_body": "This is the final step of the Pathfinder journey. Approving this will lock the entire HR system. Please review all sections carefully before approving.",
+    "tabs": {
+      "policy_manual": "Policy Manual",
+      "handbook": "System Handbook",
+      "roadmap": "Roadmap",
+      "analytics": "Analytics"
+    },
+    "policy_manual": {
+      "title": "HR Policy Manual",
+      "description": "Review the auto-generated policy documents",
+      "company_philosophy": "Company HR Philosophy",
+      "job_architecture_policy": "Job Architecture Policy",
+      "performance_policy": "Performance Management Policy",
+      "compensation_policy": "Compensation & Benefits Policy",
+      "governance": "Governance & Decision Authority",
+      "review_policy": "Review & Change Management Policy"
+    },
+    "handbook": {
+      "title": "HR System Handbook",
+      "description": "Review the system handbook",
+      "overview": "System Overview",
+      "performance_measurement": "Performance Measurement",
+      "reward_structure": "Reward Structure",
+      "job_roles": "Job Roles Definition",
+      "governance": "Governance & Approval Flow",
+      "communication": "Employee Communication Guidelines"
+    },
+    "roadmap": {
+      "title": "Implementation Roadmap",
+      "description": "Review the implementation plan",
+      "rollout_sequence": "Rollout Sequence",
+      "pilot_group": "Pilot Group",
+      "communication_plan": "Communication Plan",
+      "training_responsibility": "Training Responsibility",
+      "timeline": "Timeline",
+      "risks": "Key Risks & Mitigation"
+    },
+    "analytics": {
+      "title": "HR Analytics & KPI Blueprint",
+      "description": "Review the analytics metrics definitions",
+      "performance_distribution": "Performance Distribution Health",
+      "pay_equity": "Pay Equity Indicators",
+      "role_clarity": "Role Clarity Index",
+      "turnover_risk": "Turnover Risk by Job Family",
+      "performance_reward_correlation": "Performance-to-Reward Correlation"
+    },
+    "actions": {
+      "approving": "Approving...",
+      "approve_lock": "Approve & Lock System"
+    },
+    "status": {
+      "not_started": "Not started",
+      "in_progress": "In progress",
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "locked": "Locked",
+      "completed": "Completed"
+    }
+  },
+  "admin_hr_translations": {
+    "page_title": "HR Translations",
+    "heading": "HR Translations",
+    "subheading": "Update HR/Diagnosis form labels and messages (stored in locale JSON as overrides).",
+    "keys_count": "{{count}} keys",
+    "save": "Save",
+    "search_title": "Search",
+    "label_contains": "Key or value contains",
+    "search_placeholder": "e.g. upload, job grade, submit...",
+    "clear": "Clear",
+    "col_key": "Key",
+    "col_en": "English override",
+    "col_ko": "Korean override"
+  },
+  "admin_intro_texts": {
+    "page_title": "Intro Texts Management",
+    "heading": "Intro Texts Management",
+    "subheading": "Manage introductory and consent texts shown to users before surveys",
+    "add": "Add Intro Text",
+    "card_title": "Intro Texts",
+    "confirm_delete": "Are you sure you want to delete this intro text?",
+    "inactive": "Inactive",
+    "edit": "Edit",
+    "delete": "Delete",
+    "empty": "No intro texts found."
+  },
+  "admin_beta_access": {
+    "page_title": "Beta access - Admin",
+    "heading": "Beta access",
+    "subheading": "When the approval toggle is enabled in Settings > App, new users cannot use the app until you approve them here. If approval mode is off, this list stays empty.",
+    "pending_title": "Pending approval ({{count}})",
+    "no_pending_title": "No pending users",
+    "no_pending_desc": "Everyone with an account either has access already, or closed beta approval is not enabled.",
+    "table_name": "Name",
+    "table_email": "Email",
+    "table_email_verified": "Email verified",
+    "table_registered": "Registered",
+    "table_action": "Action",
+    "yes": "Yes",
+    "no": "No",
+    "approve": "Approve",
+    "approving": "Approving..."
+  },
+  "admin_kpi_review": {
+    "page_title": "KPI Review - Admin",
+    "heading": "KPI Review",
+    "subheading": "All projects that contain KPIs. Open a row to approve or request revisions.",
+    "section_projects": "Projects with KPIs",
+    "col_company": "Company",
+    "col_progress": "KPI progress",
+    "col_status": "Status",
+    "col_action": "Action",
+    "empty": "No KPI review projects yet.",
+    "status_approved": "Approved",
+    "status_revision": "Revision requested",
+    "status_pending": "Pending",
+    "status_in_progress": "In progress",
+    "status_na": "N/A",
+    "open_review": "Open KPI review",
+    "project_fallback": "Project #{{id}}"
+  },
+  "hr_job_analysis_page": {
+    "page_title": "Job Analysis",
+    "back_dashboard": "Back to Dashboard",
+    "brand": "HR Path-Finder",
+    "breadcrumb_suffix": "/ Job Analysis",
+    "header_status": {
+      "not_started": "NOT STARTED",
+      "in_progress": "IN PROGRESS",
+      "submitted": "SUBMITTED"
+    },
+    "validation_complete_fields": "Please complete required fields before continuing.",
+    "step_names": {
+      "policy_snapshot": "Policy Snapshot",
+      "job_list_selection": "Job List Selection",
+      "job_definition": "Job Definition",
+      "finalization": "Finalization",
+      "org_chart_mapping": "Org Chart Mapping",
+      "review_submit": "Review & Submit"
+    }
+  },
+  "admin_misc_page_titles": {
+    "compensation_snapshot_edit": "Edit Compensation Snapshot Question",
+    "subcategories_index": "Sub Industries Management",
+    "subcategories_create": "Create Sub Industry",
+    "translations_index": "Translations Management",
+    "translations_create": "Create Translation",
+    "translations_edit": "Edit Translations",
+    "tree_management_overview": "Tree Management - Admin",
+    "performance_snapshot_show": "Performance Snapshot Question Details",
+    "ceo_edit": "Edit CEO",
+    "hr_issues_edit": "Edit HR Issue",
+    "hr_issues_create": "Create HR Issue"
+  },
+  "admin_subcategories": {
+    "confirm_delete": "Are you sure you want to delete this sub industry?",
+    "index_subheading": "Manage sub industries",
+    "add_button": "Add Sub Industry",
+    "filter_by_industry": "Filter by Industry",
+    "all_industries": "All Industries",
+    "list_title": "Sub Industries",
+    "unknown_industry": "Unknown Industry",
+    "order_badge": "Order:",
+    "empty_state": "No sub industries found.",
+    "create_back": "Back to Sub Industries",
+    "create_subheading": "Add a new sub industry",
+    "details_card_title": "Sub Industry Details",
+    "label_industry": "Industry *",
+    "placeholder_select_industry": "Select an industry",
+    "label_name": "Sub Industry Name *",
+    "placeholder_name": "e.g., Automotive",
+    "label_order": "Order (optional)",
+    "placeholder_order": "Leave empty for auto-order",
+    "order_hint": "Lower numbers appear first. Leave empty to add at the end.",
+    "creating": "Creating...",
+    "create_submit": "Create Sub Industry",
+    "cancel": "Cancel",
+    "edit_heading": "Edit Sub Industry",
+    "edit_subheading": "Update sub industry details",
+    "label_order_required": "Order *",
+    "updating": "Updating...",
+    "update_submit": "Update Sub Industry"
+  },
+  "admin_translations_mgmt": {
+    "index_confirm_delete": "Are you sure you want to delete this translation?",
+    "index_subheading": "Manage UI translations stored in JSON files (Korean and English)",
+    "edit_page_button": "Edit Page Translations",
+    "filters": "Filters",
+    "language": "Language",
+    "page_section": "Page/Section",
+    "search_label": "Search",
+    "search_placeholder": "Search by key or value...",
+    "translations_count": "Translations ({{count}})",
+    "empty_search": "No translations found matching your search.",
+    "empty_page": "No translations found for this page.",
+    "create_back": "Back to Translations",
+    "details_card": "Translation Details",
+    "label_language_req": "Language *",
+    "label_namespace_req": "Namespace *",
+    "label_key_req": "Translation Key *",
+    "key_placeholder": "e.g., common.save, buttons.continue",
+    "key_hint": "Use dot notation for nested keys (e.g., common.save, buttons.continue)",
+    "label_value_req": "Translation Value *",
+    "value_placeholder": "Enter the translated text...",
+    "active_label": "Active (translation will be used in the application)",
+    "create_submit": "Create Translation",
+    "edit_confirm_delete_key": "Are you sure you want to delete this translation key?",
+    "edit_back": "Back to Translations",
+    "save_changes": "Save Changes",
+    "add_new_card": "Add New Translation",
+    "label_key": "Key",
+    "label_value": "Value",
+    "key_placeholder_short": "e.g., title, subtitle",
+    "value_placeholder_short": "Translation text",
+    "add_translation_btn": "Add Translation",
+    "translations_list_count": "Translations ({{count}})",
+    "delete": "Delete",
+    "edit_empty_hint": "No translations found. Add your first translation above."
+  },
+  "admin_tree": {
+    "heading": "Tree Management",
+    "subheading": "Admin-only: Manage organization trees for {{company}}",
+    "notice_strong": "Admin Access:",
+    "notice_body": "This is an admin-only feature for managing organization trees. HR Managers and CEOs do not have access to this functionality.",
+    "job_definitions": "Job Definitions",
+    "job_definitions_desc": "Finalized job roles and their organizational structure",
+    "no_jobs": "No job definitions found. Please complete Job Analysis step first.",
+    "executive_director": "Executive Director:",
+    "hierarchy": "Hierarchy:",
+    "project_status": "Project Status"
+  },
+  "admin_perf_snapshot_detail": {
+    "back_to_questions": "Back to Questions",
+    "question_heading": "Question Details",
+    "edit_question": "Edit Question",
+    "question_info": "Question Information",
+    "question_text": "Question Text",
+    "answer_type": "Answer Type",
+    "answer_options": "Answer Options",
+    "no_options": "No options defined",
+    "order": "Order",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "version": "Version",
+    "created_at": "Created At",
+    "updated_at": "Updated At",
+    "type_select_one": "Select One",
+    "type_select_up_to_2": "Select up to 2",
+    "type_select_all": "Select all that apply"
+  },
+  "admin_ceo_form": {
+    "back": "Back",
+    "heading": "Edit CEO",
+    "card_title": "CEO Information",
+    "name": "Name",
+    "email": "Email",
+    "company": "Company",
+    "placeholder_company": "Select Company",
+    "no_company": "No Company",
+    "update_ceo": "Update CEO"
+  },
+  "admin_hr_issue_form": {
+    "back_to_list": "← Back to HR Issues",
+    "create_heading": "Create HR Issue",
+    "edit_heading": "Edit HR Issue",
+    "card_title": "HR Issue Details",
+    "issue_name": "Issue Name",
+    "category": "Category",
+    "order": "Order",
+    "order_placeholder": "Auto-assigned if left empty",
+    "order_hint": "Lower numbers appear first.",
+    "active": "Active",
+    "cancel": "Cancel",
+    "update": "Update",
+    "create": "Create"
+  },
+  "page_head_fallbacks": {
+    "company": "Company",
+    "hr_manager": "HR Manager",
+    "compensation_system": "Compensation System",
+    "job_analysis": "Job Analysis",
+    "org_design": "Organization Design",
+    "performance_system": "Performance System",
+    "project": "Project",
+    "sub_industry": "Sub Industry"
+  },
+  "page_heads": {
+    "diagnosis_review_suffix": "{{title}} - {{company}}",
+    "organizational_structure": "Organizational Structure - {{company}}",
+    "organizational_charts": "Organizational Charts - {{company}}",
+    "admin_final_board": "Final Board - {{company}}",
+    "ceo_kpi_review": "CEO KPI Review - {{company}}",
+    "leader_kpi_review": "Leader KPI Review - {{organization}}",
+    "performance_system": "Performance System - {{company}}",
+    "management_philosophy_survey": "Management Philosophy Survey - {{company}}",
+    "compensation_step4": "Step 4: Compensation System - {{company}}",
+    "job_list_selection": "Job List Selection - {{company}}",
+    "policy_snapshot": "Policy Snapshot - {{company}}",
+    "org_chart_mapping": "Org Chart Mapping - {{company}}",
+    "job_definition": "Job Definition - {{company}}",
+    "tree_overview": "TREE - {{company}}",
+    "job_matrix_card": "Job Matrix Card - {{job}} - {{company}}",
+    "organization_design": "Organization Design - {{company}}",
+    "job_analysis_intro": "Job Analysis - {{company}}",
+    "finalization": "Finalization - {{company}}",
+    "conclusion": "Conclusion - {{company}}",
+    "compensation_overview": "Compensation System - {{company}}",
+    "step_verification": "Step Verification - {{company}}",
+    "edit_sub_industry": "Edit Sub Industry - {{name}}",
+    "tree_recommendations": "TREE Recommendations - {{company}}",
+    "compensation_recommendation": "Step 4.5: Compensation Recommendation - {{company}}",
+    "performance_recommendation": "Step 3.5: Performance Recommendation - {{company}}",
+    "admin_ceo_show": "CEO - {{name}}",
+    "landing_page_editor": "Landing Page Editor",
+    "landing_page_editor_sub": "Edit landing page content stored in JSON files (Korean and English)"
   },
   "diagnosis_overrides": {}
 }

@@ -96,7 +96,7 @@ export default function Login({
 
             <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-[#FAF8F3] relative z-10">
                 <div className="w-full max-w-md">
-                    <Head title="Sign in" />
+                    <Head title={t('auth.login.page_title')} />
 
                     <div className="lg:hidden flex items-center gap-3 justify-center mb-8">
                         <Link href={home()} className="flex items-center gap-3">

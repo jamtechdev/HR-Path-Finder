@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { Building2, Users, TrendingUp } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import D3TreeView from '@/components/Tree/D3TreeView';
@@ -69,9 +70,10 @@ export default function TreeManagementOverview({
     jobDefinitions,
     hrSystemSnapshot,
 }: Props) {
+    const { t } = useTranslation();
     return (
         <SidebarProvider defaultOpen={true}>
-            <Head title="Tree Management - Admin" />
+            <Head title={t('admin_misc_page_titles.tree_management_overview')} />
             <div className="flex h-screen w-full">
                 <RoleBasedSidebar />
                 <SidebarInset className="flex-1 overflow-auto bg-background">
@@ -79,9 +81,11 @@ export default function TreeManagementOverview({
                     <div className="px-6 bg-background">
                         {/* Header */}
                         <div>
-                            <h1 className="text-2xl font-bold">Tree Management</h1>
+                            <h1 className="text-2xl font-bold">{t('admin_tree.heading')}</h1>
                             <p className="text-sm text-muted-foreground">
-                                Admin-only: Manage organization trees for {project.company.name}
+                                {t('admin_tree.subheading', {
+                                    company: project.company.name,
+                                })}
                             </p>
                         </div>
 
@@ -89,8 +93,8 @@ export default function TreeManagementOverview({
                         <Card className="border-blue-200 bg-blue-50 mb-6">
                             <CardContent className="pt-6">
                                 <p className="text-sm text-blue-800">
-                                    <strong>Admin Access:</strong> This is an admin-only feature for managing 
-                                    organization trees. HR Managers and CEOs do not have access to this functionality.
+                                    <strong>{t('admin_tree.notice_strong')}</strong>{' '}
+                                    {t('admin_tree.notice_body')}
                                 </p>
                             </CardContent>
                         </Card>
@@ -105,16 +109,16 @@ export default function TreeManagementOverview({
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Building2 className="h-5 w-5" />
-                                    Job Definitions
+                                    {t('admin_tree.job_definitions')}
                                 </CardTitle>
                                 <CardDescription>
-                                    Finalized job roles and their organizational structure
+                                    {t('admin_tree.job_definitions_desc')}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 {jobDefinitions.length === 0 ? (
                                     <p className="text-sm text-muted-foreground">
-                                        No job definitions found. Please complete Job Analysis step first.
+                                        {t('admin_tree.no_jobs')}
                                     </p>
                                 ) : (
                                     <div className="space-y-4">
@@ -137,13 +141,19 @@ export default function TreeManagementOverview({
                                                             <div className="mt-3 space-y-1">
                                                                 {job.reporting_structure.executive_director && (
                                                                     <p className="text-sm">
-                                                                        <strong>Executive Director:</strong>{' '}
+                                                                        <strong>
+                                                                            {t(
+                                                                                'admin_tree.executive_director',
+                                                                            )}
+                                                                        </strong>{' '}
                                                                         {job.reporting_structure.executive_director}
                                                                     </p>
                                                                 )}
                                                                 {job.reporting_structure.reporting_hierarchy && (
                                                                     <p className="text-sm">
-                                                                        <strong>Hierarchy:</strong>{' '}
+                                                                        <strong>
+                                                                            {t('admin_tree.hierarchy')}
+                                                                        </strong>{' '}
                                                                         {job.reporting_structure.reporting_hierarchy}
                                                                     </p>
                                                                 )}
@@ -161,7 +171,7 @@ export default function TreeManagementOverview({
                         {/* Step Status */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Project Status</CardTitle>
+                                <CardTitle>{t('admin_tree.project_status')}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-2">

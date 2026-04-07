@@ -1,6 +1,7 @@
 import { Head, useForm, router } from '@inertiajs/react';
-import { ArrowLeft, CheckCircle2, XCircle, FileText, BookOpen, Map, BarChart3 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, FileText, BookOpen, Map, BarChart3 } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
@@ -33,10 +34,11 @@ export default function HrPolicyOsCeoReview({
     hrPolicyOs,
     stepStatuses,
 }: Props) {
+    const { t } = useTranslation();
     const { post, processing } = useForm({});
 
     const handleApprove = () => {
-        if (confirm('Are you sure you want to approve the Final Dashboard? This will lock the entire system and complete the Pathfinder journey.')) {
+        if (confirm(t('ceo_hr_policy_os_review.confirm_approve'))) {
             post(`/ceo/hr-policy-os/${project.id}/approve`, {
                 preserveScroll: true,
             });
@@ -44,16 +46,19 @@ export default function HrPolicyOsCeoReview({
     };
 
     const hrPolicyOsStatus = stepStatuses.hr_policy_os || 'not_started';
+    const statusBadge =
+        hrPolicyOsStatus === 'submitted'
+            ? t('ceo_hr_policy_os_review.badge_pending')
+            : t(`ceo_hr_policy_os_review.status.${hrPolicyOsStatus}`, { defaultValue: hrPolicyOsStatus });
 
     return (
         <SidebarProvider defaultOpen={true}>
-            <Head title="Review Final Dashboard" />
+            <Head title={t('ceo_hr_policy_os_review.page_title')} />
             <div className="flex h-screen w-full">
                 <RoleBasedSidebar />
                 <SidebarInset className="flex-1 overflow-auto">
                     <AppHeader />
                     <div className="px-6">
-                        {/* Header */}
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <Button
@@ -62,27 +67,25 @@ export default function HrPolicyOsCeoReview({
                                     onClick={() => router.visit('/ceo/dashboard')}
                                 >
                                     <ArrowLeft className="h-4 w-4 mr-2" />
-                                    Back to Dashboard
+                                    {t('ceo_hr_policy_os_review.back_dashboard')}
                                 </Button>
                                 <div>
-                                    <h1 className="text-2xl font-bold">Review Final Dashboard & Implementation Blueprint</h1>
+                                    <h1 className="text-2xl font-bold">{t('ceo_hr_policy_os_review.heading')}</h1>
                                     <p className="text-sm text-muted-foreground">
-                                        Final Step: Review and approve the complete HR system package
+                                        {t('ceo_hr_policy_os_review.subheading')}
                                     </p>
                                 </div>
                             </div>
                             <Badge variant={hrPolicyOsStatus === 'submitted' ? 'default' : 'secondary'}>
-                                {hrPolicyOsStatus === 'submitted' ? 'Pending Approval' : hrPolicyOsStatus}
+                                {statusBadge}
                             </Badge>
                         </div>
 
-                        {/* Important Notice */}
-                        <Card className="border-blue-200 bg-blue-50">
+                        <Card className="my-6 border-blue-200 bg-blue-50">
                             <CardContent className="pt-6">
                                 <p className="text-sm text-blue-800">
-                                    <strong>Final Approval:</strong> This is the final step of the Pathfinder journey. 
-                                    Approving this will lock the entire HR system. Please review all sections carefully 
-                                    before approving.
+                                    <strong>{t('ceo_hr_policy_os_review.notice_strong')}:</strong>{' '}
+                                    {t('ceo_hr_policy_os_review.notice_body')}
                                 </p>
                             </CardContent>
                         </Card>
@@ -91,35 +94,34 @@ export default function HrPolicyOsCeoReview({
                             <TabsList className="grid w-full grid-cols-4">
                                 <TabsTrigger value="policy-manual">
                                     <FileText className="h-4 w-4 mr-2" />
-                                    Policy Manual
+                                    {t('ceo_hr_policy_os_review.tabs.policy_manual')}
                                 </TabsTrigger>
                                 <TabsTrigger value="handbook">
                                     <BookOpen className="h-4 w-4 mr-2" />
-                                    System Handbook
+                                    {t('ceo_hr_policy_os_review.tabs.handbook')}
                                 </TabsTrigger>
                                 <TabsTrigger value="roadmap">
                                     <Map className="h-4 w-4 mr-2" />
-                                    Roadmap
+                                    {t('ceo_hr_policy_os_review.tabs.roadmap')}
                                 </TabsTrigger>
                                 <TabsTrigger value="analytics">
                                     <BarChart3 className="h-4 w-4 mr-2" />
-                                    Analytics
+                                    {t('ceo_hr_policy_os_review.tabs.analytics')}
                                 </TabsTrigger>
                             </TabsList>
 
-                            {/* Policy Manual Tab */}
                             <TabsContent value="policy-manual" className="space-y-4">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>HR Policy Manual</CardTitle>
+                                        <CardTitle>{t('ceo_hr_policy_os_review.policy_manual.title')}</CardTitle>
                                         <CardDescription>
-                                            Review the auto-generated policy documents
+                                            {t('ceo_hr_policy_os_review.policy_manual.description')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         {hrPolicyOs.policy_manual?.company_philosophy && (
                                             <div>
-                                                <h4 className="font-semibold mb-2">Company HR Philosophy</h4>
+                                                <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.policy_manual.company_philosophy')}</h4>
                                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                     {hrPolicyOs.policy_manual.company_philosophy}
                                                 </p>
@@ -127,7 +129,7 @@ export default function HrPolicyOsCeoReview({
                                         )}
                                         {hrPolicyOs.policy_manual?.job_architecture_policy && (
                                             <div>
-                                                <h4 className="font-semibold mb-2">Job Architecture Policy</h4>
+                                                <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.policy_manual.job_architecture_policy')}</h4>
                                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                     {hrPolicyOs.policy_manual.job_architecture_policy}
                                                 </p>
@@ -135,7 +137,7 @@ export default function HrPolicyOsCeoReview({
                                         )}
                                         {hrPolicyOs.policy_manual?.performance_policy && (
                                             <div>
-                                                <h4 className="font-semibold mb-2">Performance Management Policy</h4>
+                                                <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.policy_manual.performance_policy')}</h4>
                                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                     {hrPolicyOs.policy_manual.performance_policy}
                                                 </p>
@@ -143,7 +145,7 @@ export default function HrPolicyOsCeoReview({
                                         )}
                                         {hrPolicyOs.policy_manual?.compensation_policy && (
                                             <div>
-                                                <h4 className="font-semibold mb-2">Compensation & Benefits Policy</h4>
+                                                <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.policy_manual.compensation_policy')}</h4>
                                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                     {hrPolicyOs.policy_manual.compensation_policy}
                                                 </p>
@@ -151,7 +153,7 @@ export default function HrPolicyOsCeoReview({
                                         )}
                                         {hrPolicyOs.policy_manual?.governance && (
                                             <div>
-                                                <h4 className="font-semibold mb-2">Governance & Decision Authority</h4>
+                                                <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.policy_manual.governance')}</h4>
                                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                     {hrPolicyOs.policy_manual.governance}
                                                 </p>
@@ -159,7 +161,7 @@ export default function HrPolicyOsCeoReview({
                                         )}
                                         {hrPolicyOs.policy_manual?.review_policy && (
                                             <div>
-                                                <h4 className="font-semibold mb-2">Review & Change Management Policy</h4>
+                                                <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.policy_manual.review_policy')}</h4>
                                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                     {hrPolicyOs.policy_manual.review_policy}
                                                 </p>
@@ -169,19 +171,18 @@ export default function HrPolicyOsCeoReview({
                                 </Card>
                             </TabsContent>
 
-                            {/* System Handbook Tab */}
                             <TabsContent value="handbook" className="space-y-4">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>HR System Handbook</CardTitle>
+                                        <CardTitle>{t('ceo_hr_policy_os_review.handbook.title')}</CardTitle>
                                         <CardDescription>
-                                            Review the system handbook
+                                            {t('ceo_hr_policy_os_review.handbook.description')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         {hrPolicyOs.system_handbook?.overview && (
                                             <div>
-                                                <h4 className="font-semibold mb-2">System Overview</h4>
+                                                <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.handbook.overview')}</h4>
                                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                     {hrPolicyOs.system_handbook.overview}
                                                 </p>
@@ -189,7 +190,7 @@ export default function HrPolicyOsCeoReview({
                                         )}
                                         {hrPolicyOs.system_handbook?.performance_measurement && (
                                             <div>
-                                                <h4 className="font-semibold mb-2">Performance Measurement</h4>
+                                                <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.handbook.performance_measurement')}</h4>
                                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                     {hrPolicyOs.system_handbook.performance_measurement}
                                                 </p>
@@ -197,7 +198,7 @@ export default function HrPolicyOsCeoReview({
                                         )}
                                         {hrPolicyOs.system_handbook?.reward_structure && (
                                             <div>
-                                                <h4 className="font-semibold mb-2">Reward Structure</h4>
+                                                <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.handbook.reward_structure')}</h4>
                                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                     {hrPolicyOs.system_handbook.reward_structure}
                                                 </p>
@@ -205,7 +206,7 @@ export default function HrPolicyOsCeoReview({
                                         )}
                                         {hrPolicyOs.system_handbook?.job_roles && (
                                             <div>
-                                                <h4 className="font-semibold mb-2">Job Roles Definition</h4>
+                                                <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.handbook.job_roles')}</h4>
                                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                     {hrPolicyOs.system_handbook.job_roles}
                                                 </p>
@@ -213,7 +214,7 @@ export default function HrPolicyOsCeoReview({
                                         )}
                                         {hrPolicyOs.system_handbook?.governance && (
                                             <div>
-                                                <h4 className="font-semibold mb-2">Governance & Approval Flow</h4>
+                                                <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.handbook.governance')}</h4>
                                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                     {hrPolicyOs.system_handbook.governance}
                                                 </p>
@@ -221,7 +222,7 @@ export default function HrPolicyOsCeoReview({
                                         )}
                                         {hrPolicyOs.system_handbook?.communication && (
                                             <div>
-                                                <h4 className="font-semibold mb-2">Employee Communication Guidelines</h4>
+                                                <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.handbook.communication')}</h4>
                                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                     {hrPolicyOs.system_handbook.communication}
                                                 </p>
@@ -231,13 +232,12 @@ export default function HrPolicyOsCeoReview({
                                 </Card>
                             </TabsContent>
 
-                            {/* Implementation Roadmap Tab */}
                             <TabsContent value="roadmap" className="space-y-4">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Implementation Roadmap</CardTitle>
+                                        <CardTitle>{t('ceo_hr_policy_os_review.roadmap.title')}</CardTitle>
                                         <CardDescription>
-                                            Review the implementation plan
+                                            {t('ceo_hr_policy_os_review.roadmap.description')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
@@ -245,7 +245,7 @@ export default function HrPolicyOsCeoReview({
                                             <>
                                                 {hrPolicyOs.implementation_roadmap.rollout_sequence && (
                                                     <div>
-                                                        <h4 className="font-semibold mb-2">Rollout Sequence</h4>
+                                                        <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.roadmap.rollout_sequence')}</h4>
                                                         <p className="text-sm text-muted-foreground">
                                                             {hrPolicyOs.implementation_roadmap.rollout_sequence}
                                                         </p>
@@ -253,7 +253,7 @@ export default function HrPolicyOsCeoReview({
                                                 )}
                                                 {hrPolicyOs.implementation_roadmap.pilot_group && (
                                                     <div>
-                                                        <h4 className="font-semibold mb-2">Pilot Group</h4>
+                                                        <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.roadmap.pilot_group')}</h4>
                                                         <p className="text-sm text-muted-foreground">
                                                             {hrPolicyOs.implementation_roadmap.pilot_group}
                                                         </p>
@@ -261,7 +261,7 @@ export default function HrPolicyOsCeoReview({
                                                 )}
                                                 {hrPolicyOs.implementation_roadmap.communication_plan && (
                                                     <div>
-                                                        <h4 className="font-semibold mb-2">Communication Plan</h4>
+                                                        <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.roadmap.communication_plan')}</h4>
                                                         <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                             {hrPolicyOs.implementation_roadmap.communication_plan}
                                                         </p>
@@ -269,7 +269,7 @@ export default function HrPolicyOsCeoReview({
                                                 )}
                                                 {hrPolicyOs.implementation_roadmap.training_responsibility && (
                                                     <div>
-                                                        <h4 className="font-semibold mb-2">Training Responsibility</h4>
+                                                        <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.roadmap.training_responsibility')}</h4>
                                                         <p className="text-sm text-muted-foreground">
                                                             {hrPolicyOs.implementation_roadmap.training_responsibility}
                                                         </p>
@@ -277,7 +277,7 @@ export default function HrPolicyOsCeoReview({
                                                 )}
                                                 {hrPolicyOs.implementation_roadmap.timeline && (
                                                     <div>
-                                                        <h4 className="font-semibold mb-2">Timeline</h4>
+                                                        <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.roadmap.timeline')}</h4>
                                                         <p className="text-sm text-muted-foreground">
                                                             {hrPolicyOs.implementation_roadmap.timeline}
                                                         </p>
@@ -285,7 +285,7 @@ export default function HrPolicyOsCeoReview({
                                                 )}
                                                 {hrPolicyOs.implementation_roadmap.risks && (
                                                     <div>
-                                                        <h4 className="font-semibold mb-2">Key Risks & Mitigation</h4>
+                                                        <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.roadmap.risks')}</h4>
                                                         <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                             {hrPolicyOs.implementation_roadmap.risks}
                                                         </p>
@@ -297,13 +297,12 @@ export default function HrPolicyOsCeoReview({
                                 </Card>
                             </TabsContent>
 
-                            {/* Analytics Blueprint Tab */}
                             <TabsContent value="analytics" className="space-y-4">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>HR Analytics & KPI Blueprint</CardTitle>
+                                        <CardTitle>{t('ceo_hr_policy_os_review.analytics.title')}</CardTitle>
                                         <CardDescription>
-                                            Review the analytics metrics definitions
+                                            {t('ceo_hr_policy_os_review.analytics.description')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
@@ -311,7 +310,7 @@ export default function HrPolicyOsCeoReview({
                                             <>
                                                 {hrPolicyOs.analytics_blueprint.performance_distribution && (
                                                     <div>
-                                                        <h4 className="font-semibold mb-2">Performance Distribution Health</h4>
+                                                        <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.analytics.performance_distribution')}</h4>
                                                         <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                             {hrPolicyOs.analytics_blueprint.performance_distribution}
                                                         </p>
@@ -319,7 +318,7 @@ export default function HrPolicyOsCeoReview({
                                                 )}
                                                 {hrPolicyOs.analytics_blueprint.pay_equity && (
                                                     <div>
-                                                        <h4 className="font-semibold mb-2">Pay Equity Indicators</h4>
+                                                        <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.analytics.pay_equity')}</h4>
                                                         <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                             {hrPolicyOs.analytics_blueprint.pay_equity}
                                                         </p>
@@ -327,7 +326,7 @@ export default function HrPolicyOsCeoReview({
                                                 )}
                                                 {hrPolicyOs.analytics_blueprint.role_clarity && (
                                                     <div>
-                                                        <h4 className="font-semibold mb-2">Role Clarity Index</h4>
+                                                        <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.analytics.role_clarity')}</h4>
                                                         <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                             {hrPolicyOs.analytics_blueprint.role_clarity}
                                                         </p>
@@ -335,7 +334,7 @@ export default function HrPolicyOsCeoReview({
                                                 )}
                                                 {hrPolicyOs.analytics_blueprint.turnover_risk && (
                                                     <div>
-                                                        <h4 className="font-semibold mb-2">Turnover Risk by Job Family</h4>
+                                                        <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.analytics.turnover_risk')}</h4>
                                                         <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                             {hrPolicyOs.analytics_blueprint.turnover_risk}
                                                         </p>
@@ -343,7 +342,7 @@ export default function HrPolicyOsCeoReview({
                                                 )}
                                                 {hrPolicyOs.analytics_blueprint.performance_reward_correlation && (
                                                     <div>
-                                                        <h4 className="font-semibold mb-2">Performance-to-Reward Correlation</h4>
+                                                        <h4 className="font-semibold mb-2">{t('ceo_hr_policy_os_review.analytics.performance_reward_correlation')}</h4>
                                                         <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                             {hrPolicyOs.analytics_blueprint.performance_reward_correlation}
                                                         </p>
@@ -356,7 +355,6 @@ export default function HrPolicyOsCeoReview({
                             </TabsContent>
                         </Tabs>
 
-                        {/* Action Buttons */}
                         <div className="flex justify-between">
                             <Button
                                 type="button"
@@ -364,7 +362,7 @@ export default function HrPolicyOsCeoReview({
                                 onClick={() => router.visit('/ceo/dashboard')}
                             >
                                 <ArrowLeft className="h-4 w-4 mr-2" />
-                                Back to Dashboard
+                                {t('ceo_hr_policy_os_review.back_dashboard')}
                             </Button>
                             {hrPolicyOsStatus === 'submitted' && (
                                 <Button
@@ -374,7 +372,7 @@ export default function HrPolicyOsCeoReview({
                                     className="bg-green-600 hover:bg-green-700"
                                 >
                                     <CheckCircle2 className="h-4 w-4 mr-2" />
-                                    {processing ? 'Approving...' : 'Approve & Lock System'}
+                                    {processing ? t('ceo_hr_policy_os_review.actions.approving') : t('ceo_hr_policy_os_review.actions.approve_lock')}
                                 </Button>
                             )}
                         </div>

@@ -102,7 +102,7 @@ export default function AdminLogin({
             {/* Right Side - Login Form */}
             <div className="w-full lg:w-1/2 lg:flex-shrink-0 flex items-center justify-center p-6 md:p-12 bg-background/95 backdrop-blur-sm relative z-10">
                 <div className="w-full max-w-md">
-                    <Head title="Admin Login" />
+                    <Head title={t('auth.login.admin_page_title')} />
 
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex items-center gap-3 justify-center mb-8 animate-in fade-in slide-in-from-top-4">

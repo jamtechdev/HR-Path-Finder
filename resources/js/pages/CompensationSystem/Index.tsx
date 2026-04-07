@@ -1,6 +1,7 @@
 import { Head, useForm, router, Link } from '@inertiajs/react';
 import { ArrowLeft, DollarSign, CheckCircle2, MessageSquare, ChevronDown, ChevronUp, TrendingUp, FileText, Settings, Award, Users, AlertCircle, Shield } from 'lucide-react';
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -77,6 +78,7 @@ export default function CompensationSystemIndex({
     snapshotQuestions = [],
     errors,
 }: Props) {
+    const { t } = useTranslation();
     const draftStorageKey = useMemo(() => `compensation-system-draft:${project.id}`, [project.id]);
     const [activeTab, setActiveTab] = useState(initialTab);
     const [tabCompletions, setTabCompletions] = useState<Record<string, boolean>>({});
@@ -682,7 +684,13 @@ export default function CompensationSystemIndex({
             stepStatuses={stepStatuses}
             projectId={projectId}
         >
-            <Head title={`Step 4: Compensation System - ${project.company?.name || 'Compensation System'}`} />
+            <Head
+                title={t('page_heads.compensation_step4', {
+                    company:
+                        project.company?.name ||
+                        t('page_head_fallbacks.compensation_system'),
+                })}
+            />
             <div className={cn('min-h-full', isOverview ? 'bg-[#f5f3ef]' : 'bg-[#f7f8fa]')}>
                 {errors?.error && (
                     <Alert className="mb-6 border-destructive/50 bg-destructive/10 text-destructive mx-auto max-w-7xl px-6 pt-6">

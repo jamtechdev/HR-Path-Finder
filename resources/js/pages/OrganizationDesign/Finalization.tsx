@@ -14,6 +14,7 @@ import {
     Unlock
 } from 'lucide-react';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -59,6 +60,7 @@ interface Props {
 }
 
 export default function Finalization({ project, jobDefinitions, finalizedJobs = [], hasJobsToFinalize = true, errors }: Props) {
+    const { t } = useTranslation();
     const [confirmed, setConfirmed] = useState(false);
     const [expandedJobs, setExpandedJobs] = useState<Set<number>>(new Set());
 
@@ -104,7 +106,13 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
 
     return (
         <AppLayout>
-            <Head title={`Finalization - ${project?.company?.name || 'Job Analysis'}`} />
+            <Head
+                title={t('page_heads.finalization', {
+                    company:
+                        project?.company?.name ||
+                        t('page_head_fallbacks.job_analysis'),
+                })}
+            />
             <div className="p-6 md:p-8 max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">

@@ -1,6 +1,7 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { Search, FileText, CheckCircle2, MessageSquare, ArrowRight, Send } from 'lucide-react';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import JobMatrixCard from '@/components/JobMatrix/JobMatrixCard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -63,6 +64,7 @@ export default function TreeOverview({
     isAdminView = false,
     isCeoView = false,
 }: Props) {
+    const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedGroup, setSelectedGroup] = useState<string>('all');
 
@@ -112,7 +114,11 @@ export default function TreeOverview({
             stepStatuses={stepStatuses}
             projectId={projectId}
         >
-            <Head title={`TREE - ${project.company.name}`} />
+            <Head
+                title={t('page_heads.tree_overview', {
+                    company: project.company.name,
+                })}
+            />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
                             <div className="flex items-center justify-between mb-2">

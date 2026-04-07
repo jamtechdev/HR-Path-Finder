@@ -1,6 +1,7 @@
 import { Head, useForm, router } from '@inertiajs/react';
 import { ArrowLeft, DollarSign, CheckCircle2, MessageSquare, ChevronDown, ChevronUp, TrendingUp, FileText, Shield, Settings, Award, Users, AlertCircle } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import StepHeader from '@/components/StepHeader/StepHeader';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -70,6 +71,7 @@ export default function CompensationSystemIndex({
     snapshotQuestions = [],
     errors,
 }: Props) {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState(initialTab);
     const [tabCompletions, setTabCompletions] = useState<Record<string, boolean>>({});
     const [isRationaleOpen, setIsRationaleOpen] = useState(true);
@@ -305,7 +307,13 @@ export default function CompensationSystemIndex({
             stepStatuses={stepStatuses}
             projectId={projectId}
         >
-            <Head title={`Step 4: Compensation System - ${project.company?.name || 'Compensation System'}`} />
+            <Head
+                title={t('page_heads.compensation_step4', {
+                    company:
+                        project.company?.name ||
+                        t('page_head_fallbacks.compensation_system'),
+                })}
+            />
             <div className="p-6 md:p-8 max-w-7xl mx-auto bg-background">
                 {errors?.error && (
                     <Alert className="mb-6 border-destructive/50 bg-destructive/10 text-destructive">

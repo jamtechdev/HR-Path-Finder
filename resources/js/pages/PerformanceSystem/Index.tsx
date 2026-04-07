@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Send } from 'lucide-react';
 import React, { useMemo, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
 import { Card, CardContent } from '@/components/ui/card';
@@ -99,6 +100,7 @@ export default function PerformanceSystemIndex({
     projectId,
     kpiVerificationNotice = null,
 }: Props) {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState(initialTab);
     const [tabCompletions, setTabCompletions] = useState<Record<string, boolean>>({});
     const [localDone, setLocalDone] = useState<Record<string, boolean>>({});
@@ -619,7 +621,13 @@ export default function PerformanceSystemIndex({
 
     return (
         <AppLayout>
-            <Head title={`Performance System - ${project?.company?.name || 'HR Manager'}`} />
+            <Head
+                title={t('page_heads.performance_system', {
+                    company:
+                        project?.company?.name ||
+                        t('page_head_fallbacks.hr_manager'),
+                })}
+            />
             {/* Match Job Analysis: on overview = full-page cream bg, no tab bar. Else = header + tab bar + content */}
             {activeTab === 'overview' ? (
                 <div className="min-h-full flex flex-col bg-[#f5f3ef]">

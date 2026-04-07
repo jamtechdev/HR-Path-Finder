@@ -1,6 +1,7 @@
 import { Head, useForm, router } from '@inertiajs/react';
 import { ChevronLeft } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import DynamicList from '@/components/Forms/DynamicList';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -31,6 +32,7 @@ interface Props {
 }
 
 export default function CompensationSnapshotEdit({ question, answerTypes }: Props) {
+    const { t } = useTranslation();
     const [submitting, setSubmitting] = useState(false);
     const getQuestionId = (): number | null => {
         if (typeof question.id === 'number' && Number.isFinite(question.id)) {
@@ -185,7 +187,7 @@ export default function CompensationSnapshotEdit({ question, answerTypes }: Prop
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="Edit Compensation Snapshot Question" />
+                    <Head title={t('admin_misc_page_titles.compensation_snapshot_edit')} />
                     <div className="p-6 md:p-8 max-w-4xl mx-auto">
                         <div className="mb-6">
                             <Button

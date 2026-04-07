@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { CheckCircle2 } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import WorkflowStepsSidebar from '@/components/Sidebar/WorkflowStepsSidebar';
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function PerformanceSystemOverview({ project, performanceSystem, stepStatuses, activeTab, projectId }: Props) {
+    const { t } = useTranslation();
     return (
         <SidebarProvider defaultOpen={true}>
             <Sidebar collapsible="icon" variant="sidebar">
@@ -32,7 +34,13 @@ export default function PerformanceSystemOverview({ project, performanceSystem, 
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
                 <main className="flex-1 overflow-auto">
-                    <Head title={`Performance System - ${project?.company?.name || 'Performance System'}`} />
+                    <Head
+                        title={t('page_heads.performance_system', {
+                            company:
+                                project?.company?.name ||
+                                t('page_head_fallbacks.performance_system'),
+                        })}
+                    />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
                             <h1 className="text-3xl font-bold mb-2">Performance System</h1>

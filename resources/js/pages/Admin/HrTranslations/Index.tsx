@@ -1,5 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, Save } from 'lucide-react';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -28,6 +29,7 @@ function stringifyForSearch(v: unknown): string {
 }
 
 export default function HrTranslationsIndex({ overrides, locales }: Props) {
+    const { t } = useTranslation();
     // `diagnosisTranslations.ts` contains all default bilingual strings for HR/Diagnosis forms.
     const defaults = diagnosisT as Record<string, { en: string; ko: string }>;
     const keys = useMemo(() => Object.keys(defaults).sort(), [defaults]);
@@ -77,22 +79,22 @@ export default function HrTranslationsIndex({ overrides, locales }: Props) {
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title="HR Translations" />
+                    <Head title={t('admin_hr_translations.page_title')} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6 flex items-start justify-between gap-4">
                             <div>
-                                <h1 className="text-3xl font-bold mb-2">HR Translations</h1>
+                                <h1 className="text-3xl font-bold mb-2">{t('admin_hr_translations.heading')}</h1>
                                 <p className="text-muted-foreground">
-                                    Update HR/Diagnosis form labels and messages (stored in locale JSON as overrides).
+                                    {t('admin_hr_translations.subheading')}
                                 </p>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Badge variant="outline">
-                                    {keys.length} keys
+                                    {t('admin_hr_translations.keys_count', { count: keys.length })}
                                 </Badge>
                                 <Button onClick={handleSave} disabled={!dirty} className="bg-primary">
                                     <Save className="w-4 h-4 mr-2" />
-                                    Save
+                                    {t('admin_hr_translations.save')}
                                 </Button>
                             </div>
                         </div>
@@ -101,22 +103,22 @@ export default function HrTranslationsIndex({ overrides, locales }: Props) {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Search className="w-4 h-4" />
-                                    Search
+                                    {t('admin_hr_translations.search_title')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label>Key or value contains</Label>
+                                        <Label>{t('admin_hr_translations.label_contains')}</Label>
                                         <Input
                                             value={search}
                                             onChange={(e) => setSearch(e.target.value)}
-                                            placeholder="e.g. upload, job grade, submit..."
+                                            placeholder={t('admin_hr_translations.search_placeholder')}
                                         />
                                     </div>
                                     <div className="flex items-end">
                                         <Button variant="outline" onClick={() => { setSearch(''); }} className="w-full">
-                                            Clear
+                                            {t('admin_hr_translations.clear')}
                                         </Button>
                                     </div>
                                 </div>
@@ -125,9 +127,9 @@ export default function HrTranslationsIndex({ overrides, locales }: Props) {
 
                         <div className="rounded-lg border overflow-hidden">
                             <div className="grid grid-cols-[260px_1fr_1fr] gap-0 bg-muted/30 border-b">
-                                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">Key</div>
-                                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">English override</div>
-                                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">Korean override</div>
+                                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">{t('admin_hr_translations.col_key')}</div>
+                                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">{t('admin_hr_translations.col_en')}</div>
+                                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">{t('admin_hr_translations.col_ko')}</div>
                             </div>
                             <div style={{ maxHeight: '70vh', overflow: 'auto' }}>
                                 {filteredKeys.map((key) => {

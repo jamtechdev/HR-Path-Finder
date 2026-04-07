@@ -1,5 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ export default function Edit({
     issue: any;
     categories: Record<string, string>;
 }) {
+    const { t } = useTranslation();
     const { data, setData, put, processing, errors, clearErrors } = useForm({
         name: issue.name,
         order: issue.order,
@@ -41,7 +43,7 @@ export default function Edit({
 
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
-                <Head title="Edit HR Issue" />
+                <Head title={t('admin_misc_page_titles.hr_issues_edit')} />
 
                 <main className="flex-1 overflow-auto bg-background">
                     <div className="mx-auto max-w-4xl p-6 md:p-8">
@@ -50,22 +52,22 @@ export default function Edit({
                                 href="/admin/hr-issues"
                                 className="text-sm text-muted-foreground hover:underline"
                             >
-                                &larr; Back to HR Issues
+                                {t('admin_hr_issue_form.back_to_list')}
                             </Link>
                             <h1 className="mt-2 text-3xl font-bold">
-                                Edit HR Issue
+                                {t('admin_hr_issue_form.edit_heading')}
                             </h1>
                         </div>
 
                         <form onSubmit={submit}>
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>HR Issue Details</CardTitle>
+                                    <CardTitle>{t('admin_hr_issue_form.card_title')}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div>
                                         <Label>
-                                            Issue Name{' '}
+                                            {t('admin_hr_issue_form.issue_name')}{' '}
                                             <span className="text-destructive">
                                                 *
                                             </span>
@@ -85,7 +87,7 @@ export default function Edit({
                                     </div>
 
                                     <div>
-                                        <Label>Category</Label>
+                                        <Label>{t('admin_hr_issue_form.category')}</Label>
                                         <select
                                             value={data.category}
                                             onChange={(e) =>
@@ -115,17 +117,19 @@ export default function Edit({
                                     </div>
 
                                     <div>
-                                        <Label>Order</Label>
+                                        <Label>{t('admin_hr_issue_form.order')}</Label>
                                         <Input
                                             type="number"
                                             value={data.order}
                                             onChange={(e) =>
                                                 setData('order', e.target.value)
                                             }
-                                            placeholder="Auto-assigned if left empty"
+                                            placeholder={t(
+                                                'admin_hr_issue_form.order_placeholder',
+                                            )}
                                         />
                                         <p className="mt-1 text-xs text-muted-foreground">
-                                            Lower numbers appear first.
+                                            {t('admin_hr_issue_form.order_hint')}
                                         </p>
                                     </div>
 
@@ -144,7 +148,7 @@ export default function Edit({
                                             htmlFor="is_active"
                                             className="cursor-pointer"
                                         >
-                                            Active
+                                            {t('admin_hr_issue_form.active')}
                                         </Label>
                                     </div>
                                 </CardContent>
@@ -152,10 +156,12 @@ export default function Edit({
 
                             <div className="mt-6 flex justify-end gap-2">
                                 <Link href="/admin/hr-issues">
-                                    <Button variant="outline">Cancel</Button>
+                                    <Button variant="outline">
+                                        {t('admin_hr_issue_form.cancel')}
+                                    </Button>
                                 </Link>
                                 <Button type="submit" disabled={processing}>
-                                    Update
+                                    {t('admin_hr_issue_form.update')}
                                 </Button>
                             </div>
                         </form>

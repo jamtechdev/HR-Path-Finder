@@ -260,7 +260,14 @@ export default function OrganizationalStructure({
 
     return (
         <>
-            <Head title={`Organizational Structure - ${company?.name || project?.company?.name || 'Company'}`} />
+            <Head
+                title={t('page_heads.organizational_structure', {
+                    company:
+                        company?.name ||
+                        project?.company?.name ||
+                        t('page_head_fallbacks.company'),
+                })}
+            />
             <FormLayout
                 title={t('diagnosis_org_structure.title')}
                 project={project}

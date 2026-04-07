@@ -503,7 +503,15 @@ export default function Review({
 
     return (
         <>
-            <Head title={`${t('diagnosis_review.title')} - ${company?.name || project?.company?.name || 'Company'}`} />
+            <Head
+                title={t('page_heads.diagnosis_review_suffix', {
+                    title: t('diagnosis_review.title'),
+                    company:
+                        company?.name ||
+                        project?.company?.name ||
+                        t('page_head_fallbacks.company'),
+                })}
+            />
 
             {/* Success Modal with Invite CEO */}
             <Dialog open={showSuccessModal} onOpenChange={(open) => {

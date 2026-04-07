@@ -1,5 +1,6 @@
 import { Head, useForm, Link, usePage, router } from '@inertiajs/react';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/AppLayout';
 
 interface OrganizationalKpi {
@@ -45,6 +46,7 @@ interface Props {
 }
 
 export default function CeoKpiReview({ project, kpis = [], orgChartMappings = [], isAdmin = false }: Props) {
+    const { t } = useTranslation();
     const { props } = usePage();
     const [revisionRequests, setRevisionRequests] = useState<Record<string, string>>({});
     const [expandedOrg, setExpandedOrg] = useState<string | null>(null);
@@ -168,7 +170,13 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
 
     return (
         <AppLayout>
-            <Head title={`CEO KPI Review - ${project?.company?.name || 'Company'}`} />
+            <Head
+                title={t('page_heads.ceo_kpi_review', {
+                    company:
+                        project?.company?.name ||
+                        t('page_head_fallbacks.company'),
+                })}
+            />
             {successModalOpen && (
                 <div
                     style={{

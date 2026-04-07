@@ -1,5 +1,6 @@
 import { Head, useForm, router, usePage } from '@inertiajs/react';
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FlashToasts } from '@/components/FlashToasts';
 import { Toaster } from '@/components/ui/toaster';
 
@@ -61,6 +62,7 @@ export default function KpiReviewToken({
     reviewerEmail,
     isCompleted = false,
 }: Props) {
+    const { t } = useTranslation();
     const { props } = usePage();
     const propsKpis = (props as any)?.kpis;
     const [selectedOrganization, setSelectedOrganization] = useState<string>(defaultOrganizationName);
@@ -447,7 +449,11 @@ export default function KpiReviewToken({
         <div className="leader-kpi-review-page">
             <Toaster />
             <FlashToasts />
-            <Head title={`Leader KPI Review - ${selectedOrganization}`} />
+            <Head
+                title={t('page_heads.leader_kpi_review', {
+                    organization: selectedOrganization,
+                })}
+            />
 
             {submitPopupOpen && (
                 <div

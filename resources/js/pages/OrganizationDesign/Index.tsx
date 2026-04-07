@@ -1,6 +1,7 @@
 import { Head, useForm, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Building2, Target, Users, CheckCircle2 } from 'lucide-react';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import RecommendationBadge from '@/components/DesignSteps/RecommendationBadge';
 import TabNavigation from '@/components/DesignSteps/TabNavigation';
 import { Badge } from '@/components/ui/badge';
@@ -73,6 +74,7 @@ const MANAGERIAL_CRITERIA = [
 ];
 
 export default function OrganizationDesignIndex({ project, organizationDesign, recommendations, stepStatuses }: Props) {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('overview');
     const [completedTabs, setCompletedTabs] = useState<string[]>([]);
 
@@ -112,7 +114,13 @@ export default function OrganizationDesignIndex({ project, organizationDesign, r
             stepStatuses={stepStatuses}
             projectId={project.id}
         >
-                    <Head title={`Organization Design - ${project?.company?.name || 'Organization Design'}`} />
+                    <Head
+                        title={t('page_heads.organization_design', {
+                            company:
+                                project?.company?.name ||
+                                t('page_head_fallbacks.org_design'),
+                        })}
+                    />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         {/* Header */}
                         <div className="mb-6">

@@ -1,6 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Eye, EyeOff } from 'lucide-react';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export default function CeoSetPassword({ token, email, companyName }: Props) {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -44,19 +46,23 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
     form.post('/invitations/set-password', { preserveScroll: true });
   };
 
+  const ruleItems = [
+    { key: 'len', label: t('invitation_ceo_set_password.rule_len'), ok: met.len },
+    { key: 'num', label: t('invitation_ceo_set_password.rule_num'), ok: met.num },
+  ];
+
   return (
     <>
-      <Head title="Set password — HR Path-Finder" />
+      <Head title={t('invitation_ceo_set_password.page_title')} />
       <div className="grid min-h-screen md:grid-cols-[54%_46%]">
-        {/* Left panel */}
         <div className="relative hidden overflow-hidden bg-[#0E1628] p-10 md:flex md:flex-col md:px-12 md:py-10">
           <div className="relative z-10 flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-lg">
               🏢
             </div>
             <div>
-              <div className="font-semibold text-white">HR Path-Finder</div>
-              <div className="text-[10px] uppercase tracking-wider text-white/35">by BetterCompany</div>
+              <div className="font-semibold text-white">{t('invitation_ceo_set_password.brand')}</div>
+              <div className="text-[10px] uppercase tracking-wider text-white/35">{t('invitation_ceo_set_password.by_line')}</div>
             </div>
           </div>
           <div className="relative z-10 mt-12 flex flex-1 flex-col justify-center">
@@ -65,68 +71,67 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
                 👔
               </div>
               <div>
-                <div className="font-semibold text-white">Chief Executive Officer</div>
+                <div className="font-semibold text-white">{t('invitation_ceo_set_password.role_title')}</div>
                 <div className="text-sm text-white/40">{companyName}</div>
               </div>
             </div>
             <h1 className="mb-4 text-3xl font-bold leading-tight text-white md:text-4xl">
-              마지막 한 단계,
+              {t('invitation_ceo_set_password.hero_line1')}
               <br />
-              <span className="text-[#E8C96B]">계정을 완성하세요</span>
+              <span className="text-[#E8C96B]">{t('invitation_ceo_set_password.hero_highlight')}</span>
             </h1>
             <p className="max-w-md text-sm font-light leading-relaxed text-white/50">
-              초대를 수락하셨습니다. 비밀번호를 설정하면 바로 HR 혁신 프로젝트를 시작할 수 있습니다.
+              {t('invitation_ceo_set_password.hero_description')}
             </p>
             <div className="mt-10 flex flex-col gap-3">
               <div className="flex items-center gap-3 opacity-60">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/20 bg-emerald-500/20 text-xs font-semibold text-emerald-400">
                   ✓
                 </div>
-                <span className="text-sm text-white/60">초대 수락 완료</span>
+                <span className="text-sm text-white/60">{t('invitation_ceo_set_password.step1_done')}</span>
               </div>
               <div className="h-5 w-px bg-white/10 ml-3.5" />
               <div className="flex items-center gap-3">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-[#C9A84C] bg-[#C9A84C] text-xs font-semibold text-[#0E1628]">
                   2
                 </div>
-                <span className="text-sm font-medium text-white">비밀번호 설정</span>
+                <span className="text-sm font-medium text-white">{t('invitation_ceo_set_password.step2')}</span>
               </div>
               <div className="h-5 w-px bg-white/10 ml-3.5" />
               <div className="flex items-center gap-3 opacity-45">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/15 text-xs font-semibold text-white/40">
                   3
                 </div>
-                <span className="text-sm text-white/50">프로젝트 시작</span>
+                <span className="text-sm text-white/50">{t('invitation_ceo_set_password.step3')}</span>
               </div>
             </div>
           </div>
           <div className="relative z-10 flex gap-5 text-[11px] text-white/25">
-            <span>100개 이상의 회사가 신뢰</span>
+            <span>{t('invitation_ceo_set_password.trust_1')}</span>
             <span>·</span>
-            <span>컨설팅급 정밀도</span>
+            <span>{t('invitation_ceo_set_password.trust_2')}</span>
             <span>·</span>
-            <span>엔터프라이즈급 보안</span>
+            <span>{t('invitation_ceo_set_password.trust_3')}</span>
           </div>
         </div>
 
-        {/* Right panel */}
         <div className="flex flex-col items-center justify-center bg-[#F2EEE7] p-8 md:p-12">
           <Link
             href="/"
             className="absolute left-8 top-8 flex items-center gap-1.5 text-sm text-[#4A4E69] opacity-60 hover:opacity-100 md:left-8 md:top-8"
           >
-            ← 홈으로 돌아가기
+            ← {t('invitation_ceo_set_password.back_home')}
           </Link>
           <div className="w-full max-w-[400px] rounded-xl bg-white p-8 shadow-sm md:p-10">
             <h2 className="font-serif text-[22px] font-bold tracking-tight text-[#0E1628]">
-              비밀번호 설정
+              {t('invitation_ceo_set_password.form_title')}
             </h2>
             <p className="mt-1.5 text-[13px] font-light leading-relaxed text-[#4A4E69]">
-              계정 보안을 위해 본인만 아는 비밀번호를 설정해 주세요.
+              {t('invitation_ceo_set_password.form_subtitle')}
             </p>
             <form onSubmit={submit} className="mt-8 space-y-5">
               <div>
-                <Label className="text-xs font-medium text-[#0E1628]">이메일</Label>
+                <Label className="text-xs font-medium text-[#0E1628]">{t('invitation_ceo_set_password.email')}</Label>
                 <Input
                   type="email"
                   value={email}
@@ -135,7 +140,7 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
                 />
               </div>
               <div>
-                <Label className="text-xs font-medium text-[#0E1628]">새 비밀번호</Label>
+                <Label className="text-xs font-medium text-[#0E1628]">{t('invitation_ceo_set_password.new_password')}</Label>
                 <div className="relative mt-1.5">
                   <Input
                     type={showPassword ? 'text' : 'password'}
@@ -144,7 +149,7 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
                       form.setData('password', e.target.value);
                       clearInertiaFieldError(form.clearErrors, 'password');
                     }}
-                    placeholder="비밀번호를 입력하세요"
+                    placeholder={t('invitation_ceo_set_password.password_placeholder')}
                     className="pr-10"
                     autoComplete="new-password"
                   />
@@ -157,10 +162,7 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
                   </button>
                 </div>
                 <div className="mt-2 flex flex-col gap-1 text-[11.5px]">
-                  {[
-                    { key: 'len', label: '8자 이상', ok: met.len },
-                    { key: 'num', label: '숫자 포함', ok: met.num },
-                  ].map(({ key, label, ok }) => (
+                  {ruleItems.map(({ key, label, ok }) => (
                     <div
                       key={key}
                       className={`flex items-center gap-2 ${ok ? 'text-emerald-600' : 'text-slate-400'}`}
@@ -178,7 +180,7 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
                 </div>
               </div>
               <div>
-                <Label className="text-xs font-medium text-[#0E1628]">비밀번호 확인</Label>
+                <Label className="text-xs font-medium text-[#0E1628]">{t('invitation_ceo_set_password.confirm_password')}</Label>
                 <div className="relative mt-1.5">
                   <Input
                     type={showConfirm ? 'text' : 'password'}
@@ -187,7 +189,7 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
                       form.setData('password_confirmation', e.target.value);
                       clearInertiaFieldError(form.clearErrors, 'password_confirmation');
                     }}
-                    placeholder="비밀번호를 한 번 더 입력하세요"
+                    placeholder={t('invitation_ceo_set_password.confirm_placeholder')}
                     className="pr-10"
                     autoComplete="new-password"
                   />
@@ -205,7 +207,7 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
                       match ? 'text-emerald-600' : 'text-red-500'
                     }`}
                   >
-                    {match ? '✓ 비밀번호가 일치합니다' : '비밀번호가 일치하지 않습니다'}
+                    {match ? t('invitation_ceo_set_password.match_ok') : t('invitation_ceo_set_password.match_bad')}
                   </p>
                 )}
               </div>
@@ -216,7 +218,7 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
                 disabled={!canSubmit || form.processing}
                 className="w-full bg-[#0E1628] font-medium hover:bg-[#1A2540]"
               >
-                {form.processing ? '처리 중…' : '설정 완료 →'}
+                {form.processing ? t('invitation_ceo_set_password.processing') : t('invitation_ceo_set_password.submit')}
               </Button>
             </form>
           </div>
