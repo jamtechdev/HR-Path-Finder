@@ -1,9 +1,21 @@
+import { Head, Link } from '@inertiajs/react';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import {
+    AlertCircle,
+    ArrowRight,
+    CheckCircle2,
+    ClipboardList,
+    Clock,
+    Eye,
+    FileText,
+    FolderKanban,
+    Target,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface Project {

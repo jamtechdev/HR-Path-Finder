@@ -1,6 +1,22 @@
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import {
+    ArrowLeft,
+    CheckCircle2,
+    Clock,
+    Globe,
+    Hash,
+    Mail,
+    MapPin,
+    RefreshCw,
+    Trash2,
+    UserPlus,
+    Users,
+    XCircle,
+} from 'lucide-react';
+import { useState, type FormEvent } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -81,7 +97,7 @@ export default function ShowCompany({ company }: Props) {
                 null,
         });
 
-    const handleInviteCeo = (e: React.FormEvent) => {
+    const handleInviteCeo = (e: FormEvent) => {
         e.preventDefault();
         post(`/companies/${company.id}/invite-ceo`, {
             onSuccess: () => {
