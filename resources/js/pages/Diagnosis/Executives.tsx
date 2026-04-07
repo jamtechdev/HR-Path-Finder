@@ -1,6 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Check, Plus, X } from 'lucide-react';
-import React, { useEffect, useState, useCallback } from 'react';
+import { Check, Plus } from 'lucide-react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
@@ -117,21 +117,21 @@ export default function Executives({
     const [customInputVisible, setCustomInputVisible] = useState(false);
     const [customName, setCustomName] = useState('');
 
-    const internalForm = useForm({
+    const { data: inertiaData, setData, errors: executivesErrors } = useForm({
         total_executives: diagnosis?.total_executives || 0,
         executive_positions: [] as Array<{ role: string; count: number }>,
     });
     const useEmbed = embedMode && embedData != null && embedSetData;
-    const data = useEmbed ? ({ ...internalForm.data, ...embedData } as typeof internalForm.data) : internalForm.data;
+    const data = useEmbed ? ({ ...inertiaData, ...embedData } as typeof inertiaData) : inertiaData;
     const setFieldData = useCallback(
         (k: string, v: unknown) => {
             if (useEmbed) {
                 embedSetData(k, v);
                 return;
             }
-            internalForm.setData(k as 'total_executives' | 'executive_positions', v as any);
+            setData(k as 'total_executives' | 'executive_positions', v as any);
         },
-        [useEmbed, embedSetData, internalForm]
+        [useEmbed, embedSetData, setData]
     );
     const setFormData = useCallback(
         (payload: { total_executives: number; executive_positions: Array<{ role: string; count: number }> }) => {
@@ -140,11 +140,10 @@ export default function Executives({
                 embedSetData('executive_positions', payload.executive_positions);
                 return;
             }
-            internalForm.setData(payload);
+            setData(payload);
         },
-        [useEmbed, embedSetData, internalForm]
+        [useEmbed, embedSetData, setData]
     );
-    const { errors: executivesErrors } = internalForm;
 
     // Hydrate from saved draft so Back/Next keeps selections.
     useDiagnosisDraftHydrate(
@@ -213,10 +212,26 @@ export default function Executives({
     const totalPos = allSelected.length;
     const totalHead = allSelected.reduce((s, r) => s + r.count, 0);
 
+    const positionsSig = allSelected.map((r) => `${r.name}:${r.count}`).join('|');
+    const lastSyncedPayload = useRef<string>('');
+
     useEffect(() => {
         const positionsArray = allSelected.map((r) => ({ role: r.name, count: r.count }));
-        setFormData({ executive_positions: positionsArray, total_executives: totalHead });
-    }, [totalHead, allSelected.map((r) => `${r.name}:${r.count}`).join(',')]);
+        const payload = { executive_positions: positionsArray, total_executives: totalHead };
+        const sig = JSON.stringify(payload);
+        if (lastSyncedPayload.current === sig) return;
+        lastSyncedPayload.current = sig;
+        setFormData(payload);
+    }, [totalHead, positionsSig, setFormData]);
+
+    const executivePositionsKey = JSON.stringify(data.executive_positions);
+    const layoutFormData = useMemo(
+        () => ({
+            total_executives: data.total_executives,
+            executive_positions: data.executive_positions,
+        }),
+        [data.total_executives, executivePositionsKey]
+    );
 
     const isReadOnlyStatus = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
     const isReadOnly = readOnly || isReadOnlyStatus;
@@ -607,10 +622,7 @@ export default function Executives({
                 projectId={projectId}
                 backRoute="workforce"
                 nextRoute="leaders"
-                formData={{
-                    total_executives: data.total_executives,
-                    executive_positions: data.executive_positions,
-                }}
+                formData={layoutFormData}
                 saveRoute={
                     projectId ? `/hr-manager/diagnosis/${projectId}` : undefined
                 }

@@ -42,6 +42,24 @@ function serializeDraft(formData: any): Record<string, unknown> {
     }
 }
 
+/** Stable dependency for effects/memos when Inertia/form only changes object identity. */
+function stableSerializedKey(value: unknown): string {
+    if (value === undefined) return '__undef__';
+    if (value === null) return 'null';
+    if (typeof value !== 'object') {
+        try {
+            return JSON.stringify(value);
+        } catch {
+            return String(value);
+        }
+    }
+    try {
+        return JSON.stringify(value, (_k, v) => (v instanceof File ? '[File]' : v));
+    } catch {
+        return '';
+    }
+}
+
 interface FormLayoutProps {
     title: string;
     subtitle?: string;
@@ -204,6 +222,8 @@ export default function FormLayout({
     const validateBeforeNextRef = useRef(validateBeforeNext);
     validateBeforeNextRef.current = validateBeforeNext;
     const activeValidationMessage = validationError || liveValidationError || null;
+    const formDataKey = stableSerializedKey(formData);
+    const diagnosisKey = stableSerializedKey(diagnosis);
 
     useEffect(() => {
         setDiagnosisFieldErrors({});
@@ -248,7 +268,7 @@ export default function FormLayout({
         if (hasTopError && v.isValid) {
             setValidationError(null);
         }
-    }, [activeTab, formData, diagnosis, diagnosisFieldErrors, validationError]);
+    }, [activeTab, formDataKey, diagnosisKey, diagnosisFieldErrors, validationError]);
 
     const isReadOnly = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
 
@@ -419,7 +439,7 @@ export default function FormLayout({
         }
         const dataToValidate = formData && typeof formData === 'object' && Object.keys(formData).length > 0 ? formData : diagnosis;
         return validateStepRequiredFields(activeTab, dataToValidate).isValid;
-    }, [activeTab, formData, diagnosis, stepStatuses, validateBeforeNext, liveValidationError]);
+    }, [activeTab, formDataKey, diagnosisKey, stepStatuses, validateBeforeNext, liveValidationError]);
 
     const statusForHeader = getStatusForHeader();
     const progressPct = displayTabs.length ? (completedCount / displayTabs.length) * 100 : 0;

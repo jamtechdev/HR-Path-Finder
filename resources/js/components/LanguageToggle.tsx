@@ -1,5 +1,4 @@
 import { Globe } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,16 +17,11 @@ interface LanguageToggleProps {
 export function LanguageToggle({ iconOnly = false }: LanguageToggleProps) {
     const { i18n: i18nInstance } = useTranslation();
     const normalize = (l: string) => (l && l.startsWith('en') ? 'en' : 'ko');
-    const [currentLang, setCurrentLang] = useState(normalize(i18nInstance.language || 'ko'));
-
-    useEffect(() => {
-        setCurrentLang(normalize(i18nInstance.language || 'ko'));
-    }, [i18nInstance.language]);
+    const currentLang = normalize(i18nInstance.language || 'ko');
 
     const changeLanguage = (lang: string) => {
         const code = lang === 'en' ? 'en' : 'ko'; // ensure only en or ko for persistence
         i18nInstance.changeLanguage(code);
-        setCurrentLang(code);
         try {
             localStorage.setItem('i18nextLng', code);
         } catch (_) {}

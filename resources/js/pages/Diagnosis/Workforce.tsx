@@ -94,13 +94,14 @@ export default function Workforce({
 
     // 2. Sync present_headcount with FT + Contract
     useEffect(() => {
+        if (readOnly || embedMode) return;
         const ft = Number(data.full_time_headcount) || 0;
         const ct = Number(data.contract_headcount) || 0;
         const sum = ft + ct;
         if (sum !== (Number(data.present_headcount) || 0)) {
             setData('present_headcount', sum);
         }
-    }, [data.full_time_headcount, data.contract_headcount]);
+    }, [data.full_time_headcount, data.contract_headcount, data.present_headcount, readOnly, embedMode, setData]);
 
     // Derived Stats
     const ft = Number(data.full_time_headcount) || 0;

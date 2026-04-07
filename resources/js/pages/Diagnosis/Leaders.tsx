@@ -4,7 +4,7 @@ import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
 import { cn } from '@/lib/utils';
 import { Head, useForm } from '@inertiajs/react';
 import { Check, GripVertical, Info, Plus } from 'lucide-react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface Diagnosis {
@@ -132,18 +132,24 @@ export default function Leaders({
     } | null>(null);
     const justDraggedRef = useRef(false);
 
-    const internalForm = useForm({
+    const { data: inertiaData, setData: inertiaSetData, errors: leadersErrors } = useForm({
         leadership_count: diagnosis?.leadership_count ?? 0,
     });
 
     const useEmbed = embedMode && embedData != null && embedSetData;
     const data = useEmbed
-        ? ({ ...internalForm.data, ...embedData } as typeof internalForm.data)
-        : internalForm.data;
-    const setData = useEmbed
-        ? (k: string, v: unknown) => embedSetData(k, v)
-        : internalForm.setData;
-    const { errors: leadersErrors } = internalForm;
+        ? ({ ...inertiaData, ...embedData } as typeof inertiaData)
+        : inertiaData;
+    const setData = useCallback(
+        (k: string, v: unknown) => {
+            if (useEmbed) {
+                embedSetData(k, v);
+                return;
+            }
+            inertiaSetData(k as 'leadership_count' | '__draft_leaders', v as any);
+        },
+        [useEmbed, embedSetData, inertiaSetData],
+    );
 
     // Computed values
     const allSelected = [
@@ -233,30 +239,29 @@ export default function Leaders({
     );
 
     useEffect(() => {
+        if ((Number(data.leadership_count) || 0) === totalHead) return;
         setData('leadership_count', totalHead);
-    }, [totalHead, setData]);
+    }, [totalHead, data.leadership_count, setData]);
 
     // Save UI state to draft
-    useEffect(() => {
-        if (!projectId || embedMode || readOnly) return;
-        (internalForm as any).setData('__draft_leaders', {
+    const draftLeadersPayload = useMemo(
+        () => ({
             selectedIds: Array.from(selected),
             counts,
             customRows,
             order,
             totalWorkforce,
-        });
-    }, [
-        projectId,
-        embedMode,
-        readOnly,
-        selected,
-        counts,
-        customRows,
-        order,
-        totalWorkforce,
-        internalForm,
-    ]);
+        }),
+        [selected, counts, customRows, order, totalWorkforce],
+    );
+    const lastDraftSigRef = useRef('');
+    useEffect(() => {
+        if (!projectId || embedMode || readOnly) return;
+        const sig = JSON.stringify(draftLeadersPayload);
+        if (lastDraftSigRef.current === sig) return;
+        lastDraftSigRef.current = sig;
+        setData('__draft_leaders', draftLeadersPayload);
+    }, [projectId, embedMode, readOnly, draftLeadersPayload, setData]);
 
     const toggleRow = useCallback(
         (key: string) => {
