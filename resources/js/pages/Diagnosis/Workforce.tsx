@@ -462,7 +462,7 @@ export default function Workforce({
                                                         0,
                                                 )
                                             }
-                                            className="flex-1 border-none bg-transparent text-center text-sm font-bold"
+                                            className="flex-1 border-none bg-transparent text-center text-sm font-bold w-full"
                                         />
                                         <button
                                             type="button"

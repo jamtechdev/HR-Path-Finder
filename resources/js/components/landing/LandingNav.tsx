@@ -45,8 +45,8 @@ export function LandingNav({
             <a href="#" className="flex items-center gap-2.5 font-serif text-lg font-bold text-white no-underline">
                 HR <span className="text-[#2ECFAB]">Pathfinder</span>
             </a>
-            <div className="hidden md:flex items-center gap-8">
-                <div className="flex items-center gap-4">
+            <div className="md:flex items-center gap-8">
+                <div className="flex items-center gap-3">
                     <LanguageToggle />
                     {isAuthenticated ? (
                         <Button asChild className="bg-[#2ECFAB] text-[#0B1E3D] hover:bg-[#7EE8D0] font-bold px-5 py-2.5 rounded-md text-sm h-auto transition-all">
@@ -75,7 +75,7 @@ export function LandingNav({
                     )}
                 </div>
             </div>
-            <div className="flex md:hidden items-center gap-2">
+            {/* <div className="flex md:hidden items-center gap-2">
                 <LanguageToggle />
                 {isAuthenticated ? (
                     <Button asChild size="sm" className="bg-[#2ECFAB] text-[#0B1E3D] font-bold">
@@ -93,7 +93,7 @@ export function LandingNav({
                         </a>
                     </>
                 )}
-            </div>
+            </div> */}
         </nav>
     );
 }

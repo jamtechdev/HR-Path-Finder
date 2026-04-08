@@ -934,7 +934,7 @@ export default function CompanyInfo({
                             className="hidden"
                         />
 
-                        <div className="flex w-full items-center gap-6 md:w-auto">
+                        <div className="flex w-full items-center gap-6 md:w-auto flex-col md:flex-row">
                             <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg bg-[#1e293b]">
                                 {logoPreview ? (
                                     <img

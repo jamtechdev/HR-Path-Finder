@@ -754,7 +754,7 @@ export default function Review({
 
                         {/* Gender + Job structure strip */}
                         <div className="mb-8 flex flex-wrap items-center gap-6 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-                            <div className="flex items-center gap-5">
+                            <div className="flex items-center gap-5 flex-wrap">
                                 <span className="text-xs font-bold uppercase tracking-wider text-slate-600">{tr('genderDistribution')}</span>
                                 <div className="relative h-20 w-20 shrink-0">
                                     <div
@@ -869,7 +869,7 @@ export default function Review({
                                                     );
                                                 })}
                                                 <div
-                                                    className="mt-4 flex items-start gap-3 rounded-xl border px-4 py-3"
+                                                    className="mt-4 flex flex-col items-start gap-3 rounded-xl border px-4 py-3"
                                                     style={{
                                                         backgroundColor: `${pyramidDiag.color}15`,
                                                         borderColor: `${pyramidDiag.color}40`,

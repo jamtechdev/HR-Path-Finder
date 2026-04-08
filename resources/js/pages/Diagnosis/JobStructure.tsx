@@ -313,13 +313,13 @@ export default function JobStructure({
                                         setSelectedCatId(cat.id)
                                     }
                                     className={cn(
-                                        'mb-0.5 flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 transition-colors',
+                                        'mb-0.5 flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 transition-colors relative',
                                         isSelected
                                             ? 'bg-slate-900 text-white'
                                             : 'hover:bg-slate-100',
                                     )}
                                 >
-                                    <div className="flex items-center gap-2.5">
+                                    <div className="flex min-w-0 items-center gap-2.5">
                                         <div className="flex flex-col items-center gap-0.5">
                                             <div
                                                 className={cn(
@@ -330,10 +330,10 @@ export default function JobStructure({
                                                 )}
                                             />
                                         </div>
-                                        <div>
+                                        <div className="min-w-0">
                                             <div
                                                 className={cn(
-                                                    'text-sm font-medium',
+                                                    'truncate text-sm font-medium',
                                                     isSelected && 'font-bold',
                                                 )}
                                             >
@@ -377,7 +377,7 @@ export default function JobStructure({
                                             }
                                             removeCategory(cat.id);
                                         }}
-                                        className="p-1 text-slate-400 hover:text-red-600"
+                                        className="p-1 text-slate-400 hover:text-red-600 absolute right-0 top-0"
                                     >
                                         <X className="h-4 w-4" />
                                     </button>

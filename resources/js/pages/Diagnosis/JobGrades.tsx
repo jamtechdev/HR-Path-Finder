@@ -531,7 +531,8 @@ export default function JobGrades({
                         inertiaError={inertiaJobGradeNamesErr}
                     />
                 </div>
-
+                
+                 <div className='overflow-x-auto'>       
                 {/* Table Header */}
                 <div
                     className="grid items-center gap-x-3 border-b border-[#E2E6ED] bg-[#F8F9FB] px-7 py-[9px] text-[11px] font-bold tracking-[0.4px] text-[#9AA3B2] uppercase"
@@ -771,6 +772,9 @@ export default function JobGrades({
                         </div>
                     ))}
                 </div>
+
+                </div>
+
 
                 {/* Footer */}
                 <div className="space-y-2.5 border-t border-[#F0F2F5] px-7 pt-4 pb-5">
