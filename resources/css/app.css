@@ -171,6 +171,10 @@
         @apply border-border;
     }
 
+    [data-radix-popper-content-wrapper] {
+        z-index: 999 !important;
+    }
+
     html {
         background-color: hsl(var(--background));
     }

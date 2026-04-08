@@ -34,7 +34,7 @@ export default function StepCard({ step, state, status, isVerified, route, onCli
 
     const cardContent = (
         <div className="p-6">
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-5 flex-wrap">
                 {/* Icon */}
                 <div
                     className={cn(

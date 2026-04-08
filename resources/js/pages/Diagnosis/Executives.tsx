@@ -239,7 +239,7 @@ export default function Executives({
     const innerContent = (
         <div className="mb-5 overflow-hidden rounded-[14px] border border-[#E2E6ED] bg-white shadow-[0_4px_20px_rgba(27,43,91,0.09)]">
             {/* Hero strip */}
-            <div className="flex items-center gap-4 bg-gradient-to-br from-[#1B2B5B] to-[#243877] px-7 py-5">
+            <div className="flex md:items-center gap-4 bg-gradient-to-br from-[#1B2B5B] to-[#243877] px-7 py-5 flex-col md:flex-row">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#2EC4A9]">
                     <svg
                         className="h-[22px] w-[22px]"
@@ -262,7 +262,7 @@ export default function Executives({
                         {t('diagnosis_executives.heroDesc')}
                     </p>
                 </div>
-                <div className="ml-auto flex gap-2">
+                <div className="md:ml-auto flex gap-2">
                     <div className="min-w-[60px] rounded-lg bg-white/10 px-3.5 py-1.5 text-center">
                         <div className="text-[22px] leading-none font-extrabold text-white">
                             {totalPos}
@@ -569,7 +569,7 @@ export default function Executives({
             </div>
 
             {/* Summary bar */}
-            <div className="mx-7 mb-6 flex flex-wrap items-center gap-4 rounded-lg border border-[#E2E6ED] bg-[#F8F9FB] px-4 py-3.5">
+            <div className="mx-7 mb-6 flex flex-col md:flex-row flex-wrap items-center gap-4 rounded-lg border border-[#E2E6ED] bg-[#F8F9FB] px-2 md:px-4 py-3.5">
                 <span className="text-[12px] font-semibold text-[#6B7585]">
                     {t('diagnosis_executives.selectedPositions')}
                 </span>

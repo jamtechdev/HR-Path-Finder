@@ -447,7 +447,7 @@ export default function FormLayout({
 
     return (
         <AppLayout>
-            <div className="diagnosis-step-layout flex flex-col min-h-full bg-[var(--dx-gray-50)]">
+            <div className="diagnosis-step-layout flex flex-col min-h-full relative z-[1] bg-[var(--dx-gray-50)]">
                         {/* Top bar: back, Step 1: Diagnosis, badge, counter (pixel-perfect reference) */}
                         <div className="dx-top-bar shrink-0">
                             <Link href={getBackHref()} className="dx-back-btn">
@@ -540,7 +540,7 @@ export default function FormLayout({
                                     </Link>
                                 ) : <span />}
                                 <span className="dx-bottom-hint">
-                                    <strong>{title}</strong> · {stepCounter}
+                                    <strong className='hidden md:block'>{title}</strong> · {stepCounter}
                                 </span>
                                 {showNext ? (
                                     <div className="relative flex flex-col items-end">
@@ -556,7 +556,7 @@ export default function FormLayout({
                                             </svg>
                                         </button>
                                         {!canProceed && !processing && (
-                                            <p className="mt-1.5 text-[11px] text-[var(--dx-gray-400)] whitespace-nowrap">{tr('completeRequired')}</p>
+                                            <p className="mt-1.5 text-[11px] text-[var(--dx-gray-400)] whitespace-nowrap hidden md:block">{tr('completeRequired')}</p>
                                         )}
                                     </div>
                                 ) : (
