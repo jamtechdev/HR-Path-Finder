@@ -1328,18 +1328,6 @@
         "select_project_hint": "Select a project from the list to view submitted data and comments.",
         "open_project_view": "Open Project View"
     },
-    "projects_show": {
-        "page_title": "{{company}} - HR Project",
-        "back": "Back to Projects",
-        "project_id": "HR Project #{{id}}",
-        "project_status": "Project Status",
-        "workflow_steps": "Workflow Steps",
-        "not_started": "not_started",
-        "quick_actions": "Quick Actions",
-        "review_project": "Review Project",
-        "view_overview": "View Overview",
-        "continue_diagnosis": "Continue Diagnosis"
-    },
     "ceo_review_performance": {
         "page_title": "Review Performance System - {{company}}",
         "back_to_dashboard": "Back to Dashboard",
@@ -2867,5 +2855,101 @@
             "weight": "Weight"
         },
         "confirm_delete": "Are you sure you want to delete this KPI template?"
+    },
+    "projects_show": {
+        "page_title": "Project - {{company}}",
+        "back": "Back to Projects",
+        "project_id": "Project ID: {{id}}",
+        "project_status": "Project Status",
+        "workflow_steps": "Workflow Steps",
+        "not_started": "Not Started",
+        "quick_actions": "Quick Actions",
+        "review_project": "Review Project",
+        "view_overview": "View Overview",
+        "continue_diagnosis": "Continue Diagnosis"
+    },
+    "admin_hr_project_details": {
+        "diagnosis": "Diagnosis",
+        "organization_design": "Organization Design",
+        "performance_system": "Performance System",
+        "compensation_system": "Compensation System"
+    },
+    "admin_hr_system_overview": {
+        "page_title": "HR System Overview",
+        "system_locked": "System Locked",
+        "management_philosophy": "Management Philosophy",
+        "main_trait": "Main Trait",
+        "secondary_trait": "Secondary Trait",
+        "organization_structure": "Organization Structure",
+        "structure_type": "Structure Type",
+        "job_grade_structure": "Job Grade Structure",
+        "performance_system": "Performance System",
+        "method": "Performance Method",
+        "evaluation_unit": "Evaluation Unit",
+        "logic": "Evaluation Logic",
+        "compensation_system": "Compensation System",
+        "structure": "Compensation Structure",
+        "incentive_types": "Incentive Types",
+        "not_completed": "Not Completed"
+    },
+    "performance_system": {
+        "page_title": "{{company}} - Performance System",
+        "fallback_title": "Performance System",
+        "heading": "Performance System",
+        "description": "Design evaluation units, performance management methods, and assessment structures.",
+
+        "tabs": {
+            "overview": "Overview",
+            "evaluation_units": "Evaluation Units",
+            "performance_methods": "Performance Methods",
+            "assessment_structure": "Assessment Structure"
+        },
+
+        "overview_title": "Performance System Overview",
+        "overview_description": "This section allows you to design your performance management system including evaluation units, methods, and assessment structures."
+    },
+    "performance_system_index": {
+        "title": "Performance System",
+        "brand": "HR Path-Finder",
+        "back_dashboard": "Back to Dashboard",
+
+        "stage": "● STAGE 3 OF 5 — PERFORMANCE",
+
+        "overview_title": "Performance System Overview",
+        "description": "Define evaluation units, performance management methods, and assessment structures.",
+
+        "before_begin": "Before you begin",
+        "before_begin_desc": "This stage builds on your Job Analysis. You will set up strategic performance snapshots, review KPIs, assign evaluation models, and configure evaluation structures.",
+
+        "steps_done": "Steps Done",
+        "steps_completed": "steps completed",
+        "overall_progress": "Overall Progress",
+
+        "questions_answered": "questions answered",
+        "saving": "Saving draft...",
+
+        "done": "Done",
+
+        "success_title": "Performance system submitted successfully!",
+        "success_desc": "Your performance design has been submitted for consultant review.",
+
+        "status": {
+            "submitted": "SUBMITTED",
+            "in_progress": "IN PROGRESS",
+            "not_started": "NOT STARTED"
+        },
+
+        "tabs": {
+            "overview": "Overview",
+            "snapshot": "Strategic Performance Snapshot",
+            "kpi": "KPI Review",
+            "model": "Evaluation Model Assignment",
+            "structure": "Evaluation Structure",
+            "review": "Review & Submit"
+        },
+
+        "validation": {
+            "complete_previous": "Complete \"{{step}}\" before opening this tab."
+        }
     }
 }

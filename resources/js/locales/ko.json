@@ -1327,18 +1327,6 @@
         "select_project_hint": "목록에서 프로젝트를 선택하면 제출 데이터와 코멘트를 볼 수 있습니다.",
         "open_project_view": "프로젝트 보기 열기"
     },
-    "projects_show": {
-        "page_title": "{{company}} - HR 프로젝트",
-        "back": "프로젝트로 돌아가기",
-        "project_id": "HR 프로젝트 #{{id}}",
-        "project_status": "프로젝트 상태",
-        "workflow_steps": "워크플로우 단계",
-        "not_started": "not_started",
-        "quick_actions": "빠른 작업",
-        "review_project": "프로젝트 검토",
-        "view_overview": "개요 보기",
-        "continue_diagnosis": "진단 계속"
-    },
     "ceo_review_performance": {
         "page_title": "성과 시스템 검토 - {{company}}",
         "back_to_dashboard": "대시보드로 돌아가기",
@@ -2869,6 +2857,102 @@
         "toast": {
             "success": "성공",
             "error": "오류"
+        }
+    },
+    "projects_show": {
+        "page_title": "프로젝트 - {{company}}",
+        "back": "프로젝트로 돌아가기",
+        "project_id": "프로젝트 ID: {{id}}",
+        "project_status": "프로젝트 상태",
+        "workflow_steps": "워크플로우 단계",
+        "not_started": "시작되지 않음",
+        "quick_actions": "빠른 작업",
+        "review_project": "프로젝트 검토",
+        "view_overview": "개요 보기",
+        "continue_diagnosis": "진단 계속하기"
+    },
+    "admin_hr_project_details": {
+        "diagnosis": "진단",
+        "organization_design": "조직 설계",
+        "performance_system": "성과 시스템",
+        "compensation_system": "보상 시스템"
+    },
+    "admin_hr_system_overview": {
+        "page_title": "HR 시스템 개요",
+        "system_locked": "시스템 잠김",
+        "management_philosophy": "경영 철학",
+        "main_trait": "주요 특성",
+        "secondary_trait": "보조 특성",
+        "organization_structure": "조직 구조",
+        "structure_type": "구조 유형",
+        "job_grade_structure": "직급 체계",
+        "performance_system": "성과 시스템",
+        "method": "성과 평가 방법",
+        "evaluation_unit": "평가 단위",
+        "logic": "평가 로직",
+        "compensation_system": "보상 시스템",
+        "structure": "보상 구조",
+        "incentive_types": "인센티브 유형",
+        "not_completed": "완료되지 않음"
+    },
+    "performance_system": {
+        "page_title": "{{company}} - 성과 시스템",
+        "fallback_title": "성과 시스템",
+        "heading": "성과 시스템",
+        "description": "평가 단위, 성과 관리 방법 및 평가 구조를 설계합니다.",
+
+        "tabs": {
+            "overview": "개요",
+            "evaluation_units": "평가 단위",
+            "performance_methods": "성과 방법",
+            "assessment_structure": "평가 구조"
+        },
+
+        "overview_title": "성과 시스템 개요",
+        "overview_description": "이 섹션에서는 평가 단위, 방법 및 평가 구조를 포함한 성과 관리 시스템을 설계할 수 있습니다."
+    },
+    "performance_system_index": {
+        "title": "성과 시스템",
+        "brand": "HR Path-Finder",
+        "back_dashboard": "대시보드로 돌아가기",
+
+        "stage": "● 5단계 중 3단계 — 성과",
+
+        "overview_title": "성과 시스템 개요",
+        "description": "평가 단위, 성과 관리 방법 및 평가 구조를 설계합니다.",
+
+        "before_begin": "시작하기 전에",
+        "before_begin_desc": "이 단계는 직무 분석을 기반으로 합니다. 성과 스냅샷 설정, KPI 검토, 평가 모델 지정 및 평가 구조를 구성합니다.",
+
+        "steps_done": "완료된 단계",
+        "steps_completed": "단계 완료",
+        "overall_progress": "전체 진행률",
+
+        "questions_answered": "문항 완료",
+        "saving": "임시 저장 중...",
+
+        "done": "완료",
+
+        "success_title": "성과 시스템이 성공적으로 제출되었습니다!",
+        "success_desc": "성과 설계가 컨설턴트 검토를 위해 제출되었습니다.",
+
+        "status": {
+            "submitted": "제출됨",
+            "in_progress": "진행 중",
+            "not_started": "시작 전"
+        },
+
+        "tabs": {
+            "overview": "개요",
+            "snapshot": "전략적 성과 스냅샷",
+            "kpi": "KPI 검토",
+            "model": "평가 모델 할당",
+            "structure": "평가 구조",
+            "review": "검토 및 제출"
+        },
+
+        "validation": {
+            "complete_previous": "\"{{step}}\" 단계를 완료해야 합니다."
         }
     }
 }

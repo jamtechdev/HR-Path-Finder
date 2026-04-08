@@ -1,13 +1,15 @@
 import { Head } from '@inertiajs/react';
-import { CheckCircle2 } from 'lucide-react';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
+
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import WorkflowStepsSidebar from '@/components/Sidebar/WorkflowStepsSidebar';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import {
+    Sidebar,
+    SidebarInset,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Props {
@@ -23,48 +25,84 @@ interface Props {
     projectId: number;
 }
 
-export default function PerformanceSystemOverview({ project, performanceSystem, stepStatuses, activeTab, projectId }: Props) {
+export default function PerformanceSystemOverview({
+    project,
+    performanceSystem,
+    stepStatuses,
+    activeTab,
+    projectId,
+}: Props) {
     const { t } = useTranslation();
+
     return (
         <SidebarProvider defaultOpen={true}>
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
-                <WorkflowStepsSidebar stepStatuses={stepStatuses} projectId={projectId} />
+                <WorkflowStepsSidebar
+                    stepStatuses={stepStatuses}
+                    projectId={projectId}
+                />
             </Sidebar>
+
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
+
                 <main className="flex-1 overflow-auto">
                     <Head
-                        title={t('page_heads.performance_system', {
+                        title={t('performance_system.page_title', {
                             company:
                                 project?.company?.name ||
-                                t('page_head_fallbacks.performance_system'),
+                                t('performance_system.fallback_title'),
                         })}
                     />
-                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+
+                    <div className="mx-auto max-w-7xl p-6 md:p-8">
                         <div className="mb-6">
-                            <h1 className="text-3xl font-bold mb-2">Performance System</h1>
+                            <h1 className="mb-2 text-3xl font-bold">
+                                {t('performance_system.heading')}
+                            </h1>
                             <p className="text-muted-foreground">
-                                Design evaluation units, performance management methods, and assessment structures.
+                                {t('performance_system.description')}
                             </p>
                         </div>
 
                         <Tabs value={activeTab} className="space-y-4">
                             <TabsList>
-                                <TabsTrigger value="overview">Overview</TabsTrigger>
-                                <TabsTrigger value="evaluation-units">Evaluation Units</TabsTrigger>
-                                <TabsTrigger value="performance-methods">Performance Methods</TabsTrigger>
-                                <TabsTrigger value="assessment-structure">Assessment Structure</TabsTrigger>
+                                <TabsTrigger value="overview">
+                                    {t('performance_system.tabs.overview')}
+                                </TabsTrigger>
+                                <TabsTrigger value="evaluation-units">
+                                    {t(
+                                        'performance_system.tabs.evaluation_units',
+                                    )}
+                                </TabsTrigger>
+                                <TabsTrigger value="performance-methods">
+                                    {t(
+                                        'performance_system.tabs.performance_methods',
+                                    )}
+                                </TabsTrigger>
+                                <TabsTrigger value="assessment-structure">
+                                    {t(
+                                        'performance_system.tabs.assessment_structure',
+                                    )}
+                                </TabsTrigger>
                             </TabsList>
 
                             <TabsContent value="overview">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Performance System Overview</CardTitle>
+                                        <CardTitle>
+                                            {t(
+                                                'performance_system.overview_title',
+                                            )}
+                                        </CardTitle>
                                     </CardHeader>
+
                                     <CardContent>
                                         <p className="text-muted-foreground">
-                                            This section allows you to design your performance management system including evaluation units, methods, and assessment structures.
+                                            {t(
+                                                'performance_system.overview_description',
+                                            )}
                                         </p>
                                     </CardContent>
                                 </Card>
