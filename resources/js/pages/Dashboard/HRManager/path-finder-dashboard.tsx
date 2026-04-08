@@ -165,7 +165,15 @@ export default function PathFinderDashboard({
   }, [currentStepKey, stepStatuses]);
 
   const stepCards = STEP_CONFIG.map((s, i) => {
-    const state = getStepState(s.id, i, stepStatuses, currentStepKey, ceoPhilosophyStatus, projectId);
+    const state = getStepState(
+        s.id,
+        i,
+        stepStatuses,
+        currentStepKey,
+        ceoPhilosophyStatus,
+        projectId,
+        STEP_CONFIG,
+    );
     const sp = stagePctFor(s.id, stageProgressPercent);
     let stepProgress = 0;
     if (state === 'completed') {

@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sidebar, SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
-import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { useTranslation } from 'react-i18next';
 
 interface Company {
@@ -23,7 +22,7 @@ interface Props {
 
 export default function KpiTemplatesCreate({ companies }: Props) {
     const { t } = useTranslation();
-    const { data, setData, post, processing, errors, clearErrors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         company_id: '' as string | number,
         org_unit_name: '',
         kpi_name: '',
@@ -63,6 +62,7 @@ export default function KpiTemplatesCreate({ companies }: Props) {
                                     <CardTitle>{t('admin_kpi_templates_create.details_title')}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
+                                    {/* Company */}
                                     <div>
                                         <Label>{t('admin_kpi_templates_create.fields.company_optional')}</Label>
                                         <select
@@ -78,6 +78,8 @@ export default function KpiTemplatesCreate({ companies }: Props) {
                                             ))}
                                         </select>
                                     </div>
+
+                                    {/* Org Unit */}
                                     <div>
                                         <Label>{t('admin_kpi_templates_create.fields.org_unit_optional')}</Label>
                                         <Input
@@ -86,6 +88,8 @@ export default function KpiTemplatesCreate({ companies }: Props) {
                                             placeholder={t('admin_kpi_templates_create.fields.org_unit_placeholder')}
                                         />
                                     </div>
+
+                                    {/* KPI Name */}
                                     <div>
                                         <Label>{t('admin_kpi_templates_create.fields.kpi_name')}</Label>
                                         <Input
@@ -95,6 +99,8 @@ export default function KpiTemplatesCreate({ companies }: Props) {
                                         />
                                         {errors.kpi_name && <p className="mt-1 text-sm text-destructive">{errors.kpi_name}</p>}
                                     </div>
+
+                                    {/* Purpose */}
                                     <div>
                                         <Label>{t('admin_kpi_templates_create.fields.purpose')}</Label>
                                         <Textarea
@@ -103,6 +109,8 @@ export default function KpiTemplatesCreate({ companies }: Props) {
                                             rows={2}
                                         />
                                     </div>
+
+                                    {/* Category & Weight */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <Label>{t('admin_kpi_templates_create.fields.category')}</Label>
@@ -123,6 +131,8 @@ export default function KpiTemplatesCreate({ companies }: Props) {
                                             />
                                         </div>
                                     </div>
+
+                                    {/* Formula */}
                                     <div>
                                         <Label>{t('admin_kpi_templates_create.fields.formula')}</Label>
                                         <Input
@@ -131,6 +141,8 @@ export default function KpiTemplatesCreate({ companies }: Props) {
                                             placeholder={t('admin_kpi_templates_create.fields.formula_placeholder')}
                                         />
                                     </div>
+
+                                    {/* Measurement Method */}
                                     <div>
                                         <Label>{t('admin_kpi_templates_create.fields.measurement_method')}</Label>
                                         <Textarea
@@ -139,6 +151,8 @@ export default function KpiTemplatesCreate({ companies }: Props) {
                                             rows={3}
                                         />
                                     </div>
+
+                                    {/* Sort Order */}
                                     <div>
                                         <Label>{t('admin_kpi_templates_create.fields.sort_order')}</Label>
                                         <Input
@@ -148,6 +162,8 @@ export default function KpiTemplatesCreate({ companies }: Props) {
                                             onChange={(e) => setData('sort_order', e.target.value)}
                                         />
                                     </div>
+
+                                    {/* Active */}
                                     <div className="flex items-center gap-2">
                                         <Checkbox
                                             id="is_active"
@@ -156,6 +172,8 @@ export default function KpiTemplatesCreate({ companies }: Props) {
                                         />
                                         <Label htmlFor="is_active">{t('admin_kpi_templates_create.fields.active')}</Label>
                                     </div>
+
+                                    {/* Actions */}
                                     <div className="flex gap-2 pt-4">
                                         <Button type="submit" disabled={processing}>
                                             {t('common.create')}
