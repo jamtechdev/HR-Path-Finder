@@ -18,7 +18,7 @@ interface Project {
 
 interface Props {
     projects: Project[];
-    stats: {
+    stats?: {
         total_projects: number;
         kpi_projects: number;
         pending_kpi_review: number;
@@ -30,11 +30,18 @@ export default function AdminKpiReviewIndex({ projects }: Props) {
     const { t } = useTranslation();
 
     const getStatusBadge = (status: Project['kpi_review_status']) => {
-        if (status === 'approved') return <Badge className="bg-emerald-600">{t('admin_kpi_review.status_approved')}</Badge>;
-        if (status === 'revision_requested') return <Badge variant="destructive">{t('admin_kpi_review.status_revision')}</Badge>;
-        if (status === 'pending') return <Badge variant="secondary">{t('admin_kpi_review.status_pending')}</Badge>;
-        if (status === 'in_progress') return <Badge variant="outline">{t('admin_kpi_review.status_in_progress')}</Badge>;
-        return <Badge variant="outline">{t('admin_kpi_review.status_na')}</Badge>;
+        switch (status) {
+            case 'approved':
+                return <Badge className="bg-emerald-600">{t('admin_kpi_review.status_approved')}</Badge>;
+            case 'revision_requested':
+                return <Badge variant="destructive">{t('admin_kpi_review.status_revision')}</Badge>;
+            case 'pending':
+                return <Badge variant="secondary">{t('admin_kpi_review.status_pending')}</Badge>;
+            case 'in_progress':
+                return <Badge variant="outline">{t('admin_kpi_review.status_in_progress')}</Badge>;
+            default:
+                return <Badge variant="outline">{t('admin_kpi_review.status_na')}</Badge>;
+        }
     };
 
     return (
@@ -47,13 +54,13 @@ export default function AdminKpiReviewIndex({ projects }: Props) {
                 <main className="flex-1 overflow-auto bg-background">
                     <Head title={t('admin_kpi_review.page_title')} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
+                        {/* Page Header */}
                         <div className="mb-6 rounded-2xl border bg-gradient-to-r from-slate-50 to-white px-5 py-4 dark:from-slate-950 dark:to-background">
                             <h1 className="text-2xl font-bold mb-1">{t('admin_kpi_review.heading')}</h1>
-                            <p className="text-muted-foreground text-sm">
-                                {t('admin_kpi_review.subheading')}
-                            </p>
+                            <p className="text-muted-foreground text-sm">{t('admin_kpi_review.subheading')}</p>
                         </div>
 
+                        {/* Projects Table */}
                         <div className="rounded-lg border overflow-hidden bg-background">
                             <div className="px-4 py-3 border-b">
                                 <h2 className="text-base font-semibold">{t('admin_kpi_review.section_projects')}</h2>

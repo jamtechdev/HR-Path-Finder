@@ -1,7 +1,3 @@
-import { Head, useForm, router } from '@inertiajs/react';
-import { ChevronLeft } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import DynamicList from '@/components/Forms/DynamicList';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -10,15 +6,33 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Sidebar,
+    SidebarInset,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
-import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
+import { Head, router, useForm } from '@inertiajs/react';
+import { ChevronLeft } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface CompensationSnapshotQuestion {
     id: number;
     question_text: string;
-    answer_type: 'select_one' | 'select_up_to_2' | 'multiple' | 'numeric' | 'text';
+    answer_type:
+        | 'select_one'
+        | 'select_up_to_2'
+        | 'multiple'
+        | 'numeric'
+        | 'text';
     options?: string[] | null;
     order: number;
     is_active: boolean;
@@ -31,14 +45,19 @@ interface Props {
     answerTypes: Record<string, string>;
 }
 
-export default function CompensationSnapshotEdit({ question, answerTypes }: Props) {
+export default function CompensationSnapshotEdit({
+    question,
+    answerTypes,
+}: Props) {
     const { t } = useTranslation();
     const [submitting, setSubmitting] = useState(false);
     const getQuestionId = (): number | null => {
         if (typeof question.id === 'number' && Number.isFinite(question.id)) {
             return question.id;
         }
-        const match = window.location.pathname.match(/\/admin\/compensation-snapshot\/(\d+)\/edit$/);
+        const match = window.location.pathname.match(
+            /\/admin\/compensation-snapshot\/(\d+)\/edit$/,
+        );
         if (!match) return null;
         const parsed = Number(match[1]);
         return Number.isFinite(parsed) ? parsed : null;
@@ -81,14 +100,16 @@ export default function CompensationSnapshotEdit({ question, answerTypes }: Prop
 
     useEffect(() => {
         const pathname = window.location.pathname;
-        const match = pathname.match(/\/admin\/compensation-snapshot\/(\d+)\/edit$/);
+        const match = pathname.match(
+            /\/admin\/compensation-snapshot\/(\d+)\/edit$/,
+        );
         const idFromUrl = match?.[1];
         if (!idFromUrl) return;
 
         fetch(`/admin/compensation-snapshot/${idFromUrl}/edit-data`, {
             method: 'GET',
             headers: {
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
             },
         })
@@ -100,11 +121,23 @@ export default function CompensationSnapshotEdit({ question, answerTypes }: Prop
             .then((freshQuestion) => {
                 if (!freshQuestion) return;
                 setAnswerType(freshQuestion.answer_type ?? 'select_one');
-                setOptions(Array.isArray(freshQuestion.options) ? freshQuestion.options : []);
+                setOptions(
+                    Array.isArray(freshQuestion.options)
+                        ? freshQuestion.options
+                        : [],
+                );
                 setExplanation(freshQuestion.metadata?.explanation || '');
                 setData('question_text', freshQuestion.question_text ?? '');
-                setData('answer_type', freshQuestion.answer_type ?? 'select_one');
-                setData('options', Array.isArray(freshQuestion.options) ? freshQuestion.options : []);
+                setData(
+                    'answer_type',
+                    freshQuestion.answer_type ?? 'select_one',
+                );
+                setData(
+                    'options',
+                    Array.isArray(freshQuestion.options)
+                        ? freshQuestion.options
+                        : [],
+                );
                 setData('order', Number(freshQuestion.order ?? 0));
                 setData('is_active', Boolean(freshQuestion.is_active));
                 setData('version', freshQuestion.version || '');
@@ -127,14 +160,26 @@ export default function CompensationSnapshotEdit({ question, answerTypes }: Prop
         setData('metadata', explanation ? { explanation } : null);
     }, [answerType, options, explanation]);
 
-    const requiresOptions = ['select_one', 'select_up_to_2', 'multiple'].includes(answerType);
-    const displayQuestionText = data.question_text || question.question_text || '';
-    const displayAnswerType = answerType || question.answer_type || 'select_one';
-    const displayOptions = options.length > 0 ? options : (question.options || []);
-    const displayOrder = typeof data.order === 'number' ? data.order : (question.order ?? 0);
+    const requiresOptions = [
+        'select_one',
+        'select_up_to_2',
+        'multiple',
+    ].includes(answerType);
+    const displayQuestionText =
+        data.question_text || question.question_text || '';
+    const displayAnswerType =
+        answerType || question.answer_type || 'select_one';
+    const displayOptions =
+        options.length > 0 ? options : question.options || [];
+    const displayOrder =
+        typeof data.order === 'number' ? data.order : (question.order ?? 0);
     const displayVersion = data.version || question.version || '';
-    const displayExplanation = explanation || question.metadata?.explanation || '';
-    const displayIsActive = typeof data.is_active === 'boolean' ? data.is_active : Boolean(question.is_active);
+    const displayExplanation =
+        explanation || question.metadata?.explanation || '';
+    const displayIsActive =
+        typeof data.is_active === 'boolean'
+            ? data.is_active
+            : Boolean(question.is_active);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -143,7 +188,10 @@ export default function CompensationSnapshotEdit({ question, answerTypes }: Prop
             return;
         }
 
-        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        const csrf =
+            document
+                .querySelector('meta[name="csrf-token"]')
+                ?.getAttribute('content') || '';
         const payload = {
             question_text: data.question_text,
             answer_type: data.answer_type,
@@ -159,7 +207,7 @@ export default function CompensationSnapshotEdit({ question, answerTypes }: Prop
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'X-CSRF-TOKEN': csrf,
                 'X-Requested-With': 'XMLHttpRequest',
             },
@@ -187,18 +235,26 @@ export default function CompensationSnapshotEdit({ question, answerTypes }: Prop
             <SidebarInset className="flex flex-col overflow-hidden bg-background">
                 <AppHeader />
                 <main className="flex-1 overflow-auto bg-background">
-                    <Head title={t('admin_misc_page_titles.compensation_snapshot_edit')} />
-                    <div className="p-6 md:p-8 max-w-4xl mx-auto">
+                    <Head
+                        title={t(
+                            'admin_misc_page_titles.compensation_snapshot_edit',
+                        )}
+                    />
+                    <div className="mx-auto max-w-4xl p-6 md:p-8">
                         <div className="mb-6">
                             <Button
                                 variant="ghost"
-                                onClick={() => router.visit('/admin/compensation-snapshot')}
+                                onClick={() =>
+                                    router.visit('/admin/compensation-snapshot')
+                                }
                                 className="mb-4"
                             >
-                                <ChevronLeft className="w-4 h-4 mr-2" />
-                                Back to Questions
+                                <ChevronLeft className="mr-2 h-4 w-4" />
+                                {t('buttons.back_to_questions')}
                             </Button>
-                            <h1 className="text-3xl font-bold">Edit Compensation Snapshot Question</h1>
+                            <h1 className="text-3xl font-bold">
+                                {t('compensation_snapshot.edit_question')}
+                            </h1>
                         </div>
 
                         <form key={question.id} onSubmit={handleSubmit}>
@@ -208,48 +264,87 @@ export default function CompensationSnapshotEdit({ question, answerTypes }: Prop
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div>
-                                        <Label>Question Text <span className="text-destructive">*</span></Label>
+                                        <Label>
+                                            {t(
+                                                'compensation_snapshot.question_text',
+                                            )}{' '}
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
+                                        </Label>
                                         <Textarea
                                             value={displayQuestionText}
-                                            onChange={(e) => setData('question_text', e.target.value)}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'question_text',
+                                                    e.target.value,
+                                                )
+                                            }
                                             rows={3}
                                             required
                                         />
                                         {errors.question_text && (
-                                            <p className="text-sm text-destructive mt-1">{errors.question_text}</p>
+                                            <p className="mt-1 text-sm text-destructive">
+                                                {errors.question_text}
+                                            </p>
                                         )}
                                     </div>
 
                                     <div>
-                                        <Label>Answer Type <span className="text-destructive">*</span></Label>
+                                        <Label>
+                                            {t(
+                                                'compensation_snapshot.answer_type',
+                                            )}{' '}
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
+                                        </Label>
                                         <Select
                                             value={displayAnswerType}
                                             onValueChange={(value) => {
                                                 setAnswerType(value);
-                                                setData('answer_type', value as any);
+                                                setData(
+                                                    'answer_type',
+                                                    value as any,
+                                                );
                                             }}
                                         >
                                             <SelectTrigger>
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Object.entries(answerTypes).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
+                                                {Object.entries(
+                                                    answerTypes,
+                                                ).map(([key, label]) => (
+                                                    <SelectItem
+                                                        key={key}
+                                                        value={key}
+                                                    >
                                                         {label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                         {errors.answer_type && (
-                                            <p className="text-sm text-destructive mt-1">{errors.answer_type}</p>
+                                            <p className="mt-1 text-sm text-destructive">
+                                                {errors.answer_type}
+                                            </p>
                                         )}
                                     </div>
 
                                     {requiresOptions && (
                                         <div>
-                                            <Label>Answer Options <span className="text-destructive">*</span></Label>
-                                            <p className="text-xs text-muted-foreground mb-2">
-                                                Add all possible answer options for this question
+                                            <Label>
+                                                {t(
+                                                    'compensation_snapshot.answer_options',
+                                                )}{' '}
+                                                <span className="text-destructive">
+                                                    *
+                                                </span>
+                                            </Label>
+                                            <p className="mb-2 text-xs text-muted-foreground">
+                                                Add all possible answer options
+                                                for this question
                                             </p>
                                             <DynamicList
                                                 label=""
@@ -258,65 +353,111 @@ export default function CompensationSnapshotEdit({ question, answerTypes }: Prop
                                                     setOptions(next);
                                                     setData('options', next);
                                                 }}
-                                                placeholder="Enter option text"
-                                                addLabel="Add Option"
+                                                placeholder={t(
+                                                    'compensation_snapshot.enter_option',
+                                                )}
+                                                addLabel={t(
+                                                    'compensation_snapshot.add_option',
+                                                )}
                                             />
                                             {errors.options && (
-                                                <p className="text-sm text-destructive mt-1">{errors.options}</p>
+                                                <p className="mt-1 text-sm text-destructive">
+                                                    {errors.options}
+                                                </p>
                                             )}
                                             {options.length === 0 && (
-                                                <p className="text-sm text-muted-foreground mt-1">
-                                                    At least one option is required
+                                                <p className="mt-1 text-sm text-muted-foreground">
+                                                    {t(
+                                                        'compensation_snapshot.version_info',
+                                                    )}
                                                 </p>
                                             )}
                                         </div>
                                     )}
 
                                     {!requiresOptions && (
-                                        <div className="p-4 bg-muted/50 rounded-lg">
+                                        <div className="rounded-lg bg-muted/50 p-4">
                                             <p className="text-sm text-muted-foreground">
-                                                {answerType === 'numeric' 
-                                                    ? 'This question type accepts numeric input (KRW amounts, percentages, etc.). No options needed.'
-                                                    : 'This question type accepts text input. No options needed.'}
+                                                {t(
+                                                    answerType === 'numeric'
+                                                        ? 'compensation_snapshot.numeric_info'
+                                                        : 'compensation_snapshot.text_info',
+                                                )}
                                             </p>
                                         </div>
                                     )}
 
                                     <div>
-                                        <Label>Order</Label>
+                                        <Label>
+                                            {t('compensation_snapshot.order')}
+                                        </Label>
                                         <Input
                                             type="number"
                                             value={displayOrder}
-                                            onChange={(e) => setData('order', parseInt(e.target.value) || 0)}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'order',
+                                                    parseInt(e.target.value) ||
+                                                        0,
+                                                )
+                                            }
                                             min="0"
                                         />
                                     </div>
 
                                     <div>
-                                        <Label>Version (Optional)</Label>
+                                        <Label>
+                                            {t(
+                                                'compensation_snapshot.version_optional',
+                                            )}
+                                        </Label>
                                         <Input
                                             value={displayVersion}
-                                            onChange={(e) => setData('version', e.target.value)}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'version',
+                                                    e.target.value,
+                                                )
+                                            }
                                             placeholder="e.g., 1.0, 2.0"
                                         />
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            For versioning/effective date handling
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                            {t(
+                                                'compensation_snapshot.version_info',
+                                            )}
                                         </p>
                                     </div>
 
                                     <div>
-                                        <Label>Explanation (Optional)</Label>
+                                        <Label>
+                                            {t(
+                                                'compensation_snapshot.explanation_optional',
+                                            )}
+                                        </Label>
                                         <Textarea
                                             value={displayExplanation}
                                             onChange={(e) => {
                                                 setExplanation(e.target.value);
-                                                setData('metadata', e.target.value ? { explanation: e.target.value } : null);
+                                                setData(
+                                                    'metadata',
+                                                    e.target.value
+                                                        ? {
+                                                              explanation:
+                                                                  e.target
+                                                                      .value,
+                                                          }
+                                                        : null,
+                                                );
                                             }}
                                             rows={4}
-                                            placeholder="Enter detailed explanation for this question. This will be displayed in the right side panel for HR Managers."
+                                            placeholder={t(
+                                                'compensation_snapshot.explanation_placeholder',
+                                            )}
                                         />
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            This explanation will be shown in the right side panel when HR Managers view this question.
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                            This explanation will be shown in
+                                            the right side panel when HR
+                                            Managers view this question.
                                         </p>
                                     </div>
 
@@ -324,10 +465,18 @@ export default function CompensationSnapshotEdit({ question, answerTypes }: Prop
                                         <Checkbox
                                             id="is_active"
                                             checked={displayIsActive}
-                                            onCheckedChange={(checked) => setData('is_active', checked as boolean)}
+                                            onCheckedChange={(checked) =>
+                                                setData(
+                                                    'is_active',
+                                                    checked as boolean,
+                                                )
+                                            }
                                         />
-                                        <Label htmlFor="is_active" className="cursor-pointer">
-                                            Active (question will be shown to HR Managers)
+                                        <Label
+                                            htmlFor="is_active"
+                                            className="cursor-pointer"
+                                        >
+                                            {t('compensation_snapshot.active')}
                                         </Label>
                                     </div>
                                 </CardContent>
@@ -337,12 +486,26 @@ export default function CompensationSnapshotEdit({ question, answerTypes }: Prop
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={() => router.visit('/admin/compensation-snapshot')}
+                                    onClick={() =>
+                                        router.visit(
+                                            '/admin/compensation-snapshot',
+                                        )
+                                    }
                                 >
-                                    Cancel
+                                    {t('buttons.cancel')}
                                 </Button>
-                                <Button type="submit" disabled={submitting || processing || (requiresOptions && options.length === 0)}>
-                                    {submitting ? 'Updating...' : 'Update Question'}
+                                <Button
+                                    type="submit"
+                                    disabled={
+                                        submitting ||
+                                        processing ||
+                                        (requiresOptions &&
+                                            options.length === 0)
+                                    }
+                                >
+                                    {submitting
+                                        ? t('buttons.updating')
+                                        : t('buttons.update_question')}
                                 </Button>
                             </div>
                         </form>
