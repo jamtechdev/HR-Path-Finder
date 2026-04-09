@@ -1,6 +1,6 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { Edit, Trash2, Search, Languages, FileText } from 'lucide-react';
-import React, { useState } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { Save, Search } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -10,31 +10,51 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Props {
-    translations: Record<string, string>;
-    locales: Record<string, string>;
+    translations: Array<{
+        key: string;
+        en: string;
+        ko: string;
+    }>;
     pages: Record<string, string>;
-    currentLocale: string;
     currentPage: string;
     search: string;
+    currentRole: string;
+    roles: Record<string, string>;
+    searchMode: 'contains' | 'exact';
 }
 
 export default function TranslationsIndex({ 
     translations,
-    locales, 
     pages, 
-    currentLocale, 
     currentPage,
-    search: initialSearch 
+    search: initialSearch,
+    currentRole,
+    roles,
+    searchMode: initialSearchMode,
 }: Props) {
     const { t } = useTranslation();
     const [search, setSearch] = useState(initialSearch);
+    const [entries, setEntries] = useState(translations);
+    const [dirtyKeys, setDirtyKeys] = useState<Record<string, boolean>>({});
+    const [role, setRole] = useState(currentRole);
+    const [searchMode, setSearchMode] = useState<'contains' | 'exact'>(initialSearchMode);
 
-    const handleFilterChange = (newLocale: string, newPage: string) => {
+    useEffect(() => {
+        setEntries(translations);
+        setDirtyKeys({});
+        setRole(currentRole);
+        setSearch(initialSearch);
+        setSearchMode(initialSearchMode);
+    }, [translations, currentRole, initialSearch, initialSearchMode]);
+
+    const handleFilterChange = (newPage: string, newRole: string, newSearchMode: 'contains' | 'exact') => {
         router.get('/admin/translations', {
-            locale: newLocale,
             page: newPage,
+            role: newRole,
+            searchMode: newSearchMode,
             search: search,
         }, {
             preserveState: true,
@@ -44,8 +64,9 @@ export default function TranslationsIndex({
 
     const handleSearch = () => {
         router.get('/admin/translations', {
-            locale: currentLocale,
             page: currentPage,
+            role,
+            searchMode,
             search: search,
         }, {
             preserveState: true,
@@ -53,28 +74,37 @@ export default function TranslationsIndex({
         });
     };
 
-    const handleDelete = (key: string) => {
-        if (confirm(t('admin_translations_mgmt.index_confirm_delete'))) {
-            router.delete('/admin/translations', {
-                data: {
-                    locale: currentLocale,
-                    key: key,
-                },
-                preserveScroll: true,
-            });
+    const updateEntry = (key: string, field: 'en' | 'ko', value: string) => {
+        setEntries((prev) =>
+            prev.map((entry) => (entry.key === key ? { ...entry, [field]: value } : entry)),
+        );
+        setDirtyKeys((prev) => ({ ...prev, [key]: true }));
+    };
+
+    const handleSave = () => {
+        const payload = entries
+            .filter((entry) => dirtyKeys[entry.key])
+            .map((entry) => ({
+                key: entry.key,
+                en: entry.en,
+                ko: entry.ko,
+            }));
+
+        if (payload.length === 0) {
+            return;
         }
-    };
 
-    const handleEdit = (key: string, value: string) => {
-        router.visit(`/admin/translations/edit?locale=${currentLocale}&page=${currentPage}&key=${encodeURIComponent(key)}`);
+        router.put(
+            '/admin/translations',
+            { entries: payload },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setDirtyKeys({});
+                },
+            },
+        );
     };
-
-    // Filter translations by search
-    const filteredTranslations = Object.entries(translations).filter(([key, value]) => {
-        if (!search) return true;
-        const searchLower = search.toLowerCase();
-        return key.toLowerCase().includes(searchLower) || value.toLowerCase().includes(searchLower);
-    });
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -89,54 +119,30 @@ export default function TranslationsIndex({
                         <div className="mb-6 flex items-center justify-between">
                             <div>
                                 <h1 className="text-3xl font-bold mb-2 text-foreground">
-                                    {t('admin_misc_page_titles.translations_index')}
+                                    Translation Center
                                 </h1>
                                 <p className="text-muted-foreground">
-                                    {t('admin_translations_mgmt.index_subheading')}
+                                    Manage English and Korean translations in one place.
                                 </p>
                             </div>
-                            <Link href={`/admin/translations/edit?locale=${currentLocale}&page=${currentPage}`}>
-                                <Button>
-                                    <FileText className="w-4 h-4 mr-2" />
-                                    {t('admin_translations_mgmt.edit_page_button')}
-                                </Button>
-                            </Link>
+                            <Button onClick={handleSave} disabled={Object.keys(dirtyKeys).length === 0}>
+                                <Save className="w-4 h-4 mr-2" />
+                                Save all changes
+                            </Button>
                         </div>
 
                         <Card className="mb-6">
                             <CardHeader>
-                                <CardTitle>{t('admin_translations_mgmt.filters')}</CardTitle>
+                                <CardTitle>Filters</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                     <div>
                                         <label className="text-sm font-medium mb-2 block">
-                                            {t('admin_translations_mgmt.language')}
-                                        </label>
-                                        <Select value={currentLocale} onValueChange={(v) => {
-                                            handleFilterChange(v, currentPage);
-                                        }}>
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {Object.entries(locales).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
-                                                        <div className="flex items-center gap-2">
-                                                            <Languages className="w-4 h-4" />
-                                                            {label}
-                                                        </div>
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium mb-2 block">
-                                            {t('admin_translations_mgmt.page_section')}
+                                            Section
                                         </label>
                                         <Select value={currentPage} onValueChange={(v) => {
-                                            handleFilterChange(currentLocale, v);
+                                            handleFilterChange(v, role, searchMode);
                                         }}>
                                             <SelectTrigger>
                                                 <SelectValue />
@@ -151,14 +157,51 @@ export default function TranslationsIndex({
                                         </Select>
                                     </div>
                                     <div>
+                                        <label className="text-sm font-medium mb-2 block">Role</label>
+                                        <Select
+                                            value={role}
+                                            onValueChange={(v) => {
+                                                setRole(v);
+                                                handleFilterChange(currentPage, v, searchMode);
+                                            }}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Object.entries(roles).map(([key, label]) => (
+                                                    <SelectItem key={key} value={key}>
+                                                        {label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium mb-2 block">Search mode</label>
+                                        <Select
+                                            value={searchMode}
+                                            onValueChange={(v: 'contains' | 'exact') => {
+                                                setSearchMode(v);
+                                                handleFilterChange(currentPage, role, v);
+                                            }}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="contains">Contains</SelectItem>
+                                                <SelectItem value="exact">Exact</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
                                         <label className="text-sm font-medium mb-2 block">
-                                            {t('admin_translations_mgmt.search_label')}
+                                            Search key or value
                                         </label>
                                         <div className="flex gap-2">
                                             <Input
-                                                placeholder={t(
-                                                    'admin_translations_mgmt.search_placeholder',
-                                                )}
+                                                placeholder="Search..."
                                                 value={search}
                                                 onChange={(e) => setSearch(e.target.value)}
                                                 onKeyDown={(e) => {
@@ -180,53 +223,63 @@ export default function TranslationsIndex({
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <CardTitle>
-                                        {t('admin_translations_mgmt.translations_count', {
-                                            count: filteredTranslations.length,
-                                        })}
+                                        {entries.length} translations
                                     </CardTitle>
                                     <Badge variant="outline">
-                                        {locales[currentLocale]} - {pages[currentPage]}
+                                        {pages[currentPage]} | {roles[role]}
                                     </Badge>
                                 </div>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-2">
-                                    {filteredTranslations.map(([key, value]) => (
+                                    {entries.map((entry) => (
                                         <div
-                                            key={key}
-                                            className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50"
+                                            key={entry.key}
+                                            className="p-4 border rounded-lg hover:bg-muted/50"
                                         >
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <Badge variant="outline" className="font-mono text-xs">
-                                                        {key}
+                                            <div className="space-y-3">
+                                                <div className="flex items-center gap-2">
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="font-mono text-xs break-all whitespace-normal"
+                                                    >
+                                                        {entry.key}
                                                     </Badge>
+                                                    {dirtyKeys[entry.key] && (
+                                                        <Badge variant="secondary" className="text-xs">
+                                                            Edited
+                                                        </Badge>
+                                                    )}
                                                 </div>
-                                                <p className="text-sm break-words">{value}</p>
-                                            </div>
-                                            <div className="flex items-center gap-2 ml-4 flex-shrink-0">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleEdit(key, value)}
-                                                >
-                                                    <Edit className="w-4 h-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(key)}
-                                                >
-                                                    <Trash2 className="w-4 h-4 text-destructive" />
-                                                </Button>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <p className="text-xs font-medium mb-1">English</p>
+                                                        <Textarea
+                                                            value={entry.en}
+                                                            onChange={(e) =>
+                                                                updateEntry(entry.key, 'en', e.target.value)
+                                                            }
+                                                            rows={2}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-medium mb-1">Korean</p>
+                                                        <Textarea
+                                                            value={entry.ko}
+                                                            onChange={(e) =>
+                                                                updateEntry(entry.key, 'ko', e.target.value)
+                                                            }
+                                                            rows={2}
+                                                        />
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
-                                    {filteredTranslations.length === 0 && (
+                                    {entries.length === 0 && (
                                         <div className="text-center py-12 text-muted-foreground">
-                                            {search
-                                                ? t('admin_translations_mgmt.empty_search')
-                                                : t('admin_translations_mgmt.empty_page')}
+                                            No translations found for this filter.
                                         </div>
                                     )}
                                 </div>

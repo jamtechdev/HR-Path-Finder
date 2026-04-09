@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Building2, Eye, FileText, RotateCcw, Trash2 } from 'lucide-react';
+import { Building2, Eye, FileText, GitBranch, RotateCcw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -96,8 +96,8 @@ export default function ProjectTree({ projects }: Props) {
                   const companyName = project.company?.name ?? `Project #${project.id}`;
 
                   return (
-                    <Card key={project.id} className="shadow-sm">
-                      <CardContent className="p-2.5 md:py-2 md:px-3">
+                    <Card key={project.id} className="shadow-sm border-border/70 hover:shadow-md transition-shadow">
+                      <CardContent className="p-3 md:p-4">
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                           <div className="flex min-w-0 flex-1 items-center gap-2">
                             <Building2 className="h-3.5 w-3.5 shrink-0 text-primary" />
@@ -148,6 +148,13 @@ export default function ProjectTree({ projects }: Props) {
                             >
                               <Eye className="h-3 w-3" />
                               {t('project_view.view_details')}
+                            </Link>
+                            <Link
+                              href={`/admin/tree/${project.id}`}
+                              className="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-primary/5 px-2 text-[11px] font-medium hover:bg-primary/10"
+                            >
+                              <GitBranch className="h-3 w-3" />
+                              {t('admin_tree.heading')}
                             </Link>
                           </div>
                         </div>

@@ -29,26 +29,55 @@ class TranslationController extends Controller
      */
     public function index(Request $request): Response
     {
-        $locale = $request->get('locale', 'ko');
         $page = $request->get('page', 'all');
         $search = $request->get('search', '');
+        $role = $request->get('role', 'all');
+        $searchMode = $request->get('searchMode', 'contains');
 
-        $translations = $this->translationService->getFlatTranslations($locale, $page);
+        $enTranslations = $this->translationService->getFlatTranslations('en', $page);
+        $koTranslations = $this->translationService->getFlatTranslations('ko', $page);
 
-        // Filter by search
-        if ($search) {
-            $translations = array_filter($translations, function ($value, $key) use ($search) {
-                return stripos($key, $search) !== false || stripos($value, $search) !== false;
-            }, ARRAY_FILTER_USE_BOTH);
+        $keys = array_unique(array_merge(array_keys($enTranslations), array_keys($koTranslations)));
+        sort($keys);
+
+        $translations = [];
+        foreach ($keys as $key) {
+            $enValue = (string) ($enTranslations[$key] ?? '');
+            $koValue = (string) ($koTranslations[$key] ?? '');
+
+            if (!$this->matchesRole($key, $role)) {
+                continue;
+            }
+
+            if ($search) {
+                $matched = $this->matchesSearch($searchMode, $search, $key, $enValue, $koValue);
+
+                if (!$matched) {
+                    continue;
+                }
+            }
+
+            $translations[] = [
+                'key' => $key,
+                'en' => $enValue,
+                'ko' => $koValue,
+            ];
         }
 
         return Inertia::render('Admin/Translations/Index', [
             'translations' => $translations,
-            'locales' => $this->translationService->getLocales(),
             'pages' => $this->translationService->getPages(),
-            'currentLocale' => $locale,
             'currentPage' => $page,
             'search' => $search,
+            'currentRole' => $role,
+            'searchMode' => $searchMode,
+            'roles' => [
+                'all' => 'All Roles',
+                'admin' => 'Admin',
+                'hr' => 'HR',
+                'ceo' => 'CEO',
+                'common' => 'Common/Shared',
+            ],
         ]);
     }
 
@@ -76,6 +105,38 @@ class TranslationController extends Controller
      */
     public function update(Request $request)
     {
+        // New "single translation center" payload: update both locales together.
+        if ($request->has('entries')) {
+            $validated = $request->validate([
+                'entries' => ['required', 'array'],
+                'entries.*.key' => ['required', 'string'],
+                'entries.*.en' => ['nullable', 'string'],
+                'entries.*.ko' => ['nullable', 'string'],
+            ]);
+
+            $enTranslations = $this->translationService->getTranslations('en');
+            $koTranslations = $this->translationService->getTranslations('ko');
+
+            foreach ($validated['entries'] as $entry) {
+                $key = $entry['key'];
+                $enValue = (string) ($entry['en'] ?? '');
+                $koValue = (string) ($entry['ko'] ?? '');
+
+                $this->setNestedValue($enTranslations, $key, $enValue);
+                $this->setNestedValue($koTranslations, $key, $koValue);
+            }
+
+            $savedEn = $this->translationService->saveTranslations('en', $enTranslations);
+            $savedKo = $this->translationService->saveTranslations('ko', $koTranslations);
+
+            if ($savedEn && $savedKo) {
+                return redirect()->back()->with('success', 'Translations updated successfully.');
+            }
+
+            return back()->withErrors(['error' => 'Failed to update translations.']);
+        }
+
+        // Backward compatible payload
         $validated = $request->validate([
             'locale' => ['required', 'string', 'in:ko,en'],
             'page' => ['required', 'string'],
@@ -210,5 +271,83 @@ class TranslationController extends Controller
         }
 
         return $merged;
+    }
+
+    /**
+     * Set a dot-notation key into a nested array.
+     */
+    protected function setNestedValue(array &$target, string $dotKey, string $value): void
+    {
+        $keys = explode('.', $dotKey);
+        $current = &$target;
+
+        foreach ($keys as $index => $key) {
+            $isLast = $index === count($keys) - 1;
+
+            if ($isLast) {
+                $current[$key] = $value;
+                return;
+            }
+
+            if (!isset($current[$key]) || !is_array($current[$key])) {
+                $current[$key] = [];
+            }
+
+            $current = &$current[$key];
+        }
+    }
+
+    /**
+     * Role filter based on translation key naming conventions.
+     */
+    protected function matchesRole(string $key, string $role): bool
+    {
+        if ($role === 'all') {
+            return true;
+        }
+
+        $normalized = strtolower($key);
+        $isAdmin = str_contains($normalized, 'admin_') || str_starts_with($normalized, 'admin.');
+        $isCeo = str_contains($normalized, 'ceo_') || str_starts_with($normalized, 'ceo.');
+        $isHr = str_contains($normalized, 'hr_')
+            || str_contains($normalized, 'hrmanager')
+            || str_contains($normalized, 'hr_manager');
+
+        return match ($role) {
+            'admin' => $isAdmin,
+            'ceo' => $isCeo,
+            'hr' => $isHr,
+            'common' => !$isAdmin && !$isCeo && !$isHr,
+            default => true,
+        };
+    }
+
+    /**
+     * Search keys/values by contains or exact mode.
+     */
+    protected function matchesSearch(string $searchMode, string $search, string $key, string $enValue, string $koValue): bool
+    {
+        $needle = mb_strtolower(trim($search));
+        if ($needle === '') {
+            return true;
+        }
+
+        $candidates = [
+            mb_strtolower($key),
+            mb_strtolower($enValue),
+            mb_strtolower($koValue),
+        ];
+
+        if ($searchMode === 'exact') {
+            return in_array($needle, $candidates, true);
+        }
+
+        foreach ($candidates as $candidate) {
+            if (str_contains($candidate, $needle)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

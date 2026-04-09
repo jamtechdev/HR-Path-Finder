@@ -14,17 +14,6 @@ use Illuminate\Support\Facades\File;
 class TranslationService
 {
     protected string $translationsPath;
-    protected array $pages = [
-        'landing' => 'Landing Page',
-        'auth' => 'Authentication',
-        'auth.login' => 'Login Page',
-        'auth.register' => 'Register Page',
-        'dashboard' => 'Dashboard',
-        'common' => 'Common',
-        'navigation' => 'Navigation',
-        'buttons' => 'Buttons',
-        'messages' => 'Messages',
-    ];
 
     public function __construct()
     {
@@ -165,7 +154,21 @@ class TranslationService
      */
     public function getPages(): array
     {
-        return $this->pages;
+        $en = $this->getTranslations('en');
+        $ko = $this->getTranslations('ko');
+
+        $topLevelKeys = array_unique(array_merge(
+            array_keys($en),
+            array_keys($ko),
+        ));
+        sort($topLevelKeys);
+
+        $pages = ['all' => 'All Sections'];
+        foreach ($topLevelKeys as $key) {
+            $pages[$key] = $this->humanizeSectionName($key);
+        }
+
+        return $pages;
     }
 
     /**
@@ -219,5 +222,15 @@ class TranslationService
     public function getLocales(): array
     {
         return ['ko' => 'Korean', 'en' => 'English'];
+    }
+
+    /**
+     * Convert section key to human-readable title.
+     */
+    protected function humanizeSectionName(string $section): string
+    {
+        $label = str_replace(['_', '.'], ' ', $section);
+        $label = preg_replace('/\s+/', ' ', (string) $label);
+        return ucwords(trim((string) $label));
     }
 }

@@ -2,15 +2,10 @@ import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Form, Link } from '@inertiajs/react';
 import { 
     Settings, 
-    User, 
-    Mail, 
     Save, 
     TestTube,
     CheckCircle2,
     AlertCircle,
-    Building2,
-    Lock,
-    Palette,
     ShieldBan,
     ShieldCheck
 } from 'lucide-react';
@@ -18,7 +13,6 @@ import { useEffect, useState } from 'react';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import PasswordController from '@/actions/App/Http/Controllers/Settings/PasswordController';
-import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import AppearanceToggleTab from '@/components/appearance-tabs';
 import DeleteUser from '@/components/delete-user';
 import AppHeader from '@/components/Header/AppHeader';
@@ -201,7 +195,21 @@ export default function SettingsIndex({
     
     const handleProfileSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        const normalizedData = {
+            ...profileForm.data,
+            // Laravel nullable+numeric rejects empty string; send null instead.
+            latitude:
+                profileForm.data.latitude === '' || profileForm.data.latitude === null
+                    ? null
+                    : profileForm.data.latitude,
+            longitude:
+                profileForm.data.longitude === '' || profileForm.data.longitude === null
+                    ? null
+                    : profileForm.data.longitude,
+        };
+
         profileForm.patch('/settings/profile', {
+            data: normalizedData,
             preserveScroll: true,
             forceFormData: true,
             onSuccess: () => {
