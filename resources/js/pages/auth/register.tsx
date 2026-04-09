@@ -118,7 +118,7 @@ export default function Register({ status }: Props) {
                     <span>{t('auth.register.enterprise_security')}</span>
                 </div>
             </div>
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-[#FAF8F3] relative z-10">
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-muted relative z-10">
                 <div className="w-full max-w-md">
                     <Head title={t('auth.register.page_title')} />
 
@@ -127,20 +127,20 @@ export default function Register({ status }: Props) {
                             <div className="w-12 h-12 rounded-xl bg-[#0B1E3D] flex items-center justify-center text-white font-bold">HR</div>
                             <div>
                                 <h1 className="font-serif text-2xl font-bold text-[#0D1B2A]">HR <span className="text-[#2ECFAB]">Pathfinder</span></h1>
-                                <p className="text-[#3D5068] text-sm">powered by BetterCompany</p>
+                                <p className="text-muted-foreground text-sm">powered by BetterCompany</p>
                             </div>
                         </Link>
                     </div>
                     <div className="mb-4">
-                        <Link href={home()} className="inline-flex items-center gap-2 text-sm text-[#3D5068] hover:text-[#0B1E3D] transition-colors">
+                        <Link href={home()} className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors">
                             <ArrowLeft className="w-4 h-4" />
                             {t('auth.register.back_to_home')}
                         </Link>
                     </div>
-                    <div className="bg-white border border-[#EEF0F4] rounded-2xl shadow-lg p-8 space-y-6">
+                    <div className="bg-card border border-border/50 rounded-2xl shadow-lg p-8 space-y-6">
                         <div className="text-center lg:text-left">
-                            <h2 className="font-serif text-3xl font-bold text-[#0B1E3D]">{t('auth.register.title')}</h2>
-                            <p className="text-[#3D5068] mt-2 text-sm">{t('auth.register.subtitle')}</p>
+                            <h2 className="font-serif text-3xl font-bold text-muted-foreground">{t('auth.register.title')}</h2>
+                            <p className="text-muted-foreground mt-2 text-sm">{t('auth.register.subtitle')}</p>
                         </div>
                         {status && (
                             <div className="p-4 rounded-lg bg-[#E6FAF6] border border-[#2ECFAB]/30 text-sm font-medium text-[#1A8C6F]">{status}</div>
@@ -247,7 +247,7 @@ export default function Register({ status }: Props) {
                                                 <button
                                                     type="button"
                                                     onClick={generatePassword}
-                                                    className="absolute inset-y-0 right-9 flex items-center px-2 text-[#6B7585] hover:text-[#0B1E3D]"
+                                                    className="absolute inset-y-0 right-9 flex items-center px-2 text-[#6B7585]"
                                                     aria-label="Generate secure password"
                                                     title="Generate secure password"
                                                 >
@@ -256,7 +256,7 @@ export default function Register({ status }: Props) {
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowPassword((s) => !s)}
-                                                    className="absolute inset-y-0 right-0 flex items-center px-3 text-[#6B7585] hover:text-[#0B1E3D]"
+                                                    className="absolute inset-y-0 right-0 flex items-center px-3 text-[#6B7585]"
                                                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                                                 >
                                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -264,7 +264,7 @@ export default function Register({ status }: Props) {
                                             </div>
                                             <div className="space-y-2">
                                                 <div className="flex items-center justify-between text-xs">
-                                                    <span className="text-[#3D5068]">비밀번호 보안 수준</span>
+                                                    <span className="text-muted-foreground">비밀번호 보안 수준</span>
                                                     <span className="font-medium text-[#0B1E3D]">{passwordStrength.label}</span>
                                                 </div>
                                                 <div className="grid grid-cols-3 gap-1">
@@ -276,7 +276,7 @@ export default function Register({ status }: Props) {
                                                     ))}
                                                 </div>
                                             </div>
-                                            <p className="text-xs text-[#3D5068]">{t('auth.register.password_hint')}</p>
+                                            <p className="text-xs text-muted-foreground">{t('auth.register.password_hint')}</p>
                                             <InputError message={errors.password} />
                                         </div>
 
@@ -303,7 +303,7 @@ export default function Register({ status }: Props) {
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowPasswordConfirmation((s) => !s)}
-                                                    className="absolute inset-y-0 right-0 flex items-center px-3 text-[#6B7585] hover:text-[#0B1E3D]"
+                                                    className="absolute inset-y-0 right-0 flex items-center px-3 text-[#6B7585]"
                                                     aria-label={showPasswordConfirmation ? 'Hide confirmation password' : 'Show confirmation password'}
                                                 >
                                                     {showPasswordConfirmation ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -337,7 +337,7 @@ export default function Register({ status }: Props) {
                             </form>
 
                             <div className="pt-4 border-t border-[#EEF0F4]">
-                                <p className="text-center text-sm text-[#3D5068]">
+                                <p className="text-center text-sm text-muted-foreground">
                                     {t('auth.register.have_account')}{' '}
                                     <TextLink href={login()} className="text-[#2ECFAB] font-semibold hover:text-[#1A8C6F] hover:underline inline-flex items-center gap-1">
                                         {t('auth.register.sign_in')}

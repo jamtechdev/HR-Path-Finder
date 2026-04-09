@@ -58,7 +58,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
             </div>
 
             {/* Right Side - Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-background">
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-muted">
                 <div className="w-full max-w-md space-y-8">
             <Head title={t('auth_forgot_password.page_title')} />
 
@@ -84,10 +84,10 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     </div>
 
                     {/* Header */}
-                    <div className="text-center lg:text-left">
-                        <h2 className="text-2xl font-display font-bold">{t('auth_forgot_password.heading')}</h2>
+                    <div className="bg-card border border-border/50 rounded-2xl shadow-lg p-8 space-y-6 text-center lg:text-left">
+                        <h2 className="text-2xl font-display font-bold mb-0">{t('auth_forgot_password.heading')}</h2>
                         <p className="text-muted-foreground mt-2">{t('auth_forgot_password.subheading')}</p>
-                    </div>
+                    
 
             {status && (
                         <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-center text-sm font-medium text-green-800 dark:text-green-200">
@@ -119,7 +119,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
                                 <Button
                                     type="submit"
-                                    className="w-full h-10 bg-[#0a1629] hover:bg-[#0d1b35] text-white font-medium"
+                                    className="w-full h-10 bg-[#2ECFAB] hover:bg-[#7EE8D0] text-[#0B1E3D] font-medium"
                             disabled={form.processing}
                                 >
                             {form.processing ? (
@@ -138,10 +138,11 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
                     <p className="text-center text-sm text-muted-foreground">
                         {t('auth_forgot_password.remember_password')}{' '}
-                        <TextLink href={login()} className="text-[#0a1629] font-medium hover:underline">
+                        <TextLink href={login()} className="text-[#2ECFAB] font-medium hover:underline">
                             {t('auth_forgot_password.sign_in')}
                         </TextLink>
                     </p>
+                </div>
                 </div>
             </div>
         </div>

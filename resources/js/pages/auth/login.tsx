@@ -94,7 +94,7 @@ export default function Login({
                 </div>
             </div>
 
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-[#FAF8F3] relative z-10">
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-muted relative z-10">
                 <div className="w-full max-w-md">
                     <Head title={t('auth.login.page_title')} />
 
@@ -108,15 +108,15 @@ export default function Login({
                         </Link>
                     </div>
                     <div className="mb-4">
-                        <Link href={home()} className="inline-flex items-center gap-2 text-sm text-[#3D5068] hover:text-[#0B1E3D] transition-colors">
+                        <Link href={home()} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#0B1E3D] transition-colors">
                             <ArrowLeft className="w-4 h-4" />
                             {t('auth.login.back_to_home')}
                         </Link>
                     </div>
-                    <div className="bg-white border border-[#EEF0F4] rounded-2xl shadow-lg p-8 space-y-6">
+                    <div className="bg-card border border-border/50 rounded-2xl shadow-lg p-8 space-y-6">
                         <div className="text-center lg:text-left">
-                            <h2 className="font-serif text-3xl font-bold text-[#0B1E3D]">{t('auth.login.title')}</h2>
-                            <p className="text-[#3D5068] mt-2 text-sm">{t('auth.login.subtitle')}</p>
+                            <h2 className="font-serif text-3xl font-bold">{t('auth.login.title')}</h2>
+                            <p className="text-muted-foreground mt-2 text-sm">{t('auth.login.subtitle')}</p>
                         </div>
                         {status && (
                             <div className="p-4 rounded-lg bg-[#E6FAF6] border border-[#2ECFAB]/30 text-sm font-medium text-[#1A8C6F]">
@@ -189,7 +189,7 @@ export default function Login({
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword((s) => !s)}
-                                        className="absolute inset-y-0 right-0 flex items-center px-3 text-[#6B7585] hover:text-[#0B1E3D]"
+                                        className="absolute inset-y-0 right-0 flex items-center px-3 text-[#6B7585]"
                                         aria-label={showPassword ? 'Hide password' : 'Show password'}
                                     >
                                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -221,7 +221,7 @@ export default function Login({
 
                         {canRegister && (
                             <div className="pt-4 border-t border-[#EEF0F4]">
-                                <p className="text-center text-sm text-[#3D5068]">
+                                <p className="text-center text-sm text-muted-foreground">
                                     {t('auth.login.no_account')}{' '}
                                     <TextLink href={register()} className="text-[#2ECFAB] font-semibold hover:text-[#1A8C6F] hover:underline inline-flex items-center gap-1" tabIndex={4}>
                                         {t('auth.login.create_account')}

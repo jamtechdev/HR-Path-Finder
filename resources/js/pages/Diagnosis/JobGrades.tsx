@@ -711,7 +711,7 @@ export default function JobGrades({
                                         });
                                     }}
                                     disabled={isReadOnly}
-                                    className="flex-1 border-0 bg-transparent text-center text-[14px] font-extrabold text-[#1B2B5B]"
+                                    className="flex-1 border-0 bg-transparent text-center text-[14px] font-extrabold text-[#1B2B5B] w-full"
                                 />
                                 <button
                                     type="button"
