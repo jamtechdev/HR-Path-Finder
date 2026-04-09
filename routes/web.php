@@ -528,10 +528,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('translations/update-key', [\App\Http\Controllers\Admin\TranslationController::class, 'updateKey'])->name('translations.update-key');
         Route::delete('translations', [\App\Http\Controllers\Admin\TranslationController::class, 'destroy'])->name('translations.destroy');
 
-        // Landing Page Management (JSON-based, edit only)
-        Route::get('landing-page', [\App\Http\Controllers\Admin\LandingPageController::class, 'index'])->name('landing-page.index');
-        Route::put('landing-page', [\App\Http\Controllers\Admin\LandingPageController::class, 'update'])->name('landing-page.update');
-
         // HR / Diagnosis translations (admin editable overrides)
         Route::get('hr-translations', [\App\Http\Controllers\Admin\HrTranslationsController::class, 'index'])->name('hr-translations.index');
         Route::put('hr-translations', [\App\Http\Controllers\Admin\HrTranslationsController::class, 'update'])->name('hr-translations.update');
