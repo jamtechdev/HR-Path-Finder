@@ -14,10 +14,14 @@ use Illuminate\Support\Facades\File;
 class TranslationService
 {
     protected string $translationsPath;
+    protected string $legacyTranslationsPath;
 
     public function __construct()
     {
-        $this->translationsPath = resource_path('js/locales');
+        // Runtime-editable translation source (outside frontend build artifacts).
+        $this->translationsPath = storage_path('app/translations');
+        // Legacy path used as migration fallback for first run.
+        $this->legacyTranslationsPath = resource_path('js/locales');
     }
 
     /**
@@ -25,7 +29,7 @@ class TranslationService
      */
     public function getTranslations(string $locale): array
     {
-        $filePath = $this->translationsPath . "/{$locale}.json";
+        $filePath = $this->resolveLocalePath($locale);
         
         if (!File::exists($filePath)) {
             return [];
@@ -66,7 +70,7 @@ class TranslationService
      */
     public function saveTranslations(string $locale, array $translations): bool
     {
-        $filePath = $this->translationsPath . "/{$locale}.json";
+        $filePath = $this->resolveLocalePath($locale);
         $dirPath = dirname($filePath);
         if (!File::exists($dirPath)) {
             File::makeDirectory($dirPath, 0755, true);
@@ -232,5 +236,30 @@ class TranslationService
         $label = str_replace(['_', '.'], ' ', $section);
         $label = preg_replace('/\s+/', ' ', (string) $label);
         return ucwords(trim((string) $label));
+    }
+
+    /**
+     * Resolve locale JSON path in storage and lazily migrate from legacy resources path.
+     */
+    protected function resolveLocalePath(string $locale): string
+    {
+        $storagePath = $this->translationsPath . "/{$locale}.json";
+
+        if (File::exists($storagePath)) {
+            return $storagePath;
+        }
+
+        if (!File::exists($this->translationsPath)) {
+            File::makeDirectory($this->translationsPath, 0755, true);
+        }
+
+        $legacyPath = $this->legacyTranslationsPath . "/{$locale}.json";
+        if (File::exists($legacyPath)) {
+            File::copy($legacyPath, $storagePath);
+            return $storagePath;
+        }
+
+        File::put($storagePath, "{}\n");
+        return $storagePath;
     }
 }

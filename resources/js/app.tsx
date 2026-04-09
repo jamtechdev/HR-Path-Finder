@@ -5,7 +5,7 @@ import { createRoot } from 'react-dom/client';
 import '../css/app.css';
 import Preloader from './components/ui/Preloader';
 import { initializeTheme } from './hooks/use-appearance';
-import './lib/i18n'; // Initialize i18n
+import { initializeI18n } from './lib/i18n';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -14,6 +14,8 @@ const pageModules = import.meta.glob('./pages/**/*.tsx');
 function kebabToPascal(str) {
     return str.replace(/(^|-)([a-z])/g, (_, pre, c) => c.toUpperCase());
 }
+
+await initializeI18n();
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),

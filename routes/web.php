@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Services\TranslationService;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
@@ -22,6 +23,12 @@ Route::get('/contact', function (Request $request) {
 Route::post('/contact', [\App\Http\Controllers\ContactUsController::class, 'store'])
     ->middleware('web')
     ->name('contact.store');
+
+// Runtime translation endpoint (used by frontend i18n in production).
+Route::get('/i18n/{locale}', function (string $locale, TranslationService $translationService) {
+    abort_unless(in_array($locale, ['en', 'ko'], true), 404);
+    return response()->json($translationService->getTranslations($locale));
+})->name('i18n.locale');
 
 // Public contact form: Admin view
 

@@ -4,8 +4,6 @@ import { initReactI18next } from 'react-i18next';
 
 import { diagnosisPageI18nEn, diagnosisPageI18nKo } from '@/config/diagnosisPageI18n';
 import { diagnosisTranslationStrings } from '@/config/diagnosisTranslationStrings';
-import enTranslations from '@/locales/en.json';
-import koTranslations from '@/locales/ko.json';
 
 const STORAGE_KEY = 'i18nextLng';
 
@@ -62,6 +60,24 @@ function companyInfoBundle(lang: 'en' | 'ko'): Record<string, string> {
     return out;
 }
 
+async function fetchLocaleTranslations(locale: 'en' | 'ko'): Promise<Record<string, unknown>> {
+    const response = await fetch(`/i18n/${locale}`, {
+        method: 'GET',
+        headers: {
+            Accept: 'application/json',
+        },
+        credentials: 'same-origin',
+        cache: 'no-store',
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch locale ${locale}: ${response.status}`);
+    }
+
+    const data = (await response.json()) as Record<string, unknown>;
+    return data ?? {};
+}
+
 // Read saved language synchronously so it's used on first paint and persists after refresh
 function getInitialLanguage(): string {
     if (typeof window === 'undefined') return 'ko';
@@ -74,39 +90,54 @@ function getInitialLanguage(): string {
     return 'ko';
 }
 
-const enMerged = {
-    ...enTranslations,
-    diagnosis_strings: flattenDiagnosisStrings('en'),
-    company_info: companyInfoBundle('en'),
-    ...diagnosisPageI18nEn,
-};
+export async function initializeI18n(): Promise<void> {
+    let enTranslations: Record<string, unknown> = {};
+    let koTranslations: Record<string, unknown> = {};
 
-const koMerged = {
-    ...koTranslations,
-    diagnosis_strings: flattenDiagnosisStrings('ko'),
-    company_info: companyInfoBundle('ko'),
-    ...diagnosisPageI18nKo,
-};
+    try {
+        [enTranslations, koTranslations] = await Promise.all([
+            fetchLocaleTranslations('en'),
+            fetchLocaleTranslations('ko'),
+        ]);
+    } catch (error) {
+        // Keep app usable even if translation API is temporarily unavailable.
+        console.error('[i18n] failed to load runtime locales', error);
+    }
 
-i18n.use(LanguageDetector).use(initReactI18next).init({
-    resources: {
-        en: {
-            translation: enMerged,
+    const enMerged = {
+        ...enTranslations,
+        diagnosis_strings: flattenDiagnosisStrings('en'),
+        company_info: companyInfoBundle('en'),
+        ...diagnosisPageI18nEn,
+    };
+
+    const koMerged = {
+        ...koTranslations,
+        diagnosis_strings: flattenDiagnosisStrings('ko'),
+        company_info: companyInfoBundle('ko'),
+        ...diagnosisPageI18nKo,
+    };
+
+    await i18n.use(LanguageDetector).use(initReactI18next).init({
+        resources: {
+            en: {
+                translation: enMerged,
+            },
+            ko: {
+                translation: koMerged,
+            },
         },
-        ko: {
-            translation: koMerged,
+        fallbackLng: 'ko',
+        lng: getInitialLanguage(),
+        interpolation: {
+            escapeValue: false,
         },
-    },
-    fallbackLng: 'ko',
-    lng: getInitialLanguage(),
-    interpolation: {
-        escapeValue: false,
-    },
-    detection: {
-        order: ['localStorage', 'navigator'],
-        lookupLocalStorage: STORAGE_KEY,
-        caches: ['localStorage'],
-    },
-});
+        detection: {
+            order: ['localStorage', 'navigator'],
+            lookupLocalStorage: STORAGE_KEY,
+            caches: ['localStorage'],
+        },
+    });
+}
 
 export default i18n;
