@@ -1,5 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { Building2, FileText } from 'lucide-react';
+import { Building2, FileText, GitBranch } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import AppHeader from '@/components/Header/AppHeader';
@@ -7,7 +7,6 @@ import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import { useTranslation } from 'react-i18next';
 
 interface Project {
     id: number;
@@ -28,11 +27,21 @@ interface Props {
 
 export default function ProjectsIndex({ projects }: Props) {
     const { t } = useTranslation();
-    const { url, props } = usePage();
-    const currentPath = url.split('?')[0];
+    const { props } = usePage();
     const user = (props as any).auth?.user;
+    const isAdmin = user?.roles?.some((role: { name: string }) => role.name === 'admin') || false;
+    const isCeo = user?.roles?.some((role: { name: string }) => role.name === 'ceo') || false;
+    const isHrManager =
+        user?.roles?.some((role: { name: string }) => role.name === 'hr_manager') || false;
 
-    const projectBasePath = '/admin/hr-projects';
+    const treeBasePath = isAdmin
+        ? '/admin/tree'
+        : isCeo
+          ? '/ceo/tree'
+          : isHrManager
+            ? '/hr-manager/tree'
+            : '/projects';
+    const detailsBasePath = isAdmin ? '/admin/hr-projects' : '/projects';
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -76,17 +85,32 @@ export default function ProjectsIndex({ projects }: Props) {
                                                     {t('projects_index.diagnosis')}: {project.diagnosis.status}
                                                 </p>
                                             )}
-                                            <Link
-                                                href={`${projectBasePath}/${project.id}`}
-                                            >
-                                                <Button
-                                                    variant="outline"
-                                                    className="w-full"
+                                            <div className="flex gap-2">
+                                                <Link
+                                                    href={`${detailsBasePath}/${project.id}`}
+                                                    className="flex-1"
                                                 >
-                                                    <FileText className="mr-2 h-4 w-4" />
-                                                    {t('projects_index.view_project')}
-                                                </Button>
-                                            </Link>
+                                                    <Button
+                                                        variant="outline"
+                                                        className="w-full"
+                                                    >
+                                                        <FileText className="mr-2 h-4 w-4" />
+                                                        {t('projects_index.view_project')}
+                                                    </Button>
+                                                </Link>
+                                                <Link
+                                                    href={`${treeBasePath}/${project.id}`}
+                                                    className="flex-1"
+                                                >
+                                                    <Button
+                                                        variant="secondary"
+                                                        className="w-full"
+                                                    >
+                                                        <GitBranch className="mr-2 h-4 w-4" />
+                                                        {t('admin_tree.heading')}
+                                                    </Button>
+                                                </Link>
+                                            </div>
                                         </CardContent>
                                     </Card>
                                 ))}

@@ -26,17 +26,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
     const appLogo = (props as any).appConfig?.logo || '/logo.svg';
 
     const translationPages = [
-        { key: 'all', label: t('admin_ui.sidebar.translation_pages.all'), path: '/admin/translations?page=all' },
-        { key: 'landing-page', label: t('admin_ui.sidebar.translation_pages.landing_page'), path: '/admin/landing-page' },
-        { key: 'hr-translations', label: t('admin_ui.sidebar.translation_pages.hr_translations'), path: '/admin/hr-translations' },
-        { key: 'auth', label: t('admin_ui.sidebar.translation_pages.auth'), path: '/admin/translations?page=auth' },
-        { key: 'auth.login', label: t('admin_ui.sidebar.translation_pages.auth_login'), path: '/admin/translations?page=auth.login' },
-        { key: 'auth.register', label: t('admin_ui.sidebar.translation_pages.auth_register'), path: '/admin/translations?page=auth.register' },
-        { key: 'dashboard', label: t('admin_ui.sidebar.translation_pages.dashboard'), path: '/admin/translations?page=dashboard' },
-        { key: 'common', label: t('admin_ui.sidebar.translation_pages.common'), path: '/admin/translations?page=common' },
-        { key: 'navigation', label: t('admin_ui.sidebar.translation_pages.navigation'), path: '/admin/translations?page=navigation' },
-        { key: 'buttons', label: t('admin_ui.sidebar.translation_pages.buttons'), path: '/admin/translations?page=buttons' },
-        { key: 'messages', label: t('admin_ui.sidebar.translation_pages.messages'), path: '/admin/translations?page=messages' },
+        { key: 'all', label: t('admin_ui.sidebar.menu.translations'), path: '/admin/translations?page=all' },
     ];
 
     const isActivePath = (path: string) => {
@@ -346,12 +336,8 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 <div className="ml-2 mt-1 space-y-1 border-l border-sidebar-border/30 pl-3">
                                                     {translationPages.map((page) => {
                                                         const translationLinkActive =
-                                                            page.key === 'landing-page'
-                                                                ? currentPath === '/admin/landing-page'
-                                        : page.key === 'hr-translations'
-                                          ? currentPath === '/admin/hr-translations'
-                                                                : currentPath === page.path.split('?')[0] &&
-                                                                  (page.key === 'all' || url.includes(`page=${page.key}`));
+                                                            currentPath === page.path.split('?')[0] &&
+                                                            (page.key === 'all' || url.includes(`page=${page.key}`));
 
                                                         return (
                                                             <Link
