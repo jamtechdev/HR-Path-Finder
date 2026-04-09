@@ -92,7 +92,7 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
               </div>
               <div className="h-5 w-px bg-white/10 ml-3.5" />
               <div className="flex items-center gap-3">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-[#C9A84C] bg-[#C9A84C] text-xs font-semibold text-[#0E1628]">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-[#C9A84C] bg-[#C9A84C] text-xs font-semibold text-muted-foreground">
                   2
                 </div>
                 <span className="text-sm font-medium text-white">{t('invitation_ceo_set_password.step2')}</span>
@@ -115,23 +115,23 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
           </div>
         </div>
 
-        <div className="flex flex-col items-center justify-center bg-[#F2EEE7] p-8 md:p-12">
+        <div className="flex flex-col items-center justify-center bg-muted p-8 md:p-12">
           <Link
             href="/"
             className="absolute left-8 top-8 flex items-center gap-1.5 text-sm text-[#4A4E69] opacity-60 hover:opacity-100 md:left-8 md:top-8"
           >
             ← {t('invitation_ceo_set_password.back_home')}
           </Link>
-          <div className="w-full max-w-[400px] rounded-xl bg-white p-8 shadow-sm md:p-10">
-            <h2 className="font-serif text-[22px] font-bold tracking-tight text-[#0E1628]">
+          <div className="w-full max-w-[400px] rounded-xl bg-card text-muted-foreground p-8 shadow-sm md:p-10">
+            <h2 className="font-serif text-[22px] font-bold tracking-tight text-muted-foreground">
               {t('invitation_ceo_set_password.form_title')}
             </h2>
-            <p className="mt-1.5 text-[13px] font-light leading-relaxed text-[#4A4E69]">
+            <p className="mt-1.5 text-[13px] font-light leading-relaxed text-muted-foreground">
               {t('invitation_ceo_set_password.form_subtitle')}
             </p>
             <form onSubmit={submit} className="mt-8 space-y-5">
               <div>
-                <Label className="text-xs font-medium text-[#0E1628]">{t('invitation_ceo_set_password.email')}</Label>
+                <Label className="text-xs font-medium text-muted-foreground">{t('invitation_ceo_set_password.email')}</Label>
                 <Input
                   type="email"
                   value={email}
@@ -140,7 +140,7 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
                 />
               </div>
               <div>
-                <Label className="text-xs font-medium text-[#0E1628]">{t('invitation_ceo_set_password.new_password')}</Label>
+                <Label className="text-xs font-medium text-muted-foreground">{t('invitation_ceo_set_password.new_password')}</Label>
                 <div className="relative mt-1.5">
                   <Input
                     type={showPassword ? 'text' : 'password'}
@@ -180,7 +180,7 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
                 </div>
               </div>
               <div>
-                <Label className="text-xs font-medium text-[#0E1628]">{t('invitation_ceo_set_password.confirm_password')}</Label>
+                <Label className="text-xs font-medium text-muted-foreground">{t('invitation_ceo_set_password.confirm_password')}</Label>
                 <div className="relative mt-1.5">
                   <Input
                     type={showConfirm ? 'text' : 'password'}
@@ -216,7 +216,7 @@ export default function CeoSetPassword({ token, email, companyName }: Props) {
               <Button
                 type="submit"
                 disabled={!canSubmit || form.processing}
-                className="w-full bg-[#0E1628] font-medium hover:bg-[#1A2540]"
+                className="w-full bg-[#2ECFAB]  text-[#0B1E3D] font-medium hover:bg-[#2ECFAB]"
               >
                 {form.processing ? t('invitation_ceo_set_password.processing') : t('invitation_ceo_set_password.submit')}
               </Button>
