@@ -3038,6 +3038,24 @@
     height: 15px;
 }
 
+/* Dark mode overrides for diagnosis-step-layout */
+.dark .diagnosis-step-layout {
+     --dx-navy: #CBD0DA;
+     --dx-navy-light:#CBD0DA;
+     --hr-navy:#4ecdc4;
+    --dx-gray-50: #131f35;
+    --dx-gray-100: #1a2744;
+    --dx-gray-200: #2a3a5c;
+    --dx-gray-300: #4a5a7c;
+    --dx-gray-400: #6B7585;
+    --dx-gray-500: #9AA3B2;
+    --dx-gray-700: #CBD0DA;
+    --dx-gray-900: #e2e8f0;
+    --dx-white: #1a2744;
+    --dx-red-light: #3b1a1a;
+    --dx-amber-light: #2d2000;
+}
+
 /* Global preloader (page refresh + inertia navigation) */
 body.preloader-active {
     overflow: hidden;

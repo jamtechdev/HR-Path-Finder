@@ -244,10 +244,10 @@ export default function HrIssues({
     const innerContent = (
         <div className="mx-auto max-w-[780px] space-y-5">
             <div>
-                <h1 className="text-2xl font-bold text-slate-800">
+                <h1 className="text-2xl font-bold text-slate-800 dark:text-[#e2e8f0]">
                     {t('diagnosis_hr_issues.title')}
                 </h1>
-                <p className="mt-1.5 text-sm text-slate-500">
+                <p className="mt-1.5 text-sm text-slate-500 dark:text-[#9AA3B2]">
                     {t('diagnosis_hr_issues.description')}
                 </p>
             </div>
@@ -268,7 +268,7 @@ export default function HrIssues({
                                     : '1.5px solid #e2e8f0',
                                 background: isActive
                                     ? `${cat.color}15`
-                                    : '#fff',
+                                    : 'transparent',
                                 color: isActive ? cat.color : '#64748b',
                             }}
                             className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all"
@@ -293,7 +293,7 @@ export default function HrIssues({
 
             {/* Main Card */}
             <div
-                className="overflow-hidden rounded-2xl border-2 bg-white"
+                className="overflow-hidden rounded-2xl border-2 bg-white dark:bg-[#1a2744]"
                 style={{
                     borderColor: `${activeCat.color}30`,
                     boxShadow: `0 4px 20px ${activeCat.color}18`,
@@ -314,10 +314,10 @@ export default function HrIssues({
                             {activeCat.emoji}
                         </div>
                         <div>
-                            <div className="text-base font-bold text-slate-800">
+                            <div className="text-base font-bold text-slate-800 dark:text-[#e2e8f0]">
                                 {tx(activeCat.nameKey)}
                             </div>
-                            <div className="mt-0.5 text-xs text-slate-500">
+                            <div className="mt-0.5 text-xs text-slate-500 dark:text-[#9AA3B2]">
                                 {t('diagnosis_hr_issues.totalItems', {
                                     count: activeCat.issueKeys.length,
                                 })}
@@ -333,7 +333,7 @@ export default function HrIssues({
                             </div>
                         </div>
                     </div>
-                    <div className="text-[13px] text-slate-500">
+                    <div className="text-[13px] text-slate-500 dark:text-[#9AA3B2]">
                         {activeCatIdx + 1} / {CATEGORIES.length}
                     </div>
                 </div>
@@ -353,7 +353,7 @@ export default function HrIssues({
                                     'mb-1.5 flex w-full cursor-pointer items-center gap-3 rounded-lg px-3.5 py-3 text-left transition-all',
                                     selected
                                         ? 'border-[1.5px]'
-                                        : 'border-[1.5px] border-transparent bg-slate-50 hover:bg-slate-100',
+                                        : 'border-[1.5px] border-transparent bg-slate-50 hover:bg-slate-100 dark:bg-[#1e3a5f]/20 dark:hover:bg-[#1e3a5f]/40',
                                 )}
                                 style={{
                                     background: selected
@@ -372,7 +372,7 @@ export default function HrIssues({
                                             : '1.5px solid #cbd5e1',
                                         background: selected
                                             ? activeCat.color
-                                            : '#fff',
+                                            : 'transparent',
                                     }}
                                 >
                                     {selected && (
@@ -386,8 +386,8 @@ export default function HrIssues({
                                     className={cn(
                                         'text-sm',
                                         selected
-                                            ? 'font-semibold text-slate-800'
-                                            : 'text-slate-600',
+                                            ? 'font-semibold text-slate-800 dark:text-[#e2e8f0]'
+                                            : 'text-slate-600 dark:text-[#9AA3B2]',
                                     )}
                                 >
                                     {tx(issueKey)}
@@ -398,8 +398,8 @@ export default function HrIssues({
 
                     {/* Custom Input for 'other' */}
                     {activeCat.id === 'other' && (
-                        <div className="mt-4 border-t border-dashed border-slate-200 pt-4">
-                            <div className="mb-2 text-xs font-semibold tracking-wider text-slate-500 uppercase">
+                        <div className="mt-4 border-t border-dashed border-slate-200 pt-4 dark:border-[#2a3a5c]">
+                            <div className="mb-2 text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-[#9AA3B2]">
                                 {t('diagnosis_hr_issues.directInput')}
                             </div>
                             <textarea
@@ -409,19 +409,19 @@ export default function HrIssues({
                                     'diagnosis_hr_issues.customPlaceholder',
                                 )}
                                 rows={3}
-                                className="w-full resize-y rounded-lg border-[1.5px] border-slate-200 p-3 text-sm outline-none focus:border-slate-400"
+                                className="w-full resize-y rounded-lg border-[1.5px] border-slate-200 p-3 text-sm outline-none focus:border-slate-400 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
                             />
                         </div>
                     )}
                 </div>
 
                 {/* Footer Navigation */}
-                <div className="flex items-center justify-between border-t bg-slate-50 px-6 py-3.5">
+                <div className="flex items-center justify-between border-t bg-slate-50 px-6 py-3.5 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20">
                     <button
                         type="button"
                         onClick={goPrev}
                         disabled={activeCatIdx === 0}
-                        className="rounded-lg border px-4 py-2 text-[13px] font-semibold hover:bg-white disabled:cursor-default disabled:text-slate-300"
+                        className="rounded-lg border px-4 py-2 text-[13px] font-semibold hover:bg-white disabled:cursor-default disabled:text-slate-300 dark:border-[#2a3a5c] dark:text-[#CBD0DA] dark:hover:bg-[#1e3a5f]/30"
                     >
                         {t('diagnosis_hr_issues.prevCategory')}
                     </button>
@@ -467,8 +467,8 @@ export default function HrIssues({
 
             {/* Summary Bar */}
             {totalChecked > 0 && (
-                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-4">
-                    <span className="text-[13px] font-bold text-slate-800">
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-4 dark:border-[#2a3a5c] dark:bg-[#1a2744]">
+                    <span className="text-[13px] font-bold text-slate-800 dark:text-[#e2e8f0]">
                         {t('diagnosis_hr_issues.totalSelected')} {totalChecked}
                     </span>
                     <div className="flex flex-wrap gap-1.5">

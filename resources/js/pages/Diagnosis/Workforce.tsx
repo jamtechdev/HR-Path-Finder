@@ -128,7 +128,7 @@ export default function Workforce({
     };
 
     const cardContent = (
-        <div className="overflow-hidden rounded-[14px] border border-[#E2E6ED] bg-white shadow-[0_4px_20px_rgba(27,43,91,0.09)]">
+        <div className="overflow-hidden rounded-[14px] border border-[#E2E6ED] bg-white shadow-[0_4px_20px_rgba(27,43,91,0.09)] dark:border-[#2a3a5c] dark:bg-[#1a2744]">
             {/* Hero strip */}
             <div className="flex flex-wrap items-center gap-4 bg-gradient-to-br from-[#1B2B5B] to-[#243877] px-7 py-5">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#2EC4A9]">
@@ -161,17 +161,17 @@ export default function Workforce({
                     >
                         {({ borderCn, ErrorLine }) => (
                             <div>
-                                <h3 className="mb-3 text-[13px] font-bold text-[#3A4356]">
+                                <h3 className="mb-3 text-[13px] font-bold text-[#3A4356] dark:text-[#CBD0DA]">
                                     {tr('presentHeadcountTitle')}
                                 </h3>
                                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                                     <div
                                         className={cn(
-                                            'rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4',
+                                            'rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30',
                                             borderCn,
                                         )}
                                     >
-                                        <p className="mb-2 text-[12px] font-bold text-[#3A4356]">
+                                        <p className="mb-2 text-[12px] font-bold text-[#3A4356] dark:text-[#CBD0DA]">
                                             {tr('workforceFullTimeLabel')}
                                         </p>
                                         <div className="mb-2 flex items-center gap-2">
@@ -188,9 +188,9 @@ export default function Workforce({
                                                     )
                                                 }
                                                 disabled={readOnly}
-                                                className="h-10 w-full rounded-lg border border-[#E2E6ED] bg-white text-center text-lg font-bold text-[#1B2B5B]"
+                                                className="h-10 w-full rounded-lg border border-[#E2E6ED] bg-white text-center text-lg font-bold text-[#1B2B5B] dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
                                             />
-                                            <span className="shrink-0 text-[13px] font-bold text-[#3A4356]">
+                                            <span className="shrink-0 text-[13px] font-bold text-[#3A4356] dark:text-[#9AA3B2]">
                                                 {tr('persons')}
                                             </span>
                                         </div>
@@ -206,7 +206,7 @@ export default function Workforce({
                                                         )
                                                     }
                                                     disabled={readOnly}
-                                                    className="h-7 rounded border bg-white px-2 text-xs font-semibold hover:bg-gray-50"
+                                                    className="h-7 rounded border bg-white px-2 text-xs font-semibold hover:bg-gray-50 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#CBD0DA] dark:hover:bg-[#2a3a5c]"
                                                 >
                                                     - {d > 0 ? `+${d}` : d}
                                                 </button>
@@ -214,8 +214,8 @@ export default function Workforce({
                                         </div>
                                     </div>
 
-                                    <div className="rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4">
-                                        <p className="mb-2 text-[12px] font-bold text-[#3A4356]">
+                                    <div className="rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30">
+                                        <p className="mb-2 text-[12px] font-bold text-[#3A4356] dark:text-[#CBD0DA]">
                                             {tr('workforceContractLabel')}
                                         </p>
                                         <div className="mb-2 flex items-center gap-2">
@@ -232,9 +232,9 @@ export default function Workforce({
                                                     )
                                                 }
                                                 disabled={readOnly}
-                                                className="h-10 w-full rounded-lg border border-[#E2E6ED] bg-white text-center text-lg font-bold text-[#1B2B5B]"
+                                                className="h-10 w-full rounded-lg border border-[#E2E6ED] bg-white text-center text-lg font-bold text-[#1B2B5B] dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
                                             />
-                                            <span className="shrink-0 text-[13px] font-bold text-[#3A4356]">
+                                            <span className="shrink-0 text-[13px] font-bold text-[#3A4356] dark:text-[#9AA3B2]">
                                                 {tr('persons')}
                                             </span>
                                         </div>
@@ -250,7 +250,7 @@ export default function Workforce({
                                                         )
                                                     }
                                                     disabled={readOnly}
-                                                    className="h-7 rounded border bg-white px-2 text-xs font-semibold hover:bg-gray-50"
+                                                    className="h-7 rounded border bg-white px-2 text-xs font-semibold hover:bg-gray-50 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#CBD0DA] dark:hover:bg-[#2a3a5c]"
                                                 >
                                                     {d > 0 ? `+${d}` : d}
                                                 </button>
@@ -258,14 +258,14 @@ export default function Workforce({
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col items-center justify-center rounded-xl border-2 border-[#1B2B5B] bg-[#1B2B5B]/[0.04] p-4 text-center">
-                                        <p className="text-[10px] font-bold text-[#6B7585] uppercase">
+                                    <div className="flex flex-col items-center justify-center rounded-xl border-2 border-[#1B2B5B] bg-[#1B2B5B]/[0.04] p-4 text-center dark:border-[#2EC4A9]/40 dark:bg-[#2EC4A9]/5">
+                                        <p className="text-[10px] font-bold text-[#6B7585] uppercase dark:text-[#9AA3B2]">
                                             {tr('workforceTotalLabel')}
                                         </p>
-                                        <p className="text-[28px] font-extrabold text-[#1B2B5B]">
+                                        <p className="text-[28px] font-extrabold text-[#1B2B5B] dark:text-[#2EC4A9]">
                                             {total}
                                         </p>
-                                        <p className="text-[10px] font-semibold text-[#9AA3B2]">
+                                        <p className="text-[10px] font-semibold text-[#9AA3B2] dark:text-[#6B7585]">
                                             {tr('persons')}
                                         </p>
                                     </div>
@@ -280,12 +280,12 @@ export default function Workforce({
 
                     {/* Right: Gender Composition */}
                     <div>
-                        <h3 className="mb-3 text-[13px] font-bold text-[#3A4356]">
+                        <h3 className="mb-3 text-[13px] font-bold text-[#3A4356] dark:text-[#CBD0DA]">
                             {tr('genderCompositionTitle')}
                         </h3>
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4">
-                                <span className="text-[11px] font-bold text-[#1B2B5B]">
+                            <div className="rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30">
+                                <span className="text-[11px] font-bold text-[#1B2B5B] dark:text-[#CBD0DA]">
                                     MALE
                                 </span>
                                 <div className="mt-1 flex items-center gap-2">
@@ -299,14 +299,14 @@ export default function Workforce({
                                             )
                                         }
                                         disabled={readOnly}
-                                        className="h-8 w-full rounded-md border px-2 text-sm font-bold"
+                                        className="h-8 w-full rounded-md border px-2 text-sm font-bold dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
                                     />
                                     <span className="text-xs text-[#9AA3B2]">
                                         {tr('persons')}
                                     </span>
                                 </div>
                             </div>
-                            <div className="rounded-xl border-2 border-[#2EC4A9]/40 bg-[#E6F9F6]/50 p-4">
+                            <div className="rounded-xl border-2 border-[#2EC4A9]/40 bg-[#E6F9F6]/50 p-4 dark:bg-[#2EC4A9]/5">
                                 <span className="text-[11px] font-bold text-[#25A891]">
                                     FEMALE
                                 </span>
@@ -321,7 +321,7 @@ export default function Workforce({
                                             )
                                         }
                                         disabled={readOnly}
-                                        className="h-8 w-full rounded-md border px-2 text-sm font-bold"
+                                        className="h-8 w-full rounded-md border px-2 text-sm font-bold dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
                                     />
                                     <span className="text-xs text-[#9AA3B2]">
                                         {tr('persons')}
@@ -332,7 +332,7 @@ export default function Workforce({
 
                         {genderSum > 0 && (
                             <div className="mt-4">
-                                <div className="flex h-2.5 overflow-hidden rounded-full bg-[#E2E6ED]">
+                                <div className="flex h-2.5 overflow-hidden rounded-full bg-[#E2E6ED] dark:bg-[#2a3a5c]">
                                     <div
                                         className="h-full bg-[#1B2B5B] transition-all"
                                         style={{ width: `${malePct}%` }}
@@ -342,7 +342,7 @@ export default function Workforce({
                                         style={{ width: `${femalePct}%` }}
                                     />
                                 </div>
-                                <div className="mt-2 flex justify-between text-[11px] font-bold text-[#6B7585]">
+                                <div className="mt-2 flex justify-between text-[11px] font-bold text-[#6B7585] dark:text-[#9AA3B2]">
                                     <span>{malePct}% Male</span>
                                     <span>{femalePct}% Female</span>
                                 </div>
@@ -358,7 +358,7 @@ export default function Workforce({
                     </div>
                 </div>
 
-                <hr className="border-[#E2E6ED]" />
+                <hr className="border-[#E2E6ED] dark:border-[#2a3a5c]" />
 
                 {/* Tenure and Age */}
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -378,7 +378,7 @@ export default function Workforce({
                         },
                     ].map((f) => (
                         <div key={f.key}>
-                            <label className="mb-2 flex items-center gap-1.5 text-[12px] font-bold text-[#3A4356]">
+                            <label className="mb-2 flex items-center gap-1.5 text-[12px] font-bold text-[#3A4356] dark:text-[#CBD0DA]">
                                 <Info className="h-3.5 w-3.5 text-[#9AA3B2]" />
                                 {f.label}
                             </label>
@@ -398,7 +398,7 @@ export default function Workforce({
                                         );
                                     }}
                                     disabled={readOnly}
-                                    className="h-10 flex-1 rounded-lg border px-3 text-sm font-bold text-[#1B2B5B]"
+                                    className="h-10 flex-1 rounded-lg border px-3 text-sm font-bold text-[#1B2B5B] dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
                                 />
                                 <span className="text-[12px] font-medium text-[#9AA3B2]">
                                     {tr('unitYrShort')}
@@ -414,14 +414,14 @@ export default function Workforce({
                         <span className="text-[11px] font-bold tracking-wider text-[#9AA3B2] uppercase">
                             {tr('forecastSectionLabel')}
                         </span>
-                        <span className="h-px flex-1 bg-[#E2E6ED]" />
+                        <span className="h-px flex-1 bg-[#E2E6ED] dark:bg-[#2a3a5c]" />
                     </div>
 
-                    <div className="overflow-hidden rounded-xl border border-[#E2E6ED] bg-[#F8F9FB]">
-                        <div className="flex items-center gap-3 border-b bg-white px-5 py-4">
+                    <div className="overflow-hidden rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20">
+                        <div className="flex items-center gap-3 border-b bg-white px-5 py-4 dark:border-[#2a3a5c] dark:bg-[#1a2744]">
                             <TrendingUp className="h-5 w-5 text-[#2EC4A9]" />
                             <div>
-                                <h4 className="text-sm font-bold text-[#1B2B5B]">
+                                <h4 className="text-sm font-bold text-[#1B2B5B] dark:text-[#e2e8f0]">
                                     {tr('forecastCardTitle')} *
                                 </h4>
                                 <p className="text-[11px] text-[#9AA3B2]">
@@ -439,16 +439,16 @@ export default function Workforce({
                             ).map((key, i) => (
                                 <div
                                     key={key}
-                                    className="rounded-lg border bg-white p-4"
+                                    className="rounded-lg border bg-white p-4 dark:border-[#2a3a5c] dark:bg-[#1a2744]"
                                 >
-                                    <p className="mb-2 text-[12px] font-semibold">
+                                    <p className="mb-2 text-[12px] font-semibold dark:text-[#CBD0DA]">
                                         {tr(`after${i + 1}y`)}
                                     </p>
                                     <div className="flex items-center gap-2">
                                         <button
                                             type="button"
                                             onClick={() => adjustValue(key, -1)}
-                                            className="rounded border p-1"
+                                            className="rounded border p-1 dark:border-[#2a3a5c] dark:text-[#CBD0DA]"
                                         >
                                             -
                                         </button>
@@ -462,12 +462,12 @@ export default function Workforce({
                                                         0,
                                                 )
                                             }
-                                            className="flex-1 border-none bg-transparent text-center text-sm font-bold w-full"
+                                            className="flex-1 border-none bg-transparent text-center text-sm font-bold w-full dark:text-[#e2e8f0]"
                                         />
                                         <button
                                             type="button"
                                             onClick={() => adjustValue(key, 1)}
-                                            className="rounded border p-1"
+                                            className="rounded border p-1 dark:border-[#2a3a5c] dark:text-[#CBD0DA]"
                                         >
                                             +
                                         </button>

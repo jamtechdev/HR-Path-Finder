@@ -284,14 +284,14 @@ export default function OrganizationalCharts({
                                 }
                             }}
                             className={cn(
-                                'rounded-[14px] overflow-hidden transition-all cursor-pointer border-[1.5px] bg-white',
+                                'rounded-[14px] overflow-hidden transition-all cursor-pointer border-[1.5px] bg-white dark:bg-[#1a2744]',
                                 isUploaded && 'border-[#4ecdc4]',
                                 isActive && !isUploaded && 'border-[#1a2744] shadow-md',
                                 !isUploaded && !isActive && 'border-dashed border-muted-foreground/40'
                             )}
                         >
                             <div className={cn(
-                                'px-4 py-4 pb-3 border-b flex items-center justify-between',
+                                'px-4 py-4 pb-3 border-b flex items-center justify-between dark:border-[#2a3a5c]',
                                 isActive && !isUploaded && 'bg-gradient-to-br from-[#1a2744] to-[#223058] text-white'
                             )}>
                                 <div>
@@ -304,7 +304,7 @@ export default function OrganizationalCharts({
                                     'text-[10px] font-semibold px-2 py-1 rounded-full',
                                     isUploaded && 'bg-[rgba(78,205,196,0.15)] text-[#2ea89e]',
                                     isActive && !isUploaded && 'bg-white/15 text-white',
-                                    !isUploaded && !isActive && 'bg-amber-100 text-amber-700'
+                                    !isUploaded && !isActive && 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                                 )}>
                                     {isUploaded 
                                         ? t('diagnosis_org_chart.uploadComplete')
@@ -330,7 +330,7 @@ export default function OrganizationalCharts({
                                             🗂
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="text-[12.5px] font-semibold truncate">{displayName || 'File'}</div>
+                                            <div className="text-[12.5px] font-semibold truncate dark:text-[#e2e8f0]">{displayName || 'File'}</div>
                                             <div className="text-[11px] text-muted-foreground">{displayMeta}</div>
                                         </div>
                                     </div>
@@ -381,7 +381,7 @@ export default function OrganizationalCharts({
                                     </div>
                                     <div className="flex gap-1 mt-1">
                                         {['PNG', 'JPG', 'PDF', '10MB'].map((item) => (
-                                            <span key={item} className="text-[9.5px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                            <span key={item} className="text-[9.5px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground dark:bg-[#2a3a5c]">
                                                 {item}
                                             </span>
                                         ))}

@@ -74,29 +74,17 @@ export default function AppHeader() {
         });
     };
 
-    const isJobAnalysis = path.startsWith('/hr-manager/job-analysis');
-    const headerDark = isJobAnalysis;
-
-    return (
+return (
         <header className={cn(
-            'sticky top-0 z-50 w-full flex-shrink-0 h-[var(--hr-topbar-h)] backdrop-blur supports-[backdrop-filter]:backdrop-blur',
-            headerDark
-                ? 'bg-[#0f2a4a] border-b border-white/10'
-                : 'border-b border-[var(--hr-gray-200)] bg-white/95'
+            'sticky top-0 z-50 w-full flex-shrink-0 h-[var(--hr-topbar-h)] backdrop-blur supports-[backdrop-filter]:backdrop-blur border-b bg-card/95 border-border dark:bg-card/95'
         )}>
             <div className="flex h-full items-center justify-between px-5 md:px-7 w-full">
                 <div className="flex items-center gap-4">
-                    <SidebarTrigger className={cn(
-                        'flex size-9 rounded-lg -ml-1',
-                        headerDark && 'text-white hover:bg-white/10'
-                    )} />
-                    <div className={cn(
-                        'flex items-center gap-2 text-[12px]',
-                        headerDark ? 'text-white/80' : 'text-[var(--hr-gray-400)]'
-                    )}>
+<SidebarTrigger className="flex size-9 rounded-lg -ml-1 hover:bg-accent/50" />
+<div className="flex items-center gap-2 text-[12px] text-muted-foreground">
                         <span>{appName}</span>
                         <span>&nbsp;/&nbsp;</span>
-                        <strong className={headerDark ? 'text-white font-semibold' : 'text-[var(--hr-gray-800)] font-semibold'}>{breadcrumbLabel}</strong>
+                        <strong className="font-semibold text-foreground">{breadcrumbLabel}</strong>
                     </div>
                 </div>
 
@@ -104,12 +92,9 @@ export default function AppHeader() {
                     <LanguageToggle iconOnly />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className={cn(
-                                'relative w-8 h-8 rounded-lg',
-                                headerDark ? 'bg-white/10 hover:bg-white/20' : 'bg-[var(--hr-gray-100)] hover:bg-[var(--hr-gray-200)]'
-                            )}>
-                                <Bell className={cn('h-4 w-4', headerDark ? 'text-white' : 'text-[var(--hr-gray-800)]')} />
-                                {unreadCount > 0 && <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-[var(--hr-mint)]" />}
+                                <Button variant="ghost" size="icon" className="relative w-8 h-8 rounded-lg bg-muted hover:bg-muted/80">
+                                <Bell className="h-4 w-4" />
+                                {unreadCount > 0 && <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-primary" />}
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-96 max-h-[70vh] overflow-auto">
@@ -155,22 +140,17 @@ export default function AppHeader() {
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className={cn(
-                                'flex items-center gap-2 h-auto py-1.5 pr-2.5 pl-1.5 rounded-xl border',
-                                headerDark
-                                    ? 'border-white/20 bg-white/5 hover:bg-white/10'
-                                    : 'border-[var(--hr-gray-200)] bg-[var(--hr-gray-50)] hover:bg-[var(--hr-gray-100)]'
-                            )}>
-                                <div className="w-[30px] h-[30px] rounded-lg bg-[var(--hr-navy)] flex items-center justify-center flex-shrink-0 shadow-sm">
-                                    <span className="text-[11px] font-bold text-[var(--hr-mint)]">
+                            <Button variant="ghost" className="flex items-center gap-2 h-auto py-1.5 pr-2.5 pl-1.5 rounded-xl border border-border bg-muted hover:bg-muted/80">
+                                <div className="w-[30px] h-[30px] rounded-lg bg-primary flex items-center justify-center flex-shrink-0 shadow-sm">
+                                    <span className="text-[11px] font-bold text-primary-foreground">
                                         {user?.name ? getInitials(user.name) : t('admin_ui.header.user.initial')}
                                     </span>
                                 </div>
                                 <div className="hidden md:block text-left">
-                                    <p className={cn('text-[12px] font-semibold leading-tight', headerDark ? 'text-white' : 'text-[var(--hr-gray-800)]')}>{user?.name || t('admin_ui.header.user.fallback_name')}</p>
-                                    <p className={cn('text-[10px]', headerDark ? 'text-white/60' : 'text-[var(--hr-gray-400)]')}>{user?.email || ''}</p>
+                                    <p className="text-[12px] font-semibold leading-tight text-foreground">{user?.name || t('admin_ui.header.user.fallback_name')}</p>
+                                    <p className="text-[10px] text-muted-foreground">{user?.email || ''}</p>
                                 </div>
-                                <ChevronDown className={cn('h-4 w-4 hidden md:block', headerDark ? 'text-white/60' : 'text-[var(--hr-gray-400)]')} />
+                                <ChevronDown className="h-4 w-4 hidden md:block text-muted-foreground" />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent 

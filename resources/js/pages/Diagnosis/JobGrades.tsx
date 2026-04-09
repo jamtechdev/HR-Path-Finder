@@ -411,10 +411,10 @@ export default function JobGrades({
                 <span className="text-[11.5px] font-bold tracking-[0.7px] text-[#9AA3B2] uppercase">
                     {t('diagnosis_job_grades.sectionTitle')}
                 </span>
-                <span className="h-px flex-1 bg-[#E2E6ED]" />
+                <span className="h-px flex-1 bg-[#E2E6ED] dark:bg-[#2a3a5c]" />
             </div>
 
-            <div className="overflow-hidden rounded-[14px] border border-[#E2E6ED] bg-white shadow-[0_4px_20px_rgba(27,43,91,0.09)]">
+            <div className="overflow-hidden rounded-[14px] border border-[#E2E6ED] bg-white shadow-[0_4px_20px_rgba(27,43,91,0.09)] dark:border-[#2a3a5c] dark:bg-[#1a2744]">
                 {/* Hero Strip */}
                 <div className="flex flex-col gap-3 bg-gradient-to-br from-[#1B2B5B] to-[#243877] px-7 py-5 sm:flex-row sm:items-center">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#2EC4A9] sm:h-11 sm:w-11">
@@ -469,8 +469,8 @@ export default function JobGrades({
                 </div>
 
                 {/* Toolbar */}
-                <div className="flex flex-col flex-wrap gap-2.5 border-b border-[#F0F2F5] px-7 py-3.5 sm:flex-row sm:items-center">
-                    <div className="flex items-center gap-[7px] rounded-lg bg-[#F0F2F5] px-3 py-1.5 text-[12px] text-[#6B7585]">
+                <div className="flex flex-col flex-wrap gap-2.5 border-b border-[#F0F2F5] px-7 py-3.5 sm:flex-row sm:items-center dark:border-[#2a3a5c]">
+                    <div className="flex items-center gap-[7px] rounded-lg bg-[#F0F2F5] px-3 py-1.5 text-[12px] text-[#6B7585] dark:bg-[#1e3a5f]/30 dark:text-[#9AA3B2]">
                         <svg
                             className="h-[13px] w-[13px] shrink-0 text-[#9AA3B2]"
                             viewBox="0 0 24 24"
@@ -492,7 +492,7 @@ export default function JobGrades({
                                     parseInt(e.target.value, 10) || 0,
                                 );
                             }}
-                            className="h-[26px] w-16 rounded-[5px] border-[1.5px] border-[#E2E6ED] px-2 text-center text-[13px] font-bold text-[#1B2B5B] outline-none focus:border-[#2EC4A9]"
+                            className="h-[26px] w-16 rounded-[5px] border-[1.5px] border-[#E2E6ED] px-2 text-center text-[13px] font-bold text-[#1B2B5B] outline-none focus:border-[#2EC4A9] dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
                         />
                         <span>{t('diagnosis_job_grades.unit')}</span>
                     </div>
@@ -509,7 +509,7 @@ export default function JobGrades({
                             workforceTotal <= 0 ||
                             grades.length === 0
                         }
-                        className="rounded-lg border border-[#E2E6ED] bg-white px-[14px] py-[9px] text-[13px] font-bold text-[#1B2B5B] hover:bg-[#F8F9FB] disabled:pointer-events-none disabled:opacity-50"
+                        className="rounded-lg border border-[#E2E6ED] bg-white px-[14px] py-[9px] text-[13px] font-bold text-[#1B2B5B] hover:bg-[#F8F9FB] disabled:pointer-events-none disabled:opacity-50 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30 dark:text-[#CBD0DA] dark:hover:bg-[#2a3a5c]"
                     >
                         {t('diagnosis_job_grades.distributeEvenly')}
                     </button>
@@ -535,7 +535,7 @@ export default function JobGrades({
                  <div className='overflow-x-auto'>       
                 {/* Table Header */}
                 <div
-                    className="grid items-center gap-x-3 border-b border-[#E2E6ED] bg-[#F8F9FB] px-7 py-[9px] text-[11px] font-bold tracking-[0.4px] text-[#9AA3B2] uppercase"
+                    className="grid items-center gap-x-3 border-b border-[#E2E6ED] bg-[#F8F9FB] px-7 py-[9px] text-[11px] font-bold tracking-[0.4px] text-[#9AA3B2] uppercase dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20"
                     style={{ gridTemplateColumns: GRADE_GRID }}
                 >
                     <div />
@@ -563,7 +563,7 @@ export default function JobGrades({
                 </div>
 
                 {/* Grade Rows */}
-                <div className="divide-y divide-[#F0F2F5]">
+                <div className="divide-y divide-[#F0F2F5] dark:divide-[#2a3a5c]">
                     {grades.map((g, index) => (
                         <div
                             key={g.id}
@@ -571,7 +571,7 @@ export default function JobGrades({
                             onDragLeave={() => setDropTarget(null)}
                             onDrop={(e) => handleDrop(e, g.id)}
                             className={cn(
-                                'grid items-start gap-x-3 border-b border-transparent px-7 py-3.5 transition-colors last:border-b-0 hover:bg-[#F8F9FB]',
+                                'grid items-start gap-x-3 border-b border-transparent px-7 py-3.5 transition-colors last:border-b-0 hover:bg-[#F8F9FB] dark:hover:bg-[#1e3a5f]/20',
                                 draggingId === g.id &&
                                     'bg-[#F0F2F5] opacity-35',
                                 dropTarget?.id === g.id &&
@@ -617,7 +617,7 @@ export default function JobGrades({
                                         'diagnosis_job_grades.gradeNamePlaceholder',
                                     )}
                                     disabled={isReadOnly}
-                                    className="h-[38px] w-full rounded-lg border-[1.5px] border-[#E2E6ED] px-3 text-[15px] font-bold text-[#1B2B5B] outline-none placeholder:text-[#CBD0DA] focus:border-[#2EC4A9] focus:ring-[3px] focus:ring-[rgba(46,196,169,0.12)]"
+                                    className="h-[38px] w-full rounded-lg border-[1.5px] border-[#E2E6ED] px-3 text-[15px] font-bold text-[#1B2B5B] outline-none placeholder:text-[#CBD0DA] focus:border-[#2EC4A9] focus:ring-[3px] focus:ring-[rgba(46,196,169,0.12)] dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
                                 />
                             </div>
 
@@ -640,7 +640,7 @@ export default function JobGrades({
                                             })
                                         }
                                         disabled={isReadOnly || g.noFixed}
-                                        className="h-[34px] w-[52px] rounded-lg border-[1.5px] border-[#E2E6ED] px-2 text-center text-[14px] font-bold text-[#1B2B5B] outline-none focus:border-[#2EC4A9] disabled:bg-[#F0F2F5]"
+                                        className="h-[34px] w-[52px] rounded-lg border-[1.5px] border-[#E2E6ED] px-2 text-center text-[14px] font-bold text-[#1B2B5B] outline-none focus:border-[#2EC4A9] disabled:bg-[#F0F2F5] dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0] dark:disabled:bg-[#2a3a5c]"
                                     />
                                     <span className="text-[12px] font-medium text-[#9AA3B2]">
                                         {t('diagnosis_job_grades.years')}
@@ -679,7 +679,7 @@ export default function JobGrades({
                             </div>
 
                             {/* Headcount */}
-                            <div className="flex w-full items-center overflow-hidden rounded-lg border-[1.5px] border-[#E2E6ED] bg-white">
+                            <div className="flex w-full items-center overflow-hidden rounded-lg border-[1.5px] border-[#E2E6ED] bg-white dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30">
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -688,7 +688,7 @@ export default function JobGrades({
                                         })
                                     }
                                     disabled={isReadOnly}
-                                    className="flex h-[34px] w-[28px] items-center justify-center bg-[#F8F9FB] text-[15px] font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891]"
+                                    className="flex h-[34px] w-[28px] items-center justify-center bg-[#F8F9FB] text-[15px] font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891] dark:bg-[#1a2744] dark:text-[#9AA3B2]"
                                 >
                                     −
                                 </button>
@@ -711,7 +711,7 @@ export default function JobGrades({
                                         });
                                     }}
                                     disabled={isReadOnly}
-                                    className="flex-1 border-0 bg-transparent text-center text-[14px] font-extrabold text-[#1B2B5B] w-full"
+                                    className="flex-1 border-0 bg-transparent text-center text-[14px] font-extrabold text-[#1B2B5B] w-full dark:text-[#e2e8f0]"
                                 />
                                 <button
                                     type="button"
@@ -731,11 +731,11 @@ export default function JobGrades({
                                         });
                                     }}
                                     disabled={isReadOnly || workforceTotal <= 0}
-                                    className="flex h-[34px] w-[28px] items-center justify-center bg-[#F8F9FB] text-[15px] font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891]"
+                                    className="flex h-[34px] w-[28px] items-center justify-center bg-[#F8F9FB] text-[15px] font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891] dark:bg-[#1a2744] dark:text-[#9AA3B2]"
                                 >
                                     +
                                 </button>
-                                <span className="flex h-[34px] w-[28px] items-center justify-center border-l border-[#E2E6ED] bg-[#F8F9FB] text-[10px] font-semibold text-[#9AA3B2]">
+                                <span className="flex h-[34px] w-[28px] items-center justify-center border-l border-[#E2E6ED] bg-[#F8F9FB] text-[10px] font-semibold text-[#9AA3B2] dark:border-[#2a3a5c] dark:bg-[#1a2744]">
                                     {t('diagnosis_job_grades.unit')}
                                 </span>
                             </div>
@@ -754,7 +754,7 @@ export default function JobGrades({
                                     )}
                                     disabled={isReadOnly}
                                     rows={3}
-                                    className="min-h-[72px] w-full resize-y rounded-lg border-[1.5px] border-[#E2E6ED] px-3 py-2.5 text-[12.5px] leading-relaxed text-[#3A4356] outline-none focus:border-[#2EC4A9]"
+                                    className="min-h-[72px] w-full resize-y rounded-lg border-[1.5px] border-[#E2E6ED] px-3 py-2.5 text-[12.5px] leading-relaxed text-[#3A4356] outline-none focus:border-[#2EC4A9] dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#CBD0DA]"
                                 />
                             </div>
 
@@ -764,7 +764,7 @@ export default function JobGrades({
                                     type="button"
                                     onClick={() => removeGrade(g.id)}
                                     disabled={isReadOnly}
-                                    className="h-7 w-7 rounded-full border border-[#E2E6ED] bg-white text-[#9AA3B2] hover:border-[#E05252] hover:bg-[#E05252] hover:text-white"
+                                    className="h-7 w-7 rounded-full border border-[#E2E6ED] bg-white text-[#9AA3B2] hover:border-[#E05252] hover:bg-[#E05252] hover:text-white dark:border-[#2a3a5c] dark:bg-[#1e3a5f] dark:text-[#9AA3B2]"
                                 >
                                     ×
                                 </button>
@@ -777,12 +777,12 @@ export default function JobGrades({
 
 
                 {/* Footer */}
-                <div className="space-y-2.5 border-t border-[#F0F2F5] px-7 pt-4 pb-5">
+                <div className="space-y-2.5 border-t border-[#F0F2F5] px-7 pt-4 pb-5 dark:border-[#2a3a5c]">
                     <div className="flex flex-wrap items-center gap-4">
-                        <span className="shrink-0 text-[13px] font-bold text-[#3A4356]">
+                        <span className="shrink-0 text-[13px] font-bold text-[#3A4356] dark:text-[#CBD0DA]">
                             {t('diagnosis_job_grades.totalHeadcountLabel')}
                         </span>
-                        <div className="h-2 min-w-[120px] flex-1 overflow-hidden rounded-[20px] bg-[#F0F2F5]">
+                        <div className="h-2 min-w-[120px] flex-1 overflow-hidden rounded-[20px] bg-[#F0F2F5] dark:bg-[#2a3a5c]">
                             <div
                                 className="h-full rounded-[20px] transition-all duration-300"
                                 style={{
@@ -797,7 +797,7 @@ export default function JobGrades({
                                 }}
                             />
                         </div>
-                        <div className="flex items-center gap-1.5 text-[13px] font-bold text-[#1B2B5B]">
+                        <div className="flex items-center gap-1.5 text-[13px] font-bold text-[#1B2B5B] dark:text-[#e2e8f0]">
                             <span className="text-[20px] font-extrabold">
                                 {totalHc}
                             </span>

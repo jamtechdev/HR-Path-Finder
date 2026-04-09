@@ -200,7 +200,7 @@ export default function PathFinderDashboard({
     return (
       <AppLayout stepStatuses={{}} projectId={undefined} ceoPhilosophyStatus="not_started">
         <Head title={t('pathfinder_dashboard.page_title')} />
-            <div className="min-h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans">
+        <div className="min-h-full bg-background text-foreground font-sans">
           <div className="py-[30px] px-4 md:px-9">
             <div className="mb-6">
               <h1 className="text-[22px] font-bold text-slate-800 dark:text-slate-100 tracking-[-0.4px] leading-tight">
@@ -319,10 +319,10 @@ export default function PathFinderDashboard({
                   <span className="text-[11.5px] font-semibold text-[#2ea89e]">{companyName}</span>
                 </div>
               )}
-              <h1 className="text-[22px] font-bold text-slate-800 dark:text-slate-100 tracking-[-0.4px] leading-tight">
+              <h1 className="text-[22px] font-bold text-foreground tracking-[-0.4px] leading-tight">
                 {t('dashboard.pathfinder.welcome_back', { name: user.name })}
               </h1>
-              <p className="text-[13px] text-slate-400 dark:text-slate-500 mt-1">
+              <p className="text-[13px] text-muted-foreground mt-1">
                 {t('dashboard.pathfinder.subtitle', { step: progress.currentStepNumber, title: t(`steps.${currentStepKey}`) })}
               </p>
             </div>
@@ -334,7 +334,7 @@ export default function PathFinderDashboard({
                                 <CheckCircle2 className="h-5 w-5" />
                             </div>
                             <div>
-                                <p className="text-[14px] font-bold text-[var(--hr-gray-800)]">
+                                <p className="text-[14px] font-bold text-[var(--hr-gray-500)]">
                                     {phaseStatusText.title}
                                 </p>
                                 <p className="mt-0.5 text-[12px] text-[var(--hr-gray-500)]">
@@ -363,11 +363,11 @@ export default function PathFinderDashboard({
                 </div>
               </div>
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-[18px] pr-5 relative overflow-hidden hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-shadow">
-                <div className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.6px] mb-2.5">{t('dashboard.pathfinder.ceo_survey')}</div>
-                <div className={`text-[19px] font-bold mt-1 ${ceoPhilosophyStatus === 'completed' ? 'text-slate-800 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'}`}>
+                <div className="text-[10.5px] font-semibold text-muted-foreground uppercase tracking-[0.6px] mb-2.5">{t('dashboard.pathfinder.ceo_survey')}</div>
+                <div className={`text-[19px] font-bold mt-1 ${ceoPhilosophyStatus === 'completed' ? 'text-foreground' : 'text-muted-foreground'}`}>
                   {ceoPhilosophyStatus === 'completed' ? t('dashboard.pathfinder.complete') : ceoPhilosophyStatus === 'in_progress' ? t('dashboard.pathfinder.in_progress') : t('dashboard.pathfinder.not_started')}
                 </div>
-                <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5">
+                <div className="text-[11px] text-muted-foreground mt-1.5">
                   {ceoPhilosophyStatus === 'completed' ? '' : t('dashboard.pathfinder.ceo_survey_start_hint')}
                 </div>
                 <div className="absolute bottom-3.5 right-4 opacity-[0.08]">
@@ -451,8 +451,8 @@ export default function PathFinderDashboard({
 
             {/* DESIGN STEPS */}
             <div className="flex items-baseline justify-between mb-3.5">
-              <h3 className="text-[15px] font-bold text-slate-800 dark:text-slate-100 tracking-[-0.2px]">{t('dashboard.pathfinder.design_steps')}</h3>
-              <span className="text-[11.5px] text-slate-400 dark:text-slate-500">{t('dashboard.pathfinder.completed_count', { done: progress.completed, total: progress.total })}</span>
+              <h3 className="text-[15px] font-bold text-foreground tracking-[-0.2px]">{t('dashboard.pathfinder.design_steps')}</h3>
+              <span className="text-[11.5px] text-muted-foreground">{t('dashboard.pathfinder.completed_count', { done: progress.completed, total: progress.total })}</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               {stepCards.map((card) =>

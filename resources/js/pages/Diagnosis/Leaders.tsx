@@ -437,7 +437,7 @@ export default function Leaders({
     const isReadOnly = readOnly || isReadOnlyStatus;
 
     const innerContent = (
-        <div className="mb-4 overflow-hidden rounded-[14px] border border-[#E2E6ED] bg-white shadow-[0_4px_20px_rgba(27,43,91,0.09)] sm:mb-5">
+        <div className="mb-4 overflow-hidden rounded-[14px] border border-[#E2E6ED] bg-white shadow-[0_4px_20px_rgba(27,43,91,0.09)] sm:mb-5 dark:border-[#2a3a5c] dark:bg-[#1a2744]">
             {/* Hero Strip */}
             <div className="flex flex-col items-start gap-3 bg-gradient-to-br from-[#1B2B5B] to-[#243877] p-3 sm:p-4 sm:px-6 lg:flex-row lg:items-center lg:px-7">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#2EC4A9] sm:h-11 sm:w-11">
@@ -490,7 +490,7 @@ export default function Leaders({
             </div>
 
             {/* Workforce Size */}
-            <div className="mx-4 mt-3 flex flex-col gap-2.5 rounded-lg bg-[#F0F2F5] px-3 py-2.5 sm:mx-7 sm:mt-4 sm:flex-row sm:items-center">
+            <div className="mx-4 mt-3 flex flex-col gap-2.5 rounded-lg bg-[#F0F2F5] px-3 py-2.5 sm:mx-7 sm:mt-4 sm:flex-row sm:items-center dark:bg-[#1e3a5f]/30">
                 <svg
                     className="h-3.5 w-3.5 shrink-0 text-[#9AA3B2]"
                     viewBox="0 0 24 24"
@@ -503,7 +503,7 @@ export default function Leaders({
                     <path d="M16 3.13a4 4 0 010 7.75" />
                     <path d="M21 21v-2a4 4 0 00-3-3.85" />
                 </svg>
-                <span className="flex-shrink-0 text-sm font-semibold text-[#6B7585] sm:text-[12px]">
+                <span className="flex-shrink-0 text-sm font-semibold text-[#6B7585] sm:text-[12px] dark:text-[#9AA3B2]">
                     {t('diagnosis_leaders.workforceLabel')}
                 </span>
                 <div className="flex flex-1 items-center gap-1.5 sm:flex-none sm:gap-2.5">
@@ -514,7 +514,7 @@ export default function Leaders({
                         onChange={(e) =>
                             setTotalWorkforce(parseInt(e.target.value, 10) || 0)
                         }
-                        className="h-9 min-h-[40px] flex-1 rounded-md border-[1.5px] border-[#E2E6ED] px-2.5 text-center text-sm font-bold text-[#1B2B5B] outline-none focus:border-[#2EC4A9] sm:h-7 sm:w-[72px] sm:text-[13px]"
+                        className="h-9 min-h-[40px] flex-1 rounded-md border-[1.5px] border-[#E2E6ED] px-2.5 text-center text-sm font-bold text-[#1B2B5B] outline-none focus:border-[#2EC4A9] sm:h-7 sm:w-[72px] sm:text-[13px] dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
                     />
                     <span className="flex-shrink-0 text-sm whitespace-nowrap text-[#9AA3B2] sm:text-[12px]">
                         {t('diagnosis_leaders.unit')}
@@ -526,7 +526,7 @@ export default function Leaders({
             </div>
 
             {/* Note Banner */}
-            <div className="mx-4 mt-4 flex flex-col gap-2 rounded-lg border border-[#B2EDE5] bg-[#E6F9F6] px-3 py-2.5 text-sm leading-relaxed text-[#3A4356] sm:mx-7 sm:mt-5 sm:flex-row sm:items-start sm:px-4 sm:py-3 sm:text-[12.5px]">
+            <div className="mx-4 mt-4 flex flex-col gap-2 rounded-lg border border-[#B2EDE5] bg-[#E6F9F6] px-3 py-2.5 text-sm leading-relaxed text-[#3A4356] sm:mx-7 sm:mt-5 sm:flex-row sm:items-start sm:px-4 sm:py-3 sm:text-[12.5px] dark:bg-[#2EC4A9]/10 dark:text-[#CBD0DA]">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#2EC4A9] sm:mt-0" />
                 <span>
                     <strong className="text-[#1B2B5B]">Note:</strong>{' '}
@@ -570,10 +570,10 @@ export default function Leaders({
                             onDragLeave={handleDragLeave}
                             onDrop={(e) => handleDrop(e, row.id)}
                             className={cn(
-                                'leader-row flex cursor-pointer touch-manipulation flex-col gap-2 rounded-lg border-2 bg-white px-3 py-3 transition-all select-none sm:flex-row sm:items-center sm:gap-3.5 sm:px-4 sm:py-3.5',
+                                'leader-row flex cursor-pointer touch-manipulation flex-col gap-2 rounded-lg border-2 bg-white px-3 py-3 transition-all select-none sm:flex-row sm:items-center sm:gap-3.5 sm:px-4 sm:py-3.5 dark:bg-[#1e3a5f]/30',
                                 active
-                                    ? 'border-[#2EC4A9] bg-[#E6F9F6] shadow-[0_0_0_3px_rgba(46,196,169,0.1)]'
-                                    : 'border-[#E2E6ED] hover:border-[#CBD0DA] hover:shadow-[0_1px_4px_rgba(27,43,91,0.07)]',
+                                    ? 'border-[#2EC4A9] bg-[#E6F9F6] shadow-[0_0_0_3px_rgba(46,196,169,0.1)] dark:bg-[#2EC4A9]/10'
+                                    : 'border-[#E2E6ED] hover:border-[#CBD0DA] hover:shadow-[0_1px_4px_rgba(27,43,91,0.07)] dark:border-[#2a3a5c] dark:hover:border-[#4a5a7c]',
                                 draggingKey === row.id &&
                                     'bg-[#F0F2F5] opacity-40',
                                 dropTarget?.key === row.id &&
@@ -603,7 +603,7 @@ export default function Leaders({
                                     'flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-all',
                                     active
                                         ? 'border-[#2EC4A9] bg-[#2EC4A9]'
-                                        : 'border-[#CBD0DA] bg-white',
+                                        : 'border-[#CBD0DA] bg-white dark:border-[#4a5a7c] dark:bg-[#1e3a5f]',
                                 )}
                             >
                                 {active && (
@@ -628,7 +628,7 @@ export default function Leaders({
 
                             {/* Info */}
                             <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-2 text-[14px] font-bold text-[#1B2B5B]">
+                                <div className="flex items-center gap-2 text-[14px] font-bold text-[#1B2B5B] dark:text-[#e2e8f0]">
                                     {row.label}
                                     {row.korean && (
                                         <span
@@ -651,10 +651,10 @@ export default function Leaders({
                             {/* Count Controls */}
                             <div
                                 className={cn(
-                                    'flex shrink-0 items-center overflow-hidden rounded-lg border bg-white transition-all',
+                                    'flex shrink-0 items-center overflow-hidden rounded-lg border bg-white transition-all dark:bg-[#1e3a5f]/30',
                                     active
                                         ? 'border-[#B2EDE5]'
-                                        : 'border-[#E2E6ED] opacity-30',
+                                        : 'border-[#E2E6ED] opacity-30 dark:border-[#2a3a5c]',
                                 )}
                                 onClick={(e) => e.stopPropagation()}
                             >
@@ -664,7 +664,7 @@ export default function Leaders({
                                         e.stopPropagation();
                                         adj(row.id, -1);
                                     }}
-                                    className="flex h-8 w-8 items-center justify-center bg-[#F8F9FB] font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891]"
+                                    className="flex h-8 w-8 items-center justify-center bg-[#F8F9FB] font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891] dark:bg-[#1a2744] dark:text-[#9AA3B2]"
                                 >
                                     −
                                 </button>
@@ -684,7 +684,7 @@ export default function Leaders({
                                             parseInt(e.target.value, 10) || 1,
                                         )
                                     }
-                                    className="w-11 [appearance:textfield] border-0 bg-transparent text-center text-[15px] font-extrabold text-[#1B2B5B] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                    className="w-11 [appearance:textfield] border-0 bg-transparent text-center text-[15px] font-extrabold text-[#1B2B5B] dark:text-[#e2e8f0] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                 />
                                 <button
                                     type="button"
@@ -692,11 +692,11 @@ export default function Leaders({
                                         e.stopPropagation();
                                         adj(row.id, 1);
                                     }}
-                                    className="flex h-8 w-8 items-center justify-center bg-[#F8F9FB] font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891]"
+                                    className="flex h-8 w-8 items-center justify-center bg-[#F8F9FB] font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891] dark:bg-[#1a2744] dark:text-[#9AA3B2]"
                                 >
                                     +
                                 </button>
-                                <span className="flex h-8 items-center border-l border-[#E2E6ED] bg-[#F8F9FB] px-2 text-[11px] font-semibold text-[#9AA3B2]">
+                                <span className="flex h-8 items-center border-l border-[#E2E6ED] bg-[#F8F9FB] px-2 text-[11px] font-semibold text-[#9AA3B2] dark:border-[#2a3a5c] dark:bg-[#1a2744]">
                                     {t('diagnosis_leaders.unit')}
                                 </span>
                             </div>
@@ -708,7 +708,7 @@ export default function Leaders({
                                         e.stopPropagation();
                                         removeCustomRow(row.id);
                                     }}
-                                    className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border border-[#E2E6ED] bg-white text-[#9AA3B2] hover:border-[#E05252] hover:bg-[#E05252] hover:text-white"
+                                    className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border border-[#E2E6ED] bg-white text-[#9AA3B2] hover:border-[#E05252] hover:bg-[#E05252] hover:text-white dark:border-[#2a3a5c] dark:bg-[#1e3a5f] dark:text-[#9AA3B2]"
                                 >
                                     ×
                                 </button>
@@ -720,7 +720,7 @@ export default function Leaders({
                 {/* Custom Input */}
                 {customInputVisible && (
                     <div
-                        className="flex flex-col gap-2 rounded-lg border-2 border-[#B2EDE5] bg-[#E6F9F6] p-3.5 px-4"
+                        className="flex flex-col gap-2 rounded-lg border-2 border-[#B2EDE5] bg-[#E6F9F6] p-3.5 px-4 dark:bg-[#2EC4A9]/10"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex items-center gap-2">
@@ -735,7 +735,7 @@ export default function Leaders({
                                 placeholder="직급명 (예: Unit Leader, Cell Leader…)"
                                 maxLength={30}
                                 autoFocus
-                                className="h-[38px] flex-1 rounded-lg border-[1.5px] border-[#B2EDE5] px-3 text-[13px] font-semibold text-[#1B2B5B] outline-none focus:border-[#2EC4A9] focus:ring-[3px] focus:ring-[rgba(46,196,169,0.12)]"
+                                className="h-[38px] flex-1 rounded-lg border-[1.5px] border-[#B2EDE5] px-3 text-[13px] font-semibold text-[#1B2B5B] outline-none focus:border-[#2EC4A9] focus:ring-[3px] focus:ring-[rgba(46,196,169,0.12)] dark:bg-[#1e3a5f]/30 dark:text-[#e2e8f0]"
                             />
                             <input
                                 type="text"
@@ -749,7 +749,7 @@ export default function Leaders({
                                 }}
                                 placeholder="한국어 명칭"
                                 maxLength={10}
-                                className="h-[38px] w-[110px] rounded-lg border-[1.5px] border-[#B2EDE5] px-3 text-[13px] text-[#3A4356] outline-none focus:border-[#2EC4A9] focus:ring-[3px] focus:ring-[rgba(46,196,169,0.12)]"
+                                className="h-[38px] w-[110px] rounded-lg border-[1.5px] border-[#B2EDE5] px-3 text-[13px] text-[#3A4356] outline-none focus:border-[#2EC4A9] focus:ring-[3px] focus:ring-[rgba(46,196,169,0.12)] dark:bg-[#1e3a5f]/30 dark:text-[#e2e8f0]"
                             />
                             <button
                                 type="button"
@@ -761,7 +761,7 @@ export default function Leaders({
                             <button
                                 type="button"
                                 onClick={cancelCustom}
-                                className="flex h-[38px] w-[38px] items-center justify-center rounded-lg border-[1.5px] border-[#E2E6ED] bg-white text-[#9AA3B2] hover:border-[#E05252] hover:text-[#E05252]"
+                                className="flex h-[38px] w-[38px] items-center justify-center rounded-lg border-[1.5px] border-[#E2E6ED] bg-white text-[#9AA3B2] hover:border-[#E05252] hover:text-[#E05252] dark:border-[#2a3a5c] dark:bg-[#1e3a5f] dark:text-[#9AA3B2]"
                             >
                                 ×
                             </button>
@@ -781,9 +781,9 @@ export default function Leaders({
                         onKeyDown={(e) =>
                             e.key === 'Enter' && !isReadOnly && openCustom()
                         }
-                        className="flex cursor-pointer items-center gap-3 rounded-lg border-2 border-dashed border-[#E2E6ED] px-4 py-3 text-[#9AA3B2] transition-colors hover:border-[#2EC4A9] hover:bg-[#E6F9F6] hover:text-[#2EC4A9]"
+                        className="flex cursor-pointer items-center gap-3 rounded-lg border-2 border-dashed border-[#E2E6ED] px-4 py-3 text-[#9AA3B2] transition-colors hover:border-[#2EC4A9] hover:bg-[#E6F9F6] hover:text-[#2EC4A9] dark:border-[#2a3a5c] dark:hover:border-[#2EC4A9] dark:hover:bg-[#2EC4A9]/10"
                     >
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F0F2F5]">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F0F2F5] dark:bg-[#2a3a5c]">
                             <Plus className="h-4 w-4" strokeWidth={2.2} />
                         </div>
                         <span className="text-[13px] font-semibold">
@@ -795,11 +795,11 @@ export default function Leaders({
             </div>
 
             {/* Ratio Bar */}
-            <div className="mx-7 mb-5 flex items-center gap-4 rounded-lg border border-[#E2E6ED] bg-[#F8F9FB] px-4 py-3.5">
-                <span className="shrink-0 text-[12px] font-bold text-[#6B7585]">
+            <div className="mx-7 mb-5 flex items-center gap-4 rounded-lg border border-[#E2E6ED] bg-[#F8F9FB] px-4 py-3.5 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20">
+                <span className="shrink-0 text-[12px] font-bold text-[#6B7585] dark:text-[#9AA3B2]">
                     {t('diagnosis_leaders.ratioLabel')}
                 </span>
-                <div className="h-2 flex-1 overflow-hidden rounded-[20px] bg-[#E2E6ED]">
+                <div className="h-2 flex-1 overflow-hidden rounded-[20px] bg-[#E2E6ED] dark:bg-[#2a3a5c]">
                     <div
                         className="h-full rounded-[20px] transition-all duration-300"
                         style={{
@@ -811,7 +811,7 @@ export default function Leaders({
                         }}
                     />
                 </div>
-                <div className="flex shrink-0 items-center gap-1.5 text-[12.5px] font-bold text-[#1B2B5B]">
+                <div className="flex shrink-0 items-center gap-1.5 text-[12.5px] font-bold text-[#1B2B5B] dark:text-[#e2e8f0]">
                     <span className="text-[15px] font-extrabold text-[#2EC4A9]">
                         {ratioPct ?? '—'}%
                     </span>
@@ -835,8 +835,8 @@ export default function Leaders({
             </div>
 
             {/* Selected Summary */}
-            <div className="mx-7 mb-6 flex flex-wrap items-center gap-3 rounded-lg border border-[#E2E6ED] bg-[#F8F9FB] px-4 py-3">
-                <span className="shrink-0 text-[12px] font-semibold text-[#6B7585]">
+            <div className="mx-7 mb-6 flex flex-wrap items-center gap-3 rounded-lg border border-[#E2E6ED] bg-[#F8F9FB] px-4 py-3 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20">
+                <span className="shrink-0 text-[12px] font-semibold text-[#6B7585] dark:text-[#9AA3B2]">
                     {t('diagnosis_leaders.selectedPositions')}
                 </span>
                 <div className="flex flex-1 flex-wrap gap-1.5">
@@ -848,7 +848,7 @@ export default function Leaders({
                         allSelected.map((r) => (
                             <div
                                 key={`${r.label}-${r.korean}`}
-                                className="flex items-center gap-1.5 rounded-[20px] border-[1.5px] border-[#B2EDE5] bg-white px-2.5 py-0.5 text-[12px] font-semibold text-[#1B2B5B]"
+                                className="flex items-center gap-1.5 rounded-[20px] border-[1.5px] border-[#B2EDE5] bg-white px-2.5 py-0.5 text-[12px] font-semibold text-[#1B2B5B] dark:bg-[#1e3a5f]/30 dark:text-[#e2e8f0]"
                             >
                                 {r.label}
                                 {r.korean && <> · {r.korean}</>}

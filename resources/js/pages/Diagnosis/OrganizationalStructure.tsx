@@ -167,8 +167,8 @@ export default function OrganizationalStructure({
                             disabled={readOnly}
                             className={cn(
                                 'relative rounded-2xl border-2 p-7 pt-7 flex flex-col items-center gap-4 text-center transition-all duration-200 select-none cursor-pointer',
-                                'bg-white border-slate-200 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5',
-                                isSelected && 'border-[#4ecdc4] bg-[rgba(78,205,196,0.12)] shadow-[0_0_0_1px_#4ecdc4]'
+                                'bg-white border-slate-200 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 dark:bg-[#1e3a5f] dark:border-[#2a3a5c] dark:hover:border-[#4a5a7c]',
+                                isSelected && 'border-[#4ecdc4] bg-[rgba(78,205,196,0.12)] shadow-[0_0_0_1px_#4ecdc4] dark:bg-[#2EC4A9]/10'
                             )}
                         >
                             <span
@@ -176,7 +176,7 @@ export default function OrganizationalStructure({
                                     'absolute top-3.5 right-3.5 w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center',
                                     isSelected 
                                         ? 'border-[#4ecdc4] bg-[#4ecdc4] text-white' 
-                                        : 'border-slate-300 bg-white'
+                                        : 'border-slate-300 bg-white dark:border-[#4a5a7c] dark:bg-[#1e3a5f]'
                                 )}
                             >
                                 {isSelected && <Check className="w-2.5 h-2.5" strokeWidth={3} />}
@@ -185,7 +185,7 @@ export default function OrganizationalStructure({
                             <OrgStructureDiagram id={opt.id} />
 
                             <span className={cn(
-                                'text-sm font-bold text-slate-800',
+                                'text-sm font-bold text-slate-800 dark:text-[#e2e8f0]',
                                 isSelected && 'text-[#2ea89e]'
                             )}>
                                 {translated.name}
@@ -200,9 +200,9 @@ export default function OrganizationalStructure({
             </div>
 
             {/* Custom Note */}
-            <div className="rounded-[14px] border-[1.5px] border-border bg-white p-5">
+            <div className="rounded-[14px] border-[1.5px] border-border bg-white p-5 dark:bg-[#1a2744]">
                 <div className="flex flex-col gap-1 mb-3">
-                    <span className="text-[13.5px] font-bold text-slate-800">
+                    <span className="text-[13.5px] font-bold text-slate-800 dark:text-[#e2e8f0]">
                         {t('diagnosis_org_structure.customTitle')}
                     </span>
                     <span className="text-[11.5px] text-muted-foreground">
@@ -214,12 +214,12 @@ export default function OrganizationalStructure({
                     onChange={(e) => setCustomNote(e.target.value)}
                     placeholder={t('diagnosis_org_structure.customPlaceholder')}
                     rows={4}
-                    className="w-full px-3.5 py-3 border-[1.5px] border-border rounded-lg text-[13px] bg-slate-50 resize-y outline-none focus:border-[#4ecdc4] focus:bg-white placeholder:text-muted-foreground"
+                    className="w-full px-3.5 py-3 border-[1.5px] border-border rounded-lg text-[13px] bg-slate-50 resize-y outline-none focus:border-[#4ecdc4] focus:bg-white placeholder:text-muted-foreground dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0] dark:focus:bg-[#1e3a5f]"
                 />
             </div>
 
             {/* Selected Summary */}
-            <div className="rounded-xl border-[1.5px] border-border bg-white px-5 py-3.5 flex flex-wrap items-center gap-3">
+            <div className="rounded-xl border-[1.5px] border-border bg-white px-5 py-3.5 flex flex-wrap items-center gap-3 dark:bg-[#1a2744]">
                 <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
                     {t('diagnosis_org_structure.selectedLabel')}
                 </span>

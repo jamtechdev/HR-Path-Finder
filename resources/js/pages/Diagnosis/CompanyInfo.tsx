@@ -326,7 +326,7 @@ export default function CompanyInfo({
     const cardContent = (
         <div
             className={cn(
-                'overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm',
+                'overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-[#2a3a5c] dark:bg-[#1a2744]',
                 embedMode ? 'mx-auto max-w-4xl' : 'w-full',
             )}
         >
@@ -377,14 +377,14 @@ export default function CompanyInfo({
                 <div className="grid grid-cols-1 gap-x-12 gap-y-8 md:grid-cols-2">
                     {/* Left Column - Company Identity */}
                     <div className="space-y-6">
-                        <h3 className="mb-1 text-sm font-bold text-gray-500">
+                        <h3 className="mb-1 text-sm font-bold text-gray-500 dark:text-[#9AA3B2]">
                             {t('company_info.companyIdentitySection')}
                         </h3>
 
                         {/* Company Name */}
                         <div>
                             <Label
-                                className="mb-2 block text-sm font-bold text-gray-700"
+                                className="mb-2 block text-sm font-bold text-gray-700 dark:text-[#CBD0DA]"
                                 htmlFor="company_name"
                             >
                                 {t('company_info.companyNameLabel')}{' '}
@@ -400,7 +400,7 @@ export default function CompanyInfo({
                                     'company_info.companyNamePlaceholder',
                                 )}
                                 className={cn(
-                                    'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 px-3 text-sm focus-visible:ring-2 focus-visible:ring-teal-500',
+                                    'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 px-3 text-sm focus-visible:ring-2 focus-visible:ring-teal-500 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]',
                                     errors.company_name && 'border-red-500',
                                 )}
                                 required
@@ -416,7 +416,7 @@ export default function CompanyInfo({
                         {/* Registration Number */}
                         <div>
                             <Label
-                                className="mb-2 block text-sm font-bold text-gray-700"
+                                className="mb-2 block text-sm font-bold text-gray-700 dark:text-[#CBD0DA]"
                                 htmlFor="registration_number"
                             >
                                 {t('company_info.registrationNumberLabel')}{' '}
@@ -435,7 +435,7 @@ export default function CompanyInfo({
                                 }
                                 placeholder="000-00-00000"
                                 className={cn(
-                                    'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 px-3 text-sm',
+                                    'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 px-3 text-sm dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]',
                                     errors.registration_number &&
                                         'border-red-500',
                                 )}
@@ -456,7 +456,7 @@ export default function CompanyInfo({
                         {/* Brand Name */}
                         <div>
                             <Label
-                                className="mb-2 block text-sm font-bold text-gray-700"
+                                className="mb-2 block text-sm font-bold text-gray-700 dark:text-[#CBD0DA]"
                                 htmlFor="brand_name"
                             >
                                 {t('company_info.brandNameLabel')}
@@ -470,7 +470,7 @@ export default function CompanyInfo({
                                 placeholder={t(
                                     'company_info.brandNamePlaceholder',
                                 )}
-                                className="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm"
+                                className="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
                                 disabled={readOnly}
                             />
                         </div>
@@ -479,7 +479,7 @@ export default function CompanyInfo({
                         <div className="flex flex-col gap-4 md:flex-row">
                             <div className="flex-1">
                                 <Label
-                                    className="mb-2 block text-sm font-bold text-gray-700"
+                                    className="mb-2 block text-sm font-bold text-gray-700 dark:text-[#CBD0DA]"
                                     htmlFor="foundation_date"
                                 >
                                     {t('company_info.foundationDateLabel')}{' '}
@@ -496,7 +496,7 @@ export default function CompanyInfo({
                                         )
                                     }
                                     className={cn(
-                                        'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 pr-10 text-sm',
+                                        'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 pr-10 text-sm dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]',
                                         errors.foundation_date &&
                                             'border-red-500',
                                     )}
@@ -511,11 +511,11 @@ export default function CompanyInfo({
                             </div>
 
                             <div className="flex-1">
-                                <Label className="mb-2 block text-sm font-bold text-gray-700">
+                                <Label className="mb-2 block text-sm font-bold text-gray-700 dark:text-[#CBD0DA]">
                                     {t('company_info.publicListingLabel')}{' '}
                                     <span className="text-red-500">*</span>
                                 </Label>
-                                <div className="flex overflow-hidden rounded-lg border border-gray-200 text-sm font-semibold">
+                                <div className="flex overflow-hidden rounded-lg border border-gray-200 text-sm font-semibold dark:border-[#2a3a5c]">
                                     <button
                                         type="button"
                                         onClick={() =>
@@ -523,9 +523,9 @@ export default function CompanyInfo({
                                             setData('is_public', true)
                                         }
                                         className={cn(
-                                            'flex flex-1 items-center justify-center gap-2 bg-white py-2.5 text-gray-500',
+                                            'flex flex-1 items-center justify-center gap-2 bg-white py-2.5 text-gray-500 dark:bg-[#1e3a5f]/20 dark:text-[#9AA3B2]',
                                             data.is_public &&
-                                                'bg-gray-100 text-gray-800',
+                                                'bg-gray-100 text-gray-800 dark:bg-[#2a3a5c] dark:text-[#e2e8f0]',
                                         )}
                                         disabled={readOnly}
                                     >
@@ -541,7 +541,7 @@ export default function CompanyInfo({
                                             'flex flex-1 items-center justify-center gap-2 py-2.5',
                                             !data.is_public
                                                 ? 'bg-[#1e293b] text-white'
-                                                : 'bg-white text-gray-500',
+                                                : 'bg-white text-gray-500 dark:bg-[#1e3a5f]/20 dark:text-[#9AA3B2]',
                                         )}
                                         disabled={readOnly}
                                     >
@@ -554,7 +554,7 @@ export default function CompanyInfo({
 
                     {/* Right Column - Industry & Location */}
                     <div className="space-y-6">
-                        <h3 className="mb-1 text-sm font-bold text-gray-500">
+                        <h3 className="mb-1 text-sm font-bold text-gray-500 dark:text-[#9AA3B2]">
                             {t('company_info.industryLocationSection')}
                         </h3>
 
@@ -566,7 +566,7 @@ export default function CompanyInfo({
                             {({ borderCn, ErrorLine }) => (
                                 <div>
                                     <Label
-                                        className="mb-2 block text-sm font-bold text-gray-700"
+                                        className="mb-2 block text-sm font-bold text-gray-700 dark:text-[#CBD0DA]"
                                         htmlFor="industry_category"
                                     >
                                         {t('company_info.primaryIndustryLabel')}{' '}
@@ -588,7 +588,7 @@ export default function CompanyInfo({
                                     >
                                         <SelectTrigger
                                             className={cn(
-                                                'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 text-sm',
+                                                'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 text-sm dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]',
                                                 borderCn,
                                             )}
                                         >
@@ -618,7 +618,7 @@ export default function CompanyInfo({
                                     {data.industry_category === 'Others' && (
                                         <div className="mt-2">
                                             <Label
-                                                className="mb-2 block text-sm font-bold text-gray-700"
+                                                className="mb-2 block text-sm font-bold text-gray-700 dark:text-[#CBD0DA]"
                                                 htmlFor="industry_category_other"
                                             >
                                                 {t(
@@ -649,7 +649,7 @@ export default function CompanyInfo({
                                                     'company_info.specifyPlaceholder',
                                                 )}
                                                 className={cn(
-                                                    'h-11 w-full rounded-lg border border-gray-200 px-3 text-sm',
+                                                    'h-11 w-full rounded-lg border border-gray-200 px-3 text-sm dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]',
                                                     errors.industry_category_other &&
                                                         'border-red-500',
                                                 )}
@@ -679,7 +679,7 @@ export default function CompanyInfo({
                                 return (
                                     <div>
                                         <Label
-                                            className="mb-2 block text-sm font-bold text-gray-700"
+                                            className="mb-2 block text-sm font-bold text-gray-700 dark:text-[#CBD0DA]"
                                             htmlFor="industry_subcategory"
                                         >
                                             {t('company_info.subIndustryLabel')}{' '}
@@ -704,7 +704,7 @@ export default function CompanyInfo({
                                         >
                                             <SelectTrigger
                                                 className={cn(
-                                                    'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 text-sm',
+                                                    'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 text-sm dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]',
                                                     errors.industry_subcategory &&
                                                         'border-red-500',
                                                 )}
@@ -733,7 +733,7 @@ export default function CompanyInfo({
                         {/* HQ Location */}
                         <div>
                             <Label
-                                className="mb-2 block text-sm font-bold text-gray-700"
+                                className="mb-2 block text-sm font-bold text-gray-700 dark:text-[#CBD0DA]"
                                 htmlFor="hq_location"
                             >
                                 {t('company_info.hqLocationLabel')}{' '}
@@ -761,7 +761,7 @@ export default function CompanyInfo({
                                     >
                                         <SelectTrigger
                                             className={cn(
-                                                'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 pr-9 text-sm',
+                                                'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 pr-9 text-sm dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]',
                                                 errors.hq_location &&
                                                     'border-red-500',
                                             )}
@@ -801,7 +801,7 @@ export default function CompanyInfo({
                                             'company_info.hqLocationPlaceholder',
                                         )}
                                         className={cn(
-                                            'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 pr-9 text-sm',
+                                            'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 pr-9 text-sm dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]',
                                             errors.hq_location &&
                                                 'border-red-500',
                                         )}
@@ -832,7 +832,7 @@ export default function CompanyInfo({
                                                 setData('hq_location', v);
                                             }}
                                             placeholder="Enter custom location"
-                                            className="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm"
+                                            className="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
                                         />
                                     </div>
                                 )}
@@ -853,13 +853,13 @@ export default function CompanyInfo({
                                     {completionPct}%
                                 </span>
                             </div>
-                            <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                            <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-[#2a3a5c]">
                                 <div
                                     className="h-2 rounded-full bg-teal-400 transition-all duration-300"
                                     style={{ width: `${completionPct}%` }}
                                 />
                             </div>
-                            <p className="mt-2 text-[10px] text-gray-400">
+                            <p className="mt-2 text-[10px] text-gray-400 dark:text-[#6B7585]">
                                 {t('company_info.completion_description')}
                             </p>
                         </div>
@@ -873,7 +873,7 @@ export default function CompanyInfo({
                                 >
                                     {t('company_info.save_draft')}
                                 </button>
-                                <p className="mt-2 text-[10px] text-gray-400">
+                                <p className="mt-2 text-[10px] text-gray-400 dark:text-[#6B7585]">
                                     {t('company_info.save_draft_hint')}
                                 </p>
                             </div>
@@ -881,22 +881,22 @@ export default function CompanyInfo({
                     </div>
                 </div>
 
-                <hr className="border-gray-100" />
+                <hr className="border-gray-100 dark:border-[#2a3a5c]" />
 
                 {/* Logo Section */}
                 <div>
                     <div className="mb-4 flex items-center gap-3">
-                        <div className="rounded-lg bg-teal-50 p-2">
+                        <div className="rounded-lg bg-teal-50 p-2 dark:bg-teal-900/30">
                             <Upload className="h-4 w-4 text-teal-500" />
                         </div>
                         <div>
-                            <h4 className="text-sm font-bold text-gray-700">
+                            <h4 className="text-sm font-bold text-gray-700 dark:text-[#CBD0DA]">
                                 {t('company_info.logoUploadTitle')}
                             </h4>
-                            <p className="text-xs font-medium text-gray-400">
+                            <p className="text-xs font-medium text-gray-400 dark:text-[#6B7585]">
                                 {t('company_info.logoUploadHint')}
                             </p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-gray-400 dark:text-[#6B7585]">
                                 {t('company_info.logoUploadSpec')}
                             </p>
                         </div>
@@ -918,9 +918,9 @@ export default function CompanyInfo({
                                 handleFileChange(e.dataTransfer.files[0]);
                         }}
                         className={cn(
-                            'flex flex-col items-center justify-between gap-6 rounded-xl border-2 border-dashed border-gray-200 p-8 transition-colors md:flex-row',
+                            'flex flex-col items-center justify-between gap-6 rounded-xl border-2 border-dashed border-gray-200 p-8 transition-colors md:flex-row dark:border-[#2a3a5c]',
                             !readOnly &&
-                                'cursor-pointer hover:border-teal-400/70 hover:bg-teal-50/30',
+                                'cursor-pointer hover:border-teal-400/70 hover:bg-teal-50/30 dark:hover:border-teal-500/50 dark:hover:bg-teal-900/10',
                         )}
                     >
                         <input
@@ -947,13 +947,13 @@ export default function CompanyInfo({
                                 )}
                             </div>
                             <div className="space-y-1 text-left">
-                                <p className="text-sm font-bold text-gray-700">
+                                <p className="text-sm font-bold text-gray-700 dark:text-[#CBD0DA]">
                                     {t('company_info.logoUploadTitle')}
                                 </p>
-                                <p className="text-xs text-gray-400">
+                                <p className="text-xs text-gray-400 dark:text-[#6B7585]">
                                     {t('company_info.logoUploadHint')}
                                 </p>
-                                <p className="text-xs text-gray-400">
+                                <p className="text-xs text-gray-400 dark:text-[#6B7585]">
                                     {t('company_info.logoUploadSpec')}
                                 </p>
                             </div>
@@ -966,7 +966,7 @@ export default function CompanyInfo({
                                 if (readOnly) return;
                                 fileInputRef.current?.click();
                             }}
-                            className="shrink-0 rounded-lg border border-gray-300 bg-white px-6 py-2 text-sm font-bold text-gray-600"
+                            className="shrink-0 rounded-lg border border-gray-300 bg-white px-6 py-2 text-sm font-bold text-gray-600 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30 dark:text-[#CBD0DA]"
                             disabled={readOnly}
                         >
                             {t('company_info.chooseFileBtn')}

@@ -223,7 +223,7 @@ export default function DiagnosisTabs({
     return (
         <div
             ref={tabsContainerRef}
-            className="flex gap-0.5 overflow-x-auto scroll-smooth mt-3.5 min-w-0 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-0.5 overflow-x-auto scroll-smooth mt-3.5 min-w-0 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden dark:bg-[#1a2744]"
         >
             {tabs.map((tab, index) => {
                 const enabled = isTabEnabled(tab.id, index);

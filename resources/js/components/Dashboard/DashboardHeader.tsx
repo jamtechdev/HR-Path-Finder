@@ -59,7 +59,7 @@ export default function DashboardHeader({ title, subtitle, userName, breadcrumbs
             
             {/* Header Content */}
             <div>
-                <h1 className="text-4xl font-display font-bold tracking-tight">
+    <h1 className="text-4xl font-display font-bold tracking-tight text-foreground">
                     {userName ? `Welcome back, ${userName}` : title}
                 </h1>
                 <p className="text-muted-foreground mt-2 text-lg">

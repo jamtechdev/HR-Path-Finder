@@ -83,19 +83,19 @@ function ReviewCard({
     children: React.ReactNode;
 }) {
     return (
-        <div className="group overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:shadow-md hover:border-slate-300/80">
-            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-4 py-3">
+        <div className="group overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:shadow-md hover:border-slate-300/80 dark:border-[#2a3a5c] dark:bg-[#1a2744]">
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-4 py-3 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30">
                 <div className="flex items-center gap-2.5">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-base shadow-sm ring-1 ring-slate-200/80">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-base shadow-sm ring-1 ring-slate-200/80 dark:bg-[#1e3a5f] dark:ring-[#2a3a5c]">
                         {icon}
                     </span>
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-[#CBD0DA]">
                         {title}
                     </span>
                 </div>
                 <Link
                     href={editUrl}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30 dark:text-[#CBD0DA] dark:hover:bg-[#2a3a5c]"
                 >
                     <svg width="10" height="10" viewBox="0 0 11 11" fill="none" className="shrink-0" aria-hidden>
                         <path d="M7.5 1.5L9.5 3.5L3.5 9.5H1.5V7.5L7.5 1.5Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
@@ -646,9 +646,9 @@ export default function Review({
                 showBack={false}
                 showNext={false}
             >
-                <div className="min-h-full bg-slate-50/70 pb-10">
+                <div className="min-h-full bg-slate-50/70 pb-10 dark:bg-transparent">
                     {/* Step nav — sticky */}
-                    <div className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-sm">
+                    <div className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-sm dark:border-[#2a3a5c] dark:bg-[#1a2744]/95">
                         <div className="mx-auto flex max-w-4xl items-center gap-2 px-4 py-3 overflow-x-auto">
                             {diagnosisTabs
                                 .filter((tab) => tab.id !== 'overview')
@@ -702,10 +702,10 @@ export default function Review({
 
                         {/* Page header */}
                         <header className="mb-8">
-                            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-[#e2e8f0]">
                                 {t('diagnosis_review.title')}
                             </h1>
-                            <p className="mt-1.5 text-sm text-slate-500">
+                            <p className="mt-1.5 text-sm text-slate-500 dark:text-[#9AA3B2]">
                                 {t('diagnosis_review.subtitle')}
                             </p>
                         </header>
@@ -753,9 +753,9 @@ export default function Review({
                         </div>
 
                         {/* Gender + Job structure strip */}
-                        <div className="mb-8 flex flex-wrap items-center gap-6 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+                        <div className="mb-8 flex flex-wrap items-center gap-6 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-[#2a3a5c] dark:bg-[#1a2744]">
                             <div className="flex items-center gap-5 flex-wrap">
-                                <span className="text-xs font-bold uppercase tracking-wider text-slate-600">{tr('genderDistribution')}</span>
+                                <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-[#9AA3B2]">{tr('genderDistribution')}</span>
                                 <div className="relative h-20 w-20 shrink-0">
                                     <div
                                         className="absolute inset-0 rounded-full"
@@ -772,21 +772,21 @@ export default function Review({
                                     {genderData.slice(0, 2).map((d, i) => (
                                         <div key={`gender-${i}-${d.name ?? ''}`} className="flex items-center gap-2">
                                             <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: GENDER_COLORS[i] }} />
-                                            <span className="text-slate-600">{d.name}</span>
-                                            <span className="font-semibold text-slate-900">{d.value}{tr('personsUnit')}</span>
+                                            <span className="text-slate-600 dark:text-[#9AA3B2]">{d.name}</span>
+                                            <span className="font-semibold text-slate-900 dark:text-[#e2e8f0]">{d.value}{tr('personsUnit')}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                            <div className="h-14 w-px bg-slate-200 shrink-0 hidden sm:block" />
+                            <div className="h-14 w-px bg-slate-200 shrink-0 hidden sm:block dark:bg-[#2a3a5c]" />
                             <div className="min-w-0 flex-1">
-                                <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Job Structure</span>
+                                <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-[#9AA3B2]">Job Structure</span>
                                 <div className="mt-2 flex flex-wrap gap-2">
                                     {jobStructureForReview.flatMap((cat) =>
                                         cat.functions.map((fn, fnIdx) => (
                                             <span
                                                 key={`${cat.name}-${fnIdx}-${fn}`}
-                                                className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+                                                        className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 dark:bg-[#1e3a5f]/40 dark:text-[#CBD0DA]"
                                             >
                                                 {fn}
                                             </span>
@@ -807,34 +807,34 @@ export default function Review({
                                         [tr('listedShort'), company?.public_listing_status ? String(company.public_listing_status) : (company?.is_public != null ? (company.is_public ? 'Yes' : 'No') : '—')],
                                     ].map(([k, v], idx) => (
                                         <div key={`company-${idx}-${String(k ?? '')}`}>
-                                            <p className="text-xs font-medium text-slate-500">{k}</p>
-                                            <p className="mt-0.5 text-sm font-semibold text-slate-900">{v}</p>
+                                            <p className="text-xs font-medium text-slate-500 dark:text-[#9AA3B2]">{k}</p>
+                                            <p className="mt-0.5 text-sm font-semibold text-slate-900 dark:text-[#e2e8f0]">{v}</p>
                                         </div>
                                     ))}
                                 </div>
                             </ReviewCard>
                             <ReviewCard title={t('diagnosis_review.workforceCardTitle')} icon="👥" editUrl={getEditUrl(STEP_MAP.workforce)}>
                                 <div className="flex flex-wrap gap-4">
-                                    <div className="min-w-[100px] flex-1 rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs font-medium text-slate-500">{tr('workforceFullTimeLabel')}</p>
-                                        <p className="mt-1 text-2xl font-bold text-slate-900">
+                                    <div className="min-w-[100px] flex-1 rounded-xl bg-slate-50 p-4 dark:bg-[#1e3a5f]/30">
+                                        <p className="text-xs font-medium text-slate-500 dark:text-[#9AA3B2]">{tr('workforceFullTimeLabel')}</p>
+                                        <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-[#e2e8f0]">
                                             {formatNumber(preview?.full_time_headcount ?? totalHeadcount)}
                                         </p>
                                     </div>
-                                    <div className="min-w-[100px] flex-1 rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs font-medium text-slate-500">{tr('workforceContractLabel')}</p>
-                                        <p className="mt-1 text-2xl font-bold text-slate-900">
+                                    <div className="min-w-[100px] flex-1 rounded-xl bg-slate-50 p-4 dark:bg-[#1e3a5f]/30">
+                                        <p className="text-xs font-medium text-slate-500 dark:text-[#9AA3B2]">{tr('workforceContractLabel')}</p>
+                                        <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-[#e2e8f0]">
                                             {formatNumber(preview?.contract_headcount ?? 0)}
                                         </p>
                                     </div>
-                                    <div className="min-w-[100px] flex-1 rounded-xl border border-slate-200 bg-white p-4">
-                                        <p className="text-xs font-medium text-slate-500">{tr('workforceTotalLabel')}</p>
-                                        <p className="mt-1 text-2xl font-bold text-slate-900">{totalHeadcount}</p>
+                                    <div className="min-w-[100px] flex-1 rounded-xl border border-slate-200 bg-white p-4 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20">
+                                        <p className="text-xs font-medium text-slate-500 dark:text-[#9AA3B2]">{tr('workforceTotalLabel')}</p>
+                                        <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-[#e2e8f0]">{totalHeadcount}</p>
                                     </div>
                                     {preview?.average_age != null && (
-                                        <div className="min-w-[100px] flex-1 rounded-xl bg-slate-50 p-4">
-                                            <p className="text-xs font-medium text-slate-500">{tr('avgAgeShort')}</p>
-                                            <p className="mt-1 text-2xl font-bold text-slate-900">{formatNumber(preview.average_age)}</p>
+                                        <div className="min-w-[100px] flex-1 rounded-xl bg-slate-50 p-4 dark:bg-[#1e3a5f]/30">
+                                            <p className="text-xs font-medium text-slate-500 dark:text-[#9AA3B2]">{tr('avgAgeShort')}</p>
+                                            <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-[#e2e8f0]">{formatNumber(preview.average_age)}</p>
                                         </div>
                                     )}
                                 </div>
@@ -850,7 +850,7 @@ export default function Review({
                                                     const ratio = gradeTotal ? ((g.headcount / gradeTotal) * 100).toFixed(1) : '0';
                                                     return (
                                                         <div key={`grade-${i}-${String(g.name ?? '')}`} className="flex items-center gap-3">
-                                                            <div className="w-24 shrink-0 text-right text-sm font-semibold text-slate-600">
+                                                            <div className="w-24 shrink-0 text-right text-sm font-semibold text-slate-600 dark:text-[#9AA3B2]">
                                                                 {g.name}
                                                             </div>
                                                             <div className="relative h-8 flex-1 min-w-0">
@@ -864,7 +864,7 @@ export default function Review({
                                                                     {g.headcount}{tr('personsUnit')}
                                                                 </div>
                                                             </div>
-                                                            <div className="w-12 shrink-0 text-right text-xs font-medium text-slate-500">{ratio}%</div>
+                                                            <div className="w-12 shrink-0 text-right text-xs font-medium text-slate-500 dark:text-[#9AA3B2]">{ratio}%</div>
                                                         </div>
                                                     );
                                                 })}
@@ -879,8 +879,8 @@ export default function Review({
                                                         {pyramidDiag.label}
                                                     </span>
                                                     <div className="min-w-0 space-y-1">
-                                                        <span className="text-sm text-slate-600 leading-relaxed block">{pyramidDiag.desc}</span>
-                                                        <p className="text-[13px] font-bold text-slate-800 leading-snug">
+                                                        <span className="text-sm text-slate-600 leading-relaxed block dark:text-[#9AA3B2]">{pyramidDiag.desc}</span>
+                                                        <p className="text-[13px] font-bold text-slate-800 leading-snug dark:text-[#e2e8f0]">
                                                             {tr('includeAllHint')}
                                                         </p>
                                                     </div>
@@ -905,7 +905,7 @@ export default function Review({
                                                         {cat.items.map((item, itemIdx) => (
                                                             <span
                                                                 key={`${cat.category}-item-${itemIdx}-${String(item ?? '')}`}
-                                                                className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs text-slate-700"
+                                                                className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs text-slate-700 dark:bg-[#1e3a5f]/40 dark:text-[#CBD0DA]"
                                                             >
                                                                 {item}
                                                             </span>
@@ -928,10 +928,10 @@ export default function Review({
                                     {currentOrgChartUrl ? (
                                         <img src={currentOrgChartUrl} alt="Org chart" className="max-h-[240px] max-w-full rounded-xl border border-slate-200 object-contain shadow-inner" />
                                     ) : (
-                                        <div className="flex min-h-[200px] w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-6">
+                                        <div className="flex min-h-[200px] w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-6 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/10">
                                             <div className="text-3xl opacity-70">🖼️</div>
-                                            <p className="text-center text-sm font-medium text-slate-700">{tr('orgChartUploadHint')}</p>
-                                            <p className="text-center text-sm text-slate-500">{tr('orgChartUploadDesc')}</p>
+                                            <p className="text-center text-sm font-medium text-slate-700 dark:text-[#CBD0DA]">{tr('orgChartUploadHint')}</p>
+                                            <p className="text-center text-sm text-slate-500 dark:text-[#9AA3B2]">{tr('orgChartUploadDesc')}</p>
                                             <Link
                                                 href={getEditUrl(STEP_MAP.orgCharts)}
                                                 className="mt-1 rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-700"
@@ -945,9 +945,9 @@ export default function Review({
                             <ReviewCard title={t('diagnosis_review.orgStructureCardTitle')} icon="🏗️" editUrl={getEditUrl(STEP_MAP.orgStructure)}>
                                 <div className="flex flex-col gap-2">
                                     {preview?.org_structure_types && preview.org_structure_types.length > 0 ? (
-                                        <div className="inline-flex items-center gap-3 self-start rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                        <div className="inline-flex items-center gap-3 self-start rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30">
                                             <span className="text-xl">🏗️</span>
-                                            <span className="text-sm font-bold text-slate-800">
+                                            <span className="text-sm font-bold text-slate-800 dark:text-[#e2e8f0]">
                                                 {preview.org_structure_types.map((t: string) => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')}
                                             </span>
                                         </div>

@@ -237,7 +237,7 @@ export default function Executives({
     const isReadOnly = readOnly || isReadOnlyStatus;
 
     const innerContent = (
-        <div className="mb-5 overflow-hidden rounded-[14px] border border-[#E2E6ED] bg-white shadow-[0_4px_20px_rgba(27,43,91,0.09)]">
+        <div className="mb-5 overflow-hidden rounded-[14px] border border-[#E2E6ED] bg-white shadow-[0_4px_20px_rgba(27,43,91,0.09)] dark:border-[#2a3a5c] dark:bg-[#1a2744]">
             {/* Hero strip */}
             <div className="flex md:items-center gap-4 bg-gradient-to-br from-[#1B2B5B] to-[#243877] px-7 py-5 flex-col md:flex-row">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#2EC4A9]">
@@ -306,16 +306,16 @@ export default function Executives({
                             className={cn(
                                 'relative cursor-pointer rounded-lg border-2 p-4 text-left transition-all select-none',
                                 active
-                                    ? 'border-[#2EC4A9] bg-[#E6F9F6] shadow-[0_0_0_3px_rgba(46,196,169,0.1)]'
-                                    : 'border-[#E2E6ED] bg-white hover:border-[#CBD0DA] hover:shadow-[0_1px_4px_rgba(27,43,91,0.07)]',
+                                    ? 'border-[#2EC4A9] bg-[#E6F9F6] shadow-[0_0_0_3px_rgba(46,196,169,0.1)] dark:bg-[#2EC4A9]/10'
+                                    : 'border-[#E2E6ED] bg-white hover:border-[#CBD0DA] hover:shadow-[0_1px_4px_rgba(27,43,91,0.07)] dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30 dark:hover:border-[#4a5a7c]',
                             )}
                         >
                             <div
                                 className={cn(
-                                    'absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full border-2 bg-white',
+                                    'absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full border-2 bg-white dark:bg-[#1e3a5f]',
                                     active
-                                        ? 'border-[#2EC4A9] bg-[#2EC4A9]'
-                                        : 'border-[#CBD0DA]',
+                                        ? 'border-[#2EC4A9] bg-[#2EC4A9] dark:bg-[#2EC4A9]'
+                                        : 'border-[#CBD0DA] dark:border-[#4a5a7c]',
                                 )}
                             >
                                 {active && (
@@ -337,7 +337,7 @@ export default function Executives({
                                     {e.icon}
                                 </div>
                                 <div>
-                                    <div className="text-[15px] font-extrabold text-[#1B2B5B]">
+                                    <div className="text-[15px] font-extrabold text-[#1B2B5B] dark:text-[#e2e8f0]">
                                         {e.role}
                                     </div>
                                     <div
@@ -354,10 +354,10 @@ export default function Executives({
                             </div>
                             <div
                                 className={cn(
-                                    'flex items-center overflow-hidden rounded-lg border bg-white transition-all',
+                                    'flex items-center overflow-hidden rounded-lg border bg-white transition-all dark:bg-[#1e3a5f]/30',
                                     active
                                         ? 'border-[#B2EDE5]'
-                                        : 'border-[#E2E6ED] opacity-35',
+                                        : 'border-[#E2E6ED] opacity-35 dark:border-[#2a3a5c]',
                                 )}
                             >
                                 <button
@@ -366,7 +366,7 @@ export default function Executives({
                                         ev.stopPropagation();
                                         adjustCount(e.id, -1);
                                     }}
-                                    className="flex h-[34px] w-[34px] items-center justify-center bg-[#F8F9FB] text-base font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891]"
+                                    className="flex h-[34px] w-[34px] items-center justify-center bg-[#F8F9FB] text-base font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891] dark:bg-[#1a2744] dark:text-[#9AA3B2]"
                                 >
                                     −
                                 </button>
@@ -386,7 +386,7 @@ export default function Executives({
                                             parseInt(ev.target.value, 10) || 1,
                                         )
                                     }
-                                    className="min-w-0 flex-1 [appearance:textfield] border-0 bg-transparent text-center text-base font-extrabold text-[#1B2B5B] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                    className="min-w-0 flex-1 [appearance:textfield] border-0 bg-transparent text-center text-base font-extrabold text-[#1B2B5B] dark:text-[#e2e8f0] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                 />
                                 <button
                                     type="button"
@@ -394,11 +394,11 @@ export default function Executives({
                                         ev.stopPropagation();
                                         adjustCount(e.id, 1);
                                     }}
-                                    className="flex h-[34px] w-[34px] items-center justify-center bg-[#F8F9FB] text-base font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891]"
+                                    className="flex h-[34px] w-[34px] items-center justify-center bg-[#F8F9FB] text-base font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891] dark:bg-[#1a2744] dark:text-[#9AA3B2]"
                                 >
                                     +
                                 </button>
-                                <span className="flex h-[34px] items-center border-l border-[#E2E6ED] bg-[#F8F9FB] px-2.5 text-[11px] font-semibold text-[#9AA3B2]">
+                                <span className="flex h-[34px] items-center border-l border-[#E2E6ED] bg-[#F8F9FB] px-2.5 text-[11px] font-semibold text-[#9AA3B2] dark:border-[#2a3a5c] dark:bg-[#1a2744]">
                                     {t('diagnosis_executives.unit')}
                                 </span>
                             </div>
@@ -414,9 +414,9 @@ export default function Executives({
                         <div
                             key={r.id}
                             className={cn(
-                                'relative cursor-pointer rounded-lg border-2 p-4 text-left transition-all select-none',
+                                'relative cursor-pointer rounded-lg border-2 p-4 text-left transition-all select-none dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30',
                                 active &&
-                                    'border-[#2EC4A9] bg-[#E6F9F6] shadow-[0_0_0_3px_rgba(46,196,169,0.1)]',
+                                    'border-[#2EC4A9] bg-[#E6F9F6] shadow-[0_0_0_3px_rgba(46,196,169,0.1)] dark:bg-[#2EC4A9]/10',
                             )}
                         >
                             <div className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full border-2 border-[#2EC4A9] bg-[#2EC4A9]">
@@ -429,7 +429,7 @@ export default function Executives({
                                 <button
                                     type="button"
                                     onClick={() => removeCustom(r.id)}
-                                    className="absolute top-2.5 right-9 z-[2] flex h-5 w-5 items-center justify-center rounded-full border border-[#E2E6ED] bg-white text-sm text-[#9AA3B2] hover:border-[#E05252] hover:bg-[#E05252] hover:text-white"
+                                    className="absolute top-2.5 right-9 z-[2] flex h-5 w-5 items-center justify-center rounded-full border border-[#E2E6ED] bg-white text-sm text-[#9AA3B2] hover:border-[#E05252] hover:bg-[#E05252] hover:text-white dark:border-[#2a3a5c] dark:bg-[#1e3a5f] dark:text-[#9AA3B2]"
                                 >
                                     ×
                                 </button>
@@ -439,7 +439,7 @@ export default function Executives({
                                     🏷
                                 </div>
                                 <div>
-                                    <div className="text-[15px] font-extrabold text-[#1B2B5B]">
+                                    <div className="text-[15px] font-extrabold text-[#1B2B5B] dark:text-[#e2e8f0]">
                                         {r.name}
                                     </div>
                                     <div className="mt-0.5 text-[11px] text-[#25A891]">
@@ -449,14 +449,14 @@ export default function Executives({
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex items-center overflow-hidden rounded-lg border border-[#B2EDE5] bg-white">
+                            <div className="flex items-center overflow-hidden rounded-lg border border-[#B2EDE5] bg-white dark:bg-[#1e3a5f]/30">
                                 <button
                                     type="button"
                                     onClick={(ev) => {
                                         ev.stopPropagation();
                                         adjustCount(r.id, -1);
                                     }}
-                                    className="flex h-[34px] w-[34px] items-center justify-center bg-[#F8F9FB] font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891]"
+                                    className="flex h-[34px] w-[34px] items-center justify-center bg-[#F8F9FB] font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891] dark:bg-[#1a2744] dark:text-[#9AA3B2]"
                                 >
                                     −
                                 </button>
@@ -476,7 +476,7 @@ export default function Executives({
                                             parseInt(ev.target.value, 10) || 1,
                                         )
                                     }
-                                    className="min-w-0 flex-1 [appearance:textfield] border-0 bg-transparent text-center text-base font-extrabold text-[#1B2B5B] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                    className="min-w-0 flex-1 [appearance:textfield] border-0 bg-transparent text-center text-base font-extrabold text-[#1B2B5B] dark:text-[#e2e8f0] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                 />
                                 <button
                                     type="button"
@@ -484,11 +484,11 @@ export default function Executives({
                                         ev.stopPropagation();
                                         adjustCount(r.id, 1);
                                     }}
-                                    className="flex h-[34px] w-[34px] items-center justify-center bg-[#F8F9FB] font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891]"
+                                    className="flex h-[34px] w-[34px] items-center justify-center bg-[#F8F9FB] font-bold text-[#6B7585] hover:bg-[#E6F9F6] hover:text-[#25A891] dark:bg-[#1a2744] dark:text-[#9AA3B2]"
                                 >
                                     +
                                 </button>
-                                <span className="flex h-[34px] items-center border-l border-[#E2E6ED] bg-[#F8F9FB] px-2.5 text-[11px] font-semibold text-[#9AA3B2]">
+                                <span className="flex h-[34px] items-center border-l border-[#E2E6ED] bg-[#F8F9FB] px-2.5 text-[11px] font-semibold text-[#9AA3B2] dark:border-[#2a3a5c] dark:bg-[#1a2744]">
                                     {t('diagnosis_executives.unit')}
                                 </span>
                             </div>
@@ -507,13 +507,13 @@ export default function Executives({
                         setCustomInputVisible(true)
                     }
                     className={cn(
-                        'flex min-h-[100px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-[#E2E6ED] p-4 text-[#9AA3B2] transition-colors hover:border-[#2EC4A9] hover:text-[#2EC4A9]',
-                        customInputVisible && 'border-[#B2EDE5] bg-[#E6F9F6]',
+                        'flex min-h-[100px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-[#E2E6ED] p-4 text-[#9AA3B2] transition-colors hover:border-[#2EC4A9] hover:text-[#2EC4A9] dark:border-[#2a3a5c] dark:hover:border-[#2EC4A9]',
+                        customInputVisible && 'border-[#B2EDE5] bg-[#E6F9F6] dark:bg-[#2EC4A9]/10',
                     )}
                 >
                     {!customInputVisible ? (
                         <>
-                            <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-[#F0F2F5] hover:bg-[#E6F9F6]">
+                            <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-[#F0F2F5] hover:bg-[#E6F9F6] dark:bg-[#2a3a5c]">
                                 <Plus
                                     className="h-[18px] w-[18px]"
                                     strokeWidth={2.2}
@@ -542,7 +542,7 @@ export default function Executives({
                                 )}
                                 maxLength={20}
                                 autoFocus
-                                className="h-[38px] w-full rounded-lg border-[1.5px] border-[#B2EDE5] px-3 text-[13px] font-semibold text-[#1B2B5B] outline-none focus:border-[#2EC4A9] focus:ring-[3px] focus:ring-[rgba(46,196,169,0.12)]"
+                                className="h-[38px] w-full rounded-lg border-[1.5px] border-[#B2EDE5] px-3 text-[13px] font-semibold text-[#1B2B5B] outline-none focus:border-[#2EC4A9] focus:ring-[3px] focus:ring-[rgba(46,196,169,0.12)] dark:bg-[#1e3a5f]/30 dark:text-[#e2e8f0]"
                             />
                             <div className="flex gap-1.5">
                                 <button
@@ -558,7 +558,7 @@ export default function Executives({
                                         setCustomInputVisible(false);
                                         setCustomName('');
                                     }}
-                                    className="flex h-[34px] w-[34px] items-center justify-center rounded-lg border-[1.5px] border-[#E2E6ED] bg-white text-[#6B7585] hover:border-[#E05252] hover:text-[#E05252]"
+                                    className="flex h-[34px] w-[34px] items-center justify-center rounded-lg border-[1.5px] border-[#E2E6ED] bg-white text-[#6B7585] hover:border-[#E05252] hover:text-[#E05252] dark:border-[#2a3a5c] dark:bg-[#1e3a5f] dark:text-[#9AA3B2]"
                                 >
                                     ×
                                 </button>
@@ -569,7 +569,7 @@ export default function Executives({
             </div>
 
             {/* Summary bar */}
-            <div className="mx-7 mb-6 flex flex-col md:flex-row flex-wrap items-center gap-4 rounded-lg border border-[#E2E6ED] bg-[#F8F9FB] px-2 md:px-4 py-3.5">
+            <div className="mx-7 mb-6 flex flex-col md:flex-row flex-wrap items-center gap-4 rounded-lg border border-[#E2E6ED] bg-[#F8F9FB] px-2 md:px-4 py-3.5 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20">
                 <span className="text-[12px] font-semibold text-[#6B7585]">
                     {t('diagnosis_executives.selectedPositions')}
                 </span>
@@ -582,7 +582,7 @@ export default function Executives({
                         allSelected.map((r) => (
                             <div
                                 key={r.name}
-                                className="flex items-center gap-1.5 rounded-[20px] border-[1.5px] border-[#B2EDE5] bg-white px-2.5 py-0.5 text-[12px] font-semibold text-[#1B2B5B]"
+                                className="flex items-center gap-1.5 rounded-[20px] border-[1.5px] border-[#B2EDE5] bg-white px-2.5 py-0.5 text-[12px] font-semibold text-[#1B2B5B] dark:bg-[#1e3a5f]/30 dark:text-[#e2e8f0]"
                             >
                                 {r.name}
                                 <span className="rounded-[10px] bg-[#2EC4A9] px-1.5 text-[10.5px] font-extrabold text-white">

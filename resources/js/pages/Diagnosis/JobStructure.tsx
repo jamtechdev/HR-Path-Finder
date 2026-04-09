@@ -272,22 +272,22 @@ export default function JobStructure({
     const innerContent = (
         <div className="space-y-7">
             <div>
-                <h1 className="text-2xl font-bold text-slate-800">
+                <h1 className="text-2xl font-bold text-slate-800 dark:text-[#e2e8f0]">
                     {t('diagnosis_job_structure.title')}
                 </h1>
-                <p className="mt-1.5 text-sm text-slate-500">
+                <p className="mt-1.5 text-sm text-slate-500 dark:text-[#9AA3B2]">
                     {t('diagnosis_job_structure.description')}
                 </p>
             </div>
 
             <div
-                className="grid min-h-[460px] grid-cols-1 overflow-hidden rounded-xl border-[1.5px] border-slate-200 bg-white md:grid-cols-[260px_1fr]"
+                className="grid min-h-[460px] grid-cols-1 overflow-hidden rounded-xl border-[1.5px] border-slate-200 bg-white md:grid-cols-[260px_1fr] dark:border-[#2a3a5c] dark:bg-[#1a2744]"
                 style={{ boxShadow: '0 1px 4px rgba(15,42,74,0.07)' }}
             >
                 {/* Left: Category List */}
-                <div className="flex flex-col border-r border-slate-200">
-                    <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3.5">
-                        <span className="text-xs font-bold tracking-wider text-slate-400 uppercase">
+                <div className="flex flex-col border-r border-slate-200 dark:border-[#2a3a5c]">
+                    <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30">
+                        <span className="text-xs font-bold tracking-wider text-slate-400 uppercase dark:text-[#6B7585]">
                             {t('diagnosis_job_structure.categoryList')}
                         </span>
                         <button
@@ -315,8 +315,8 @@ export default function JobStructure({
                                     className={cn(
                                         'mb-0.5 flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 transition-colors relative',
                                         isSelected
-                                            ? 'bg-slate-900 text-white'
-                                            : 'hover:bg-slate-100',
+                                            ? 'bg-slate-900 text-white dark:bg-[#2EC4A9]/20 dark:text-[#2EC4A9]'
+                                            : 'hover:bg-slate-100 dark:hover:bg-[#1e3a5f]/30',
                                     )}
                                 >
                                     <div className="flex min-w-0 items-center gap-2.5">
@@ -326,7 +326,7 @@ export default function JobStructure({
                                                     'h-2 w-2 rounded-full',
                                                     isSelected
                                                         ? 'bg-yellow-500'
-                                                        : 'bg-slate-300',
+                                                        : 'bg-slate-300 dark:bg-[#4a5a7c]',
                                                 )}
                                             />
                                         </div>
@@ -344,7 +344,7 @@ export default function JobStructure({
                                                     'text-[11px]',
                                                     isSelected
                                                         ? 'text-yellow-400'
-                                                        : 'text-slate-400',
+                                                        : 'text-slate-400 dark:text-[#6B7585]',
                                                 )}
                                             >
                                                 {t(
@@ -377,7 +377,7 @@ export default function JobStructure({
                                             }
                                             removeCategory(cat.id);
                                         }}
-                                        className="p-1 text-slate-400 hover:text-red-600 absolute right-0 top-0"
+                                        className="p-1 text-slate-400 hover:text-red-600 absolute right-0 top-0 dark:text-[#6B7585]"
                                     >
                                         <X className="h-4 w-4" />
                                     </button>
@@ -403,12 +403,12 @@ export default function JobStructure({
                                     placeholder={t(
                                         'diagnosis_job_structure.addCategoryPlaceholder',
                                     )}
-                                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none"
+                                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
                                 />
                                 <div className="mt-2 flex gap-2">
                                     <button
                                         onClick={addCategory}
-                                        className="flex-1 rounded-md bg-slate-900 py-2 text-xs font-semibold text-white"
+                                        className="flex-1 rounded-md bg-slate-900 py-2 text-xs font-semibold text-white dark:bg-[#2EC4A9] dark:text-[#1a2744]"
                                     >
                                         {t('diagnosis_job_structure.confirm')}
                                     </button>
@@ -417,7 +417,7 @@ export default function JobStructure({
                                             setAddingCategory(false);
                                             setNewCategoryName('');
                                         }}
-                                        className="flex-1 rounded-md bg-slate-100 py-2 text-xs font-semibold"
+                                        className="flex-1 rounded-md bg-slate-100 py-2 text-xs font-semibold dark:bg-[#2a3a5c] dark:text-[#CBD0DA]"
                                     >
                                         {t('diagnosis_job_structure.cancel')}
                                     </button>
@@ -437,12 +437,12 @@ export default function JobStructure({
                 <div className="flex flex-col">
                     {selectedCat ? (
                         <>
-                            <div className="flex items-center gap-2.5 border-b border-slate-200 bg-slate-50 px-5 py-3.5">
+                            <div className="flex items-center gap-2.5 border-b border-slate-200 bg-slate-50 px-5 py-3.5 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30">
                                 <div className="h-2 w-2 rounded-full bg-yellow-500" />
-                                <span className="text-[15px] font-bold">
+                                <span className="text-[15px] font-bold dark:text-[#e2e8f0]">
                                     {labelOf(selectedCat.nameKey)}
                                 </span>
-                                <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+                                <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
                                     {t(
                                         'diagnosis_job_structure.functionsCount',
                                         { count: selectedCat.functions.length },
@@ -452,7 +452,7 @@ export default function JobStructure({
 
                             <div className="flex-1 overflow-y-auto p-5">
                                 {selectedCat.functions.length === 0 ? (
-                                    <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-200 text-slate-400">
+                                    <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-200 text-slate-400 dark:border-[#2a3a5c] dark:text-[#6B7585]">
                                         <div className="mb-2 text-3xl">＋</div>
                                         <div>
                                             {t(
@@ -465,7 +465,7 @@ export default function JobStructure({
                                         {selectedCat.functions.map((fn) => (
                                             <span
                                                 key={fn.id}
-                                                className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1.5 text-sm text-blue-700"
+                                                className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1.5 text-sm text-blue-700 dark:border-blue-800/50 dark:bg-blue-900/20 dark:text-blue-300"
                                             >
                                                 {fn.name}
                                                 <button
@@ -482,7 +482,7 @@ export default function JobStructure({
                                 )}
                             </div>
 
-                            <div className="flex gap-2 border-t border-slate-200 bg-slate-50 px-5 py-4">
+                            <div className="flex gap-2 border-t border-slate-200 bg-slate-50 px-5 py-4 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30">
                                 <input
                                     value={fnInput}
                                     onChange={(e) => setFnInput(e.target.value)}
@@ -493,7 +493,7 @@ export default function JobStructure({
                                         'diagnosis_job_structure.addFunctionPlaceholder',
                                         { category: labelOf(selectedCat.nameKey) },
                                     )}
-                                    className="flex-1 rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm outline-none"
+                                    className="flex-1 rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm outline-none dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
                                 />
                                 <button
                                     onClick={addFunction}
