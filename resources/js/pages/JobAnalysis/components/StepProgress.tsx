@@ -44,11 +44,11 @@ export default function StepProgress({
                     const pillClass = cn(
                         'flex items-center gap-2 rounded-[30px] border px-5 py-2 text-[13px] transition-all flex-shrink-0',
                         isCompleted &&
-                            'border-[#52b788] text-[#52b788] bg-white font-medium',
+                            'border-[#52b788] bg-white text-[#52b788] font-medium dark:bg-slate-900',
                         isActive &&
                             'bg-[#1a1a3d] border-[#1a1a3d] text-white font-semibold',
                         isInactive &&
-                            'border-[#e0ddd5] text-[#94a3b8] bg-white'
+                            'border-[#e0ddd5] bg-white text-[#94a3b8] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400'
                     );
 
                     const activeShadow = '0 4px 10px rgba(0,0,0,0.2)';
@@ -89,10 +89,7 @@ export default function StepProgress({
                         <React.Fragment key={step.id}>
                             {element}
                             {index < steps.length - 1 && (
-                                <div
-                                    className="w-2 h-0.5 flex-shrink-0 bg-[#e0ddd5]"
-                                    aria-hidden
-                                />
+                                <div className="h-0.5 w-2 flex-shrink-0 bg-[#e0ddd5] dark:bg-slate-700" aria-hidden />
                             )}
                         </React.Fragment>
                     );

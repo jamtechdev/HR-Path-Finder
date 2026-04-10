@@ -131,14 +131,14 @@ export default function JobAnalysisOverview({
         });
 
     return (
-        <div className="min-h-full flex flex-col bg-[#f5f3ef] text-[#1e293b]">
+        <div className="min-h-full flex flex-col bg-[#f5f3ef] text-[#1e293b] dark:bg-slate-950 dark:text-slate-100">
             {/* Hero Section */}
             <section className="bg-[#0f172a] text-white px-6 py-10 pb-20 md:px-[10%]">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
                     <div className="font-bold text-lg">
-                        {t('job_analysis_pages.overview.brand')} <span className="font-normal text-[#64748b] ml-2">/ {t('job_analysis_pages.overview.breadcrumb')}</span>
+                        {t('job_analysis_pages.overview.brand')} <span className="ml-2 font-normal text-[#64748b] dark:text-slate-400">/ {t('job_analysis_pages.overview.breadcrumb')}</span>
                     </div>
-                    <div className="bg-white/10 border border-white/20 px-3 py-1 rounded-[20px] text-xs text-[#94a3b8]">
+                    <div className="rounded-[20px] border border-white/20 bg-white/10 px-3 py-1 text-xs text-[#94a3b8]">
                         {statusLabel}
                     </div>
                 </div>
@@ -190,7 +190,7 @@ export default function JobAnalysisOverview({
 
             {/* Timeline Section */}
             <div className="flex-1 max-w-[1000px] mx-auto px-5 -mt-10 relative w-full">
-                <div className="absolute left-8 top-0 bottom-0 w-px bg-[#d1d5db] z-[1]" aria-hidden />
+                <div className="absolute bottom-0 left-8 top-0 z-[1] w-px bg-[#d1d5db] dark:bg-slate-700" aria-hidden />
 
                 <div className="space-y-6 relative z-[2]">
                     {STEPS.map((step, index) => {
@@ -205,7 +205,7 @@ export default function JobAnalysisOverview({
                                         'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-5 border',
                                         completed && 'bg-emerald-500 border-emerald-500 text-white',
                                         isActive && 'bg-[#1e293b] text-white border-[#1e293b]',
-                                        !enabled && 'bg-white border-[#d1d5db] text-[#94a3b8]'
+                                        !enabled && 'border-[#d1d5db] bg-white text-[#94a3b8] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400'
                                     )}
                                 >
                                     {completed ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
@@ -213,40 +213,23 @@ export default function JobAnalysisOverview({
 
                                 <div
                                     className={cn(
-                                        'flex-1 bg-white rounded-xl border border-[#e2e8f0] p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-all',
+                                        'flex flex-1 flex-col gap-4 rounded-xl border border-[#e2e8f0] bg-white p-6 transition-all sm:flex-row sm:items-center sm:justify-between dark:border-slate-700 dark:bg-slate-900',
                                         isActive && 'border-2 border-[#1e293b] shadow-lg',
-                                        !enabled && 'opacity-60 bg-[#fafafa]'
+                                        !enabled && 'bg-[#fafafa] opacity-60 dark:bg-slate-800'
                                     )}
                                 >
                                     <div className="min-w-0">
-                                        <div
-                                            className={cn(
-                                                'text-[11px] font-bold uppercase',
-                                                enabled ? 'text-[#b38e5d]' : 'text-[#cbd5e1]'
-                                            )}
-                                        >
+                                        <div className={cn('text-[11px] font-bold uppercase', enabled ? 'text-[#b38e5d]' : 'text-[#cbd5e1] dark:text-slate-500')}>
                                             {t('job_analysis_pages.overview.card.step_of', { current: index + 1, total: STEPS.length })}
                                         </div>
-                                        <div
-                                            className={cn(
-                                                'text-xl font-bold mt-1 flex items-center gap-2',
-                                                enabled ? 'text-[#1e293b]' : 'text-[#94a3b8]'
-                                            )}
-                                        >
+                                        <div className={cn('mt-1 flex items-center gap-2 text-xl font-bold', enabled ? 'text-[#1e293b] dark:text-slate-100' : 'text-[#94a3b8] dark:text-slate-400')}>
                                             {step.icon}
                                             {getStepName(step)}
                                         </div>
-                                        <p
-                                            className={cn(
-                                                'text-sm mt-1 mb-3',
-                                                enabled ? 'text-[#64748b]' : 'text-[#cbd5e1]'
-                                            )}
-                                        >
+                                        <p className={cn('mb-3 mt-1 text-sm', enabled ? 'text-[#64748b] dark:text-slate-300' : 'text-[#cbd5e1] dark:text-slate-500')}>
                                             {getStepDescription(step)}
                                         </p>
-                                        <div
-                                            className={cn('text-xs', enabled ? 'text-[#94a3b8]' : 'text-[#cbd5e1]')}
-                                        >
+                                        <div className={cn('text-xs', enabled ? 'text-[#94a3b8] dark:text-slate-400' : 'text-[#cbd5e1] dark:text-slate-500')}>
                                             {t('job_analysis_pages.overview.card.min', { min: step.estMin })}
                                             {!enabled && index > 0 && ` • ${t('job_analysis_pages.overview.card.complete_prev', { step: index })}`}
                                         </div>
@@ -255,7 +238,7 @@ export default function JobAnalysisOverview({
                                     <div className="flex flex-col items-end gap-3 flex-shrink-0">
                                         {enabled && !completed && (
                                             <>
-                                                <div className="bg-[#f8fafc] text-[#64748b] px-3 py-1.5 rounded-lg text-xs">
+                                                <div className="rounded-lg bg-[#f8fafc] px-3 py-1.5 text-xs text-[#64748b] dark:bg-slate-800 dark:text-slate-300">
                                                     {t('job_analysis_pages.overview.card.ready')}
                                                 </div>
                                                 <Button
@@ -276,7 +259,7 @@ export default function JobAnalysisOverview({
                                             </Button>
                                         )}
                                         {!enabled && (
-                                            <div className="bg-[#f1f5f9] text-[#94a3b8] px-3 py-2 rounded-lg text-xs flex items-center gap-1.5">
+                                            <div className="flex items-center gap-1.5 rounded-lg bg-[#f1f5f9] px-3 py-2 text-xs text-[#94a3b8] dark:bg-slate-800 dark:text-slate-400">
                                                 <Lock className="w-3.5 h-3.5" />
                                                 {t('job_analysis_pages.overview.card.locked')}
                                             </div>
@@ -290,8 +273,8 @@ export default function JobAnalysisOverview({
             </div>
 
             {/* Footer */}
-            <footer className="sticky bottom-0 w-full bg-white py-4 px-5 md:px-[10%] flex flex-wrap items-center justify-between gap-4 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-10 mt-auto border-t border-[#e2e8f0]">
-                <p className="text-sm text-[#64748b]">
+            <footer className="sticky bottom-0 z-10 mt-auto flex w-full flex-wrap items-center justify-between gap-4 border-t border-[#e2e8f0] bg-white px-5 py-4 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] md:px-[10%] dark:border-slate-700 dark:bg-slate-900">
+                <p className="text-sm text-[#64748b] dark:text-slate-300">
                     {t('job_analysis_pages.overview.footer.completed', { completed: completedCount, total: STEPS.length })}
                 </p>
                 <Button

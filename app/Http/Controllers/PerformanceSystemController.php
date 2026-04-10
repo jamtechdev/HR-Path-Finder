@@ -424,6 +424,7 @@ class PerformanceSystemController extends Controller
     {
         $validated = $request->validate([
             'kpis' => ['required', 'array'],
+            'kpis.*.id' => ['nullable', 'exists:organizational_kpis,id'],
             'kpis.*.organization_name' => ['required', 'string'],
             'kpis.*.kpi_name' => ['required', 'string'],
             'kpis.*.purpose' => ['nullable', 'string'],
@@ -450,9 +451,7 @@ class PerformanceSystemController extends Controller
             ]);
         }
 
-        $newKpis = [];
-        
-        DB::transaction(function () use ($hrProject, $validated, $request, &$newKpis) {
+        DB::transaction(function () use ($hrProject, $validated, $request) {
             foreach ($validated['kpis'] as $kpiData) {
                 if (isset($kpiData['id']) && $kpiData['id']) {
                     $kpi = OrganizationalKpi::find($kpiData['id']);
@@ -551,50 +550,14 @@ class PerformanceSystemController extends Controller
                             ],
                         ]);
                         
-                        // Track newly created KPIs for email notification
-                        $newKpis[] = $kpi->toArray();
                     }
                 }
             }
         });
         
-        // Send email notifications to CEO and Admin when new KPIs are created
-        if (!empty($newKpis)) {
-            $hrProject->load('company');
-            $company = $hrProject->company;
-            
-            // Get all CEOs for this company
-            $ceos = $company->ceos()->get();
-            
-            // Get all admins
-            $admins = \App\Models\User::role('admin')->get();
-            
-            // Send email to all CEOs
-            foreach ($ceos as $ceo) {
-                try {
-                    \Mail::to($ceo->email)->send(new \App\Mail\KpiCreatedNotificationMail($hrProject, $newKpis, 'ceo'));
-                } catch (\Exception $e) {
-                    \Log::error('Failed to send KPI creation email to CEO', [
-                        'ceo_id' => $ceo->id,
-                        'ceo_email' => $ceo->email,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-            }
-            
-            // Send email to all admins
-            foreach ($admins as $admin) {
-                try {
-                    \Mail::to($admin->email)->send(new \App\Mail\KpiCreatedNotificationMail($hrProject, $newKpis, 'admin'));
-                } catch (\Exception $e) {
-                    \Log::error('Failed to send KPI creation email to Admin', [
-                        'admin_id' => $admin->id,
-                        'admin_email' => $admin->email,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-            }
-        }
+        // IMPORTANT:
+        // Draft save must NEVER send review emails.
+        // Emails are sent only from KpiReviewController::sendReviewRequest.
 
         $hrProject->setStepStatus('performance', StepStatus::IN_PROGRESS);
 

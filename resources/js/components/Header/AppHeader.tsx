@@ -6,6 +6,8 @@ import {
     ChevronDown,
     Bell,
     Repeat,
+    Moon,
+    Sun,
 } from 'lucide-react';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { Button } from '@/components/ui/button';
@@ -18,6 +20,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { useAppearance } from '@/hooks/use-appearance';
 import { clearClientDraftCaches } from '@/lib/clientDraftCleanup';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -47,6 +50,7 @@ function getBreadcrumbKey(path: string): string {
 export default function AppHeader() {
     const { t } = useTranslation();
     const page = usePage<any>();
+    const { resolvedAppearance, updateAppearance } = useAppearance();
     const { auth, activeRole, canSwitchToHr, notifications, appConfig } = page.props;
     const user = auth?.user;
     const appName = appConfig?.name || t('admin_ui.header.app_name');
@@ -89,6 +93,21 @@ return (
                 </div>
 
                 <div className="flex items-center gap-4">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => updateAppearance(resolvedAppearance === 'dark' ? 'light' : 'dark')}
+                        className="relative h-8 w-8 rounded-lg bg-muted hover:bg-muted/80"
+                        aria-label="Toggle theme"
+                        title="Toggle theme"
+                    >
+                        {resolvedAppearance === 'dark' ? (
+                            <Sun className="h-4 w-4" />
+                        ) : (
+                            <Moon className="h-4 w-4" />
+                        )}
+                    </Button>
                     <LanguageToggle iconOnly />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>

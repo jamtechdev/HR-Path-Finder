@@ -31,6 +31,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import { toastCopy } from '@/lib/toastCopy';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 const VALIDATION_CRITERIA = [
     { id: 'outcome_influence', label: 'Outcome Influence', icon: Zap, desc: "Outcome is primarily driven by this org's own efforts.", required: false, question: 'Is the outcome primarily influenced by this organization\'s own efforts?', noHint: 'Please refine the KPI so it reflects outcomes your org can directly control.' },
@@ -135,6 +136,7 @@ export default function KpiReviewTab({
     fieldErrors = {},
     kpiVerificationNotice = null,
 }: Props) {
+    const { t } = useTranslation();
     const [inlineMsg, setInlineMsg] = useState<string | null>(null);
     const [kpis, setKpis] = useState<Kpi[]>(() => normalizeKpis(organizationalKpis || []));
     const [selectedOrg, setSelectedOrg] = useState('');
@@ -151,9 +153,9 @@ export default function KpiReviewTab({
     const [reviewerEmail, setReviewerEmail] = useState('');
     const [savingReviewer, setSavingReviewer] = useState(false);
     const [editForm, setEditForm] = useState<Partial<Kpi>>({});
-    const [savedKpiKeys, setSavedKpiKeys] = useState<Set<string>>(new Set());
     const [recommendedTemplates, setRecommendedTemplates] = useState<Array<{ id: number; kpi_name: string; purpose?: string; category?: string; formula?: string; measurement_method?: string; weight?: number }>>([]);
     const [loadingTemplates, setLoadingTemplates] = useState(false);
+    const lastToastRef = useRef<{ message: string; ts: number } | null>(null);
     // When an organization has only 1 KPI, it should appear selected by default,
     // but only until the user manually toggles selection.
     const [selectionTouchedByOrg, setSelectionTouchedByOrg] = useState<Record<string, boolean>>({});
@@ -202,22 +204,18 @@ export default function KpiReviewTab({
     }, [organizationalKpis]);
 
     useEffect(() => {
-        // Existing DB rows are considered already saved.
-        setSavedKpiKeys(() => {
-            const initial = new Set<string>();
-            (organizationalKpis || []).forEach((k: any) => {
-                if (k?.id) initial.add(`id:${k.id}`);
-            });
-            return initial;
-        });
-    }, [organizationalKpis]);
-
-    useEffect(() => {
         onKpisChange?.(kpis);
     }, [kpis]);
 
     useEffect(() => {
         if (!inlineMsg) return;
+        const now = Date.now();
+        const prev = lastToastRef.current;
+        if (prev && prev.message === inlineMsg && now - prev.ts < 1500) {
+            setInlineMsg(null);
+            return;
+        }
+        lastToastRef.current = { message: inlineMsg, ts: now };
         const isFailure = /failed|error|required|missing/i.test(inlineMsg);
         toast({
             title: isFailure ? toastCopy.saveFailed : toastCopy.success,
@@ -391,20 +389,18 @@ export default function KpiReviewTab({
         setEditingKpi(null);
     };
 
-    const saveCurrentDraftToServer = (successMsg: string) => {
+    const saveCurrentDraftToServer = () => {
         if (!project?.id) return;
         router.post(
             `/hr-manager/performance-system/${project.id}`,
             {
                 tab: 'kpi-review',
-                kpis: kpis,
+                kpis: kpis as any,
             },
             {
                 preserveScroll: true,
                 preserveState: true,
-                onSuccess: () => {
-                    setInlineMsg(successMsg);
-                },
+                onSuccess: () => {},
                 onError: () => {
                     setInlineMsg('Failed to save KPI draft. Please try again.');
                 },
@@ -504,43 +500,21 @@ export default function KpiReviewTab({
         if (!selectedOrg || !project?.id) return;
         if (sendingReview) return;
         if (!hasSelectedOrgReviewer) {
-            setInlineMsg('KPI Reviewer is not set for this organization. Please add reviewer email in Org Chart Mapping.');
-            toast({
-                title: toastCopy.completeFirst,
-                description: 'Set KPI Reviewer first, then send review request.',
-                variant: 'warning',
-                duration: 2500,
-            });
+            setInlineMsg('Set KPI Reviewer first, then send review request.');
             return;
         }
         if (!selectedEligibility.canSend) {
-            toast({
-                title: toastCopy.notReadyYet,
-                description:
-                    (selectedEligibility.reason || 'This organization cannot be sent for review.') +
-                    ' 준비가 완료되면 다시 시도해 주세요.',
-                variant: 'warning',
-                duration: 2500,
-            });
+            setInlineMsg((selectedEligibility.reason || 'This organization cannot be sent for review.') + ' 준비가 완료되면 다시 시도해 주세요.');
             return;
         }
         if (!selectedKpisReady) {
-            toast({
-                title: toastCopy.completeFirst,
-                description:
-                    'For selected KPIs, make sure all 4 validation criteria are checked and measurability text (measurement method or formula) is set. 필수 검증을 완료해 주세요.',
-                variant: 'warning',
-                duration: 3000,
-            });
+            setInlineMsg(
+                'For selected KPIs, make sure all 4 validation criteria are checked and measurability text (measurement method or formula) is set. 필수 검증을 완료해 주세요.',
+            );
             return;
         }
         if (!weightOk) {
-            toast({
-                title: toastCopy.completeFirst,
-                description: 'Total selected KPI weight must be exactly 100% before sending review request.',
-                variant: 'warning',
-                duration: 2800,
-            });
+            setInlineMsg('Total selected KPI weight must be exactly 100% before sending review request.');
             return;
         }
 
@@ -570,12 +544,21 @@ export default function KpiReviewTab({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    setInlineMsg('Review request email sent successfully to Leader.');
                     setSendSuccessModalOpen(true);
                     setSendingReview(false);
                 },
-                onError: () => {
-                    setInlineMsg('Failed to send review request. Check KPI Reviewer email in Org Chart Mapping and ensure selected KPI total weight is 100%.');
+                onError: (errors: Record<string, any>) => {
+                    setSendSuccessModalOpen(false);
+                    const firstError =
+                        (typeof errors?.error === 'string' && errors.error) ||
+                        (Array.isArray(errors?.error) && errors.error.length > 0 ? errors.error[0] : '') ||
+                        (typeof errors?.kpis === 'string' && errors.kpis) ||
+                        (Array.isArray(errors?.kpis) && errors.kpis.length > 0 ? errors.kpis[0] : '') ||
+                        '';
+                    setInlineMsg(
+                        firstError ||
+                            'Failed to send review request. Check KPI Reviewer email in Org Chart Mapping and ensure selected KPI total weight is 100%.',
+                    );
                     setSendingReview(false);
                 },
             },
@@ -595,6 +578,7 @@ export default function KpiReviewTab({
             const status = (k.status ?? '').toLowerCase();
             return ceo === 'approved' || status === 'approved';
         });
+    const canContinue = selectedHasReviewSent || allKpisCeoApproved;
 
     const getKpiKey = (kpi: Kpi) => {
         const globalIndex = kpis.findIndex((x) => x === kpi);
@@ -611,7 +595,7 @@ export default function KpiReviewTab({
         });
 
     return (
-        <div className="manager-kpi-draft min-h-full flex flex-col" style={{ background: '#f8f9fb' }}>
+        <div className="manager-kpi-draft min-h-full flex flex-col bg-[#f8f9fb] dark:bg-slate-950 dark:text-slate-100">
             <Dialog open={!!validationModal} onOpenChange={(open) => !open && closeValidationModal()}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
@@ -699,19 +683,17 @@ export default function KpiReviewTab({
             <div className="flex-1 min-h-0 flex gap-6 md:p-6 flex-col md:flex-row max-w-[1400px] mx-auto w-full overflow-auto">
                 {/* Left: Main content */}
                 <div className="flex-1 min-w-0 space-y-4">
-                    <Card className="rounded-xl border border-[#e2e6ed] shadow-sm bg-white overflow-hidden">
+                    <Card className="overflow-hidden rounded-xl border border-[#e2e6ed] bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                         <CardContent className="p-6">
-                            {/* UX guidance: request is per-organization */}
-                            <div className="mb-5 rounded-xl border border-[#facc15]/40 bg-[#fefce8] px-4 py-3">
+                            <div className="mb-5 rounded-xl border border-[#facc15]/40 bg-[#fefce8] px-4 py-3 dark:border-amber-500/30 dark:bg-amber-950/20">
                                 <div className="flex items-start gap-3">
-                                    <Lightbulb className="w-5 h-5 text-[#92400e] mt-0.5" />
+                                    <Lightbulb className="mt-0.5 h-5 w-5 text-[#92400e] dark:text-amber-300" />
                                     <div className="min-w-0">
-                                        <p className="text-sm font-extrabold text-[#78350f]">
-                                            Review requests must be sent per organization
+                                        <p className="text-sm font-extrabold text-[#78350f] dark:text-amber-200">
+                                            {t('performance_system_kpi_review.banner_title')}
                                         </p>
-                                        <p className="text-xs text-[#6b7685] mt-1">
-                                            After completing the KPIs for an organization, click <strong>Send Review Request</strong> for that organization.
-                                            Other organizations will not be requested automatically.
+                                        <p className="mt-1 text-xs text-[#6b7685] dark:text-slate-300">
+                                            {t('performance_system_kpi_review.banner_desc')}
                                         </p>
                                     </div>
                                 </div>
@@ -719,10 +701,10 @@ export default function KpiReviewTab({
                             {/* Top row: Organization, Leader, KPI Count */}
                             <div className="flex flex-wrap items-center gap-4 mb-4">
                                 <div className="flex items-center gap-2">
-                                    <Label className="text-sm font-semibold text-[#1a2b4a]">Organization:</Label>
+                                    <Label className="text-sm font-semibold text-[#1a2b4a] dark:text-slate-100">{t('performance_system_kpi_review.organization')}</Label>
                                     <Select value={selectedOrg} onValueChange={setSelectedOrg}>
                                         <SelectTrigger className="w-[280px] max-w-full border-[#e2e6ed] rounded-lg h-10">
-                                            <SelectValue placeholder="Select organization" />
+                                            <SelectValue placeholder={t('performance_system_kpi_review.select_organization')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {orgNames.map((org) => (
@@ -733,20 +715,44 @@ export default function KpiReviewTab({
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f0f2f5] border border-[#e2e6ed] text-sm text-[#6b7685]">
-                                    <User className="w-4 h-4 text-[#9aa3b2]" />
-                                    <span className="font-medium">Leader</span>
-                                    <span className="text-[#1a2b4a] font-semibold">{leaderName}</span>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    {hasSelectedOrgReviewer ? (
+                                        <Badge className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs dark:bg-emerald-900/30 dark:text-emerald-200 dark:border-emerald-700">
+                                            {t('performance_system_kpi_review.reviewer_set')}
+                                        </Badge>
+                                    ) : (
+                                        <>
+                                            <Badge className="bg-amber-100 text-amber-800 border border-amber-300 text-xs dark:bg-amber-900/30 dark:text-amber-200 dark:border-amber-700">
+                                                {t('performance_system_kpi_review.reviewer_missing')}
+                                            </Badge>
+                                            {selectedOrg && (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 text-xs"
+                                                    onClick={() => openReviewerModal(selectedOrg)}
+                                                >
+                                                    {t('performance_system_kpi_review.add_kpi_reviewer')}
+                                                </Button>
+                                            )}
+                                        </>
+                                    )}
                                 </div>
-                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f0f2f5] border border-[#e2e6ed] text-sm text-[#6b7685]">
+                                <div className="inline-flex items-center gap-2 rounded-full border border-[#e2e6ed] bg-[#f0f2f5] px-3 py-1.5 text-sm text-[#6b7685] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                    <User className="w-4 h-4 text-[#9aa3b2]" />
+                                    <span className="font-medium">{t('performance_system_kpi_review.leader')}</span>
+                                    <span className="text-[#1a2b4a] font-semibold dark:text-slate-100">{leaderName}</span>
+                                </div>
+                                <div className="inline-flex items-center gap-2 rounded-full border border-[#e2e6ed] bg-[#f0f2f5] px-3 py-1.5 text-sm text-[#6b7685] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
                                     <Target className="w-4 h-4 text-[#9aa3b2]" />
-                                    <span className="font-medium">KPI Count</span>
-                                    <span className="text-[#1a2b4a] font-semibold">{orgKpis.length}</span>
+                                    <span className="font-medium">{t('performance_system_kpi_review.kpi_count')}</span>
+                                    <span className="text-[#1a2b4a] font-semibold dark:text-slate-100">{orgKpis.length}</span>
                                 </div>
                                 {orgKpis.length > 0 && !selectedHasReviewSent && (
                                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#fef9c3] border border-[#facc15] text-sm text-[#92400e]">
                                         <Clock className="w-4 h-4" />
-                                        <span className="font-semibold">Pending Request</span>
+                                        <span className="font-semibold">{t('performance_system_kpi_review.pending_request')}</span>
                                     </div>
                                 )}
                             </div>
@@ -758,7 +764,7 @@ export default function KpiReviewTab({
                                     className="bg-[#2e4570] hover:bg-[#1a2b4a] text-white rounded-lg font-semibold"
                                 >
                                     <Check className="w-4 h-4 mr-2" />
-                                    Confirm All Recommended
+                                    {t('performance_system_kpi_review.confirm_all_recommended')}
                                 </Button>
                             <Button
                                 onClick={handleAddKpi}
@@ -766,34 +772,31 @@ export default function KpiReviewTab({
                                 className="bg-[#2ec4a0] hover:bg-[#25a88a] text-white rounded-lg font-semibold border border-[#b0ede0]"
                             >
                                 <Plus className="w-4 h-4 mr-2" />
-                                Add KPI
+                                {t('performance_system_kpi_review.add_kpi')}
                             </Button>
                             </div>
 
                             {selectedOrg && (
                                 <>
                                     {loadingTemplates ? (
-                                        <p className="text-sm text-[#6b7685] py-2">Loading recommended KPIs...</p>
+                                        <p className="py-2 text-sm text-[#6b7685] dark:text-slate-300">{t('performance_system_kpi_review.loading_recommended')}</p>
                                     ) : recommendedTemplates.length > 0 ? (
-                                        <div className="mb-4 rounded-lg border border-[#e2e6ed] bg-[#f8f9fb] p-4">
-                                            <h4 className="text-sm font-bold text-[#1a2b4a] mb-2">Recommended KPIs (from Admin templates)</h4>
-                                            <p className="text-xs text-[#6b7685] mb-3">Select a template to add it to your list. You can then edit, add, or delete.</p>
+                                        <div className="mb-4 rounded-lg border border-[#e2e6ed] bg-[#f8f9fb] p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                                            <h4 className="mb-2 text-sm font-bold text-[#1a2b4a] dark:text-slate-100">{t('performance_system_kpi_review.recommended_title')}</h4>
+                                            <p className="mb-3 text-xs text-[#6b7685] dark:text-slate-300">{t('performance_system_kpi_review.recommended_desc')}</p>
                                             <div className="flex flex-wrap gap-2">
-                                                {recommendedTemplates.map((t) => (
-                                                    <div
-                                                        key={t.id}
-                                                        className="inline-flex items-center gap-2 rounded-lg border border-[#e2e6ed] bg-white px-3 py-2 text-sm"
-                                                    >
-                                                        <span className="font-medium text-[#1a2b4a]">{t.kpi_name}</span>
-                                                        <span className="text-[#6b7685]">{(t.weight ?? 0)}%</span>
+                                                {recommendedTemplates.map((tpl) => (
+                                                    <div key={tpl.id} className="inline-flex items-center gap-2 rounded-lg border border-[#e2e6ed] bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900">
+                                                        <span className="font-medium text-[#1a2b4a] dark:text-slate-100">{tpl.kpi_name}</span>
+                                                        <span className="text-[#6b7685] dark:text-slate-300">{(tpl.weight ?? 0)}%</span>
                                                         <Button
                                                             type="button"
                                                             size="sm"
                                                             variant="outline"
                                                             className="h-7 text-xs"
-                                                            onClick={() => handleAddFromTemplate(t)}
+                                                            onClick={() => handleAddFromTemplate(tpl)}
                                                         >
-                                                            Add to list
+                                                            {t('performance_system_kpi_review.add_to_list')}
                                                         </Button>
                                                     </div>
                                                 ))}
@@ -805,8 +808,8 @@ export default function KpiReviewTab({
 
                             {/* Team Progress Status */}
                             {orgNames.length > 0 && (
-                                <div className="mb-6 rounded-xl border border-[#e2e6ed] bg-[#f8f9fb] p-4">
-                                    <h4 className="text-sm font-bold text-[#1a2b4a] mb-3">Team Progress Status</h4>
+                                <div className="mb-6 rounded-xl border border-[#e2e6ed] bg-[#f8f9fb] p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                                    <h4 className="mb-3 text-sm font-bold text-[#1a2b4a] dark:text-slate-100">{t('performance_system_kpi_review.team_progress_status')}</h4>
                                     <div className="space-y-2">
                                         {orgNames.map((orgName) => {
                                             const orgKpisForStatus = kpis.filter((k) => k.organization_name === orgName);
@@ -828,41 +831,38 @@ export default function KpiReviewTab({
                                                     return ceo === 'approved' || status === 'approved';
                                                 });
                                             return (
-                                                <div
-                                                    key={orgName}
-                                                    className="flex items-center justify-between rounded-lg border border-[#e2e6ed] bg-white px-4 py-2 text-sm"
-                                                >
-                                                    <span className="font-medium text-[#1a2b4a]">{orgName}</span>
+                                                <div key={orgName} className="flex items-center justify-between rounded-lg border border-[#e2e6ed] bg-white px-4 py-2 text-sm dark:border-slate-700 dark:bg-slate-900">
+                                                    <span className="font-medium text-[#1a2b4a] dark:text-slate-100">{orgName}</span>
                                                     <div className="flex items-center gap-2">
                                                         {orgKpiCount === 0 ? (
                                                             <Badge variant="secondary" className="text-xs">
-                                                                No KPIs
+                                                                {t('performance_system_kpi_review.no_kpis')}
                                                             </Badge>
                                                         ) : hasReviewSent ? (
                                                             <Badge variant="default" className="text-xs">
-                                                                Request Sent
+                                                                {t('performance_system_kpi_review.request_sent')}
                                                             </Badge>
                                                         ) : !getOrgReviewEligibility(orgName).canSend ? (
                                                             <Badge className="bg-[#334155] text-white text-xs font-semibold">
-                                                                Verified (Locked)
+                                                                {t('performance_system_kpi_review.verified_locked')}
                                                             </Badge>
                                                         ) : (
                                                             <Badge className="bg-[#f59e0b] text-white text-xs font-semibold">
-                                                                Pending Request
+                                                                {t('performance_system_kpi_review.pending_request')}
                                                             </Badge>
                                                         )}
                                                         {hasLeaderSubmitted && (
-                                                            <Badge className="bg-[#2563eb] text-white text-xs">Leader submitted</Badge>
+                                                            <Badge className="bg-[#2563eb] text-white text-xs">{t('performance_system_kpi_review.leader_submitted')}</Badge>
                                                         )}
                                                         {hasCeoRevisionRequested && (
-                                                            <Badge className="bg-[#f59e0b] text-white text-xs">CEO revision</Badge>
+                                                            <Badge className="bg-[#f59e0b] text-white text-xs">{t('performance_system_kpi_review.ceo_revision')}</Badge>
                                                         )}
                                                         {allCeoApproved && (
-                                                            <Badge className="bg-[#16a34a] text-white text-xs">CEO approved</Badge>
+                                                            <Badge className="bg-[#16a34a] text-white text-xs">{t('performance_system_kpi_review.ceo_approved')}</Badge>
                                                         )}
                                                         {!orgHasReviewer && (
                                                             <Badge className="bg-amber-100 text-amber-800 border border-amber-300 text-xs">
-                                                                Reviewer Missing
+                                                                {t('performance_system_kpi_review.reviewer_missing')}
                                                             </Badge>
                                                         )}
                                                         {!orgHasReviewer && orgName === selectedOrg && (
@@ -873,7 +873,7 @@ export default function KpiReviewTab({
                                                                 className="h-7 text-xs"
                                                                 onClick={() => openReviewerModal(orgName)}
                                                             >
-                                                                Add KPI Reviewer
+                                                                {t('performance_system_kpi_review.add_kpi_reviewer')}
                                                             </Button>
                                                         )}
                                                     </div>
@@ -886,11 +886,14 @@ export default function KpiReviewTab({
 
                             {/* KPI summary + send hint */}
                             <div className="flex flex-wrap items-center gap-4 mb-6 text-sm">
-                                <span className="text-[#6b7685] font-medium">
-                                    KPI {orgSelectedKpis.length}/{orgKpis.length}개
+                                <span className="font-medium text-[#6b7685] dark:text-slate-300">
+                                    {t('performance_system_kpi_review.kpi_count_summary', {
+                                        selected: orgSelectedKpis.length,
+                                        total: orgKpis.length,
+                                    })}
                                 </span>
-                                <span className="text-[#6b7685]">
-                                    ◎ Weight 합계:{' '}
+                                <span className="text-[#6b7685] dark:text-slate-300">
+                                    {t('performance_system_kpi_review.weight_total')}{' '}
                                     <span
                                         className={cn(
                                             'font-bold',
@@ -901,9 +904,9 @@ export default function KpiReviewTab({
                                     </span>
                                 </span>
                                 {orgKpis.length > 0 && (
-                                    <span className="text-xs text-[#6b7685]">
+                                    <span className="text-xs text-[#6b7685] dark:text-slate-300">
                                         <span>
-                                            Send request for this organization only. You must click <strong>Send Review Request</strong> separately for each organization after finishing its KPIs.
+                                            {t('performance_system_kpi_review.send_hint')}
                                         </span>
                                     </span>
                                 )}
@@ -912,21 +915,19 @@ export default function KpiReviewTab({
                             {/* KPI cards */}
                             <div className="space-y-4">
                                 {!selectedOrg ? (
-                                    <p className="text-sm text-[#6b7685] py-8 text-center">Select an organization to view KPIs.</p>
+                                    <p className="py-8 text-center text-sm text-[#6b7685] dark:text-slate-300">{t('performance_system_kpi_review.select_org_to_view')}</p>
                                 ) : orgKpis.length === 0 ? (
-                                    <p className="text-sm text-[#6b7685] py-8 text-center">No KPIs for this organization. Click &quot;+ Add KPI&quot; to create one.</p>
+                                    <p className="py-8 text-center text-sm text-[#6b7685] dark:text-slate-300">{t('performance_system_kpi_review.no_kpis_for_org')}</p>
                                 ) : (
                                     <>
                                         {orgSelectedKpis.length === 0 && (
-                                            <p className="text-sm text-[#6b7685] py-4">
-                                                Select KPI cards with the <strong>green check</strong> to include them in the review request.
+                                            <p className="py-4 text-sm text-[#6b7685] dark:text-slate-300">
+                                                {t('performance_system_kpi_review.select_kpi_hint')}
                                             </p>
                                         )}
                                         {orgKpis.map((kpi, idx) => {
                                         const globalIndex = kpis.findIndex((k) => k === kpi);
                                         const kpiKey = `kpi-${kpi.id ?? globalIndex}-${kpi.kpi_name}`;
-                                        const actionKey = kpi.id ? `id:${kpi.id}` : `tmp:${globalIndex}:${kpi.kpi_name}`;
-                                        const isSaved = savedKpiKeys.has(actionKey);
                                         const validation = getValidation(kpiKey);
                                         const completed = completedCount(kpiKey);
                                         const measurabilityRequired = needsMeasurability(kpiKey);
@@ -950,10 +951,10 @@ export default function KpiReviewTab({
                                                     handleExcludeKpi(globalIndex);
                                                 }}
                                                 className={cn(
-                                                    'relative rounded-xl border bg-white p-5 shadow-sm transition-all cursor-pointer',
+                                                    'relative rounded-xl border bg-white p-5 shadow-sm transition-all cursor-pointer dark:bg-slate-900',
                                                     isSelected
-                                                        ? 'border-[#16a34a] bg-[#ecfdf5]'
-                                                        : 'opacity-60 border-[#e2e6ed] hover:border-[#dbe2ea]'
+                                                        ? 'border-[#16a34a] bg-[#ecfdf5] dark:border-emerald-500/60 dark:bg-emerald-900/20'
+                                                        : 'border-[#e2e6ed] opacity-70 hover:border-[#dbe2ea] dark:border-slate-700 dark:opacity-100 dark:hover:border-slate-500'
                                                 )}
                                             >
                                                 {isSelected && (
@@ -965,13 +966,13 @@ export default function KpiReviewTab({
                                                             <Badge className="bg-[#7c3aed] text-white text-xs font-semibold rounded-full border-0">Recommended</Badge>
                                                             <Badge className="bg-[#e8faf6] text-[#2ec4a0] text-xs font-semibold rounded-full border-0">{(kpi.category || 'Monthly')}</Badge>
                                                         </div>
-                                                        <h3 className="text-lg font-bold text-[#1a2b4a] mb-1">{kpi.kpi_name || 'Untitled KPI'}</h3>
-                                                        <div className="inline-block px-3 py-1.5 rounded-full bg-[#f0f2f5] text-[#6b7685] text-sm mb-2">
+                                                        <h3 className="mb-1 text-lg font-bold text-[#1a2b4a] dark:text-slate-100">{kpi.kpi_name || t('performance_system_kpi_review.untitled_kpi')}</h3>
+                                                        <div className="mb-2 inline-block rounded-full bg-[#f0f2f5] px-3 py-1.5 text-sm text-[#6b7685] dark:bg-slate-800 dark:text-slate-300">
                                                             {formulaText}
                                                         </div>
                                                         <p className="text-xs text-[#94a3b8] flex items-center gap-1.5">
                                                             <Clock className="w-3.5 h-3.5" />
-                                                            <span>Weight: {kpi.weight ?? 0}%</span>
+                                                            <span>{t('performance_system_kpi_review.weight_label', { weight: kpi.weight ?? 0 })}</span>
                                                         </p>
                                                     </div>
                                                     <div className="flex flex-col gap-2 shrink-0">
@@ -980,43 +981,20 @@ export default function KpiReviewTab({
                                                             size="sm"
                                                             className="bg-[#f1f5f9] border-[#e2e8f0] text-[#475569] hover:bg-[#e2e8f0] rounded-lg"
                                                             onClick={() => {
-                                                                setSavedKpiKeys((prev) => {
-                                                                    const next = new Set(prev);
-                                                                    next.delete(actionKey);
-                                                                    return next;
-                                                                });
                                                                 setEditingKpi(kpi);
                                                                 setEditingKpiIndex(globalIndex);
                                                                 setEditForm({ ...kpi });
                                                             }}
                                                         >
-                                                            <Edit className="w-3.5 h-3.5 mr-1" /> Edit
+                                                            <Edit className="w-3.5 h-3.5 mr-1" /> {t('performance_system_kpi_review.edit')}
                                                         </Button>
-                                                        {!isSaved && (
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                className="bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 rounded-lg"
-                                                                onClick={() => {
-                                                                    handleSaveKpi(globalIndex);
-                                                                    saveCurrentDraftToServer('KPI saved.');
-                                                                    setSavedKpiKeys((prev) => {
-                                                                        const next = new Set(prev);
-                                                                        next.add(actionKey);
-                                                                        return next;
-                                                                    });
-                                                                }}
-                                                            >
-                                                                <Check className="w-3.5 h-3.5 mr-1" /> Save
-                                                            </Button>
-                                                        )}
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
                                                             className="bg-red-50 border-red-200 text-red-600 hover:bg-red-100 rounded-lg"
                                                             onClick={() => handleDeleteKpi(globalIndex)}
                                                         >
-                                                            <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
+                                                            <Trash2 className="w-3.5 h-3.5 mr-1" /> {t('performance_system_kpi_review.delete')}
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -1024,7 +1002,7 @@ export default function KpiReviewTab({
                                                 {/* Validation section */}
                                                 <div className="mt-4 pt-4 border-t border-[#e2e8f0]">
                                                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b7685]">VALIDATION</span>
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b7685] dark:text-slate-300">{t('performance_system_kpi_review.validation')}</span>
                                                         <Badge
                                                             className={cn(
                                                                 'text-xs font-bold rounded-full',
@@ -1035,12 +1013,12 @@ export default function KpiReviewTab({
                                                         </Badge>
                                                         {completed < 4 && (
                                                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-100 text-amber-800 text-xs font-medium border border-amber-200">
-                                                                <AlertTriangle className="w-3.5 h-3.5" /> Incomplete
+                                                                <AlertTriangle className="w-3.5 h-3.5" /> {t('performance_system_kpi_review.incomplete')}
                                                             </span>
                                                         )}
                                                         {measurabilityRequired && (
                                                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#fef9c3] text-amber-800 text-xs font-medium border border-amber-300">
-                                                                <AlertTriangle className="w-3.5 h-3.5" /> Measurability required
+                                                                <AlertTriangle className="w-3.5 h-3.5" /> {t('performance_system_kpi_review.measurability_required')}
                                                             </span>
                                                         )}
                                                     </div>
@@ -1059,7 +1037,7 @@ export default function KpiReviewTab({
                                                                             ? 'bg-[#2563eb] text-white border-0 cursor-default'
                                                                             : isMeasurability && measurabilityRequired
                                                                             ? 'bg-[#fef9c3] text-amber-800 border border-amber-300 hover:bg-amber-100'
-                                                                            : 'bg-[#f1f5f9] text-[#6b7685] border border-[#e2e6ed] hover:bg-[#e2e8f0]'
+                                                                            : 'bg-[#f1f5f9] text-[#6b7685] border border-[#e2e6ed] hover:bg-[#e2e8f0] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700'
                                                                     )}
                                                                 >
                                                                     {checked ? <Check className="w-3 h-3" /> : <span className="w-1.5 h-1.5 rounded-full bg-[#64748b] opacity-80" />}
@@ -1081,52 +1059,55 @@ export default function KpiReviewTab({
 
                 {/* Right: Validation Guide + Tips */}
                 <div className="w-[320px] shrink-0 space-y-4">
-                    <Card className="rounded-xl border border-[#e2e6ed] shadow-sm bg-white overflow-hidden">
+                    <Card className="overflow-hidden rounded-xl border border-[#e2e6ed] bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                         <CardContent className="p-5">
-                            <h3 className="text-sm font-bold text-[#0f2a4a] mb-4 flex items-center gap-2">
-                                <span className="w-6 h-6 rounded-full bg-[#0f2a4a] flex items-center justify-center">
+                            <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-[#0f2a4a] dark:text-slate-100">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0f2a4a] dark:bg-slate-700">
                                     <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                                 </span>
-                                Validation Guide
+                                {t('performance_system_kpi_review.validation_guide')}
                             </h3>
-                            <ul className="space-y-3 text-sm">
+                            <ul className="flex gap-2 overflow-x-auto pb-1 text-sm [scrollbar-width:thin]">
                                 {VALIDATION_CRITERIA.map((c) => (
-                                    <li key={c.id} className="flex gap-2">
-                                        <span className="text-[#6b7685] shrink-0 mt-0.5">
+                                    <li
+                                        key={c.id}
+                                        className="min-w-[210px] shrink-0 rounded-lg border border-[#e2e6ed] bg-[#f8fafc] p-2 dark:border-slate-700 dark:bg-slate-800/60"
+                                    >
+                                        <span className="mt-0.5 shrink-0 text-[#6b7685] dark:text-slate-400">
                                             {c.id === 'outcome_influence' && <Zap className="w-4 h-4" />}
                                             {c.id === 'job_relevance' && <CheckCircle2 className="w-4 h-4" />}
                                             {c.id === 'measurability' && <TrendingUp className="w-4 h-4" />}
                                             {c.id === 'data_availability' && <Database className="w-4 h-4" />}
                                         </span>
                                         <div>
-                                            <span className="font-semibold text-[#0f2a4a]">{c.required ? c.label.replace(' Required', '') : c.label}</span>
-                                            {c.required && <span className="text-red-600 text-xs font-semibold ml-1">Required</span>}
-                                            <p className="text-[#6b7685] text-xs mt-0.5">{c.desc}</p>
+                                            <span className="font-semibold text-[#0f2a4a] dark:text-slate-100">{c.required ? c.label.replace(' Required', '') : c.label}</span>
+                                            {c.required && <span className="text-red-600 text-xs font-semibold ml-1">{t('performance_system_kpi_review.required')}</span>}
+                                            <p className="mt-0.5 text-xs text-[#6b7685] dark:text-slate-300">{c.desc}</p>
                                         </div>
                                     </li>
                                 ))}
                             </ul>
-                            <p className="text-xs text-[#6b7685] mt-4">
+                            <p className="mt-4 text-xs text-[#6b7685] dark:text-slate-300">
                                 각 KPI 카드의 기준을 클릭해 검증하세요. 4/4 달성 후 이메일 발송 권장.
                             </p>
                         </CardContent>
                     </Card>
                     <div className="rounded-xl bg-[#0f2a4a] text-white p-5">
                         <h3 className="text-sm font-bold flex items-center gap-2 mb-3">
-                            <Lightbulb className="w-4 h-4 text-emerald-400" /> ◎ Tips
+                            <Lightbulb className="w-4 h-4 text-emerald-400" /> ◎ {t('performance_system_kpi_review.tips')}
                         </h3>
-                        <ul className="space-y-2.5 text-xs text-[#e2e8f0]">
-                            <li className="flex items-start gap-2">
+                        <ul className="flex gap-2 overflow-x-auto pb-1 text-xs text-[#e2e8f0] [scrollbar-width:thin]">
+                            <li className="flex min-w-[220px] shrink-0 items-start gap-2 rounded-lg border border-white/10 bg-white/5 p-2">
                                 <Circle className="w-1.5 h-1.5 text-emerald-400 shrink-0 mt-1.5 fill-emerald-400" />
-                                <span>Recommended = Pathfinder 제안, 조직 현실에 맞게 조정하세요.</span>
+                                <span>{t('performance_system_kpi_review.tip_1')}</span>
                             </li>
-                            <li className="flex items-start gap-2">
+                            <li className="flex min-w-[220px] shrink-0 items-start gap-2 rounded-lg border border-white/10 bg-white/5 p-2">
                                 <Circle className="w-1.5 h-1.5 text-blue-400 shrink-0 mt-1.5 fill-blue-400" />
-                                <span>4개 기준 체크 → 4/4 달성 후 이메일 발송.</span>
+                                <span>{t('performance_system_kpi_review.tip_2')}</span>
                             </li>
-                            <li className="flex items-start gap-2">
+                            <li className="flex min-w-[220px] shrink-0 items-start gap-2 rounded-lg border border-white/10 bg-white/5 p-2">
                                 <Circle className="w-1.5 h-1.5 text-amber-400 shrink-0 mt-1.5 fill-amber-400" />
-                                <span>Measurability 는 필수 — 미체크 시 수정 또는 Exclude.</span>
+                                <span>{t('performance_system_kpi_review.tip_3')}</span>
                             </li>
                         </ul>
                     </div>
@@ -1134,15 +1115,15 @@ export default function KpiReviewTab({
             </div>
 
             {/* Footer: in flow so it starts after sidebar/header (no full-width under sidebar) */}
-            <footer className="sticky bottom-0 shrink-0 bg-white border-t border-[#e0ddd5] py-[18px] px-6 md:px-[60px] shadow-[0_-4px_12px_rgba(0,0,0,0.06)] z-10">
+            <footer className="sticky bottom-0 z-10 shrink-0 border-t border-[#e0ddd5] bg-white px-6 py-[18px] shadow-[0_-4px_12px_rgba(0,0,0,0.06)] md:px-[60px] dark:border-slate-700 dark:bg-slate-900">
                 <div className="max-w-[1400px] mx-auto flex flex-wrap items-center justify-between gap-4">
                     {onBack ? (
                         <Button
                             variant="outline"
                             onClick={onBack}
-                            className="border-[#e2e8f0] text-[#475569] hover:bg-[#f8fafc] rounded-lg font-semibold"
+                            className="rounded-lg border-[#e2e8f0] font-semibold text-[#475569] hover:bg-[#f8fafc] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
                         >
-                            <ChevronLeft className="w-4 h-4 mr-1" /> Back
+                            <ChevronLeft className="w-4 h-4 mr-1" /> {t('common.back')}
                         </Button>
                     ) : (
                         <div />
@@ -1155,19 +1136,19 @@ export default function KpiReviewTab({
                                 className="bg-[#1a2b4a] hover:bg-[#2e4570] text-white rounded-lg font-bold px-6 py-2.5 shadow-md disabled:opacity-60"
                             >
                                 <Send className="w-4 h-4 mr-2" />
-                                {sendingReview ? 'Sending...' : (selectedHasReviewSent ? 'Resend Review Request' : 'Send Review Request')}
+                                {sendingReview ? t('common.sending') : (selectedHasReviewSent ? t('performance_system_kpi_review.resend_review_request') : t('performance_system_kpi_review.send_review_request'))}
                             </Button>
                             <Button
                                 onClick={() => onContinue(kpis)}
-                                disabled={!allKpisCeoApproved}
+                                disabled={!canContinue}
                                 className="bg-[#1a2b4a] hover:bg-[#2e4570] text-white rounded-lg font-bold px-6 py-2.5 shadow-md"
                             >
-                                Continue
+                                {t('common.continue')}
                                 <ChevronRight className="w-4 h-4 ml-2" />
                             </Button>
-                            {!allKpisCeoApproved && (
+                            {!canContinue && (
                                 <p className="text-xs text-amber-700">
-                                    Continue will unlock after CEO completes KPI review approval.
+                                    {t('performance_system_kpi_review.continue_locked_hint')}
                                 </p>
                             )}
                         </div>
@@ -1191,13 +1172,13 @@ export default function KpiReviewTab({
                     onEscapeKeyDown={(e) => e.preventDefault()}
                 >
                     <DialogHeader>
-                        <DialogTitle>Edit KPI</DialogTitle>
-                        <DialogDescription>Update KPI name, formula, weight, and other fields.</DialogDescription>
+                        <DialogTitle>{t('performance_system_kpi_review.edit_kpi')}</DialogTitle>
+                        <DialogDescription>{t('performance_system_kpi_review.edit_kpi_desc')}</DialogDescription>
                     </DialogHeader>
                     {editingKpiIndex !== null && (
                         <div className="space-y-4 pt-2">
                             <div>
-                                <Label>KPI Name</Label>
+                                <Label>{t('performance_system_kpi_review.kpi_name')}</Label>
                                 <Input
                                     value={editForm.kpi_name ?? ''}
                                     onChange={(e) => setEditForm((f) => ({ ...f, kpi_name: e.target.value }))}
@@ -1205,16 +1186,16 @@ export default function KpiReviewTab({
                                 />
                             </div>
                             <div>
-                                <Label>Formula / Description</Label>
+                                <Label>{t('performance_system_kpi_review.formula_description')}</Label>
                                 <Input
                                     value={editForm.formula ?? ''}
                                     onChange={(e) => setEditForm((f) => ({ ...f, formula: e.target.value }))}
                                     className="mt-1"
-                                    placeholder="e.g. Uptime hrs / Total hrs * 100"
+                                    placeholder={t('performance_system_kpi_review.formula_placeholder')}
                                 />
                             </div>
                             <div>
-                                <Label>Weight (%)</Label>
+                                <Label>{t('performance_system_kpi_review.weight_percent')}</Label>
                                 <Input
                                     type="number"
                                     min={0}
@@ -1225,7 +1206,7 @@ export default function KpiReviewTab({
                                 />
                             </div>
                             <div>
-                                <Label>Purpose</Label>
+                                <Label>{t('performance_system_kpi_review.purpose')}</Label>
                                 <Textarea
                                     value={editForm.purpose ?? ''}
                                     onChange={(e) => setEditForm((f) => ({ ...f, purpose: e.target.value }))}
@@ -1241,19 +1222,20 @@ export default function KpiReviewTab({
                                         setEditingKpiIndex(null);
                                     }}
                                 >
-                                    Cancel
+                                    {t('common.cancel')}
                                 </Button>
                                     <Button
                                         onClick={() => {
                                             if (editingKpiIndex !== null && editingKpiIndex >= 0) {
                                                 handleSaveKpi(editingKpiIndex, editForm);
+                                                saveCurrentDraftToServer();
                                             }
                                             setEditingKpi(null);
                                             setEditingKpiIndex(null);
                                         }}
                                         disabled={!editForm.kpi_name?.trim()}
                                     >
-                                    Save
+                                    {t('common.save')}
                                 </Button>
                             </div>
                         </div>

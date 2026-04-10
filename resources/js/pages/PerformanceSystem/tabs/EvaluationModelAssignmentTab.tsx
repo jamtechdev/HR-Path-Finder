@@ -274,7 +274,7 @@ export default function EvaluationModelAssignmentTab({
     const okrJobs = uniqueJobDefinitions.filter((j) => assignments[j.id] === 'okr');
 
     return (
-        <div className="min-h-full flex flex-col bg-[#f0f3f8]">
+        <div className="min-h-full flex flex-col bg-[#f0f3f8] dark:bg-slate-950 dark:text-slate-100">
             <div className="flex-1 py-5 sm:px-6 pb-[100px]">
                 <div className="max-w-[1200px] mx-auto grid gap-4 grid-cols-1 xl:grid-cols-[1fr_260px]">
                     {/* LEFT */}
@@ -289,7 +289,7 @@ export default function EvaluationModelAssignmentTab({
                                 const concept = model === 'mbo' ? mboGuidance.concept : model === 'bsc' ? bscGuidance.concept : okrGuidance.concept;
                                 const badgeClass = model === 'mbo' ? 'bg-[#fff7ed] text-[#f97316] border-[#fed7aa]' : model === 'bsc' ? 'bg-[#eff6ff] text-[#3b82f6] border-[#bfdbfe]' : 'bg-[#ede9fe] text-[#7c3aed] border-[#c4b5fd]';
                                 return (
-                                    <div key={model} className="bg-white border border-[#e2e8f0] rounded-[14px] p-4 shadow-sm hover:shadow-md transition-shadow">
+                                    <div key={model} className="rounded-[14px] border border-[#e2e8f0] bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
                                         <div className="flex items-center justify-between mb-2">
                                             <span className={cn('text-[13px] font-extrabold px-3 py-0.5 rounded-lg border', badgeClass)}>{model.toUpperCase()}</span>
                                             <Button variant="outline" size="sm" className="text-[10.5px] font-semibold text-[#94a3b8] border-[#e2e8f0] h-7 px-2 rounded-full" onClick={() => setModelModal(model)}>view</Button>
@@ -301,7 +301,7 @@ export default function EvaluationModelAssignmentTab({
                         </div>
 
                         {/* Bulk bar */}
-                        <div className="bg-white border border-[#e2e8f0] rounded-xl py-3 px-4 flex flex-wrap items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-[#e2e8f0] bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
                             <span className="text-xs font-semibold text-[#1a2b4a]">Bulk Assign</span>
                             <div className="flex items-center gap-2 flex-1 flex-wrap">
                                 <Select value={bulkDept} onValueChange={setBulkDept}>
@@ -329,7 +329,7 @@ export default function EvaluationModelAssignmentTab({
                         </div>
 
                         {/* Job table */}
-                        <div className="bg-white border border-[#e2e8f0] rounded-[14px] overflow-hidden">
+                        <div className="overflow-hidden rounded-[14px] border border-[#e2e8f0] bg-white dark:border-slate-700 dark:bg-slate-900">
                             <div className="hidden sm:grid gap-3 items-center px-4 py-3 bg-[#f8fafc] border-b border-[#e2e8f0]" style={{ gridTemplateColumns: '1fr auto 180px' }}>
                                 <span className="text-[10.5px] font-bold uppercase tracking-wider text-[#94a3b8]">Job Role</span>
                                 <span className="text-[10.5px] font-bold uppercase tracking-wider text-[#94a3b8]">Linked KPI</span>
@@ -405,7 +405,7 @@ export default function EvaluationModelAssignmentTab({
                         </div>
 
                         {/* Summary */}
-                        <div className="bg-white border border-[#e2e8f0] rounded-[14px] overflow-hidden mt-4">
+                        <div className="mt-4 overflow-hidden rounded-[14px] border border-[#e2e8f0] bg-white dark:border-slate-700 dark:bg-slate-900">
                             <div className="px-4 py-3 border-b border-[#e2e8f0] bg-[#f8fafc] flex items-center gap-2 text-[12.5px] font-bold text-[#1a2b4a]">
                                 <Check className="w-3.5 h-3.5 text-[#2ec4a0]" /> Assigned Mapping Summary
                             </div>
@@ -430,7 +430,7 @@ export default function EvaluationModelAssignmentTab({
 
                     {/* RIGHT: Guide + Note */}
                     <div className="space-y-3 xl:sticky xl:top-4 xl:self-start">
-                        <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-[14px] overflow-hidden">
+                        <div className="overflow-hidden rounded-[14px] border border-[#e2e8f0] bg-[#f8fafc] dark:border-slate-700 dark:bg-slate-800/60">
                             <div className="px-4 py-3 border-b border-[#e2e8f0] bg-[#f1f5f9] flex items-center gap-2 text-[12.5px] font-bold text-[#1a2b4a]">
                                 <Info className="w-3.5 h-3.5 text-[#2ec4a0]" /> Model Selection Guide
                             </div>
@@ -481,7 +481,7 @@ export default function EvaluationModelAssignmentTab({
             </div>
 
             {/* Bottom bar */}
-            <footer className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-[#e2e8f0] py-3 px-4 sm:px-6 flex flex-wrap justify-between items-center gap-2 z-10">
+            <footer className="fixed bottom-0 left-0 right-0 z-10 flex flex-wrap items-center justify-between gap-2 border-t border-[#e2e8f0] bg-white/95 px-4 py-3 backdrop-blur sm:px-6 dark:border-slate-700 dark:bg-slate-900/95">
                 <span className="text-xs text-[#94a3b8]">Assigned: <strong className="text-[#1a2b4a]">{assignedCount}</strong> / <strong className="text-[#1a2b4a]">{totalCount}</strong> roles</span>
                 <div className="flex gap-2">
                     {onBack && (
