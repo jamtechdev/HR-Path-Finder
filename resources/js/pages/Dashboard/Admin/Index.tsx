@@ -82,6 +82,21 @@ export default function AdminDashboard({
 }: Props) {
     const { t } = useTranslation();
     const safeUsers = users.filter(Boolean);
+    const pendingApprovalCount = safeUsers.filter((u) => !u.access_granted_at).length;
+    const wrapCardLink = (
+        enabled: boolean,
+        href: string,
+        disabledTitle: string,
+        card: JSX.Element,
+    ) =>
+        enabled ? (
+            <Link href={href}>{card}</Link>
+        ) : (
+            <div title={disabledTitle} aria-disabled className="cursor-not-allowed opacity-60">
+                {card}
+            </div>
+        );
+
     const getStatusBadge = (status: string) => {
         const statusMap: Record<
             string,
@@ -242,7 +257,10 @@ export default function AdminDashboard({
                                 </Card>
 
                                 {/* Pending Approval */}
-                                <Link href="/admin/ceo?tab=pending">
+                                {wrapCardLink(
+                                    pendingApprovalCount > 0,
+                                    '/admin/ceo?tab=pending',
+                                    t('admin_dashboard.disabled.pending_approval_zero', { defaultValue: 'No pending approvals right now.' }),
                                     <Card className="transition-colors hover:bg-muted/40">
                                         <CardContent className="p-6">
                                             <div className="flex items-center justify-between">
@@ -251,12 +269,7 @@ export default function AdminDashboard({
                                                         {t('admin_dashboard.stats.pending_approval')}
                                                     </p>
                                                     <p className="text-3xl font-bold text-foreground">
-                                                        {
-                                                            safeUsers.filter(
-                                                                (u) =>
-                                                                    !u.access_granted_at,
-                                                            ).length
-                                                        }
+                                                        {pendingApprovalCount}
                                                     </p>
                                                     <p className="text-xs text-muted-foreground mt-1">
                                                         {t('admin_dashboard.stats.pending_approval_hint')}
@@ -267,8 +280,8 @@ export default function AdminDashboard({
                                                 </div>
                                             </div>
                                         </CardContent>
-                                    </Card>
-                                </Link>
+                                    </Card>,
+                                )}
                             </div>
 
                             {/* Users List */}
@@ -330,11 +343,11 @@ export default function AdminDashboard({
                                                                 </TableCell>
                                                                 <TableCell>
                                                                     {u.access_granted_at ? (
-                                                                        <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-200">
+                                                                        <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
                                                                             {t('admin_dashboard.users.active')}
                                                                         </Badge>
                                                                     ) : (
-                                                                        <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
+                                                                        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
                                                                             {t('admin_dashboard.users.pending')}
                                                                         </Badge>
                                                                     )}
@@ -367,15 +380,26 @@ export default function AdminDashboard({
                                         <p className="mb-4 text-sm text-muted-foreground">
                                             {t('admin_dashboard.pending_survey.description')}
                                         </p>
-                                        <Link href="/admin/hr-projects">
+                                        {stats.pending_ceo_survey > 0 ? (
+                                            <Link href="/admin/hr-projects">
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full"
+                                                >
+                                                    {t('admin_dashboard.pending_survey.view_all_projects')}
+                                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                                </Button>
+                                            </Link>
+                                        ) : (
                                             <Button
                                                 variant="outline"
-                                                className="w-full"
+                                                className="w-full cursor-not-allowed opacity-60"
+                                                disabled
+                                                title={t('admin_dashboard.disabled.pending_survey_zero', { defaultValue: 'No pending CEO surveys right now.' })}
                                             >
                                                 {t('admin_dashboard.pending_survey.view_all_projects')}
-                                                <ArrowRight className="ml-2 h-4 w-4" />
                                             </Button>
-                                        </Link>
+                                        )}
                                     </CardContent>
                                 </Card>
                             </div>

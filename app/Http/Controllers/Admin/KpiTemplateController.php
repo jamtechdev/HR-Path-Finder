@@ -19,7 +19,7 @@ class KpiTemplateController extends Controller
         if ($request->filled('org_unit_name')) {
             $query->whereRaw('TRIM(LOWER(org_unit_name)) LIKE ?', ['%' . strtolower(trim($request->org_unit_name)) . '%']);
         }
-        $templates = $query->paginate(20)->withQueryString();
+        $templates = $query->paginate(10)->withQueryString();
         $companies = Company::orderBy('name')->get(['id', 'name']);
         return Inertia::render('Admin/KpiTemplates/Index', [
             'templates' => $templates,

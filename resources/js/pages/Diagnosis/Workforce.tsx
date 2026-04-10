@@ -39,6 +39,13 @@ interface Props {
     embedSetData?: (key: string, value: any) => void;
 }
 
+const MAX_HEADCOUNT = 999999;
+const blockNonNumericKeys = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (['e', 'E', '+', '-'].includes(e.key)) {
+        e.preventDefault();
+    }
+};
+
 export default function Workforce({
     project,
     company,
@@ -129,7 +136,10 @@ export default function Workforce({
         delta: number,
     ) => {
         const current = Number(data[key]) || 0;
-        setData(key as any, Math.max(0, current + delta));
+        setData(
+            key as any,
+            Math.min(MAX_HEADCOUNT, Math.max(0, current + delta)),
+        );
     };
 
     const cardContent = (
@@ -172,37 +182,43 @@ export default function Workforce({
                                 <h3 className="mb-3 text-[13px] font-bold text-[#3A4356] dark:text-[#CBD0DA]">
                                     {tr('presentHeadcountTitle')}
                                 </h3>
-                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
                                     <div
                                         className={cn(
-                                            'rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30',
+                                            'rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-5 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30',
                                             borderCn,
                                         )}
                                     >
-                                        <p className="mb-2 text-[12px] font-bold text-[#3A4356] dark:text-[#CBD0DA]">
+                                        <p className="mb-3 text-[12px] font-bold text-[#3A4356] dark:text-[#CBD0DA]">
                                             {tr('workforceFullTimeLabel')}
                                         </p>
-                                        <div className="mb-2 flex items-center gap-2">
+                                        <div className="mb-3">
                                             <input
                                                 type="number"
                                                 min={0}
+                                                max={MAX_HEADCOUNT}
+                                                inputMode="numeric"
+                                                onKeyDown={blockNonNumericKeys}
                                                 value={data.full_time_headcount}
                                                 onChange={(e) =>
                                                     setData(
                                                         'full_time_headcount',
-                                                        parseInt(
-                                                            e.target.value,
-                                                        ) || 0,
+                                                        Math.min(
+                                                            MAX_HEADCOUNT,
+                                                            parseInt(
+                                                                e.target.value,
+                                                            ) || 0,
+                                                        ),
                                                     )
                                                 }
                                                 disabled={readOnly}
-                                                className="h-10 w-full rounded-lg border border-[#E2E6ED] bg-white text-center text-lg font-bold text-[#1B2B5B] dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
+                                                className="h-10 w-full rounded-lg border border-[#E2E6ED] bg-white px-2 text-center text-base font-bold tabular-nums text-[#1B2B5B] sm:text-lg dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
                                             />
-                                            <span className="shrink-0 text-[13px] font-bold text-[#3A4356] dark:text-[#9AA3B2]">
+                                            <span className="mt-1 block text-right text-[12px] font-bold text-[#3A4356] dark:text-[#9AA3B2]">
                                                 {tr('persons')}
                                             </span>
                                         </div>
-                                        <div className="flex flex-wrap gap-1.5">
+                                        <div className="grid grid-cols-2 gap-2">
                                             {[-10, -1, 1, 10].map((d) => (
                                                 <button
                                                     key={`ft-${d}`}
@@ -214,39 +230,45 @@ export default function Workforce({
                                                         )
                                                     }
                                                     disabled={readOnly}
-                                                    className="h-7 rounded border bg-white px-2 text-xs font-semibold hover:bg-gray-50 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#CBD0DA] dark:hover:bg-[#2a3a5c]"
+                                                    className="h-8 rounded border bg-white px-2 text-xs font-semibold hover:bg-gray-50 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#CBD0DA] dark:hover:bg-[#2a3a5c]"
                                                 >
-                                                    - {d > 0 ? `+${d}` : d}
+                                                    {d > 0 ? `+${d}` : d}
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
 
-                                    <div className="rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30">
-                                        <p className="mb-2 text-[12px] font-bold text-[#3A4356] dark:text-[#CBD0DA]">
+                                    <div className="rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-5 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30">
+                                        <p className="mb-3 text-[12px] font-bold text-[#3A4356] dark:text-[#CBD0DA]">
                                             {tr('workforceContractLabel')}
                                         </p>
-                                        <div className="mb-2 flex items-center gap-2">
+                                        <div className="mb-3">
                                             <input
                                                 type="number"
                                                 min={0}
+                                                max={MAX_HEADCOUNT}
+                                                inputMode="numeric"
+                                                onKeyDown={blockNonNumericKeys}
                                                 value={data.contract_headcount}
                                                 onChange={(e) =>
                                                     setData(
                                                         'contract_headcount',
-                                                        parseInt(
-                                                            e.target.value,
-                                                        ) || 0,
+                                                        Math.min(
+                                                            MAX_HEADCOUNT,
+                                                            parseInt(
+                                                                e.target.value,
+                                                            ) || 0,
+                                                        ),
                                                     )
                                                 }
                                                 disabled={readOnly}
-                                                className="h-10 w-full rounded-lg border border-[#E2E6ED] bg-white text-center text-lg font-bold text-[#1B2B5B] dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
+                                                className="h-10 w-full rounded-lg border border-[#E2E6ED] bg-white px-2 text-center text-base font-bold tabular-nums text-[#1B2B5B] sm:text-lg dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
                                             />
-                                            <span className="shrink-0 text-[13px] font-bold text-[#3A4356] dark:text-[#9AA3B2]">
+                                            <span className="mt-1 block text-right text-[12px] font-bold text-[#3A4356] dark:text-[#9AA3B2]">
                                                 {tr('persons')}
                                             </span>
                                         </div>
-                                        <div className="flex flex-wrap gap-1.5">
+                                        <div className="grid grid-cols-2 gap-2">
                                             {[-10, -1, 1, 10].map((d) => (
                                                 <button
                                                     key={`ct-${d}`}
@@ -258,7 +280,7 @@ export default function Workforce({
                                                         )
                                                     }
                                                     disabled={readOnly}
-                                                    className="h-7 rounded border bg-white px-2 text-xs font-semibold hover:bg-gray-50 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#CBD0DA] dark:hover:bg-[#2a3a5c]"
+                                                    className="h-8 rounded border bg-white px-2 text-xs font-semibold hover:bg-gray-50 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#CBD0DA] dark:hover:bg-[#2a3a5c]"
                                                 >
                                                     {d > 0 ? `+${d}` : d}
                                                 </button>
@@ -266,11 +288,11 @@ export default function Workforce({
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col items-center justify-center rounded-xl border-2 border-[#1B2B5B] bg-[#1B2B5B]/[0.04] p-4 text-center dark:border-[#2EC4A9]/40 dark:bg-[#2EC4A9]/5">
+                                    <div className="flex flex-col items-center justify-center rounded-xl border-2 border-[#1B2B5B] bg-[#1B2B5B]/[0.04] p-4 text-center md:col-span-2 xl:col-span-1 dark:border-[#2EC4A9]/40 dark:bg-[#2EC4A9]/5">
                                         <p className="text-[10px] font-bold text-[#6B7585] uppercase dark:text-[#9AA3B2]">
                                             {tr('workforceTotalLabel')}
                                         </p>
-                                        <p className="text-[28px] font-extrabold text-[#1B2B5B] dark:text-[#2EC4A9]">
+                                        <p className="break-all text-[24px] leading-tight font-extrabold text-[#1B2B5B] sm:text-[28px] dark:text-[#2EC4A9]">
                                             {total}
                                         </p>
                                         <p className="text-[10px] font-semibold text-[#9AA3B2] dark:text-[#6B7585]">
@@ -299,6 +321,8 @@ export default function Workforce({
                                 <div className="mt-1 flex items-center gap-2">
                                     <input
                                         type="number"
+                                        inputMode="numeric"
+                                        onKeyDown={blockNonNumericKeys}
                                         value={data.gender_male}
                                         onChange={(e) =>
                                             setData(
@@ -321,6 +345,8 @@ export default function Workforce({
                                 <div className="mt-1 flex items-center gap-2">
                                     <input
                                         type="number"
+                                        inputMode="numeric"
+                                        onKeyDown={blockNonNumericKeys}
                                         value={data.gender_female}
                                         onChange={(e) =>
                                             setData(
@@ -406,6 +432,12 @@ export default function Workforce({
                                     step={0.1}
                                     min={0}
                                     max={f.max}
+                                    inputMode="decimal"
+                                    onKeyDown={(e) => {
+                                        if (['e', 'E', '+', '-'].includes(e.key)) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     value={data[f.key as keyof typeof data]}
                                     onChange={(e) => {
                                         const val =
@@ -472,6 +504,8 @@ export default function Workforce({
                                         </button>
                                         <input
                                             type="number"
+                                            inputMode="numeric"
+                                            onKeyDown={blockNonNumericKeys}
                                             value={data[key]}
                                             onChange={(e) =>
                                                 setData(
@@ -517,6 +551,7 @@ export default function Workforce({
                 diagnosisStatus={diagnosisStatus}
                 stepStatuses={stepStatuses}
                 projectId={projectId}
+                fullWidth
                 backRoute="company-info"
                 nextRoute="executives"
                 formData={data}

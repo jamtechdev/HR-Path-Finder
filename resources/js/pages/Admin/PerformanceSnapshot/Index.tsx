@@ -12,7 +12,7 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { toastCopy } from '@/lib/toastCopy';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Edit, GripVertical, Plus, Search, Trash2 } from 'lucide-react';
+import { Edit, Plus, Search, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -24,10 +24,14 @@ interface PerformanceSnapshotQuestion {
     order: number;
     is_active: boolean;
     version?: string;
+    created_at?: string | null;
 }
 
 interface Props {
-    questions: PerformanceSnapshotQuestion[];
+    questions: {
+        data: PerformanceSnapshotQuestion[];
+        links: { url: string | null; label: string; active: boolean }[];
+    };
     answerTypes: Record<string, string>;
 }
 
@@ -35,13 +39,33 @@ export default function PerformanceSnapshotIndex({
     questions,
     answerTypes,
 }: Props) {
+    const formatRelativeTime = (value?: string | null) => {
+        if (!value) return '-';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return '-';
+
+        const diffSeconds = Math.round((date.getTime() - Date.now()) / 1000);
+        const absSeconds = Math.abs(diffSeconds);
+        const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+
+        if (absSeconds < 60) return rtf.format(diffSeconds, 'second');
+        const diffMinutes = Math.round(diffSeconds / 60);
+        if (Math.abs(diffMinutes) < 60) return rtf.format(diffMinutes, 'minute');
+        const diffHours = Math.round(diffMinutes / 60);
+        if (Math.abs(diffHours) < 24) return rtf.format(diffHours, 'hour');
+        const diffDays = Math.round(diffHours / 24);
+        if (Math.abs(diffDays) < 30) return rtf.format(diffDays, 'day');
+        const diffMonths = Math.round(diffDays / 30);
+        if (Math.abs(diffMonths) < 12) return rtf.format(diffMonths, 'month');
+        const diffYears = Math.round(diffMonths / 12);
+        return rtf.format(diffYears, 'year');
+    };
+
     const { t, i18n } = useTranslation();
     const { flash } = usePage().props as any;
 
     const [searchTerm, setSearchTerm] = useState('');
-    const [localQuestions, setLocalQuestions] = useState(questions);
-    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+    const [localQuestions, setLocalQuestions] = useState(questions.data);
 
     useEffect(() => {
         if (flash?.success) {
@@ -58,7 +82,7 @@ export default function PerformanceSnapshotIndex({
 
     // Update local questions when props change
     React.useEffect(() => {
-        setLocalQuestions(questions);
+        setLocalQuestions(questions.data);
     }, [questions]);
 
     const normalizeText = (value: unknown): string => {
@@ -150,74 +174,6 @@ export default function PerformanceSnapshotIndex({
         }
     };
 
-    const handleDragStart = (e: React.DragEvent, index: number) => {
-        setDraggedIndex(index);
-        e.dataTransfer.effectAllowed = 'move';
-    };
-
-    const handleDragOver = (e: React.DragEvent, index: number) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        setDragOverIndex(index);
-    };
-
-    const handleDragLeave = () => {
-        setDragOverIndex(null);
-    };
-
-    const handleDrop = (e: React.DragEvent, dropIndex: number) => {
-        e.preventDefault();
-        setDragOverIndex(null);
-
-        if (draggedIndex === null || draggedIndex === dropIndex) {
-            setDraggedIndex(null);
-            return;
-        }
-
-        const newQuestions = [...localQuestions];
-        const [removed] = newQuestions.splice(draggedIndex, 1);
-        newQuestions.splice(dropIndex, 0, removed);
-
-        const updatedQuestions = newQuestions.map((q, idx) => ({
-            ...q,
-            order: idx + 1,
-        }));
-
-        setLocalQuestions(updatedQuestions);
-        setDraggedIndex(null);
-
-        router.post(
-            '/admin/performance-snapshot/reorder',
-            {
-                questions: updatedQuestions.map((q) => ({
-                    id: q.id,
-                    order: q.order,
-                })),
-            },
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    toast({
-                        title: toastCopy.success,
-                        description: t(
-                            'performance_snapshot_index.reorder_success',
-                        ),
-                    });
-                    router.reload({ only: ['questions'] });
-                },
-                onError: () => {
-                    toast({
-                        title: toastCopy.error,
-                        description: t(
-                            'performance_snapshot_index.reorder_failed',
-                        ),
-                        variant: 'destructive',
-                    });
-                },
-            },
-        );
-    };
-
     const getAnswerTypeLabel = (type: string) => answerTypes[type] || type;
 
     return (
@@ -286,44 +242,12 @@ export default function PerformanceSnapshotIndex({
                                                 normalizeOptions(
                                                     question.options,
                                                 );
-                                            const originalIndex =
-                                                localQuestions.findIndex(
-                                                    (q) => q.id === question.id,
-                                                );
                                             return (
                                                 <div
                                                     key={question.id}
-                                                    draggable
-                                                    onDragStart={(e) =>
-                                                        handleDragStart(
-                                                            e,
-                                                            originalIndex,
-                                                        )
-                                                    }
-                                                    onDragOver={(e) =>
-                                                        handleDragOver(
-                                                            e,
-                                                            originalIndex,
-                                                        )
-                                                    }
-                                                    onDragLeave={
-                                                        handleDragLeave
-                                                    }
-                                                    onDrop={(e) =>
-                                                        handleDrop(
-                                                            e,
-                                                            originalIndex,
-                                                        )
-                                                    }
-                                                    className={`flex items-start justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50 ${
-                                                        dragOverIndex ===
-                                                        originalIndex
-                                                            ? 'border-primary bg-primary/10'
-                                                            : ''
-                                                    } ${draggedIndex === originalIndex ? 'opacity-50' : ''}`}
+                                                    className="flex items-start justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50"
                                                 >
                                                     <div className="flex flex-1 items-start gap-3">
-                                                        <GripVertical className="mt-1 h-5 w-5 cursor-move text-muted-foreground" />
                                                         <div className="flex-1">
                                                             <div className="mb-2 flex items-center gap-2">
                                                                 <Badge variant="outline">
@@ -346,20 +270,14 @@ export default function PerformanceSnapshotIndex({
                                                                         )}
                                                                     </Badge>
                                                                 )}
-                                                                <span className="text-xs text-muted-foreground">
-                                                                    {t(
-                                                                        'performance_snapshot_index.order_label',
-                                                                    )}
-                                                                    :{' '}
-                                                                    {
-                                                                        question.order
-                                                                    }
-                                                                </span>
                                                             </div>
                                                             <p className="mb-2 text-sm font-medium">
                                                                 {normalizeText(
                                                                     question.question_text,
                                                                 )}
+                                                            </p>
+                                                            <p className="mb-2 text-xs text-muted-foreground">
+                                                                Created: {formatRelativeTime(question.created_at)}
                                                             </p>
                                                             {normalizedOptions.length >
                                                                 0 && (
@@ -456,6 +374,25 @@ export default function PerformanceSnapshotIndex({
                                         </p>
                                     )}
                                 </div>
+                                {questions.links && questions.links.length > 1 && (
+                                    <div className="mt-4 flex flex-wrap justify-center gap-2 border-t pt-4">
+                                        {questions.links.map((link, i) => (
+                                            <Link
+                                                key={i}
+                                                href={link.url || '#'}
+                                                className={
+                                                    link.active
+                                                        ? 'rounded border bg-primary px-3 py-1 text-primary-foreground'
+                                                        : 'rounded border px-3 py-1 hover:bg-muted'
+                                                }
+                                            >
+                                                {link.label
+                                                    .replace('&laquo;', '«')
+                                                    .replace('&raquo;', '»')}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

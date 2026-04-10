@@ -9,6 +9,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -43,8 +44,13 @@ class ProfileController extends Controller
         if ($request->hasFile('profile_photo')) {
             /** @var UploadedFile $file */
             $file = $request->file('profile_photo');
+            $oldPath = $request->user()->profile_photo_path;
             $path = $file->store('profile-photos', 'public');
             $request->user()->profile_photo_path = $path;
+
+            if ($oldPath && $oldPath !== $path) {
+                Storage::disk('public')->delete($oldPath);
+            }
         }
 
         if ($request->user()->isDirty('email')) {

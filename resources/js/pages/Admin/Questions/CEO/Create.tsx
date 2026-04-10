@@ -43,7 +43,7 @@ export default function CEOQuestionCreate({
         category: '',
         question_text: '',
         question_type: 'text',
-        order: 0,
+        order: null as number | null,
         is_active: true,
         options: null as string[] | null,
         metadata: null as any,
@@ -321,27 +321,6 @@ export default function CEOQuestionCreate({
                                             />
                                         </div>
                                     )}
-
-                                    {/* Order */}
-                                    <div>
-                                        <Label>
-                                            {t(
-                                                'admin_ceo_questions_create.order',
-                                            )}
-                                        </Label>
-                                        <Input
-                                            type="number"
-                                            value={data.order}
-                                            onChange={(e) =>
-                                                setData(
-                                                    'order',
-                                                    parseInt(e.target.value) ||
-                                                        0,
-                                                )
-                                            }
-                                            min={0}
-                                        />
-                                    </div>
 
                                     {/* Active */}
                                     <div className="flex items-center space-x-2">

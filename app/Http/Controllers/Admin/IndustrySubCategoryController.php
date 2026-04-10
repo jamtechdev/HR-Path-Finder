@@ -24,22 +24,26 @@ class IndustrySubCategoryController extends Controller
             $query->where('industry_category_id', $categoryId);
         }
         
-        $subCategories = $query->orderBy('industry_category_id')->orderBy('order')->get();
+        $subCategories = $query
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
         $categories = IndustryCategory::orderBy('order')->get();
 
         return Inertia::render('Admin/Subcategories/Index', [
-            'subCategories' => $subCategories->map(function ($sub) {
+            'subCategories' => $subCategories->through(function ($sub) {
                 return [
                     'id' => $sub->id,
                     'name' => $sub->name,
-                    'order' => $sub->order ?? 0,
+                    'created_at' => $sub->created_at,
                     'industry_category_id' => $sub->industry_category_id,
                     'industryCategory' => $sub->industryCategory ? [
                         'id' => $sub->industryCategory->id,
                         'name' => $sub->industryCategory->name,
                     ] : null,
                 ];
-            })->toArray(),
+            }),
             'categories' => $categories->map(function ($cat) {
                 return [
                     'id' => $cat->id,

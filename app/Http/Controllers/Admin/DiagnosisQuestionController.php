@@ -22,7 +22,11 @@ class DiagnosisQuestionController extends Controller
             $query->where('category', $category);
         }
 
-        $questions = $query->orderBy('order')->orderBy('id')->get();
+        $questions = $query
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Admin/Questions/CEO/Index', [
             'questions' => $questions,
@@ -176,6 +180,8 @@ class DiagnosisQuestionController extends Controller
             DiagnosisQuestion::where('id', $question['id'])->update(['order' => $question['order']]);
         }
 
-        return response()->json(['success' => true]);
+        return redirect()
+            ->back()
+            ->with('success', 'Question order updated successfully.');
     }
 }

@@ -58,22 +58,29 @@ export function FlashToasts() {
         lastSig.current = sig;
         flashShownAt.set(sig, now);
 
-        const payload =
-            flash?.error
-                ? { title: flash.error, variant: 'destructive' as const }
-                : flash?.warning
-                  ? { title: flash.warning, variant: 'warning' as const }
-                  : flash?.success
-                    ? { title: flash.success, variant: 'success' as const }
-                    : flash?.message
-                      ? { title: flash.message, variant: 'success' as const }
-                      : flash?.info
-                        ? { title: flash.info, variant: 'default' as const }
-                        : null;
+        const payloads: Array<{
+            title: string;
+            variant: 'success' | 'destructive' | 'warning' | 'default';
+        }> = [];
 
-        if (payload) {
-            toast(payload);
+        // Keep legacy behavior: show all available flash messages
+        // (success first, then other severities).
+        if (flash?.success) {
+            payloads.push({ title: flash.success, variant: 'success' });
+        } else if (flash?.message) {
+            payloads.push({ title: flash.message, variant: 'success' });
         }
+        if (flash?.error) {
+            payloads.push({ title: flash.error, variant: 'destructive' });
+        }
+        if (flash?.warning) {
+            payloads.push({ title: flash.warning, variant: 'warning' });
+        }
+        if (flash?.info) {
+            payloads.push({ title: flash.info, variant: 'default' });
+        }
+
+        payloads.forEach((payload) => toast(payload));
     }, [flash?.success, flash?.error, flash?.warning, flash?.info, flash?.message]);
 
     return null;

@@ -156,8 +156,8 @@ class CeoPhilosophyController extends Controller
             }
         }
 
-        $redirect = redirect()->route('ceo.review.diagnosis', $hrProject)
-            ->with('success', 'Survey completed and diagnosis verified successfully.');
+        $redirect = redirect()->route('ceo.projects.verification', $hrProject)
+            ->with('success', 'Survey completed successfully.');
 
         if (! $alreadyCompleted) {
             $redirect->with('ceoSurveyDone', true);

@@ -39,7 +39,7 @@ export default function CeoKpiReviewIndex({ projects }: Props) {
     const getStatusBadge = (status: Project['kpi_review_status']) => {
         if (status === 'approved') {
             return (
-                <Badge className="bg-emerald-600">
+                <Badge className="bg-emerald-600 text-white dark:bg-emerald-700">
                     {t('ceo_kpi.status_approved')}
                 </Badge>
             );
@@ -73,7 +73,7 @@ export default function CeoKpiReviewIndex({ projects }: Props) {
 
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
                         {/* Header */}
-                        <div className="mb-8 rounded-2xl border bg-gradient-to-r from-slate-50 to-white px-6 py-5">
+                        <div className="mb-8 rounded-2xl border bg-gradient-to-r from-slate-50 to-white px-6 py-5 dark:from-slate-900 dark:to-slate-800/80">
                             <h1 className="mb-1 text-3xl font-bold">
                                 {t('ceo_kpi.title')}
                             </h1>

@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -30,7 +31,10 @@ interface Project {
 }
 
 interface Props {
-  projects: Project[];
+  projects: {
+    data: Project[];
+    links: { url: string | null; label: string; active: boolean }[];
+  };
 }
 
 type ProjectAction = { type: 'reset' | 'delete'; project: Project } | null;
@@ -90,68 +94,62 @@ export default function ProjectTree({ projects }: Props) {
                 <p className="text-xs text-blue-600 mt-1">{t('project_view.subheading_guide')}</p>
               </div>
 
-              <div className="space-y-1.5">
-                {projects.map((project) => {
+              <div className="space-y-3">
+                {projects.data.map((project) => {
                   const progress = getProjectProgress(project);
                   const companyName = project.company?.name ?? `Project #${project.id}`;
 
                   return (
                     <Card key={project.id} className="shadow-sm border-border/70 hover:shadow-md transition-shadow">
-                      <CardContent className="p-3 md:p-4">
-                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                      <CardContent className="p-4 md:p-5">
+                        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                           <div className="flex min-w-0 flex-1 items-center gap-2">
                             <Building2 className="h-3.5 w-3.5 shrink-0 text-primary" />
                             <div className="min-w-0">
                               <p className="text-sm font-medium leading-tight truncate">{companyName}</p>
-                              <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+                              <p className="text-xs text-muted-foreground leading-tight mt-0.5">
                                 {t('project_view.created')}: {formatCreatedDate(project.created_at)} · {t('project_view.progress')} {progress.completed}/{progress.total}
                               </p>
                             </div>
                           </div>
 
-                          <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
-                            <Badge variant="outline" className="h-6 px-1.5 text-[10px] font-normal">
+                          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                            <Badge variant="outline" className="h-7 px-2 text-xs font-medium">
                               {progress.completed}/{progress.total}
                             </Badge>
 
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  type="button"
-                                  onClick={() => setPendingAction({ type: 'reset', project })}
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border hover:bg-muted"
-                                  aria-label={t('project_view.reset_project')}
-                                >
-                                  <RotateCcw className="h-3.5 w-3.5" />
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent side="bottom">{t('project_view.reset_project')}</TooltipContent>
-                            </Tooltip>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setPendingAction({ type: 'reset', project })}
+                              className="h-8 gap-1.5 border-amber-500/40 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20 hover:text-amber-100"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" />
+                              {t('project_view.reset_project')}
+                            </Button>
 
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  type="button"
-                                  onClick={() => setPendingAction({ type: 'delete', project })}
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border text-destructive hover:bg-destructive/10"
-                                  aria-label={t('project_view.delete_project')}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent side="bottom">{t('project_view.delete_project')}</TooltipContent>
-                            </Tooltip>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setPendingAction({ type: 'delete', project })}
+                              className="h-8 gap-1.5 border-destructive/50 bg-destructive/10 text-destructive hover:bg-destructive/20"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              {t('project_view.delete_project')}
+                            </Button>
 
                             <Link
                               href={`/admin/review/${project.id}`}
-                              className="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-background px-2 text-[11px] font-medium hover:bg-muted"
+                              className="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-xs font-medium hover:bg-muted"
                             >
                               <Eye className="h-3 w-3" />
                               {t('project_view.view_details')}
                             </Link>
                             <Link
                               href={`/admin/tree/${project.id}`}
-                              className="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-primary/5 px-2 text-[11px] font-medium hover:bg-primary/10"
+                              className="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-primary/5 px-2.5 text-xs font-medium hover:bg-primary/10"
                             >
                               <GitBranch className="h-3 w-3" />
                               {t('admin_tree.heading')}
@@ -164,13 +162,26 @@ export default function ProjectTree({ projects }: Props) {
                 })}
               </div>
 
-              {projects.length === 0 && (
+              {projects.data.length === 0 && (
                 <Card>
                   <CardContent className="py-10 text-center">
                     <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-70" />
                     <p className="text-sm text-muted-foreground">{t('project_view.no_projects')}</p>
                   </CardContent>
                 </Card>
+              )}
+              {projects.links && projects.links.length > 1 && (
+                <div className="mt-4 flex flex-wrap justify-center gap-2 border-t pt-4">
+                  {projects.links.map((link, i) => (
+                    <Link
+                      key={i}
+                      href={link.url || '#'}
+                      className={link.active ? 'rounded border bg-primary px-3 py-1 text-primary-foreground' : 'rounded border px-3 py-1 hover:bg-muted'}
+                    >
+                      {link.label.replace('&laquo;', '«').replace('&raquo;', '»')}
+                    </Link>
+                  ))}
+                </div>
               )}
             </div>
           </main>

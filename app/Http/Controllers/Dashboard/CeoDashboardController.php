@@ -463,7 +463,10 @@ class CeoDashboardController extends Controller
         }
 
         $diagnosisStatus = $hrProject->getStepStatus('diagnosis');
-        $surveyAvailable = $diagnosisStatus && $diagnosisStatus->value === 'submitted' && !$hrProject->ceoPhilosophy;
+        $hrCompleted = $diagnosisStatus && in_array($diagnosisStatus->value, ['submitted', 'approved', 'locked', 'completed'], true);
+        $ceoSurveyCompleted = (bool) ($hrProject->ceoPhilosophy && $hrProject->ceoPhilosophy->completed_at);
+        $diagnosisCompleted = $diagnosisStatus && in_array($diagnosisStatus->value, ['submitted', 'approved', 'locked', 'completed'], true);
+        $surveyAvailable = $diagnosisStatus && $diagnosisStatus->value === 'submitted' && !$ceoSurveyCompleted;
 
         return Inertia::render('CEO/Projects/Verification', [
             'project' => [
@@ -474,6 +477,11 @@ class CeoDashboardController extends Controller
                 ] : null,
                 'step_statuses' => $hrProject->step_statuses ?? [],
                 'survey_available' => $surveyAvailable,
+                'verification_gates' => [
+                    'hr_completed' => (bool) $hrCompleted,
+                    'ceo_survey_completed' => (bool) $ceoSurveyCompleted,
+                    'diagnosis_completed' => (bool) $diagnosisCompleted,
+                ],
             ],
         ]);
     }

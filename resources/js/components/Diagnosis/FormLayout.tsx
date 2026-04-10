@@ -43,6 +43,16 @@ function serializeDraft(formData: any): Record<string, unknown> {
     }
 }
 
+function formSignature(formData: any): string {
+    try {
+        return JSON.stringify(serializeDraft(formData));
+    } catch {
+        return '';
+    }
+}
+
+const SAVE_SUCCESS_TOAST_MS = 5000;
+
 /** Stable dependency for effects/memos when Inertia/form only changes object identity. */
 function stableSerializedKey(value: unknown): string {
     if (value === undefined) return '__undef__';
@@ -90,6 +100,8 @@ interface FormLayoutProps {
     hidePageTitle?: boolean; // e.g. Job Grades uses only section label in content
     /** When set, shown as validation error so user sees it as soon as form becomes invalid (e.g. on change) */
     liveValidationError?: string | null;
+    /** Use full content width for dense steps */
+    fullWidth?: boolean;
 }
 
 // Validation function for each step — returns field-level keys for red under-field messages
@@ -209,6 +221,7 @@ export default function FormLayout({
     saveRoute,
     hidePageTitle = false,
     liveValidationError = null,
+    fullWidth = true,
 }: FormLayoutProps) {
     const { t } = useTranslation();
     const areFieldErrorsEqual = (a: FieldErrors, b: FieldErrors) => {
@@ -340,8 +353,26 @@ export default function FormLayout({
 
         // Persist current step to backend so step completion/status updates.
         if (projectId && saveRoute && formData && activeTab !== 'review' && !isReadOnly) {
+            const currentSignature = formSignature(formData);
+            const signatureKey = `diagnosis:last-saved:${projectId}:${activeTab}`;
+            const lastSavedSignature = (() => {
+                try {
+                    return window.sessionStorage.getItem(signatureKey);
+                } catch {
+                    return null;
+                }
+            })();
+
+            const shouldSaveToServer =
+                hasFiles(formData) || lastSavedSignature !== currentSignature;
+
             if (projectId) {
                 saveTabDraft(projectId, activeTab, serializeDraft(formData));
+            }
+
+            if (!shouldSaveToServer) {
+                doNavigate();
+                return;
             }
 
             router.post(saveRoute, formData, {
@@ -352,7 +383,22 @@ export default function FormLayout({
                     if (projectId) {
                         saveTabDraft(projectId, activeTab, serializeDraft(formData));
                     }
-                    doNavigate();
+                    try {
+                        window.sessionStorage.setItem(
+                            signatureKey,
+                            currentSignature,
+                        );
+                    } catch {
+                        // ignore storage errors
+                    }
+                    toast({
+                        title: 'Diagnosis step saved successfully.',
+                        variant: 'success',
+                        duration: SAVE_SUCCESS_TOAST_MS,
+                    });
+                    window.setTimeout(() => {
+                        doNavigate();
+                    }, SAVE_SUCCESS_TOAST_MS + 200);
                 },
                 onError: (payload: unknown) => {
                     const raw = (payload as any)?.errors ?? payload;
@@ -458,6 +504,20 @@ export default function FormLayout({
     const progressPct = displayTabs.length ? (completedCount / displayTabs.length) * 100 : 0;
     const badgeLabel = statusForHeader === 'in_progress' ? '진행중' : statusForHeader === 'submitted' ? '완료' : '미시작';
 
+    useEffect(() => {
+        if (!projectId || !formData || activeTab === 'review' || isReadOnly) return;
+        const signatureKey = `diagnosis:last-saved:${projectId}:${activeTab}`;
+        const currentSignature = formSignature(formData);
+        try {
+            const existing = window.sessionStorage.getItem(signatureKey);
+            if (existing == null) {
+                window.sessionStorage.setItem(signatureKey, currentSignature);
+            }
+        } catch {
+            // ignore storage errors
+        }
+    }, [projectId, activeTab, formDataKey, isReadOnly]);
+
     return (
         <AppLayout>
             <div className="diagnosis-step-layout flex flex-col min-h-full relative z-[1] bg-[var(--dx-gray-50)]">
@@ -493,7 +553,10 @@ export default function FormLayout({
 
                         {/* Form area - scrollable content */}
                         <div className="flex-1 overflow-y-auto">
-                        <main className="dx-main">
+                        <main
+                            className="dx-main"
+                            style={fullWidth ? { maxWidth: '100%', margin: 0 } : undefined}
+                        >
                         {!hidePageTitle && (
                             <h2 className="text-[17px] font-bold text-[var(--dx-gray-900)] tracking-[-0.3px] mb-5">{title}</h2>
                         )}

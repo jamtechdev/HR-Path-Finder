@@ -1647,6 +1647,10 @@
             "description": "CEO 철학 설문 대기 프로젝트",
             "view_all_projects": "전체 프로젝트 보기"
         },
+        "disabled": {
+            "pending_approval_zero": "현재 승인 대기 항목이 없습니다.",
+            "pending_survey_zero": "현재 CEO 설문 대기 항목이 없습니다."
+        },
         "recommendations": {
             "performance_title": "성과 추천 필요",
             "performance_desc": "3단계(직무 분석)가 확정되었지만 성과 추천이 아직 준비되지 않은 프로젝트입니다.",
@@ -1677,7 +1681,16 @@
             "diagnosis": "진단",
             "survey": "설문",
             "kpi": "KPI",
-            "actions": "작업"
+            "actions": "작업",
+            "total_kpi": "{{count}} KPI"
+        },
+        "status": {
+            "not_started": "시작 전",
+            "in_progress": "진행 중",
+            "submitted": "제출됨",
+            "completed": "완료",
+            "locked": "잠김",
+            "approved": "승인됨"
         },
         "completed": "완료",
         "pending": "대기",
@@ -1698,7 +1711,13 @@
         },
         "view_all": "전체 보기",
         "survey_required": "설문 필요",
+        "complete_survey_cta": "CEO 철학 설문 완료",
         "review_diagnosis": "진단 검토",
+        "disabled": {
+            "pending_review_zero": "현재 검토 대기 항목이 없습니다.",
+            "pending_survey_zero": "현재 설문 대기 항목이 없습니다.",
+            "pending_kpi_zero": "현재 KPI 검토 대기 항목이 없습니다."
+        },
         "quick_actions": {
             "title": "빠른 작업",
             "view_all_projects": "전체 프로젝트 보기",

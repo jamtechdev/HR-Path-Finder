@@ -40,6 +40,17 @@ import {
 import React, { type FormEventHandler, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+const formatRegistrationNumber = (value: string): string => {
+    const digits = value.replace(/\D/g, '').slice(0, 10);
+    const first = digits.slice(0, 3);
+    const second = digits.slice(3, 5);
+    const third = digits.slice(5, 10);
+
+    if (digits.length <= 3) return first;
+    if (digits.length <= 5) return `${first}-${second}`;
+    return `${first}-${second}-${third}`;
+};
+
 export default function CreateCompany() {
     const { t } = useTranslation();
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -107,7 +118,6 @@ export default function CreateCompany() {
         if (processing || submitInFlight.current) return;
 
         submitInFlight.current = true;
-        toast({ title: t('companies_create.creating_toast') });
         post('/hr-manager/companies', {
             forceFormData: true,
             onSuccess: () => {
@@ -117,7 +127,9 @@ export default function CreateCompany() {
                     description: t('companies_create.success_desc'),
                     variant: 'success',
                 });
-                router.get('/hr-manager/dashboard', {}, { replace: true });
+                window.setTimeout(() => {
+                    router.get('/hr-manager/dashboard', {}, { replace: true });
+                }, 1800);
             },
             onError: (errs) => {
                 if (errs.logo && String(errs.logo).includes('too large')) {
@@ -208,15 +220,21 @@ export default function CreateCompany() {
                                                 id="registration_number"
                                                 value={data.registration_number}
                                                 onChange={(e) => {
+                                                    const formattedValue =
+                                                        formatRegistrationNumber(
+                                                            e.target.value,
+                                                        );
                                                     setData(
                                                         'registration_number',
-                                                        e.target.value,
+                                                        formattedValue,
                                                     );
                                                     clearInertiaFieldError(
                                                         clearErrors,
                                                         'registration_number',
                                                     );
                                                 }}
+                                                inputMode="numeric"
+                                                maxLength={12}
                                                 placeholder={t('companies_create.fields.registration_number_placeholder')}
                                                 className={cn(
                                                     'h-11',
@@ -318,12 +336,12 @@ export default function CreateCompany() {
                                         </Label>
                                         <div className="space-y-4">
                                             {logoPreview ? (
-                                                <div className="relative inline-block">
-                                                    <div className="relative h-32 w-32 overflow-hidden rounded-lg border-2 border-border bg-muted">
+                                                <div className="relative">
+                                                    <div className="relative h-64 w-full overflow-hidden rounded-lg border-2 border-border bg-muted p-3">
                                                         <img
                                                             src={logoPreview}
                                                             alt="Logo preview"
-                                                            className="h-full w-full object-cover"
+                                                            className="h-full w-full rounded object-contain"
                                                         />
                                                         <button
                                                             type="button"

@@ -307,6 +307,25 @@ class CeoReviewController extends Controller
         $stepOrder = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'hr_policy_os'];
         $stepIndex = array_search($step, $stepOrder, true);
 
+        // Role-based gate for diagnosis verification:
+        // CEO can verify diagnosis only after HR submission + CEO survey completion.
+        if ($step === 'diagnosis') {
+            $diagnosisStatus = $hrProject->getStepStatus('diagnosis');
+            $hrCompleted = $diagnosisStatus && in_array($diagnosisStatus->value, ['submitted', 'approved', 'locked', 'completed'], true);
+            $ceoSurveyCompleted = (bool) ($hrProject->ceoPhilosophy && $hrProject->ceoPhilosophy->completed_at);
+            $diagnosisCompleted = $diagnosisStatus && in_array($diagnosisStatus->value, ['submitted', 'approved', 'locked', 'completed'], true);
+
+            if (!$hrCompleted) {
+                return back()->withErrors(['error' => 'Waiting for HR. Verification is locked until HR completes submission.']);
+            }
+            if (!$ceoSurveyCompleted) {
+                return back()->withErrors(['error' => 'Complete Survey First. CEO survey is required before verification.']);
+            }
+            if (!$diagnosisCompleted) {
+                return back()->withErrors(['error' => 'Pending. Diagnosis is not ready for verification.']);
+            }
+        }
+
         if (!$currentStatus || $currentStatus !== StepStatus::SUBMITTED) {
             return back()->withErrors(['error' => "Step {$step} must be submitted before verification."]);
         }

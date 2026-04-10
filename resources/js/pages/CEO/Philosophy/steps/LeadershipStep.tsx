@@ -35,10 +35,10 @@ export default function LeadershipStep({ questions, data, setData, showErrors = 
                     <div className="text-xs sm:text-[10px] font-medium uppercase tracking-wider text-[#C9A84C] mb-1">
                         Step 5 of 8
                     </div>
-                    <h2 className="font-serif text-lg sm:text-[20px] sm:text-[22px] font-bold text-[#0E1628] mb-1.5 leading-tight">
+                    <h2 className="font-serif text-lg sm:text-[20px] sm:text-[22px] font-bold text-[#0E1628] mb-1.5 leading-tight dark:text-slate-100">
                         Leadership
                     </h2>
-                    <p className="text-sm sm:text-[13px] text-[#4A4E69] font-light leading-relaxed">
+                    <p className="text-sm sm:text-[13px] text-[#4A4E69] font-light leading-relaxed dark:text-slate-300">
                         Real workplace scenarios — choose where you stand on a scale of 1 to 7. This section examines leadership style and management practices to assess how leadership impacts execution and organizational culture.
                     </p>
                 </div>
@@ -73,13 +73,13 @@ export default function LeadershipStep({ questions, data, setData, showErrors = 
                     return (
                         <div
                             key={question.id}
-                            className={`bg-white border-[1.5px] rounded-xl overflow-hidden transition-colors ${
-                                hasError ? 'border-red-300 bg-red-50/40' : answered ? 'border-[#0E1628]/20' : 'border-[#E2DDD4]'
+                            className={`bg-white border-[1.5px] rounded-xl overflow-hidden transition-colors dark:bg-slate-800 ${
+                                hasError ? 'border-red-300 bg-red-50/40 dark:border-red-500/60 dark:bg-red-950/20' : answered ? 'border-[#0E1628]/20 dark:border-slate-600' : 'border-[#E2DDD4] dark:border-slate-600'
                             }`}
                             style={{ animationDelay: `${qi * 0.06}s` }}
                         >
                             {/* Card top bar */}
-                            <div className="px-4 sm:px-5 py-4 sm:py-5 border-b border-[#E2DDD4] flex items-start gap-3 sm:gap-4">
+                            <div className="px-4 sm:px-5 py-4 sm:py-5 border-b border-[#E2DDD4] flex items-start gap-3 sm:gap-4 dark:border-slate-700">
                                 <div
                                     className={`w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center text-base sm:text-lg flex-shrink-0 border transition-colors min-h-[44px] min-w-[44px] ${
                                         answered ? 'bg-[#0E1628] border-[#0E1628]' : 'bg-[#F8F4ED] border-[#E2DDD4]'
@@ -99,7 +99,7 @@ export default function LeadershipStep({ questions, data, setData, showErrors = 
                                     <div className="inline-flex items-center gap-1.5 bg-[#C9A84C]/10 border border-[#C9A84C]/25 rounded-[10px] px-2 py-0.5 text-[10.5px] text-[#8A6820] font-medium mb-2">
                                         📋 {meta.scenario}
                                     </div>
-                                    <p className="text-sm text-[#1A1A2E] leading-relaxed">
+                                    <p className="text-sm text-[#1A1A2E] leading-relaxed dark:text-slate-100">
                                         {question.question_text}
                                         <span className="text-[#E05A5A] ml-0.5">*</span>
                                     </p>
@@ -109,20 +109,20 @@ export default function LeadershipStep({ questions, data, setData, showErrors = 
                             {/* Choice area */}
                             <div className="p-4 sm:p-5">
                                 <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-2.5 sm:gap-3 items-start mb-4">
-                                    <div className="bg-[#F8F4ED] border border-[#E2DDD4] rounded-lg p-3 sm:p-4 border-l-[3px] border-l-[#0E1628]">
+                                    <div className="bg-[#F8F4ED] border border-[#E2DDD4] rounded-lg p-3 sm:p-4 border-l-[3px] border-l-[#0E1628] dark:border-slate-600 dark:bg-slate-700/60">
                                         <strong className="block text-[11px] font-semibold text-[#0E1628] uppercase tracking-wide mb-1">
                                             {meta.leftLabel}
                                         </strong>
-                                        <p className="text-xs text-[#4A4E69] font-light leading-relaxed">{optionA}</p>
+                                        <p className="text-xs text-[#4A4E69] font-light leading-relaxed dark:text-slate-300">{optionA}</p>
                                     </div>
                                     <div className="hidden sm:flex w-7 h-7 rounded-full bg-[#E2DDD4] items-center justify-center text-[10px] font-semibold text-[#9A9EB8] flex-shrink-0 mt-3">
                                         VS
                                     </div>
-                                    <div className="bg-[#F8F4ED] border border-[#E2DDD4] rounded-lg p-3 sm:p-4 border-r-[3px] border-r-[#C9A84C] sm:text-right">
+                                    <div className="bg-[#F8F4ED] border border-[#E2DDD4] rounded-lg p-3 sm:p-4 border-r-[3px] border-r-[#C9A84C] sm:text-right dark:border-slate-600 dark:bg-slate-700/60">
                                         <strong className="block text-[11px] font-semibold text-[#0E1628] uppercase tracking-wide mb-1">
                                             {meta.rightLabel}
                                         </strong>
-                                        <p className="text-xs text-[#4A4E69] font-light leading-relaxed">{optionB}</p>
+                                        <p className="text-xs text-[#4A4E69] font-light leading-relaxed dark:text-slate-300">{optionB}</p>
                                     </div>
                                 </div>
 

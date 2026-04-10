@@ -19,7 +19,11 @@ class HrIssueController extends Controller
             $query->where('category', $category);
         }
 
-        $issues = $query->orderBy('order')->orderBy('id')->get();
+        $issues = $query
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Admin/HrIssues/Index', [
             'issues' => $issues,

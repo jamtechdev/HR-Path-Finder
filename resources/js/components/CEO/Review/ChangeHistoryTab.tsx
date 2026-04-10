@@ -19,8 +19,8 @@ interface ChangeHistoryTabProps {
 
 export default function ChangeHistoryTab({ reviewLogs }: ChangeHistoryTabProps) {
     return (
-        <Card className="shadow-md">
-            <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
+        <Card className="shadow-md dark:border-slate-700 dark:bg-slate-900">
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b dark:border-slate-700">
                 <CardTitle className="text-xl flex items-center gap-2">
                     <History className="w-5 h-5" />
                     Change History
@@ -38,7 +38,7 @@ export default function ChangeHistoryTab({ reviewLogs }: ChangeHistoryTabProps) 
                 ) : (
                     <div className="space-y-4">
                         {reviewLogs.map((log) => (
-                            <div key={log.id} className="p-5 border-2 border-border rounded-lg hover:border-primary/40 transition-colors bg-card shadow-sm">
+                            <div key={log.id} className="p-5 border-2 border-border rounded-lg hover:border-primary/40 transition-colors bg-card shadow-sm dark:border-slate-700 dark:bg-slate-800/70">
                                 <div className="flex items-start justify-between mb-3">
                                     <div>
                                         <p className="font-semibold text-base">{log.field_name}</p>
@@ -50,14 +50,14 @@ export default function ChangeHistoryTab({ reviewLogs }: ChangeHistoryTabProps) 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                     <div>
                                         <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase">Original:</p>
-                                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg break-words">
-                                            <p className="text-sm">{log.original_value || '(empty)'}</p>
+                                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg break-words dark:border-red-900/60 dark:bg-red-950/30">
+                                            <p className="text-sm text-red-950 dark:text-red-100">{log.original_value || '(empty)'}</p>
                                         </div>
                                     </div>
                                     <div>
                                         <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase">Modified:</p>
-                                        <div className="p-3 bg-green-50 border border-green-200 rounded-lg break-words">
-                                            <p className="text-sm">{log.modified_value || '(empty)'}</p>
+                                        <div className="p-3 bg-green-50 border border-green-200 rounded-lg break-words dark:border-emerald-900/60 dark:bg-emerald-950/30">
+                                            <p className="text-sm text-green-950 dark:text-emerald-100">{log.modified_value || '(empty)'}</p>
                                         </div>
                                     </div>
                                 </div>

@@ -107,23 +107,6 @@ export default function Edit({ question }: Props) {
                                         )}
                                     </div>
 
-                                    {/* Order */}
-                                    <div>
-                                        <Label>{t('policy_snapshot_edit.order')}</Label>
-
-                                        <Input
-                                            type="number"
-                                            value={data.order}
-                                            onChange={(e) =>
-                                                setData(
-                                                    'order',
-                                                    parseInt(e.target.value) || 0,
-                                                )
-                                            }
-                                            min="0"
-                                        />
-                                    </div>
-
                                     {/* Conditional Text */}
                                     <div className="flex items-center space-x-2">
                                         <Checkbox

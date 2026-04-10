@@ -7,7 +7,8 @@ import {
     CheckCircle2,
     AlertCircle,
     ShieldBan,
-    ShieldCheck
+    ShieldCheck,
+    Upload
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRef } from 'react';
@@ -73,6 +74,9 @@ export default function SettingsIndex({
         : false;
     const [activeTab, setActiveTab] = useState(initialTab);
     const [testingEmail, setTestingEmail] = useState(false);
+    const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(
+        auth?.user?.profile_photo_url ?? null,
+    );
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
     
@@ -122,8 +126,6 @@ export default function SettingsIndex({
         address: auth?.user?.address ?? '',
         city: auth?.user?.city ?? '',
         state: auth?.user?.state ?? '',
-        latitude: auth?.user?.latitude ?? '',
-        longitude: auth?.user?.longitude ?? '',
         profile_photo: null as File | null,
     });
 
@@ -197,19 +199,12 @@ export default function SettingsIndex({
         e.preventDefault();
         const normalizedData = {
             ...profileForm.data,
-            // Laravel nullable+numeric rejects empty string; send null instead.
-            latitude:
-                profileForm.data.latitude === '' || profileForm.data.latitude === null
-                    ? null
-                    : profileForm.data.latitude,
-            longitude:
-                profileForm.data.longitude === '' || profileForm.data.longitude === null
-                    ? null
-                    : profileForm.data.longitude,
+            _method: 'patch' as const,
         };
 
-        profileForm.patch('/settings/profile', {
-            data: normalizedData,
+        profileForm.clearErrors();
+        profileForm.transform(() => normalizedData as any);
+        profileForm.post('/settings/profile', {
             preserveScroll: true,
             forceFormData: true,
             onSuccess: () => {
@@ -217,6 +212,15 @@ export default function SettingsIndex({
             },
         });
     };
+
+    useEffect(() => {
+        return () => {
+            if (profilePhotoPreview?.startsWith('blob:')) {
+                URL.revokeObjectURL(profilePhotoPreview);
+            }
+        };
+    }, [profilePhotoPreview]);
+
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -284,9 +288,9 @@ export default function SettingsIndex({
                                             <div className="flex items-start gap-6">
                                                 <div className="flex flex-col items-center gap-3">
                                                     <div className="w-20 h-20 rounded-full overflow-hidden border bg-muted flex items-center justify-center">
-                                                        {auth?.user?.profile_photo_url ? (
+                                                        {profilePhotoPreview ? (
                                                             <img
-                                                                src={auth.user.profile_photo_url}
+                                                                src={profilePhotoPreview}
                                                                 alt={t('settings_index.profile.photo_alt')}
                                                                 className="w-full h-full object-cover"
                                                             />
@@ -294,8 +298,14 @@ export default function SettingsIndex({
                                                             <span className="text-sm font-semibold text-muted-foreground">{t('settings_index.profile.no_photo')}</span>
                                                         )}
                                                     </div>
-                                                    <Label htmlFor="profile_photo" className="cursor-pointer">
-                                                        {t('settings_index.profile.upload_photo')}
+                                                    <Label
+                                                        htmlFor="profile_photo"
+                                                        className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+                                                    >
+                                                        <Upload className="h-4 w-4" />
+                                                        {t(
+                                                            'settings_index.profile.upload_photo',
+                                                        )}
                                                     </Label>
                                                     <Input
                                                         id="profile_photo"
@@ -307,6 +317,22 @@ export default function SettingsIndex({
                                                             const file = e.target.files?.[0] ?? null;
                                                             profileForm.setData('profile_photo', file);
                                                             clearInertiaFieldError(profileForm.clearErrors, 'profile_photo');
+                                                            if (profilePhotoPreview?.startsWith('blob:')) {
+                                                                URL.revokeObjectURL(profilePhotoPreview);
+                                                            }
+                                                            if (file) {
+                                                                setProfilePhotoPreview(
+                                                                    URL.createObjectURL(
+                                                                        file,
+                                                                    ),
+                                                                );
+                                                            } else {
+                                                                setProfilePhotoPreview(
+                                                                    auth?.user
+                                                                        ?.profile_photo_url ??
+                                                                        null,
+                                                                );
+                                                            }
                                                         }}
                                                     />
                                                     <InputError message={profileForm.errors.profile_photo} />
@@ -380,7 +406,7 @@ export default function SettingsIndex({
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-2">
                                                     <Label htmlFor="city">{t('settings_index.profile.fields.city')}</Label>
                                                     <Input
@@ -409,42 +435,6 @@ export default function SettingsIndex({
                                                         placeholder={t('settings_index.profile.fields.state_placeholder')}
                                                     />
                                                     <InputError message={profileForm.errors.state} />
-                                                </div>
-
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="latitude">{t('settings_index.profile.fields.latitude')}</Label>
-                                                    <Input
-                                                        id="latitude"
-                                                        name="latitude"
-                                                        type="number"
-                                                        step="any"
-                                                        value={profileForm.data.latitude}
-                                                        onChange={(e) => {
-                                                            profileForm.setData('latitude', e.target.value);
-                                                            clearInertiaFieldError(profileForm.clearErrors, 'latitude');
-                                                        }}
-                                                        placeholder={t('settings_index.profile.fields.latitude_placeholder')}
-                                                    />
-                                                    <InputError message={profileForm.errors.latitude} />
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="longitude">{t('settings_index.profile.fields.longitude')}</Label>
-                                                    <Input
-                                                        id="longitude"
-                                                        name="longitude"
-                                                        type="number"
-                                                        step="any"
-                                                        value={profileForm.data.longitude}
-                                                        onChange={(e) => {
-                                                            profileForm.setData('longitude', e.target.value);
-                                                            clearInertiaFieldError(profileForm.clearErrors, 'longitude');
-                                                        }}
-                                                        placeholder={t('settings_index.profile.fields.longitude_placeholder')}
-                                                    />
-                                                    <InputError message={profileForm.errors.longitude} />
                                                 </div>
                                             </div>
 

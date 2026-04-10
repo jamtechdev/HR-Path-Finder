@@ -11,25 +11,28 @@ use Inertia\Response;
 
 class IndustryController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $categories = IndustryCategory::with('subCategories')->orderBy('order')->get();
+        $categories = IndustryCategory::with('subCategories')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Admin/Industries/Index', [
-            'categories' => $categories->map(function ($category) {
+            'categories' => $categories->through(function ($category) {
                 return [
                     'id' => $category->id,
                     'name' => $category->name,
-                    'order' => $category->order ?? 0,
+                    'created_at' => $category->created_at,
                     'subCategories' => $category->subCategories->map(function ($sub) {
                         return [
                             'id' => $sub->id,
                             'name' => $sub->name,
-                            'order' => $sub->order ?? 0,
                         ];
                     })->toArray(),
                 ];
-            })->toArray(),
+            }),
         ]);
     }
 

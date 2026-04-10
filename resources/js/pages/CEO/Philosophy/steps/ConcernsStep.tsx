@@ -115,8 +115,8 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
             </div>
 
             {/* Concern card */}
-            <div className="bg-white border-[1.5px] border-[#E2DDD4] rounded-xl overflow-hidden animate-in fade-in duration-300">
-                <div className="p-4 sm:p-5 border-b border-[#E2DDD4] flex flex-col sm:flex-row sm:items-start gap-3">
+            <div className="bg-white border-[1.5px] border-[#E2DDD4] rounded-xl overflow-hidden animate-in fade-in duration-300 dark:border-slate-700 dark:bg-slate-900">
+                <div className="p-4 sm:p-5 border-b border-[#E2DDD4] flex flex-col sm:flex-row sm:items-start gap-3 dark:border-slate-700">
                     <div className="w-10 h-10 flex-shrink-0 rounded-lg bg-[#0E1628] flex items-center justify-center text-lg">
                         💬
                     </div>
@@ -124,7 +124,7 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
                         <div className="text-[10px] font-medium uppercase tracking-wider text-[#9A9EB8] mb-1">
                             CEO&apos;s Final Input
                         </div>
-                        <div className="text-sm sm:text-[14.5px] font-normal text-[#1A1A2E] leading-snug">
+                        <div className="text-sm sm:text-[14.5px] font-normal text-[#1A1A2E] leading-snug dark:text-slate-100">
                             {question?.question_text ?? "What is the biggest people or organizational challenge you are currently facing?"}
                             <span className="text-red-500 ml-0.5">*</span>
                         </div>
@@ -133,7 +133,7 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
 
                 {/* Category chips (optional) */}
                 <div className="px-4 sm:px-5 pt-4">
-                    <div className="text-[10.5px] font-medium uppercase tracking-wider text-[#9A9EB8] mb-2.5">
+                    <div className="text-[10.5px] font-medium uppercase tracking-wider text-[#9A9EB8] mb-2.5 dark:text-slate-400">
                         Where does your biggest concern live? (optional — select to get a writing prompt)
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -145,7 +145,7 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
                                 className={`inline-flex items-center gap-1.5 rounded-full border-[1.5px] px-3.5 py-1.5 text-[12.5px] font-normal transition-colors ${
                                     selectedCat === id
                                         ? 'bg-[#0E1628] border-[#0E1628] text-white'
-                                        : 'bg-[#F8F4ED] border-[#E2DDD4] text-[#4A4E69] hover:border-[#0E1628] hover:text-[#0E1628]'
+                                        : 'bg-[#F8F4ED] border-[#E2DDD4] text-[#4A4E69] hover:border-[#0E1628] hover:text-[#0E1628] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-500 dark:hover:text-slate-100'
                                 }`}
                             >
                                 <span className="text-sm">{icon}</span>
@@ -157,11 +157,11 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
 
                 {/* Sentence scaffold */}
                 {scaffoldText && (
-                    <div className="mx-4 sm:mx-5 mt-4 p-4 rounded-lg bg-[#C9A84C]/5 border border-[#C9A84C]/20">
+                    <div className="mx-4 sm:mx-5 mt-4 p-4 rounded-lg bg-[#C9A84C]/5 border border-[#C9A84C]/20 dark:bg-amber-900/10 dark:border-amber-700/40">
                         <div className="text-[10px] font-medium uppercase tracking-wider text-[#8A6820] mb-2">
                             ✍️ Writing Prompt — edit the sentence below as a starting point
                         </div>
-                        <p className="text-[12.5px] text-[#4A4E69] font-light leading-relaxed">
+                        <p className="text-[12.5px] text-[#4A4E69] font-light leading-relaxed dark:text-slate-300">
                             {scaffoldText.split(/(\[[^\]]+\])/).map((part, i) =>
                                 /^\[.+\]$/.test(part) ? (
                                     <span key={i} className="text-[#0E1628] font-medium border-b border-dashed border-[#C9A84C] px-0.5">
@@ -185,7 +185,7 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
                         onChange={(e) => onChange(e.target.value)}
                         placeholder="e.g. We are struggling with [talent acquisition] due to [compensation limits]. The most urgent pressure point is [senior manager attrition], which puts our [2025 growth plan] at risk."
                         rows={6}
-                        className={`min-h-[140px] rounded-lg border-[1.5px] bg-[#F8F4ED] text-[13.5px] font-light text-[#1A1A2E] leading-relaxed focus:bg-white resize-y ${hasError ? 'border-red-300 focus:border-red-500' : 'border-[#E2DDD4] focus:border-[#0E1628]'}`}
+                        className={`min-h-[140px] rounded-lg border-[1.5px] bg-[#F8F4ED] text-[13.5px] font-light text-[#1A1A2E] leading-relaxed focus:bg-white resize-y dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:focus:bg-slate-700 dark:placeholder:text-slate-500 ${hasError ? 'border-red-300 focus:border-red-500 dark:border-red-500/60 dark:focus:border-red-400' : 'border-[#E2DDD4] focus:border-[#0E1628] dark:focus:border-slate-400'}`}
                     />
                     <div className="flex flex-wrap justify-between items-center gap-2 mt-2">
                         <span className={`text-[11px] ${charCount >= 100 ? 'text-[#2E9E6B]' : 'text-[#9A9EB8]'}`}>

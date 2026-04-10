@@ -22,13 +22,39 @@ interface PolicySnapshotQuestion {
     order: number;
     is_active: boolean;
     has_conditional_text: boolean;
+    created_at?: string | null;
 }
 
 interface Props {
-    questions: PolicySnapshotQuestion[];
+    questions: {
+        data: PolicySnapshotQuestion[];
+        links: { url: string | null; label: string; active: boolean }[];
+    };
 }
 
 export default function PolicySnapshotIndex({ questions }: Props) {
+    const formatRelativeTime = (value?: string | null) => {
+        if (!value) return '-';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return '-';
+
+        const diffSeconds = Math.round((date.getTime() - Date.now()) / 1000);
+        const absSeconds = Math.abs(diffSeconds);
+        const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+
+        if (absSeconds < 60) return rtf.format(diffSeconds, 'second');
+        const diffMinutes = Math.round(diffSeconds / 60);
+        if (Math.abs(diffMinutes) < 60) return rtf.format(diffMinutes, 'minute');
+        const diffHours = Math.round(diffMinutes / 60);
+        if (Math.abs(diffHours) < 24) return rtf.format(diffHours, 'hour');
+        const diffDays = Math.round(diffHours / 24);
+        if (Math.abs(diffDays) < 30) return rtf.format(diffDays, 'day');
+        const diffMonths = Math.round(diffDays / 30);
+        if (Math.abs(diffMonths) < 12) return rtf.format(diffMonths, 'month');
+        const diffYears = Math.round(diffMonths / 12);
+        return rtf.format(diffYears, 'year');
+    };
+
     const { t } = useTranslation();
     const { flash } = usePage().props as any;
 
@@ -99,7 +125,7 @@ export default function PolicySnapshotIndex({ questions }: Props) {
 
                             <CardContent>
                                 <div className="space-y-2">
-                                    {questions.map((question) => (
+                                    {questions.data.map((question) => (
                                         <div
                                             key={question.id}
                                             className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50"
@@ -125,10 +151,7 @@ export default function PolicySnapshotIndex({ questions }: Props) {
                                                     {question.question_text}
                                                 </p>
                                                 <p className="mt-1 text-xs text-muted-foreground">
-                                                    {t(
-                                                        'admin_policy_snapshot_index.order',
-                                                    )}
-                                                    : {question.order}
+                                                    Created: {formatRelativeTime(question.created_at)}
                                                 </p>
                                             </div>
 
@@ -159,7 +182,7 @@ export default function PolicySnapshotIndex({ questions }: Props) {
                                         </div>
                                     ))}
 
-                                    {questions.length === 0 && (
+                                    {questions.data.length === 0 && (
                                         <p className="py-8 text-center text-muted-foreground">
                                             {t(
                                                 'admin_policy_snapshot_index.no_questions_found',
@@ -167,6 +190,25 @@ export default function PolicySnapshotIndex({ questions }: Props) {
                                         </p>
                                     )}
                                 </div>
+                                {questions.links && questions.links.length > 1 && (
+                                    <div className="mt-4 flex flex-wrap justify-center gap-2 border-t pt-4">
+                                        {questions.links.map((link, i) => (
+                                            <Link
+                                                key={i}
+                                                href={link.url || '#'}
+                                                className={
+                                                    link.active
+                                                        ? 'rounded border bg-primary px-3 py-1 text-primary-foreground'
+                                                        : 'rounded border px-3 py-1 hover:bg-muted'
+                                                }
+                                            >
+                                                {link.label
+                                                    .replace('&laquo;', '«')
+                                                    .replace('&raquo;', '»')}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

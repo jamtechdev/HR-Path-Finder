@@ -31,10 +31,10 @@ export default function ManagementStep({
                     <div className="text-[11px] font-medium uppercase tracking-wider text-[#C9A84C] mb-1">
                         섹션 {stepIndex + 1} OF {totalSteps}
                     </div>
-                    <h2 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#0E1628] mb-1.5">
+                    <h2 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#0E1628] mb-1.5 dark:text-slate-100">
                         {stepMeta.nameKo || stepMeta.name}
                     </h2>
-                    <p className="text-[12px] sm:text-[13px] text-[#4A4E69] font-light leading-relaxed">{stepMeta.desc}</p>
+                    <p className="text-[12px] sm:text-[13px] text-[#4A4E69] font-light leading-relaxed dark:text-slate-300">{stepMeta.desc}</p>
                 </div>
             </div>
             {stepMeta.callout && (
@@ -55,14 +55,14 @@ export default function ManagementStep({
                     return (
                         <div
                             key={question.id}
-                            className={`w-full bg-white border rounded-[10px] px-4 sm:px-6 py-4 sm:py-5 animate-in fade-in slide-in-from-bottom-4 duration-300 ${hasError ? 'border-red-300 bg-red-50/40' : answered ? 'border-[#0E1628]/20' : 'border-[#E2DDD4]'}`}
+                            className={`w-full bg-white border rounded-[10px] px-4 sm:px-6 py-4 sm:py-5 animate-in fade-in slide-in-from-bottom-4 duration-300 dark:bg-slate-800 ${hasError ? 'border-red-300 bg-red-50/40 dark:border-red-500/60 dark:bg-red-950/20' : answered ? 'border-[#0E1628]/20 dark:border-slate-600' : 'border-[#E2DDD4] dark:border-slate-600'}`}
                             style={{ animationDelay: `${(qi + 2) * 40}ms` }}
                         >
                             <div className="text-[10px] font-medium uppercase tracking-widest text-[#9A9EB8] mb-2">
                                 Q{qi + 1}
                                 {answered && <span className="float-right text-[#2E9E6B]">✓ 응답 완료</span>}
                             </div>
-                            <p className="text-[13px] sm:text-[14px] leading-relaxed text-[#1A1A2E] mb-4 break-words">
+                            <p className="text-[13px] sm:text-[14px] leading-relaxed text-[#1A1A2E] mb-4 break-words dark:text-slate-100">
                                 {question.question_text}
                                 <span className="text-red-500 ml-0.5">*</span>
                             </p>

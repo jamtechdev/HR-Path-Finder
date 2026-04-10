@@ -26,12 +26,15 @@ interface HrIssue {
     id: number;
     category: string;
     name: string;
-    order: number;
     is_active: boolean;
+    created_at?: string | null;
 }
 
 interface Props {
-    issues: HrIssue[];
+    issues: {
+        data: HrIssue[];
+        links: { url: string | null; label: string; active: boolean }[];
+    };
     categories: Record<string, string>;
     currentCategory?: string;
 }
@@ -41,6 +44,22 @@ export default function HrIssuesIndex({
     categories,
     currentCategory,
 }: Props) {
+    const formatRelativeTime = (value?: string | null) => {
+        if (!value) return '-';
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return '-';
+        const secs = Math.round((d.getTime() - Date.now()) / 1000);
+        const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+        const abs = Math.abs(secs);
+        if (abs < 60) return rtf.format(secs, 'second');
+        const mins = Math.round(secs / 60);
+        if (Math.abs(mins) < 60) return rtf.format(mins, 'minute');
+        const hours = Math.round(mins / 60);
+        if (Math.abs(hours) < 24) return rtf.format(hours, 'hour');
+        const days = Math.round(hours / 24);
+        return rtf.format(days, 'day');
+    };
+
     const { t } = useTranslation();
     const { flash } = usePage().props as any;
 
@@ -126,7 +145,7 @@ export default function HrIssuesIndex({
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-2">
-                                    {issues.map((issue) => (
+                                    {issues.data.map((issue) => (
                                         <div
                                             key={issue.id}
                                             className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50"
@@ -148,7 +167,7 @@ export default function HrIssuesIndex({
                                                     {issue.name}
                                                 </p>
                                                 <p className="mt-1 text-xs text-muted-foreground">
-                                                    {t('admin_hr_issues.fields.order')}: {issue.order}
+                                                    Created: {formatRelativeTime(issue.created_at)}
                                                 </p>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -174,12 +193,25 @@ export default function HrIssuesIndex({
                                             </div>
                                         </div>
                                     ))}
-                                    {issues.length === 0 && (
+                                    {issues.data.length === 0 && (
                                         <p className="py-8 text-center text-muted-foreground">
                                             {t('admin_hr_issues.empty')}
                                         </p>
                                     )}
                                 </div>
+                                {issues.links && issues.links.length > 1 && (
+                                    <div className="mt-4 flex flex-wrap justify-center gap-2 border-t pt-4">
+                                        {issues.links.map((link, i) => (
+                                            <Link
+                                                key={i}
+                                                href={link.url || '#'}
+                                                className={link.active ? 'rounded border bg-primary px-3 py-1 text-primary-foreground' : 'rounded border px-3 py-1 hover:bg-muted'}
+                                            >
+                                                {link.label.replace('&laquo;', '«').replace('&raquo;', '»')}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

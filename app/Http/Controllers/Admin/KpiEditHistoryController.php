@@ -70,7 +70,7 @@ class KpiEditHistoryController extends Controller
             });
         }
         
-        $editHistory = $query->orderBy('created_at', 'desc')->paginate(50);
+        $editHistory = $query->orderBy('created_at', 'desc')->paginate(10);
 
         return Inertia::render('Admin/PerformanceSystem/KpiEditHistory/Index', [
             'editHistory' => $editHistory,

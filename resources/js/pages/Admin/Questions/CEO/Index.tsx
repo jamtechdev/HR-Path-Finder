@@ -31,10 +31,16 @@ interface DiagnosisQuestion {
     question_type: string;
     order: number;
     is_active: boolean;
+    created_at?: string | null;
+}
+
+interface PaginatedQuestions {
+    data: DiagnosisQuestion[];
+    links: { url: string | null; label: string; active: boolean }[];
 }
 
 interface Props {
-    questions: DiagnosisQuestion[];
+    questions: PaginatedQuestions;
     categories: Record<string, string>;
     currentCategory?: string;
 }
@@ -44,6 +50,28 @@ export default function CEOQuestionsIndex({
     categories,
     currentCategory,
 }: Props) {
+    const formatRelativeTime = (value?: string | null) => {
+        if (!value) return '-';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return '-';
+
+        const diffSeconds = Math.round((date.getTime() - Date.now()) / 1000);
+        const absSeconds = Math.abs(diffSeconds);
+        const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+
+        if (absSeconds < 60) return rtf.format(diffSeconds, 'second');
+        const diffMinutes = Math.round(diffSeconds / 60);
+        if (Math.abs(diffMinutes) < 60) return rtf.format(diffMinutes, 'minute');
+        const diffHours = Math.round(diffMinutes / 60);
+        if (Math.abs(diffHours) < 24) return rtf.format(diffHours, 'hour');
+        const diffDays = Math.round(diffHours / 24);
+        if (Math.abs(diffDays) < 30) return rtf.format(diffDays, 'day');
+        const diffMonths = Math.round(diffDays / 30);
+        if (Math.abs(diffMonths) < 12) return rtf.format(diffMonths, 'month');
+        const diffYears = Math.round(diffMonths / 12);
+        return rtf.format(diffYears, 'year');
+    };
+
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const { flash } = usePage().props as any;
@@ -67,7 +95,7 @@ export default function CEOQuestionsIndex({
         }
     }, [flash]);
 
-    const filteredQuestions = questions.filter((q) =>
+    const filteredQuestions = questions.data.filter((q) =>
         q.question_text.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
@@ -205,10 +233,7 @@ export default function CEOQuestionsIndex({
                                                 </p>
 
                                                 <p className="mt-1 text-xs text-muted-foreground">
-                                                    {t(
-                                                        'admin_ceo_questions.order',
-                                                    )}
-                                                    : {question.order}
+                                                    Created: {formatRelativeTime(question.created_at)}
                                                 </p>
                                             </div>
 
@@ -247,6 +272,25 @@ export default function CEOQuestionsIndex({
                                         </p>
                                     )}
                                 </div>
+                                {questions.links && questions.links.length > 1 && (
+                                    <div className="mt-4 flex flex-wrap justify-center gap-2 border-t pt-4">
+                                        {questions.links.map((link, i) => (
+                                            <Link
+                                                key={i}
+                                                href={link.url || '#'}
+                                                className={
+                                                    link.active
+                                                        ? 'rounded border bg-primary px-3 py-1 text-primary-foreground'
+                                                        : 'rounded border px-3 py-1 hover:bg-muted'
+                                                }
+                                            >
+                                                {link.label
+                                                    .replace('&laquo;', '«')
+                                                    .replace('&raquo;', '»')}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

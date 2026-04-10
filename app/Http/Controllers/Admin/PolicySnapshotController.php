@@ -13,9 +13,13 @@ class PolicySnapshotController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $questions = PolicySnapshotQuestion::orderBy('order')->orderBy('id')->get();
+        $questions = PolicySnapshotQuestion::query()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Admin/PolicySnapshot/Index', [
             'questions' => $questions,

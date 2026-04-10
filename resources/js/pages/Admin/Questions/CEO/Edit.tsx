@@ -341,27 +341,6 @@ export default function CEOQuestionEdit({
                                         </div>
                                     )}
 
-                                    {/* Order */}
-                                    <div>
-                                        <Label>
-                                            {t(
-                                                'admin_ceo_questions_edit.order',
-                                            )}
-                                        </Label>
-                                        <Input
-                                            type="number"
-                                            value={data.order}
-                                            min="0"
-                                            onChange={(e) =>
-                                                setData(
-                                                    'order',
-                                                    parseInt(e.target.value) ||
-                                                        0,
-                                                )
-                                            }
-                                        />
-                                    </div>
-
                                     {/* Active */}
                                     <div className="flex items-center space-x-2">
                                         <Checkbox

@@ -43,7 +43,7 @@ export default function CeoTreeList({ projects, stats }: Props) {
                     <Head title={t('ceo_tree.title')} />
 
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
-                        <div className="mb-8 rounded-2xl border bg-gradient-to-r from-slate-50 to-white px-6 py-5">
+                        <div className="mb-8 rounded-2xl border bg-gradient-to-r from-slate-50 to-white px-6 py-5 dark:from-slate-900 dark:to-slate-800/80">
                             <h1 className="mb-1 text-3xl font-bold">
                                 {t('ceo_tree.title')}
                             </h1>
@@ -88,7 +88,7 @@ export default function CeoTreeList({ projects, stats }: Props) {
                                                     </td>
                                                     <td className="px-4 py-3">
                                                         {project.survey_completed ? (
-                                                            <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">
+                                                            <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300">
                                                                 {t(
                                                                     'ceo_tree.survey_completed',
                                                                 )}

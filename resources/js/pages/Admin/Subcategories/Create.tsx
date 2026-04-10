@@ -26,7 +26,6 @@ export default function SubcategoriesCreate({ categories }: Props) {
     const { data, setData, post, processing, errors, clearErrors } = useForm({
         industry_category_id: '',
         name: '',
-        order: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -111,28 +110,6 @@ export default function SubcategoriesCreate({ categories }: Props) {
                                         {errors.name && (
                                             <p className="text-sm text-destructive mt-1">{errors.name}</p>
                                         )}
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="order">
-                                            {t('admin_subcategories.label_order')}
-                                        </Label>
-                                        <Input
-                                            id="order"
-                                            type="number"
-                                            value={data.order}
-                                            onChange={(e) => setData('order', e.target.value)}
-                                            placeholder={t(
-                                                'admin_subcategories.placeholder_order',
-                                            )}
-                                            min="0"
-                                        />
-                                        {errors.order && (
-                                            <p className="text-sm text-destructive mt-1">{errors.order}</p>
-                                        )}
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            {t('admin_subcategories.order_hint')}
-                                        </p>
                                     </div>
 
                                     <div className="flex items-center gap-3 pt-4">

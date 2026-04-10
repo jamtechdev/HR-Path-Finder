@@ -224,26 +224,6 @@ export default function PerformanceSnapshotEdit({
                                     <div>
                                         <Label>
                                             {t(
-                                                'admin_performance_snapshot_question_edit.order',
-                                            )}
-                                        </Label>
-                                        <Input
-                                            type="number"
-                                            value={data.order}
-                                            onChange={(e) =>
-                                                setData(
-                                                    'order',
-                                                    parseInt(e.target.value) ||
-                                                        0,
-                                                )
-                                            }
-                                            min="0"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <Label>
-                                            {t(
                                                 'admin_performance_snapshot_question_edit.version_optional',
                                             )}
                                         </Label>

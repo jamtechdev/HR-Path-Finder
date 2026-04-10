@@ -37,10 +37,10 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                     <div className="text-[10px] font-medium uppercase tracking-wider text-[#C9A84C] mb-1">
                         Step 6 of 8
                     </div>
-                    <h2 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#0E1628] mb-1.5">
+                    <h2 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#0E1628] mb-1.5 dark:text-slate-100">
                         General Questions
                     </h2>
-                    <p className="text-[13px] text-[#4A4E69] font-light leading-relaxed">
+                    <p className="text-[13px] text-[#4A4E69] font-light leading-relaxed dark:text-slate-300">
                         This section gathers overall operational context to support a balanced and accurate interpretation of your responses.
                     </p>
                 </div>
@@ -75,13 +75,13 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                     return (
                         <div
                             key={question.id}
-                            className={`bg-white border-[1.5px] rounded-xl overflow-hidden transition-colors ${
-                                hasError ? 'border-red-300 bg-red-50/40' : answered ? 'border-[#0E1628]/20' : 'border-[#E2DDD4]'
+                            className={`bg-white border-[1.5px] rounded-xl overflow-hidden transition-colors dark:bg-slate-800 ${
+                                hasError ? 'border-red-300 bg-red-50/40 dark:border-red-500/60 dark:bg-red-950/20' : answered ? 'border-[#0E1628]/20 dark:border-slate-600' : 'border-[#E2DDD4] dark:border-slate-600'
                             }`}
                             style={{ animationDelay: `${qi * 0.05}s` }}
                         >
                             {/* Card header */}
-                            <div className="px-4 sm:px-5 py-4 flex items-center gap-3 sm:gap-4 border-b border-[#E2DDD4]">
+                            <div className="px-4 sm:px-5 py-4 flex items-center gap-3 sm:gap-4 border-b border-[#E2DDD4] dark:border-slate-700">
                                 <div
                                     className={`w-9 h-9 sm:w-[36px] sm:h-[36px] rounded-lg flex items-center justify-center text-[17px] flex-shrink-0 border transition-colors ${
                                         answered ? 'bg-[#0E1628] border-[#0E1628]' : 'bg-[#F8F4ED] border-[#E2DDD4]'
@@ -94,7 +94,7 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                                         Q{qi + 1} of {total}
                                     </div>
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="text-sm sm:text-[14.5px] font-medium text-[#1A1A2E] leading-snug">
+                                        <span className="text-sm sm:text-[14.5px] font-medium text-[#1A1A2E] leading-snug dark:text-slate-100">
                                             {meta.title}
                                             <span className="text-[#E05A5A] ml-0.5">*</span>
                                         </span>
@@ -110,20 +110,20 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                             {/* Spectrum body */}
                             <div className="p-4 sm:p-5">
                                 <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center mb-4">
-                                    <div className="bg-[#0E1628]/[0.04] border-l-[3px] border-l-[#0E1628] rounded-md py-2.5 px-3 sm:px-4">
+                                    <div className="bg-[#0E1628]/[0.04] border-l-[3px] border-l-[#0E1628] rounded-md py-2.5 px-3 sm:px-4 dark:bg-slate-700/60">
                                         <strong className="block text-[10px] font-semibold uppercase tracking-wide text-[#0E1628] mb-1">
                                             {meta.leftLabel}
                                         </strong>
-                                        <p className="text-xs text-[#4A4E69] font-light leading-relaxed">{optionA}</p>
+                                        <p className="text-xs text-[#4A4E69] font-light leading-relaxed dark:text-slate-300">{optionA}</p>
                                     </div>
                                     <div className="hidden sm:block text-[10px] font-semibold text-[#9A9EB8] text-center whitespace-nowrap">
                                         VS
                                     </div>
-                                    <div className="bg-[#C9A84C]/[0.06] border-r-[3px] border-r-[#C9A84C] rounded-md py-2.5 px-3 sm:px-4 sm:text-right">
+                                    <div className="bg-[#C9A84C]/[0.06] border-r-[3px] border-r-[#C9A84C] rounded-md py-2.5 px-3 sm:px-4 sm:text-right dark:bg-amber-900/20">
                                         <strong className="block text-[10px] font-semibold uppercase tracking-wide text-[#8A6820] mb-1">
                                             {meta.rightLabel}
                                         </strong>
-                                        <p className="text-xs text-[#4A4E69] font-light leading-relaxed">{optionB}</p>
+                                        <p className="text-xs text-[#4A4E69] font-light leading-relaxed dark:text-slate-300">{optionB}</p>
                                     </div>
                                 </div>
 

@@ -15,13 +15,11 @@ import { useTranslation } from 'react-i18next';
 interface IndustrySubCategory {
     id: number;
     name: string;
-    order: number;
 }
 
 interface IndustryCategory {
     id: number;
     name: string;
-    order: number;
     subCategories: IndustrySubCategory[];
 }
 
@@ -36,17 +34,14 @@ export default function IndustriesEdit({ category }: Props) {
 
     const { data, setData, put, processing, errors, clearErrors } = useForm({
         name: category?.name || '',
-        order: category?.order?.toString() || '0',
     });
 
     const subCategoryForm = useForm({
         name: '',
-        order: '',
     });
 
     const editSubCategoryForm = useForm({
         name: '',
-        order: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -71,7 +66,6 @@ export default function IndustriesEdit({ category }: Props) {
         setEditingSubCategory(subCategory.id);
         editSubCategoryForm.setData({
             name: subCategory.name,
-            order: subCategory.order.toString(),
         });
     };
 
@@ -141,23 +135,6 @@ export default function IndustriesEdit({ category }: Props) {
                                             )}
                                         </div>
 
-                                        <div>
-                                            <Label htmlFor="order">{t('admin_industries_edit.fields.order_required')}</Label>
-                                            <Input
-                                                id="order"
-                                                type="number"
-                                                value={data.order}
-                                                onChange={(e) => {
-                                                    setData('order', e.target.value);
-                                                    clearInertiaFieldError(clearErrors, 'order');
-                                                }}
-                                                min="0"
-                                            />
-                                            {errors.order && (
-                                                <p className="text-sm text-destructive mt-1">{errors.order}</p>
-                                            )}
-                                        </div>
-
                                         <div className="flex items-center gap-3 pt-4">
                                             <Button type="submit" disabled={processing}>
                                                 {processing ? t('admin_industries_edit.actions.updating') : t('admin_industries_edit.actions.update_industry')}
@@ -194,20 +171,6 @@ export default function IndustriesEdit({ category }: Props) {
                                                         clearInertiaFieldError(subCategoryForm.clearErrors, 'name');
                                                     }}
                                                     placeholder={t('admin_industries_edit.sub_industries.name_placeholder')}
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="sub_order">{t('admin_industries_edit.sub_industries.order_optional')}</Label>
-                                                <Input
-                                                    id="sub_order"
-                                                    type="number"
-                                                    value={subCategoryForm.data.order}
-                                                    onChange={(e) => {
-                                                        subCategoryForm.setData('order', e.target.value);
-                                                        clearInertiaFieldError(subCategoryForm.clearErrors, 'order');
-                                                    }}
-                                                    placeholder={t('admin_industries_edit.sub_industries.order_placeholder')}
-                                                    min="0"
                                                 />
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -248,16 +211,6 @@ export default function IndustriesEdit({ category }: Props) {
                                                             }}
                                                             className="flex-1"
                                                         />
-                                                        <Input
-                                                            type="number"
-                                                            value={editSubCategoryForm.data.order}
-                                                            onChange={(e) => {
-                                                                editSubCategoryForm.setData('order', e.target.value);
-                                                                clearInertiaFieldError(editSubCategoryForm.clearErrors, 'order');
-                                                            }}
-                                                            className="w-24"
-                                                            min="0"
-                                                        />
                                                         <Button type="submit" size="sm" disabled={editSubCategoryForm.processing}>
                                                             {t('common.save')}
                                                         </Button>
@@ -277,7 +230,6 @@ export default function IndustriesEdit({ category }: Props) {
                                                     <>
                                                         <div className="flex-1 flex items-center gap-2">
                                                             <span>{subCategory.name}</span>
-                                                            <Badge variant="outline">{subCategory.order}</Badge>
                                                         </div>
                                                         <div className="flex items-center gap-2">
                                                             <Button

@@ -2963,9 +2963,9 @@
 .diagnosis-step-layout .dx-main {
     flex: 1;
     padding: 28px 32px 100px;
-    max-width: 1100px;
+    max-width: 100%;
     width: 100%;
-    margin: 0 auto;
+    margin: 0;
 }
 .diagnosis-step-layout .dx-bottom-bar {
     position: sticky;
@@ -2979,6 +2979,12 @@
     padding: 0 32px;
     box-shadow: 0 -4px 16px rgba(27,43,91,0.05);
     z-index: 100;
+}
+.diagnosis-step-layout button:not(:disabled),
+.diagnosis-step-layout a,
+.diagnosis-step-layout [role='button'],
+.diagnosis-step-layout summary {
+    cursor: pointer;
 }
 .diagnosis-step-layout .dx-btn-back {
     display: flex;

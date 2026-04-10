@@ -11,6 +11,11 @@ interface StepVerificationCardProps {
     stepStatuses: Record<string, string>;
     /** When true, show CEO Survey row with View (e.g. when diagnosis is verified). */
     surveyAvailable?: boolean;
+    verificationGates?: {
+        hr_completed: boolean;
+        ceo_survey_completed: boolean;
+        diagnosis_completed: boolean;
+    };
 }
 
 const STEP_LABELS: Record<string, string> = {
@@ -28,7 +33,7 @@ const STEP_ROUTES: Record<string, (projectId: number) => string> = {
     compensation: (id) => `/ceo/review/compensation/${id}`,
 };
 
-export default function StepVerificationCard({ projectId, stepStatuses, surveyAvailable }: StepVerificationCardProps) {
+export default function StepVerificationCard({ projectId, stepStatuses, surveyAvailable, verificationGates }: StepVerificationCardProps) {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
     const [nextStepRoute, setNextStepRoute] = useState<string | null>(null);
@@ -129,8 +134,25 @@ export default function StepVerificationCard({ projectId, stepStatuses, surveyAv
                     const status = getStepStatus(step);
                     const isSubmitted = status === 'submitted';
                     const isVerified = ['approved', 'locked', 'completed'].includes(status);
-                    const canVerify = isSubmitted && !isVerified;
-                    const canView = isVerified || isSubmitted;
+                    const requiresSurveyFirst =
+                        step === 'diagnosis' &&
+                        !!verificationGates &&
+                        !verificationGates.ceo_survey_completed;
+                    const diagnosisGateFailed =
+                        step === 'diagnosis' &&
+                        !!verificationGates &&
+                        (!verificationGates.hr_completed ||
+                            !verificationGates.ceo_survey_completed ||
+                            !verificationGates.diagnosis_completed);
+                    const canVerify = isSubmitted && !isVerified && !diagnosisGateFailed;
+                    const canView = (isVerified || isSubmitted) && !requiresSurveyFirst;
+                    let pendingReason: string | null = null;
+                    if (step === 'diagnosis' && diagnosisGateFailed && verificationGates) {
+                        if (!verificationGates.hr_completed) pendingReason = 'Waiting for HR';
+                        else if (!verificationGates.ceo_survey_completed) pendingReason = 'Complete Survey First';
+                        else if (!verificationGates.diagnosis_completed) pendingReason = 'Pending';
+                        else pendingReason = 'Pending';
+                    }
 
                     return (
                         <div
@@ -147,6 +169,18 @@ export default function StepVerificationCard({ projectId, stepStatuses, surveyAv
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
+                                {requiresSurveyFirst && (
+                                    <Button
+                                        variant="default"
+                                        size="sm"
+                                        onClick={() => {
+                                            window.location.href = `/ceo/philosophy/survey/${projectId}`;
+                                        }}
+                                        className="bg-emerald-600 hover:bg-emerald-700"
+                                    >
+                                        Start Survey
+                                    </Button>
+                                )}
                                 {canView && (
                                     <Button
                                         variant="ghost"
@@ -161,6 +195,11 @@ export default function StepVerificationCard({ projectId, stepStatuses, surveyAv
                                         <Eye className="w-4 h-4 mr-1" />
                                         View
                                     </Button>
+                                )}
+                                {step === 'diagnosis' && pendingReason && !isVerified && (
+                                    <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-100">
+                                        {pendingReason}
+                                    </Badge>
                                 )}
                                 {canVerify && (
                                     <>

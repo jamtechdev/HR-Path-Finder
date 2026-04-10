@@ -36,7 +36,6 @@ class CompensationSnapshotQuestionController extends Controller
     public function index(Request $request): Response
     {
         $questions = CompensationSnapshotQuestion::query()
-            ->orderBy('order')
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->paginate(10)

@@ -125,6 +125,11 @@ function buildGradesFromDiagnosis(diagnosis?: Diagnosis | null): JobGrade[] {
 }
 
 const GRADE_GRID = '28px 44px 100px 180px 120px minmax(120px,3.5fr) 36px';
+const blockNonNumericKeys = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (['e', 'E', '+', '-'].includes(e.key)) {
+        e.preventDefault();
+    }
+};
 
 export default function JobGrades({
     project,
@@ -268,16 +273,22 @@ export default function JobGrades({
         setGrades((prev) => {
             if (prev.length === 0 || workforceTotal <= 0) return prev;
             const n = prev.length;
-            const base = Math.floor(workforceTotal / n);
-            let rem = workforceTotal - base * n;
-            return prev.map((g) => {
-                let c = base;
-                if (rem > 0) {
-                    c += 1;
-                    rem -= 1;
-                }
-                return { ...g, count: c };
-            });
+            // Pyramid distribution: top smaller, bottom larger.
+            const weights = Array.from({ length: n }, (_v, i) => i + 1);
+            const sumWeights = weights.reduce((s, w) => s + w, 0);
+            const next = prev.map((g, i) => ({
+                ...g,
+                count: Math.floor((workforceTotal * weights[i]) / sumWeights),
+            }));
+
+            let assigned = next.reduce((s, g) => s + g.count, 0);
+            let idx = next.length - 1;
+            while (assigned < workforceTotal && next.length > 0) {
+                next[idx].count += 1;
+                assigned += 1;
+                idx = idx > 0 ? idx - 1 : next.length - 1;
+            }
+            return next;
         });
     }, [workforceTotal]);
 
@@ -486,6 +497,8 @@ export default function JobGrades({
                             type="number"
                             min={1}
                             value={workforceTotal}
+                            inputMode="numeric"
+                            onKeyDown={blockNonNumericKeys}
                             onChange={(e) => {
                                 setHasInteracted(true);
                                 setWorkforceTotal(
@@ -696,6 +709,8 @@ export default function JobGrades({
                                     type="number"
                                     min={0}
                                     value={g.count || ''}
+                                    inputMode="numeric"
+                                    onKeyDown={blockNonNumericKeys}
                                     onChange={(e) => {
                                         const parsed =
                                             parseInt(e.target.value, 10) || 0;

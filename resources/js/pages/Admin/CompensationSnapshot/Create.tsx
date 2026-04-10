@@ -28,7 +28,7 @@ export default function CompensationSnapshotCreate({ answerTypes }: Props) {
         question_text: '',
         answer_type: 'select_one',
         options: [] as string[],
-        order: 0,
+        order: null as number | null,
         is_active: true,
         version: '',
         metadata: null as any,
@@ -149,20 +149,6 @@ export default function CompensationSnapshotCreate({ answerTypes }: Props) {
                                             </p>
                                         </div>
                                     )}
-
-                                    <div>
-                                        <Label>{t('compensation_snapshot_create.order')}</Label>
-                                        <Input
-                                            type="number"
-                                            value={data.order}
-                                            onChange={(e) => setData('order', parseInt(e.target.value) || 0)}
-                                            min="0"
-                                            placeholder={t('compensation_snapshot_create.order_placeholder')}
-                                        />
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            {t('compensation_snapshot_create.order_description')}
-                                        </p>
-                                    </div>
 
                                     <div>
                                         <Label>{t('compensation_snapshot_create.version')}</Label>

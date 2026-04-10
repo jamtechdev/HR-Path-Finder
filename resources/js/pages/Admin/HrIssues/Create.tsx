@@ -23,7 +23,6 @@ export default function Create({
     const { t } = useTranslation();
     const { data, setData, post, processing, errors, clearErrors } = useForm({
         name: '',
-        order: '',
         category: Object.keys(categories)[0] || '',
         is_active: true,
     });
@@ -112,23 +111,6 @@ export default function Create({
                                                 {errors.category}
                                             </p>
                                         )}
-                                    </div>
-
-                                    <div>
-                                        <Label>{t('admin_hr_issue_form.order')}</Label>
-                                        <Input
-                                            type="number"
-                                            value={data.order}
-                                            onChange={(e) =>
-                                                setData('order', e.target.value)
-                                            }
-                                            placeholder={t(
-                                                'admin_hr_issue_form.order_placeholder',
-                                            )}
-                                        />
-                                        <p className="mt-1 text-xs text-muted-foreground">
-                                            {t('admin_hr_issue_form.order_hint')}
-                                        </p>
                                     </div>
 
                                     <div className="flex items-center space-x-2">

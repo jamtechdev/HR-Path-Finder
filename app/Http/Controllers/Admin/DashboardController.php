@@ -155,7 +155,7 @@ class DashboardController extends Controller
             'company',
             'diagnosis',
             'ceoPhilosophy',
-        ])->orderByDesc('created_at')->get();
+        ])->orderByDesc('created_at')->paginate(10)->withQueryString();
 
         return Inertia::render('Admin/ProjectTree', [
             'projects' => $projects,

@@ -51,7 +51,11 @@ class CompanyController extends Controller
         ->get()
         ->map(function ($company) {
             $ceoUsers = $company->users->where('pivot.role', 'ceo');
-            $invitations = $company->invitations->map(function ($invitation) {
+            $invitations = $company->invitations
+                ->sortByDesc('created_at')
+                ->unique(fn ($invitation) => mb_strtolower($invitation->email))
+                ->values()
+                ->map(function ($invitation) {
                 $status = 'pending';
                 if ($invitation->accepted_at) {
                     $status = 'accepted';
@@ -72,7 +76,7 @@ class CompanyController extends Controller
                     'rejected_at' => $invitation->trashed() ? $invitation->deleted_at : null,
                     'expires_at' => $invitation->expires_at,
                 ];
-            });
+                });
             
             return [
                 'id' => $company->id,
@@ -171,7 +175,11 @@ class CompanyController extends Controller
         }
 
         // Format invitations data
-        $invitations = $company->invitations ? $company->invitations->map(function ($invitation) {
+        $invitations = $company->invitations ? $company->invitations
+            ->sortByDesc('created_at')
+            ->unique(fn ($invitation) => mb_strtolower($invitation->email))
+            ->values()
+            ->map(function ($invitation) {
             $status = 'pending';
             if ($invitation->accepted_at) {
                 $status = 'accepted';
@@ -192,7 +200,7 @@ class CompanyController extends Controller
                 'rejected_at' => $invitation->trashed() ? $invitation->deleted_at : null,
                 'expires_at' => $invitation->expires_at,
             ];
-        })->values() : [];
+            })->values() : [];
 
         return Inertia::render('companies/show', [
             'company' => [

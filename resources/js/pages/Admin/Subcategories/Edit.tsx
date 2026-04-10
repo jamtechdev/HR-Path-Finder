@@ -20,7 +20,6 @@ interface IndustryCategory {
 interface IndustrySubCategory {
     id: number;
     name: string;
-    order: number;
     industry_category_id: number;
     industryCategory?: IndustryCategory;
 }
@@ -35,7 +34,6 @@ export default function SubcategoriesEdit({ subCategory, categories }: Props) {
     const { data, setData, put, processing, errors, clearErrors } = useForm({
         industry_category_id: subCategory?.industry_category_id?.toString() || '',
         name: subCategory?.name || '',
-        order: subCategory?.order?.toString() || '0',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -118,22 +116,6 @@ export default function SubcategoriesEdit({ subCategory, categories }: Props) {
                                         />
                                         {errors.name && (
                                             <p className="text-sm text-destructive mt-1">{errors.name}</p>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="order">
-                                            {t('admin_subcategories.label_order_required')}
-                                        </Label>
-                                        <Input
-                                            id="order"
-                                            type="number"
-                                            value={data.order}
-                                            onChange={(e) => setData('order', e.target.value)}
-                                            min="0"
-                                        />
-                                        {errors.order && (
-                                            <p className="text-sm text-destructive mt-1">{errors.order}</p>
                                         )}
                                     </div>
 

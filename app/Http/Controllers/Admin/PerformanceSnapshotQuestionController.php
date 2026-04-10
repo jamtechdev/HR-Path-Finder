@@ -16,7 +16,11 @@ class PerformanceSnapshotQuestionController extends Controller
     public function index(Request $request): Response
     {
         // Admin list shows newest records first for easier CRUD operations.
-        $questions = PerformanceSnapshotQuestion::orderByDesc('created_at')->orderByDesc('id')->get();
+        $questions = PerformanceSnapshotQuestion::query()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Admin/PerformanceSnapshot/Index', [
             'questions' => $questions,
@@ -140,6 +144,8 @@ class PerformanceSnapshotQuestionController extends Controller
             PerformanceSnapshotQuestion::where('id', $question['id'])->update(['order' => $question['order']]);
         }
 
-        return response()->json(['success' => true]);
+        return redirect()
+            ->back()
+            ->with('success', 'Question order updated successfully.');
     }
 }

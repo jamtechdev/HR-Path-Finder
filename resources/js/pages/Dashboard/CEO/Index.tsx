@@ -75,14 +75,34 @@ export default function CeoDashboard({
     needsAttention,
 }: Props) {
     const { t } = useTranslation();
+    const getLocalizedStatus = (status?: string) => {
+        const value = status || 'not_started';
+        const pretty = value.replace(/_/g, ' ');
+        return t(`ceo_dashboard.status.${value}`, { defaultValue: pretty });
+    };
     const surveyCompletedCount = projects.filter((project) => !!project.ceoPhilosophy).length;
     const verificationTargetProjectId = pendingReviews[0]?.id ?? projects[0]?.id;
-    const cardBaseClass = 'border-t-6 hover:shadow-lg transition-all duration-200 cursor-pointer min-h-[118px]';
+    const cardBaseClass = 'border-t-6 hover:shadow-lg transition-all duration-200 min-h-[118px]';
     const cardContentClass = 'p-6 h-full flex items-center';
     const statValueClass =
-        'text-3xl font-bold whitespace-nowrap tabular-nums leading-none text-slate-900';
+        'text-3xl font-bold whitespace-nowrap tabular-nums leading-none text-foreground';
     const iconWrapClass =
         'w-12 h-12 rounded-xl flex items-center justify-center shrink-0';
+    const disabledCardClass = 'cursor-not-allowed opacity-60';
+
+    const wrapCard = (
+        enabled: boolean,
+        href: string,
+        disabledTitle: string,
+        card: JSX.Element,
+    ) =>
+        enabled ? (
+            <Link href={href}>{card}</Link>
+        ) : (
+            <div title={disabledTitle} aria-disabled className={disabledCardClass}>
+                {card}
+            </div>
+        );
 
     const getStatusBadge = (status: string) => {
         const statusMap: Record<
@@ -93,23 +113,23 @@ export default function CeoDashboard({
             }
         > = {
             not_started: {
-                label: t('ceo_dashboard.status.not_started'),
+                label: getLocalizedStatus('not_started'),
                 variant: 'outline',
             },
             in_progress: {
-                label: t('ceo_dashboard.status.in_progress'),
+                label: getLocalizedStatus('in_progress'),
                 variant: 'secondary',
             },
             submitted: {
-                label: t('ceo_dashboard.status.submitted'),
+                label: getLocalizedStatus('submitted'),
                 variant: 'default',
             },
             completed: {
-                label: t('ceo_dashboard.status.completed'),
+                label: getLocalizedStatus('completed'),
                 variant: 'default',
             },
             locked: {
-                label: t('ceo_dashboard.status.locked'),
+                label: getLocalizedStatus('locked'),
                 variant: 'default',
             },
         };
@@ -157,7 +177,10 @@ export default function CeoDashboard({
                             </Link>
 
                             {/* Pending Review */}
-                            <Link href="/ceo/projects">
+                            {wrapCard(
+                                stats.pending_diagnosis_review > 0,
+                                '/ceo/projects',
+                                t('ceo_dashboard.disabled.pending_review_zero', { defaultValue: 'No pending reviews right now.' }),
                                 <Card
                                     className={`${cardBaseClass} border-t-orange-500`}
                                 >
@@ -174,17 +197,16 @@ export default function CeoDashboard({
                                             </div>
                                         </div>
                                     </CardContent>
-                                </Card>
-                            </Link>
+                                </Card>,
+                            )}
 
                             {/* Pending Survey */}
-                            <Link
-                                href={
-                                    surveyAvailableProjects.length > 0
-                                        ? `/ceo/philosophy/survey/${surveyAvailableProjects[0].id}`
-                                        : '/ceo/projects'
-                                }
-                            >
+                            {wrapCard(
+                                stats.pending_ceo_survey > 0,
+                                surveyAvailableProjects.length > 0
+                                    ? `/ceo/philosophy/survey/${surveyAvailableProjects[0].id}`
+                                    : '/ceo/projects',
+                                t('ceo_dashboard.disabled.pending_survey_zero', { defaultValue: 'No pending surveys right now.' }),
                                 <Card
                                     className={`${cardBaseClass} border-t-yellow-500`}
                                 >
@@ -201,8 +223,8 @@ export default function CeoDashboard({
                                             </div>
                                         </div>
                                     </CardContent>
-                                </Card>
-                            </Link>
+                                </Card>,
+                            )}
 
                             {/* Completed Projects */}
                             <Link
@@ -253,7 +275,10 @@ export default function CeoDashboard({
                             </Link>
 
                             {/* Pending KPI Review */}
-                            <Link href="/ceo/kpi-review">
+                            {wrapCard(
+                                (stats.pending_kpi_review ?? 0) > 0,
+                                '/ceo/kpi-review',
+                                t('ceo_dashboard.disabled.pending_kpi_zero', { defaultValue: 'No pending KPI reviews right now.' }),
                                 <Card
                                     className={`${cardBaseClass} border-t-cyan-500`}
                                 >
@@ -270,8 +295,8 @@ export default function CeoDashboard({
                                             </div>
                                         </div>
                                     </CardContent>
-                                </Card>
-                            </Link>
+                                </Card>,
+                            )}
                         </div>
 
                         {/* All Companies Simple Table */}
@@ -315,21 +340,13 @@ export default function CeoDashboard({
                                                             {project
                                                                 .step_statuses
                                                                 ?.diagnosis
-                                                                ? t(
-                                                                      `ceo_dashboard.status.${project.step_statuses.diagnosis}`,
-                                                                  )
-                                                                : t(
-                                                                      'ceo_dashboard.status.not_started',
-                                                                  )}
+                                                                ? getLocalizedStatus(project.step_statuses.diagnosis)
+                                                                : getLocalizedStatus('not_started')}
                                                         </td>
                                                         <td className="px-4 py-3">
                                                             {surveyDone
-                                                                ? t(
-                                                                      'ceo_dashboard.status.completed',
-                                                                  )
-                                                                : t(
-                                                                      'ceo_dashboard.status.not_started',
-                                                                  )}
+                                                                ? getLocalizedStatus('completed')
+                                                                : getLocalizedStatus('not_started')}
                                                         </td>
                                                         <td className="px-4 py-3">{surveyDone ? t('ceo_dashboard.completed') : t('ceo_dashboard.pending')}</td>
                                                         <td className="px-4 py-3">
@@ -337,6 +354,7 @@ export default function CeoDashboard({
                                                                 'ceo_dashboard.table.total_kpi',
                                                                 {
                                                                     count: kpiTotal,
+                                                                    defaultValue: `${kpiTotal} KPI`,
                                                                 },
                                                             )}
                                                         </td>
@@ -590,8 +608,10 @@ export default function CeoDashboard({
                                                             )}
                                                         </div>
                                                         <p className="text-xs text-muted-foreground mt-1">
-                                                            {needsSurvey 
-                                                                ? 'Complete CEO Philosophy Survey'
+                                                            {needsSurvey
+                                                                ? t('ceo_dashboard.complete_survey_cta', {
+                                                                      defaultValue: 'Complete CEO Philosophy Survey',
+                                                                  })
                                                                 : t('ceo_dashboard.review_diagnosis')
                                                             }
                                                         </p>

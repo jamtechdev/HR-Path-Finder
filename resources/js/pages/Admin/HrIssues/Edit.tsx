@@ -25,7 +25,6 @@ export default function Edit({
     const { t } = useTranslation();
     const { data, setData, put, processing, errors, clearErrors } = useForm({
         name: issue.name,
-        order: issue.order,
         category: issue.category,
         is_active: issue.is_active,
     });
@@ -114,23 +113,6 @@ export default function Edit({
                                                 {errors.category}
                                             </p>
                                         )}
-                                    </div>
-
-                                    <div>
-                                        <Label>{t('admin_hr_issue_form.order')}</Label>
-                                        <Input
-                                            type="number"
-                                            value={data.order}
-                                            onChange={(e) =>
-                                                setData('order', e.target.value)
-                                            }
-                                            placeholder={t(
-                                                'admin_hr_issue_form.order_placeholder',
-                                            )}
-                                        />
-                                        <p className="mt-1 text-xs text-muted-foreground">
-                                            {t('admin_hr_issue_form.order_hint')}
-                                        </p>
                                     </div>
 
                                     <div className="flex items-center space-x-2">

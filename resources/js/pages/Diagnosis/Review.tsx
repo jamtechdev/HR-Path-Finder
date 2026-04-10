@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants';
-import { diagnosisTabs } from '@/config/diagnosisTabs';
 import { both, tr } from '@/config/diagnosisTranslations';
 import { clearClientDraftCaches } from '@/lib/clientDraftCleanup';
 import { mergeTabDraftsIntoDiagnosis } from '@/lib/diagnosisDraftStorage';
@@ -32,6 +31,7 @@ const HR_ISSUE_CATEGORY_LABELS: Record<string, string> = {
     reward: 'Reward',
     upskilling: 'Upskilling',
     Other: 'Other',
+    uncategorized: 'Uncategorized',
 };
 
 const STEP_MAP: Record<string, string> = {
@@ -48,6 +48,7 @@ const STEP_MAP: Record<string, string> = {
 
 const GRADE_COLORS = ['#1a3a6e', '#1e4d8c', '#2261aa', '#3b7fd4', '#6da8f0'];
 const GENDER_COLORS = ['#0f2a4a', '#c8a84b', '#94a3b8'];
+const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp']);
 
 function pyramidShape(grades: { name: string; headcount: number }[]): { label: string; color: string; desc: string } {
     if (!grades.length) return { label: tr('pyramidDiamond'), color: '#c8a84b', desc: tr('pyramidDiamondDesc') };
@@ -253,7 +254,7 @@ export default function Review({
 
     useEffect(() => {
         const errors = props.errors;
-        if (errors && typeof errors === 'object') {
+        if (errors && typeof errors === 'object' && Object.keys(errors).length > 0) {
             const flat = flattenErrors(errors as Record<string, string | string[]>);
             setSubmitError(flat[0] ?? t('diagnosis_review.submitFailed'));
             const o: Record<string, string> = {};
@@ -262,7 +263,10 @@ export default function Review({
                 if (typeof m === 'string') o[k] = m;
             }
             setPageErrors(o);
+            return;
         }
+        setSubmitError('');
+        setPageErrors({});
     }, [props.errors, t]);
 
     useEffect(() => {
@@ -466,24 +470,94 @@ export default function Review({
         const issues = preview?.hr_issues ?? [];
         const custom = (preview?.custom_hr_issues ?? '').trim();
         const result: { category: string; color: string; items: string[] }[] = [];
+        const categorized = new Set<string>();
         for (const cat of HR_ISSUE_CATEGORIES) {
             const items = issues.filter((i) => cat.issues.includes(i));
-            if (items.length) result.push({ category: cat.id, color: cat.color, items });
+            if (items.length) {
+                items.forEach((i) => categorized.add(i));
+                result.push({ category: cat.id, color: cat.color, items });
+            }
+        }
+        const uncategorized = issues.filter((i) => !categorized.has(i));
+        if (uncategorized.length) {
+            result.push({
+                category: 'uncategorized',
+                color: '#64748b',
+                items: uncategorized,
+            });
         }
         if (custom) result.push({ category: 'Other', color: '#64748b', items: [custom] });
         return result;
     }, [preview?.hr_issues, preview?.custom_hr_issues]);
 
-    const currentOrgChartUrl = useMemo(() => {
+    const orgChartEntries = useMemo(() => {
         const charts = preview?.organizational_charts;
-        if (!charts || typeof charts !== 'object' || Array.isArray(charts)) return '';
-        const lastYear = DIAGNOSIS_ORG_CHART_REQUIRED_YEARS[DIAGNOSIS_ORG_CHART_REQUIRED_YEARS.length - 1];
-        const path = (charts as Record<string, string>)[lastYear];
-        if (!path || typeof path !== 'string') return '';
-        if (path.startsWith('http')) return path;
-        if (path.startsWith('/storage/')) return path;
-        return path.startsWith('storage/') ? `/${path}` : `/storage/${path}`;
+        if (!charts) return [] as Array<{ label: string; url: string; extension: string; isImage: boolean }>;
+
+        const normalize = (path: string): string => {
+            if (!path) return '';
+            if (path.startsWith('http')) return path;
+            if (path.startsWith('/storage/')) return path;
+            return path.startsWith('storage/') ? `/${path}` : `/storage/${path}`;
+        };
+
+        const getExtension = (path: string): string => {
+            const clean = path.split('?')[0].split('#')[0];
+            const file = clean.split('/').pop() ?? '';
+            const idx = file.lastIndexOf('.');
+            return idx >= 0 ? file.slice(idx + 1).toLowerCase() : '';
+        };
+
+        if (Array.isArray(charts)) {
+            return charts
+                .filter((p): p is string => typeof p === 'string' && p.length > 0)
+                .map((p, i) => {
+                    const extension = getExtension(p);
+                    return {
+                        label: `Chart ${i + 1}`,
+                        url: normalize(p),
+                        extension,
+                        isImage: IMAGE_EXTENSIONS.has(extension),
+                    };
+                });
+        }
+
+        if (typeof charts === 'object') {
+            return DIAGNOSIS_ORG_CHART_REQUIRED_YEARS.map((year) => {
+                const path = (charts as Record<string, string>)[year];
+                if (!path || typeof path !== 'string') return null;
+                const extension = getExtension(path);
+                return {
+                    label: year,
+                    url: normalize(path),
+                    extension,
+                    isImage: IMAGE_EXTENSIONS.has(extension),
+                };
+            }).filter((v): v is { label: string; url: string; extension: string; isImage: boolean } => Boolean(v));
+        }
+
+        return [] as Array<{ label: string; url: string; extension: string; isImage: boolean }>;
     }, [preview?.organizational_charts]);
+
+    const orgStructureTypes = useMemo(() => {
+        const types = preview?.org_structure_types;
+        if (!Array.isArray(types)) return [] as string[];
+        return types
+            .map((t) => String(t).trim())
+            .filter(Boolean)
+            .map((t) => t.charAt(0).toUpperCase() + t.slice(1));
+    }, [preview?.org_structure_types]);
+
+    const orgStructureNotes = useMemo(() => {
+        const raw = preview?.org_structure_explanations;
+        if (!raw || typeof raw !== 'object') return [] as Array<{ key: string; value: string }>;
+        return Object.entries(raw as Record<string, string>)
+            .map(([key, value]) => ({
+                key: key.charAt(0).toUpperCase() + key.slice(1),
+                value: String(value ?? '').trim(),
+            }))
+            .filter((x) => x.value.length > 0);
+    }, [preview?.org_structure_explanations]);
 
     const totalHeadcount = Number(preview?.present_headcount) || 0;
     const execTotal = Number(preview?.total_executives) || 0;
@@ -530,23 +604,23 @@ export default function Review({
                 <DialogContent
                     onPointerDownOutside={(e) => e.preventDefault()}
                     onEscapeKeyDown={(e) => e.preventDefault()}
-                    className="sm:max-w-md border-slate-200 bg-white text-slate-900 dark:border-[#2a3a5c] dark:bg-[#1a2744] dark:text-[#e2e8f0]"
+                    className="w-[min(92vw,760px)] max-w-[760px] rounded-2xl border-slate-200 bg-white p-8 text-slate-900 shadow-2xl dark:border-[#2a3a5c] dark:bg-[#1a2744] dark:text-[#e2e8f0]"
                 >
                     <DialogHeader>
-                        <div className="flex items-center justify-center mb-4">
-                            <div className="rounded-full bg-green-100 p-3 dark:bg-green-900/30">
-                                <CheckCircle2 className="h-8 w-8 text-green-600" />
+                        <div className="mb-5 flex items-center justify-center">
+                            <div className="rounded-full bg-green-100 p-4 dark:bg-green-900/30">
+                                <CheckCircle2 className="h-10 w-10 text-green-600" />
                             </div>
                         </div>
-                        <DialogTitle className="text-center text-2xl">
+                        <DialogTitle className="text-center text-3xl font-extrabold">
                             <span className="block">{pickLabel(submitSuccessTitle)}</span>
                         </DialogTitle>
-                        <DialogDescription className="text-center pt-2 text-slate-600 dark:text-[#9AA3B2]">
+                        <DialogDescription className="pt-3 text-center text-base text-slate-600 dark:text-[#9AA3B2]">
                             <span className="block">{pickLabel(submitSuccessDesc)}</span>
                         </DialogDescription>
                     </DialogHeader>
                     
-                    <div className="py-4">
+                    <div className="py-5">
                         {!inviteSuccess ? (
                             <form onSubmit={handleInviteCeo} className="space-y-4">
                                 <div className="space-y-2">
@@ -640,38 +714,7 @@ export default function Review({
                 showNext={false}
             >
                 <div className="min-h-full bg-slate-50/70 pb-10 dark:bg-transparent">
-                    {/* Step nav — sticky */}
-                    <div className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-sm dark:border-[#2a3a5c] dark:bg-[#1a2744]/95">
-                        <div className="mx-auto flex max-w-4xl items-center gap-2 px-4 py-3 overflow-x-auto">
-                            {diagnosisTabs
-                                .filter((tab) => tab.id !== 'overview')
-                                .map((tab) => {
-                                    const isCurrent = tab.id === 'review';
-                                    const isDone = tab.id !== 'review';
-                                    const href = projectId ? `/hr-manager/diagnosis/${projectId}/${tab.id}` : `/hr-manager/diagnosis/${tab.id}`;
-                                    return (
-                                        <Link
-                                            key={tab.id}
-                                            href={href}
-                                            className={`
-                                                flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap shrink-0 transition-all duration-200
-                                                ${isCurrent
-                                                    ? 'bg-slate-800 text-white shadow-md'
-                                                    : isDone
-                                                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100/80'
-                                                        : 'bg-slate-100 text-slate-500 border border-slate-200'
-                                                }
-                                            `}
-                                        >
-                                            {isDone && !isCurrent && <span className="text-emerald-500">✓</span>}
-                                            {tab.name}
-                                        </Link>
-                                    );
-                                })}
-                        </div>
-                    </div>
-
-                    <div className="mx-auto max-w-4xl px-4 py-8">
+                    <div className="w-full px-4 py-8">
                         {/* Alerts — above fold */}
                         {submitError && (
                             <div ref={submitErrorRef}>
@@ -929,9 +972,39 @@ export default function Review({
                         {/* Org chart + Org structure */}
                         <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2">
                             <ReviewCard title={t('diagnosis_review.currentOrgChartTitle')} icon="🗂️" editUrl={getEditUrl(STEP_MAP.orgCharts)}>
-                                <div className="flex min-h-[200px] flex-col items-center justify-center">
-                                    {currentOrgChartUrl ? (
-                                        <img src={currentOrgChartUrl} alt="Org chart" className="max-h-[240px] max-w-full rounded-xl border border-slate-200 object-contain shadow-inner" />
+                                <div className="flex min-h-[200px] flex-col">
+                                    {orgChartEntries.length ? (
+                                        <div className="grid grid-cols-1 gap-3">
+                                            {orgChartEntries.map((entry) => (
+                                                <div
+                                                    key={`${entry.label}-${entry.url}`}
+                                                    className="rounded-xl border border-slate-200 p-3 dark:border-[#2a3a5c]"
+                                                >
+                                                    <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#9AA3B2]">
+                                                        {entry.label}
+                                                    </p>
+                                                    {entry.isImage ? (
+                                                        <img
+                                                            src={entry.url}
+                                                            alt={`Org chart ${entry.label}`}
+                                                            className="max-h-[260px] w-full rounded-lg border border-slate-200 object-contain shadow-inner dark:border-[#2a3a5c]"
+                                                        />
+                                                    ) : (
+                                                        <a
+                                                            href={entry.url}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-100 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0] dark:hover:bg-[#1e3a5f]/35"
+                                                        >
+                                                            <span>Open file</span>
+                                                            <span className="rounded bg-slate-200 px-2 py-0.5 text-xs uppercase dark:bg-[#2a3a5c]">
+                                                                {entry.extension || 'file'}
+                                                            </span>
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
                                     ) : (
                                         <div className="flex min-h-[200px] w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-6 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/10">
                                             <div className="text-3xl opacity-70">🖼️</div>
@@ -949,12 +1022,35 @@ export default function Review({
                             </ReviewCard>
                             <ReviewCard title={t('diagnosis_review.orgStructureCardTitle')} icon="🏗️" editUrl={getEditUrl(STEP_MAP.orgStructure)}>
                                 <div className="flex flex-col gap-2">
-                                    {preview?.org_structure_types && preview.org_structure_types.length > 0 ? (
-                                        <div className="inline-flex items-center gap-3 self-start rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30">
-                                            <span className="text-xl">🏗️</span>
-                                            <span className="text-sm font-bold text-slate-800 dark:text-[#e2e8f0]">
-                                                {preview.org_structure_types.map((t: string) => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')}
-                                            </span>
+                                    {orgStructureTypes.length > 0 ? (
+                                        <div className="space-y-3">
+                                            <div className="flex flex-wrap gap-2">
+                                                {orgStructureTypes.map((type) => (
+                                                    <span
+                                                        key={type}
+                                                        className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-semibold text-slate-800 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30 dark:text-[#e2e8f0]"
+                                                    >
+                                                        {type}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            {orgStructureNotes.length > 0 && (
+                                                <div className="space-y-2">
+                                                    {orgStructureNotes.map((note) => (
+                                                        <div
+                                                            key={`${note.key}-${note.value}`}
+                                                            className="rounded-lg border border-slate-200 bg-white p-3 text-sm dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20"
+                                                        >
+                                                            <p className="font-semibold text-slate-700 dark:text-[#CBD0DA]">
+                                                                {note.key}
+                                                            </p>
+                                                            <p className="mt-1 text-slate-600 dark:text-[#9AA3B2]">
+                                                                {note.value}
+                                                            </p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     ) : (
                                         <span className="text-sm text-slate-500">—</span>

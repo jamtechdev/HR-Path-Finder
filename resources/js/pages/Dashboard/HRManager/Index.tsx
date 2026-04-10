@@ -297,7 +297,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                             {/* Welcome Section */}
                             <div className="flex items-center justify-between flex-wrap gap-4">
                                 <div>
-                                    <h1 className="text-4xl font-bold text-foreground mb-2">{t('hr_dashboard.welcome_back', { name: user.name })}</h1>
+                                    <h1 className="mb-2 text-3xl font-bold text-foreground md:text-4xl">{t('hr_dashboard.welcome_back', { name: user.name })}</h1>
                                     <p className="text-muted-foreground text-lg">
                                         {activeProject 
                                             ? t('hr_dashboard.continue_building', { company: activeProject.company.name })
@@ -469,7 +469,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                             <div>
                                 <div className="flex items-center justify-between mb-6">
                                     <div>
-                                        <h2 className="text-3xl font-bold text-foreground">{t('hr_dashboard.design_steps')}</h2>
+                                        <h2 className="text-2xl font-bold text-foreground md:text-3xl">{t('hr_dashboard.design_steps')}</h2>
                                         <p className="text-muted-foreground mt-1">
                                             {ceoPhilosophyStatus === 'completed' 
                                                 ? t('hr_dashboard.unlock_next')
@@ -590,13 +590,13 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                                                     </Badge>
                                                                 )}
                                                                 {isCompleted && !isCurrent && (
-                                                                    <Badge className="bg-green-50 text-green-600 border-green-200">
+                                                                    <Badge className="border-green-200 bg-green-50 text-green-600 dark:border-green-800 dark:bg-green-900/30 dark:text-green-300">
                                                                         <CheckCircle2 className="w-3 h-3 mr-1" />
                                                                         {t('hr_dashboard.status.completed')}
                                                                     </Badge>
                                                                 )}
                                                                 {status === 'submitted' && !isCurrent && !isCompleted && (
-                                                                    <Badge className="bg-blue-50 text-blue-600 border-blue-200">
+                                                                    <Badge className="border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
                                                                         <CheckCircle2 className="w-3 h-3 mr-1" />
                                                                         {t('hr_dashboard.status.submitted')}
                                                                     </Badge>

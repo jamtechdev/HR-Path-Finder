@@ -22,7 +22,7 @@ interface IntroStepProps {
 
 export default function IntroStep({ introText, hasAgreed, onAgreeChange }: IntroStepProps) {
     return (
-        <Card className="w-full border border-[#E2DDD4] shadow-sm overflow-hidden rounded-xl bg-white">
+        <Card className="w-full border border-[#E2DDD4] shadow-sm overflow-hidden rounded-xl bg-white dark:border-slate-700 dark:bg-slate-900">
             <div className="bg-gradient-to-r from-[#0E1628]/5 via-[#C9A84C]/5 to-transparent p-1">
                 <CardHeader className="py-5 sm:py-6 px-5 sm:px-6 lg:px-8">
                     <div className="flex flex-col sm:flex-row items-start gap-4">
@@ -30,8 +30,8 @@ export default function IntroStep({ introText, hasAgreed, onAgreeChange }: Intro
                             <CheckCircle2 className="w-6 h-6 text-[#0E1628]" />
                         </div>
                         <div className="min-w-0 flex-1">
-                            <CardTitle className="text-xl sm:text-2xl text-[#0E1628]">Welcome to Your Survey</CardTitle>
-                            <CardDescription className="text-sm sm:text-base mt-1 text-[#4A4E69]">
+                            <CardTitle className="text-xl sm:text-2xl text-[#0E1628] dark:text-slate-100">Welcome to Your Survey</CardTitle>
+                            <CardDescription className="text-sm sm:text-base mt-1 text-[#4A4E69] dark:text-slate-300">
                                 Let's begin your management philosophy assessment
                             </CardDescription>
                         </div>
@@ -40,12 +40,12 @@ export default function IntroStep({ introText, hasAgreed, onAgreeChange }: Intro
             </div>
             <CardContent className="space-y-6 sm:space-y-8 px-5 sm:px-6 lg:px-8 pb-6 sm:pb-8">
                 <div className="prose prose-lg max-w-none">
-                    <div className="whitespace-pre-line text-sm sm:text-base leading-relaxed text-[#1A1A2E] space-y-4">
+                    <div className="whitespace-pre-line text-sm sm:text-base leading-relaxed text-[#1A1A2E] space-y-4 dark:text-slate-200">
                         <p className="font-normal">{introText?.content || defaultIntroContent}</p>
                     </div>
                 </div>
-                <div className="border-t border-[#E2DDD4] pt-6">
-                    <div className="flex flex-col sm:flex-row items-start gap-4 p-4 sm:p-6 bg-[#0E1628]/[0.04] rounded-xl border border-[#E2DDD4] hover:border-[#0E1628]/20 transition-all">
+                <div className="border-t border-[#E2DDD4] pt-6 dark:border-slate-700">
+                    <div className="flex flex-col sm:flex-row items-start gap-4 p-4 sm:p-6 bg-[#0E1628]/[0.04] rounded-xl border border-[#E2DDD4] hover:border-[#0E1628]/20 transition-all dark:border-slate-700 dark:bg-slate-800/70 dark:hover:border-slate-500">
                         <div className="flex-shrink-0 mt-0.5">
                             <Checkbox
                                 id="agree-intro"
@@ -55,10 +55,10 @@ export default function IntroStep({ introText, hasAgreed, onAgreeChange }: Intro
                             />
                         </div>
                         <label htmlFor="agree-intro" className="flex-1 cursor-pointer min-w-0">
-                            <span className="text-base sm:text-lg font-semibold text-[#0E1628] block mb-1 sm:mb-2">
+                            <span className="text-base sm:text-lg font-semibold text-[#0E1628] block mb-1 sm:mb-2 dark:text-slate-100">
                                 I Understand & Ready to Start
                             </span>
-                            <p className="text-xs sm:text-sm text-[#4A4E69] leading-relaxed">
+                            <p className="text-xs sm:text-sm text-[#4A4E69] leading-relaxed dark:text-slate-300">
                                 By checking this box, you confirm that you understand the purpose of this diagnostic and agree to proceed with the survey.
                             </p>
                         </label>

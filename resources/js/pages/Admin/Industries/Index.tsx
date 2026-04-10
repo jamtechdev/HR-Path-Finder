@@ -18,21 +18,39 @@ import { useTranslation } from 'react-i18next';
 interface IndustrySubCategory {
     id: number;
     name: string;
-    order: number;
 }
 
 interface IndustryCategory {
     id: number;
     name: string;
-    order: number;
+    created_at?: string | null;
     subCategories: IndustrySubCategory[];
 }
 
 interface Props {
-    categories: IndustryCategory[];
+    categories: {
+        data: IndustryCategory[];
+        links: { url: string | null; label: string; active: boolean }[];
+    };
 }
 
 export default function IndustriesIndex({ categories }: Props) {
+    const formatRelativeTime = (value?: string | null) => {
+        if (!value) return '-';
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return '-';
+        const secs = Math.round((d.getTime() - Date.now()) / 1000);
+        const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+        const abs = Math.abs(secs);
+        if (abs < 60) return rtf.format(secs, 'second');
+        const mins = Math.round(secs / 60);
+        if (Math.abs(mins) < 60) return rtf.format(mins, 'minute');
+        const hours = Math.round(mins / 60);
+        if (Math.abs(hours) < 24) return rtf.format(hours, 'hour');
+        const days = Math.round(hours / 24);
+        return rtf.format(days, 'day');
+    };
+
     const { t } = useTranslation();
     const { flash } = usePage().props as any;
 
@@ -84,7 +102,7 @@ export default function IndustriesIndex({ categories }: Props) {
                         </div>
 
                         <div className="space-y-4">
-                            {(categories || []).map((category) => (
+                            {(categories.data || []).map((category) => (
                                 <Card key={category.id}>
                                     <CardHeader>
                                         <div className="flex items-center justify-between">
@@ -93,7 +111,7 @@ export default function IndustriesIndex({ categories }: Props) {
                                                     {category.name}
                                                 </CardTitle>
                                                 <Badge variant="outline">
-                                                    {t('admin_industries.fields.order')}: {category.order}
+                                                    Created: {formatRelativeTime(category.created_at)}
                                                 </Badge>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -143,14 +161,7 @@ export default function IndustriesIndex({ categories }: Props) {
                                                                         subCategory.name
                                                                     }
                                                                 </span>
-                                                                <Badge
-                                                                    variant="outline"
-                                                                    className="text-xs"
-                                                                >
-                                                                    {
-                                                                        subCategory.order
-                                                                    }
-                                                                </Badge>
+                                                                
                                                             </div>
                                                         ),
                                                     )}
@@ -164,7 +175,7 @@ export default function IndustriesIndex({ categories }: Props) {
                                     </CardContent>
                                 </Card>
                             ))}
-                            {(!categories || categories.length === 0) && (
+                            {(!categories.data || categories.data.length === 0) && (
                                 <Card>
                                     <CardContent className="p-12 text-center">
                                         <p className="text-muted-foreground">
@@ -174,6 +185,19 @@ export default function IndustriesIndex({ categories }: Props) {
                                 </Card>
                             )}
                         </div>
+                        {categories.links && categories.links.length > 1 && (
+                            <div className="mt-4 flex flex-wrap justify-center gap-2 border-t pt-4">
+                                {categories.links.map((link, i) => (
+                                    <Link
+                                        key={i}
+                                        href={link.url || '#'}
+                                        className={link.active ? 'rounded border bg-primary px-3 py-1 text-primary-foreground' : 'rounded border px-3 py-1 hover:bg-muted'}
+                                    >
+                                        {link.label.replace('&laquo;', '«').replace('&raquo;', '»')}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </main>
             </SidebarInset>

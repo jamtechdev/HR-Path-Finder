@@ -128,6 +128,27 @@ export default function CeoReviewDiagnosis({
     hqLocations = [],
     hrIssues = [],
 }: Props) {
+    const hasMeaningfulDiagnosisData = (payload: Record<string, any>) => {
+        const ignored = new Set([
+            'id',
+            'status',
+            'created_at',
+            'updated_at',
+            'company_name',
+            'company',
+        ]);
+        return Object.entries(payload).some(([key, value]) => {
+            if (ignored.has(key)) return false;
+            if (value == null) return false;
+            if (typeof value === 'string') return value.trim() !== '';
+            if (typeof value === 'number') return value > 0;
+            if (typeof value === 'boolean') return value === true;
+            if (Array.isArray(value)) return value.length > 0;
+            if (typeof value === 'object') return Object.keys(value).length > 0;
+            return false;
+        });
+    };
+
     const { t } = useTranslation();
     const REQUIRED_ORG_CHART_YEARS = ['2023.12', '2024.12', '2025.12'] as const;
     const tabOrder = [
@@ -202,6 +223,10 @@ export default function CeoReviewDiagnosis({
     const handleSave = () => {
         setSaveNotice(null);
         setPageError(null);
+        if (!hasMeaningfulDiagnosisData(data as Record<string, any>)) {
+            setPageError('Cannot save empty data. Please fill at least one field.');
+            return;
+        }
         post(`/ceo/review/diagnosis/${project.id}/update`, {
             preserveScroll: true,
             onSuccess: () => {
@@ -294,9 +319,13 @@ export default function CeoReviewDiagnosis({
         setActiveTab(tabOrder[activeTabIndex - 1]);
     };
     const handleNextTab = () => {
-        if (!canGoNextTab) return;
+        if (activeTab === 'hr-issues' || activeTab === 'history' || !canGoNextTab) {
+            router.visit(`/ceo/projects/${project.id}/verification`);
+            return;
+        }
         setActiveTab(tabOrder[activeTabIndex + 1]);
     };
+    const showNextButton = activeTab !== 'history';
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -449,6 +478,7 @@ export default function CeoReviewDiagnosis({
                             onNextTab={handleNextTab}
                             canGoBackTab={canGoPrevTab}
                             canGoNextTab={canGoNextTab}
+                            showNextButton={showNextButton}
                             processing={processing}
                             diagnosisStatus={diagnosis?.status}
                             hasSurveyCompleted={hasSurveyCompleted}

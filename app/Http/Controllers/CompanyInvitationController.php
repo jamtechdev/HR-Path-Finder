@@ -27,9 +27,10 @@ class CompanyInvitationController extends Controller
             'email' => ['required', 'email', 'max:255'],
             'hr_project_id' => ['nullable', 'exists:hr_projects,id'],
         ]);
+        $normalizedEmail = mb_strtolower(trim($request->email));
 
         // Check if user is already a member of the company with CEO role
-        $existingUser = User::where('email', $request->email)->first();
+        $existingUser = User::whereRaw('LOWER(email) = ?', [$normalizedEmail])->first();
         if ($existingUser) {
             $isCompanyMember = $company->users->contains($existingUser);
             if ($isCompanyMember) {
@@ -44,17 +45,19 @@ class CompanyInvitationController extends Controller
             }
         }
 
-        // Check if there's already a pending invitation
-        $existingInvitation = \App\Models\CompanyInvitation::where('company_id', $company->id)
-            ->where('email', $request->email)
+        // Do not allow new invitation if any active pending invitation already exists.
+        $activePendingInvitation = \App\Models\CompanyInvitation::withTrashed()
+            ->where('company_id', $company->id)
+            ->whereRaw('LOWER(email) = ?', [$normalizedEmail])
             ->whereNull('accepted_at')
-            ->where(function($query) {
+            ->whereNull('deleted_at')
+            ->where(function ($query) {
                 $query->whereNull('expires_at')
                     ->orWhere('expires_at', '>', now());
             })
             ->first();
 
-        if ($existingInvitation) {
+        if ($activePendingInvitation) {
             return back()->withErrors(['email' => 'An invitation has already been sent to this email.']);
         }
 
@@ -62,15 +65,41 @@ class CompanyInvitationController extends Controller
         $invitationData = [
             'company_id' => $company->id,
             'hr_project_id' => $request->hr_project_id,
-            'email' => $request->email,
+            'email' => $normalizedEmail,
             'role' => 'ceo',
             'inviter_id' => $request->user()->id,
         ];
 
         // Send invitation email first - only save to DB if email sends successfully
         try {
-            // Create invitation in database first (with pending status)
-            $invitation = \App\Models\CompanyInvitation::create($invitationData);
+            // Reuse the latest invitation row for same company/email to avoid duplicate history rows.
+            $invitation = \App\Models\CompanyInvitation::withTrashed()
+                ->where('company_id', $company->id)
+                ->whereRaw('LOWER(email) = ?', [$normalizedEmail])
+                ->orderByDesc('created_at')
+                ->first();
+
+            if ($invitation) {
+                $invitation->fill([
+                    'hr_project_id' => $request->hr_project_id,
+                    'email' => $normalizedEmail,
+                    'role' => 'ceo',
+                    'inviter_id' => $request->user()->id,
+                    'accepted_at' => null,
+                    'temporary_password' => null,
+                    'token' => \App\Models\CompanyInvitation::generateToken(),
+                    'expires_at' => now()->addDays(7),
+                ]);
+
+                if ($invitation->trashed()) {
+                    $invitation->restore();
+                }
+
+                $invitation->save();
+            } else {
+                // Create invitation in database first (with pending status)
+                $invitation = \App\Models\CompanyInvitation::create($invitationData);
+            }
             
             // Reload relationships for email
             $invitation->load(['company', 'inviter', 'hrProject']);
@@ -80,7 +109,7 @@ class CompanyInvitationController extends Controller
             
             \Log::info('CEO Invitation created and email sent successfully', [
                 'invitation_id' => $invitation->id,
-                'email' => $request->email,
+                'email' => $normalizedEmail,
                 'company_id' => $company->id,
             ]);
             
@@ -91,7 +120,7 @@ class CompanyInvitationController extends Controller
             }
             
             \Log::error('Failed to send CEO Invitation Email - invitation deleted', [
-                'email' => $request->email,
+                'email' => $normalizedEmail,
                 'company_id' => $company->id,
                 'error' => $e->getMessage(),
             ]);
@@ -140,7 +169,7 @@ class CompanyInvitationController extends Controller
         }
 
         // Check if user exists (do NOT set temp password — CEO will set password on next screen)
-        $user = User::where('email', $invitation->email)->first();
+        $user = User::whereRaw('LOWER(email) = ?', [mb_strtolower(trim($invitation->email))])->first();
         $isNewUser = !$user;
 
         if (!$user) {

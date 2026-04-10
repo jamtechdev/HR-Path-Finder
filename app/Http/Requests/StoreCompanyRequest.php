@@ -25,7 +25,7 @@ class StoreCompanyRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'registration_number' => ['nullable', 'string', 'max:255'],
+            'registration_number' => ['nullable', 'regex:/^\d{3}-\d{2}-\d{5}$/'],
             'hq_location' => ['nullable', 'string', 'max:255'],
             'public_listing_status' => ['required', 'in:public,private,not_applicable'],
             'logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:5120'], // 5MB max
@@ -41,6 +41,7 @@ class StoreCompanyRequest extends FormRequest
             'logo.image' => 'The logo must be an image file.',
             'logo.mimes' => 'The logo must be a file of type: jpeg, jpg, png, gif, or webp.',
             'logo.max' => 'The logo may not be greater than 5MB.',
+            'registration_number.regex' => 'Registration number must be in the format 123-45-67890.',
         ];
     }
 

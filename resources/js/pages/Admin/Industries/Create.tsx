@@ -15,7 +15,6 @@ export default function IndustriesCreate() {
     const { t } = useTranslation();
     const { data, setData, post, processing, errors, clearErrors } = useForm({
         name: '',
-        order: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -66,24 +65,6 @@ export default function IndustriesCreate() {
                                         {errors.name && (
                                             <p className="text-sm text-destructive mt-1">{errors.name}</p>
                                         )}
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="order">{t('admin_industries_create.fields.order_optional')}</Label>
-                                        <Input
-                                            id="order"
-                                            type="number"
-                                            value={data.order}
-                                            onChange={(e) => setData('order', e.target.value)}
-                                            placeholder={t('admin_industries_create.fields.order_placeholder')}
-                                            min="0"
-                                        />
-                                        {errors.order && (
-                                            <p className="text-sm text-destructive mt-1">{errors.order}</p>
-                                        )}
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            {t('admin_industries_create.fields.order_help')}
-                                        </p>
                                     </div>
 
                                     <div className="flex items-center gap-3 pt-4">

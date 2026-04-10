@@ -29,7 +29,7 @@ export default function PerformanceSnapshotCreate({ answerTypes }: Props) {
         question_text: '',
         answer_type: 'select_one',
         options: [] as string[],
-        order: 0,
+        order: null as number | null,
         is_active: true,
         version: '',
         metadata: null as any,
@@ -128,18 +128,6 @@ export default function PerformanceSnapshotCreate({ answerTypes }: Props) {
                                         {options.length === 0 && (
                                             <p className="text-sm text-muted-foreground mt-1">{t(`${key}.options_required`)}</p>
                                         )}
-                                    </div>
-
-                                    <div>
-                                        <Label>{t(`${key}.order`)}</Label>
-                                        <Input
-                                            type="number"
-                                            value={data.order}
-                                            onChange={(e) => setData('order', parseInt(e.target.value) || 0)}
-                                            min={0}
-                                            placeholder={t(`${key}.order_placeholder`)}
-                                        />
-                                        <p className="text-xs text-muted-foreground mt-1">{t(`${key}.order_description`)}</p>
                                     </div>
 
                                     <div>

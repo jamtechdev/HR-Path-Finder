@@ -16,7 +16,7 @@ export default function PolicySnapshotCreate() {
     const { t } = useTranslation();
     const { data, setData, post, processing, errors } = useForm({
         question_text: '',
-        order: 0,
+        order: null as number | null,
         is_active: true,
         has_conditional_text: false,
     });
@@ -72,16 +72,6 @@ export default function PolicySnapshotCreate() {
                                         {errors.question_text && (
                                             <p className="text-sm text-destructive mt-1">{errors.question_text}</p>
                                         )}
-                                    </div>
-
-                                    <div>
-                                        <Label>{t('policy_snapshot_create.order')}</Label>
-                                        <Input
-                                            type="number"
-                                            value={data.order}
-                                            onChange={(e) => setData('order', parseInt(e.target.value) || 0)}
-                                            min="0"
-                                        />
                                     </div>
 
                                     <div className="flex items-center space-x-2">

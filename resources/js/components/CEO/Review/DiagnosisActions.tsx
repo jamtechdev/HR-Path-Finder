@@ -10,6 +10,7 @@ interface DiagnosisActionsProps {
     onNextTab?: () => void;
     canGoBackTab?: boolean;
     canGoNextTab?: boolean;
+    showNextButton?: boolean;
     processing: boolean;
     diagnosisStatus?: string;
     /** CEO must complete survey before they can verify diagnosis */
@@ -26,6 +27,7 @@ export default function DiagnosisActions({
     onNextTab,
     canGoBackTab = false,
     canGoNextTab = false,
+    showNextButton = true,
     processing,
     diagnosisStatus,
     hasSurveyCompleted = false,
@@ -61,15 +63,17 @@ export default function DiagnosisActions({
                         <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                             Diagnosis already verified
                         </span>
-                        <Button
-                            size="lg"
-                            className="min-w-[160px]"
-                            onClick={onNextTab}
-                            disabled={!canGoNextTab}
-                        >
-                            <ArrowRight className="w-4 h-4 mr-2" />
-                            Next
-                        </Button>
+                        {showNextButton && (
+                            <Button
+                                size="lg"
+                                className="min-w-[160px]"
+                                onClick={onNextTab}
+                                disabled={!canGoNextTab}
+                            >
+                                <ArrowRight className="w-4 h-4 mr-2" />
+                                Next
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -114,7 +118,7 @@ export default function DiagnosisActions({
                         )}
                     </Button>
 
-                    {diagnosisStatus === 'submitted' && (
+                    {diagnosisStatus === 'submitted' && showNextButton && (
                         <Button
                             onClick={onNextTab ?? onConfirm}
                             disabled={processing || !canProceedNext}

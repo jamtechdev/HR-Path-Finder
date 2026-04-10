@@ -1648,6 +1648,10 @@
             "description": "Projects waiting for CEO philosophy survey",
             "view_all_projects": "View All Projects"
         },
+        "disabled": {
+            "pending_approval_zero": "No pending approvals right now.",
+            "pending_survey_zero": "No pending CEO surveys right now."
+        },
         "recommendations": {
             "performance_title": "Performance Recommendations Needed",
             "performance_desc": "Projects where Step 3 (Job Analysis) is confirmed but performance recommendation is not yet prepared.",
@@ -1678,7 +1682,16 @@
             "diagnosis": "Diagnosis",
             "survey": "Survey",
             "kpi": "KPI",
-            "actions": "Actions"
+            "actions": "Actions",
+            "total_kpi": "{{count}} KPI"
+        },
+        "status": {
+            "not_started": "Not Started",
+            "in_progress": "In Progress",
+            "submitted": "Submitted",
+            "completed": "Completed",
+            "locked": "Locked",
+            "approved": "Approved"
         },
         "completed": "Completed",
         "pending": "Pending",
@@ -1699,7 +1712,13 @@
         },
         "view_all": "View All",
         "survey_required": "Survey Required",
+        "complete_survey_cta": "Complete CEO Philosophy Survey",
         "review_diagnosis": "Review Diagnosis",
+        "disabled": {
+            "pending_review_zero": "No pending reviews right now.",
+            "pending_survey_zero": "No pending surveys right now.",
+            "pending_kpi_zero": "No pending KPI reviews right now."
+        },
         "quick_actions": {
             "title": "Quick Actions",
             "view_all_projects": "View All Projects",

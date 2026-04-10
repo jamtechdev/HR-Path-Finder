@@ -30,13 +30,16 @@ interface IndustryCategory {
 interface IndustrySubCategory {
     id: number;
     name: string;
-    order: number;
+    created_at?: string | null;
     industry_category_id: number;
     industryCategory?: IndustryCategory;
 }
 
 interface Props {
-    subCategories: IndustrySubCategory[];
+    subCategories: {
+        data: IndustrySubCategory[];
+        links: { url: string | null; label: string; active: boolean }[];
+    };
     categories: IndustryCategory[];
     currentCategory?: number;
 }
@@ -46,6 +49,22 @@ export default function SubcategoriesIndex({
     categories,
     currentCategory,
 }: Props) {
+    const formatRelativeTime = (value?: string | null) => {
+        if (!value) return '-';
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return '-';
+        const secs = Math.round((d.getTime() - Date.now()) / 1000);
+        const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+        const abs = Math.abs(secs);
+        if (abs < 60) return rtf.format(secs, 'second');
+        const mins = Math.round(secs / 60);
+        if (Math.abs(mins) < 60) return rtf.format(mins, 'minute');
+        const hours = Math.round(mins / 60);
+        if (Math.abs(hours) < 24) return rtf.format(hours, 'hour');
+        const days = Math.round(hours / 24);
+        return rtf.format(days, 'day');
+    };
+
     const { t } = useTranslation();
     const { flash } = usePage().props as any;
 
@@ -137,7 +156,7 @@ export default function SubcategoriesIndex({
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-2">
-                                    {(subCategories || []).map(
+                                    {(subCategories.data || []).map(
                                         (subCategory) => (
                                             <div
                                                 key={subCategory.id}
@@ -157,10 +176,7 @@ export default function SubcategoriesIndex({
                                                                 )}
                                                         </Badge>
                                                         <Badge variant="secondary">
-                                                            {t(
-                                                                'admin_subcategories.order_badge',
-                                                            )}{' '}
-                                                            {subCategory.order}
+                                                            Created: {formatRelativeTime(subCategory.created_at)}
                                                         </Badge>
                                                     </div>
                                                 </div>
@@ -190,13 +206,26 @@ export default function SubcategoriesIndex({
                                             </div>
                                         ),
                                     )}
-                                    {(!subCategories ||
-                                        subCategories.length === 0) && (
+                                    {(!subCategories.data ||
+                                        subCategories.data.length === 0) && (
                                         <p className="py-8 text-center text-muted-foreground">
                                             {t('admin_subcategories.empty_state')}
                                         </p>
                                     )}
                                 </div>
+                                {subCategories.links && subCategories.links.length > 1 && (
+                                    <div className="mt-4 flex flex-wrap justify-center gap-2 border-t pt-4">
+                                        {subCategories.links.map((link, i) => (
+                                            <Link
+                                                key={i}
+                                                href={link.url || '#'}
+                                                className={link.active ? 'rounded border bg-primary px-3 py-1 text-primary-foreground' : 'rounded border px-3 py-1 hover:bg-muted'}
+                                            >
+                                                {link.label.replace('&laquo;', '«').replace('&raquo;', '»')}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

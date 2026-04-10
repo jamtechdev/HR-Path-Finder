@@ -20,6 +20,11 @@ interface Props {
         } | null;
         step_statuses?: Record<string, string>;
         survey_available?: boolean;
+        verification_gates?: {
+            hr_completed: boolean;
+            ceo_survey_completed: boolean;
+            diagnosis_completed: boolean;
+        };
     };
 }
 
@@ -89,6 +94,7 @@ export default function CeoProjectVerification({ project }: Props) {
                                     projectId={project.id}
                                     stepStatuses={project.step_statuses || {}}
                                     surveyAvailable={project.survey_available}
+                                    verificationGates={project.verification_gates}
                                 />
                             </CardContent>
                         </Card>

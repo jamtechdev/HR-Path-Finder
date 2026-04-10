@@ -138,12 +138,12 @@ export default function CompensationSnapshotEdit({
     }, [question.id]);
 
     useEffect(() => {
-        setData('answer_type', answerType);
+        setData('answer_type', answerType as any);
         // Only set options if answer type requires them
         if (['select_one', 'select_up_to_2', 'multiple'].includes(answerType)) {
             setData('options', options);
         } else {
-            setData('options', null);
+            setData('options', []);
         }
         // Set metadata with explanation
         setData('metadata', explanation ? { explanation } : null);
@@ -160,8 +160,6 @@ export default function CompensationSnapshotEdit({
         answerType || question.answer_type || 'select_one';
     const displayOptions =
         options.length > 0 ? options : question.options || [];
-    const displayOrder =
-        typeof data.order === 'number' ? data.order : (question.order ?? 0);
     const displayVersion = data.version || question.version || '';
     const displayExplanation =
         explanation || question.metadata?.explanation || '';
@@ -347,24 +345,6 @@ export default function CompensationSnapshotEdit({
                                             </p>
                                         </div>
                                     )}
-
-                                    <div>
-                                        <Label>
-                                            {t('compensation_snapshot.order')}
-                                        </Label>
-                                        <Input
-                                            type="number"
-                                            value={displayOrder}
-                                            onChange={(e) =>
-                                                setData(
-                                                    'order',
-                                                    parseInt(e.target.value) ||
-                                                        0,
-                                                )
-                                            }
-                                            min="0"
-                                        />
-                                    </div>
 
                                     <div>
                                         <Label>
