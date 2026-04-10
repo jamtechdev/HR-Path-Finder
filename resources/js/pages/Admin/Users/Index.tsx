@@ -155,6 +155,7 @@ export default function AdminUsersIndex({
 
     const [editOpen, setEditOpen] = useState(false);
     const [editUser, setEditUser] = useState<UserRow | null>(null);
+    const [editPhotoPreview, setEditPhotoPreview] = useState<string | null>(null);
     const editForm = useForm({
         name: '',
         email: '',
@@ -178,6 +179,7 @@ export default function AdminUsersIndex({
         editForm.setData('latitude', editUser.latitude ?? '');
         editForm.setData('longitude', editUser.longitude ?? '');
         editForm.setData('profile_photo', null);
+        setEditPhotoPreview(editUser.profile_photo_url ?? null);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [editUser?.id]);
 
@@ -513,9 +515,9 @@ export default function AdminUsersIndex({
                                             <div className="flex items-start gap-6">
                                                 <div className="w-24">
                                                     <div className="w-20 h-20 rounded-full overflow-hidden border bg-muted flex items-center justify-center">
-                                                        {editUser.profile_photo_url ? (
+                                                        {editPhotoPreview ? (
                                                             <img
-                                                                src={editUser.profile_photo_url}
+                                                                src={editPhotoPreview}
                                                                 alt="Profile"
                                                                 className="w-full h-full object-cover"
                                                             />
@@ -535,6 +537,9 @@ export default function AdminUsersIndex({
                                                             onChange={(e) => {
                                                                 const file = e.target.files?.[0] ?? null;
                                                                 editForm.setData('profile_photo', file);
+                                                                if (file) {
+                                                                    setEditPhotoPreview(URL.createObjectURL(file));
+                                                                }
                                                             }}
                                                         />
                                                         {editForm.errors.profile_photo && (
