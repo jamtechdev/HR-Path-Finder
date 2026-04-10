@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface Question {
     id: number;
@@ -57,6 +58,7 @@ export default function PerformanceSnapshotTab({
     onAnsweredChange,
     fieldErrors = {},
 }: Props) {
+    const { t } = useTranslation();
     const [responses, setResponses] = useState<Record<number, { response: string[]; text_response?: string }>>(savedResponses);
     const [rightPanelOpen, setRightPanelOpen] = useState(false);
     const [rightPanelContent, setRightPanelContent] = useState<any>(null);
@@ -139,9 +141,9 @@ export default function PerformanceSnapshotTab({
     const handleViewClick = (e: React.MouseEvent, option: string) => {
         e.stopPropagation();
         setRightPanelContent({
-            concept: `Guidance for: ${option}`,
-            key_characteristics: 'Key characteristics will be loaded from admin configuration.',
-            example: 'Example usage will be shown here.',
+            concept: t('performance_system_snapshot.guidance_for', { option }),
+            key_characteristics: t('performance_system_snapshot.key_characteristics'),
+            example: t('performance_system_snapshot.example_usage'),
         });
         setRightPanelOpen(true);
     };
@@ -153,16 +155,16 @@ export default function PerformanceSnapshotTab({
     return (
         <>
             <div className="space-y-6">
-                <Card className="shadow-sm border border-[#e5e7eb] rounded-xl overflow-hidden bg-white">
-                    <CardHeader className="border-b border-[#e5e7eb] bg-white pb-4">
-                        <CardTitle className="text-xl font-bold text-[#121431]">
-                            Strategic Performance Snapshot
+                <Card className="overflow-hidden rounded-xl border border-[#e5e7eb] bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                    <CardHeader className="border-b border-[#e5e7eb] bg-white pb-4 dark:border-slate-700 dark:bg-slate-900">
+                        <CardTitle className="text-xl font-bold text-[#121431] dark:text-slate-100">
+                            {t('performance_system_snapshot.title')}
                         </CardTitle>
-                        <CardDescription className="text-[15px] text-[#6b7280] mt-1">
-                            Answer {totalQuestions} questions about your company's performance management philosophy and current state. All questions and options are mapped to HR system design outcomes.
+                        <CardDescription className="mt-1 text-[15px] text-[#6b7280] dark:text-slate-300">
+                            {t('performance_system_snapshot.description', { total: totalQuestions })}
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="p-3 sm:p-6 space-y-6">
+                    <CardContent className="space-y-6 p-3 sm:p-6">
                         {questions && questions.length > 0 ? (
                             questions.map((question, index) => {
                                 const selectedCount = responses[question.id]?.response?.length ?? 0;
@@ -173,33 +175,36 @@ export default function PerformanceSnapshotTab({
                                     <div
                                         key={question.id}
                                         className={cn(
-                                            'p-3 sm:p-5 rounded-xl border bg-white hover:border-[#d1d5db] transition-colors',
+                                            'rounded-xl border bg-white p-3 transition-colors hover:border-[#d1d5db] sm:p-5 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-slate-500',
                                             fieldErrors[`ps-${question.id}`]
                                                 ? 'border-destructive border-2'
                                                 : 'border-[#e5e7eb]'
                                         )}
                                     >
                                         <div className="flex items-start gap-3">
-                                            <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#121431] text-white flex items-center justify-center text-sm sm:text-base font-bold shadow-sm">
+                                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#121431] text-sm font-bold text-white shadow-sm sm:h-10 sm:w-10 sm:text-base">
                                                 {index + 1}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <Label className="text-base font-semibold text-[#121431] block mb-3">
+                                                <Label className="mb-3 block text-base font-semibold text-[#121431] dark:text-slate-100">
                                                     {question.question_text}
                                                 </Label>
 
                                                 {question.answer_type === 'select_up_to_2' && (
                                                     <div className="flex items-center gap-2 mb-3">
-                                                        <span className="text-sm text-[#6b7280]">
-                                                            Select up to 2 options
+                                                        <span className="text-sm text-[#6b7280] dark:text-slate-300">
+                                                            {t('performance_system_snapshot.select_up_to_2')}
                                                         </span>
                                                         <span className="text-sm font-semibold text-[#059669]">
-                                                            {selectedCount}/{maxSelect} selected
+                                                            {t('performance_system_snapshot.selected_count', {
+                                                                selected: selectedCount,
+                                                                max: maxSelect,
+                                                            })}
                                                         </span>
                                                     </div>
                                                 )}
                                                 {question.answer_type === 'select_all_that_apply' && (
-                                                    <p className="text-sm text-[#6b7280] mb-3">Select all that apply</p>
+                                                    <p className="mb-3 text-sm text-[#6b7280] dark:text-slate-300">{t('performance_system_snapshot.select_all_that_apply')}</p>
                                                 )}
 
                                                 {question.answer_type === 'select_one' && (
@@ -213,7 +218,7 @@ export default function PerformanceSnapshotTab({
                                                         {question.options.map((option) => (
                                                             <div
                                                                 key={option}
-                                                                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-2.5 px-3 rounded-lg border border-[#e5e7eb] hover:bg-[#f9fafb]"
+                                                                className="flex flex-col gap-2 rounded-lg border border-[#e5e7eb] px-3 py-2.5 hover:bg-[#f9fafb] sm:flex-row sm:items-center sm:justify-between dark:border-slate-700 dark:hover:bg-slate-800/60"
                                                             >
                                                                 <div className="flex items-center gap-3 flex-1 min-w-0">
                                                                     <RadioGroupItem
@@ -223,7 +228,7 @@ export default function PerformanceSnapshotTab({
                                                                     />
                                                                     <Label
                                                                         htmlFor={`q${question.id}-${option}`}
-                                                                        className="font-normal text-[#374151] cursor-pointer flex-1"
+                                                                        className="flex-1 cursor-pointer font-normal text-[#374151] dark:text-slate-200"
                                                                     >
                                                                         {option}
                                                                     </Label>
@@ -232,11 +237,11 @@ export default function PerformanceSnapshotTab({
                                                                     type="button"
                                                                     variant="outline"
                                                                     size="sm"
-                                                                    className="shrink-0 h-8 px-3 text-[#6b7280] border-[#d1d5db] hover:bg-[#f3f4f6] self-end sm:self-auto"
+                                                                    className="h-8 shrink-0 self-end border-[#d1d5db] px-3 text-[#6b7280] hover:bg-[#f3f4f6] sm:self-auto dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
                                                                     onClick={(e) => handleViewClick(e, option)}
                                                                 >
                                                                     <Eye className="w-4 h-4 mr-1.5" />
-                                                                    View
+                                                                    {t('performance_system_snapshot.view')}
                                                                 </Button>
                                                             </div>
                                                         ))}
@@ -258,8 +263,8 @@ export default function PerformanceSnapshotTab({
                                                                     key={option}
                                                                     className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-2.5 px-3 rounded-lg border transition-colors ${
                                                                         isChecked
-                                                                            ? 'border-[#059669] bg-[#f0fdf4]'
-                                                                            : 'border-[#e5e7eb] hover:bg-[#f9fafb]'
+                                                                            ? 'border-[#059669] bg-[#f0fdf4] dark:bg-emerald-900/20'
+                                                                            : 'border-[#e5e7eb] hover:bg-[#f9fafb] dark:border-slate-700 dark:hover:bg-slate-800/60'
                                                                     } ${isDisabled ? 'opacity-60' : ''}`}
                                                                 >
                                                                     <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -278,7 +283,7 @@ export default function PerformanceSnapshotTab({
                                                                         />
                                                                         <Label
                                                                             htmlFor={`q${question.id}-${option}`}
-                                                                            className="font-normal text-[#374151] cursor-pointer flex-1"
+                                                                        className="flex-1 cursor-pointer font-normal text-[#374151] dark:text-slate-200"
                                                                         >
                                                                             {option}
                                                                         </Label>
@@ -287,11 +292,11 @@ export default function PerformanceSnapshotTab({
                                                                         type="button"
                                                                         variant="outline"
                                                                         size="sm"
-                                                                        className="shrink-0 h-8 px-3 text-[#6b7280] border-[#d1d5db] hover:bg-[#f3f4f6] self-end sm:self-auto"
+                                                                        className="h-8 shrink-0 self-end border-[#d1d5db] px-3 text-[#6b7280] hover:bg-[#f3f4f6] sm:self-auto dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
                                                                         onClick={(e) => handleViewClick(e, option)}
                                                                     >
                                                                         <Eye className="w-4 h-4 mr-1.5" />
-                                                                        View
+                                                                        {t('performance_system_snapshot.view')}
                                                                     </Button>
                                                                 </div>
                                                             );
@@ -304,16 +309,16 @@ export default function PerformanceSnapshotTab({
                                                         r.toLowerCase().includes('other')
                                                     ) && (
                                                         <div className="ml-0 sm:ml-8 mt-4 space-y-2">
-                                                            <Label className="text-sm font-semibold text-[#374151]">
-                                                                Please specify:
+                                                            <Label className="text-sm font-semibold text-[#374151] dark:text-slate-200">
+                                                                {t('performance_system_snapshot.please_specify')}
                                                             </Label>
                                                             <Input
                                                                 value={responses[question.id]?.text_response ?? ''}
                                                                 onChange={(e) =>
                                                                     handleTextResponseChange(question.id, e.target.value)
                                                                 }
-                                                                placeholder="Enter details..."
-                                                                className="mt-1 w-full sm:max-w-md border-[#e5e7eb]"
+                                                                placeholder={t('performance_system_snapshot.enter_details')}
+                                                                className="mt-1 w-full border-[#e5e7eb] sm:max-w-md dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                                                             />
                                                         </div>
                                                     )}
@@ -329,37 +334,39 @@ export default function PerformanceSnapshotTab({
                             })
                         ) : (
                             <div className="text-center py-12">
-                                <p className="text-[#6b7280]">No performance snapshot questions available.</p>
+                                <p className="text-[#6b7280] dark:text-slate-300">{t('performance_system_snapshot.no_questions')}</p>
                             </div>
                         )}
                     </CardContent>
                 </Card>
 
-                <footer className="sticky bottom-0 w-full bg-white border-t border-[#e0ddd5] py-[18px] px-6 md:px-[60px] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 z-10">
+                <footer className="sticky bottom-0 z-10 flex w-full flex-col items-stretch justify-between gap-3 border-t border-[#e0ddd5] bg-white px-6 py-[18px] sm:flex-row sm:items-center md:px-[60px] dark:border-slate-700 dark:bg-slate-900">
                     {onBack && (
                         <Button
                             onClick={onBack}
                             variant="outline"
-                            className="flex items-center justify-center gap-2 border-[#e0ddd5] font-bold px-8 py-6 rounded-lg w-full sm:w-auto"
+                            className="flex w-full items-center justify-center gap-2 rounded-lg border-[#e0ddd5] px-8 py-6 font-bold sm:w-auto dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                         >
                             <ChevronLeft className="w-4 h-4" />
-                            Back
+                            {t('common.back')}
                         </Button>
                     )}
                     <div className="flex-1 flex items-center justify-center text-center">
-                        <span className="text-sm text-[#6b7280]">
-                            <span className="font-semibold text-[#121431]">{answeredCount}</span>/{totalQuestions} questions
-                            answered
+                        <span className="text-sm text-[#6b7280] dark:text-slate-300">
+                            {t('performance_system_snapshot.answered_progress', {
+                                answered: answeredCount,
+                                total: totalQuestions,
+                            })}
                             {!allQuestionsAnswered && totalQuestions > 0 && (
-                                <span className="text-amber-600 ml-1">— answer all to continue</span>
+                                <span className="text-amber-600 ml-1">{t('performance_system_snapshot.answer_all_hint')}</span>
                             )}
                         </span>
                     </div>
                     <Button
                         onClick={handleContinue}
-                        className="flex items-center justify-center gap-2 bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white font-bold px-9 py-6 rounded-lg w-full sm:w-auto"
+                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#1a1a3d] px-9 py-6 font-bold text-white hover:bg-[#2d2d5c] sm:w-auto dark:bg-indigo-600 dark:hover:bg-indigo-500"
                     >
-                        Continue to KPI Review
+                        {t('performance_system_snapshot.continue_to_kpi_review')}
                         <ChevronRight className="w-4 h-4" />
                     </Button>
                 </footer>
@@ -369,7 +376,7 @@ export default function PerformanceSnapshotTab({
                 isOpen={rightPanelOpen}
                 onClose={() => setRightPanelOpen(false)}
                 content={rightPanelContent}
-                title="Option Guidance"
+                title={t('performance_system_snapshot.option_guidance')}
             />
         </>
     );

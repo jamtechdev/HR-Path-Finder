@@ -1328,6 +1328,72 @@
 .eval-structure-page .sum-key { font-size: 10px; font-weight: 600; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .04em; }
 .eval-structure-page .sum-val { font-size: 12.5px; font-weight: 700; color: rgba(255,255,255,.9); transition: .3s; }
 .eval-structure-page .sum-val.empty { color: rgba(255,255,255,.25); font-style: italic; font-weight: 400; font-size: 12px; }
+
+/* Performance System dark-mode consistency */
+.dark .manager-kpi-draft {
+    background: #020617 !important;
+    color: #e2e8f0;
+}
+
+.dark .eval-structure-page {
+    background: #020617 !important;
+    color: #e2e8f0;
+}
+
+.dark .eval-structure-page .org-run-wrap,
+.dark .eval-structure-page .section-block,
+.dark .eval-structure-page .opt-card,
+.dark .eval-structure-page .month-btn {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+.dark .eval-structure-page .section-hd:hover,
+.dark .eval-structure-page .opt-card:hover,
+.dark .eval-structure-page .month-btn:hover {
+    background: #1e293b;
+}
+
+.dark .eval-structure-page .s-title,
+.dark .eval-structure-page .opt-title,
+.dark .eval-structure-page .fg-label {
+    color: #f8fafc;
+}
+
+.dark .eval-structure-page .s-subtitle,
+.dark .eval-structure-page .opt-desc,
+.dark .eval-structure-page .month-hint {
+    color: #94a3b8;
+}
+
+.dark .review-submit-page {
+    background: #020617 !important;
+    color: #e2e8f0;
+}
+
+.dark .review-submit-page .review-section,
+.dark .review-submit-page .snap-table td,
+.dark .review-submit-page .kpi-mini-table td,
+.dark .review-submit-page .model-matrix-row .model-card,
+.dark .review-submit-page .bottom-bar {
+    background: #0f172a;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+.dark .review-submit-page .rs-title,
+.dark .review-submit-page .rs-title-sec,
+.dark .review-submit-page .bb-l strong,
+.dark .review-submit-page .model-matrix-row .model-card .model-title {
+    color: #f8fafc;
+}
+
+.dark .review-submit-page .rs-desc,
+.dark .review-submit-page .kpi-summary-line,
+.dark .review-submit-page .model-summary-line,
+.dark .review-submit-page .bb-l {
+    color: #94a3b8;
+}
 .eval-structure-page .sum-val.filled { color: #fff; }
 .eval-structure-page .sentence-card {
     background: var(--es-card);

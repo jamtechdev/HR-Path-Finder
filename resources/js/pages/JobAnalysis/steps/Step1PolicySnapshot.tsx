@@ -93,18 +93,18 @@ export default function Step1PolicySnapshot({
     const allAnswered = totalCount > 0 && answeredCount === totalCount;
 
     return (
-        <div className="min-h-full flex flex-col bg-[#f5f3ef] text-[#1a1a3d]">
+        <div className="min-h-full flex flex-col bg-[#f5f3ef] text-[#1a1a3d] dark:bg-slate-950 dark:text-slate-100">
             {/* Main content - match HTML .main-content */}
             <main className="max-w-[900px] mx-auto w-full" style={{ margin: '40px auto 120px', padding: '0 20px' }}>
                 <div className="text-[#b18c4d] text-[11px] font-extrabold uppercase mb-2" style={{ letterSpacing: '0.8px', marginBottom: 8 }}>
                     ● {t('job_analysis_pages.step1.stage')}
                 </div>
-                <h1 className="text-[#1a1a3d] text-[32px] font-extrabold m-0" style={{ letterSpacing: '-0.5px', marginBottom: 20 }}>
+                <h1 className="m-0 text-[32px] font-extrabold text-[#1a1a3d] dark:text-slate-100" style={{ letterSpacing: '-0.5px', marginBottom: 20 }}>
                     {t('job_analysis_pages.step1.title')}
                 </h1>
 
                 <div
-                    className="border-l-2 border-[#b18c4d] py-0.5 text-[#57606a] text-[15px]"
+                    className="border-l-2 border-[#b18c4d] py-0.5 text-[15px] text-[#57606a] dark:text-slate-300"
                     style={{ paddingLeft: 25, paddingTop: 2, paddingBottom: 2, marginBottom: 40, lineHeight: 1.6 }}
                 >
                     {t('job_analysis_pages.overview.hero.before_body')}
@@ -124,10 +124,10 @@ export default function Step1PolicySnapshot({
                                 <div
                                     key={question.id}
                                     className={cn(
-                                        'bg-white border relative',
+                                        'relative border bg-white dark:border-slate-700 dark:bg-slate-900',
                                         fieldErrors[`q-${question.id}`] || fieldErrors[`q-${question.id}-conditional`]
                                             ? 'border-destructive border-2'
-                                            : 'border-[#e0ddd5]'
+                                            : 'border-[#e0ddd5] dark:border-slate-700'
                                     )}
                                     style={{
                                         borderRadius: 16,
@@ -153,13 +153,13 @@ export default function Step1PolicySnapshot({
 
                                     <div className="flex justify-between items-start" style={{ padding: '30px 35px' }}>
                                         <div className="flex-1 pr-6">
-                                            <p className="text-[#1a1a3d]" style={{ fontSize: 17, lineHeight: 1.5 }}>
+                                            <p className="text-[#1a1a3d] dark:text-slate-100" style={{ fontSize: 17, lineHeight: 1.5 }}>
                                                 {question.question_text}
                                             </p>
                                         </div>
                                         <button
                                             type="button"
-                                            className="shrink-0 rounded-full bg-[#f1f5f9] text-[#94a3b8] flex items-center justify-center cursor-pointer hover:bg-[#e2e8f0]"
+                                            className="flex shrink-0 items-center justify-center rounded-full bg-[#f1f5f9] text-[#94a3b8] hover:bg-[#e2e8f0] dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                                             style={{ width: 20, height: 20, fontSize: 12 }}
                                             aria-label={t('job_analysis_pages.step1.help')}
                                         >
@@ -167,7 +167,7 @@ export default function Step1PolicySnapshot({
                                         </button>
                                     </div>
 
-                                    <div className="border-t border-[#f1f5f9]">
+                                    <div className="border-t border-[#f1f5f9] dark:border-slate-700">
                                         {OPTIONS.map((opt) => {
                                             const isActive = currentAnswer === opt.value;
                                             return (
@@ -176,9 +176,9 @@ export default function Step1PolicySnapshot({
                                                     type="button"
                                                     onClick={() => handleAnswerChange(question.id, opt.value)}
                                                     className={`
-                                                        w-full flex items-center text-left font-medium transition-colors border-b border-[#f1f5f9] last:border-b-0
-                                                        hover:bg-[#fcfcfc]
-                                                        ${isActive ? 'text-[#1a1a3d] font-bold bg-[#fcfcfc]' : 'text-[#475569]'}
+                                                        w-full flex items-center border-b border-[#f1f5f9] text-left font-medium transition-colors last:border-b-0 dark:border-slate-700
+                                                        hover:bg-[#fcfcfc] dark:hover:bg-slate-800/60
+                                                        ${isActive ? 'bg-[#fcfcfc] font-bold text-[#1a1a3d] dark:bg-slate-800 dark:text-slate-100' : 'text-[#475569] dark:text-slate-300'}
                                                     `}
                                                     style={{ padding: '18px 35px', gap: 15 }}
                                                 >
@@ -186,8 +186,8 @@ export default function Step1PolicySnapshot({
                                                         className={`
                                                             rounded-full border-2 flex-shrink-0
                                                             ${isActive
-                                                                ? 'border-[#1a1a3d] bg-[#1a1a3d]'
-                                                                : 'border-[#cbd5e1] bg-transparent'
+                                                                ? 'border-[#1a1a3d] bg-[#1a1a3d] dark:border-slate-200 dark:bg-slate-200'
+                                                                : 'border-[#cbd5e1] bg-transparent dark:border-slate-600'
                                                             }
                                                         `}
                                                         style={{
@@ -208,8 +208,8 @@ export default function Step1PolicySnapshot({
                                     <FieldErrorMessage fieldKey={`q-${question.id}`} errors={fieldErrors} />
 
                                     {question.has_conditional_text && currentAnswer === 'yes' && (
-                                        <div className="border-t border-[#f1f5f9]" style={{ padding: '16px 35px' }}>
-                                            <Label className="text-sm font-semibold text-[#475569] block mb-2">
+                                        <div className="border-t border-[#f1f5f9] dark:border-slate-700" style={{ padding: '16px 35px' }}>
+                                            <Label className="mb-2 block text-sm font-semibold text-[#475569] dark:text-slate-300">
                                                 {t('job_analysis_pages.step1.if_yes')}
                                             </Label>
                                             <Input
@@ -218,7 +218,7 @@ export default function Step1PolicySnapshot({
                                                     handleConditionalTextChange(question.id, e.target.value)
                                                 }
                                                 placeholder={t('job_analysis_pages.step1.input_placeholder')}
-                                                className="max-w-md border-[#e0ddd5] rounded-lg"
+                                                className="max-w-md rounded-lg border-[#e0ddd5] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                                             />
                                             <FieldErrorMessage fieldKey={`q-${question.id}-conditional`} errors={fieldErrors} />
                                         </div>
@@ -228,15 +228,15 @@ export default function Step1PolicySnapshot({
                         })}
                     </div>
                 ) : (
-                    <div className="text-center py-12 text-[#64748b]">
+                    <div className="py-12 text-center text-[#64748b] dark:text-slate-400">
                         {t('job_analysis_pages.step1.no_questions')}
                     </div>
                 )}
             </main>
 
             {/* Sticky footer - match HTML .bottom-nav */}
-            <footer className="sticky bottom-0 w-full bg-white border-t border-[#e0ddd5] py-[18px] px-6 md:px-[60px] flex flex-wrap items-center justify-between gap-4 z-10 mt-auto">
-                <p className="text-[13px] text-[#94a3b8] font-medium">
+            <footer className="sticky bottom-0 z-10 mt-auto flex w-full flex-wrap items-center justify-between gap-4 border-t border-[#e0ddd5] bg-white px-6 py-[18px] md:px-[60px] dark:border-slate-700 dark:bg-slate-900">
+                <p className="text-[13px] font-medium text-[#94a3b8] dark:text-slate-400">
                     {t('job_analysis_pages.step1.complete_to_continue', { count: answeredCount, total: totalCount })}
                 </p>
                 <div className="flex gap-3">
@@ -244,7 +244,7 @@ export default function Step1PolicySnapshot({
                         type="button"
                         variant="outline"
                         onClick={onBack}
-                        className="border-[#e0ddd5] font-bold px-8 py-6 rounded-lg"
+                        className="rounded-lg border-[#e0ddd5] px-8 py-6 font-bold dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                     >
                         <ChevronLeft className="w-4 h-4 mr-1" />
                         {t('job_analysis_pages.step1.back')}
@@ -252,7 +252,7 @@ export default function Step1PolicySnapshot({
                     <Button
                         type="button"
                         onClick={onContinue}
-                        className="bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white font-bold px-9 py-6 rounded-lg"
+                        className="rounded-lg bg-[#1a1a3d] px-9 py-6 font-bold text-white hover:bg-[#2d2d5c] dark:bg-indigo-600 dark:hover:bg-indigo-500"
                     >
                         {t('job_analysis_pages.step1.continue')}
                         <ArrowRight className="w-4 h-4 ml-1" />

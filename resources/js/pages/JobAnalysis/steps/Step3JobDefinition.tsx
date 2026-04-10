@@ -107,6 +107,15 @@ export default function Step3JobDefinition({
 
     useEffect(() => {
         const next: Record<string, JobDefinition> = { ...localDefinitions };
+        const validJobKeys = new Set(allJobs.map((job) => job.key));
+
+        // Remove stale definitions that no longer belong to current HR selections.
+        Object.keys(next).forEach((key) => {
+            if (!validJobKeys.has(key)) {
+                delete next[key];
+            }
+        });
+
         allJobs.forEach((job) => {
             if (!next[job.key]) {
                 const t = templates[job.job_keyword_id ?? job.key] || {};
@@ -137,6 +146,12 @@ export default function Step3JobDefinition({
         });
         setLocalDefinitions(next);
         onDefinitionsChange(next);
+
+        // Keep active selection in sync after HR changes selected jobs.
+        if (activeJobKey && !validJobKeys.has(activeJobKey)) {
+            setActiveJobKey(allJobs[0]?.key ?? '');
+            setActiveTab('description');
+        }
     }, [allJobs, templates]);
 
     const currentJob = allJobs.find((j) => j.key === activeJobKey);
@@ -232,7 +247,7 @@ export default function Step3JobDefinition({
 
     if (!currentJob || !currentDef) {
         return (
-            <div className="min-h-full flex flex-col bg-[#f6f3eb] items-center justify-center p-8">
+            <div className="min-h-full flex flex-col items-center justify-center bg-[#f6f3eb] p-8 dark:bg-slate-950">
                 <p className="text-[#666]">No jobs selected. Please go back to Job List Selection.</p>
                 <Button variant="outline" onClick={onBack} className="mt-4">
                     ← Back
@@ -246,20 +261,20 @@ export default function Step3JobDefinition({
     const csfs = currentDef.csfs || [];
 
     return (
-        <div className="min-h-full flex flex-col bg-[#f6f3eb] text-[#333]">
+        <div className="min-h-full flex flex-col bg-[#f6f3eb] text-slate-800 dark:bg-slate-950 dark:text-slate-100">
             <div className="max-w-[1100px] mx-auto w-full py-10 pb-28 px-5" style={{ padding: '0 20px' }}>
-                <div className="text-[#b59461] font-bold text-[11px] mb-1">● STEP 3 OF 6 — JOB ANALYSIS</div>
-                <h1 className="text-[#1a1a3d] font-bold m-0 mb-2" style={{ fontSize: 28 }}>
+                <div className="mb-1 text-[11px] font-bold text-[#b59461] dark:text-amber-300">● STEP 3 OF 6 — JOB ANALYSIS</div>
+                <h1 className="m-0 mb-2 text-3xl font-bold text-[#1a1a3d] dark:text-slate-100">
                     Job Definition
                 </h1>
-                <p className="text-[#666] mb-6 text-sm max-w-[800px] leading-relaxed">
+                <p className="mb-6 max-w-[800px] text-sm leading-relaxed text-[#475569] dark:text-slate-300">
                     For each selected role, a Job Definition Document is created and finalized, including: Job Description, Job Specification, Job Competency Levels, and Critical Success Factors (CSFs).
                     The job standards defined at this stage serve as the foundation for the subsequent design of the performance management system and the compensation system.
                 </p>
 
                 {/* Job selector */}
                 <div className="mb-6">
-                    <div className="font-bold text-sm mb-3">SELECT JOB TO DEFINE</div>
+                    <div className="mb-3 text-sm font-bold text-[#0f172a] dark:text-slate-100">SELECT JOB TO DEFINE</div>
                     <FieldErrorMessage fieldKey="job-definition" errors={fieldErrors} className="mb-2" />
                     <div className="flex flex-wrap gap-2">
                         {allJobs.map((job) => {
@@ -279,7 +294,7 @@ export default function Step3JobDefinition({
                                         'rounded-full px-5 py-2.5 text-sm font-medium',
                                         active
                                             ? 'bg-[#1a1a3d] text-white'
-                                            : 'bg-[#e0ddd5]/50 text-[#666] border border-[#e0ddd5]',
+                                            : 'border border-[#e0ddd5] bg-[#e0ddd5]/50 text-[#666] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300',
                                         defErr && 'ring-2 ring-destructive border-destructive'
                                     )}
                                 >
@@ -291,7 +306,7 @@ export default function Step3JobDefinition({
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-1 mb-6 border-b border-[#e0ddd5] pb-0 flex-wrap">
+                <div className="mb-6 flex flex-wrap gap-1 border-b border-[#e0ddd5] pb-0 dark:border-slate-700">
                     {TAB_ORDER.map((tabId) => {
                         const isActive = activeTab === tabId;
                         const complete = isTabComplete(tabId);
@@ -316,30 +331,30 @@ export default function Step3JobDefinition({
                                 className={cn(
                                     'flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-t-lg border border-b-0 border-[#e0ddd5] -mb-px',
                                     isActive && 'bg-[#1a1a3d] text-white border-[#1a1a3d]',
-                                    !isActive && complete && 'bg-[#d4e9d5] text-[#2e7d32]',
-                                    !isActive && !complete && 'bg-white text-[#666]'
+                                    !isActive && complete && 'bg-[#d4e9d5] text-[#2e7d32] dark:bg-emerald-900/30 dark:text-emerald-300',
+                                    !isActive && !complete && 'bg-white text-[#666] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300'
                                 )}
                             >
                                 <Icon className="w-4 h-4" />
                                 {labels[tabId]}
-                                {complete && <span className="text-green-600">✓</span>}
+                                {complete && <span className="text-green-600 dark:text-emerald-300">✓</span>}
                             </button>
                         );
                     })}
                 </div>
 
                 {/* Tab content */}
-                <div className="bg-white rounded-lg border border-[#e0ddd5] p-6 shadow-sm">
+                <div className="rounded-lg border border-[#e0ddd5] bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     {activeTab === 'description' && (
                         <>
                             <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
                                 <div className="flex items-center gap-2">
-                                    <span className="font-bold text-[#1a1a3d]">JOB DESCRIPTION</span>
-                                    <span className="text-[10px] px-2 py-0.5 rounded bg-[#e0ddd5] text-[#666]">
+                                    <span className="font-bold text-[#1a1a3d] dark:text-slate-100">JOB DESCRIPTION</span>
+                                    <span className="rounded bg-[#e0ddd5] px-2 py-0.5 text-[10px] text-[#666] dark:bg-slate-700 dark:text-slate-300">
                                         STANDARD
                                     </span>
                                 </div>
-                                <Button variant="outline" size="sm" className="border-[#e0ddd5] text-xs">
+                                <Button variant="outline" size="sm" className="border-[#e0ddd5] text-xs dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100">
                                     View Original Draft
                                 </Button>
                             </div>
@@ -348,7 +363,7 @@ export default function Step3JobDefinition({
                                 onChange={(e) => updateDef({ job_description: e.target.value })}
                                 placeholder="Enter job description..."
                                 className={cn(
-                                    'min-h-[200px] border-[#e0ddd5]',
+                                    'min-h-[200px] border-[#e0ddd5] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100',
                                     fieldErrors[`def-${activeJobKey}`] && 'border-destructive ring-1 ring-destructive/30'
                                 )}
                             />
@@ -391,22 +406,22 @@ export default function Step3JobDefinition({
                                 ].map(({ key, label, data }) => (
                                     <div
                                         key={key}
-                                        className="border border-[#e0ddd5] rounded-lg p-4 bg-[#fafaf9]"
+                                        className="rounded-lg border border-[#e0ddd5] bg-[#fafaf9] p-4 dark:border-slate-700 dark:bg-slate-800/60"
                                     >
                                         <div className="flex items-center justify-between mb-3">
                                             <span className="font-bold text-sm">{label}</span>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-[10px] px-2 py-0.5 rounded bg-[#e0ddd5]">
+                                                <span className="rounded bg-[#e0ddd5] px-2 py-0.5 text-[10px] dark:bg-slate-700 dark:text-slate-300">
                                                     STANDARD
                                                 </span>
-                                                <Button variant="outline" size="sm" className="text-xs h-7">
+                                                <Button variant="outline" size="sm" className="h-7 text-xs dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100">
                                                     View Original
                                                 </Button>
                                             </div>
                                         </div>
                                         <div className="space-y-3">
                                             <div>
-                                                <Label className="text-xs text-[#666]">
+                                                <Label className="text-xs text-[#666] dark:text-slate-300">
                                                     REQUIRED <span className="text-red-500">*</span>
                                                 </Label>
                                                 <Input
@@ -419,11 +434,12 @@ export default function Step3JobDefinition({
                                                             },
                                                         })
                                                     }
-                                                    className="mt-1 border-[#e0ddd5]"
+                                                    placeholder={`Enter required ${label.toLowerCase()} criteria`}
+                                                    className="mt-1 border-[#e0ddd5] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                                                 />
                                             </div>
                                             <div>
-                                                <Label className="text-xs text-[#666]">PREFERRED</Label>
+                                                <Label className="text-xs text-[#666] dark:text-slate-300">PREFERRED</Label>
                                                 <Input
                                                     value={data.preferred}
                                                     onChange={(e) =>
@@ -434,7 +450,8 @@ export default function Step3JobDefinition({
                                                             },
                                                         })
                                                     }
-                                                    className="mt-1 border-[#e0ddd5]"
+                                                    placeholder={`Enter preferred ${label.toLowerCase()} criteria`}
+                                                    className="mt-1 border-[#e0ddd5] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                                                 />
                                             </div>
                                         </div>
@@ -455,7 +472,7 @@ export default function Step3JobDefinition({
                     {activeTab === 'competency' && (
                         <>
                             <div className="flex items-center justify-between mb-4">
-                                <span className="font-bold text-[#1a1a3d]">Competency Levels</span>
+                                <span className="font-bold text-[#1a1a3d] dark:text-slate-100">Competency Levels</span>
                                 <Button
                                     onClick={handleAddLevel}
                                     className="bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white text-sm"
@@ -467,7 +484,7 @@ export default function Step3JobDefinition({
                                 {levels.map((level, index) => (
                                     <div
                                         key={index}
-                                        className="flex items-center gap-3 p-3 border border-[#e0ddd5] rounded-lg bg-white"
+                                        className="flex items-center gap-3 rounded-lg border border-[#e0ddd5] bg-white p-3 dark:border-slate-700 dark:bg-slate-900"
                                     >
                                         <span className="bg-[#1a1a3d] text-white text-xs font-bold px-3 py-1.5 rounded-full shrink-0">
                                             {level.level}
@@ -478,7 +495,7 @@ export default function Step3JobDefinition({
                                                 handleUpdateLevel(index, 'description', e.target.value)
                                             }
                                             placeholder="e.g. Junior: Handles basic tasks..."
-                                            className="flex-1 border-[#e0ddd5]"
+                                            className="flex-1 border-[#e0ddd5] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                                         />
                                         <button
                                             type="button"
@@ -504,7 +521,7 @@ export default function Step3JobDefinition({
                     {activeTab === 'csfs' && (
                         <>
                             <div className="flex items-center justify-between mb-4">
-                                <span className="font-bold text-[#1a1a3d]">
+                                <span className="font-bold text-[#1a1a3d] dark:text-slate-100">
                                     Critical Success Factors (CSFs)
                                 </span>
                                 <Button
@@ -514,8 +531,8 @@ export default function Step3JobDefinition({
                                     + Add CSF
                                 </Button>
                             </div>
-                            <div className="bg-[#f1f5f9] border border-[#e0ddd5] rounded-lg p-4 mb-6 text-sm text-[#666]">
-                                <strong className="text-[#333]">Category guide:</strong> Strategic – goals &
+                            <div className="mb-6 rounded-lg border border-[#e0ddd5] bg-[#f1f5f9] p-4 text-sm text-[#666] dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300">
+                                <strong className="text-[#333] dark:text-slate-100">Category guide:</strong> Strategic – goals &
                                 direction. Process – how work gets done. Operational – day-to-day execution.
                                 The category determines placement in the Finalization matrix.
                             </div>
@@ -523,7 +540,7 @@ export default function Step3JobDefinition({
                                 {csfs.map((csf, index) => (
                                     <div
                                         key={index}
-                                        className="border border-[#e0ddd5] rounded-lg p-5 bg-white relative"
+                                        className="relative rounded-lg border border-[#e0ddd5] bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
                                     >
                                         <button
                                             type="button"
@@ -534,7 +551,7 @@ export default function Step3JobDefinition({
                                         </button>
                                         <div className="space-y-4 pr-8">
                                             <div>
-                                                <Label className="text-xs font-semibold text-[#666]">
+                                                <Label className="text-xs font-semibold text-[#666] dark:text-slate-300">
                                                     CSF NAME <span className="text-red-500">*</span>
                                                 </Label>
                                                 <Input
@@ -542,11 +559,12 @@ export default function Step3JobDefinition({
                                                     onChange={(e) =>
                                                         handleUpdateCSF(index, 'name', e.target.value)
                                                     }
-                                                    className="mt-1 border-[#e0ddd5]"
+                                                    placeholder="Enter CSF name (e.g. Improve customer retention)"
+                                                    className="mt-1 border-[#e0ddd5] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                                                 />
                                             </div>
                                             <div>
-                                                <Label className="text-xs font-semibold text-[#666]">
+                                                <Label className="text-xs font-semibold text-[#666] dark:text-slate-300">
                                                     DESCRIPTION
                                                 </Label>
                                                 <Textarea
@@ -554,11 +572,12 @@ export default function Step3JobDefinition({
                                                     onChange={(e) =>
                                                         handleUpdateCSF(index, 'description', e.target.value)
                                                     }
-                                                    className="mt-1 min-h-[80px] border-[#e0ddd5]"
+                                                    placeholder="Describe this CSF and expected outcome"
+                                                    className="mt-1 min-h-[80px] border-[#e0ddd5] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                                                 />
                                             </div>
                                             <div>
-                                                <Label className="text-xs font-semibold text-[#666] block mb-2">
+                                                <Label className="mb-2 block text-xs font-semibold text-[#666] dark:text-slate-300">
                                                     STRATEGIC IMPORTANCE
                                                 </Label>
                                                 <div className="flex gap-2 flex-wrap">
@@ -573,7 +592,7 @@ export default function Step3JobDefinition({
                                                                 'px-4 py-2 rounded-full text-sm font-medium border',
                                                                 (csf.strategic_importance || 'medium') === v
                                                                     ? 'bg-red-600 text-white border-red-600'
-                                                                    : 'bg-white border-[#e0ddd5] text-[#333]'
+                                                                    : 'bg-white border-[#e0ddd5] text-[#333] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100'
                                                             )}
                                                         >
                                                             {v.charAt(0).toUpperCase() + v.slice(1)}
@@ -582,7 +601,7 @@ export default function Step3JobDefinition({
                                                 </div>
                                             </div>
                                             <div>
-                                                <Label className="text-xs font-semibold text-[#666] block mb-2">
+                                                <Label className="mb-2 block text-xs font-semibold text-[#666] dark:text-slate-300">
                                                     CSF CATEGORY <span className="text-red-500">*</span>
                                                 </Label>
                                                 <div className="flex gap-3 flex-wrap">
@@ -598,8 +617,8 @@ export default function Step3JobDefinition({
                                                             className={cn(
                                                                 'flex items-center gap-2 cursor-pointer px-3 py-2 rounded border',
                                                                 (csf.category || 'strategic') === v
-                                                                    ? 'border-[#1a1a3d] bg-[#1a1a3d]/5'
-                                                                    : 'border-[#e0ddd5]'
+                                                                    ? 'border-[#1a1a3d] bg-[#1a1a3d]/5 dark:border-slate-300 dark:bg-slate-800'
+                                                                    : 'border-[#e0ddd5] dark:border-slate-600'
                                                             )}
                                                         >
                                                             <input
@@ -609,7 +628,7 @@ export default function Step3JobDefinition({
                                                                 onChange={() =>
                                                                     handleUpdateCSF(index, 'category', v)
                                                                 }
-                                                                className="text-[#1a1a3d]"
+                                                                className="text-[#1a1a3d] dark:text-slate-200"
                                                             />
                                                             {label}
                                                         </label>
@@ -620,7 +639,7 @@ export default function Step3JobDefinition({
                                     </div>
                                 ))}
                                 {csfs.length === 0 && (
-                                    <p className="text-[#666] text-sm py-4">
+                                    <p className="py-4 text-sm text-[#666] dark:text-slate-300">
                                         No CSFs yet. Click &quot;+ Add CSF&quot; to add one.
                                     </p>
                                 )}
@@ -632,9 +651,9 @@ export default function Step3JobDefinition({
 
             {/* Sticky footer */}
             <footer
-                className="sticky bottom-0 w-full bg-white border-t border-[#e0ddd5] py-4 px-6 flex flex-wrap items-center justify-between gap-4 z-10 mt-auto"
+                className="sticky bottom-0 z-10 mt-auto flex w-full flex-wrap items-center justify-between gap-4 border-t border-[#e0ddd5] bg-white px-6 py-4 dark:border-slate-700 dark:bg-slate-900"
             >
-                <p className="text-sm text-[#666]">
+                <p className="text-sm text-[#666] dark:text-slate-300">
                     Defining <strong>{currentJob.name}</strong>
                 </p>
                 <div className="flex gap-2 flex-wrap">
@@ -642,7 +661,7 @@ export default function Step3JobDefinition({
                         type="button"
                         variant="outline"
                         onClick={onBack}
-                        className="border-[#ccc] rounded-md"
+                        className="rounded-md border-[#ccc] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                     >
                         <ChevronLeft className="w-4 h-4 mr-1" />
                         Back

@@ -109,6 +109,25 @@ export function useJobAnalysisState(projectId: number) {
 
     const [state, setState] = useState<JobAnalysisState>(loadState);
 
+    const buildValidDefinitionKeys = (selections: JobSelection): Set<string> => {
+        const keys = new Set<string>();
+
+        selections.selected_job_keyword_ids.forEach((id) => {
+            keys.add(`job-${id}`);
+        });
+
+        selections.custom_jobs.forEach((name, index) => {
+            keys.add(`custom-${index}-${name}`);
+        });
+
+        selections.grouped_jobs.forEach((group, index) => {
+            const sorted = [...group.job_keyword_ids].sort((a, b) => a - b).join('-');
+            keys.add(`group-${sorted}-${index}`);
+        });
+
+        return keys;
+    };
+
     // Save to localStorage whenever state changes
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -130,10 +149,28 @@ export function useJobAnalysisState(projectId: number) {
 
     // Update job selections
     const updateJobSelections = useCallback((selections: JobSelection) => {
-        setState(prev => ({
-            ...prev,
-            jobSelections: selections,
-        }));
+        setState(prev => {
+            const validKeys = buildValidDefinitionKeys(selections);
+
+            // Remove stale job definitions from storage/state when HR changes selections.
+            const prunedDefinitions = Object.fromEntries(
+                Object.entries(prev.jobDefinitions).filter(([key]) => validKeys.has(key))
+            );
+
+            return {
+                ...prev,
+                jobSelections: selections,
+                jobDefinitions: prunedDefinitions,
+                // Re-evaluate downstream steps since source selection changed.
+                stepCompletions: {
+                    ...prev.stepCompletions,
+                    'job-definition': false,
+                    finalization: false,
+                    'org-chart-mapping': false,
+                    'review-submit': false,
+                },
+            };
+        });
     }, []);
 
     // Update job definitions

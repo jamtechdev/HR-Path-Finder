@@ -342,6 +342,11 @@ export default function PerformanceSystemIndex({
         setActiveTab(initialTab);
     }, [initialTab]);
 
+    // Keep KPI draft in sync with latest server payload (e.g. CEO approval/revision updates).
+    useEffect(() => {
+        setDraftKpis(organizationalKpis ?? []);
+    }, [organizationalKpis]);
+
     // Hydrate unsaved local draft on first load.
     useEffect(() => {
         try {
@@ -819,11 +824,11 @@ export default function PerformanceSystemIndex({
             />
             {/* Match Job Analysis: on overview = full-page cream bg, no tab bar. Else = header + tab bar + content */}
             {activeTab === 'overview' ? (
-                <div className="flex min-h-full flex-col bg-[#f5f3ef]">
+                <div className="flex min-h-full flex-col bg-[#f5f3ef] text-slate-800 dark:bg-slate-950 dark:text-slate-100">
                     <div className="shrink-0 px-6 pt-6 pb-2">
                         <Link
                             href="/hr-manager/dashboard"
-                            className="flex items-center gap-1 text-sm font-medium text-[#0f2a4a] hover:text-[#1a4070]"
+                            className="flex items-center gap-1 text-sm font-medium text-[#0f2a4a] hover:text-[#1a4070] dark:text-slate-200 dark:hover:text-white"
                         >
                             <ChevronLeft className="h-4 w-4" />
                             {t('performance_system_index.back_dashboard')}
@@ -834,7 +839,7 @@ export default function PerformanceSystemIndex({
                         <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <div className="text-lg font-bold">
                                 {t('performance_system_index.brand')}{' '}
-                                <span className="ml-2 font-normal text-[#64748b]">
+                                <span className="ml-2 font-normal text-[#64748b] dark:text-slate-400">
                                     / {t('performance_system_index.title')}
                                 </span>
                             </div>
@@ -942,7 +947,7 @@ export default function PerformanceSystemIndex({
                     </div>
                 </div>
             ) : (
-                <div className="mx-auto flex min-h-full max-w-7xl flex-col bg-background p-6 md:p-8">
+                <div className="mx-auto flex min-h-full max-w-7xl flex-col bg-background p-6 md:p-8 dark:bg-slate-950 dark:text-slate-100">
                     {activeTab === 'review-submit' &&
                         (tabValidationMessage || submitError) && (
                             <InlineErrorSummary
@@ -999,19 +1004,16 @@ export default function PerformanceSystemIndex({
                         </div>
                     </div>
 
-                    <div className="mb-6 overflow-hidden rounded-b-xl border border-t-0 border-[#e5e7eb] bg-white shadow-sm">
-                        <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3">
-                            <div
-                                className="flex shrink-0 gap-1 overflow-x-auto scroll-smooth"
-                                style={{ scrollbarWidth: 'thin' }}
-                            >
+                    <div className="mb-6 overflow-hidden rounded-b-xl border border-t-0 border-[#e5e7eb] bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                            <div className="flex min-w-0 flex-1 flex-nowrap gap-2 overflow-x-auto scroll-smooth pb-1 [scrollbar-width:thin]">
                                 <button
                                     onClick={() => handleTabChange('overview')}
                                     className={cn(
-                                        '-mb-[9px] flex cursor-pointer items-center gap-2 rounded-t-lg border-b-2 px-4 py-2 text-sm font-medium whitespace-nowrap transition-all',
+                                        'shrink-0 flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-all whitespace-nowrap',
                                         activeTab === 'overview'
-                                            ? 'border-[#059669] font-semibold text-[#121431]'
-                                            : 'border-transparent text-[#6b7280] hover:text-[#374151]',
+                                            ? 'border-[#059669] bg-emerald-50 font-semibold text-[#121431] dark:bg-emerald-900/20 dark:text-slate-100'
+                                            : 'border-[#e5e7eb] text-[#6b7280] hover:text-[#374151] dark:border-slate-700 dark:text-slate-400 dark:hover:text-slate-200',
                                     )}
                                 >
                                     <LayoutGrid className="h-4 w-4 flex-shrink-0" />
@@ -1042,7 +1044,7 @@ export default function PerformanceSystemIndex({
                                                 onClick={() =>
                                                     handleTabChange(tab.id)
                                                 }
-                                                className="-mb-[9px] flex cursor-pointer items-center gap-2 rounded-t-lg border-b-2 border-transparent bg-[#f9fafb] px-4 py-2 text-sm font-medium whitespace-nowrap text-[#9ca3af] hover:bg-[#f3f4f6]"
+                                                className="shrink-0 flex cursor-pointer items-center gap-2 rounded-lg border border-[#e5e7eb] bg-[#f9fafb] px-3 py-2 text-sm font-medium text-[#9ca3af] hover:bg-[#f3f4f6] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500 dark:hover:bg-slate-700 whitespace-nowrap"
                                             >
                                                 <TabIcon className="h-4 w-4" />
                                                 <span className="hidden sm:inline">
@@ -1058,12 +1060,12 @@ export default function PerformanceSystemIndex({
                                                 handleTabChange(tab.id)
                                             }
                                             className={cn(
-                                                '-mb-[9px] flex cursor-pointer items-center gap-2 rounded-t-lg border-b-2 px-4 py-2 text-sm font-medium whitespace-nowrap transition-all',
+                                                'shrink-0 flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-all whitespace-nowrap',
                                                 isActive
-                                                    ? 'border-[#059669] font-semibold text-[#121431]'
+                                                    ? 'border-[#059669] bg-emerald-50 font-semibold text-[#121431] dark:bg-emerald-900/20 dark:text-slate-100'
                                                     : isCompleted
-                                                      ? 'border-transparent text-[#059669] hover:text-[#047857]'
-                                                      : 'border-transparent text-[#6b7280] hover:text-[#374151]',
+                                                      ? 'border-[#10b981]/30 bg-emerald-50/70 text-[#059669] hover:text-[#047857] dark:border-emerald-800/50 dark:bg-emerald-900/10 dark:text-emerald-400 dark:hover:text-emerald-300'
+                                                      : 'border-[#e5e7eb] text-[#6b7280] hover:text-[#374151] dark:border-slate-700 dark:text-slate-400 dark:hover:text-slate-200',
                                             )}
                                         >
                                             <TabIcon className="h-4 w-4 flex-shrink-0" />
@@ -1076,7 +1078,7 @@ export default function PerformanceSystemIndex({
                             </div>
                             {activeTab === 'performance-snapshot' &&
                                 snapshotTotalCount > 0 && (
-                                    <span className="shrink-0 text-sm font-medium text-[#6b7280]">
+                                    <span className="shrink-0 text-sm font-medium text-[#6b7280] dark:text-slate-300">
                                         {snapshotAnsweredCount}/
                                         {snapshotTotalCount}{' '}
                                         {t(
@@ -1085,7 +1087,7 @@ export default function PerformanceSystemIndex({
                                     </span>
                                 )}
                         </div>
-                        <div className="h-1 w-full bg-[#e5e7eb]">
+                        <div className="h-1 w-full bg-[#e5e7eb] dark:bg-slate-700">
                             <div
                                 className="h-full bg-[#059669] transition-all duration-300"
                                 style={{
@@ -1094,7 +1096,7 @@ export default function PerformanceSystemIndex({
                             />
                         </div>
                         {isSavingDraft && (
-                            <div className="border-t border-[#eef2f7] bg-[#f9fafb] px-4 py-2 text-xs text-[#6b7280]">
+                            <div className="border-t border-[#eef2f7] bg-[#f9fafb] px-4 py-2 text-xs text-[#6b7280] dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300">
                                 {t('performance_system_index.saving')}
                             </div>
                         )}

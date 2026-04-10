@@ -370,23 +370,23 @@ export default function Step5OrgChartMapping({
 
     const JobIconForList = ({ jobId }: { jobId: number }) => {
         const name = getJobName(jobId).toLowerCase();
-        if (name.includes('accounting') || name.includes('finance')) return <BarChart3 className="w-4 h-4 text-[#6b7280] shrink-0" />;
-        if (name.includes('treasury')) return <Coins className="w-4 h-4 text-[#6b7280] shrink-0" />;
-        if (name.includes('hr')) return <Users className="w-4 h-4 text-[#6b7280] shrink-0" />;
-        if (name.includes('clinical')) return <Building2 className="w-4 h-4 text-[#6b7280] shrink-0" />;
-        return <Briefcase className="w-4 h-4 text-[#6b7280] shrink-0" />;
+        if (name.includes('accounting') || name.includes('finance')) return <BarChart3 className="h-4 w-4 shrink-0 text-[#6b7280] dark:text-slate-300" />;
+        if (name.includes('treasury')) return <Coins className="h-4 w-4 shrink-0 text-[#6b7280] dark:text-slate-300" />;
+        if (name.includes('hr')) return <Users className="h-4 w-4 shrink-0 text-[#6b7280] dark:text-slate-300" />;
+        if (name.includes('clinical')) return <Building2 className="h-4 w-4 shrink-0 text-[#6b7280] dark:text-slate-300" />;
+        return <Briefcase className="h-4 w-4 shrink-0 text-[#6b7280] dark:text-slate-300" />;
     };
 
     return (
-        <div className="min-h-full flex flex-col bg-[#f9f7f2] text-[#121431]">
+        <div className="min-h-full flex flex-col bg-[#f9f7f2] text-[#121431] dark:bg-slate-950 dark:text-slate-100">
             <div className="flex-1 min-h-0 max-w-[1200px] mx-auto w-full py-10 px-5 pb-8" style={{ padding: '0 20px' }}>
-                <div className="mb-2" style={{ color: '#b88a44', fontSize: 11, fontWeight: 700, letterSpacing: 1.2 }}>
+                <div className="mb-2 text-[11px] font-bold tracking-[1.2px] text-[#b88a44] dark:text-amber-300">
                     STEP 5 OF 6 – ORG CHART MAPPING
                 </div>
-                <h1 className="m-0 mb-3" style={{ fontFamily: "'Pretendard', 'DM Sans', sans-serif", fontSize: 32 }}>
+                <h1 className="m-0 mb-3 text-3xl font-bold text-[#121431] dark:text-slate-100">
                     Organization Chart Mapping
                 </h1>
-                <p className="text-[#6b7280] text-[15px] mb-6 max-w-[900px] leading-relaxed">
+                <p className="mb-6 max-w-[900px] text-[15px] leading-relaxed text-[#6b7280] dark:text-slate-300">
                     The finalized Job Definition documents are mapped to your organizational structure, and the responsible owners for each organization unit and role are identified.
                     This stage is not intended to change the organizational structure or make HR or personnel decisions. Drag jobs from the right panel and drop them into the appropriate unit.
                 </p>
@@ -407,16 +407,16 @@ export default function Step5OrgChartMapping({
                 <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
                     {/* Left: Organizational Units — white card container */}
                     <div
-                        className="bg-white rounded-xl border border-[#e5e7eb] p-6 flex flex-col"
+                        className="flex max-h-[min(70vh,600px)] flex-col rounded-xl border border-[#e5e7eb] bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900"
                         style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)', maxHeight: 'min(70vh, 600px)' }}
                     >
                         <div className="flex items-center justify-between flex-wrap gap-3 mb-5 shrink-0">
                             <div className="flex items-center gap-2">
                                 <FolderTree className="w-5 h-5 text-[#48b082]" aria-hidden />
-                                <span className="font-bold text-[12px] uppercase tracking-wider text-[#121431]">
+                                <span className="text-[12px] font-bold uppercase tracking-wider text-[#121431] dark:text-slate-100">
                                     ORGANIZATIONAL UNITS
                                 </span>
-                                <span className="text-[13px] text-[#9ca3af]">{orgUnits.length} units</span>
+                                <span className="text-[13px] text-[#9ca3af] dark:text-slate-400">{orgUnits.length} units</span>
                             </div>
                             <Button
                                 onClick={handleAddOrgUnit}
@@ -432,10 +432,7 @@ export default function Step5OrgChartMapping({
                             className="space-y-3 overflow-y-auto overflow-x-hidden pr-1 min-h-0 flex-1"
                         >
                             {orgUnits.length === 0 && (
-                                <div
-                                    className="rounded-xl border-2 border-dashed p-8 text-center text-[#6b7280] text-[13px]"
-                                    style={{ borderColor: '#e5e7eb', background: '#faf9f7' }}
-                                >
+                                <div className="rounded-xl border-2 border-dashed border-[#e5e7eb] bg-[#faf9f7] p-8 text-center text-[13px] text-[#6b7280] dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300">
                                     No organizational units yet. Click &quot;+ Add Unit&quot; to create one.
                                 </div>
                             )}
@@ -453,14 +450,14 @@ export default function Step5OrgChartMapping({
                                         key={unit.id}
                                         className={cn(
                                             'rounded-xl border overflow-hidden transition-shadow',
-                                            'border-[#e5e7eb]',
-                                            isChild && 'relative border-l-2 border-[#e5e7eb]',
+                                            'border-[#e5e7eb] dark:border-slate-700',
+                                            isChild && 'relative border-l-2 border-[#e5e7eb] bg-[#f0f7ff] dark:border-l-sky-700 dark:bg-slate-800/60',
+                                            !isChild && 'bg-[#f5f3ef] dark:bg-slate-900',
                                             depth === 1 && 'pl-4',
                                             depth === 2 && 'pl-4',
                                             canDropUnit && 'ring-2 ring-[#121431] ring-offset-2'
                                         )}
                                         style={{
-                                            background: isChild ? '#f0f7ff' : '#f5f3ef',
                                             boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
                                             marginLeft: isChild ? 32 : 0,
                                             borderLeftColor: isChild ? '#93c5fd' : undefined,
@@ -470,25 +467,25 @@ export default function Step5OrgChartMapping({
                                         onDrop={(e) => handleUnitDrop(e, unit.id)}
                                     >
                                         <div
-                                            className="flex items-center gap-2 px-4 py-3.5 cursor-pointer hover:bg-[#efece8]"
+                                            className="cursor-pointer hover:bg-[#efece8] dark:hover:bg-slate-800/60 flex items-center gap-2 px-4 py-3.5"
                                             onClick={() => toggleUnit(unit.id)}
                                         >
                                             <div
                                                 draggable
                                                 onDragStart={(e) => handleUnitDragStart(e, unit.id)}
                                                 onDragEnd={handleUnitDragEnd}
-                                                className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-[#e5e7eb]/60 shrink-0"
+                                                className="shrink-0 cursor-grab rounded p-1 hover:bg-[#e5e7eb]/60 active:cursor-grabbing dark:hover:bg-slate-700/60"
                                                 title="Drag to reorder"
                                                 onClick={(e) => e.stopPropagation()}
                                             >
-                                                <GripVertical className="w-4 h-4 text-[#64748b]" />
+                                                <GripVertical className="h-4 w-4 text-[#64748b] dark:text-slate-400" />
                                             </div>
                                             {isExpanded ? (
-                                                <ChevronDown className="w-4 h-4 text-[#64748b] shrink-0" />
+                                                <ChevronDown className="h-4 w-4 shrink-0 text-[#64748b] dark:text-slate-400" />
                                             ) : (
-                                                <ChevronRight className="w-4 h-4 text-[#64748b] shrink-0" />
+                                                <ChevronRight className="h-4 w-4 shrink-0 text-[#64748b] dark:text-slate-400" />
                                             )}
-                                            <Folder className="w-4 h-4 text-[#1e40af] shrink-0" />
+                                            <Folder className="h-4 w-4 shrink-0 text-[#1e40af] dark:text-sky-300" />
                                             <Input
                                                 value={unit.org_unit_name ?? ''}
                                                 onChange={(e) =>
@@ -497,25 +494,22 @@ export default function Step5OrgChartMapping({
                                                 onClick={(e) => e.stopPropagation()}
                                                 placeholder="Unit name (e.g. Division A, Finance Team)"
                                                 className={cn(
-                                                    'flex-1 min-w-0 font-semibold text-[#121431] focus-visible:ring-0 h-auto py-0 text-[14px] bg-transparent rounded transition-colors',
+                                                    'h-auto min-w-0 flex-1 rounded bg-transparent py-0 text-[14px] font-semibold text-[#121431] transition-colors focus-visible:ring-0 dark:text-slate-100',
                                                     emptyUnitIds.has(unit.id) || fieldErrors[`unit-${unit.id}`]
                                                         ? 'border-2 border-red-500 shadow-none'
                                                         : 'border-0 shadow-none'
                                                 )}
                                             />
-                                            <span className="text-[13px] text-[#9ca3af] shrink-0">{jobCount} jobs</span>
+                                            <span className="shrink-0 text-[13px] text-[#9ca3af] dark:text-slate-400">{jobCount} jobs</span>
                                         </div>
                                         <div className="px-4 pb-1">
                                             <FieldErrorMessage fieldKey={`unit-${unit.id}`} errors={fieldErrors} />
                                         </div>
 
                                         {isExpanded && (
-                                            <div className="px-4 pb-4 pt-0 border-t border-[#e5e7eb] space-y-4">
+                                            <div className="space-y-4 border-t border-[#e5e7eb] px-4 pb-4 pt-0 dark:border-slate-700">
                                                 {/* Remove unit button + Unit head */}
-                                                <div
-                                                    className="flex items-center gap-3 pt-3 rounded-lg p-3"
-                                                    style={{ background: '#faf9f7' }}
-                                                >
+                                                <div className="flex items-center gap-3 rounded-lg bg-[#faf9f7] p-3 pt-3 dark:bg-slate-800/60">
                                                     <Button
                                                         type="button"
                                                         variant="outline"
@@ -540,7 +534,7 @@ export default function Step5OrgChartMapping({
                                                                 handleUpdateOrgUnit(unit.id, { org_head_name: e.target.value })
                                                             }
                                                             placeholder="Name"
-                                                            className="text-[13px] border-[#e5e7eb] rounded-lg font-semibold h-9 bg-white"
+                                                            className="h-9 rounded-lg border-[#e5e7eb] bg-white text-[13px] font-semibold dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                                                         />
                                                         <Input
                                                             value={unit.org_head_title || ''}
@@ -548,7 +542,7 @@ export default function Step5OrgChartMapping({
                                                                 handleUpdateOrgUnit(unit.id, { org_head_title: e.target.value })
                                                             }
                                                             placeholder="Title (e.g. Director, Team Lead)"
-                                                            className="text-[13px] border-[#e5e7eb] rounded-lg text-[#6b7280] h-9 bg-white"
+                                                            className="h-9 rounded-lg border-[#e5e7eb] bg-white text-[13px] text-[#6b7280] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
                                                         />
                                                         <Input
                                                             value={unit.org_head_rank || ''}
@@ -556,7 +550,7 @@ export default function Step5OrgChartMapping({
                                                                 handleUpdateOrgUnit(unit.id, { org_head_rank: e.target.value })
                                                             }
                                                             placeholder="Rank"
-                                                            className="text-[13px] border-[#e5e7eb] rounded-lg text-[#6b7280] h-9 bg-white sm:col-span-2"
+                                                            className="h-9 rounded-lg border-[#e5e7eb] bg-white text-[13px] text-[#6b7280] sm:col-span-2 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
                                                         />
                                                         <div className="flex items-center gap-2 sm:col-span-2">
                                                             <input
@@ -571,7 +565,7 @@ export default function Step5OrgChartMapping({
                                                                 }
                                                                 className="h-4 w-4 rounded border-[#e5e7eb] text-[#121431] focus:ring-[#121431]"
                                                             />
-                                                            <label htmlFor={`kpi-reviewer-${unit.id}`} className="text-[13px] font-medium text-[#121431]">
+                                                            <label htmlFor={`kpi-reviewer-${unit.id}`} className="text-[13px] font-medium text-[#121431] dark:text-slate-200">
                                                                 KPI Reviewer
                                                             </label>
                                                         </div>
@@ -583,7 +577,7 @@ export default function Step5OrgChartMapping({
                                                                 }
                                                                 placeholder="Email address (required for KPI Reviewer)"
                                                                 type="email"
-                                                                className="text-[13px] border-[#e5e7eb] rounded-lg text-[#6b7280] h-9 bg-white sm:col-span-2"
+                                                                className="h-9 rounded-lg border-[#e5e7eb] bg-white text-[13px] text-[#6b7280] sm:col-span-2 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
                                                             />
                                                         )}
                                                     </div>
@@ -593,13 +587,15 @@ export default function Step5OrgChartMapping({
                                                 <div
                                                     className={cn(
                                                         'min-h-[64px] rounded-lg p-4 transition-colors flex flex-wrap items-center gap-2',
-                                                        draggedJobId ? 'border-2 border-dashed border-[#121431] bg-[#121431]/5' : 'border-2 border-dashed border-[#d1d5db] bg-[#fafafa]'
+                                                        draggedJobId
+                                                            ? 'border-2 border-dashed border-[#121431] bg-[#121431]/5 dark:border-slate-500 dark:bg-slate-800/70'
+                                                            : 'border-2 border-dashed border-[#d1d5db] bg-[#fafafa] dark:border-slate-600 dark:bg-slate-800/50'
                                                     )}
                                                     onDragOver={handleDragOver}
                                                     onDrop={(e) => handleDrop(e, unit.id)}
                                                 >
                                                     {jobCount === 0 ? (
-                                                        <p className="text-[13px] text-[#9ca3af] w-full text-center py-0">
+                                                        <p className="w-full py-0 text-center text-[13px] text-[#9ca3af] dark:text-slate-400">
                                                             Drop jobs here
                                                         </p>
                                                     ) : (
@@ -634,7 +630,7 @@ export default function Step5OrgChartMapping({
                                                             e.stopPropagation();
                                                             handleAddSubUnit(unit.id);
                                                         }}
-                                                        className="text-[13px] font-medium text-[#6b7280] hover:text-[#121431] hover:underline flex items-center gap-1.5"
+                                                        className="flex items-center gap-1.5 text-[13px] font-medium text-[#6b7280] hover:text-[#121431] hover:underline dark:text-slate-400 dark:hover:text-slate-100"
                                                     >
                                                         <Plus className="w-3.5 h-3.5" />
                                                         Add Sub-Unit
@@ -651,15 +647,15 @@ export default function Step5OrgChartMapping({
                     {/* Right: Finalized Jobs + Progress */}
                     <div className="space-y-4 sticky top-4 self-start">
                         <div
-                            className="bg-white rounded-xl border border-[#e5e7eb] p-4"
+                            className="rounded-xl border border-[#e5e7eb] bg-white p-4 dark:border-slate-700 dark:bg-slate-900"
                             style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}
                         >
-                            <div className="font-bold text-[12px] uppercase tracking-wider text-[#121431] mb-3 flex items-center gap-2">
-                                <Briefcase className="w-4 h-4 text-[#121431]" />
+                            <div className="mb-3 flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-[#121431] dark:text-slate-100">
+                                <Briefcase className="h-4 w-4 text-[#121431] dark:text-slate-100" />
                                 Finalized Jobs
                             </div>
                             {allJobIds.length === 0 ? (
-                                <p className="text-[13px] text-[#6b7280] text-center py-4">
+                                <p className="py-4 text-center text-[13px] text-[#6b7280] dark:text-slate-300">
                                     No finalized jobs. Complete Job Definition first.
                                 </p>
                             ) : (
@@ -670,7 +666,7 @@ export default function Step5OrgChartMapping({
                                             draggable
                                             onDragStart={(e) => handleDragStart(e, jobId)}
                                             onDragEnd={handleDragEnd}
-                                            className="flex items-center gap-2 p-2.5 rounded-lg border border-[#e5e7eb] bg-[#faf9f7] cursor-move hover:border-[#121431]/30 hover:bg-[#121431]/5 text-[13px] font-medium text-[#121431]"
+                                            className="flex cursor-move items-center gap-2 rounded-lg border border-[#e5e7eb] bg-[#faf9f7] p-2.5 text-[13px] font-medium text-[#121431] hover:border-[#121431]/30 hover:bg-[#121431]/5 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-800"
                                         >
                                             <JobIconForList jobId={jobId} />
                                             {getJobName(jobId)}
@@ -681,20 +677,17 @@ export default function Step5OrgChartMapping({
                         </div>
 
                         {/* FINALIZED JOBS progress — slightly darker beige card */}
-                        <div
-                            className="rounded-xl border border-[#e5e7eb] p-4"
-                            style={{ background: '#f5f3ef', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}
-                        >
+                        <div className="rounded-xl border border-[#e5e7eb] bg-[#f5f3ef] p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                             <div className="flex items-center justify-between gap-2 mb-2.5">
-                                <span className="font-bold text-[12px] uppercase tracking-wider text-[#121431] flex items-center gap-2">
-                                    <Briefcase className="w-4 h-4 text-[#121431]" />
+                                <span className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-[#121431] dark:text-slate-100">
+                                    <Briefcase className="h-4 w-4 text-[#121431] dark:text-slate-100" />
                                     FINALIZED JOBS
                                 </span>
                                 <span className="text-[13px] font-medium" style={{ color: '#48b082' }}>
                                     {mappedCount}/{totalJobs} mapped
                                 </span>
                             </div>
-                            <div className="h-2 bg-[#e5e7eb] rounded-full overflow-hidden">
+                            <div className="h-2 overflow-hidden rounded-full bg-[#e5e7eb] dark:bg-slate-700">
                                 <div
                                     className="h-full rounded-full transition-all duration-300"
                                     style={{ width: `${progressPct}%`, background: '#48b082' }}
@@ -706,7 +699,7 @@ export default function Step5OrgChartMapping({
                                     return (
                                         <div key={jobId} className="flex items-center gap-2 text-[13px]">
                                             <JobIconForList jobId={jobId} />
-                                            <span className={cn('flex-1', mapped ? 'text-[#121431] font-medium' : 'text-[#6b7280]')}>
+                                            <span className={cn('flex-1', mapped ? 'font-medium text-[#121431] dark:text-slate-100' : 'text-[#6b7280] dark:text-slate-400')}>
                                                 {getJobName(jobId)}
                                             </span>
                                             {mapped && (
@@ -722,22 +715,22 @@ export default function Step5OrgChartMapping({
             </div>
 
             <footer
-                className="sticky bottom-0 w-full bg-white border-t border-[#e0ddd5] py-[18px] px-6 md:px-[60px] flex flex-wrap items-center justify-between gap-4 z-10 mt-auto"
+                className="sticky bottom-0 z-10 flex w-full flex-wrap items-center justify-between gap-4 border-t border-[#e0ddd5] bg-white px-6 py-[18px] md:px-[60px] dark:border-slate-700 dark:bg-slate-900"
                 style={{
                     boxShadow: '0 -4px 6px -1px rgba(0,0,0,0.05)',
                 }}
             >
-                <p className="text-[13px] text-[#94a3b8] font-medium">
-                    Units: <strong className="text-[#121431]">{orgUnits.length}</strong>
+                <p className="text-[13px] font-medium text-[#94a3b8] dark:text-slate-400">
+                    Units: <strong className="text-[#121431] dark:text-slate-100">{orgUnits.length}</strong>
                     {' · '}
-                    Jobs mapped: <strong className="text-[#121431]">{mappedCount} / {totalJobs}</strong>
+                    Jobs mapped: <strong className="text-[#121431] dark:text-slate-100">{mappedCount} / {totalJobs}</strong>
                 </p>
                 <div className="flex gap-3">
                     <Button
                         type="button"
                         variant="outline"
                         onClick={onBack}
-                        className="border-[#e0ddd5] font-bold px-8 py-6 rounded-lg"
+                        className="rounded-lg border-[#e0ddd5] px-8 py-6 font-bold dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                     >
                         ← Back
                     </Button>

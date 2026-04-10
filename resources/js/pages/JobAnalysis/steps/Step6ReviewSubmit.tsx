@@ -238,15 +238,15 @@ export default function Step6ReviewSubmit({
     }
 
     return (
-        <div className="min-h-full flex flex-col bg-[#f9f7f2] text-[#121431]">
+        <div className="min-h-full flex flex-col bg-[#f9f7f2] text-[#121431] dark:bg-slate-950 dark:text-slate-100">
             <div className="flex-1 min-h-0 max-w-[1000px] mx-auto w-full py-10 px-5 pb-8">
-                <div className="mb-2" style={{ color: '#b88a44', fontSize: 11, fontWeight: 700, letterSpacing: 1.2 }}>
+                <div className="mb-2 text-[11px] font-bold tracking-[1.2px] text-[#b88a44] dark:text-amber-300">
                     STEP 6 OF 6 – JOB ANALYSIS
                 </div>
-                <h1 className="m-0 mb-2 text-[#121431]" style={{ fontFamily: "'Pretendard', 'DM Sans', sans-serif", fontSize: 28 }}>
+                <h1 className="m-0 mb-2 text-3xl font-bold text-[#121431] dark:text-slate-100">
                     Step 6 — Review & Submit
                 </h1>
-                <p className="text-[#6b7280] text-[15px] mb-8 leading-relaxed">
+                <p className="mb-8 text-[15px] leading-relaxed text-[#6b7280] dark:text-slate-300">
                     Review all collected data before final submission. Once submitted, the Job Analysis step will be completed.
                 </p>
 
@@ -259,65 +259,65 @@ export default function Step6ReviewSubmit({
 
                 {/* Summary cards */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
-                    <div className="rounded-xl p-5 border border-blue-200 bg-blue-50 flex items-center justify-between">
+                    <div className="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-800/60 dark:bg-blue-950/30">
                         <div>
-                            <p className="text-xs font-semibold text-blue-900 uppercase tracking-wide mb-0.5">Jobs Defined</p>
-                            <p className="text-2xl font-bold text-blue-700">{jobsCount}</p>
+                            <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-blue-900 dark:text-blue-200">Jobs Defined</p>
+                            <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{jobsCount}</p>
                         </div>
                         <FileText className="w-9 h-9 text-blue-600 shrink-0" />
                     </div>
-                    <div className="rounded-xl p-5 border border-green-200 bg-green-50 flex items-center justify-between">
+                    <div className="flex items-center justify-between rounded-xl border border-green-200 bg-green-50 p-5 dark:border-green-800/60 dark:bg-green-950/30">
                         <div>
-                            <p className="text-xs font-semibold text-green-900 uppercase tracking-wide mb-0.5">Org Units Mapped</p>
-                            <p className="text-2xl font-bold text-green-700">{orgUnitsCount}</p>
+                            <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-green-900 dark:text-green-200">Org Units Mapped</p>
+                            <p className="text-2xl font-bold text-green-700 dark:text-green-300">{orgUnitsCount}</p>
                         </div>
                         <Network className="w-9 h-9 text-green-600 shrink-0" />
                     </div>
-                    <div className="rounded-xl p-5 border border-purple-200 bg-purple-50 flex items-center justify-between">
+                    <div className="flex items-center justify-between rounded-xl border border-purple-200 bg-purple-50 p-5 dark:border-purple-800/60 dark:bg-purple-950/30">
                         <div>
-                            <p className="text-xs font-semibold text-purple-900 uppercase tracking-wide mb-0.5">CSFs Generated</p>
-                            <p className="text-2xl font-bold text-purple-700">{csfsCount}</p>
+                            <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-purple-900 dark:text-purple-200">CSFs Generated</p>
+                            <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">{csfsCount}</p>
                         </div>
                         <Target className="w-9 h-9 text-purple-600 shrink-0" />
                     </div>
-                    <div className="rounded-xl p-5 border border-orange-200 bg-orange-50 flex items-center justify-between">
+                    <div className="flex items-center justify-between rounded-xl border border-orange-200 bg-orange-50 p-5 dark:border-orange-800/60 dark:bg-orange-950/30">
                         <div>
-                            <p className="text-xs font-semibold text-orange-900 uppercase tracking-wide mb-0.5">Role Owners</p>
-                            <p className="text-2xl font-bold text-orange-700">{roleOwnersCount}</p>
+                            <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-orange-900 dark:text-orange-200">Role Owners</p>
+                            <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">{roleOwnersCount}</p>
                         </div>
                         <CheckCircle2 className="w-9 h-9 text-orange-600 shrink-0" />
                     </div>
                 </div>
 
                 {/* Policy Snapshot Answers - collapsible */}
-                <div className="bg-white rounded-xl border border-[#e5e7eb] shadow-sm overflow-hidden mb-4">
+                <div className="mb-4 overflow-hidden rounded-xl border border-[#e5e7eb] bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     <button
                         type="button"
                         onClick={() => setExpandedPolicy(!expandedPolicy)}
-                        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#fafafa] transition-colors"
+                        className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-[#fafafa] dark:hover:bg-slate-800/60"
                     >
                         <div className="flex items-center gap-3">
-                            <Shield className="w-5 h-5 text-[#6b7280]" />
-                            <span className="font-semibold text-[#121431]">Policy Snapshot Answers</span>
-                            <span className="text-sm text-[#6b7280]">{policyAnswerCount} Answers</span>
+                            <Shield className="h-5 w-5 text-[#6b7280] dark:text-slate-400" />
+                            <span className="font-semibold text-[#121431] dark:text-slate-100">Policy Snapshot Answers</span>
+                            <span className="text-sm text-[#6b7280] dark:text-slate-400">{policyAnswerCount} Answers</span>
                         </div>
                         {expandedPolicy ? (
-                            <ChevronDown className="w-5 h-5 text-[#6b7280]" />
+                            <ChevronDown className="h-5 w-5 text-[#6b7280] dark:text-slate-400" />
                         ) : (
-                            <ChevronRight className="w-5 h-5 text-[#6b7280]" />
+                            <ChevronRight className="h-5 w-5 text-[#6b7280] dark:text-slate-400" />
                         )}
                     </button>
                     {expandedPolicy && (
-                        <div className="border-t border-[#e5e7eb] px-5 py-4 bg-[#fafafa] space-y-4">
+                        <div className="space-y-4 border-t border-[#e5e7eb] bg-[#fafafa] px-5 py-4 dark:border-slate-700 dark:bg-slate-800/50">
                             {policyEntries.map(([qId, answer], idx) => {
                                 const q = questions.find((qu) => qu.id === parseInt(qId, 10));
                                 return (
-                                    <div key={qId} className="p-4 rounded-lg bg-white border border-[#e5e7eb]">
-                                        <p className="text-sm font-medium text-[#121431] mb-2">
+                                    <div key={qId} className="rounded-lg border border-[#e5e7eb] bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+                                        <p className="mb-2 text-sm font-medium text-[#121431] dark:text-slate-100">
                                             {q?.question_text ?? `Question ${idx + 1}`}
                                         </p>
-                                        <p className="text-sm text-[#6b7280]">
-                                            <span className="font-semibold text-[#374151]">
+                                        <p className="text-sm text-[#6b7280] dark:text-slate-300">
+                                            <span className="font-semibold text-[#374151] dark:text-slate-100">
                                                 {answer.answer === 'yes' ? 'Yes' : answer.answer === 'no' ? 'No' : 'Not sure'}
                                             </span>
                                             {answer.conditional_text && (
@@ -332,30 +332,30 @@ export default function Step6ReviewSubmit({
                 </div>
 
                 {/* Job Definitions - collapsible with nested jobs */}
-                <div className="bg-white rounded-xl border border-[#e5e7eb] shadow-sm overflow-hidden mb-4">
+                <div className="mb-4 overflow-hidden rounded-xl border border-[#e5e7eb] bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     <button
                         type="button"
                         onClick={() => setExpandedJobDefs(!expandedJobDefs)}
-                        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#fafafa] transition-colors"
+                        className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-[#fafafa] dark:hover:bg-slate-800/60"
                     >
                         <div className="flex items-center gap-3">
-                            <FileText className="w-5 h-5 text-[#6b7280]" />
-                            <span className="font-semibold text-[#121431]">Job Definitions ({jobsCount})</span>
+                            <FileText className="h-5 w-5 text-[#6b7280] dark:text-slate-400" />
+                            <span className="font-semibold text-[#121431] dark:text-slate-100">Job Definitions ({jobsCount})</span>
                         </div>
                         {expandedJobDefs ? (
-                            <ChevronDown className="w-5 h-5 text-[#6b7280]" />
+                            <ChevronDown className="h-5 w-5 text-[#6b7280] dark:text-slate-400" />
                         ) : (
-                            <ChevronRight className="w-5 h-5 text-[#6b7280]" />
+                            <ChevronRight className="h-5 w-5 text-[#6b7280] dark:text-slate-400" />
                         )}
                     </button>
                     {expandedJobDefs && (
-                        <div className="border-t border-[#e5e7eb] px-5 py-4 bg-[#fafafa] space-y-2">
+                        <div className="space-y-2 border-t border-[#e5e7eb] bg-[#fafafa] px-5 py-4 dark:border-slate-700 dark:bg-slate-800/50">
                             {jobEntries.map(([key, job]) => (
-                                <div key={key} className="rounded-lg border border-[#e5e7eb] bg-white overflow-hidden">
-                                    <div className="w-full flex items-center justify-between px-4 py-3 text-left">
+                                <div key={key} className="overflow-hidden rounded-lg border border-[#e5e7eb] bg-white dark:border-slate-700 dark:bg-slate-900">
+                                    <div className="flex w-full items-center justify-between px-4 py-3 text-left">
                                         <div className="flex items-center gap-2">
-                                            <FileText className="w-4 h-4 text-[#6b7280]" />
-                                            <span className="font-medium text-[#121431]">{job.job_name}</span>
+                                            <FileText className="h-4 w-4 text-[#6b7280] dark:text-slate-400" />
+                                            <span className="font-medium text-[#121431] dark:text-slate-100">{job.job_name}</span>
                                         </div>
                                         <Button
                                             type="button"
@@ -376,11 +376,11 @@ export default function Step6ReviewSubmit({
                 </div>
 
                 {showJobMatrix && activeMatrixJob && (
-                    <div className="bg-white rounded-xl border border-[#e5e7eb] shadow-sm overflow-hidden mb-4">
-                        <div className="px-5 py-4 border-b bg-[#f8fafc] flex items-center justify-between gap-3 flex-wrap">
+                    <div className="mb-4 overflow-hidden rounded-xl border border-[#e5e7eb] bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-[#f8fafc] px-5 py-4 dark:border-slate-700 dark:bg-slate-800/60">
                             <div>
-                                <h3 className="font-semibold text-[#121431]">Job Matrix Card</h3>
-                                <p className="text-xs text-[#6b7280]">
+                                <h3 className="font-semibold text-[#121431] dark:text-slate-100">Job Matrix Card</h3>
+                                <p className="text-xs text-[#6b7280] dark:text-slate-400">
                                     {activeMatrixJob.job_name} · Stage 3 draft data (editable preview for confirmation)
                                 </p>
                             </div>
@@ -394,28 +394,28 @@ export default function Step6ReviewSubmit({
                                 </Button>
                             </div>
                         </div>
-                        <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div className="grid grid-cols-1 gap-4 p-5 text-sm md:grid-cols-2">
                             <div>
-                                <p className="text-xs text-[#6b7280] mb-1">Job Name</p>
-                                <div className="rounded border px-3 py-2 bg-[#fafafa]">{activeMatrixJob.job_name}</div>
+                                <p className="mb-1 text-xs text-[#6b7280] dark:text-slate-400">Job Name</p>
+                                <div className="rounded border bg-[#fafafa] px-3 py-2 dark:border-slate-700 dark:bg-slate-900">{activeMatrixJob.job_name}</div>
                             </div>
                             <div>
-                                <p className="text-xs text-[#6b7280] mb-1">Job Code</p>
-                                <div className="rounded border px-3 py-2 bg-[#fafafa]">
+                                <p className="mb-1 text-xs text-[#6b7280] dark:text-slate-400">Job Code</p>
+                                <div className="rounded border bg-[#fafafa] px-3 py-2 dark:border-slate-700 dark:bg-slate-900">
                                     {activeMatrixJob.job_keyword_id ?? '—'}
                                 </div>
                             </div>
                             <div className="md:col-span-2">
-                                <p className="text-xs text-[#6b7280] mb-1">Job Purpose</p>
-                                <div className="rounded border px-3 py-2 bg-[#fafafa] whitespace-pre-wrap">
+                                <p className="mb-1 text-xs text-[#6b7280] dark:text-slate-400">Job Purpose</p>
+                                <div className="whitespace-pre-wrap rounded border bg-[#fafafa] px-3 py-2 dark:border-slate-700 dark:bg-slate-900">
                                     {activeMatrixJob.job_description || '—'}
                                 </div>
                             </div>
                             <div className="md:col-span-2">
-                                <p className="text-xs text-[#6b7280] mb-1">Competency Levels</p>
-                                <div className="rounded border bg-[#fafafa] overflow-hidden">
+                                <p className="mb-1 text-xs text-[#6b7280] dark:text-slate-400">Competency Levels</p>
+                                <div className="overflow-hidden rounded border bg-[#fafafa] dark:border-slate-700 dark:bg-slate-900">
                                     <table className="w-full text-xs">
-                                        <thead className="bg-[#f1f5f9]">
+                                        <thead className="bg-[#f1f5f9] dark:bg-slate-800">
                                             <tr>
                                                 <th className="text-left px-2 py-1.5">Level</th>
                                                 <th className="text-left px-2 py-1.5">Expected Behavior</th>
@@ -433,8 +433,8 @@ export default function Step6ReviewSubmit({
                                 </div>
                             </div>
                             <div className="md:col-span-2">
-                                <p className="text-xs text-[#6b7280] mb-1">CSFs</p>
-                                <div className="rounded border px-3 py-2 bg-[#fafafa]">
+                                <p className="mb-1 text-xs text-[#6b7280] dark:text-slate-400">CSFs</p>
+                                <div className="rounded border bg-[#fafafa] px-3 py-2 dark:border-slate-700 dark:bg-slate-900">
                                     {(activeMatrixJob.csfs || []).length > 0 ? (
                                         <ul className="list-disc pl-5 space-y-1">
                                             {(activeMatrixJob.csfs || []).map((c, idx) => (
@@ -452,49 +452,49 @@ export default function Step6ReviewSubmit({
 
                 {/* Organization Chart Mappings - collapsible */}
                 {orgMappings.length > 0 && (
-                    <div className="bg-white rounded-xl border border-[#e5e7eb] shadow-sm overflow-hidden mb-4">
+                    <div className="mb-4 overflow-hidden rounded-xl border border-[#e5e7eb] bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                         <button
                             type="button"
                             onClick={() => setExpandedOrg(!expandedOrg)}
-                            className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#fafafa] transition-colors"
+                            className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-[#fafafa] dark:hover:bg-slate-800/60"
                         >
                             <div className="flex items-center gap-3">
-                                <Network className="w-5 h-5 text-[#6b7280]" />
-                                <span className="font-semibold text-[#121431]">Organization Chart Mappings ({orgUnitsCount})</span>
+                                <Network className="h-5 w-5 text-[#6b7280] dark:text-slate-400" />
+                                <span className="font-semibold text-[#121431] dark:text-slate-100">Organization Chart Mappings ({orgUnitsCount})</span>
                             </div>
                             {expandedOrg ? (
-                                <ChevronDown className="w-5 h-5 text-[#6b7280]" />
+                                <ChevronDown className="h-5 w-5 text-[#6b7280] dark:text-slate-400" />
                             ) : (
-                                <ChevronRight className="w-5 h-5 text-[#6b7280]" />
+                                <ChevronRight className="h-5 w-5 text-[#6b7280] dark:text-slate-400" />
                             )}
                         </button>
                         {expandedOrg && (
-                            <div className="border-t border-[#e5e7eb] px-5 py-4 bg-[#fafafa] space-y-2">
+                            <div className="space-y-2 border-t border-[#e5e7eb] bg-[#fafafa] px-5 py-4 dark:border-slate-700 dark:bg-slate-800/50">
                                 {orgMappings.filter((u) => (u.org_unit_name ?? '').trim()).map((mapping) => {
                                     const isOpen = expandedMappingIds.has(mapping.id);
                                     return (
-                                        <div key={mapping.id} className="rounded-lg border border-[#e5e7eb] bg-white overflow-hidden">
+                                        <div key={mapping.id} className="overflow-hidden rounded-lg border border-[#e5e7eb] bg-white dark:border-slate-700 dark:bg-slate-900">
                                             <button
                                                 type="button"
                                                 onClick={() => toggleMapping(mapping.id)}
-                                                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[#f9fafb]"
+                                                className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-[#f9fafb] dark:hover:bg-slate-800/60"
                                             >
                                                 <div className="flex items-center gap-2">
-                                                    <Briefcase className="w-4 h-4 text-[#6b7280]" />
-                                                    <span className="font-medium text-[#121431]">{mapping.org_unit_name || 'Unnamed unit'}</span>
+                                                    <Briefcase className="h-4 w-4 text-[#6b7280] dark:text-slate-400" />
+                                                    <span className="font-medium text-[#121431] dark:text-slate-100">{mapping.org_unit_name || 'Unnamed unit'}</span>
                                                 </div>
                                                 {isOpen ? (
-                                                    <ChevronDown className="w-4 h-4 text-[#6b7280]" />
+                                                    <ChevronDown className="h-4 w-4 text-[#6b7280] dark:text-slate-400" />
                                                 ) : (
-                                                    <ChevronRight className="w-4 h-4 text-[#6b7280]" />
+                                                    <ChevronRight className="h-4 w-4 text-[#6b7280] dark:text-slate-400" />
                                                 )}
                                             </button>
                                             {isOpen && (
-                                                <div className="border-t border-[#e5e7eb] p-4 space-y-3 text-sm">
+                                                <div className="space-y-3 border-t border-[#e5e7eb] p-4 text-sm dark:border-slate-700">
                                                     {(mapping.org_head_name || mapping.org_head_title || mapping.org_head_email) && (
                                                         <div>
-                                                            <p className="font-semibold text-[#121431] mb-1">Organization Head</p>
-                                                            <p className="text-[#6b7280]">
+                                                            <p className="mb-1 font-semibold text-[#121431] dark:text-slate-100">Organization Head</p>
+                                                            <p className="text-[#6b7280] dark:text-slate-300">
                                                                 {mapping.org_head_name || '—'}
                                                                 {mapping.org_head_title && ` · ${mapping.org_head_title}`}
                                                                 {mapping.org_head_rank && ` (${mapping.org_head_rank})`}
@@ -504,7 +504,7 @@ export default function Step6ReviewSubmit({
                                                     )}
                                                     {(mapping.job_keyword_ids?.length ?? 0) > 0 && (
                                                         <div>
-                                                            <p className="font-semibold text-[#121431] mb-1">Mapped Jobs</p>
+                                                            <p className="mb-1 font-semibold text-[#121431] dark:text-slate-100">Mapped Jobs</p>
                                                             <div className="flex flex-wrap gap-2">
                                                                 {mapping.job_keyword_ids!.map((jobId) => (
                                                                     <span
@@ -519,8 +519,8 @@ export default function Step6ReviewSubmit({
                                                     )}
                                                     {(mapping.job_specialists?.length ?? 0) > 0 && (
                                                         <div>
-                                                            <p className="font-semibold text-[#121431] mb-1">Job Specialists</p>
-                                                            <ul className="text-[#6b7280] space-y-1">
+                                                            <p className="mb-1 font-semibold text-[#121431] dark:text-slate-100">Job Specialists</p>
+                                                            <ul className="space-y-1 text-[#6b7280] dark:text-slate-300">
                                                                 {mapping.job_specialists!.map((s, i) => (
                                                                     <li key={i}>
                                                                         {getJobName(s.job_keyword_id)}: {s.name}
@@ -553,15 +553,15 @@ export default function Step6ReviewSubmit({
 
             {/* Footer — same bar as Org Chart Mapping / Policy Snapshot steps */}
             <footer
-                className="sticky bottom-0 w-full bg-white border-t border-[#e0ddd5] py-[18px] px-6 md:px-[60px] flex flex-wrap items-center justify-between gap-4 z-10 mt-auto"
+                className="sticky bottom-0 z-10 mt-auto flex w-full flex-wrap items-center justify-between gap-4 border-t border-[#e0ddd5] bg-white px-6 py-[18px] md:px-[60px] dark:border-slate-700 dark:bg-slate-900"
                 style={{
                     boxShadow: '0 -4px 6px -1px rgba(0,0,0,0.05)',
                 }}
             >
-                <p className="text-[13px] text-[#94a3b8] font-medium">
-                    Jobs: <strong className="text-[#121431]">{jobsCount}</strong>
+                <p className="text-[13px] font-medium text-[#94a3b8] dark:text-slate-400">
+                    Jobs: <strong className="text-[#121431] dark:text-slate-100">{jobsCount}</strong>
                     {' · '}
-                    Org units: <strong className="text-[#121431]">{orgUnitsCount}</strong>
+                    Org units: <strong className="text-[#121431] dark:text-slate-100">{orgUnitsCount}</strong>
                     {' · '}
                     Review above, then submit.
                 </p>
@@ -571,7 +571,7 @@ export default function Step6ReviewSubmit({
                         variant="outline"
                         onClick={onBack}
                         disabled={processing}
-                        className="border-[#e0ddd5] font-bold px-8 py-6 rounded-lg"
+                        className="rounded-lg border-[#e0ddd5] px-8 py-6 font-bold dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                     >
                         ← Back
                     </Button>

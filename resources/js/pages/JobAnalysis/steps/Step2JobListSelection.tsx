@@ -155,41 +155,34 @@ export default function Step2JobListSelection({
         : t('job_analysis_pages.step2.sidebar_framework_without');
 
     return (
-        <div className="min-h-full flex flex-col bg-[#f6f3eb] text-[#333]">
+        <div className="min-h-full flex flex-col bg-[#f6f3eb] text-slate-800 dark:bg-slate-950 dark:text-slate-100">
             <div
                 className="max-w-[1300px] mx-auto w-full py-10 pb-32 grid gap-10 lg:grid-cols-[1fr_300px]"
                 style={{ margin: '40px auto', padding: '0 20px', gap: 40 }}
             >
                 <main className="min-w-0">
-                    <div
-                        className="text-[#b59461] font-bold text-[11px] mb-1"
-                        style={{ marginBottom: 5 }}
-                    >
+                    <div className="mb-1 text-[11px] font-bold text-[#b59461] dark:text-amber-300">
                         {t('job_analysis_pages.step2.stage')}
                     </div>
-                    <h1 className="text-[#1a1a3d] font-bold m-0" style={{ fontSize: 28, marginBottom: 10 }}>
+                    <h1 className="mb-2 text-3xl font-bold leading-tight text-[#1a1a3d] dark:text-slate-100">
                         {t('job_analysis_pages.step2.title')}
                     </h1>
-                    <p className="text-[#666] mb-4" style={{ marginBottom: 16 }}>
+                    <p className="mb-4 text-base text-[#475569] dark:text-slate-300">
                         <strong>{t('job_analysis_pages.step2.purpose_label')}</strong>{' '}
                         {t('job_analysis_pages.step2.purpose_text')}
                     </p>
 
                     {/* Info box */}
                     <div
-                        className="flex gap-4 rounded-lg border mb-8"
+                        className="mb-8 flex gap-4 rounded-lg border border-[#ddd] bg-[#ece9df] p-5 dark:border-slate-700 dark:bg-slate-900/80"
                         style={{
-                            background: '#ece9df',
-                            padding: 20,
-                            borderRadius: 8,
-                            border: '1px solid #ddd',
                             marginBottom: 30,
                         }}
                     >
                         <div className="text-xl shrink-0">
-                            <Link2 className="w-5 h-5 text-[#666]" />
+                            <Link2 className="h-5 w-5 text-[#666] dark:text-slate-300" />
                         </div>
-                        <p className="text-[13px] leading-relaxed" style={{ lineHeight: 1.5 }}>
+                        <p className="text-[13px] leading-relaxed text-[#334155] dark:text-slate-200" style={{ lineHeight: 1.5 }}>
                             {t('job_analysis_pages.step2.info_text', {
                                 industry: industryLabel,
                                 size: sizeLabel,
@@ -204,16 +197,13 @@ export default function Step2JobListSelection({
                         const selectedInFamily = jobs.filter((j) => selectedJobIds.includes(j.id)).length;
                         return (
                             <div key={family}>
-                                <div
-                                    className="flex items-center gap-2 font-bold text-base flex-wrap"
-                                    style={{ margin: '30px 0 15px' }}
-                                >
+                                <div className="flex flex-wrap items-center gap-2 text-base font-bold text-[#0f172a] dark:text-slate-100" style={{ margin: '30px 0 15px' }}>
                                     <span className="flex items-center gap-2">
                                         {FAMILY_ICONS[family] || <Building2 className="w-4 h-4" />}
                                         {family}
                                     </span>
                                     <span
-                                        className="font-normal text-[11px] text-[#888] border border-[#ddd] px-2 py-0.5 rounded-[10px]"
+                                        className="rounded-[10px] border border-[#ddd] px-2 py-0.5 text-[11px] font-normal text-[#888] dark:border-slate-600 dark:text-slate-400"
                                         style={{ padding: '1px 8px' }}
                                     >
                                         {jobs.length} {t('job_analysis_pages.step2.roles')}
@@ -243,8 +233,8 @@ export default function Step2JobListSelection({
                                                 className={cn(
                                                     'rounded-lg p-4 border text-left transition-all',
                                                     isSelected
-                                                        ? 'border-2 border-[#5cb85c] bg-[#f0f7f0]'
-                                                        : 'border border-white bg-white hover:border-[#e0ddd5]'
+                                                        ? 'border-2 border-[#5cb85c] bg-[#f0f7f0] dark:bg-emerald-900/20'
+                                                        : 'border border-white bg-white hover:border-[#e0ddd5] dark:border-slate-700 dark:bg-slate-900 dark:hover:border-slate-500'
                                                 )}
                                                 style={{
                                                     boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
@@ -256,7 +246,7 @@ export default function Step2JobListSelection({
                                                         onCheckedChange={() => handleJobToggle(job.id)}
                                                         className="border-[#cbd5e1] data-[state=checked]:bg-[#5cb85c] data-[state=checked]:border-[#5cb85c]"
                                                     />
-                                                    <span className="font-bold flex-1">{job.name}</span>
+                                                    <span className="flex-1 font-bold text-[#0f172a] dark:text-slate-100">{job.name}</span>
                                                 </div>
                                                 <div className="flex flex-wrap gap-1.5 mt-2">
                                                     {tags.includes('pre_selected') && (
@@ -320,7 +310,7 @@ export default function Step2JobListSelection({
                                     }
                                 }}
                                 placeholder={t('job_analysis_pages.step2.custom_placeholder')}
-                                className="flex-1 border-[#ccc] rounded-md"
+                                className="flex-1 rounded-md border-[#ccc] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                                 style={{ padding: 12 }}
                             />
                             <Button
@@ -336,7 +326,7 @@ export default function Step2JobListSelection({
 
                     {/* Confirmed scope */}
                     <div
-                        className="mt-8 rounded-lg border bg-white p-5"
+                        className="mt-8 rounded-lg border bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
                         style={{
                             marginTop: 30,
                             borderRadius: 8,
@@ -358,7 +348,7 @@ export default function Step2JobListSelection({
                                     {totalConfirmed}
                                 </span>
                             </div>
-                            <div className="text-[#999] text-[11px]">
+                            <div className="text-[11px] text-[#999] dark:text-slate-400">
                                 {t('job_analysis_pages.step2.scope_hint')}
                             </div>
                         </div>
@@ -407,81 +397,82 @@ export default function Step2JobListSelection({
                 {diagnosisContext && (
                     <aside className="shrink-0">
                         <div
-                            className="rounded-xl overflow-hidden bg-white"
+                            className="overflow-hidden rounded-xl bg-white dark:border dark:border-slate-700 dark:bg-slate-900"
                             style={{
                                 boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
                                 borderRadius: 12,
                             }}
                         >
                             <div
-                                className="text-white p-5"
+                                className="p-5 text-white"
                                 style={{ background: '#151535', padding: 20 }}
                             >
                                 <div className="font-bold mb-1 flex items-center gap-2">
                                     <Search className="w-4 h-4" />
                                     {t('job_analysis_pages.step2.context.title')}
                                 </div>
-                                <div className="text-[11px] opacity-70">
+                                <div className="text-[11px] text-slate-300">
                                     {t('job_analysis_pages.step2.context.subtitle')}
                                 </div>
                             </div>
                             <div
-                                className="border-b border-[#f0f0f0] px-5 py-4"
+                                className="border-b border-[#f0f0f0] px-5 py-4 dark:border-slate-700"
                                 style={{ padding: '15px 20px' }}
                             >
-                                <div className="text-[10px] text-[#999] uppercase mb-1">
+                                <div className="mb-1 text-[10px] uppercase text-[#999] dark:text-slate-400">
                                     {t('job_analysis_pages.step2.context.industry')}
                                 </div>
-                                <div className="font-bold">{diagnosisContext.industry || '—'}</div>
+                                <div className="font-bold text-[#0f172a] dark:text-slate-100">{diagnosisContext.industry || '—'}</div>
                             </div>
                             <div
-                                className="border-b border-[#f0f0f0] px-5 py-4"
+                                className="border-b border-[#f0f0f0] px-5 py-4 dark:border-slate-700"
                                 style={{ padding: '15px 20px' }}
                             >
-                                <div className="text-[10px] text-[#999] uppercase mb-1">
+                                <div className="mb-1 text-[10px] uppercase text-[#999] dark:text-slate-400">
                                     {t('job_analysis_pages.step2.context.company_size')}
                                 </div>
-                                <div className="font-bold">
+                                <div className="font-bold text-[#0f172a] dark:text-slate-100">
                                     {diagnosisContext.sizeRange
                                         ? `${diagnosisContext.sizeRange.replace('-', ' - ')} ${t('job_analysis_pages.step2.sidebar_size_suffix')}`
                                         : '—'}
                                 </div>
                             </div>
                             <div
-                                className="border-b border-[#f0f0f0] px-5 py-4"
+                                className="border-b border-[#f0f0f0] px-5 py-4 dark:border-slate-700"
                                 style={{ padding: '15px 20px' }}
                             >
-                                <div className="text-[10px] text-[#999] uppercase mb-1">
+                                <div className="mb-1 text-[10px] uppercase text-[#999] dark:text-slate-400">
                                     {t('job_analysis_pages.step2.context.job_classification')}
                                 </div>
                                 <div
                                     className={cn(
                                         'font-bold',
-                                        diagnosisContext.jobClassificationStatus !== 'yes' && 'text-[#d9534f]'
+                                        diagnosisContext.jobClassificationStatus !== 'yes' && 'text-[#d9534f]',
+                                        diagnosisContext.jobClassificationStatus === 'yes' && 'text-[#0f172a] dark:text-slate-100'
                                     )}
                                 >
                                     {clsLabel}
                                 </div>
                             </div>
                             <div
-                                className="border-b border-[#f0f0f0] px-5 py-4"
+                                className="border-b border-[#f0f0f0] px-5 py-4 dark:border-slate-700"
                                 style={{ padding: '15px 20px' }}
                             >
-                                <div className="text-[10px] text-[#999] uppercase mb-1">
+                                <div className="mb-1 text-[10px] uppercase text-[#999] dark:text-slate-400">
                                     {t('job_analysis_pages.step2.context.role_differentiation')}
                                 </div>
                                 <div className="font-bold text-[#5cb85c]">{t('job_analysis_pages.step2.context.skill_level_based')}</div>
                             </div>
                             <div
-                                className="border-b border-[#f0f0f0] px-5 py-4"
+                                className="border-b border-[#f0f0f0] px-5 py-4 dark:border-slate-700"
                                 style={{ padding: '15px 20px' }}
                             >
-                                <div className="text-[10px] text-[#999] uppercase mb-1">
+                                <div className="mb-1 text-[10px] uppercase text-[#999] dark:text-slate-400">
                                     {t('job_analysis_pages.step2.context.grade_authority')}
                                 </div>
                                 <div className="font-bold text-[#d9534f]">{t('job_analysis_pages.step2.context.not_defined')}</div>
                             </div>
-                            <div className="p-5 text-xs" style={{ lineHeight: 1.4, padding: 20 }}>
+                            <div className="p-5 text-xs text-[#334155] dark:text-slate-300" style={{ lineHeight: 1.4, padding: 20 }}>
                                 <strong className="text-[#c8963e]">{t('job_analysis_pages.step2.context.why_matters')}</strong>{' '}
                                 {t('job_analysis_pages.step2.context.why_body')}
                             </div>
@@ -492,11 +483,11 @@ export default function Step2JobListSelection({
 
             {/* Sticky footer */}
             <footer
-                className="sticky bottom-0 w-full bg-white border-t border-[#ddd] py-4 px-6 flex flex-wrap items-center justify-between gap-4 z-10 mt-auto"
+                className="sticky bottom-0 z-10 mt-auto flex w-full flex-wrap items-center justify-between gap-4 border-t border-[#ddd] bg-white px-6 py-4 dark:border-slate-700 dark:bg-slate-900"
                 
             >
                 <div className="flex flex-col gap-1 min-w-0 flex-1">
-                    <p className="text-[13px] text-[#666]">
+                    <p className="text-[13px] text-[#666] dark:text-slate-300">
                         {t('job_analysis_pages.step2.complete_min', { min: MIN_JOBS_REQUIRED })} — {totalConfirmed} {t('job_analysis_pages.step2.selected')}
                     </p>
                     <FieldErrorMessage fieldKey="job-selection" errors={fieldErrors} className="!mt-0" />
@@ -506,7 +497,7 @@ export default function Step2JobListSelection({
                         type="button"
                         variant="outline"
                         onClick={onBack}
-                        className="border-[#ccc] rounded-md font-medium"
+                        className="rounded-md border-[#ccc] font-medium dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                         style={{ padding: '10px 25px' }}
                     >
                         <ChevronLeft className="w-4 h-4 mr-1" />
@@ -515,7 +506,7 @@ export default function Step2JobListSelection({
                     <Button
                         type="button"
                         onClick={onContinue}
-                        className="rounded-md font-bold bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white"
+                        className="rounded-md bg-[#1a1a3d] font-bold text-white hover:bg-[#2d2d5c] dark:bg-indigo-600 dark:hover:bg-indigo-500"
                         style={{ padding: '12px 30px' }}
                     >
                         {t('job_analysis_pages.step2.continue_to_job_definition')}

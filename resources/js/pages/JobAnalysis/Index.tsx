@@ -549,13 +549,13 @@ export default function JobAnalysisIndex({
     return (
         <AppLayout>
             <Head title={t('hr_job_analysis_page.page_title')} />
-            <div className="min-h-full bg-[#f5f3ef]">
+            <div className="job-analysis-theme min-h-full bg-[#f5f3ef] text-slate-800 dark:bg-slate-950 dark:text-slate-100">
                 {activeStepLocal === 'overview' ? (
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
                             <Link
                                 href="/hr-manager/dashboard"
-                                className="text-sm font-medium text-[#0f2a4a] hover:text-[#1a4070] flex items-center gap-1"
+                                className="flex items-center gap-1 text-sm font-medium text-[#0f2a4a] hover:text-[#1a4070] dark:text-slate-200 dark:hover:text-white"
                             >
                                 <ChevronLeft className="w-4 h-4" />
                                 {t('hr_job_analysis_page.back_dashboard')}
@@ -566,14 +566,14 @@ export default function JobAnalysisIndex({
                 ) : (
                     <>
                         {/* Top header: #151535, P icon, HR Path-Finder / Job Analysis, gold In Progress badge */}
-                        <header className="bg-[#151535] text-white flex items-center justify-between flex-wrap gap-2 text-sm" style={{ padding: '14px 40px' }}>
+                        <header className="flex items-center justify-between gap-2 bg-[#151535] px-10 py-[14px] text-sm text-white dark:bg-slate-900" >
                             <div className="flex items-center gap-2 text-sm">
                                 <div className="w-6 h-6 rounded bg-white flex items-center justify-center text-[#1a1a3d] font-black text-xs shrink-0">P</div>
                                 <strong>{t('hr_job_analysis_page.brand')}</strong>
                                 <span className="opacity-50 font-normal">{t('hr_job_analysis_page.breadcrumb_suffix')}</span>
                             </div>
                             <span
-                                className="rounded-[20px] px-3.5 py-1 text-[11px] font-semibold text-white shrink-0"
+                                className="shrink-0 rounded-[20px] px-3.5 py-1 text-[11px] font-semibold text-white"
                                 style={{ background: '#c8963e', paddingTop: 4, paddingBottom: 4, paddingLeft: 14, paddingRight: 14 }}
                             >
                                 {t(`hr_job_analysis_page.header_status.${getStatusForHeader()}`)}
@@ -581,7 +581,7 @@ export default function JobAnalysisIndex({
                         </header>
 
                         <div className="p-0 space-y-6">
-                            <div className="bg-white border-b border-[#e0ddd5] px-4 py-4 flex justify-center" style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                            <div className="flex justify-center border-b border-[#e0ddd5] bg-white px-4 py-4 shadow-[0_2px_4px_rgba(0,0,0,0.02)] dark:border-slate-700 dark:bg-slate-900">
                                 <StepProgress
                                     steps={steps}
                                     activeStep={activeStepLocal}
@@ -600,7 +600,7 @@ export default function JobAnalysisIndex({
                                     {renderStep()}
                                 </div>
                             ) : (
-                                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                                     <div className="transition-all duration-300 ease-in-out">
                                         <div key={activeStepLocal} className="animate-in fade-in slide-in-from-right duration-300">
                                             {renderStep()}
