@@ -1,5 +1,6 @@
 import { Link, router } from '@inertiajs/react';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DiagnosisFieldErrorsProvider } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 import DiagnosisTabs from '@/components/Diagnosis/DiagnosisTabs';
 import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
@@ -209,6 +210,7 @@ export default function FormLayout({
     hidePageTitle = false,
     liveValidationError = null,
 }: FormLayoutProps) {
+    const { t } = useTranslation();
     const areFieldErrorsEqual = (a: FieldErrors, b: FieldErrors) => {
         const aKeys = Object.keys(a);
         const bKeys = Object.keys(b);
@@ -382,12 +384,23 @@ export default function FormLayout({
         doNavigate();
     };
 
+    const localizedTabs = useMemo(
+        () =>
+            diagnosisTabs.map((tab) => ({
+                ...tab,
+                name: tab.i18nKey
+                    ? t(tab.i18nKey, { defaultValue: tab.name })
+                    : tab.name,
+            })),
+        [t],
+    );
+
     // Get status for header - same logic as Overview
     const getStatusForHeader = (): 'not_started' | 'in_progress' | 'submitted' => {
         if (diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked') {
             return 'submitted';
         }
-        const displayTabs = diagnosisTabs.filter(tab => tab.id !== 'overview');
+        const displayTabs = localizedTabs.filter(tab => tab.id !== 'overview');
         const completedCount = displayTabs.filter(tab => {
             // Review tab is completed when diagnosis is submitted
             if (tab.id === 'review') {
@@ -418,7 +431,7 @@ export default function FormLayout({
     };
 
     // Calculate progress - same as Overview
-    const displayTabs = diagnosisTabs.filter(tab => tab.id !== 'overview');
+    const displayTabs = localizedTabs.filter(tab => tab.id !== 'overview');
     const completedCount = displayTabs.filter(tab => {
         const status = stepStatuses[tab.id];
         return status && ['submitted', 'approved', 'locked', 'completed', 'in_progress'].includes(status);
@@ -468,10 +481,10 @@ export default function FormLayout({
                         </div>
                         <div className="dx-nav-tabs shrink-0">
                             <DiagnosisTabs
-                                tabs={diagnosisTabs}
+                                tabs={localizedTabs}
                                 activeTab={activeTab as any}
                                 stepStatus={stepStatuses}
-                                stepOrder={diagnosisTabs.map(t => t.id)}
+                                stepOrder={localizedTabs.map(t => t.id)}
                                 projectId={projectId}
                                 diagnosisStatus={diagnosisStatus as any}
                                 diagnosis={diagnosis}

@@ -35,7 +35,7 @@ export default function PerformanceSnapshotIndex({
     questions,
     answerTypes,
 }: Props) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { flash } = usePage().props as any;
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -61,8 +61,85 @@ export default function PerformanceSnapshotIndex({
         setLocalQuestions(questions);
     }, [questions]);
 
+    const normalizeText = (value: unknown): string => {
+        if (value == null) return '';
+        const lang = (i18n.resolvedLanguage ?? i18n.language ?? 'en')
+            .toLowerCase()
+            .startsWith('ko')
+            ? 'ko'
+            : 'en';
+
+        const pickFromObject = (obj: Record<string, unknown>): string => {
+            const commonTextKeys = [
+                'label',
+                'name',
+                'title',
+                'text',
+                'value',
+                'question_text',
+            ] as const;
+            for (const key of commonTextKeys) {
+                if (typeof obj[key] === 'string' && String(obj[key]).trim()) {
+                    return String(obj[key]);
+                }
+            }
+            const preferred =
+                typeof obj[lang] === 'string'
+                    ? (obj[lang] as string)
+                    : typeof obj.en === 'string'
+                      ? (obj.en as string)
+                      : typeof obj.ko === 'string'
+                        ? (obj.ko as string)
+                        : '';
+            if (preferred) return preferred;
+            return JSON.stringify(obj);
+        };
+
+        if (Array.isArray(value)) {
+            return value.map((v) => normalizeText(v)).filter(Boolean).join(', ');
+        }
+
+        if (typeof value === 'object') {
+            return pickFromObject(value as Record<string, unknown>);
+        }
+
+        const str = String(value);
+        const trimmed = str.trim();
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+            try {
+                const parsed = JSON.parse(trimmed);
+                if (parsed && typeof parsed === 'object') {
+                    return pickFromObject(parsed as Record<string, unknown>);
+                }
+            } catch {
+                // keep original string
+            }
+        }
+        return str;
+    };
+
+    const normalizeOptions = (value: unknown): string[] => {
+        if (Array.isArray(value))
+            return value.map((v) => normalizeText(v)).filter(Boolean);
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                try {
+                    const parsed = JSON.parse(trimmed);
+                    if (Array.isArray(parsed))
+                        return parsed.map((v) => normalizeText(v)).filter(Boolean);
+                } catch {
+                    // fall through
+                }
+            }
+        }
+        return [];
+    };
+
     const filteredQuestions = localQuestions.filter((q) =>
-        q.question_text.toLowerCase().includes(searchTerm.toLowerCase()),
+        normalizeText(q.question_text)
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()),
     );
 
     const handleDelete = (questionId: number) => {
@@ -119,7 +196,24 @@ export default function PerformanceSnapshotIndex({
             },
             {
                 preserveScroll: true,
-                onSuccess: () => router.reload({ only: ['questions'] }),
+                onSuccess: () => {
+                    toast({
+                        title: toastCopy.success,
+                        description: t(
+                            'performance_snapshot_index.reorder_success',
+                        ),
+                    });
+                    router.reload({ only: ['questions'] });
+                },
+                onError: () => {
+                    toast({
+                        title: toastCopy.error,
+                        description: t(
+                            'performance_snapshot_index.reorder_failed',
+                        ),
+                        variant: 'destructive',
+                    });
+                },
             },
         );
     };
@@ -188,6 +282,10 @@ export default function PerformanceSnapshotIndex({
                                 <div className="space-y-2">
                                     {filteredQuestions.map(
                                         (question, index) => {
+                                            const normalizedOptions =
+                                                normalizeOptions(
+                                                    question.options,
+                                                );
                                             const originalIndex =
                                                 localQuestions.findIndex(
                                                     (q) => q.id === question.id,
@@ -259,29 +357,23 @@ export default function PerformanceSnapshotIndex({
                                                                 </span>
                                                             </div>
                                                             <p className="mb-2 text-sm font-medium">
-                                                                {
-                                                                    question.question_text
-                                                                }
+                                                                {normalizeText(
+                                                                    question.question_text,
+                                                                )}
                                                             </p>
-                                                            {question.options &&
-                                                                question.options
-                                                                    .length >
-                                                                    0 && (
+                                                            {normalizedOptions.length >
+                                                                0 && (
                                                                     <div className="text-xs text-muted-foreground">
                                                                         <span className="font-medium">
                                                                             {t(
                                                                                 'performance_snapshot_index.options_label',
                                                                             )}{' '}
                                                                             (
-                                                                            {
-                                                                                question
-                                                                                    .options
-                                                                                    .length
-                                                                            }
+                                                                            {normalizedOptions.length}
                                                                             ):
                                                                         </span>
                                                                         <div className="mt-1 flex flex-wrap gap-1">
-                                                                            {question.options
+                                                                            {normalizedOptions
                                                                                 .slice(
                                                                                     0,
                                                                                     5,
@@ -304,9 +396,7 @@ export default function PerformanceSnapshotIndex({
                                                                                         </Badge>
                                                                                     ),
                                                                                 )}
-                                                                            {question
-                                                                                .options
-                                                                                .length >
+                                                                            {normalizedOptions.length >
                                                                                 5 && (
                                                                                 <Badge
                                                                                     variant="outline"
@@ -316,9 +406,7 @@ export default function PerformanceSnapshotIndex({
                                                                                         'performance_snapshot_index.more_options',
                                                                                         {
                                                                                             count:
-                                                                                                question
-                                                                                                    .options
-                                                                                                    .length -
+                                                                                                normalizedOptions.length -
                                                                                                 5,
                                                                                         },
                                                                                     )}

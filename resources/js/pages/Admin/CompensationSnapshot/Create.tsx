@@ -108,7 +108,7 @@ export default function CompensationSnapshotCreate({ answerTypes }: Props) {
                                             <SelectContent>
                                                 {Object.entries(answerTypes).map(([key, label]) => (
                                                     <SelectItem key={key} value={key}>
-                                                        {t(`answer_types.${key}`, label)}
+                                                        {label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>

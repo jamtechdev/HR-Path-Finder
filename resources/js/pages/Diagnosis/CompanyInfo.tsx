@@ -291,8 +291,8 @@ export default function CompanyInfo({
         const draft = serializeDraft({ ...data, is_public: data.is_public });
         saveTabDraft(projectId, 'company-info', draft);
         toast({
-            title: t('company_info.save_draft'),
-            description: t('company_info.save_draft_hint'),
+            title: t('company_info.saveDraft'),
+            description: t('company_info.saveDraftHint'),
             variant: 'success',
         });
     };
@@ -847,7 +847,7 @@ export default function CompanyInfo({
                         <div className="mt-2 pt-6">
                             <div className="mb-2 flex items-center justify-between">
                                 <span className="text-xs font-bold text-teal-600">
-                                    {t('company_info.completion_title')}
+                                    {t('company_info.completionTitle')}
                                 </span>
                                 <span className="text-xs font-bold text-teal-600">
                                     {completionPct}%
@@ -860,7 +860,7 @@ export default function CompanyInfo({
                                 />
                             </div>
                             <p className="mt-2 text-[10px] text-gray-400 dark:text-[#6B7585]">
-                                {t('company_info.completion_description')}
+                                {t('company_info.completionDescription')}
                             </p>
                         </div>
 
@@ -871,10 +871,10 @@ export default function CompanyInfo({
                                     onClick={handleSaveDraft}
                                     className="h-10 w-full rounded-lg bg-teal-500 text-sm font-bold text-white shadow-sm transition-colors hover:bg-teal-400"
                                 >
-                                    {t('company_info.save_draft')}
+                                    {t('company_info.saveDraft')}
                                 </button>
                                 <p className="mt-2 text-[10px] text-gray-400 dark:text-[#6B7585]">
-                                    {t('company_info.save_draft_hint')}
+                                    {t('company_info.saveDraftHint')}
                                 </p>
                             </div>
                         )}

@@ -304,9 +304,25 @@ class CeoReviewController extends Controller
 
         $step = $request->step;
         $currentStatus = $hrProject->getStepStatus($step);
+        $stepOrder = ['diagnosis', 'job_analysis', 'performance', 'compensation', 'hr_policy_os'];
+        $stepIndex = array_search($step, $stepOrder, true);
 
         if (!$currentStatus || $currentStatus !== StepStatus::SUBMITTED) {
             return back()->withErrors(['error' => "Step {$step} must be submitted before verification."]);
+        }
+
+        // Enforce sequential CEO verification:
+        // previous steps must already be completed (locked) before verifying current step.
+        if ($stepIndex !== false && $stepIndex > 0) {
+            for ($i = 0; $i < $stepIndex; $i++) {
+                $prevStep = $stepOrder[$i];
+                $prevStatus = $hrProject->getStepStatus($prevStep);
+                if ($prevStatus !== StepStatus::LOCKED) {
+                    return back()->withErrors([
+                        'error' => "Please complete verification of {$prevStep} before verifying {$step}.",
+                    ]);
+                }
+            }
         }
 
         // Approve and lock the step

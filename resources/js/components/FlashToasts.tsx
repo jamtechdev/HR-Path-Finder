@@ -5,6 +5,7 @@ import type { SharedData } from '@/types';
 
 const FLASH_DEDUPE_WINDOW_MS = 4000;
 const flashShownAt = new Map<string, number>();
+let flashListenerMounted = false;
 
 /**
  * Shows session flash messages as toasts once per distinct flash payload (AppLayout / HR shell).
@@ -13,8 +14,26 @@ export function FlashToasts() {
     const page = usePage<SharedData>();
     const flash = page.props.flash;
     const lastSig = useRef<string>('');
+    const isPrimaryInstance = useRef(false);
 
     useEffect(() => {
+        if (!flashListenerMounted) {
+            flashListenerMounted = true;
+            isPrimaryInstance.current = true;
+        }
+
+        return () => {
+            if (isPrimaryInstance.current) {
+                flashListenerMounted = false;
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!isPrimaryInstance.current) {
+            return;
+        }
+
         const sig = [
             flash?.success ?? '',
             flash?.error ?? '',
@@ -39,19 +58,21 @@ export function FlashToasts() {
         lastSig.current = sig;
         flashShownAt.set(sig, now);
 
-        if (flash?.success) {
-            toast({ title: flash.success, variant: 'success' });
-        } else if (flash?.message) {
-            toast({ title: flash.message, variant: 'success' });
-        }
-        if (flash?.error) {
-            toast({ title: flash.error, variant: 'destructive' });
-        }
-        if (flash?.warning) {
-            toast({ title: flash.warning, variant: 'warning' });
-        }
-        if (flash?.info) {
-            toast({ title: flash.info, variant: 'default' });
+        const payload =
+            flash?.error
+                ? { title: flash.error, variant: 'destructive' as const }
+                : flash?.warning
+                  ? { title: flash.warning, variant: 'warning' as const }
+                  : flash?.success
+                    ? { title: flash.success, variant: 'success' as const }
+                    : flash?.message
+                      ? { title: flash.message, variant: 'success' as const }
+                      : flash?.info
+                        ? { title: flash.info, variant: 'default' as const }
+                        : null;
+
+        if (payload) {
+            toast(payload);
         }
     }, [flash?.success, flash?.error, flash?.warning, flash?.info, flash?.message]);
 

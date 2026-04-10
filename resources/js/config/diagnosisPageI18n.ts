@@ -66,6 +66,19 @@ export const diagnosisPageI18nEn = {
         confirm: 'Confirm',
         cancel: 'Cancel',
         noCategories: 'Add a category to get started',
+        functionsCount: '{{count}} functions',
+        addCategoryPlaceholder: 'Enter category name...',
+        addFunctionBelow: 'Add functions below',
+        addFunctionPlaceholder: "Enter functions belonging to '{{category}}'",
+        addFunctionBtn: '+ Add function',
+        selectCategoryLeft: 'Select a category from the left',
+        confirmRemoveCategory:
+            "Remove category '{{name}}'? Existing functions in this category will also be removed.",
+        default: {
+            management: 'Management',
+            support: 'Support',
+            general: 'General',
+        },
     },
     diagnosis_job_grades: {
         statusIdle: 'Enter grades to see status',
@@ -287,6 +300,19 @@ export const diagnosisPageI18nKo = {
         confirm: '확인',
         cancel: '취소',
         noCategories: '직군을 추가해 시작하세요',
+        functionsCount: '{{count}}개 직무',
+        addCategoryPlaceholder: '직군명을 입력하세요...',
+        addFunctionBelow: '아래에서 직무를 추가하세요',
+        addFunctionPlaceholder: "'{{category}}'에 속하는 직무를 입력하세요",
+        addFunctionBtn: '+ 직무 추가',
+        selectCategoryLeft: '왼쪽에서 직군을 선택하세요',
+        confirmRemoveCategory:
+            "'{{name}}' 직군을 삭제하시겠습니까? 이 직군의 직무도 함께 삭제됩니다.",
+        default: {
+            management: '경영',
+            support: '지원',
+            general: '일반',
+        },
     },
     diagnosis_job_grades: {
         statusIdle: '직급을 입력하면 상태가 표시됩니다',

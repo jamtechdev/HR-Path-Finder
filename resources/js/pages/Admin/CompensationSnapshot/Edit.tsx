@@ -51,17 +51,6 @@ export default function CompensationSnapshotEdit({
 }: Props) {
     const { t } = useTranslation();
     const [submitting, setSubmitting] = useState(false);
-    const getQuestionId = (): number | null => {
-        if (typeof question.id === 'number' && Number.isFinite(question.id)) {
-            return question.id;
-        }
-        const match = window.location.pathname.match(
-            /\/admin\/compensation-snapshot\/(\d+)\/edit$/,
-        );
-        if (!match) return null;
-        const parsed = Number(match[1]);
-        return Number.isFinite(parsed) ? parsed : null;
-    };
 
     const initialAnswerType = question.answer_type ?? 'select_one';
     const initialOptions = question.options || [];
@@ -183,48 +172,20 @@ export default function CompensationSnapshotEdit({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const questionId = getQuestionId();
-        if (!questionId) {
-            return;
-        }
-
-        const csrf =
-            document
-                .querySelector('meta[name="csrf-token"]')
-                ?.getAttribute('content') || '';
-        const payload = {
-            question_text: data.question_text,
-            answer_type: data.answer_type,
-            options: data.options,
-            order: data.order,
-            is_active: data.is_active,
-            version: data.version,
-            metadata: data.metadata,
-        };
 
         setSubmitting(true);
-        fetch(`/admin/compensation-snapshot/${questionId}/update-data`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-                'X-CSRF-TOKEN': csrf,
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: JSON.stringify(payload),
-        })
-            .then(async (res) => {
-                if (!res.ok) {
-                    throw new Error('Failed to update question');
-                }
-                return res.json();
-            })
-            .then(() => {
+        put(`/admin/compensation-snapshot/${question.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
                 router.visit('/admin/compensation-snapshot');
-            })
-            .catch(() => {
+            },
+            onError: () => {
                 setSubmitting(false);
-            });
+            },
+            onFinish: () => {
+                setSubmitting(false);
+            },
+        });
     };
 
     return (

@@ -187,7 +187,13 @@ export default function FinalBoard({
         badgeText: jobStatus === 'done' ? 'Complete' : jobStatus === 'active' ? 'In Progress' : 'Pending',
         items: [
           { icon: '📊', bg: '#E8F9F1', label: 'Job Families · Job Count', val: `${hrSystemSnapshot.job_architecture.jobs_defined} Jobs`, sub: 'Finalized job definitions' },
-          { icon: '📝', bg: '#FEF4E2', label: 'Job Description Status', val: '—', sub: '' },
+          {
+            icon: '📝',
+            bg: '#FEF4E2',
+            label: 'Job Description Status',
+            val: fmt((hrSystemSnapshot.job_architecture as any).job_description_status),
+            sub: '',
+          },
         ],
         progLabel: progressLabel(jobPct, jobStatus),
         navHint: jobStatus === 'done' ? 'Go to Job Analysis' : null,

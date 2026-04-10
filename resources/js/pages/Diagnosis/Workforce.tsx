@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { Head, useForm } from '@inertiajs/react';
 import { Info, TrendingUp, Users } from 'lucide-react';
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface Diagnosis {
     id: number;
@@ -51,6 +52,10 @@ export default function Workforce({
     embedData,
     embedSetData,
 }: Props) {
+    // Subscribe component to i18n language changes so `tr(...)` content re-renders in real time.
+    const { i18n } = useTranslation();
+    const currentLang = i18n.resolvedLanguage;
+
     const internalForm = useForm({
         present_headcount: diagnosis?.present_headcount ?? 0,
         full_time_headcount:
@@ -128,7 +133,10 @@ export default function Workforce({
     };
 
     const cardContent = (
-        <div className="overflow-hidden rounded-[14px] border border-[#E2E6ED] bg-white shadow-[0_4px_20px_rgba(27,43,91,0.09)] dark:border-[#2a3a5c] dark:bg-[#1a2744]">
+        <div
+            key={`workforce-card-${currentLang}`}
+            className="overflow-hidden rounded-[14px] border border-[#E2E6ED] bg-white shadow-[0_4px_20px_rgba(27,43,91,0.09)] dark:border-[#2a3a5c] dark:bg-[#1a2744]"
+        >
             {/* Hero strip */}
             <div className="flex flex-wrap items-center gap-4 bg-gradient-to-br from-[#1B2B5B] to-[#243877] px-7 py-5">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#2EC4A9]">
@@ -286,7 +294,7 @@ export default function Workforce({
                         <div className="grid grid-cols-2 gap-3">
                             <div className="rounded-xl border border-[#E2E6ED] bg-[#F8F9FB] p-4 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30">
                                 <span className="text-[11px] font-bold text-[#1B2B5B] dark:text-[#CBD0DA]">
-                                    MALE
+                                    {tr('maleWithEn')}
                                 </span>
                                 <div className="mt-1 flex items-center gap-2">
                                     <input
@@ -308,7 +316,7 @@ export default function Workforce({
                             </div>
                             <div className="rounded-xl border-2 border-[#2EC4A9]/40 bg-[#E6F9F6]/50 p-4 dark:bg-[#2EC4A9]/5">
                                 <span className="text-[11px] font-bold text-[#25A891]">
-                                    FEMALE
+                                    {tr('femaleWithEn')}
                                 </span>
                                 <div className="mt-1 flex items-center gap-2">
                                     <input
@@ -343,8 +351,18 @@ export default function Workforce({
                                     />
                                 </div>
                                 <div className="mt-2 flex justify-between text-[11px] font-bold text-[#6B7585] dark:text-[#9AA3B2]">
-                                    <span>{malePct}% Male</span>
-                                    <span>{femalePct}% Female</span>
+                                    <span>
+                                        {tr('ratioMale').replace(
+                                            '{{pct}}',
+                                            String(malePct),
+                                        )}
+                                    </span>
+                                    <span>
+                                        {tr('ratioFemale').replace(
+                                            '{{pct}}',
+                                            String(femalePct),
+                                        )}
+                                    </span>
                                 </div>
                             </div>
                         )}

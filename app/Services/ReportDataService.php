@@ -9,6 +9,10 @@ use App\Models\BaseSalaryFramework;
 use App\Models\PayBand;
 use App\Models\SalaryTable;
 use App\Models\BonusPoolConfiguration;
+use App\Models\PerformanceSnapshotResponse;
+use App\Models\OrganizationalKpi;
+use App\Models\EvaluationModelAssignment;
+use App\Models\EvaluationStructure;
 
 class ReportDataService
 {
@@ -120,6 +124,47 @@ class ReportDataService
         $benefitsConfig = $hrProject->benefitsConfiguration;
         $ceoPhilosophy = $hrProject->ceoPhilosophy;
         $organizationDesign = $hrProject->organizationDesign;
+        $evaluationStructure = EvaluationStructure::where('hr_project_id', $hrProject->id)->first();
+        $snapshotResponsesCount = PerformanceSnapshotResponse::where('hr_project_id', $hrProject->id)->count();
+        $kpiCount = OrganizationalKpi::where('hr_project_id', $hrProject->id)->count();
+        $assignedModels = EvaluationModelAssignment::where('hr_project_id', $hrProject->id)
+            ->pluck('evaluation_model')
+            ->filter()
+            ->map(fn ($m) => strtoupper((string) $m))
+            ->unique()
+            ->values()
+            ->all();
+
+        $evaluationUnitSummary = null;
+        if (!empty($assignedModels)) {
+            $evaluationUnitSummary = implode(', ', $assignedModels);
+        } elseif ($performanceSystem?->evaluation_unit) {
+            $evaluationUnitSummary = $performanceSystem->evaluation_unit;
+        }
+
+        $evaluationModelSummary = null;
+        if ($kpiCount > 0) {
+            $evaluationModelSummary = "{$kpiCount} KPIs configured";
+        } elseif ($performanceSystem?->performance_method) {
+            $evaluationModelSummary = $performanceSystem->performance_method;
+        }
+
+        $evaluationCycleSummary = $evaluationStructure?->individual_evaluation_cycle
+            ?? $evaluationStructure?->org_evaluation_cycle
+            ?? null;
+        $ratingScaleSummary = $evaluationStructure?->individual_rating_scale
+            ?? $evaluationStructure?->org_rating_scale
+            ?? null;
+        $evaluationLogicSummary = $snapshotResponsesCount > 0
+            ? "{$snapshotResponsesCount} snapshot responses"
+            : ($performanceSystem?->evaluation_logic ?? null);
+
+        $describedJobsCount = $jobDefinitions
+            ->filter(fn ($job) => !empty(trim((string) ($job->job_description ?? ''))))
+            ->count();
+        $jobDescriptionStatus = $jobDefinitions->count() > 0
+            ? "{$describedJobsCount}/{$jobDefinitions->count()} descriptions completed"
+            : null;
 
         // Get salary increase process from base salary framework
         $salaryIncreaseProcess = null;
@@ -180,13 +225,14 @@ class ReportDataService
                 'jobs_defined' => $jobDefinitions->count(),
                 'structure_type' => $organizationDesign->structure_type ?? null,
                 'job_grade_structure' => $organizationDesign->job_grade_structure ?? null,
+                'job_description_status' => $jobDescriptionStatus,
             ],
             'performance_management' => [
-                'model' => $performanceSystem->evaluation_unit ?? null,
-                'method' => $performanceSystem->performance_method ?? null,
-                'cycle' => $performanceSystem->evaluation_cycle ?? null,
-                'rating_scale' => $performanceSystem->rating_scale ?? null,
-                'evaluation_logic' => $performanceSystem->evaluation_logic ?? null,
+                'model' => $evaluationUnitSummary,
+                'method' => $evaluationModelSummary,
+                'cycle' => $evaluationCycleSummary,
+                'rating_scale' => $ratingScaleSummary,
+                'evaluation_logic' => $evaluationLogicSummary,
             ],
             'compensation_benefits' => [
                 'salary_system' => $compensationSystem->compensation_structure ?? null,

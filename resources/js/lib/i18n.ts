@@ -1,64 +1,11 @@
 import i18n from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
-
 import { diagnosisPageI18nEn, diagnosisPageI18nKo } from '@/config/diagnosisPageI18n';
-import { diagnosisTranslationStrings } from '@/config/diagnosisTranslationStrings';
+import enLocale from '@/locales/en.json';
+import koLocale from '@/locales/ko.json';
 
 const STORAGE_KEY = 'i18nextLng';
-
-const COMPANY_INFO_KEYS = [
-    'companyInfoPageTitle',
-    'companyInfoHeroTitle',
-    'companyInfoHeroDesc',
-    'companyIdentitySection',
-    'companyNameLabel',
-    'companyNamePlaceholder',
-    'registrationNumberLabel',
-    'registrationNumberFormatHint',
-    'brandNameLabel',
-    'brandNamePlaceholder',
-    'foundationDateLabel',
-    'publicListingLabel',
-    'listedLabel',
-    'privateLabel',
-    'industryLocationSection',
-    'primaryIndustryLabel',
-    'primaryIndustryPlaceholder',
-    'othersLabel',
-    'specifyPlaceholder',
-    'subIndustryLabel',
-    'subIndustryPlaceholder',
-    'hqLocationLabel',
-    'hqLocationPlaceholder',
-    'logoUploadTitle',
-    'logoUploadHint',
-    'logoUploadSpec',
-    'chooseFileBtn',
-    'logoAlt',
-    'fileTypeError',
-    'fileSizeError',
-    'saveDraft',
-    'saveDraftHint',
-    'completionTitle',
-    'completionDescription',
-] as const satisfies ReadonlyArray<keyof typeof diagnosisTranslationStrings>;
-
-function flattenDiagnosisStrings(lang: 'en' | 'ko'): Record<string, string> {
-    const out: Record<string, string> = {};
-    for (const [k, v] of Object.entries(diagnosisTranslationStrings)) {
-        out[k] = v[lang];
-    }
-    return out;
-}
-
-function companyInfoBundle(lang: 'en' | 'ko'): Record<string, string> {
-    const out: Record<string, string> = {};
-    for (const k of COMPANY_INFO_KEYS) {
-        out[k] = diagnosisTranslationStrings[k][lang];
-    }
-    return out;
-}
 
 async function fetchLocaleTranslations(locale: 'en' | 'ko'): Promise<Record<string, unknown>> {
     const response = await fetch(`/i18n/${locale}`, {
@@ -76,6 +23,26 @@ async function fetchLocaleTranslations(locale: 'en' | 'ko'): Promise<Record<stri
 
     const data = (await response.json()) as Record<string, unknown>;
     return data ?? {};
+}
+
+function isPlainObject(v: unknown): v is Record<string, unknown> {
+    return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+function deepMerge(
+    base: Record<string, unknown>,
+    override: Record<string, unknown>,
+): Record<string, unknown> {
+    const out: Record<string, unknown> = { ...base };
+    for (const [k, v] of Object.entries(override)) {
+        const existing = out[k];
+        if (isPlainObject(existing) && isPlainObject(v)) {
+            out[k] = deepMerge(existing, v);
+        } else {
+            out[k] = v;
+        }
+    }
+    return out;
 }
 
 // Read saved language synchronously so it's used on first paint and persists after refresh
@@ -104,19 +71,21 @@ export async function initializeI18n(): Promise<void> {
         console.error('[i18n] failed to load runtime locales', error);
     }
 
-    const enMerged = {
-        ...enTranslations,
-        diagnosis_strings: flattenDiagnosisStrings('en'),
-        company_info: companyInfoBundle('en'),
-        ...diagnosisPageI18nEn,
-    };
+    const enMerged = deepMerge(
+        deepMerge(
+            diagnosisPageI18nEn as unknown as Record<string, unknown>,
+            enLocale as Record<string, unknown>,
+        ),
+        enTranslations,
+    );
 
-    const koMerged = {
-        ...koTranslations,
-        diagnosis_strings: flattenDiagnosisStrings('ko'),
-        company_info: companyInfoBundle('ko'),
-        ...diagnosisPageI18nKo,
-    };
+    const koMerged = deepMerge(
+        deepMerge(
+            diagnosisPageI18nKo as unknown as Record<string, unknown>,
+            koLocale as Record<string, unknown>,
+        ),
+        koTranslations,
+    );
 
     await i18n.use(LanguageDetector).use(initReactI18next).init({
         resources: {

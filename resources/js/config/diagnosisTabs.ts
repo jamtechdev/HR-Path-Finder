@@ -5,6 +5,7 @@ import type { TabId } from '@/components/Diagnosis/DiagnosisTabs';
 export interface DiagnosisTab {
     id: TabId;
     name: string;
+    i18nKey?: string;
     icon: LucideIcon;
     route: string;
     isEssential?: boolean; // * essential question vs ** Optional Question
@@ -25,15 +26,15 @@ const basePath = '/hr-manager/diagnosis';
 // 10. Key HR/Org. Issues - Essential
 
 export const diagnosisTabs: DiagnosisTab[] = [
-    { id: 'overview', name: 'Overview', icon: Building2, route: `${basePath}/overview`, isEssential: false },
-    { id: 'company-info', name: 'Basic Info', icon: Building2, route: `${basePath}/company-info`, isEssential: true }, // Includes Industry
-    { id: 'workforce', name: 'Workforce', icon: Users, route: `${basePath}/workforce`, isEssential: true },
-    { id: 'executives', name: 'Executives', icon: UserCog, route: `${basePath}/executives`, isEssential: false }, // Optional
-    { id: 'leaders', name: 'Leaders', icon: UserCheck, route: `${basePath}/leaders`, isEssential: false }, // Optional
-    { id: 'job-grades', name: 'Job Grades', icon: BriefcaseBusiness, route: `${basePath}/job-grades`, isEssential: false }, // Optional
-    { id: 'organizational-charts', name: 'Org Charts', icon: Upload, route: `${basePath}/organizational-charts`, isEssential: true },
-    { id: 'organizational-structure', name: 'Org Structure', icon: Network, route: `${basePath}/organizational-structure`, isEssential: true },
-    { id: 'job-structure', name: 'Job Structure', icon: Layers, route: `${basePath}/job-structure`, isEssential: true },
-    { id: 'hr-issues', name: 'HR Issues', icon: AlertTriangle, route: `${basePath}/hr-issues`, isEssential: true },
-    { id: 'review', name: 'Review & Submit', icon: Check, route: `${basePath}/review`, isEssential: false },
+    { id: 'overview', name: 'Overview', i18nKey: 'diagnosis_overview.common.review', icon: Building2, route: `${basePath}/overview`, isEssential: false },
+    { id: 'company-info', name: 'Basic Info', i18nKey: 'diagnosis_overview.steps.company_info.name', icon: Building2, route: `${basePath}/company-info`, isEssential: true }, // Includes Industry
+    { id: 'workforce', name: 'Workforce', i18nKey: 'diagnosis_overview.steps.workforce.name', icon: Users, route: `${basePath}/workforce`, isEssential: true },
+    { id: 'executives', name: 'Executives', i18nKey: 'diagnosis_overview.steps.executives.name', icon: UserCog, route: `${basePath}/executives`, isEssential: false }, // Optional
+    { id: 'leaders', name: 'Leaders', i18nKey: 'diagnosis_overview.steps.leaders.name', icon: UserCheck, route: `${basePath}/leaders`, isEssential: false }, // Optional
+    { id: 'job-grades', name: 'Job Grades', i18nKey: 'diagnosis_overview.steps.job_grades.name', icon: BriefcaseBusiness, route: `${basePath}/job-grades`, isEssential: false }, // Optional
+    { id: 'organizational-charts', name: 'Org Charts', i18nKey: 'diagnosis_overview.steps.org_charts.name', icon: Upload, route: `${basePath}/organizational-charts`, isEssential: true },
+    { id: 'organizational-structure', name: 'Org Structure', i18nKey: 'diagnosis_overview.steps.org_structure.name', icon: Network, route: `${basePath}/organizational-structure`, isEssential: true },
+    { id: 'job-structure', name: 'Job Structure', i18nKey: 'diagnosis_overview.steps.job_structure.name', icon: Layers, route: `${basePath}/job-structure`, isEssential: true },
+    { id: 'hr-issues', name: 'HR Issues', i18nKey: 'diagnosis_overview.steps.hr_issues.name', icon: AlertTriangle, route: `${basePath}/hr-issues`, isEssential: true },
+    { id: 'review', name: 'Review & Submit', i18nKey: 'diagnosis_overview.steps.review.name', icon: Check, route: `${basePath}/review`, isEssential: false },
 ];

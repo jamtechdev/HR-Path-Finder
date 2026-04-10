@@ -29,14 +29,22 @@ class TranslationService
      */
     public function getTranslations(string $locale): array
     {
-        $filePath = $this->resolveLocalePath($locale);
-        
-        if (!File::exists($filePath)) {
-            return [];
+        $storagePath = $this->resolveLocalePath($locale);
+        $legacyPath = $this->legacyTranslationsPath . "/{$locale}.json";
+
+        $legacy = [];
+        if (File::exists($legacyPath)) {
+            $legacy = json_decode(File::get($legacyPath), true) ?? [];
         }
 
-        $content = File::get($filePath);
-        return json_decode($content, true) ?? [];
+        $storage = [];
+        if (File::exists($storagePath)) {
+            $storage = json_decode(File::get($storagePath), true) ?? [];
+        }
+
+        // Source of truth remains storage (runtime editable, outside build),
+        // while legacy resources provide fallback keys newly added in code.
+        return $this->arrayReplaceRecursiveDistinct($legacy, $storage);
     }
 
     /**
@@ -218,6 +226,22 @@ class TranslationService
         }
         
         return $array;
+    }
+
+    /**
+     * Recursive merge where $overrides replace/extend $base without dropping sibling keys.
+     */
+    protected function arrayReplaceRecursiveDistinct(array $base, array $overrides): array
+    {
+        foreach ($overrides as $key => $value) {
+            if (is_array($value) && isset($base[$key]) && is_array($base[$key])) {
+                $base[$key] = $this->arrayReplaceRecursiveDistinct($base[$key], $value);
+            } else {
+                $base[$key] = $value;
+            }
+        }
+
+        return $base;
     }
 
     /**

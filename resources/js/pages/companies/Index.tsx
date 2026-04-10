@@ -287,13 +287,10 @@ export default function CompaniesIndex({ companies }: Props) {
                 <div className="space-y-4">
                         {companies.map((company) => {
                             const isExpanded = expandedCompanies.has(company.id);
-                            const allCeos = [...company.ceos, ...company.invitations.filter(inv => inv.status === 'accepted').map(inv => ({
-                                id: 0,
-                                name: 'Invited User',
-                                email: inv.email,
-                                status: 'accepted' as const,
-                            }))];
-                            const totalAssignments = allCeos.length + company.invitations.filter(inv => inv.status !== 'accepted').length;
+                            const activeCeoCount = company.ceos.length;
+                            const pendingInvitationCount = company.invitations.filter(
+                                (inv) => inv.status === 'pending',
+                            ).length;
                             
                             return (
                                 <Card key={company.id} className="overflow-hidden">
@@ -322,10 +319,15 @@ export default function CompaniesIndex({ companies }: Props) {
                                                 <div className="flex items-center gap-3">
                                                     <div className="text-right">
                                                         <div className="text-sm font-medium">
-                                                            {totalAssignments} {totalAssignments === 1 ? 'CEO' : 'CEOs'}
+                                                            {activeCeoCount}{' '}
+                                                            {activeCeoCount === 1
+                                                                ? 'CEO'
+                                                                : 'CEOs'}
                                                         </div>
                                                         <div className="text-xs text-muted-foreground">
-                                                            {company.ceos.length} Active
+                                                            {pendingInvitationCount > 0
+                                                                ? `${pendingInvitationCount} Pending`
+                                                                : `${activeCeoCount} Active`}
                                                         </div>
                                                     </div>
                                                     {!company.hasCeo && (

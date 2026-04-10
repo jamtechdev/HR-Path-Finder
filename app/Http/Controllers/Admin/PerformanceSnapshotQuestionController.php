@@ -15,7 +15,8 @@ class PerformanceSnapshotQuestionController extends Controller
      */
     public function index(Request $request): Response
     {
-        $questions = PerformanceSnapshotQuestion::orderBy('order')->orderBy('id')->get();
+        // Admin list shows newest records first for easier CRUD operations.
+        $questions = PerformanceSnapshotQuestion::orderByDesc('created_at')->orderByDesc('id')->get();
 
         return Inertia::render('Admin/PerformanceSnapshot/Index', [
             'questions' => $questions,

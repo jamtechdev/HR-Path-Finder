@@ -4,94 +4,16 @@ import { cn } from '@/lib/utils';
 import { Head, useForm } from '@inertiajs/react';
 import { Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { translateStaticOnly } from '@/lib/translateStaticOnly';
 
-const CATEGORIES = [
-    {
-        id: 'retention',
-        emoji: '🧲',
-        color: '#e8622a',
-        nameKey: 'diagnosis_hr_issues.retention.name',
-        issueKeys: [
-            'diagnosis_hr_issues.retention.issue1',
-            'diagnosis_hr_issues.retention.issue2',
-            'diagnosis_hr_issues.retention.issue3',
-            'diagnosis_hr_issues.retention.issue4',
-            'diagnosis_hr_issues.retention.issue5',
-            'diagnosis_hr_issues.retention.issue6',
-        ],
-    },
-    {
-        id: 'org',
-        emoji: '🏗️',
-        color: '#2a7de8',
-        nameKey: 'diagnosis_hr_issues.org.name',
-        issueKeys: [
-            'diagnosis_hr_issues.org.issue1',
-            'diagnosis_hr_issues.org.issue2',
-            'diagnosis_hr_issues.org.issue3',
-            'diagnosis_hr_issues.org.issue4',
-            'diagnosis_hr_issues.org.issue5',
-            'diagnosis_hr_issues.org.issue6',
-            'diagnosis_hr_issues.org.issue7',
-            'diagnosis_hr_issues.org.issue8',
-            'diagnosis_hr_issues.org.issue9',
-            'diagnosis_hr_issues.org.issue10',
-            'diagnosis_hr_issues.org.issue11',
-            'diagnosis_hr_issues.org.issue12',
-        ],
-    },
-    {
-        id: 'culture',
-        emoji: '🌱',
-        color: '#2aab6e',
-        nameKey: 'diagnosis_hr_issues.culture.name',
-        issueKeys: [
-            'diagnosis_hr_issues.culture.issue1',
-            'diagnosis_hr_issues.culture.issue2',
-            'diagnosis_hr_issues.culture.issue3',
-            'diagnosis_hr_issues.culture.issue4',
-            'diagnosis_hr_issues.culture.issue5',
-            'diagnosis_hr_issues.culture.issue6',
-            'diagnosis_hr_issues.culture.issue7',
-        ],
-    },
-    {
-        id: 'reward',
-        emoji: '💰',
-        color: '#c8a84b',
-        nameKey: 'diagnosis_hr_issues.reward.name',
-        issueKeys: [
-            'diagnosis_hr_issues.reward.issue1',
-            'diagnosis_hr_issues.reward.issue2',
-            'diagnosis_hr_issues.reward.issue3',
-            'diagnosis_hr_issues.reward.issue4',
-            'diagnosis_hr_issues.reward.issue5',
-            'diagnosis_hr_issues.reward.issue6',
-            'diagnosis_hr_issues.reward.issue7',
-            'diagnosis_hr_issues.reward.issue8',
-        ],
-    },
-    {
-        id: 'upskilling',
-        emoji: '📈',
-        color: '#7c3aed',
-        nameKey: 'diagnosis_hr_issues.upskilling.name',
-        issueKeys: [
-            'diagnosis_hr_issues.upskilling.issue1',
-            'diagnosis_hr_issues.upskilling.issue2',
-            'diagnosis_hr_issues.upskilling.issue3',
-            'diagnosis_hr_issues.upskilling.issue4',
-        ],
-    },
-    {
-        id: 'other',
-        emoji: '📌',
-        color: '#64748b',
-        nameKey: 'diagnosis_hr_issues.other.name',
-        issueKeys: ['diagnosis_hr_issues.other.issue1'],
-    },
+const CATEGORY_THEME: Array<{ emoji: string; color: string }> = [
+    { emoji: '🧲', color: '#e8622a' },
+    { emoji: '🏗️', color: '#2a7de8' },
+    { emoji: '🌱', color: '#2aab6e' },
+    { emoji: '💰', color: '#c8a84b' },
+    { emoji: '📈', color: '#7c3aed' },
+    { emoji: '📌', color: '#64748b' },
 ];
 
 interface Diagnosis {
@@ -112,16 +34,24 @@ interface Props {
     readOnly?: boolean;
     embedData?: Record<string, unknown>;
     embedSetData?: (key: string, value: unknown) => void;
+    hrIssues?: Array<{
+        id: number;
+        category: string;
+        name: string;
+        order?: number;
+        is_active?: boolean;
+    }>;
 }
 
 function buildCheckedFromDiagnosis(
+    categories: Array<{ id: string; issueKeys: string[] }>,
     diagnosis?: Diagnosis | null,
 ): Record<string, string[]> {
     const out: Record<string, string[]> = {};
     const list = diagnosis?.hr_issues ?? [];
     if (!list.length) return out;
 
-    CATEGORIES.forEach((cat) => {
+    categories.forEach((cat) => {
         const selected = list.filter((issue) => cat.issueKeys.includes(issue));
         if (selected.length) out[cat.id] = selected;
     });
@@ -140,20 +70,47 @@ export default function HrIssues({
     readOnly = false,
     embedData,
     embedSetData,
+    hrIssues = [],
 }: Props) {
     const { t } = useTranslation();
-    const tx = (key: string) =>
-        translateStaticOnly(t, key, ['diagnosis_hr_issues.']);
+    const categories = useMemo(() => {
+        const byCategory = new Map<string, string[]>();
+
+        hrIssues.forEach((item) => {
+            const category = (item.category || 'other').trim();
+            const name = (item.name || '').trim();
+            if (!name) return;
+            if (!byCategory.has(category)) byCategory.set(category, []);
+            byCategory.get(category)!.push(name);
+        });
+
+        return Array.from(byCategory.entries()).map(([category, issueNames], index) => {
+            const theme = CATEGORY_THEME[index % CATEGORY_THEME.length];
+            const label = category
+                .replace(/[_-]+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .replace(/\b\w/g, (c) => c.toUpperCase());
+
+            return {
+                id: category,
+                emoji: theme.emoji,
+                color: theme.color,
+                label,
+                issueKeys: issueNames,
+            };
+        });
+    }, [hrIssues]);
 
     const [checked, setChecked] = useState<Record<string, string[]>>(() =>
-        buildCheckedFromDiagnosis(diagnosis),
+        buildCheckedFromDiagnosis(categories, diagnosis),
     );
     const [activeCatIdx, setActiveCatIdx] = useState(0);
     const [customIssue, setCustomIssue] = useState(
         diagnosis?.custom_hr_issues ?? '',
     );
 
-    const activeCat = CATEGORIES[activeCatIdx];
+    const activeCat = categories[activeCatIdx];
 
     const internalForm = useForm({
         hr_issues: [] as string[],
@@ -183,7 +140,7 @@ export default function HrIssues({
                     setCustomIssue(ui.customIssue);
             } else if (Array.isArray(patch.hr_issues)) {
                 const out: Record<string, string[]> = {};
-                CATEGORIES.forEach((cat) => {
+                categories.forEach((cat) => {
                     const selected = (patch.hr_issues as string[]).filter(
                         (issue) => cat.issueKeys.includes(issue),
                     );
@@ -234,7 +191,7 @@ export default function HrIssues({
     const totalChecked = Object.values(checked).flat().length;
 
     const goNext = () => {
-        if (activeCatIdx < CATEGORIES.length - 1)
+        if (activeCatIdx < categories.length - 1)
             setActiveCatIdx(activeCatIdx + 1);
     };
     const goPrev = () => {
@@ -254,7 +211,7 @@ export default function HrIssues({
 
             {/* Category Tabs */}
             <div className="flex flex-wrap gap-2">
-                {CATEGORIES.map((cat, idx) => {
+                {categories.map((cat, idx) => {
                     const count = catCheckedCount(cat.id);
                     const isActive = idx === activeCatIdx;
                     return (
@@ -274,7 +231,7 @@ export default function HrIssues({
                             className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all"
                         >
                             <span>{cat.emoji}</span>
-                            <span>{tx(cat.nameKey)}</span>
+                            <span>{cat.label}</span>
                             {count > 0 && (
                                 <span
                                     style={{
@@ -292,6 +249,7 @@ export default function HrIssues({
             </div>
 
             {/* Main Card */}
+            {activeCat ? (
             <div
                 className="overflow-hidden rounded-2xl border-2 bg-white dark:bg-[#1a2744]"
                 style={{
@@ -315,7 +273,7 @@ export default function HrIssues({
                         </div>
                         <div>
                             <div className="text-base font-bold text-slate-800 dark:text-[#e2e8f0]">
-                                {tx(activeCat.nameKey)}
+                                {activeCat.label}
                             </div>
                             <div className="mt-0.5 text-xs text-slate-500 dark:text-[#9AA3B2]">
                                 {t('diagnosis_hr_issues.totalItems', {
@@ -334,13 +292,13 @@ export default function HrIssues({
                         </div>
                     </div>
                     <div className="text-[13px] text-slate-500 dark:text-[#9AA3B2]">
-                        {activeCatIdx + 1} / {CATEGORIES.length}
+                        {activeCatIdx + 1} / {categories.length}
                     </div>
                 </div>
 
                 {/* Issues List */}
                 <div className="p-6">
-                    {activeCat.issueKeys.map((issueKey) => {
+                        {activeCat.issueKeys.map((issueKey) => {
                         const selected = isChecked(activeCat.id, issueKey);
                         return (
                             <button
@@ -390,14 +348,14 @@ export default function HrIssues({
                                             : 'text-slate-600 dark:text-[#9AA3B2]',
                                     )}
                                 >
-                                    {tx(issueKey)}
+                                    {issueKey}
                                 </span>
                             </button>
                         );
                     })}
 
                     {/* Custom Input for 'other' */}
-                    {activeCat.id === 'other' && (
+                    {activeCat.id.toLowerCase() === 'other' && (
                         <div className="mt-4 border-t border-dashed border-slate-200 pt-4 dark:border-[#2a3a5c]">
                             <div className="mb-2 text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-[#9AA3B2]">
                                 {t('diagnosis_hr_issues.directInput')}
@@ -427,7 +385,7 @@ export default function HrIssues({
                     </button>
 
                     <div className="flex gap-1.5">
-                        {CATEGORIES.map((_, idx) => (
+                        {categories.map((_, idx) => (
                             <button
                                 key={idx}
                                 onClick={() => setActiveCatIdx(idx)}
@@ -447,14 +405,14 @@ export default function HrIssues({
                     <button
                         type="button"
                         onClick={goNext}
-                        disabled={activeCatIdx === CATEGORIES.length - 1}
+                        disabled={activeCatIdx === categories.length - 1}
                         style={{
                             background:
-                                activeCatIdx === CATEGORIES.length - 1
+                                activeCatIdx === categories.length - 1
                                     ? '#e2e8f0'
                                     : activeCat.color,
                             color:
-                                activeCatIdx === CATEGORIES.length - 1
+                                activeCatIdx === categories.length - 1
                                     ? '#94a3b8'
                                     : '#fff',
                         }}
@@ -464,6 +422,11 @@ export default function HrIssues({
                     </button>
                 </div>
             </div>
+            ) : (
+                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600 dark:border-[#2a3a5c] dark:bg-[#1a2744] dark:text-[#CBD0DA]">
+                    No HR issue questions available. Please add questions from Admin &gt; HR Issues.
+                </div>
+            )}
 
             {/* Summary Bar */}
             {totalChecked > 0 && (
@@ -472,7 +435,7 @@ export default function HrIssues({
                         {t('diagnosis_hr_issues.totalSelected')} {totalChecked}
                     </span>
                     <div className="flex flex-wrap gap-1.5">
-                        {CATEGORIES.filter(
+                        {categories.filter(
                             (c) => catCheckedCount(c.id) > 0,
                         ).map((cat) => (
                             <span
@@ -484,7 +447,7 @@ export default function HrIssues({
                                 }}
                                 className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
                             >
-                                {cat.emoji} {tx(cat.nameKey)}{' '}
+                                {cat.emoji} {cat.label}{' '}
                                 {catCheckedCount(cat.id)}
                             </span>
                         ))}

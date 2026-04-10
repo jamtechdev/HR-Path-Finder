@@ -177,7 +177,10 @@ export default function Review({
     stepStatuses,
     projectId,
 }: Props) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const isKo = (i18n.resolvedLanguage ?? i18n.language ?? 'ko')
+        .toLowerCase()
+        .startsWith('ko');
 
     const [processing, setProcessing] = useState(false);
     const [submitError, setSubmitError] = useState('');
@@ -227,6 +230,8 @@ export default function Review({
         en: t('diagnosis_review.done'),
         ko: t('diagnosis_review.done_ko', t('diagnosis_review.done'))
     };
+
+    const pickLabel = (v: { en: string; ko: string }) => (isKo ? v.ko : v.en);
 
     const renderEmailTemplate = (template: string) => {
         const [before, after] = template.split('{{email}}');
@@ -514,27 +519,30 @@ export default function Review({
             />
 
             {/* Success Modal with Invite CEO */}
-            <Dialog open={showSuccessModal} onOpenChange={(open) => {
-                if (!open) {
-                    handleCloseModal();
-                } else {
-                    setShowSuccessModal(true);
-                }
-            }}>
-                <DialogContent className="sm:max-w-md">
+            <Dialog
+                open={showSuccessModal}
+                onOpenChange={(open) => {
+                    // Prevent closing via outside click / ESC / implicit toggles.
+                    // Modal closes only through explicit action buttons.
+                    if (open) setShowSuccessModal(true);
+                }}
+            >
+                <DialogContent
+                    onPointerDownOutside={(e) => e.preventDefault()}
+                    onEscapeKeyDown={(e) => e.preventDefault()}
+                    className="sm:max-w-md border-slate-200 bg-white text-slate-900 dark:border-[#2a3a5c] dark:bg-[#1a2744] dark:text-[#e2e8f0]"
+                >
                     <DialogHeader>
                         <div className="flex items-center justify-center mb-4">
-                            <div className="rounded-full bg-green-100 p-3">
+                            <div className="rounded-full bg-green-100 p-3 dark:bg-green-900/30">
                                 <CheckCircle2 className="h-8 w-8 text-green-600" />
                             </div>
                         </div>
                         <DialogTitle className="text-center text-2xl">
-                            <span className="block">{submitSuccessTitle.en}</span>
-                            <span className="block text-sm font-medium opacity-90">{submitSuccessTitle.ko}</span>
+                            <span className="block">{pickLabel(submitSuccessTitle)}</span>
                         </DialogTitle>
-                        <DialogDescription className="text-center pt-2">
-                            <span className="block">{submitSuccessDesc.en}</span>
-                            <span className="block opacity-90">{submitSuccessDesc.ko}</span>
+                        <DialogDescription className="text-center pt-2 text-slate-600 dark:text-[#9AA3B2]">
+                            <span className="block">{pickLabel(submitSuccessDesc)}</span>
                         </DialogDescription>
                     </DialogHeader>
                     
@@ -542,9 +550,8 @@ export default function Review({
                         {!inviteSuccess ? (
                             <form onSubmit={handleInviteCeo} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="ceo-email" className="space-y-1">
-                                        <span className="block">{ceoEmailAddressLabel.en}</span>
-                                        <span className="block text-xs opacity-80">{ceoEmailAddressLabel.ko}</span>
+                                    <Label htmlFor="ceo-email" className="space-y-1 text-slate-700 dark:text-[#CBD0DA]">
+                                        <span className="block">{pickLabel(ceoEmailAddressLabel)}</span>
                                     </Label>
                                     <Input
                                         id="ceo-email"
@@ -557,7 +564,7 @@ export default function Review({
                                         className={inviteError ? 'border-red-500' : ''}
                                     />
                                     {inviteError && (
-                                        <p className="text-sm text-red-600 flex items-center gap-1">
+                                        <p className="flex items-center gap-1 text-sm text-red-600 dark:text-red-400">
                                             <AlertCircle className="h-4 w-4" />
                                             {inviteError}
                                         </p>
@@ -572,10 +579,7 @@ export default function Review({
                                         disabled={inviteProcessing}
                                         className="w-full sm:w-auto"
                                     >
-                                        <span className="flex flex-col leading-tight">
-                                            <span>{skipForNowLabel.en}</span>
-                                            <span className="text-xs opacity-80">{skipForNowLabel.ko}</span>
-                                        </span>
+                                        {pickLabel(skipForNowLabel)}
                                     </Button>
                                     <Button
                                         type="submit"
@@ -585,18 +589,12 @@ export default function Review({
                                         {inviteProcessing ? (
                                             <>
                                                 <span className="animate-spin mr-2">⏳</span>
-                                                <span className="flex flex-col leading-tight">
-                                                    <span>{inviteSendingLabel.en}</span>
-                                                    <span className="text-xs opacity-80">{inviteSendingLabel.ko}</span>
-                                                </span>
+                                                {pickLabel(inviteSendingLabel)}
                                             </>
                                         ) : (
                                             <>
                                                 <Mail className="w-4 h-4 mr-2" />
-                                                <span className="flex flex-col leading-tight">
-                                                    <span>{inviteCeoLabel.en}</span>
-                                                    <span className="text-xs opacity-80">{inviteCeoLabel.ko}</span>
-                                                </span>
+                                                {pickLabel(inviteCeoLabel)}
                                             </>
                                         )}
                                     </Button>
@@ -604,17 +602,15 @@ export default function Review({
                             </form>
                         ) : (
                             <div className="space-y-4">
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                    <div className="flex items-center gap-2 text-green-800">
+                                <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800/40 dark:bg-green-900/20">
+                                    <div className="flex items-center gap-2 text-green-800 dark:text-green-300">
                                         <CheckCircle2 className="h-5 w-5" />
                                         <p className="font-medium">
-                                            <span className="block">{invitationSentTitle.en}</span>
-                                            <span className="block text-sm font-normal opacity-90">{invitationSentTitle.ko}</span>
+                                            <span className="block">{pickLabel(invitationSentTitle)}</span>
                                         </p>
                                     </div>
-                                    <p className="text-sm text-green-700 mt-2">
-                                        <span className="block">{renderEmailTemplate(invitationSentDesc.en)}</span>
-                                        <span className="block opacity-90">{renderEmailTemplate(invitationSentDesc.ko)}</span>
+                                    <p className="mt-2 text-sm text-green-700 dark:text-green-300">
+                                        <span className="block">{renderEmailTemplate(pickLabel(invitationSentDesc))}</span>
                                     </p>
                                 </div>
                                 <DialogFooter>
@@ -622,10 +618,7 @@ export default function Review({
                                         onClick={handleCloseModal}
                                         className="w-full"
                                     >
-                                        <span className="flex flex-col leading-tight">
-                                            <span>{doneLabel.en}</span>
-                                            <span className="text-xs opacity-80">{doneLabel.ko}</span>
-                                        </span>
+                                        {pickLabel(doneLabel)}
                                     </Button>
                                 </DialogFooter>
                             </div>
@@ -682,11 +675,23 @@ export default function Review({
                         {/* Alerts — above fold */}
                         {submitError && (
                             <div ref={submitErrorRef}>
+                                {(() => {
+                                    const submitFailedTitle = t(
+                                        'diagnosis_review.submitFailed',
+                                    );
+                                    const showDescription =
+                                        submitError.trim() &&
+                                        submitError.trim() !== submitFailedTitle.trim();
+                                    return (
                                 <Alert variant="destructive" className="mb-6">
                                     <AlertCircle className="h-4 w-4" />
-                                    <AlertTitle>{t('diagnosis_review.submitFailed')}</AlertTitle>
-                                    <AlertDescription>{submitError}</AlertDescription>
+                                    <AlertTitle>{submitFailedTitle}</AlertTitle>
+                                    {showDescription && (
+                                        <AlertDescription>{submitError}</AlertDescription>
+                                    )}
                                 </Alert>
+                                    );
+                                })()}
                             </div>
                         )}
                         {!projectId && diagnosisStatus !== 'submitted' && (
