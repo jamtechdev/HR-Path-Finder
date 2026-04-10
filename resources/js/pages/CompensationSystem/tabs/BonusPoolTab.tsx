@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTranslation } from 'react-i18next';
 import CompensationPageHeader from '../components/CompensationPageHeader';
 import type { BonusPoolConfiguration } from '../types';
 
@@ -192,6 +193,7 @@ interface BonusPoolTabProps {
 }
 
 export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {} }: BonusPoolTabProps) {
+    const { t } = useTranslation();
     const trigger = configuration.payment_trigger_condition || '';
     const method = configuration.bonus_pool_determination_method || '';
     const criteriaOptions = trigger ? CRITERIA_MAP[trigger] || [] : [];
@@ -297,10 +299,10 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
     return (
         <div className="space-y-0">
             <CompensationPageHeader
-                eyebrowTag="Compensation Structure"
-                stepLabel="Step 4 of 6 · Bonus Pool Configuration"
-                title="Bonus Pool Configuration"
-                description="Design the rules and allocation criteria for your bonus pool."
+                eyebrowTag={t('compensation_system.snapshot.header_eyebrow')}
+                stepLabel={t('compensation_system.step_labels.step4')}
+                title={t('compensation_system.tabs.bonus_pool')}
+                description={t('compensation_system.step_desc_bonus')}
                 completionPct={completionPct}
             />
             <FieldErrorMessage fieldKey="comp-bonus-pool" errors={fieldErrors} className="mt-4 px-1" />

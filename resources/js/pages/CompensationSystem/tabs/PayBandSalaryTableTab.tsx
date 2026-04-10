@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTranslation } from 'react-i18next';
 import CompensationPageHeader from '../components/CompensationPageHeader';
 import type {
     PayBand,
@@ -152,6 +153,7 @@ export default function PayBandSalaryTableTab({
     onRequestStructureSwitch,
     fieldErrors = {},
 }: PayBandSalaryTableTabProps) {
+    const { t } = useTranslation();
     const selectedStandard: 'pay_band' | 'salary_table' =
         salaryDeterminationStandard === 'salary_table' ? 'salary_table' : 'pay_band';
     const [activeType, setActiveType] = useState<'pay_band' | 'salary_table'>(
@@ -304,13 +306,13 @@ export default function PayBandSalaryTableTab({
     return (
         <div className="space-y-0">
             <CompensationPageHeader
-                eyebrowTag="Compensation Structure"
-                stepLabel="Step 3 of 6 · Pay Band / Salary Table"
-                title="Pay Band / Salary Table"
+                eyebrowTag={t('compensation_system.snapshot.header_eyebrow')}
+                stepLabel={t('compensation_system.step_labels.step3')}
+                title={t('compensation_system.tabs.pay_band_salary_table')}
                 description={
                     salaryDeterminationStandard === 'pay_band'
-                        ? 'Create and configure your pay band structure with visual representation.'
-                        : 'Create and configure your salary table structure.'
+                        ? t('compensation_system.step_desc_payband')
+                        : t('compensation_system.step_desc_salarytable')
                 }
                 completionPct={filledCount}
             />

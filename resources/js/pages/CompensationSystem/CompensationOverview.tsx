@@ -209,14 +209,14 @@ export default function CompensationOverview({
                                     className={cn(
                                         'flex-1 bg-white rounded-2xl border border-[#e2e8f0] p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 transition-all min-w-0',
                                         isActive && 'border-2 border-[#1e293b] shadow-lg',
-                                        !enabled && 'opacity-60 bg-[#fafafa]'
+                                        !enabled && 'bg-[#f8fafc] border-[#dbe2ea]'
                                     )}
                                 >
                                     <div className="min-w-0">
                                         <div
                                             className={cn(
                                                 'text-[11px] font-bold uppercase tracking-wider',
-                                                enabled ? 'text-[#b38e5d]' : 'text-[#cbd5e1]'
+                                                enabled ? 'text-[#b38e5d]' : 'text-[#94a3b8]'
                                             )}
                                         >
                                             STEP {index + 1} OF {STEPS.length}
@@ -224,7 +224,7 @@ export default function CompensationOverview({
                                         <div
                                             className={cn(
                                                 'text-2xl font-bold mt-2 flex items-center gap-3',
-                                                enabled ? 'text-[#1e293b]' : 'text-[#94a3b8]'
+                                                enabled ? 'text-[#1e293b]' : 'text-[#64748b]'
                                             )}
                                         >
                                             {step.icon}
@@ -233,7 +233,7 @@ export default function CompensationOverview({
                                         <p
                                             className={cn(
                                                 'text-base mt-2 mb-4',
-                                                enabled ? 'text-[#64748b]' : 'text-[#cbd5e1]'
+                                                enabled ? 'text-[#64748b]' : 'text-[#94a3b8]'
                                             )}
                                         >
                                             {t(step.descriptionKey)}

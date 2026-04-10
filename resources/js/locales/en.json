@@ -3328,6 +3328,15 @@
             "benefits": "Define benefits programs, strategic direction, and expense ratios.",
             "review": "Final review and submission of your compensation system."
         },
+        "step_labels": {
+            "step3": "Step 3 of 6 · Pay Band / Salary Table",
+            "step4": "Step 4 of 6 · Bonus Pool Configuration",
+            "step5": "Step 5 of 6 · Benefits Configuration"
+        },
+        "step_desc_payband": "Create and configure your pay band structure with visual representation.",
+        "step_desc_salarytable": "Create and configure your salary table structure.",
+        "step_desc_bonus": "Design the rules and allocation criteria for your bonus pool.",
+        "step_desc_benefits": "Diagnose current benefits and design future strategy based on industry benchmarking data.",
         "snapshot": {
             "header_eyebrow": "Compensation Structure",
             "header_step": "Strategic Compensation Snapshot",

@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTranslation } from 'react-i18next';
 import CompensationPageHeader from '../components/CompensationPageHeader';
 import type { BenefitsConfiguration } from '../types';
 
@@ -208,6 +209,7 @@ export default function BenefitsTab({
     snapshotBenefitsPrograms = [],
     fieldErrors = {},
 }: BenefitsTabProps) {
+    const { t } = useTranslation();
     const [selectedConcept, setSelectedConcept] = useState<
         { type: 'item'; item: BenefitItem } | { type: 'strat'; key: string } | null
     >(null);
@@ -418,10 +420,10 @@ export default function BenefitsTab({
     return (
         <div className="space-y-0">
             <CompensationPageHeader
-                eyebrowTag="Compensation Structure"
-                stepLabel="Step 5 of 6 · Benefits Configuration"
-                title="Benefits Configuration"
-                description="Diagnose current benefits and design future strategy based on industry benchmarking data."
+                eyebrowTag={t('compensation_system.snapshot.header_eyebrow')}
+                stepLabel={t('compensation_system.step_labels.step5')}
+                title={t('compensation_system.tabs.benefits')}
+                description={t('compensation_system.step_desc_benefits')}
                 completionPct={completionPct}
             />
             <FieldErrorMessage fieldKey="comp-benefits" errors={fieldErrors} className="mt-4 px-1" />

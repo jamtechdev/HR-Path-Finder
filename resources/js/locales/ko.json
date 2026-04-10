@@ -3318,7 +3318,7 @@
         "tabs": {
             "snapshot": "전략적 보상 스냅샷",
             "base_salary_framework": "기본급 프레임워크",
-            "pay_band_salary_table": "Pay Band / Salary Table",
+            "pay_band_salary_table": "페이 밴드 / 급여 테이블",
             "bonus_pool": "보너스 풀 설정",
             "benefits": "복리후생 설정",
             "review": "검토 및 제출"
@@ -3331,6 +3331,15 @@
             "benefits": "복리후생 프로그램, 전략 방향, 비용 비율을 정의합니다.",
             "review": "보상 시스템을 최종 검토하고 제출합니다."
         },
+        "step_labels": {
+            "step3": "6단계 중 3단계 · 페이 밴드 / 급여 테이블",
+            "step4": "6단계 중 4단계 · 보너스 풀 설정",
+            "step5": "6단계 중 5단계 · 복리후생 설정"
+        },
+        "step_desc_payband": "시각화와 함께 페이 밴드 구조를 생성하고 구성합니다.",
+        "step_desc_salarytable": "급여 테이블 구조를 생성하고 구성합니다.",
+        "step_desc_bonus": "보너스 풀의 규칙과 배분 기준을 설계합니다.",
+        "step_desc_benefits": "업계 벤치마킹 데이터를 기반으로 현재 복리후생을 진단하고 향후 전략을 설계합니다.",
         "snapshot": {
             "header_eyebrow": "보상 구조",
             "header_step": "전략적 보상 스냅샷",
