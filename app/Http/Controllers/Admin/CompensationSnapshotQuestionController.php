@@ -77,8 +77,8 @@ class CompensationSnapshotQuestionController extends Controller
         $validated = $request->validate([
             'question_text' => ['required', 'string'],
             'answer_type' => ['required', 'string', 'in:select_one,select_up_to_2,multiple,numeric,text'],
-            'options' => ['nullable', 'array', 'min:1'],
-            'options.*' => ['required', 'string'],
+            'options' => ['nullable', 'array'],
+            'options.*' => ['nullable', 'string'],
             'order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
             'version' => ['nullable', 'string'],
@@ -209,8 +209,8 @@ class CompensationSnapshotQuestionController extends Controller
         $validated = $request->validate([
             'question_text' => ['required', 'string'],
             'answer_type' => ['required', 'string', 'in:select_one,select_up_to_2,multiple,numeric,text'],
-            'options' => ['nullable', 'array', 'min:1'],
-            'options.*' => ['required', 'string'],
+            'options' => ['nullable', 'array'],
+            'options.*' => ['nullable', 'string'],
             'order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
             'version' => ['nullable', 'string'],

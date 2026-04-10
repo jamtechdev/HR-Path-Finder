@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useEffect } from 'react';
 import AppHeader from '@/components/Header/AppHeader';
+import AdminPagination from '@/components/Admin/AdminPagination';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -185,19 +186,7 @@ export default function IndustriesIndex({ categories }: Props) {
                                 </Card>
                             )}
                         </div>
-                        {categories.links && categories.links.length > 1 && (
-                            <div className="mt-4 flex flex-wrap justify-center gap-2 border-t pt-4">
-                                {categories.links.map((link, i) => (
-                                    <Link
-                                        key={i}
-                                        href={link.url || '#'}
-                                        className={link.active ? 'rounded border bg-primary px-3 py-1 text-primary-foreground' : 'rounded border px-3 py-1 hover:bg-muted'}
-                                    >
-                                        {link.label.replace('&laquo;', '«').replace('&raquo;', '»')}
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
+                        <AdminPagination links={categories.links} />
                     </div>
                 </main>
             </SidebarInset>

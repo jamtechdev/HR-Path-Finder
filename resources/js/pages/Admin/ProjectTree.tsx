@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import AppHeader from '@/components/Header/AppHeader';
+import AdminPagination from '@/components/Admin/AdminPagination';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import {
   AlertDialog,
@@ -170,19 +171,7 @@ export default function ProjectTree({ projects }: Props) {
                   </CardContent>
                 </Card>
               )}
-              {projects.links && projects.links.length > 1 && (
-                <div className="mt-4 flex flex-wrap justify-center gap-2 border-t pt-4">
-                  {projects.links.map((link, i) => (
-                    <Link
-                      key={i}
-                      href={link.url || '#'}
-                      className={link.active ? 'rounded border bg-primary px-3 py-1 text-primary-foreground' : 'rounded border px-3 py-1 hover:bg-muted'}
-                    >
-                      {link.label.replace('&laquo;', '«').replace('&raquo;', '»')}
-                    </Link>
-                  ))}
-                </div>
-              )}
+              <AdminPagination links={projects.links} />
             </div>
           </main>
         </SidebarInset>

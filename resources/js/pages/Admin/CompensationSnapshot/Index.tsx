@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import AppHeader from '@/components/Header/AppHeader';
+import AdminPagination from '@/components/Admin/AdminPagination';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ interface CompensationSnapshotQuestion {
 
 interface PaginatedQuestions {
     data: CompensationSnapshotQuestion[];
+    links?: { url: string | null; label: string; active: boolean }[];
     current_page: number;
     last_page: number;
     per_page: number;
@@ -128,7 +130,7 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <CardTitle>
-                                        {t('compensation_snapshot_index.questions_count', { count: questions.total })}
+                                        {t('compensation_snapshot_index.questions_count', { count: questions.data.length })}
                                     </CardTitle>
                                     <div className="relative w-64">
                                         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -201,20 +203,7 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
                                     </p>
                                     {searchTerm.trim() && <p className="text-xs text-muted-foreground">{t('compensation_snapshot_index.no_search_results')}</p>}
                                 </div>
-                                {questions && (questions.last_page > 1 || questions.prev_page_url || questions.next_page_url) && (
-                                    <div className="mt-4 flex flex-wrap justify-center gap-2">
-                                        {questions.prev_page_url && (
-                                            <Link href={questions.prev_page_url} className="rounded border px-3 py-1 hover:bg-muted">
-                                                Previous
-                                            </Link>
-                                        )}
-                                        {questions.next_page_url && (
-                                            <Link href={questions.next_page_url} className="rounded border px-3 py-1 hover:bg-muted">
-                                                Next
-                                            </Link>
-                                        )}
-                                    </div>
-                                )}
+                                <AdminPagination links={questions.links} className="border-0 pt-0" />
                             </CardContent>
                         </Card>
                     </div>

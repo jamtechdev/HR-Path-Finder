@@ -19,6 +19,8 @@ import {
     SidebarProvider,
 } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from '@/hooks/use-toast';
+import { toastCopy } from '@/lib/toastCopy';
 import { Head, router, useForm } from '@inertiajs/react';
 import { ChevronLeft } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
@@ -49,6 +51,17 @@ export default function CompensationSnapshotEdit({
     question,
     answerTypes,
 }: Props) {
+    const routeQuestionId = (() => {
+        if (typeof window === 'undefined') return null;
+        const match = window.location.pathname.match(
+            /\/admin\/compensation-snapshot\/(\d+)\/edit$/,
+        );
+        return match?.[1] ?? null;
+    })();
+
+    const effectiveQuestionId =
+        question?.id != null ? String(question.id) : routeQuestionId;
+
     const { t } = useTranslation();
     const [submitting, setSubmitting] = useState(false);
 
@@ -59,7 +72,7 @@ export default function CompensationSnapshotEdit({
     const [options, setOptions] = useState<string[]>(initialOptions);
     const [explanation, setExplanation] = useState<string>(initialExplanation);
 
-    const { data, setData, put, processing, errors, clearErrors } = useForm({
+    const { data, setData, processing, errors, clearErrors, setError } = useForm({
         question_text: question.question_text ?? '',
         answer_type: initialAnswerType,
         options: initialOptions,
@@ -168,22 +181,79 @@ export default function CompensationSnapshotEdit({
             ? data.is_active
             : Boolean(question.is_active);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         setSubmitting(true);
-        put(`/admin/compensation-snapshot/${question.id}`, {
-            preserveScroll: true,
-            onSuccess: () => {
-                router.visit('/admin/compensation-snapshot');
-            },
-            onError: () => {
-                setSubmitting(false);
-            },
-            onFinish: () => {
-                setSubmitting(false);
-            },
-        });
+
+        try {
+            const csrf =
+                (document
+                    .querySelector('meta[name="csrf-token"]')
+                    ?.getAttribute('content') as string | null) || '';
+
+            const payload = {
+                question_text: data.question_text,
+                answer_type: answerType,
+                options: requiresOptions ? options : [],
+                is_active: data.is_active,
+                version: data.version || null,
+                metadata: explanation ? { explanation } : null,
+            };
+
+            if (!effectiveQuestionId) {
+                toast({
+                    title: toastCopy.error,
+                    description: 'Missing question ID for update.',
+                    variant: 'destructive',
+                });
+                return;
+            }
+
+            const res = await fetch(
+                `/admin/compensation-snapshot/${effectiveQuestionId}/update-data`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrf,
+                    },
+                    body: JSON.stringify(payload),
+                },
+            );
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                if (data?.errors && typeof data.errors === 'object') {
+                    Object.entries(data.errors).forEach(([field, msg]) => {
+                        const message = Array.isArray(msg) ? msg[0] : String(msg);
+                        setError(field as any, message);
+                    });
+                } else {
+                    toast({
+                        title: toastCopy.error,
+                        description: 'Failed to update question.',
+                        variant: 'destructive',
+                    });
+                }
+                return;
+            }
+
+            toast({
+                title: toastCopy.success,
+                description: 'Question updated successfully.',
+            });
+            router.visit('/admin/compensation-snapshot');
+        } catch {
+            toast({
+                title: toastCopy.error,
+                description: 'Network error while updating question.',
+                variant: 'destructive',
+            });
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
