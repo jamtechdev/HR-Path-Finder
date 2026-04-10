@@ -93,6 +93,13 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
         if (confirm(t('compensation_snapshot_index.confirm_delete'))) {
             router.delete(`/admin/compensation-snapshot/${questionId}`, {
                 preserveScroll: true,
+                onSuccess: () => {
+                    setLocalQuestions(prev => prev.filter(q => q.id !== questionId));
+                    toast({ title: toastCopy.success, description: 'Question deleted successfully.' });
+                },
+                onError: () => {
+                    toast({ title: toastCopy.error, description: 'Failed to delete question.', variant: 'destructive' });
+                },
             });
         }
     };

@@ -1,5 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, Save } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -33,6 +34,7 @@ interface Ceo {
     name: string;
     email: string;
     companies: Company[];
+    profile_photo_path?: string | null;
 }
 
 interface Props {
@@ -42,16 +44,21 @@ interface Props {
 
 export default function Edit({ ceo, companies }: Props) {
     const { t } = useTranslation();
+    const [previewUrl, setPreviewUrl] = useState<string | null>(
+        ceo.profile_photo_path ? `/storage/${ceo.profile_photo_path}` : null
+    );
     const { data, setData, put, processing, errors, clearErrors } = useForm({
         name: ceo.name,
         email: ceo.email,
         company_id: ceo.companies?.[0]?.id ?? null,
+        profile_photo: null as File | null,
     });
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
-
-        put(`/admin/ceos/${ceo.id}`);
+        put(`/admin/ceos/${ceo.id}`, {
+            forceFormData: true,
+        });
     }
 
     return (
@@ -91,9 +98,10 @@ export default function Edit({ ceo, companies }: Props) {
 
                                         <Input
                                             value={data.name}
-                                            onChange={(e) =>
-                                                setData('name', e.target.value)
-                                            }
+                                            onChange={(e) => {
+                                                setData('name', e.target.value);
+                                                clearInertiaFieldError(clearErrors, 'name');
+                                            }}
                                         />
 
                                         {errors.name && (
@@ -108,9 +116,10 @@ export default function Edit({ ceo, companies }: Props) {
 
                                         <Input
                                             value={data.email}
-                                            onChange={(e) =>
-                                                setData('email', e.target.value)
-                                            }
+                                            onChange={(e) => {
+                                                setData('email', e.target.value);
+                                                clearInertiaFieldError(clearErrors, 'email');
+                                            }}
                                         />
 
                                         {errors.email && (
@@ -163,6 +172,32 @@ export default function Edit({ ceo, companies }: Props) {
                                                 ))}
                                             </SelectContent>
                                         </Select>
+                                    </div>
+
+                                    <div>
+                                        <Label>Profile Photo</Label>
+                                        {previewUrl && (
+                                            <img
+                                                src={previewUrl}
+                                                alt="Profile"
+                                                className="mt-2 mb-2 h-20 w-20 rounded-full object-cover border"
+                                            />
+                                        )}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0] ?? null;
+                                                setData('profile_photo', file);
+                                                if (file) {
+                                                    setPreviewUrl(URL.createObjectURL(file));
+                                                }
+                                            }}
+                                            className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
+                                        />
+                                        {errors.profile_photo && (
+                                            <p className="text-sm text-red-500">{errors.profile_photo}</p>
+                                        )}
                                     </div>
 
                                     <div className="flex justify-end">

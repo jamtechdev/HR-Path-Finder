@@ -194,16 +194,15 @@ class CeoController extends Controller
 
         $previousEmail = $user->email;
 
-        $data = $request->validated();
         $user->fill([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'phone' => $data['phone'] ?? null,
-            'address' => $data['address'] ?? null,
-            'city' => $data['city'] ?? null,
-            'state' => $data['state'] ?? null,
-            'latitude' => $data['latitude'] ?? null,
-            'longitude' => $data['longitude'] ?? null,
+            'name'      => $request->name,
+            'email'     => $request->email,
+            'phone'     => $request->phone,
+            'address'   => $request->address,
+            'city'      => $request->city,
+            'state'     => $request->state,
+            'latitude'  => $request->latitude,
+            'longitude' => $request->longitude,
         ]);
 
         if ($request->hasFile('profile_photo')) {
@@ -289,13 +288,19 @@ class CeoController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email',
-            'company_id' => 'nullable|exists:companies,id'
+            'company_id' => 'nullable|exists:companies,id',
+            'profile_photo' => ['nullable', 'image', 'max:2048'],
         ]);
 
-        $ceo->update([
-            'name' => $request->name,
-            'email' => $request->email,
-        ]);
+        $ceo->name = $request->name;
+        $ceo->email = $request->email;
+
+        if ($request->hasFile('profile_photo')) {
+            $path = $request->file('profile_photo')->store('profile-photos', 'public');
+            $ceo->profile_photo_path = $path;
+        }
+
+        $ceo->save();
 
         if ($request->company_id) {
             $ceo->companies()->sync([$request->company_id]);
