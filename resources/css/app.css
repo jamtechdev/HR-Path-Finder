@@ -1366,6 +1366,95 @@
     color: #94a3b8;
 }
 
+.dark .eval-structure-page .section-progress,
+.dark .eval-structure-page .summary-card,
+.dark .eval-structure-page .sentence-card,
+.dark .eval-structure-page .progress-card,
+.dark .eval-structure-page .evaluator-sub-inner,
+.dark .eval-structure-page .dist-wrap {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+.dark .eval-structure-page .sum-key,
+.dark .eval-structure-page .sent-label,
+.dark .eval-structure-page .prog-label,
+.dark .eval-structure-page .sub-label,
+.dark .eval-structure-page .bb-l {
+    color: #94a3b8;
+}
+
+.dark .eval-structure-page .sum-val,
+.dark .eval-structure-page .sent-txt,
+.dark .eval-structure-page .prog-done,
+.dark .eval-structure-page .bb-l strong,
+.dark .eval-structure-page .etc-label {
+    color: #e2e8f0;
+}
+
+.dark .eval-structure-page .sum-val.empty,
+.dark .eval-structure-page .prog-total,
+.dark .eval-structure-page .sent-blank {
+    color: #64748b;
+}
+
+.dark .eval-structure-page .prog-bar-track {
+    background: #1e293b;
+}
+
+.dark .eval-structure-page .etc-check-row {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+.dark .eval-structure-page .etc-check-row:hover {
+    border-color: #475569;
+}
+
+.dark .eval-structure-page .etc-input {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-color: #334155;
+}
+
+.dark .eval-structure-page .btn-save {
+    color: #e2e8f0;
+    border-color: #334155;
+    background: #0f172a;
+}
+
+.dark .eval-structure-page .btn-save:hover {
+    border-color: #475569;
+    color: #f8fafc;
+}
+
+.dark .eval-structure-page .btn-next {
+    background: #1d4ed8;
+}
+
+.dark .eval-structure-page .btn-next:hover {
+    background: #2563eb;
+}
+
+.dark .eval-structure-page .es-bottom-bar {
+    background: rgba(2, 6, 23, .95);
+    border-top-color: #334155;
+}
+
+@media (max-width: 1024px) {
+    .eval-structure-page .es-bottom-bar {
+        padding: 10px 14px;
+    }
+    .eval-structure-page .bb-l {
+        font-size: 11px;
+    }
+    .eval-structure-page .btn-next,
+    .eval-structure-page .btn-save {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
+
 .dark .review-submit-page {
     background: #020617 !important;
     color: #e2e8f0;
@@ -1393,6 +1482,113 @@
 .dark .review-submit-page .model-summary-line,
 .dark .review-submit-page .bb-l {
     color: #94a3b8;
+}
+
+.dark .review-submit-page .rs-sub {
+    color: #cbd5e1;
+}
+
+.dark .review-submit-page .snap-table tr,
+.dark .review-submit-page .kpi-mini-table th,
+.dark .review-submit-page .kpi-mini-table td,
+.dark .review-submit-page .model-matrix-row,
+.dark .review-submit-page .model-matrix-row .model-card {
+    border-color: #334155;
+}
+
+.dark .review-submit-page .snap-table td:first-child,
+.dark .review-submit-page .kpi-mini-table th,
+.dark .review-submit-page .model-matrix-row .model-card .model-fit,
+.dark .review-submit-page .chip.empty {
+    background: #111c33;
+}
+
+.dark .review-submit-page .snap-table td:last-child,
+.dark .review-submit-page .kpi-mini-table td,
+.dark .review-submit-page .dist-legend-item,
+.dark .review-submit-page .model-matrix-row .model-card .model-desc,
+.dark .review-submit-page .model-matrix-row .model-card .model-fit,
+.dark .review-submit-page .model-matrix-row .model-card .model-badge {
+    color: #cbd5e1;
+}
+
+.dark .review-submit-page .persona-banner {
+    background: linear-gradient(135deg, rgba(15,23,42,.9) 0%, rgba(30,41,59,.9) 100%);
+    border-bottom-color: #334155;
+}
+
+.dark .review-submit-page .kpi-mini-table tr:hover td {
+    background: #17243d;
+}
+
+.dark .review-submit-page .demo-warning-bar {
+    background: #3a2a05;
+    border-bottom-color: #7c5a10;
+    color: #fcd34d;
+}
+
+.dark .review-submit-page .chip.green {
+    background: rgba(16, 185, 129, 0.18);
+    color: #6ee7b7;
+    border-color: rgba(16, 185, 129, 0.45);
+}
+
+.dark .review-submit-page .chip.blue {
+    background: rgba(59, 130, 246, 0.18);
+    color: #93c5fd;
+    border-color: rgba(59, 130, 246, 0.45);
+}
+
+.dark .review-submit-page .chip.amber {
+    background: rgba(245, 158, 11, 0.18);
+    color: #fcd34d;
+    border-color: rgba(245, 158, 11, 0.45);
+}
+
+.dark .review-submit-page .chip.navy {
+    background: #1e293b;
+    color: #e2e8f0;
+    border-color: #334155;
+}
+
+.dark .review-submit-page .chip.red {
+    background: rgba(239, 68, 68, 0.18);
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.45);
+}
+
+.dark .review-submit-page .persona-tag.t-mint {
+    background: rgba(16, 185, 129, 0.18);
+    color: #6ee7b7;
+    border-color: rgba(16, 185, 129, 0.45);
+}
+
+.dark .review-submit-page .persona-tag.t-blue {
+    background: rgba(59, 130, 246, 0.18);
+    color: #93c5fd;
+    border-color: rgba(59, 130, 246, 0.45);
+}
+
+.dark .review-submit-page .persona-tag.t-amber {
+    background: rgba(245, 158, 11, 0.18);
+    color: #fcd34d;
+    border-color: rgba(245, 158, 11, 0.45);
+}
+
+.dark .review-submit-page .persona-tag.t-red {
+    background: rgba(239, 68, 68, 0.18);
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.45);
+}
+
+.dark .review-submit-page .persona-tag.t-navy {
+    background: #1e293b;
+    color: #e2e8f0;
+    border-color: #334155;
+}
+
+.dark .review-submit-page .bottom-bar {
+    background: rgba(2, 6, 23, 0.96);
 }
 .eval-structure-page .sum-val.filled { color: #fff; }
 .eval-structure-page .sentence-card {

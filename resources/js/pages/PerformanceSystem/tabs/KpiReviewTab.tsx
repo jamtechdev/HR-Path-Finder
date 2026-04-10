@@ -680,7 +680,7 @@ export default function KpiReviewTab({
                     </div>
                 </DialogContent>
             </Dialog>
-            <div className="flex-1 min-h-0 flex gap-6 md:p-6 flex-col md:flex-row max-w-[1400px] mx-auto w-full overflow-auto">
+            <div className="flex-1 min-h-0 flex gap-6 p-3 sm:p-4 lg:p-6 flex-col lg:flex-row max-w-[1400px] mx-auto w-full overflow-x-hidden">
                 {/* Left: Main content */}
                 <div className="flex-1 min-w-0 space-y-4">
                     <Card className="overflow-hidden rounded-xl border border-[#e2e6ed] bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
@@ -700,7 +700,7 @@ export default function KpiReviewTab({
                             </div>
                             {/* Top row: Organization, Leader, KPI Count */}
                             <div className="flex flex-wrap items-center gap-4 mb-4">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 min-w-0">
                                     <Label className="text-sm font-semibold text-[#1a2b4a] dark:text-slate-100">{t('performance_system_kpi_review.organization')}</Label>
                                     <Select value={selectedOrg} onValueChange={setSelectedOrg}>
                                         <SelectTrigger className="w-[280px] max-w-full border-[#e2e6ed] rounded-lg h-10">
@@ -966,7 +966,9 @@ export default function KpiReviewTab({
                                                             <Badge className="bg-[#7c3aed] text-white text-xs font-semibold rounded-full border-0">Recommended</Badge>
                                                             <Badge className="bg-[#e8faf6] text-[#2ec4a0] text-xs font-semibold rounded-full border-0">{(kpi.category || 'Monthly')}</Badge>
                                                         </div>
-                                                        <h3 className="mb-1 text-lg font-bold text-[#1a2b4a] dark:text-slate-100">{kpi.kpi_name || t('performance_system_kpi_review.untitled_kpi')}</h3>
+                                                        <h3 className="mb-1 break-words text-lg font-bold text-[#1a2b4a] dark:text-slate-100">
+                                                            {kpi.kpi_name || t('performance_system_kpi_review.untitled_kpi')}
+                                                        </h3>
                                                         <div className="mb-2 inline-block rounded-full bg-[#f0f2f5] px-3 py-1.5 text-sm text-[#6b7685] dark:bg-slate-800 dark:text-slate-300">
                                                             {formulaText}
                                                         </div>
@@ -975,7 +977,7 @@ export default function KpiReviewTab({
                                                             <span>{t('performance_system_kpi_review.weight_label', { weight: kpi.weight ?? 0 })}</span>
                                                         </p>
                                                     </div>
-                                                    <div className="flex flex-col gap-2 shrink-0">
+                                                    <div className="flex flex-row gap-2 shrink-0 sm:flex-col">
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
@@ -1058,7 +1060,7 @@ export default function KpiReviewTab({
                 </div>
 
                 {/* Right: Validation Guide + Tips */}
-                <div className="w-[320px] shrink-0 space-y-4">
+                <div className="w-full lg:w-[320px] shrink-0 space-y-4">
                     <Card className="overflow-hidden rounded-xl border border-[#e2e6ed] bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                         <CardContent className="p-5">
                             <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-[#0f2a4a] dark:text-slate-100">

@@ -3056,6 +3056,115 @@
         "weight_percent": "가중치 (%)",
         "purpose": "목적"
     },
+    "performance_system_review_submit": {
+        "step_eyebrow": "5단계 중 5단계 - 최종 검토",
+        "title": "최종 설계 검토",
+        "subtitle": "아래 단계별 설정을 검토하세요. 제출 전에 \"Go Back\"으로 각 섹션을 수정할 수 있습니다.",
+        "save_pdf": "PDF 저장",
+        "go_back": "뒤로가기",
+        "missing_error": "제출 전에 모든 단계를 완료해 주세요. 누락: {{steps}}",
+        "diagnosis_keywords": "진단 키워드",
+        "demo_warning": "데모 데이터가 표시됩니다 - 저장 후 실제 설문 응답으로 교체됩니다",
+        "total_orgs": "총 조직 수",
+        "total_kpis": "총 KPI 수",
+        "assigned_roles": "할당됨",
+        "unassigned_count": "{{count}}개 미할당",
+        "all_roles_assigned": "모든 역할 할당 완료",
+        "assigned_roles_count": "할당 역할 ({{count}})",
+        "yes_conducted": "예 - 수행",
+        "no_individual_only": "아니오 - 개인평가만",
+        "ind_grade_distribution": "개인평가 등급 분포",
+        "absolute_note": "절대평가 - 사전 분포 없이 평가자가 기준에 따라 독립적으로 등급을 부여합니다.",
+        "complete_step4": "여기에서 설정을 보려면 4단계(평가 구조)를 완료하세요.",
+        "submit_draft": "초안 제출",
+        "table": {
+            "organization": "조직",
+            "kpi_count": "KPI 수",
+            "leader": "리더",
+            "review_status": "검토 상태"
+        },
+        "status": {
+            "confirmed": "확정",
+            "email_sent": "이메일 전송",
+            "in_review": "검토 중",
+            "not_started": "시작 전"
+        },
+        "sections": {
+            "snapshot": {
+                "step": "1단계 - 정책 스냅샷",
+                "title": "전략적 성과 스냅샷",
+                "desc": "성과관리 철학 및 현재 상태 진단"
+            },
+            "kpi": {
+                "step": "2단계 - 조직 KPI",
+                "title": "조직 KPI 검토",
+                "desc": "조직 단위 KPI 설정 현황"
+            },
+            "model": {
+                "step": "3단계 - 목표관리 모델링",
+                "title": "목표관리 모델 할당",
+                "desc": "모델별 역할 할당 - MBO - OKR - BSC"
+            },
+            "structure": {
+                "step": "4단계 - 평가 프로세스",
+                "title": "평가 구조",
+                "desc": "평가 주기, 방식 및 등급 분포"
+            }
+        },
+        "eval_rows": {
+            "org_evaluation": "조직평가",
+            "org_cycle": "조직평가 주기",
+            "org_evaluator": "조직평가자",
+            "org_method": "조직평가 방식",
+            "org_result_usage": "조직 결과 활용",
+            "ind_cycle": "개인평가 주기",
+            "evaluators": "평가자",
+            "ind_method": "개인평가 방식",
+            "ind_result_usage": "개인 결과 활용"
+        },
+        "expert_review": {
+            "label": "다음 단계 - 전문가 검토",
+            "title": "제출 후 HR 컨설턴트가 설계를 검토합니다",
+            "desc": "작성한 초안을 바탕으로 HR Path-Finder 전문가가 조직 현실 적합성을 검토하고 필요한 개선안을 제안합니다. 최종 성과관리 체계는 협업 검토 과정을 통해 확정됩니다.",
+            "step1": "초안 제출",
+            "step2": "컨설턴트 검토 (2-3일)",
+            "step3": "논의 및 조정",
+            "step4": "최종 확정 및 리포트"
+        },
+        "bottom": {
+            "review_submit": "검토 및 제출",
+            "step_5_5": "5단계 중 5단계"
+        },
+        "persona": {
+            "Results-Oriented": "성과 중심",
+            "Performance Culture": "성과 문화",
+            "Moderate Pay Differentiation": "보상 차등 중간 수준",
+            "Manager Bias Risk": "관리자 편향 위험",
+            "Comp Linkage Weak": "보상 연계 약함",
+            "Goal Clarity Needed": "목표 명확화 필요",
+            "Configuration in progress": "설정 진행 중"
+        },
+        "models": {
+            "mbo": {
+                "badge": "성과 중심",
+                "title": "목표관리(MBO)",
+                "desc": "명확한 정량 목표를 설정하고 달성률로 평가합니다.",
+                "fit": "수치 KPI가 명확한 직무에 적합 - 영업, 운영"
+            },
+            "okr": {
+                "badge": "도전 중심",
+                "title": "OKR(Objectives & Key Results)",
+                "desc": "도전적 목표와 측정 가능한 핵심결과를 연결합니다.",
+                "fit": "창의/전략 직무에 적합 - R&D, 전략, 엔지니어링"
+            },
+            "bsc": {
+                "badge": "균형형",
+                "title": "균형성과표(BSC)",
+                "desc": "4개 관점으로 성과를 균형 있게 측정합니다.",
+                "fit": "지원 직무에 적합 - HR, 재무, 기획"
+            }
+        }
+    },
     "performance_system_index": {
         "title": "성과 시스템",
         "brand": "HR Path-Finder",
@@ -3118,6 +3227,143 @@
                 "structure": "평가 구조와 평가 방법을 설정합니다",
                 "review": "성과 시스템을 최종 검토하고 제출합니다"
             }
+        }
+    },
+    "performance_system_model_assignment": {
+        "title": "평가 모델 할당",
+        "subtitle": "각 직무에 성과관리 모델을 선택하세요. 아래 모델 카드를 참고할 수 있습니다.",
+        "bulk_assign": "일괄 할당",
+        "all_roles": "전체 역할",
+        "select_model": "모델 선택",
+        "table": {
+            "job_role": "직무",
+            "linked_kpi": "연결 KPI",
+            "performance_model": "성과 모델"
+        },
+        "no_kpi_linked": "연결된 KPI 없음",
+        "assigned_mapping_summary": "할당 요약",
+        "unassigned": "미할당",
+        "model_selection_guide": "모델 선택 가이드",
+        "recommended": "권장",
+        "same_model": "동일 모델",
+        "guide_note_1": "팀 내",
+        "guide_note_2": "을 사용하면 운영 일관성이 높아집니다. 일괄 할당으로 빠르게 적용하세요.",
+        "assigned": "할당됨",
+        "roles": "역할",
+        "continue_to_structure": "평가 구조로 계속",
+        "modal": {
+            "key_features": "핵심 특징",
+            "best_suited_for": "적합한 조직/직무",
+            "example_structure": "예시 구조",
+            "linked_org_kpis": "연결된 조직 KPI"
+        }
+    },
+    "performance_system_evaluation_structure": {
+        "title": "평가 구조",
+        "step_4_5": "— 5단계 중 4단계",
+        "org_evaluation": "조직 평가",
+        "individual_evaluation": "개인 평가",
+        "org_run_question": "조직평가를 실시하겠습니까?",
+        "yes_org_level": "예 — 조직 단위 평가 진행",
+        "no_skip_individual": "아니오 — 개인 평가로 바로 진행",
+        "who_evaluates": "평가 주체",
+        "evaluators": "평가자",
+        "evaluation_method": "평가 방식",
+        "how_org_score_used": "조직 점수 활용 방식",
+        "how_individual_score_used": "개인 점수 활용 방식",
+        "other_usage": "+ 기타 활용(직접 입력)",
+        "describe_other_usage": "기타 활용 방식을 입력하세요...",
+        "configuration_summary": "설정 요약",
+        "plain_summary": "문장 요약",
+        "completion": "완료도",
+        "continue_to_review": "검토로 계속"
+    },
+    "compensation_system": {
+        "title": "보상 시스템",
+        "back_to_dashboard": "대시보드로 돌아가기",
+        "ready_for_review": "검토 준비 완료",
+        "stage_4_5": "● 5단계 중 4단계 — 보상 시스템",
+        "overview_title": "보상 시스템 개요",
+        "overview_desc": "보상 구조, 차등화 방식, 인센티브 요소를 정의합니다. 각 단계를 순서대로 완료하여 컨설턴트 검토가 가능한 보상/복리후생 프레임워크를 구성하세요.",
+        "before_begin": "시작 전 안내",
+        "before_begin_desc": "이 단계는 직무분석과 성과시스템 결과를 기반으로 합니다. 보상 스냅샷 응답은 기본급 체계와 이후 단계 설계에 활용됩니다. 정답/오답은 없으며, 입력값은 보상 설계를 위한 기준 데이터로 사용됩니다. 모든 입력은 기밀로 처리됩니다.",
+        "steps_done": "완료 단계",
+        "steps_completed": "단계 완료",
+        "overall_progress": "전체 진행률",
+        "estimated_total": "예상 총 소요 ~{{minutes}}분",
+        "estimated_min": "약 {{minutes}}분",
+        "complete_step_first": "{{step}}단계를 먼저 완료하세요",
+        "ready_to_start": "시작 준비 완료",
+        "start": "시작",
+        "review": "검토",
+        "locked": "잠김",
+        "of_steps_completed": "{{total}}단계 중 완료",
+        "start_design": "설계 시작",
+        "consultant_recommendation": "컨설턴트 추천",
+        "consultant_recommendation_desc": "성과 시스템 선택과 회사 상황을 기반으로 컨설턴트 추천이 준비되었습니다.",
+        "view_consultant_rationale": "컨설턴트 근거 보기",
+        "performance_system_readonly": "성과 시스템 (읽기 전용)",
+        "method": "방법",
+        "unit": "단위",
+        "submitting": "제출 중...",
+        "submit_lock_step4": "제출 및 4단계 잠금",
+        "submitted_title": "보상 시스템 제출 완료",
+        "submitted_title_ko": "보상 시스템 제출이 완료되었습니다",
+        "submitted_desc": "4단계가 완료되었습니다. 컨설턴트 검토 후 CEO가 승인할 수 있습니다.",
+        "submitted_desc_ko": "4단계가 완료되었습니다. 컨설턴트가 검토하고 CEO가 승인할 수 있습니다.",
+        "go_dashboard": "대시보드로 이동",
+        "validation": {
+            "complete_previous": "\"{{step}}\" 단계를 완료해야 탭을 열 수 있습니다."
+        },
+        "tabs": {
+            "snapshot": "전략적 보상 스냅샷",
+            "base_salary_framework": "기본급 프레임워크",
+            "pay_band_salary_table": "Pay Band / Salary Table",
+            "bonus_pool": "보너스 풀 설정",
+            "benefits": "복리후생 설정",
+            "review": "검토 및 제출"
+        },
+        "step_desc": {
+            "snapshot": "회사 보상 철학과 현재 접근 방식에 대한 질문에 답변합니다.",
+            "base_salary_framework": "급여 구조 유형, 조정 단위, 주기, 성과 연계를 정의합니다.",
+            "pay_band_salary_table": "직급/레벨별 페이밴드 또는 급여표를 구성합니다.",
+            "bonus_pool": "보너스 풀 산정, 대상, 배분 규칙을 설정합니다.",
+            "benefits": "복리후생 프로그램, 전략 방향, 비용 비율을 정의합니다.",
+            "review": "보상 시스템을 최종 검토하고 제출합니다."
+        },
+        "snapshot": {
+            "header_eyebrow": "보상 구조",
+            "header_step": "전략적 보상 스냅샷",
+            "header_title": "전략적 보상 스냅샷",
+            "header_desc": "현재 보상 접근을 이해할 수 있도록 아래 질문에 답변해 주세요.",
+            "placeholder_zero": "0.00",
+            "job_function": "직무 기능",
+            "amount_krw": "금액 (원)",
+            "add_function": "기능 추가",
+            "overall": "전체",
+            "years_1_3": "1–3년",
+            "years_4_7": "4–7년",
+            "years_8_12": "8–12년",
+            "years_13_17": "13–17년",
+            "years_18_20": "18–20년",
+            "based_on_q17": "17번 질문 선택을 기준으로",
+            "choose_two_least_effective": "효과가 가장 낮은 2개 프로그램을 선택하세요.",
+            "no_predefined_options": "사전 정의 옵션이 없습니다. 19번 질문에서 서술형으로 입력해 주세요.",
+            "enter_least_effective": "효과가 가장 낮은 프로그램을 입력하세요...",
+            "select_q17_first": "먼저 17번 질문에서 복리후생 프로그램을 선택해 주세요.",
+            "enter_amount_krw": "금액 입력 (원)",
+            "enter_response": "응답을 입력하세요",
+            "no_questions": "질문이 없습니다",
+            "no_questions_desc": "보상 스냅샷 질문이 아직 설정되지 않았습니다. 관리자에게 설정을 요청해 주세요.",
+            "step_purpose": "단계 목적",
+            "step_purpose_desc": "현재 보상 접근 이해",
+            "purpose_body": "이 단계에서는 보상 철학, 급여 수준, 보너스 구조, 복리후생 프로그램 등 회사의 현재 보상 접근 전반을 입력합니다.",
+            "used_for": "이 정보는 다음에 활용됩니다:",
+            "used_for_1": "현재 보상 전략 파악",
+            "used_for_2": "개선 영역 식별",
+            "used_for_3": "보상 프레임워크 추천 생성",
+            "used_for_4": "후속 단계 자동 입력",
+            "question_explanations": "질문 설명"
         }
     }
 }

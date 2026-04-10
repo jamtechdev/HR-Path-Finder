@@ -11,13 +11,14 @@ import {
     DollarSign,
 } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface StepConfig {
     id: string;
-    name: string;
-    description: string;
+    nameKey: string;
+    descriptionKey: string;
     icon: React.ReactNode;
     route: string;
     estMin: number;
@@ -33,48 +34,48 @@ interface Props {
 const STEPS: StepConfig[] = [
     {
         id: 'snapshot',
-        name: 'Strategic Compensation Snapshot',
-        description: 'Answer questions about your company\'s compensation philosophy and current approach.',
+        nameKey: 'compensation_system.tabs.snapshot',
+        descriptionKey: 'compensation_system.step_desc.snapshot',
         icon: <FileText className="w-5 h-5" />,
         route: 'snapshot',
         estMin: 5,
     },
     {
         id: 'base-salary-framework',
-        name: 'Base Salary Framework',
-        description: 'Define salary structure type, adjustment unit, cycle, and performance linkage.',
+        nameKey: 'compensation_system.tabs.base_salary_framework',
+        descriptionKey: 'compensation_system.step_desc.base_salary_framework',
         icon: <Settings className="w-5 h-5" />,
         route: 'base-salary-framework',
         estMin: 4,
     },
     {
         id: 'pay-band-salary-table',
-        name: 'Pay Band / Salary Table',
-        description: 'Configure pay bands or salary tables by job grade and level.',
+        nameKey: 'compensation_system.tabs.pay_band_salary_table',
+        descriptionKey: 'compensation_system.step_desc.pay_band_salary_table',
         icon: <TrendingUp className="w-5 h-5" />,
         route: 'pay-band-salary-table',
         estMin: 5,
     },
     {
         id: 'bonus-pool',
-        name: 'Bonus Pool Configuration',
-        description: 'Set bonus pool determination, eligibility, and allocation rules.',
+        nameKey: 'compensation_system.tabs.bonus_pool',
+        descriptionKey: 'compensation_system.step_desc.bonus_pool',
         icon: <Award className="w-5 h-5" />,
         route: 'bonus-pool',
         estMin: 4,
     },
     {
         id: 'benefits',
-        name: 'Benefits Configuration',
-        description: 'Define benefits programs, strategic direction, and expense ratios.',
+        nameKey: 'compensation_system.tabs.benefits',
+        descriptionKey: 'compensation_system.step_desc.benefits',
         icon: <Users className="w-5 h-5" />,
         route: 'benefits',
         estMin: 4,
     },
     {
         id: 'review',
-        name: 'Review & Submit',
-        description: 'Final review and submission of your compensation system.',
+        nameKey: 'compensation_system.tabs.review',
+        descriptionKey: 'compensation_system.step_desc.review',
         icon: <Rocket className="w-5 h-5" />,
         route: 'review',
         estMin: 2,
@@ -89,6 +90,7 @@ export default function CompensationOverview({
     completedSteps = new Set(),
     onStepClick,
 }: Props) {
+    const { t } = useTranslation();
     const compensationStatus = stepStatuses?.compensation || 'not_started';
     const isInProgress = compensationStatus === 'in_progress';
     const isSubmitted = ['submitted', 'approved', 'locked'].includes(compensationStatus);
@@ -113,20 +115,20 @@ export default function CompensationOverview({
 
     const statusLabel =
         isSubmitted
-            ? 'SUBMITTED'
+            ? t('performance_system_index.status.submitted')
             : isInProgress
-              ? 'IN PROGRESS'
+              ? t('performance_system_index.status.in_progress')
               : completedCount === STEPS.length
-                ? 'READY FOR REVIEW'
-                : 'NOT STARTED';
+                ? t('compensation_system.ready_for_review')
+                : t('performance_system_index.status.not_started');
 
     return (
-        <div className="min-h-full flex flex-col bg-[#f5f3ef] text-[#1e293b]">
+        <div className="min-h-full flex flex-col bg-[#f5f3ef] text-[#1e293b] dark:bg-slate-950 dark:text-slate-100">
             {/* Hero Section - same dark theme as Job Analysis */}
             <section className="flex-shrink-0 bg-[#0f172a] text-white px-6 py-10 pb-20 md:px-[10%]">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
                     <div className="font-bold text-lg">
-                        HR Path-Finder <span className="font-normal text-[#64748b] ml-2">/ Compensation System</span>
+                        HR Path-Finder <span className="font-normal text-[#64748b] ml-2">/ {t('compensation_system.title')}</span>
                     </div>
                     <div className="bg-white/10 border border-white/20 px-3 py-1 rounded-[20px] text-xs text-[#94a3b8]">
                         {statusLabel}
@@ -134,38 +136,35 @@ export default function CompensationOverview({
                 </div>
 
                 <div className="text-[#b38e5d] uppercase text-xs font-bold tracking-wider mb-1">
-                    ● STAGE 4 OF 5 — COMPENSATION SYSTEM
+                    {t('compensation_system.stage_4_5')}
                 </div>
-                <h1 className="text-3xl md:text-4xl font-bold mt-2 mb-2">Compensation System Overview</h1>
+                <h1 className="text-3xl md:text-4xl font-bold mt-2 mb-2">{t('compensation_system.overview_title')}</h1>
                 <p className="text-[#94a3b8] max-w-[600px] leading-relaxed">
-                    Define compensation structure, differentiation methods, and incentive components. Complete each step in
-                    sequence to build a consultant-ready compensation and benefits framework.
+                    {t('compensation_system.overview_desc')}
                 </p>
 
                 {/* Before you begin */}
                 <div className="mt-6 p-5 rounded-xl bg-white/5 border border-white/10 max-w-[720px]">
                     <div className="text-[11px] font-bold uppercase tracking-wider text-[#b38e5d] mb-2">
-                        Before you begin
+                        {t('compensation_system.before_begin')}
                     </div>
                     <p className="text-[#e2e8f0] text-sm leading-relaxed m-0">
-                        This stage builds on your job analysis and performance system. Your compensation snapshot answers
-                        will be used to tailor the base salary framework and subsequent steps. There are no right or wrong
-                        answers—your responses are baseline inputs for the compensation design. All inputs are confidential.
+                        {t('compensation_system.before_begin_desc')}
                     </p>
                 </div>
 
                 {/* Progress Card */}
                 <div className="mt-8 bg-white/5 border border-white/10 rounded-xl p-6 flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
                     <div className="border-r-0 md:border-r md:border-white/10 pr-0 md:pr-10">
-                        <div className="text-[11px] text-[#94a3b8] uppercase">Steps Done</div>
+                        <div className="text-[11px] text-[#94a3b8] uppercase">{t('compensation_system.steps_done')}</div>
                         <strong className="text-2xl text-[#b38e5d]">
                             {completedCount} / {STEPS.length}
                         </strong>
-                        <div className="text-[11px] text-[#64748b]">steps completed</div>
+                        <div className="text-[11px] text-[#64748b]">{t('compensation_system.steps_completed')}</div>
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex justify-between text-xs font-bold mb-2">
-                            <span>Overall Progress</span>
+                            <span>{t('compensation_system.overall_progress')}</span>
                             <span>{progressPct}%</span>
                         </div>
                         <div className="h-1 w-full rounded-sm bg-white/10 overflow-hidden">
@@ -176,7 +175,7 @@ export default function CompensationOverview({
                         </div>
                     </div>
                     <div className="border border-[#b38e5d] px-4 py-2 rounded-[20px] text-white text-[13px] whitespace-nowrap">
-                        ⏱ Est. <b>~{TOTAL_EST_MIN} min</b> total
+                        ⏱ {t('compensation_system.estimated_total', { minutes: TOTAL_EST_MIN })}
                     </div>
                 </div>
             </section>
@@ -229,7 +228,7 @@ export default function CompensationOverview({
                                             )}
                                         >
                                             {step.icon}
-                                            {step.name}
+                                            {t(step.nameKey)}
                                         </div>
                                         <p
                                             className={cn(
@@ -237,13 +236,13 @@ export default function CompensationOverview({
                                                 enabled ? 'text-[#64748b]' : 'text-[#cbd5e1]'
                                             )}
                                         >
-                                            {step.description}
+                                            {t(step.descriptionKey)}
                                         </p>
                                         <div
                                             className={cn('text-sm', enabled ? 'text-[#94a3b8]' : 'text-[#cbd5e1]')}
                                         >
-                                            ~{step.estMin} min
-                                            {!enabled && index > 0 && ` • Complete Step ${index} first`}
+                                            {t('compensation_system.estimated_min', { minutes: step.estMin })}
+                                            {!enabled && index > 0 && ` • ${t('compensation_system.complete_step_first', { step: index })}`}
                                         </div>
                                     </div>
 
@@ -251,13 +250,13 @@ export default function CompensationOverview({
                                         {enabled && !completed && (
                                             <>
                                                 <div className="bg-[#f8fafc] text-[#64748b] px-3 py-1.5 rounded-lg text-xs">
-                                                    Ready to Start
+                                                    {t('compensation_system.ready_to_start')}
                                                 </div>
                                                 <Button
                                                     onClick={() => handleStart(step, index)}
                                                     className="bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold px-6 py-2.5 rounded-lg flex items-center gap-2"
                                                 >
-                                                    Start <ArrowRight className="w-4 h-4" />
+                                                    {t('compensation_system.start')} <ArrowRight className="w-4 h-4" />
                                                 </Button>
                                             </>
                                         )}
@@ -267,13 +266,13 @@ export default function CompensationOverview({
                                                 variant="outline"
                                                 className="font-bold px-6 py-2.5 rounded-lg flex items-center gap-2"
                                             >
-                                                Review <ArrowRight className="w-4 h-4" />
+                                                {t('compensation_system.review')} <ArrowRight className="w-4 h-4" />
                                             </Button>
                                         )}
                                         {!enabled && (
                                             <div className="bg-[#f1f5f9] text-[#94a3b8] px-3 py-2 rounded-lg text-xs flex items-center gap-1.5">
                                                 <Lock className="w-3.5 h-3.5" />
-                                                Locked
+                                                {t('compensation_system.locked')}
                                             </div>
                                         )}
                                     </div>
@@ -286,16 +285,16 @@ export default function CompensationOverview({
             </div>
 
             {/* Footer */}
-            <footer className="flex-shrink-0 sticky bottom-0 w-full bg-white py-4 px-5 md:px-[10%] flex flex-wrap items-center justify-between gap-4 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-10 mt-auto border-t border-[#e2e8f0]">
+            <footer className="flex-shrink-0 sticky bottom-0 w-full bg-white py-4 px-5 md:px-[10%] flex flex-wrap items-center justify-between gap-4 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-10 mt-auto border-t border-[#e2e8f0] dark:bg-slate-900 dark:border-slate-700">
                 <p className="text-sm text-[#64748b]">
-                    <b>{completedCount}</b> of {STEPS.length} steps completed
+                    <b>{completedCount}</b> {t('compensation_system.of_steps_completed', { total: STEPS.length })}
                 </p>
                 <Button
                     onClick={() => onStepClick?.('snapshot')}
                     className="bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold px-8 py-3 rounded-lg"
                 >
                     <DollarSign className="w-4 h-4 mr-2" />
-                    Start Design
+                    {t('compensation_system.start_design')}
                 </Button>
             </footer>
         </div>

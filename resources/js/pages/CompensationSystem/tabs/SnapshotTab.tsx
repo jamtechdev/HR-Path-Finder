@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import CompensationPageHeader from '../components/CompensationPageHeader';
 import type { CompensationSnapshotQuestion, CompensationSnapshotResponse } from '../types';
 
@@ -24,6 +25,12 @@ interface SnapshotTabProps {
 }
 
 export default function SnapshotTab({ projectId, questions = [], responses: initialResponses, snapshotResponses: externalResponses, onSnapshotResponsesChange, onNext, fieldErrors = {} }: SnapshotTabProps) {
+    const { t } = useTranslation();
+    const tr = (v?: string | null) => {
+        const raw = String(v ?? '').trim();
+        if (!raw) return '';
+        return t(raw, { defaultValue: raw });
+    };
     const clampPercentage = (value: string): number => {
         const parsed = parseFloat(value.replace(/,/g, ''));
         if (Number.isNaN(parsed)) return 0;
@@ -268,10 +275,10 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
     return (
         <div className="space-y-0">
             <CompensationPageHeader
-                eyebrowTag="Compensation Structure"
-                stepLabel="Strategic Compensation Snapshot"
-                title="Strategic Compensation Snapshot"
-                description="Please answer the following questions to help us understand your current compensation approach."
+                eyebrowTag={t('compensation_system.snapshot.header_eyebrow')}
+                stepLabel={t('compensation_system.snapshot.header_step')}
+                title={t('compensation_system.snapshot.header_title')}
+                description={t('compensation_system.snapshot.header_desc')}
                 completionPct={completionPct}
             />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6">
@@ -305,7 +312,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                             </div>
                                             <div className="flex-1">
                                                 <Label className="text-lg font-semibold block mb-4 leading-relaxed">
-                                                    {question.question_text}
+                                                    {tr(question.question_text)}
                                                 </Label>
                                             
                                                 {/* Multi-year numeric inputs */}
@@ -332,7 +339,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                                 [question.id]: { ...current, [year]: clampPercentage(e.target.value) }
                                                                             });
                                                                         }}
-                                                                        placeholder="0.00"
+                                                                        placeholder={t('compensation_system.snapshot.placeholder_zero')}
                                                                         className="w-full"
                                                                     />
                                                                 </div>
@@ -357,7 +364,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                             updated[funcIdx] = { ...updated[funcIdx], function: e.target.value };
                                                                             updateResponses({ ...snapshotResponses, [question.id]: updated });
                                                                         }}
-                                                                        placeholder="Job Function"
+                                                                        placeholder={t('compensation_system.snapshot.job_function')}
                                                                         className="w-48"
                                                                     />
                                                                     <Input
@@ -368,7 +375,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                             updated[funcIdx] = { ...updated[funcIdx], amount: parseNumberWithCommas(e.target.value) };
                                                                             updateResponses({ ...snapshotResponses, [question.id]: updated });
                                                                         }}
-                                                                        placeholder="Amount (KRW)"
+                                                                        placeholder={t('compensation_system.snapshot.amount_krw')}
                                                                         className="flex-1"
                                                                     />
                                                                     {jobFunctions.length > 1 && (
@@ -402,7 +409,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                 });
                                                             }}
                                                         >
-                                                            <Plus className="w-4 h-4 mr-2" /> Add Function
+                                                            <Plus className="w-4 h-4 mr-2" /> {t('compensation_system.snapshot.add_function')}
                                                         </Button>
                                                     </div>
                                                 )}
@@ -411,12 +418,12 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                 {isYearsOfService && question.answer_type === 'numeric' && (
                                                     <div className="space-y-3">
                                                         {[
-                                                            { label: 'Overall', key: 'overall' },
-                                                            { label: '1–3 years', key: '1_3' },
-                                                            { label: '4–7 years', key: '4_7' },
-                                                            { label: '8–12 years', key: '8_12' },
-                                                            { label: '13–17 years', key: '13_17' },
-                                                            { label: '18–20 years', key: '18_20' },
+                                                            { label: t('compensation_system.snapshot.overall'), key: 'overall' },
+                                                            { label: t('compensation_system.snapshot.years_1_3'), key: '1_3' },
+                                                            { label: t('compensation_system.snapshot.years_4_7'), key: '4_7' },
+                                                            { label: t('compensation_system.snapshot.years_8_12'), key: '8_12' },
+                                                            { label: t('compensation_system.snapshot.years_13_17'), key: '13_17' },
+                                                            { label: t('compensation_system.snapshot.years_18_20'), key: '18_20' },
                                                         ].map((range) => (
                                                             <div key={range.key} className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
                                                                 <Label className="w-32 text-sm font-medium">{range.label}</Label>
@@ -434,7 +441,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                             [question.id]: { ...current, [range.key]: parseNumberWithCommas(e.target.value) }
                                                                         });
                                                                     }}
-                                                                    placeholder="Amount (KRW)"
+                                                                    placeholder={t('compensation_system.snapshot.amount_krw')}
                                                                     className="flex-1 max-w-md"
                                                                 />
                                                             </div>
@@ -465,8 +472,8 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                     <div className="space-y-3">
                                                         {isQ18 && (
                                                             <div className="p-3 rounded-lg bg-[#f0fdf9] border border-[rgba(46,196,160,0.2)] text-sm text-[#0f1c30]">
-                                                                <span className="font-medium text-[#152540]">Based on your selection in Question 17</span>
-                                                                <span className="text-[#4b5563]"> — choose the two programs you believe are least effective.</span>
+                                                                <span className="font-medium text-[#152540]">{t('compensation_system.snapshot.based_on_q17')}</span>
+                                                                <span className="text-[#4b5563]"> — {t('compensation_system.snapshot.choose_two_least_effective')}</span>
                                                             </div>
                                                         )}
                                                         {(() => {
@@ -506,7 +513,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                         }}
                                                                         className="rounded-full border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                                                     />
-                                                                    <Label htmlFor={`q${question.id}-opt${optIdx}`} className="cursor-pointer flex-1 text-sm font-normal">{option}</Label>
+                                                                    <Label htmlFor={`q${question.id}-opt${optIdx}`} className="cursor-pointer flex-1 text-sm font-normal">{tr(option)}</Label>
                                                                 </div>
                                                             );
                                                             });
@@ -519,12 +526,12 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                         })() && (
                                                             <div className="space-y-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                                                 <p className="text-sm text-blue-800">
-                                                                    No predefined options are available. Please answer this as an open-ended response (with Question 19).
+                                                                    {t('compensation_system.snapshot.no_predefined_options')}
                                                                 </p>
                                                                 <Textarea
                                                                     value={typeof snapshotResponses[question.id] === 'string' ? (snapshotResponses[question.id] as string) : ''}
                                                                     onChange={(e) => updateResponses({ ...snapshotResponses, [question.id]: e.target.value })}
-                                                                    placeholder="Enter the least effective program(s) in text..."
+                                                                    placeholder={t('compensation_system.snapshot.enter_least_effective')}
                                                                     rows={3}
                                                                     className="resize-none bg-white"
                                                                 />
@@ -534,7 +541,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                                                                 <p className="text-sm text-yellow-800 flex items-center gap-2">
                                                                     <Info className="w-4 h-4" />
-                                                                    Please select benefits programs in Question 17 first.
+                                                                    {t('compensation_system.snapshot.select_q17_first')}
                                                                 </p>
                                                             </div>
                                                         )}
@@ -569,7 +576,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                         }}
                                                                         className="rounded-full border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                                                     />
-                                                                    <Label htmlFor={`q${question.id}-opt${optIdx}`} className="cursor-pointer flex-1 text-sm font-normal">{option}</Label>
+                                                                    <Label htmlFor={`q${question.id}-opt${optIdx}`} className="cursor-pointer flex-1 text-sm font-normal">{tr(option)}</Label>
                                                                 </div>
                                                             );
                                                         })}
@@ -582,7 +589,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                         type="text"
                                                         value={formatWithCommas(snapshotResponses[question.id] as any)}
                                                         onChange={(e) => updateResponses({ ...snapshotResponses, [question.id]: parseNumberWithCommas(e.target.value) })}
-                                                        placeholder="Enter amount (KRW)"
+                                                        placeholder={t('compensation_system.snapshot.enter_amount_krw')}
                                                         className="max-w-md"
                                                     />
                                                 )}
@@ -592,7 +599,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                     <Textarea
                                                         value={snapshotResponses[question.id] as string || ''}
                                                         onChange={(e) => updateResponses({ ...snapshotResponses, [question.id]: e.target.value })}
-                                                        placeholder="Enter your response"
+                                                        placeholder={t('compensation_system.snapshot.enter_response')}
                                                         rows={4}
                                                         className="resize-none"
                                                     />
@@ -610,9 +617,9 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                         <div className="flex items-center gap-3">
                                             <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
                                             <div>
-                                                <p className="font-medium text-yellow-800 mb-1">No Questions Available</p>
+                                                <p className="font-medium text-yellow-800 mb-1">{t('compensation_system.snapshot.no_questions')}</p>
                                                 <p className="text-sm text-yellow-700">
-                                                    Compensation snapshot questions have not been configured yet. Please contact the administrator to set up the questions in the admin panel.
+                                                    {t('compensation_system.snapshot.no_questions_desc')}
                                                 </p>
                                             </div>
                                         </div>
@@ -629,36 +636,36 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                 <CardHeader>
                                     <div className="flex items-center gap-2">
                                         <Info className="w-5 h-5 text-primary" />
-                                        <CardTitle className="text-lg">Step Purpose</CardTitle>
+                                        <CardTitle className="text-lg">{t('compensation_system.snapshot.step_purpose')}</CardTitle>
                                     </div>
                                     <CardDescription>
-                                        Understanding your compensation approach
+                                        {t('compensation_system.snapshot.step_purpose_desc')}
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-4">
                                         <p className="text-sm text-muted-foreground leading-relaxed">
-                                            In this step, you provide a comprehensive overview of your company's current compensation approach, including compensation philosophy, salary levels, bonus structures, and benefits programs.
+                                            {t('compensation_system.snapshot.purpose_body')}
                                         </p>
                                         <Separator />
                                         <div>
-                                            <p className="text-sm font-semibold mb-2">This information will be used to:</p>
+                                            <p className="text-sm font-semibold mb-2">{t('compensation_system.snapshot.used_for')}</p>
                                             <ul className="text-sm text-muted-foreground space-y-2 list-none">
                                                 <li className="flex items-start gap-2">
                                                     <span className="text-primary mt-1">•</span>
-                                                    <span>Understand your current compensation strategy</span>
+                                                    <span>{t('compensation_system.snapshot.used_for_1')}</span>
                                                 </li>
                                                 <li className="flex items-start gap-2">
                                                     <span className="text-primary mt-1">•</span>
-                                                    <span>Identify areas for improvement</span>
+                                                    <span>{t('compensation_system.snapshot.used_for_2')}</span>
                                                 </li>
                                                 <li className="flex items-start gap-2">
                                                     <span className="text-primary mt-1">•</span>
-                                                    <span>Generate recommendations for your compensation framework</span>
+                                                    <span>{t('compensation_system.snapshot.used_for_3')}</span>
                                                 </li>
                                                 <li className="flex items-start gap-2">
                                                     <span className="text-primary mt-1">•</span>
-                                                    <span>Auto-populate data in subsequent steps</span>
+                                                    <span>{t('compensation_system.snapshot.used_for_4')}</span>
                                                 </li>
                                             </ul>
                                         </div>
@@ -667,7 +674,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                 <Separator />
                                                 <div className="mt-4">
                                                     <p className="text-sm font-semibold text-muted-foreground mb-3">
-                                                        Question Explanations
+                                                        {t('compensation_system.snapshot.question_explanations')}
                                                     </p>
                                                     <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
                                                         {questions.map((question, idx) => {

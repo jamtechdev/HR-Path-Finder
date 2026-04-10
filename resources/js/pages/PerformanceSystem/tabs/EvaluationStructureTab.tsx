@@ -2,6 +2,7 @@ import { ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -92,6 +93,7 @@ export default function EvaluationStructureTab({
     onBack,
     fieldErrors = {},
 }: Props) {
+    const { t } = useTranslation();
     const [structure, setStructure] = useState<EvaluationStructure>(() => normalizeStructure(initialStructure));
     const [orgRun, setOrgRun] = useState<boolean>(() => {
         const s = normalizeStructure(initialStructure);
@@ -279,7 +281,7 @@ export default function EvaluationStructureTab({
                             )}
                         >
                             <span className="sp-dot">{orgFilled >= 3 ? '✓' : '1'}</span>
-                            Org. Evaluation
+                            {t('performance_system_evaluation_structure.org_evaluation')}
                         </button>
                         <span className="sp-line" />
                         <button
@@ -291,7 +293,7 @@ export default function EvaluationStructureTab({
                             )}
                         >
                             <span className="sp-dot">{indFilled >= 3 ? '✓' : '2'}</span>
-                            Individual Evaluation
+                            {t('performance_system_evaluation_structure.individual_evaluation')}
                         </button>
                     </div>
 
@@ -304,7 +306,7 @@ export default function EvaluationStructureTab({
 
                     {/* Org run toggle */}
                     <div className="org-run-wrap">
-                        <div className="org-run-label">조직평가를 실시하겠습니까? — Will you conduct an organizational evaluation?</div>
+                        <div className="org-run-label">{t('performance_system_evaluation_structure.org_run_question')}</div>
                         <div className="org-run-cards">
                             <button
                                 type="button"
@@ -314,7 +316,7 @@ export default function EvaluationStructureTab({
                                 <span className="orc-radio" />
                                 <div className="orc-body">
                                     <div className="orc-icon">🏢</div>
-                                    <div className="orc-title">Yes — Run org-level evaluation</div>
+                                    <div className="orc-title">{t('performance_system_evaluation_structure.yes_org_level')}</div>
                                     <div className="orc-desc">Company or team performance is assessed first. The result anchors and calibrates individual scores.</div>
                                 </div>
                             </button>
@@ -326,7 +328,7 @@ export default function EvaluationStructureTab({
                                 <span className="orc-radio" />
                                 <div className="orc-body">
                                     <div className="orc-icon">⏭️</div>
-                                    <div className="orc-title">No — Skip to individual evaluation</div>
+                                    <div className="orc-title">{t('performance_system_evaluation_structure.no_skip_individual')}</div>
                                     <div className="orc-desc">Each employee is evaluated directly against personal goals. Simpler setup, lower overhead.</div>
                                 </div>
                             </button>
@@ -337,7 +339,7 @@ export default function EvaluationStructureTab({
                         <div className="section-hd" onClick={() => toggleSection('sec1')}>
                             <div className="s-icon org">🏢</div>
                             <div className="s-meta">
-                                <div className="s-title">Organizational Evaluation</div>
+                                <div className="s-title">{t('performance_system_evaluation_structure.org_evaluation')}</div>
                                 <div className="s-subtitle">Company-level baseline — precedes individual scores</div>
                             </div>
                             <span className={cn('s-status', orgFilled >= 3 ? 'complete' : orgFilled > 0 ? 'partial' : 'empty')}>
@@ -395,7 +397,7 @@ export default function EvaluationStructureTab({
                                     </div>
                                 )}
                                 <div className="fg">
-                                    <div className="fg-label">Who Evaluates <span className="fg-label-req">● Required</span></div>
+                                    <div className="fg-label">{t('performance_system_evaluation_structure.who_evaluates')} <span className="fg-label-req">● {t('common.required')}</span></div>
                                     <div className="card-grid g2">
                                         {[
                                             { val: 'ceo', label: 'CEO / Top Management', desc: 'Strongest strategic signal. Evaluation is signed off at the top.', icon: '👔' },
@@ -416,7 +418,7 @@ export default function EvaluationStructureTab({
                                     </div>
                                 </div>
                                 <div className="fg">
-                                    <div className="fg-label">Evaluation Method <span className="fg-label-req">● Required</span></div>
+                                    <div className="fg-label">{t('performance_system_evaluation_structure.evaluation_method')} <span className="fg-label-req">● {t('common.required')}</span></div>
                                     <div className="card-grid g2">
                                         {(['absolute', 'relative'] as const).map((m) => (
                                             <button
@@ -489,7 +491,7 @@ export default function EvaluationStructureTab({
                                     </div>
                                 )}
                                 <div className="fg">
-                                    <div className="fg-label">How Org Score Is Used</div>
+                                    <div className="fg-label">{t('performance_system_evaluation_structure.how_org_score_used')}</div>
                                     <div className="card-grid g2">
                                         {[
                                             { u: 'dist_adjust', icon: '⚖️', title: 'Adjust Individual Grade Distribution by Org', desc: "Each org unit's individual grade curve is calibrated based on its org-level score." },
@@ -520,7 +522,7 @@ export default function EvaluationStructureTab({
                         <div className="section-hd" onClick={() => toggleSection('sec2')}>
                             <div className="s-icon ind">👤</div>
                             <div className="s-meta">
-                                <div className="s-title">Individual Evaluation</div>
+                                <div className="s-title">{t('performance_system_evaluation_structure.individual_evaluation')}</div>
                                 <div className="s-subtitle">Per-employee assessment — core of the performance cycle</div>
                             </div>
                             <span className={cn('s-status', indFilled >= 3 ? 'complete' : indFilled > 0 ? 'partial' : 'empty')}>
@@ -577,7 +579,7 @@ export default function EvaluationStructureTab({
                                 </div>
                             )}
                             <div className="fg">
-                                <div className="fg-label">Evaluator(s) <span className="fg-label-req">● Required</span></div>
+                                <div className="fg-label">{t('performance_system_evaluation_structure.evaluators')} <span className="fg-label-req">● {t('common.required')}</span></div>
                                 <div className="card-grid g4">
                                     {[
                                         { val: 'primary', label: 'Direct Manager', desc: 'Immediate supervisor evaluates the employee. Most common approach.', icon: '👆' },
@@ -621,7 +623,7 @@ export default function EvaluationStructureTab({
                                 </div>
                             </div>
                             <div className="fg">
-                                <div className="fg-label">Evaluation Method <span className="fg-label-req">● Required</span></div>
+                                <div className="fg-label">{t('performance_system_evaluation_structure.evaluation_method')} <span className="fg-label-req">● {t('common.required')}</span></div>
                                 <div className="card-grid g2">
                                     {(['absolute', 'relative'] as const).map((m) => (
                                         <button
@@ -700,7 +702,7 @@ export default function EvaluationStructureTab({
                                 </div>
                             )}
                             <div className="fg">
-                                <div className="fg-label">How Individual Score Is Used</div>
+                                <div className="fg-label">{t('performance_system_evaluation_structure.how_individual_score_used')}</div>
                                 <div className="card-grid g2">
                                     {[
                                         { val: 'salary_adjustment', icon: '💵', title: 'Salary Increase', desc: 'Performance grade directly determines merit raise percentage.' },
@@ -728,13 +730,13 @@ export default function EvaluationStructureTab({
                                         className={cn('etc-check-row', indUsageOther && 'active')}
                                     >
                                         <span className="etc-checkbox" />
-                                        <span className="etc-label">+ Other usage (specify)</span>
+                                        <span className="etc-label">{t('performance_system_evaluation_structure.other_usage')}</span>
                                     </button>
                                     {indUsageOther && (
                                         <input
                                             type="text"
                                             className="etc-input"
-                                            placeholder="Describe other usage..."
+                                            placeholder={t('performance_system_evaluation_structure.describe_other_usage')}
                                             value={structure.individual_use_of_results_other || ''}
                                             onChange={(e) => setStructure((s) => ({ ...s, individual_use_of_results_other: e.target.value }))}
                                         />
@@ -748,7 +750,7 @@ export default function EvaluationStructureTab({
                 {/* Side panel */}
                 <div className="es-side-panel">
                     <div className="summary-card">
-                        <div className="sum-label">📋 Configuration Summary</div>
+                        <div className="sum-label">📋 {t('performance_system_evaluation_structure.configuration_summary')}</div>
                         <div className="sum-rows">
                             {summaryRows.map(({ key, val }) => (
                                 <div key={key} className="sum-row">
@@ -761,11 +763,11 @@ export default function EvaluationStructureTab({
                         </div>
                     </div>
                     <div className="sentence-card">
-                        <div className="sent-label">📝 Plain-English Summary</div>
+                        <div className="sent-label">📝 {t('performance_system_evaluation_structure.plain_summary')}</div>
                         <div className="sent-txt" dangerouslySetInnerHTML={{ __html: sentenceSummary }} />
                     </div>
                     <div className="progress-card">
-                        <div className="prog-label">Completion</div>
+                        <div className="prog-label">{t('performance_system_evaluation_structure.completion')}</div>
                         <div className="prog-bar-track">
                             <div
                                 className="prog-bar-fill"
@@ -783,17 +785,17 @@ export default function EvaluationStructureTab({
             {/* Bottom bar */}
             <div className="es-bottom-bar">
                 <div className="bb-l">
-                    <strong>Evaluation Structure</strong>
-                    <span>— Step 4 of 5</span>
+                    <strong>{t('performance_system_evaluation_structure.title')}</strong>
+                    <span>{t('performance_system_evaluation_structure.step_4_5')}</span>
                 </div>
                 <div className="bb-r">
                     {onBack && (
                         <button type="button" className="btn-save" onClick={onBack}>
-                            Back
+                            {t('common.back')}
                         </button>
                     )}
                     <button type="button" className="btn-next" onClick={handleContinue}>
-                        Continue to Review
+                        {t('performance_system_evaluation_structure.continue_to_review')}
                         <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                 </div>

@@ -58,14 +58,14 @@ interface Props {
 }
 
 const TABS = [
-    { id: 'overview', label: 'Overview', icon: Shield },
-    { id: 'snapshot', label: 'Strategic Compensation Snapshot', icon: FileText },
-    { id: 'base-salary-framework', label: 'Base Salary Framework', icon: Settings },
-    { id: 'pay-band-salary-table', label: 'Pay Band / Salary Table', icon: TrendingUp },
-    { id: 'bonus-pool', label: 'Bonus Pool Configuration', icon: Award },
-    { id: 'benefits', label: 'Benefits Configuration', icon: Users },
-    { id: 'review', label: 'Review & Submit', icon: CheckCircle2 },
-];
+    { id: 'overview', labelKey: 'common.overview', icon: Shield },
+    { id: 'snapshot', labelKey: 'compensation_system.tabs.snapshot', icon: FileText },
+    { id: 'base-salary-framework', labelKey: 'compensation_system.tabs.base_salary_framework', icon: Settings },
+    { id: 'pay-band-salary-table', labelKey: 'compensation_system.tabs.pay_band_salary_table', icon: TrendingUp },
+    { id: 'bonus-pool', labelKey: 'compensation_system.tabs.bonus_pool', icon: Award },
+    { id: 'benefits', labelKey: 'compensation_system.tabs.benefits', icon: Users },
+    { id: 'review', labelKey: 'compensation_system.tabs.review', icon: CheckCircle2 },
+] as const;
 
 export default function CompensationSystemIndex({ 
     project, 
@@ -380,11 +380,11 @@ export default function CompensationSystemIndex({
                 const prev = TABS[i];
                 if (prev.id === 'overview') continue;
                 if (!validateTabCompletion(prev.id)) {
-                    blocker = prev.label;
+                    blocker = t(prev.labelKey, { defaultValue: prev.labelKey });
                     break;
                 }
             }
-            setCompError(`Complete "${blocker}" before opening this tab.`);
+            setCompError(t('compensation_system.validation.complete_previous', { step: blocker }));
             setCompFieldErrors({});
             return;
         }
@@ -707,7 +707,7 @@ export default function CompensationSystemIndex({
                                 className="text-sm font-medium text-[#0f2a4a] hover:text-[#1a4070] flex items-center gap-1"
                             >
                                 <ArrowLeft className="w-4 h-4" />
-                                Back to Dashboard
+                                {t('compensation_system.back_to_dashboard')}
                             </Link>
                         </div>
                         <CompensationOverview
@@ -726,7 +726,7 @@ export default function CompensationSystemIndex({
                                 className="rounded-[20px] px-3.5 py-1 text-[11px] font-semibold text-white shrink-0"
                                 style={{ background: '#c8963e', paddingTop: 4, paddingBottom: 4, paddingLeft: 14, paddingRight: 14 }}
                             >
-                                {getStatusForHeader().replace('_', ' ').toUpperCase()}
+                                {t(`performance_system_index.status.${getStatusForHeader()}`)}
                             </span>
                         </header>
 
@@ -761,7 +761,7 @@ export default function CompensationSystemIndex({
                                                 )}>
                                                     {tab.id === 'overview' ? 'O' : isDone ? '✓' : (stepNum ?? idx)}
                                                 </span>
-                                                {tab.label}
+                                                {t(tab.labelKey, { defaultValue: tab.labelKey })}
                                             </button>
                                         );
                                     })}
@@ -792,18 +792,18 @@ export default function CompensationSystemIndex({
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-3 mb-2">
-                                                <h3 className="text-lg font-bold">Consultant Recommendation</h3>
+                                            <h3 className="text-lg font-bold">{t('compensation_system.consultant_recommendation')}</h3>
                                                 <Badge variant="default" className="bg-primary">
                                                     {consultantRecommendation.recommended_option.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                                 </Badge>
                                             </div>
                                             <p className="text-sm text-muted-foreground mb-3">
-                                                Your consultant has prepared a recommendation based on your performance system selection and company context.
+                                                {t('compensation_system.consultant_recommendation_desc')}
                                             </p>
                                             <Collapsible open={isRationaleOpen} onOpenChange={setIsRationaleOpen}>
                                                 <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80">
                                                     <MessageSquare className="w-4 h-4" />
-                                                    View Consultant's Rationale
+                                                    {t('compensation_system.view_consultant_rationale')}
                                                     {isRationaleOpen ? (
                                                         <ChevronUp className="w-4 h-4" />
                                                     ) : (
@@ -830,10 +830,10 @@ export default function CompensationSystemIndex({
                                     <div className="flex items-start gap-3">
                                         <div className="text-muted-foreground">ℹ️</div>
                                         <div>
-                                            <p className="font-medium mb-1">Performance System (Read-only)</p>
+                                            <p className="font-medium mb-1">{t('compensation_system.performance_system_readonly')}</p>
                                             <p className="text-sm text-muted-foreground">
-                                                Method: <strong>{project.performanceSystem.performance_method || 'N/A'}</strong> | 
-                                                Unit: <strong>{project.performanceSystem.evaluation_unit || 'N/A'}</strong>
+                                                {t('compensation_system.method')}: <strong>{project.performanceSystem.performance_method || t('common.na')}</strong> | 
+                                                {t('compensation_system.unit')}: <strong>{project.performanceSystem.evaluation_unit || t('common.na')}</strong>
                                             </p>
                                         </div>
                                     </div>
@@ -941,7 +941,7 @@ export default function CompensationSystemIndex({
 
                         {/* Sticky footer: starts after sidebar (same as overview content area) */}
                         <footer
-                            className="fixed bottom-0 right-0 bg-white border-t border-[#e8eaed] px-6 py-3.5 flex items-center justify-between z-50 shadow-[0_-4px_20px_rgba(15,28,48,0.06)]"
+                            className="fixed bottom-0 right-0 bg-white border-t border-[#e8eaed] px-6 py-3.5 flex items-center justify-between z-50 shadow-[0_-4px_20px_rgba(15,28,48,0.06)] dark:bg-slate-900 dark:border-slate-700"
                             style={{ left: 'var(--sidebar-width, 16rem)' }}
                         >
                             <Button
@@ -954,7 +954,7 @@ export default function CompensationSystemIndex({
                                 }}
                                 className="border-[#d4d8de] text-[#4b5563] hover:bg-[#f7f8fa]"
                             >
-                                <ArrowLeft className="w-4 h-4 mr-2" /> Previous
+                                <ArrowLeft className="w-4 h-4 mr-2" /> {t('common.previous')}
                             </Button>
                             {(activeTab === 'base-salary-framework' || activeTab === 'pay-band-salary-table') && (
                                 <Button
@@ -963,18 +963,18 @@ export default function CompensationSystemIndex({
                                     onClick={saveCurrentTabOnly}
                                     className="border-[#d4d8de] text-[#4b5563] hover:bg-[#f7f8fa]"
                                 >
-                                    Save
+                                    {t('common.save')}
                                 </Button>
                             )}
                             {activeTab !== 'review' ? (
                                 <Button type="button" onClick={handleSaveAndContinue} className="bg-[#152540] hover:bg-[#1e3a62] text-white">
-                                    Continue
+                                    {t('common.continue')}
                                     <svg className="w-3.5 h-3.5 ml-1.5" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M7.5 3l3.5 3.5L7.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                 </Button>
                             ) : (
                                 <Button type="button" onClick={handleSubmit} disabled={processing || saving} className="bg-[#152540] hover:bg-[#1e3a62] text-white">
                                     <CheckCircle2 className="w-4 h-4 mr-2" />
-                                    {processing || saving ? 'Submitting...' : 'Submit & Lock Step 4'}
+                                    {processing || saving ? t('compensation_system.submitting') : t('compensation_system.submit_lock_step4')}
                                 </Button>
                             )}
                         </footer>
@@ -990,12 +990,12 @@ export default function CompensationSystemIndex({
                                     <CheckCircle2 className="w-9 h-9 text-[#2ec4a0]" strokeWidth={2} />
                                 </div>
                                 <h2 className="text-xl font-bold text-white tracking-tight">
-                                    <span className="block">Compensation system submitted</span>
-                                    <span className="block text-sm font-medium opacity-90 mt-1">보상 시스템 제출이 완료되었습니다</span>
+                                    <span className="block">{t('compensation_system.submitted_title')}</span>
+                                    <span className="block text-sm font-medium opacity-90 mt-1">{t('compensation_system.submitted_title_ko')}</span>
                                 </h2>
                                 <p className="text-sm text-white/70 mt-1.5">
-                                    <span className="block">Step 4 is complete. Your consultant will review and the CEO can approve.</span>
-                                    <span className="block opacity-90 mt-1">4단계가 완료되었습니다. 컨설턴트가 검토하고 CEO가 승인할 수 있습니다.</span>
+                                    <span className="block">{t('compensation_system.submitted_desc')}</span>
+                                    <span className="block opacity-90 mt-1">{t('compensation_system.submitted_desc_ko')}</span>
                                 </p>
                             </div>
                             <div className="px-8 py-6 space-y-5">
@@ -1016,8 +1016,8 @@ export default function CompensationSystemIndex({
                                         className="w-full h-11 font-semibold rounded-lg bg-[#152540] hover:bg-[#1e3a62] text-white"
                                     >
                                         <span className="flex flex-col leading-tight">
-                                            <span>Done</span>
-                                            <span className="text-xs opacity-80">대시보드로 이동</span>
+                                            <span>{t('common.done')}</span>
+                                            <span className="text-xs opacity-80">{t('compensation_system.go_dashboard')}</span>
                                         </span>
                                     </Button>
                                     <a
