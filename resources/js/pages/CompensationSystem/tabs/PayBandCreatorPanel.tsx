@@ -1,4 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import type { PayBand, PayBandOperationCriteria } from '../types';
 
 interface Props {
@@ -6,6 +8,7 @@ interface Props {
     onPayBandsUpdate: (bands: PayBand[]) => void;
     operationCriteria: PayBandOperationCriteria;
     onOperationCriteriaUpdate: (criteria: PayBandOperationCriteria) => void;
+    fieldErrors?: FieldErrors;
 }
 
 type BandRow = { lbl: string; min: number; tgt: number; max: number; manual?: boolean };
@@ -22,7 +25,9 @@ export default function PayBandCreatorPanel({
     onPayBandsUpdate,
     operationCriteria,
     onOperationCriteriaUpdate,
+    fieldErrors = {},
 }: Props) {
+    const { t } = useTranslation();
     const [initialized, setInitialized] = useState(false);
     const [steps, setSteps] = useState(5);
     const [eMin, setEMin] = useState(0);
@@ -67,14 +72,16 @@ export default function PayBandCreatorPanel({
         setInitialized(true);
     }, [payBands, initialized]);
 
+    const tr = (key: string) => t(`compensation_system.pay_band_creator.${key}`);
+
     const errors = useMemo(() => {
         return {
-            min: eMin <= 0 ? '0보다 커야 합니다.' : '',
-            tgt: eTgt <= eMin ? 'Target > Min 이어야 합니다.' : '',
-            max: eMax <= eTgt ? 'Max > Target 이어야 합니다.' : '',
-            sMax: sMax <= eMax ? '최고직급 Max > 최저직급 Max 이어야 합니다.' : '',
+            min: eMin <= 0 ? tr('err_min') : '',
+            tgt: eTgt <= eMin ? tr('err_target') : '',
+            max: eMax <= eTgt ? tr('err_max') : '',
+            sMax: sMax <= eMax ? tr('err_senior') : '',
         };
-    }, [eMin, eTgt, eMax, sMax]);
+    }, [eMin, eTgt, eMax, sMax, t]);
 
     const validation = useMemo(
         () => errors.min || errors.tgt || errors.max || errors.sMax || null,
@@ -178,7 +185,7 @@ export default function PayBandCreatorPanel({
         return true;
     }, [payBands, projectedBands]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!initialized || validation || projectedBands.length === 0) return;
         if (sameAsCurrent) return;
         onPayBandsUpdate(projectedBands);
@@ -237,20 +244,20 @@ export default function PayBandCreatorPanel({
     return (
         <div className="pb-page" style={{ maxWidth: 880 }}>
             <style>{`
-                .pb-page{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#EEF1F6;color:#111827;font-size:14px;line-height:1.5}
-                .pb-card{background:#fff;border:.5px solid rgba(27,46,75,.18);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1rem;box-shadow:0 1px 4px rgba(27,46,75,.06)}
-                .pb-slabel{font-size:10px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:#9CA3AF}
-                .pb-divider{height:.5px;background:rgba(27,46,75,.10);margin:1rem 0}
-                .pb-stepper{display:inline-flex;align-items:stretch;border:.5px solid rgba(27,46,75,.18);border-radius:9px;overflow:hidden;background:#F7F8FA}
-                .pb-stepper button{background:transparent;border:none;color:#1B2E4B;font-size:18px;width:36px;cursor:pointer;line-height:1}
-                .pb-stepper span{font-size:14px;font-weight:600;color:#1B2E4B;padding:0 18px;border-left:.5px solid rgba(27,46,75,.18);border-right:.5px solid rgba(27,46,75,.18);display:flex;align-items:center;background:#fff;min-width:72px;justify-content:center}
+                .pb-page{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:transparent;color:hsl(var(--foreground));font-size:14px;line-height:1.5}
+                .pb-card{background:hsl(var(--card));border:1px solid hsl(var(--border));border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+                .pb-slabel{font-size:10px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:hsl(var(--muted-foreground))}
+                .pb-divider{height:.5px;background:hsl(var(--border));margin:1rem 0}
+                .pb-stepper{display:inline-flex;align-items:stretch;border:1px solid hsl(var(--border));border-radius:9px;overflow:hidden;background:hsl(var(--muted))}
+                .pb-stepper button{background:transparent;border:none;color:hsl(var(--foreground));font-size:18px;width:36px;cursor:pointer;line-height:1}
+                .pb-stepper span{font-size:14px;font-weight:600;color:hsl(var(--foreground));padding:0 18px;border-left:1px solid hsl(var(--border));border-right:1px solid hsl(var(--border));display:flex;align-items:center;background:hsl(var(--card));min-width:72px;justify-content:center}
                 .pb-input-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
                 .pb-field{display:flex;flex-direction:column;gap:5px}
-                .pb-field label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4B5563}
+                .pb-field label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:hsl(var(--muted-foreground))}
                 .pb-iw{position:relative}
-                .pb-unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:#9CA3AF}
-                .pb-num{width:100%;padding:8px 36px 8px 10px;font-size:15px;font-weight:600;color:#1B2E4B;border-radius:8px;border:.5px solid rgba(27,46,75,.18);background:#F7F8FA;outline:none}
-                .pb-err{font-size:11px;color:#D94F4F;min-height:14px}
+                .pb-unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:hsl(var(--muted-foreground))}
+                .pb-num{width:100%;padding:8px 36px 8px 10px;font-size:15px;font-weight:600;color:hsl(var(--foreground));border-radius:8px;border:1px solid hsl(var(--border));background:hsl(var(--muted));outline:none}
+                .pb-err{font-size:11px;color:hsl(var(--destructive));min-height:14px}
                 .pb-factor{display:grid;grid-template-columns:1fr 1fr;gap:10px}
                 .pb-fbox{background:#1B2E4B;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
                 .pb-fl{font-size:10px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.09em;text-transform:uppercase}
@@ -260,83 +267,83 @@ export default function PayBandCreatorPanel({
                 .pb-range{appearance:none;width:100%;height:4px;border-radius:2px;outline:none;cursor:pointer;background:rgba(255,255,255,.15)}
                 .pb-range::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border-radius:50%;background:#5DCAA5;border:2px solid #fff}
                 .pb-legend{display:flex;gap:18px;align-items:center;padding:10px 0 12px;flex-wrap:wrap}
-                .pb-leg{display:flex;align-items:center;gap:6px;font-size:11px;color:#4B5563}
+                .pb-leg{display:flex;align-items:center;gap:6px;font-size:11px;color:hsl(var(--muted-foreground))}
                 .pb-table{width:100%;border-collapse:collapse;font-size:13px}
-                .pb-table th{background:#1B2E4B;color:rgba(255,255,255,.8);font-weight:500;padding:8px 14px;text-align:right;font-size:11px}
+                .pb-table th{background:hsl(var(--primary));color:hsl(var(--primary-foreground));font-weight:500;padding:8px 14px;text-align:right;font-size:11px}
                 .pb-table th:first-child,.pb-table td:first-child{text-align:left}
-                .pb-table td{padding:8px 14px;text-align:right;border-bottom:.5px solid rgba(27,46,75,.10)}
+                .pb-table td{padding:8px 14px;text-align:right;border-bottom:1px solid hsl(var(--border))}
                 .pb-chip{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
                 .pb-chip-ok{background:#E8F7F2;color:#0B6B4A}
                 .pb-chip-warn{background:#FDF1F1;color:#D94F4F}
                 .pb-crit{width:100%;border-collapse:collapse;font-size:13px}
-                .pb-crit th{background:#F7F8FA;color:#9CA3AF;font-weight:700;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:8px 14px;text-align:left;border-bottom:.5px solid rgba(27,46,75,.10)}
-                .pb-crit td{padding:10px 14px;border-bottom:.5px solid rgba(27,46,75,.10)}
-                .pb-crit td:first-child{color:#9CA3AF;font-size:12px;width:32px}
-                .pb-select{font-size:12px;border-radius:6px;border:.5px solid rgba(27,46,75,.18);background:#F7F8FA;color:#111827;padding:5px 10px;outline:none}
+                .pb-crit th{background:hsl(var(--muted));color:hsl(var(--muted-foreground));font-weight:700;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:8px 14px;text-align:left;border-bottom:1px solid hsl(var(--border))}
+                .pb-crit td{padding:10px 14px;border-bottom:1px solid hsl(var(--border))}
+                .pb-crit td:first-child{color:hsl(var(--muted-foreground));font-size:12px;width:32px}
+                .pb-select{font-size:12px;border-radius:6px;border:1px solid hsl(var(--border));background:hsl(var(--muted));color:hsl(var(--foreground));padding:5px 10px;outline:none}
                 .pb-actions{display:flex;gap:8px;margin-top:4px}
-                .pb-btn{font-size:13px;font-weight:500;padding:9px 18px;border-radius:9px;cursor:pointer;border:.5px solid rgba(27,46,75,.18);background:#fff;color:#111827}
-                .pb-btn-primary{background:#1B2E4B;color:#fff;border-color:#1B2E4B}
-                .pb-btn-ghost{color:#1D9E75;border-color:rgba(29,158,117,.3)}
+                .pb-btn{font-size:13px;font-weight:500;padding:9px 18px;border-radius:9px;cursor:pointer;border:1px solid hsl(var(--border));background:hsl(var(--card));color:hsl(var(--foreground))}
+                .pb-btn-primary{background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-color:hsl(var(--primary))}
+                .pb-btn-ghost{color:var(--hr-mint);border-color:rgba(29,158,117,.35)}
                 .tooltip-wrap{position:relative;display:inline-block}
-                .tooltip-pop{display:none;position:absolute;right:0;top:26px;width:260px;background:#fff;border-radius:10px;border:.5px solid rgba(27,46,75,.14);box-shadow:0 8px 24px rgba(27,46,75,.14);padding:14px 16px;z-index:200;color:#111827;text-align:left}
+                .tooltip-pop{display:none;position:absolute;right:0;top:26px;width:260px;background:hsl(var(--popover));border-radius:10px;border:1px solid hsl(var(--border));box-shadow:0 8px 24px rgba(0,0,0,.25);padding:14px 16px;z-index:200;color:hsl(var(--popover-foreground));text-align:left}
                 .tooltip-pop.show{display:block}
                 .info-btn{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.7);font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
             `}</style>
 
             <div className="mb-4">
-                <h1 style={{ fontSize: 20, fontWeight: 600, color: '#1B2E4B', letterSpacing: '-.3px' }}>Pay Band Creator</h1>
-                <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>직급 단계와 기준값을 입력하면 전체 밴드 구조가 자동으로 생성됩니다.</p>
+                <h1 className="text-xl font-semibold tracking-tight text-foreground">{tr('title')}</h1>
+                <p className="mt-1 text-[13px] text-muted-foreground">{tr('subtitle')}</p>
             </div>
 
             <div className="pb-card">
-                <div className="mb-4 flex items-center justify-between"><span className="pb-slabel">기준값 설정</span></div>
+                <div className="mb-4 flex items-center justify-between"><span className="pb-slabel">{tr('section_standards')}</span></div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: '1rem' }}>
                     <div>
-                        <div className="pb-slabel" style={{ marginBottom: 6 }}>직급 단계</div>
+                        <div className="pb-slabel" style={{ marginBottom: 6 }}>{tr('grade_steps')}</div>
                         <div className="pb-stepper">
                             <button type="button" onClick={() => { setSteps((s) => clamp(s - 1, 3, 7)); setOverrides({}); }}>-</button>
-                            <span>{steps}단계</span>
+                            <span>{t('compensation_system.pay_band_creator.steps_n', { count: steps })}</span>
                             <button type="button" onClick={() => { setSteps((s) => clamp(s + 1, 3, 7)); setOverrides({}); }}>+</button>
                         </div>
                     </div>
-                    <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 18 }}>3 - 7단계</div>
+                    <div className="mt-[18px] text-[11px] text-muted-foreground">{tr('steps_range')}</div>
                 </div>
                 <div className="pb-divider" />
-                <div className="pb-slabel" style={{ marginBottom: 8 }}>최저직급 앵커값 (Entry Grade)</div>
+                <div className="pb-slabel" style={{ marginBottom: 8 }}>{tr('entry_grade')}</div>
                 <div className="pb-input-row" style={{ marginBottom: '1rem' }}>
                     <div className="pb-field">
                         <label>Min</label>
-                        <div className="pb-iw"><input className="pb-num" type="number" value={eMin} step={100} min={0} onChange={(e) => setEMin(Number(e.target.value) || 0)} /><span className="pb-unit">만원</span></div>
+                        <div className="pb-iw"><input className="pb-num" type="number" value={eMin} step={100} min={0} onChange={(e) => setEMin(Number(e.target.value) || 0)} /><span className="pb-unit">{tr('unit_10k')}</span></div>
                         <div className="pb-err">{errors.min}</div>
                     </div>
                     <div className="pb-field">
                         <label>Target</label>
-                        <div className="pb-iw"><input className="pb-num" type="number" value={eTgt} step={100} min={0} onChange={(e) => setETgt(Number(e.target.value) || 0)} /><span className="pb-unit">만원</span></div>
+                        <div className="pb-iw"><input className="pb-num" type="number" value={eTgt} step={100} min={0} onChange={(e) => setETgt(Number(e.target.value) || 0)} /><span className="pb-unit">{tr('unit_10k')}</span></div>
                         <div className="pb-err">{errors.tgt}</div>
                     </div>
                     <div className="pb-field">
                         <label>Max</label>
-                        <div className="pb-iw"><input className="pb-num" type="number" value={eMax} step={100} min={0} onChange={(e) => setEMax(Number(e.target.value) || 0)} /><span className="pb-unit">만원</span></div>
+                        <div className="pb-iw"><input className="pb-num" type="number" value={eMax} step={100} min={0} onChange={(e) => setEMax(Number(e.target.value) || 0)} /><span className="pb-unit">{tr('unit_10k')}</span></div>
                         <div className="pb-err">{errors.max}</div>
                     </div>
                 </div>
-                <div className="pb-slabel" style={{ marginBottom: 8 }}>최고직급 앵커값 (Senior Grade)</div>
+                <div className="pb-slabel" style={{ marginBottom: 8 }}>{tr('senior_grade')}</div>
                 <div style={{ maxWidth: 220 }}>
                     <div className="pb-field">
-                        <label>Max (최고직급 상한)</label>
-                        <div className="pb-iw"><input className="pb-num" type="number" value={sMax} step={100} min={0} onChange={(e) => setSMax(Number(e.target.value) || 0)} /><span className="pb-unit">만원</span></div>
+                        <label>{tr('senior_max_label')}</label>
+                        <div className="pb-iw"><input className="pb-num" type="number" value={sMax} step={100} min={0} onChange={(e) => setSMax(Number(e.target.value) || 0)} /><span className="pb-unit">{tr('unit_10k')}</span></div>
                         <div className="pb-err">{errors.sMax}</div>
                     </div>
                 </div>
-                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 6 }}>입력 시 전체 밴드 스케일이 자동 재조정됩니다.</div>
+                <div className="mt-1.5 text-[11px] text-muted-foreground">{tr('scale_note')}</div>
             </div>
 
             <div className="pb-card">
-                <div className="mb-3 flex items-center justify-between"><span className="pb-slabel">성장 계수 (Factor)</span></div>
+                <div className="mb-3 flex items-center justify-between"><span className="pb-slabel">{tr('factor_section')}</span></div>
                 <div className="pb-factor">
                     <div className="pb-fbox">
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <div className="pb-fl">Factor A — 직급 간 보상 격차</div>
+                            <div className="pb-fl">{tr('factor_a_title')}</div>
                             <div className="tooltip-wrap" onMouseEnter={() => setTipA(true)} onMouseLeave={() => setTipA(false)}>
                                 <button className="info-btn" type="button">i</button>
                                 <div className={`tooltip-pop ${tipA ? 'show' : ''}`}>
@@ -347,11 +354,11 @@ export default function PayBandCreatorPanel({
                         </div>
                         <div className="pb-fv">{factorA}%</div>
                         <input className="pb-range" type="range" min={5} max={50} value={factorA} step={1} onChange={(e) => setFactorA(Number(e.target.value))} />
-                        <div className="pb-fd">직급 간 Target 값 증가율</div>
+                        <div className="pb-fd">{tr('factor_a_slider_caption')}</div>
                     </div>
                     <div className="pb-fbox">
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <div className="pb-fl">Factor B — 직급 간 중첩도</div>
+                            <div className="pb-fl">{tr('factor_b_title')}</div>
                             <div className="tooltip-wrap" onMouseEnter={() => setTipB(true)} onMouseLeave={() => setTipB(false)}>
                                 <button className="info-btn" type="button">i</button>
                                 <div className={`tooltip-pop ${tipB ? 'show' : ''}`}>
@@ -362,26 +369,26 @@ export default function PayBandCreatorPanel({
                         </div>
                         <div className="pb-fv">{factorB}%</div>
                         <input className="pb-range" type="range" min={60} max={capB} value={factorB} step={1} onChange={(e) => setFactorB(Number(e.target.value))} />
-                        <div className="pb-fd">Target 대비 Min 비율 (Band Spread)</div>
-                        <div className="pb-fc">상한 자동 제한: {capB}% (역전 방지)</div>
+                        <div className="pb-fd">{tr('factor_b_slider_caption')}</div>
+                        <div className="pb-fc">{t('compensation_system.pay_band_creator.factor_cap', { cap: capB })}</div>
                     </div>
                 </div>
             </div>
 
             <div className="pb-card">
                 <div className="mb-[10px] flex items-center justify-between">
-                    <span className="pb-slabel">밴드 시각화</span>
-                    <span style={{ fontSize: 10, color: '#9CA3AF', background: '#F0F2F5', border: '.5px solid rgba(27,46,75,.10)', borderRadius: 5, padding: '3px 9px' }}>단위: KRW, 만원</span>
+                    <span className="pb-slabel">{tr('viz_section')}</span>
+                    <span className="rounded border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{tr('unit_badge')}</span>
                 </div>
                 {validation ? (
-                    <div style={{ background: '#F8FAFC', border: '.5px solid rgba(148,163,184,.35)', borderRadius: 8, padding: '10px 12px', fontSize: 12, color: '#475569', marginBottom: 10 }}>
-                        앵커값(MIN/TARGET/MAX, Senior MAX)을 먼저 올바르게 입력하면 차트가 실시간 생성됩니다.
+                    <div className="mb-2.5 rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-xs text-muted-foreground">
+                        {tr('chart_hint')}
                     </div>
-                ) : hasOverlapWarn ? <div style={{ background: '#FDF1F1', border: '.5px solid rgba(217,79,79,.35)', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#D94F4F', marginBottom: 10 }}>⚠ 일부 직급 간 Overlap이 15% 미만입니다. 귀사의 조직 구조에 적절한지 검토해 주세요.</div> : null}
+                ) : hasOverlapWarn ? <div className="mb-2.5 rounded-lg border border-destructive/35 bg-destructive/10 px-3 py-2 text-xs text-destructive">⚠ {tr('overlap_warn')}</div> : null}
                 <div style={{ width: '100%', overflow: 'auto', position: 'relative' }}>
                     {bands.length === 0 ? (
-                        <div style={{ minHeight: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', fontSize: 12 }}>
-                            유효한 앵커값 입력 시 밴드 차트가 표시됩니다.
+                        <div className="flex min-h-[220px] items-center justify-center text-xs text-muted-foreground">
+                            {tr('chart_placeholder')}
                         </div>
                     ) : (
                     <svg width={chart.W} height={chart.H} viewBox={`0 0 ${chart.W} ${chart.H}`}>
@@ -540,6 +547,7 @@ export default function PayBandCreatorPanel({
 
             <div className="pb-card">
                 <div className="mb-4 flex items-center justify-between"><span className="pb-slabel">Operation Criteria</span></div>
+                <FieldErrorMessage fieldKey="comp-operation-criteria" errors={fieldErrors} className="mb-3" />
                 <table className="pb-crit">
                     <thead><tr><th>No.</th><th>항목</th><th>설정값</th></tr></thead>
                     <tbody>
@@ -557,6 +565,7 @@ export default function PayBandCreatorPanel({
                                         })
                                     }
                                 >
+                                    <option value="">{tr('op_placeholder')}</option>
                                     <option value="allowed_with_ceo_approval">허용</option>
                                     <option value="not_allowed">허용 안 함</option>
                                 </select>
@@ -576,6 +585,7 @@ export default function PayBandCreatorPanel({
                                         })
                                     }
                                 >
+                                    <option value="">{tr('op_placeholder')}</option>
                                     <option value="guarantee_minimum">신규 밴드의 Min값 적용</option>
                                     <option value="below_minimum_allowed">Min값 미달 허용</option>
                                 </select>
@@ -595,6 +605,7 @@ export default function PayBandCreatorPanel({
                                         })
                                     }
                                 >
+                                    <option value="">{tr('op_placeholder')}</option>
                                     <option value="annual">1년</option>
                                     <option value="every_2_years">2년</option>
                                     <option value="ad_hoc">비정기</option>
@@ -605,9 +616,9 @@ export default function PayBandCreatorPanel({
                 </table>
             </div>
 
-            <div className="pb-actions">
+            <div className="pb-actions flex-wrap items-center">
                 <button type="button" className="pb-btn pb-btn-ghost" onClick={resetToRecommended}>↺ Reset to Recommended</button>
-                <button type="button" className="pb-btn pb-btn-primary">저장 후 다음 단계 →</button>
+                <span className="text-xs text-muted-foreground max-w-md">{tr('continue_footer_hint')}</span>
             </div>
 
         </div>

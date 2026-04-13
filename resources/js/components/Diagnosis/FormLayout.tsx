@@ -10,6 +10,7 @@ import { tr } from '@/config/diagnosisTranslations';
 import { toast } from '@/hooks/use-toast';
 import AppLayout from '@/layouts/AppLayout';
 import { saveTabDraft } from '@/lib/diagnosisDraftStorage';
+import { waitWebAnimationMs } from '@/lib/deferred';
 import { mergeDiagnosisWithFormData, pruneFieldErrorsToValidator } from '@/lib/fieldErrorsUtils';
 import { toastCopy } from '@/lib/toastCopy';
 
@@ -396,9 +397,9 @@ export default function FormLayout({
                         variant: 'success',
                         duration: SAVE_SUCCESS_TOAST_MS,
                     });
-                    window.setTimeout(() => {
+                    void waitWebAnimationMs(SAVE_SUCCESS_TOAST_MS + 200).then(() => {
                         doNavigate();
-                    }, SAVE_SUCCESS_TOAST_MS + 200);
+                    });
                 },
                 onError: (payload: unknown) => {
                     const raw = (payload as any)?.errors ?? payload;

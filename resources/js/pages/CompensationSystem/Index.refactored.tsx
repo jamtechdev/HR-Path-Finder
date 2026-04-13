@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout';
+import { waitWebAnimationMs } from '@/lib/deferred';
 import { cn } from '@/lib/utils';
 
 // Import types
@@ -175,8 +176,9 @@ export default function CompensationSystemIndex({
     // Auto-save handlers
     useEffect(() => {
         if (activeTab !== 'base-salary-framework') return;
-        
-        const timer = setTimeout(() => {
+        let cancelled = false;
+        void waitWebAnimationMs(1500).then(() => {
+            if (cancelled) return;
             if (Object.keys(baseSalaryFramework).length > 0) {
                 router.post(`/hr-manager/compensation-system/${project.id}`, {
                     tab: 'base-salary-framework',
@@ -187,14 +189,17 @@ export default function CompensationSystemIndex({
                     only: ['project'],
                 });
             }
-        }, 1500);
-        return () => clearTimeout(timer);
+        });
+        return () => {
+            cancelled = true;
+        };
     }, [baseSalaryFramework, activeTab, project.id]);
 
     useEffect(() => {
         if (activeTab !== 'pay-band-salary-table') return;
-        
-        const timer = setTimeout(() => {
+        let cancelled = false;
+        void waitWebAnimationMs(1500).then(() => {
+            if (cancelled) return;
             if (payBands.length > 0) {
                 router.post(`/hr-manager/compensation-system/${project.id}`, {
                     tab: 'pay-band',
@@ -225,14 +230,17 @@ export default function CompensationSystemIndex({
                     only: ['project'],
                 });
             }
-        }, 1500);
-        return () => clearTimeout(timer);
+        });
+        return () => {
+            cancelled = true;
+        };
     }, [payBands, salaryTables, operationCriteria, activeTab, project.id]);
 
     useEffect(() => {
         if (activeTab !== 'bonus-pool') return;
-        
-        const timer = setTimeout(() => {
+        let cancelled = false;
+        void waitWebAnimationMs(1500).then(() => {
+            if (cancelled) return;
             if (Object.keys(bonusPool).length > 0) {
                 router.post(`/hr-manager/compensation-system/${project.id}`, {
                     tab: 'bonus-pool',
@@ -243,14 +251,17 @@ export default function CompensationSystemIndex({
                     only: ['project'],
                 });
             }
-        }, 1500);
-        return () => clearTimeout(timer);
+        });
+        return () => {
+            cancelled = true;
+        };
     }, [bonusPool, activeTab, project.id]);
 
     useEffect(() => {
         if (activeTab !== 'benefits') return;
-        
-        const timer = setTimeout(() => {
+        let cancelled = false;
+        void waitWebAnimationMs(1500).then(() => {
+            if (cancelled) return;
             if (Object.keys(benefits).length > 0) {
                 const updatedBenefits = { ...benefits };
                 if (updatedBenefits.previous_year_total_salary && updatedBenefits.previous_year_total_benefits_expense) {
@@ -267,8 +278,10 @@ export default function CompensationSystemIndex({
                     only: ['project'],
                 });
             }
-        }, 1500);
-        return () => clearTimeout(timer);
+        });
+        return () => {
+            cancelled = true;
+        };
     }, [benefits, activeTab, project.id]);
 
     const handleSubmit = () => {

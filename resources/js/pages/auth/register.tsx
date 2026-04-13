@@ -1,6 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowRight, CheckCircle2, ArrowLeft, Eye, EyeOff, WandSparkles } from 'lucide-react';
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -48,11 +48,8 @@ export default function Register({ status }: Props) {
 
     const passwordStrength = getPasswordStrength(form.data.password);
 
-    React.useEffect(() => {
-        const t = window.setTimeout(() => {
-            nameInputRef.current?.focus();
-        }, 0);
-        return () => window.clearTimeout(t);
+    useLayoutEffect(() => {
+        nameInputRef.current?.focus();
     }, []);
 
     const generatePassword = React.useCallback(() => {

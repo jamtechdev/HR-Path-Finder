@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface CompensationPageHeaderProps {
@@ -20,6 +21,7 @@ export default function CompensationPageHeader({
     completionPct,
     className,
 }: CompensationPageHeaderProps) {
+    const { t } = useTranslation();
     return (
         <div
             className={cn(
@@ -59,7 +61,9 @@ export default function CompensationPageHeader({
                                 </svg>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                                     <span className="text-sm font-bold text-white leading-none">{Math.round(completionPct)}%</span>
-                                    <span className="text-[8px] text-white/35 uppercase tracking-wider mt-0.5">Done</span>
+                                    <span className="text-[8px] text-white/35 uppercase tracking-wider mt-0.5">
+                                        {t('compensation_system.snapshot.header_progress_done')}
+                                    </span>
                                 </div>
                             </div>
                         </div>

@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import SuccessModal from '@/components/Modals/SuccessModal';
 import { Button } from '@/components/ui/button';
+import { waitWebAnimationMs } from '@/lib/deferred';
 import { cn } from '@/lib/utils';
 import type { JobDefinition, OrgChartMapping } from '../hooks/useJobAnalysisState';
 
@@ -57,10 +58,10 @@ export default function Step4Finalization({
     const handleFinalize = () => {
         if (!hasJobs) return;
         setIsSubmitting(true);
-        setTimeout(() => {
+        void waitWebAnimationMs(300).then(() => {
             setIsSubmitting(false);
             setShowSuccessModal(true);
-        }, 300);
+        });
     };
 
     const csfMatrix = useMemo(() => {

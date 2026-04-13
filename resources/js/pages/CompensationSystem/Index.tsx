@@ -1,6 +1,6 @@
 import { Head, useForm, router, Link } from '@inertiajs/react';
 import { ArrowLeft, DollarSign, CheckCircle2, MessageSquare, ChevronDown, ChevronUp, TrendingUp, FileText, Settings, Award, Users, AlertCircle, Shield } from 'lucide-react';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import InlineErrorSummary from '@/components/Forms/InlineErrorSummary';
@@ -58,7 +58,7 @@ interface Props {
 }
 
 const TABS = [
-    { id: 'overview', labelKey: 'common.overview', icon: Shield },
+    { id: 'overview', labelKey: 'compensation_system.tabs.overview', icon: Shield },
     { id: 'snapshot', labelKey: 'compensation_system.tabs.snapshot', icon: FileText },
     { id: 'base-salary-framework', labelKey: 'compensation_system.tabs.base_salary_framework', icon: Settings },
     { id: 'pay-band-salary-table', labelKey: 'compensation_system.tabs.pay_band_salary_table', icon: TrendingUp },
@@ -66,6 +66,50 @@ const TABS = [
     { id: 'benefits', labelKey: 'compensation_system.tabs.benefits', icon: Users },
     { id: 'review', labelKey: 'compensation_system.tabs.review', icon: CheckCircle2 },
 ] as const;
+
+const PRE_REVIEW_TABS = ['snapshot', 'base-salary-framework', 'pay-band-salary-table', 'bonus-pool', 'benefits'] as const;
+
+type CompensationDraftStorage = {
+    snapshotResponses?: Record<number, string[] | string | number | object | null>;
+    baseSalaryFramework?: BaseSalaryFramework;
+    payBands?: PayBand[];
+    salaryTables?: SalaryTable[];
+    operationCriteria?: PayBandOperationCriteria;
+    bonusPool?: BonusPoolConfiguration;
+    benefits?: BenefitsConfiguration;
+    localTabDone?: Record<string, boolean>;
+};
+
+function readCompensationDraft(storageKey: string): CompensationDraftStorage | null {
+    if (typeof window === 'undefined') return null;
+    try {
+        const raw = window.localStorage.getItem(storageKey);
+        if (!raw) return null;
+        return JSON.parse(raw) as CompensationDraftStorage;
+    } catch {
+        return null;
+    }
+}
+
+function snapshotFromProject(project: HrProject): Record<number, string[] | string | number | object | null> {
+    const responses: Record<number, string[] | string | number | object | null> = {};
+    project.compensation_snapshot_responses?.forEach((resp) => {
+        if (resp.numeric_response !== null && resp.numeric_response !== undefined) {
+            const raw = resp.numeric_response as unknown;
+            const n = typeof raw === 'string' ? parseFloat(raw) : (raw as number);
+            responses[resp.question_id] = Number.isFinite(n) ? n : null;
+        } else if (resp.text_response) {
+            responses[resp.question_id] = resp.text_response;
+        } else {
+            responses[resp.question_id] = resp.response || null;
+        }
+    });
+    return responses;
+}
+
+function stableHash(value: unknown): string {
+    return JSON.stringify(value ?? null);
+}
 
 export default function CompensationSystemIndex({ 
     project, 
@@ -80,53 +124,76 @@ export default function CompensationSystemIndex({
 }: Props) {
     const { t } = useTranslation();
     const draftStorageKey = useMemo(() => `compensation-system-draft:${project.id}`, [project.id]);
+    const draftStorageKeyStatic = `compensation-system-draft:${project.id}`;
+    const compensationStatus = stepStatuses?.compensation || 'not_started';
+    const isCompensationSubmitted = ['submitted', 'approved', 'locked'].includes(compensationStatus);
+    const initialDraft = isCompensationSubmitted ? null : readCompensationDraft(draftStorageKeyStatic);
+
     const [activeTab, setActiveTab] = useState(initialTab);
     const [tabCompletions, setTabCompletions] = useState<Record<string, boolean>>({});
-    const [localTabDone, setLocalTabDone] = useState<Record<string, boolean>>({});
+    const [localTabDone, setLocalTabDone] = useState<Record<string, boolean>>(() => {
+        if (initialDraft?.localTabDone && Object.keys(initialDraft.localTabDone).length > 0) {
+            return { ...initialDraft.localTabDone };
+        }
+        return {};
+    });
     const [compError, setCompError] = useState<string | null>(null);
     const [compFieldErrors, setCompFieldErrors] = useState<FieldErrors>({});
     const [isRationaleOpen, setIsRationaleOpen] = useState(true);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-    // State for each step
-    const [baseSalaryFramework, setBaseSalaryFramework] = useState<BaseSalaryFramework>(project.base_salary_framework || {});
-    const [payBands, setPayBands] = useState<PayBand[]>(project.pay_bands || []);
-    const [salaryTables, setSalaryTables] = useState<SalaryTable[]>(project.salary_tables || []);
-    const [operationCriteria, setOperationCriteria] = useState<PayBandOperationCriteria>(project.pay_band_operation_criteria || {});
-    const [bonusPool, setBonusPool] = useState<BonusPoolConfiguration>(project.bonus_pool_configuration || {});
-    const [benefits, setBenefits] = useState<BenefitsConfiguration>(project.benefits_configuration || {});
-    
-    // Snapshot responses state
+    // State for each step — hydrate from localStorage synchronously so the first paint (and save effect) never wipe a draft.
+    const [baseSalaryFramework, setBaseSalaryFramework] = useState<BaseSalaryFramework>(() => {
+        const fromProject = project.base_salary_framework || {};
+        if (initialDraft?.baseSalaryFramework && Object.keys(initialDraft.baseSalaryFramework).length > 0) {
+            return initialDraft.baseSalaryFramework;
+        }
+        return fromProject;
+    });
+    const [payBands, setPayBands] = useState<PayBand[]>(() => {
+        if (initialDraft?.payBands !== undefined && Array.isArray(initialDraft.payBands)) {
+            return initialDraft.payBands;
+        }
+        return project.pay_bands || [];
+    });
+    const [salaryTables, setSalaryTables] = useState<SalaryTable[]>(() => {
+        if (initialDraft?.salaryTables !== undefined && Array.isArray(initialDraft.salaryTables)) {
+            return initialDraft.salaryTables;
+        }
+        return project.salary_tables || [];
+    });
+    const [operationCriteria, setOperationCriteria] = useState<PayBandOperationCriteria>(() => {
+        if (initialDraft?.operationCriteria && Object.keys(initialDraft.operationCriteria).length > 0) {
+            return initialDraft.operationCriteria;
+        }
+        return project.pay_band_operation_criteria || {};
+    });
+    const [bonusPool, setBonusPool] = useState<BonusPoolConfiguration>(() => {
+        if (initialDraft?.bonusPool && Object.keys(initialDraft.bonusPool).length > 0) {
+            return initialDraft.bonusPool;
+        }
+        return project.bonus_pool_configuration || {};
+    });
+    const [benefits, setBenefits] = useState<BenefitsConfiguration>(() => {
+        if (initialDraft?.benefits && Object.keys(initialDraft.benefits).length > 0) {
+            return initialDraft.benefits;
+        }
+        return project.benefits_configuration || {};
+    });
+
     const [snapshotResponses, setSnapshotResponses] = useState<Record<number, string[] | string | number | object | null>>(() => {
-        const responses: Record<number, string[] | string | number | object | null> = {};
-        project.compensation_snapshot_responses?.forEach(resp => {
-            if (resp.numeric_response !== null && resp.numeric_response !== undefined) {
-                // Backend may serialize decimal values as strings (e.g. "3.00").
-                const raw = resp.numeric_response as unknown;
-                const n = typeof raw === 'string' ? parseFloat(raw) : (raw as number);
-                responses[resp.question_id] = Number.isFinite(n) ? n : null;
-            } else if (resp.text_response) {
-                responses[resp.question_id] = resp.text_response;
-            } else {
-                responses[resp.question_id] = resp.response || null;
+        const fromProject = snapshotFromProject(project);
+        if (initialDraft?.snapshotResponses && typeof initialDraft.snapshotResponses === 'object') {
+            const keys = Object.keys(initialDraft.snapshotResponses);
+            if (keys.length > 0) {
+                return { ...fromProject, ...initialDraft.snapshotResponses };
             }
-        });
-        return responses;
+        }
+        return fromProject;
     });
 
     const { post, processing } = useForm({});
     const [saving, setSaving] = useState(false);
-
-    type CompensationDraft = {
-        snapshotResponses: Record<number, string[] | string | number | object | null>;
-        baseSalaryFramework: BaseSalaryFramework;
-        payBands: PayBand[];
-        salaryTables: SalaryTable[];
-        operationCriteria: PayBandOperationCriteria;
-        bonusPool: BonusPoolConfiguration;
-        benefits: BenefitsConfiguration;
-        localTabDone: Record<string, boolean>;
-    };
 
     const validationCtx = () => ({
         snapshotQuestions: snapshotQuestions || [],
@@ -134,35 +201,19 @@ export default function CompensationSystemIndex({
         baseSalaryFramework,
         payBands,
         salaryTables,
+        operationCriteria,
         bonusPool,
         benefits,
     });
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
-
-        try {
-            const raw = window.localStorage.getItem(draftStorageKey);
-            if (!raw) return;
-
-            const draft = JSON.parse(raw) as Partial<CompensationDraft>;
-            if (draft.snapshotResponses) setSnapshotResponses(draft.snapshotResponses);
-            if (draft.baseSalaryFramework) setBaseSalaryFramework(draft.baseSalaryFramework);
-            if (draft.payBands) setPayBands(draft.payBands);
-            if (draft.salaryTables) setSalaryTables(draft.salaryTables);
-            if (draft.operationCriteria) setOperationCriteria(draft.operationCriteria);
-            if (draft.bonusPool) setBonusPool(draft.bonusPool);
-            if (draft.benefits) setBenefits(draft.benefits);
-            if (draft.localTabDone) setLocalTabDone(draft.localTabDone);
-        } catch {
-            // Ignore invalid local draft payloads.
+        if (isCompensationSubmitted) {
+            window.localStorage.removeItem(draftStorageKey);
+            return;
         }
-    }, [draftStorageKey]);
 
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-
-        const draft: CompensationDraft = {
+        const draft: CompensationDraftStorage = {
             snapshotResponses,
             baseSalaryFramework,
             payBands,
@@ -173,7 +224,6 @@ export default function CompensationSystemIndex({
             localTabDone,
         };
         window.localStorage.setItem(draftStorageKey, JSON.stringify(draft));
-
     }, [
         draftStorageKey,
         snapshotResponses,
@@ -184,10 +234,193 @@ export default function CompensationSystemIndex({
         bonusPool,
         benefits,
         localTabDone,
-        activeTab,
+        isCompensationSubmitted,
     ]);
 
-    const handleSaveAndContinue = () => {
+    const lastSavedHashesRef = useRef<Record<string, string>>({
+        'base-salary-framework': stableHash(baseSalaryFramework),
+        'pay-band': stableHash(payBands),
+        'salary-table': stableHash(salaryTables),
+        'operation-criteria': stableHash(operationCriteria),
+    });
+
+    /** Persist tabs that previously had a separate Save (server draft). Called from Continue after validation. */
+    const persistCurrentTabToServer = useCallback(
+        (quiet: boolean): Promise<'saved' | 'skipped' | 'failed'> => {
+            const pid = project.id;
+            const fail = (msg: string) => {
+                setCompError(msg);
+                toast({
+                    title: toastCopy.saveFailed,
+                    description: `${msg} 다시 시도해 주세요.`,
+                    variant: 'destructive',
+                });
+            };
+
+            if (activeTab === 'base-salary-framework') {
+                const currentHash = stableHash(baseSalaryFramework);
+                if (lastSavedHashesRef.current['base-salary-framework'] === currentHash) {
+                    return Promise.resolve('skipped');
+                }
+                return new Promise(resolve => {
+                    router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'base-salary-framework', ...baseSalaryFramework } as never, {
+                        preserveScroll: true,
+                        preserveState: true,
+                        onSuccess: () => {
+                            if (!quiet) {
+                                toast({
+                                    title: toastCopy.changesSaved,
+                                    description: 'Base salary framework saved. 저장되었습니다.',
+                                    variant: 'success',
+                                    duration: 1500,
+                                });
+                            }
+                            lastSavedHashesRef.current['base-salary-framework'] = currentHash;
+                            resolve('saved');
+                        },
+                        onError: () => {
+                            fail('Could not save base salary framework.');
+                            resolve('failed');
+                        },
+                    });
+                });
+            }
+
+            if (activeTab === 'pay-band-salary-table') {
+                const std = (baseSalaryFramework?.salary_determination_standard || '').trim();
+                if (std === 'salary_table') {
+                    const tableHash = stableHash(salaryTables);
+                    const criteriaHash = stableHash(operationCriteria);
+                    const tableDirty = lastSavedHashesRef.current['salary-table'] !== tableHash;
+                    const criteriaDirty = lastSavedHashesRef.current['operation-criteria'] !== criteriaHash;
+                    if (!tableDirty && !criteriaDirty) {
+                        return Promise.resolve('skipped');
+                    }
+                    return new Promise(resolve => {
+                        const saveCriteria = () => {
+                            if (!criteriaDirty) {
+                                if (!quiet) {
+                                    toast({
+                                        title: toastCopy.changesSaved,
+                                        description: 'Salary table saved. 저장되었습니다.',
+                                        variant: 'success',
+                                        duration: 1500,
+                                    });
+                                }
+                                resolve('saved');
+                                return;
+                            }
+                            router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'operation-criteria', ...operationCriteria } as never, {
+                                preserveScroll: true,
+                                preserveState: true,
+                                onSuccess: () => {
+                                    lastSavedHashesRef.current['operation-criteria'] = criteriaHash;
+                                    if (!quiet) {
+                                        toast({
+                                            title: toastCopy.changesSaved,
+                                            description: 'Salary table saved. 저장되었습니다.',
+                                            variant: 'success',
+                                            duration: 1500,
+                                        });
+                                    }
+                                    resolve('saved');
+                                },
+                                onError: () => {
+                                    fail('Could not save operation criteria.');
+                                    resolve('failed');
+                                },
+                            });
+                        };
+
+                        if (!tableDirty) {
+                            saveCriteria();
+                            return;
+                        }
+
+                        router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'salary-table', salary_tables: salaryTables } as never, {
+                            preserveScroll: true,
+                            preserveState: true,
+                            onSuccess: () => {
+                                lastSavedHashesRef.current['salary-table'] = tableHash;
+                                saveCriteria();
+                            },
+                            onError: () => {
+                                fail('Could not save salary tables.');
+                                resolve('failed');
+                            },
+                        });
+                    });
+                }
+
+                const bandHash = stableHash(payBands);
+                const criteriaHash = stableHash(operationCriteria);
+                const bandDirty = lastSavedHashesRef.current['pay-band'] !== bandHash;
+                const criteriaDirty = lastSavedHashesRef.current['operation-criteria'] !== criteriaHash;
+                if (!bandDirty && !criteriaDirty) {
+                    return Promise.resolve('skipped');
+                }
+                return new Promise(resolve => {
+                    const saveCriteria = () => {
+                        if (!criteriaDirty) {
+                            if (!quiet) {
+                                toast({
+                                    title: toastCopy.changesSaved,
+                                    description: 'Pay band saved. 저장되었습니다.',
+                                    variant: 'success',
+                                    duration: 1500,
+                                });
+                            }
+                            resolve('saved');
+                            return;
+                        }
+                                router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'operation-criteria', ...operationCriteria } as never, {
+                                    preserveScroll: true,
+                                    preserveState: true,
+                                    onSuccess: () => {
+                                        lastSavedHashesRef.current['operation-criteria'] = criteriaHash;
+                                        if (!quiet) {
+                                            toast({
+                                                title: toastCopy.changesSaved,
+                                                description: 'Salary table saved. 저장되었습니다.',
+                                                variant: 'success',
+                                                duration: 1500,
+                                            });
+                                        }
+                                        resolve('saved');
+                                    },
+                                    onError: () => {
+                                        fail('Could not save operation criteria.');
+                                        resolve('failed');
+                                    },
+                                });
+                    };
+
+                    if (!bandDirty) {
+                        saveCriteria();
+                        return;
+                    }
+
+                    router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'pay-band', pay_bands: payBands } as never, {
+                        preserveScroll: true,
+                        preserveState: true,
+                        onSuccess: () => {
+                            lastSavedHashesRef.current['pay-band'] = bandHash;
+                            saveCriteria();
+                        },
+                        onError: () => {
+                            fail('Could not save pay bands.');
+                            resolve('failed');
+                        },
+                    });
+                });
+            }
+
+            return Promise.resolve('skipped');
+        },
+        [activeTab, project.id, baseSalaryFramework, payBands, salaryTables, operationCriteria],
+    );
+
+    const handleSaveAndContinue = async () => {
         setCompError(null);
         setCompFieldErrors({});
 
@@ -205,98 +438,25 @@ export default function CompensationSystemIndex({
             }
         }
 
+        const persistStatus = await persistCurrentTabToServer(true);
+        if (persistStatus === 'failed') return;
+
         const idx = TABS.findIndex(t => t.id === activeTab);
         const nextTabId = idx < TABS.length - 1 ? TABS[idx + 1].id : activeTab;
         if (activeTab !== 'overview' && activeTab !== 'review') {
-            setLocalTabDone((d) => ({ ...d, [activeTab]: true }));
+            setLocalTabDone(d => ({ ...d, [activeTab]: true }));
         }
         toast({
             title: toastCopy.stepCompleted,
-            description: 'Your updates were saved. Moving to the next step. 입력 내용이 저장되었습니다.',
+            description:
+                persistStatus === 'saved'
+                    ? 'Your updates were saved. Moving to the next step. 입력 내용이 저장되었습니다.'
+                    : 'No changes detected. Moving to the next step. 변경사항이 없어 다음 단계로 이동합니다.',
             variant: 'success',
             duration: 1800,
         });
         handleTabChange(nextTabId);
     };
-
-    const saveCurrentTabOnly = () => {
-        setCompError(null);
-        setCompFieldErrors({});
-        const pid = project.id;
-
-        const fail = (msg: string) => {
-            setCompError(msg);
-            toast({
-                title: toastCopy.saveFailed,
-                description: `${msg} 다시 시도해 주세요.`,
-                variant: 'destructive',
-            });
-        };
-
-        if (activeTab === 'base-salary-framework') {
-            router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'base-salary-framework', ...baseSalaryFramework } as never, {
-                preserveScroll: true,
-                preserveState: true,
-                onSuccess: () => {
-                    toast({
-                        title: toastCopy.changesSaved,
-                        description: 'Base salary framework saved. 저장되었습니다.',
-                        variant: 'success',
-                        duration: 1500,
-                    });
-                },
-                onError: () => fail('Could not save base salary framework.'),
-            });
-            return;
-        }
-
-        if (activeTab === 'pay-band-salary-table') {
-            const std = (baseSalaryFramework?.salary_determination_standard || '').trim();
-            if (std === 'salary_table') {
-                router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'salary-table', salary_tables: salaryTables } as never, {
-                    preserveScroll: true,
-                    preserveState: true,
-                    onSuccess: () => {
-                        router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'operation-criteria', ...operationCriteria } as never, {
-                            preserveScroll: true,
-                            preserveState: true,
-                            onSuccess: () => toast({
-                                title: toastCopy.changesSaved,
-                                description: 'Salary table saved. 저장되었습니다.',
-                                variant: 'success',
-                                duration: 1500,
-                            }),
-                            onError: () => fail('Could not save operation criteria.'),
-                        });
-                    },
-                    onError: () => fail('Could not save salary tables.'),
-                });
-                return;
-            }
-
-            router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'pay-band', pay_bands: payBands } as never, {
-                preserveScroll: true,
-                preserveState: true,
-                onSuccess: () => {
-                    router.post(`/hr-manager/compensation-system/${pid}`, { tab: 'operation-criteria', ...operationCriteria } as never, {
-                        preserveScroll: true,
-                        preserveState: true,
-                        onSuccess: () => toast({
-                                title: toastCopy.changesSaved,
-                            description: 'Pay band saved. 저장되었습니다.',
-                            variant: 'success',
-                            duration: 1500,
-                        }),
-                        onError: () => fail('Could not save operation criteria.'),
-                    });
-                },
-                onError: () => fail('Could not save pay bands.'),
-            });
-            return;
-        }
-    };
-
-    const PRE_REVIEW_TABS = ['snapshot', 'base-salary-framework', 'pay-band-salary-table', 'bonus-pool', 'benefits'] as const;
 
     // Tab unlock: current form must pass validation (no bypass via stale server props alone).
     const validateTabCompletion = (tabId: string): boolean => {
@@ -332,20 +492,38 @@ export default function CompensationSystemIndex({
         return !!localTabDone[tabId] || validateCompensationStep(tabId, ctx).ok;
     };
 
+    /** Sequential unlock: each prior step must pass strict validation (not `localTabDone` alone), so stale drafts cannot open Base Salary / later tabs while Snapshot is incomplete. */
     const isTabEnabled = (tabId: string, tabIndex: number): boolean => {
         if (tabId === 'overview') return true;
-        
+        const ctx = validationCtx();
         for (let i = 0; i < tabIndex; i++) {
             const prevTab = TABS[i];
             if (prevTab.id === 'overview') continue;
-            
-            if (!validateTabCompletion(prevTab.id)) {
+            if (!validateCompensationStep(prevTab.id, ctx).ok) {
                 return false;
             }
         }
-        
         return true;
     };
+
+    const footerStepValid = useMemo(() => {
+        const ctx = validationCtx();
+        if (activeTab === 'overview') return true;
+        if (activeTab === 'review') {
+            return PRE_REVIEW_TABS.every(tid => validateCompensationStep(tid, ctx).ok);
+        }
+        return validateCompensationStep(activeTab, ctx).ok;
+    }, [
+        activeTab,
+        snapshotQuestions,
+        snapshotResponses,
+        baseSalaryFramework,
+        payBands,
+        salaryTables,
+        operationCriteria,
+        bonusPool,
+        benefits,
+    ]);
 
     useEffect(() => {
         const completions: Record<string, boolean> = {};
@@ -420,6 +598,7 @@ export default function CompensationSystemIndex({
         baseSalaryFramework,
         payBands,
         salaryTables,
+        operationCriteria,
         bonusPool,
         benefits,
         snapshotQuestions,
@@ -437,9 +616,8 @@ export default function CompensationSystemIndex({
         setCompError(null);
         setCompFieldErrors({});
 
-        const preTabs = ['snapshot', 'base-salary-framework', 'pay-band-salary-table', 'bonus-pool', 'benefits'] as const;
         const ctx = validationCtx();
-        for (const tid of preTabs) {
+        for (const tid of PRE_REVIEW_TABS) {
             const v = validateCompensationStep(tid, ctx);
             if (!v.ok) {
                 setCompError(v.message);
@@ -691,9 +869,9 @@ export default function CompensationSystemIndex({
                         t('page_head_fallbacks.compensation_system'),
                 })}
             />
-            <div className={cn('min-h-full', isOverview ? 'bg-[#f5f3ef]' : 'bg-[#f7f8fa]')}>
+            <div className="min-h-full bg-background text-foreground">
                 {errors?.error && (
-                    <Alert className="mb-6 border-destructive/50 bg-destructive/10 text-destructive mx-auto max-w-7xl px-6 pt-6">
+                    <Alert className="mb-6 border-destructive/50 bg-destructive/10 text-destructive mx-auto max-w-[90rem] px-6 pt-6">
                         <AlertCircle className="h-4 w-4" />
                         <AlertDescription>{errors.error}</AlertDescription>
                     </Alert>
@@ -701,10 +879,10 @@ export default function CompensationSystemIndex({
 
                 {isOverview ? (
                     <div className="space-y-6">
-                        <div className="flex items-center justify-between px-6 pt-6 max-w-7xl mx-auto">
+                        <div className="flex items-center justify-between px-6 pt-6 max-w-[90rem] mx-auto">
                             <Link
                                 href="/hr-manager/dashboard"
-                                className="text-sm font-medium text-[#0f2a4a] hover:text-[#1a4070] flex items-center gap-1"
+                                className="text-sm font-medium text-foreground/80 hover:text-primary flex items-center gap-1"
                             >
                                 <ArrowLeft className="w-4 h-4" />
                                 {t('compensation_system.back_to_dashboard')}
@@ -719,63 +897,99 @@ export default function CompensationSystemIndex({
                     </div>
                 ) : (
                     <>
-                        {/* Dark bar: step icon + status only (breadcrumb shows once in AppHeader) */}
-                        <header className="bg-[#0f1c30] text-white flex items-center justify-between flex-wrap gap-2 text-sm px-6 md:px-10 py-3.5">
-                            <div className="w-6 h-6 rounded bg-white flex items-center justify-center text-[#0f1c30] font-black text-xs shrink-0" aria-hidden>C</div>
-                            <span
-                                className="rounded-[20px] px-3.5 py-1 text-[11px] font-semibold text-white shrink-0"
-                                style={{ background: '#c8963e', paddingTop: 4, paddingBottom: 4, paddingLeft: 14, paddingRight: 14 }}
-                            >
-                                {t(`performance_system_index.status.${getStatusForHeader()}`)}
-                            </span>
+                        {/* Stage title + progress status (breadcrumb in AppHeader) */}
+                        <header className="border-b border-white/10 bg-[var(--hr-navy)] px-4 py-3 text-white sm:px-6 md:px-10">
+                            <div className="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-3">
+                                <div className="flex min-w-0 items-center gap-3">
+                                    <div
+                                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--hr-mint)]/15 text-[var(--hr-mint)] ring-1 ring-[var(--hr-mint)]/35"
+                                        aria-hidden
+                                    >
+                                        <DollarSign className="h-4 w-4" strokeWidth={2.25} />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <h2 className="truncate text-sm font-semibold tracking-tight text-white">
+                                            {t('compensation_system.title')}
+                                        </h2>
+                                        <p className="truncate text-[11px] text-white/50 sm:text-xs">
+                                            {t('compensation_system.stage_4_5')}
+                                        </p>
+                                    </div>
+                                </div>
+                                <span
+                                    className={cn(
+                                        'shrink-0 rounded-full border px-3 py-1 text-[11px] font-semibold tracking-wide',
+                                        getStatusForHeader() === 'submitted' &&
+                                            'border-emerald-400/40 bg-emerald-500/15 text-emerald-100',
+                                        getStatusForHeader() === 'in_progress' &&
+                                            'border-amber-300/40 bg-amber-500/15 text-amber-50',
+                                        getStatusForHeader() === 'not_started' &&
+                                            'border-white/15 bg-white/5 text-white/70',
+                                    )}
+                                >
+                                    {t(`compensation_system.status.${getStatusForHeader()}`)}
+                                </span>
+                            </div>
                         </header>
 
                         {/* Dark stage nav - includes Overview so user can go back from any step */}
-                        <div className="bg-[#0f1c30] border-b border-white/5">
-                            <div className="max-w-7xl mx-auto px-6 overflow-x-auto scrollbar-thin">
-                                <nav className="flex items-center gap-0 min-w-max">
+                        <div className="border-b border-white/5 bg-[var(--hr-navy)]">
+                            <div className="mx-auto max-w-[90rem] overflow-x-auto px-3 scrollbar-thin sm:px-4 md:px-6">
+                                <nav className="flex min-w-max items-stretch gap-0">
                                     {TABS.map((tab, idx) => {
                                         const Icon = tab.icon;
                                         const isActive = activeTab === tab.id;
                                         const isDone = tab.id === 'overview' ? false : isTabCompletedForUI(tab.id);
-                                        const stepNum = tab.id === 'overview' ? null : idx; // Overview = O, Snapshot = 1, ... Review = 6
+                                        const stepNum = tab.id === 'overview' ? null : idx;
                                         return (
                                             <button
                                                 key={tab.id}
                                                 type="button"
                                                 onClick={() => handleTabChange(tab.id)}
                                                 className={cn(
-                                                    'flex items-center gap-2 px-5 py-3.5 text-xs font-medium whitespace-nowrap border-b-2 transition-colors',
-                                                    isActive && 'text-white border-[#2ec4a0] bg-white/5',
-                                                    isDone && !isActive && 'text-[#2ec4a0] border-transparent',
-                                                    !isActive && !isDone && 'text-white/40 border-transparent hover:text-white/70',
-                                                    !isTabEnabled(tab.id, idx) && 'opacity-60'
+                                                    'flex items-center gap-2 border-b-2 px-3 py-3 text-left text-xs font-medium whitespace-nowrap transition-colors sm:px-4 md:px-5 md:py-3.5',
+                                                    isActive && 'border-[var(--hr-mint)] bg-white/5 text-white',
+                                                    isDone && !isActive && 'border-transparent text-[var(--hr-mint)]',
+                                                    !isActive && !isDone && 'border-transparent text-white/45 hover:text-white/80',
+                                                    !isTabEnabled(tab.id, idx) && 'opacity-55',
                                                 )}
                                             >
-                                                <span className={cn(
-                                                    'w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold',
-                                                    tab.id === 'overview' && 'bg-white/10 text-white',
-                                                    isDone && tab.id !== 'overview' && 'bg-[#2ec4a0] text-[#0f1c30]',
-                                                    isActive && !isDone && 'bg-white/10 text-white',
-                                                    !isDone && !isActive && tab.id !== 'overview' && 'bg-white/5 text-white/30'
-                                                )}>
-                                                    {tab.id === 'overview' ? 'O' : isDone ? '✓' : (stepNum ?? idx)}
+                                                <span
+                                                    className={cn(
+                                                        'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[9px] font-bold',
+                                                        tab.id === 'overview' && 'bg-white/12 text-white',
+                                                        isDone && tab.id !== 'overview' && 'bg-[var(--hr-mint)] text-[var(--hr-navy)]',
+                                                        isActive && !isDone && tab.id !== 'overview' && 'bg-white/12 text-white',
+                                                        !isDone && !isActive && tab.id !== 'overview' && 'bg-white/[0.07] text-white/35',
+                                                    )}
+                                                >
+                                                    {tab.id === 'overview' ? (
+                                                        <Icon className="h-3 w-3 opacity-95" aria-hidden />
+                                                    ) : isDone ? (
+                                                        '✓'
+                                                    ) : (
+                                                        (stepNum ?? idx)
+                                                    )}
                                                 </span>
-                                                {t(tab.labelKey, { defaultValue: tab.labelKey })}
+                                                <span className="max-w-[10rem] truncate sm:max-w-[14rem] md:max-w-none">
+                                                    {t(tab.labelKey)}
+                                                </span>
                                             </button>
                                         );
                                     })}
                                 </nav>
                                 <div className="h-0.5 bg-white/5">
                                     <div
-                                        className="h-full bg-[#2ec4a0] rounded-r transition-all duration-300"
+                                        className="h-full bg-[var(--hr-mint)] rounded-r transition-all duration-300"
                                         style={{ width: `${(completedTabsCount / (TABS.length - 1)) * 100}%` }}
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="max-w-7xl mx-auto px-6 py-6 pb-40">
+                        <div className="mx-auto flex w-full min-w-0 max-w-[90rem] flex-1 flex-col px-3 py-4 pb-40 sm:px-4 md:px-6 md:py-6">
+                            <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-md">
+                                <div className="min-w-0 p-3 sm:p-4 md:p-6">
                         {(compError || Object.keys(compFieldErrors).length > 0) && (
                             <InlineErrorSummary
                                 className="mb-4"
@@ -863,7 +1077,7 @@ export default function CompensationSystemIndex({
                                 </Card>
                             </TabsContent>
 
-                            <TabsContent value="snapshot" className="mt-0">
+                            <TabsContent value="snapshot" className="mt-0 data-[state=inactive]:hidden">
                         <SnapshotTab
                             projectId={project.id}
                             questions={snapshotQuestions}
@@ -937,11 +1151,13 @@ export default function CompensationSystemIndex({
                     </TabsContent>
                 </Tabs>
 
+                                </div>
+                            </div>
                         </div>
 
                         {/* Sticky footer: starts after sidebar (same as overview content area) */}
                         <footer
-                            className="fixed bottom-0 right-0 bg-white border-t border-[#e8eaed] px-6 py-3.5 flex items-center justify-between z-50 shadow-[0_-4px_20px_rgba(15,28,48,0.06)] dark:bg-slate-900 dark:border-slate-700"
+                            className="fixed bottom-0 right-0 bg-card border-t border-border px-6 py-3.5 flex items-center justify-between z-50 shadow-lg"
                             style={{ left: 'var(--sidebar-width, 16rem)' }}
                         >
                             <Button
@@ -952,27 +1168,34 @@ export default function CompensationSystemIndex({
                                     if (idx > 0) handleTabChange(TABS[idx - 1].id);
                                     else if (activeTab === 'snapshot') handleTabChange('overview');
                                 }}
-                                className="border-[#d4d8de] text-[#4b5563] hover:bg-[#f7f8fa]"
+                                className="border-border text-muted-foreground hover:bg-muted"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" /> {t('common.previous')}
                             </Button>
-                            {(activeTab === 'base-salary-framework' || activeTab === 'pay-band-salary-table') && (
+                            {activeTab !== 'review' ? (
                                 <Button
                                     type="button"
-                                    variant="outline"
-                                    onClick={saveCurrentTabOnly}
-                                    className="border-[#d4d8de] text-[#4b5563] hover:bg-[#f7f8fa]"
+                                    onClick={() => void handleSaveAndContinue()}
+                                    className={cn(
+                                        footerStepValid
+                                            ? 'bg-emerald-600 text-white shadow-sm hover:bg-emerald-600/90'
+                                            : 'border border-border bg-card text-muted-foreground hover:bg-muted/60',
+                                    )}
                                 >
-                                    {t('common.save')}
-                                </Button>
-                            )}
-                            {activeTab !== 'review' ? (
-                                <Button type="button" onClick={handleSaveAndContinue} className="bg-[#152540] hover:bg-[#1e3a62] text-white">
                                     {t('common.continue')}
                                     <svg className="w-3.5 h-3.5 ml-1.5" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M7.5 3l3.5 3.5L7.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                 </Button>
                             ) : (
-                                <Button type="button" onClick={handleSubmit} disabled={processing || saving} className="bg-[#152540] hover:bg-[#1e3a62] text-white">
+                                <Button
+                                    type="button"
+                                    onClick={handleSubmit}
+                                    disabled={processing || saving}
+                                    className={cn(
+                                        footerStepValid
+                                            ? 'bg-emerald-600 text-white shadow-sm hover:bg-emerald-600/90'
+                                            : 'border border-border bg-card text-muted-foreground hover:bg-muted/60',
+                                    )}
+                                >
                                     <CheckCircle2 className="w-4 h-4 mr-2" />
                                     {processing || saving ? t('compensation_system.submitting') : t('compensation_system.submit_lock_step4')}
                                 </Button>
@@ -983,8 +1206,18 @@ export default function CompensationSystemIndex({
             </div>
 
                     {/* Success Modal — clean, focused UI */}
-                    <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-                        <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden border-0 shadow-xl rounded-2xl [&>button]:text-white [&>button]:top-6 [&>button]:right-6 [&>button]:opacity-80 hover:[&>button]:opacity-100">
+                    <Dialog
+                        open={showSuccessModal}
+                        onOpenChange={(open) => {
+                            // Close only through the explicit CTA button.
+                            if (open) setShowSuccessModal(true);
+                        }}
+                    >
+                        <DialogContent
+                            onPointerDownOutside={(e) => e.preventDefault()}
+                            onEscapeKeyDown={(e) => e.preventDefault()}
+                            className="sm:max-w-md p-0 gap-0 overflow-hidden border-0 shadow-xl rounded-2xl [&>button]:text-white [&>button]:top-6 [&>button]:right-6 [&>button]:opacity-80 hover:[&>button]:opacity-100"
+                        >
                             <div className="bg-gradient-to-b from-[#0f1c30] to-[#1a2f52] px-8 pt-10 pb-8 text-center">
                                 <div className="w-16 h-16 rounded-full bg-[#2ec4a0]/20 border-2 border-[#2ec4a0] flex items-center justify-center mx-auto mb-5">
                                     <CheckCircle2 className="w-9 h-9 text-[#2ec4a0]" strokeWidth={2} />

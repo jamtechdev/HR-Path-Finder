@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import type { LucideIcon } from 'lucide-react';
 import { Check } from 'lucide-react';
-import React, { useEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface StepTab {
@@ -34,23 +34,17 @@ export default function StepTabs({
     const tabsContainerRef = useRef<HTMLDivElement>(null);
     const activeTabRef = useRef<HTMLAnchorElement>(null);
     
-    // Auto-scroll to active tab
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (activeTabRef.current && tabsContainerRef.current) {
             const container = tabsContainerRef.current;
             const activeTabElement = activeTabRef.current;
-            
-            setTimeout(() => {
-                const containerRect = container.getBoundingClientRect();
-                const tabRect = activeTabElement.getBoundingClientRect();
-                
-                const scrollLeft = activeTabElement.offsetLeft - (containerRect.width / 2) + (tabRect.width / 2);
-                
-                container.scrollTo({
-                    left: Math.max(0, scrollLeft),
-                    behavior: 'smooth'
-                });
-            }, 100);
+            const containerRect = container.getBoundingClientRect();
+            const tabRect = activeTabElement.getBoundingClientRect();
+            const scrollLeft = activeTabElement.offsetLeft - containerRect.width / 2 + tabRect.width / 2;
+            container.scrollTo({
+                left: Math.max(0, scrollLeft),
+                behavior: 'smooth',
+            });
         }
     }, [activeTab]);
     

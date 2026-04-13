@@ -1208,11 +1208,16 @@ export default function PerformanceSystemIndex({
             <Dialog
                 open={showSuccessModal}
                 onOpenChange={(open) => {
-                    if (!open) handleCloseSuccessModal();
-                    else setShowSuccessModal(true);
+                    // Prevent close from outside click / ESC.
+                    // Close only via explicit done button.
+                    if (open) setShowSuccessModal(true);
                 }}
             >
-                <DialogContent className="sm:max-w-md">
+                <DialogContent
+                    onPointerDownOutside={(e) => e.preventDefault()}
+                    onEscapeKeyDown={(e) => e.preventDefault()}
+                    className="sm:max-w-md"
+                >
                     <DialogHeader>
                         <DialogTitle className="text-center text-2xl">
                             <span className="block">

@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { CheckCircle2, ArrowRight, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { waitWebAnimationMs } from '@/lib/deferred';
 import { Button } from '@/components/ui/button';
 
 interface SuccessMessageProps {
@@ -19,18 +20,18 @@ export default function SuccessMessage({
     const [isVisible, setIsVisible] = useState(true);
 
     useEffect(() => {
-        if (message) {
-            setIsVisible(true);
-            // Auto-dismiss after 8 seconds if no next step, or 12 seconds if there's a next step
-            const timer = setTimeout(() => {
-                setIsVisible(false);
-                if (onClose) {
-                    onClose();
-                }
-            }, nextStep ? 12000 : 8000);
-
-            return () => clearTimeout(timer);
-        }
+        if (!message) return;
+        setIsVisible(true);
+        let cancelled = false;
+        const ms = nextStep ? 12000 : 8000;
+        void waitWebAnimationMs(ms).then(() => {
+            if (cancelled) return;
+            setIsVisible(false);
+            onClose?.();
+        });
+        return () => {
+            cancelled = true;
+        };
     }, [message, nextStep, onClose]);
 
     if (!message || !isVisible) {

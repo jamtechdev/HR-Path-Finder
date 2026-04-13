@@ -1,4 +1,3 @@
-import AppLayout from '@/layouts/AppLayout';
 import { Head, Link } from '@inertiajs/react';
 import {
     AlertTriangle,
@@ -12,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { translateStaticOnly } from '@/lib/translateStaticOnly';
 import AppLayout from '@/layouts/AppLayout';
 
 const STEP_CONFIG = [
@@ -142,13 +142,13 @@ export default function PathFinderDashboard({
 }: PathFinderDashboardProps) {
   const { t } = useTranslation();
   const currentStepKey = progress.currentStepKey ?? 'diagnosis';
-  const currentStepTitle = t(`steps.${currentStepKey}`);
+  const currentStepTitle = translateStaticOnly(t, `steps.${currentStepKey}`, ['steps.']);
   const companyName = company?.name ?? activeProject?.company?.name ?? null;
   const isCurrentStepSubmitted = (stepStatuses[currentStepKey] ?? 'not_started') === 'submitted';
 
   const phaseStatusText = useMemo(() => {
     const status = stepStatuses[currentStepKey] ?? 'not_started';
-    const title = t(`steps.${currentStepKey}`);
+    const title = translateStaticOnly(t, `steps.${currentStepKey}`, ['steps.']);
     if (status === 'submitted') {
       return {
         title: t('pathfinder_dashboard.phase.submitted_title', { title }),
@@ -186,7 +186,7 @@ export default function PathFinderDashboard({
     return {
       ...s,
       step: s.num,
-      title: t(`steps.${s.id}`),
+      title: translateStaticOnly(t, `steps.${s.id}`, ['steps.']),
       desc: t(`pathfinder_dashboard.steps.${s.id}_desc`),
       status: state,
       progress: stepProgress,
@@ -323,7 +323,7 @@ export default function PathFinderDashboard({
                 {t('dashboard.pathfinder.welcome_back', { name: user.name })}
               </h1>
               <p className="text-[13px] text-muted-foreground mt-1">
-                {t('dashboard.pathfinder.subtitle', { step: progress.currentStepNumber, title: t(`steps.${currentStepKey}`) })}
+                {t('dashboard.pathfinder.subtitle', { step: progress.currentStepNumber, title: translateStaticOnly(t, `steps.${currentStepKey}`, ['steps.']) })}
               </p>
             </div>
 
@@ -477,7 +477,7 @@ export default function PathFinderDashboard({
                           <p className="text-[11.5px] text-slate-600 dark:text-slate-300 mb-0">{card.desc}</p>
                         </div>
                       </div>
-                      <Link href={getStepRoute(card.id, projectId)} className="text-[12px] font-semibold text-[var(--hr-navy)] hover:text-[var(--hr-navy-mid)]">
+                      <Link href={getStepRoute(card.id, projectId)} className="inline-flex items-center gap-1.5 bg-[var(--hr-navy)] text-white py-2 px-4 rounded-[7px] text-xs font-semibold hover:bg-[var(--hr-navy-mid)] hover:-translate-y-0.5 transition-all">
                         {t('buttons.view', 'View')} →
                       </Link>
                     </div>
@@ -598,7 +598,7 @@ export default function PathFinderDashboard({
                     )}
                     <Link
                       href={getStepRoute(card.id, projectId)}
-                      className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[var(--hr-navy)] hover:text-[var(--hr-navy-mid)]"
+                      className="inline-flex items-center gap-1.5 bg-[var(--hr-navy)] text-white py-2 px-4 rounded-[7px] text-xs font-semibold hover:bg-[var(--hr-navy-mid)] hover:-translate-y-0.5 transition-all"
                     >
                       {t('buttons.view', 'View')} →
                     </Link>

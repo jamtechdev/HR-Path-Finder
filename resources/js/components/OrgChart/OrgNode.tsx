@@ -76,12 +76,13 @@ export default function OrgNode({ data, id, onDataChange, readOnly = false }: Or
                     jobKeywordIds: [...data.jobKeywordIds, jobKeywordId],
                 });
                 
-                // Visual feedback - briefly highlight the node
                 const nodeElement = e.currentTarget as HTMLElement;
-                nodeElement.classList.add('animate-pulse');
-                setTimeout(() => {
-                    nodeElement.classList.remove('animate-pulse');
-                }, 1000);
+                void nodeElement
+                    .animate(
+                        [{ boxShadow: '0 0 0 0 rgba(59,130,246,0.45)' }, { boxShadow: '0 0 0 14px rgba(59,130,246,0)' }],
+                        { duration: 700, easing: 'ease-out' },
+                    )
+                    .finished.catch(() => undefined);
             }
         }
     }, [id, data.jobKeywordIds, data.jobDefinitions, onDataChange, readOnly]);

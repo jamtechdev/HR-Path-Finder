@@ -61,7 +61,7 @@ export default function CompensationSystemOverview({
                     company: project.company.name,
                 })}
             />
-            <div className="p-6 md:p-8 max-w-7xl mx-auto">
+            <div className="p-6 md:p-8 max-w-[90rem] mx-auto">
                         <div className="mb-6">
                             <h1 className="text-3xl font-bold mb-2">Compensation & Benefits (C&B)</h1>
                             <p className="text-muted-foreground">

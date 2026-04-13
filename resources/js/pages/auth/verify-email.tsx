@@ -1,6 +1,6 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { Mail, AlertCircle, Settings, CheckCircle, ArrowLeft } from 'lucide-react';
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import TextLink from '@/components/text-link';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -18,54 +18,59 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
     const hasTriggeredRedirectRef = React.useRef(false);
     const form = useForm({});
 
-    React.useEffect(() => {
-        if (auth?.user?.email_verified_at && !hasTriggeredRedirectRef.current) {
-            hasTriggeredRedirectRef.current = true;
-            setRemoteVerified(true);
-            setIsRedirecting(true);
-            window.setTimeout(() => {
-                router.visit('/dashboard', { replace: true });
-            }, 1200);
+    const goDashboard = useCallback(() => {
+        if (hasTriggeredRedirectRef.current) return;
+        hasTriggeredRedirectRef.current = true;
+        setRemoteVerified(true);
+        setIsRedirecting(true);
+        queueMicrotask(() => {
+            router.visit('/dashboard', { replace: true });
+        });
+    }, []);
+
+    useEffect(() => {
+        if (auth?.user?.email_verified_at) {
+            goDashboard();
         }
-    }, [auth?.user?.email_verified_at]);
+    }, [auth?.user?.email_verified_at, goDashboard]);
 
-    // Cross-device verify support:
-    // if user verifies via mobile email link, desktop page detects and shows success message.
-    React.useEffect(() => {
-        let mounted = true;
+    // Cross-device verify: re-check when the tab becomes visible or gains focus (no polling timers).
+    const checkVerificationStatus = useCallback(async () => {
+        try {
+            const res = await fetch('/email/verification-status', {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                },
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data?.verified) {
+                goDashboard();
+            }
+        } catch {
+            // Silent fail
+        }
+    }, [goDashboard]);
 
-        const checkVerificationStatus = async () => {
-            try {
-                const res = await fetch('/email/verification-status', {
-                    method: 'GET',
-                    credentials: 'same-origin',
-                    headers: {
-                        Accept: 'application/json',
-                    },
-                });
-                if (!res.ok) return;
-                const data = await res.json();
-                if (!mounted) return;
-                if (data?.verified && !hasTriggeredRedirectRef.current) {
-                    hasTriggeredRedirectRef.current = true;
-                    setRemoteVerified(true);
-                    setIsRedirecting(true);
-                    window.setTimeout(() => {
-                        router.visit('/dashboard', { replace: true });
-                    }, 1200);
-                }
-            } catch {
-                // Silent fail: polling should not disrupt verify page UX.
+    useEffect(() => {
+        void checkVerificationStatus();
+    }, [checkVerificationStatus]);
+
+    useEffect(() => {
+        const onFocusOrVisible = () => {
+            if (document.visibilityState === 'visible') {
+                void checkVerificationStatus();
             }
         };
-
-        checkVerificationStatus();
-        const id = window.setInterval(checkVerificationStatus, 4000);
+        window.addEventListener('focus', checkVerificationStatus);
+        document.addEventListener('visibilitychange', onFocusOrVisible);
         return () => {
-            mounted = false;
-            window.clearInterval(id);
+            window.removeEventListener('focus', checkVerificationStatus);
+            document.removeEventListener('visibilitychange', onFocusOrVisible);
         };
-    }, []);
+    }, [checkVerificationStatus]);
     
     const handleManualVerify = () => {
         if (confirm(t('auth_verify_email.confirm_manual_verify'))) {
@@ -321,6 +326,14 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                             }}
                             className="space-y-4"
                         >
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full"
+                                onClick={() => void checkVerificationStatus()}
+                            >
+                                {t('auth_verify_email.check_status')}
+                            </Button>
                             <Button
                                 type="submit"
                                 className="w-full h-11 bg-[#0a1629] hover:bg-[#0d1b35] text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"

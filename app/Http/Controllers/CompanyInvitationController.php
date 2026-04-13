@@ -201,10 +201,16 @@ class CompanyInvitationController extends Controller
             $user->id => ['role' => $invitation->role],
         ]);
 
-        // Mark invitation as accepted (no temporary_password — direct password set flow)
+        // Mark invitation as accepted
         $invitation->update(['accepted_at' => now()]);
 
-        // Redirect to Set Password page (no second email with credentials)
+        // Existing users already have credentials, so route them to login directly.
+        if (!$isNewUser) {
+            return redirect()->route('login')
+                ->with('success', 'Invitation accepted. Please sign in with your existing account.');
+        }
+
+        // New invited CEO must set password first.
         return redirect()->route('ceo.set-password', ['token' => $invitation->token])
             ->with('success', 'Invitation accepted. Set your password to complete your account.');
     }

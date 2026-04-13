@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
 import CompensationPageHeader from '../components/CompensationPageHeader';
 import type {
     PayBand,
@@ -154,6 +156,7 @@ export default function PayBandSalaryTableTab({
     fieldErrors = {},
 }: PayBandSalaryTableTabProps) {
     const { t } = useTranslation();
+    const UI = 'compensation_system.base_salary_ui' as const;
     const selectedStandard: 'pay_band' | 'salary_table' =
         salaryDeterminationStandard === 'salary_table' ? 'salary_table' : 'pay_band';
     const [activeType, setActiveType] = useState<'pay_band' | 'salary_table'>(
@@ -290,18 +293,35 @@ export default function PayBandSalaryTableTab({
     );
 
     const filledCount = useMemo(() => {
+        const opFilled =
+            String(operationCriteria.outlier_handling || '').trim() !== '' &&
+            String(operationCriteria.promotion_movement_rule || '').trim() !== '' &&
+            String(operationCriteria.band_review_cycle || '').trim() !== '';
+
         const bandsOk =
+            selectedStandard === 'pay_band' &&
             payBands.length > 0 &&
-            payBands.every((b) => b.job_grade && (b.min_salary > 0 || b.max_salary > 0));
+            payBands.every(
+                (b) =>
+                    !!(b.job_grade && String(b.job_grade).trim()) &&
+                    (Number(b.min_salary) > 0 || Number(b.max_salary) > 0)
+            );
+
         const tablesOk =
+            selectedStandard === 'salary_table' &&
             grades.length > 0 &&
-            cells.some((gRows) => gRows.some((row) => row.some((v) => v != null)));
-        const criteriaOk = Object.keys(operationCriteria).length > 0;
-        let n = 0;
-        if (bandsOk || tablesOk) n += 1;
-        if (criteriaOk) n += 1;
-        return Math.min(n * 50, 100);
-    }, [payBands, grades, cells, operationCriteria]);
+            cells.some((gRows) => gRows.some((row) => row.some((v) => v != null && Number(v) > 0)));
+
+        let pct = 0;
+        if (selectedStandard === 'pay_band') {
+            if (bandsOk) pct += 50;
+            if (opFilled) pct += 50;
+        } else {
+            if (tablesOk) pct += 50;
+            if (opFilled) pct += 50;
+        }
+        return pct;
+    }, [selectedStandard, payBands, grades, cells, operationCriteria]);
 
     return (
         <div className="space-y-0">
@@ -309,15 +329,41 @@ export default function PayBandSalaryTableTab({
                 eyebrowTag={t('compensation_system.snapshot.header_eyebrow')}
                 stepLabel={t('compensation_system.step_labels.step3')}
                 title={t('compensation_system.tabs.pay_band_salary_table')}
-                description={
-                    salaryDeterminationStandard === 'pay_band'
-                        ? t('compensation_system.step_desc_payband')
-                        : t('compensation_system.step_desc_salarytable')
-                }
+                description={t('compensation_system.step_desc.pay_band_salary_table')}
                 completionPct={filledCount}
             />
+            <Collapsible defaultOpen={false} className="mt-3 px-1">
+                <CollapsibleTrigger
+                    className={cn(
+                        'w-full flex items-center gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3 text-left',
+                        'hover:bg-muted/60 transition-colors'
+                    )}
+                >
+                    <span className="w-[26px] h-[26px] rounded-md bg-primary/15 text-[#2ec4a0] border border-primary/25 flex items-center justify-center text-xs shrink-0">
+                        ✦
+                    </span>
+                    <span className="text-[11px] font-semibold tracking-widest uppercase text-muted-foreground flex-1">
+                        {t(`${UI}.purpose_title`)} — {t('compensation_system.pay_band_tab.guidance_sub')}
+                    </span>
+                    <span className="text-muted-foreground text-[11px]">▾</span>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2 pb-1">
+                    <div className="rounded-lg border border-border bg-card/80 px-4 py-3 text-sm text-muted-foreground leading-relaxed">
+                        {selectedStandard === 'pay_band'
+                            ? t('compensation_system.step_desc_payband')
+                            : t('compensation_system.step_desc_salarytable')}
+                    </div>
+                </CollapsibleContent>
+            </Collapsible>
             <FieldErrorMessage fieldKey="comp-pay-band" errors={fieldErrors} className="mt-4 px-1" />
-            <div className="pt-6 space-y-6">
+            <div className="pt-5">
+                <Card className="shadow-sm border rounded-xl overflow-hidden">
+                    <CardHeader className="pb-2 pt-5 px-5 border-b border-border/60 bg-muted/20">
+                        <CardTitle className="text-base font-semibold">
+                            {t('compensation_system.pay_band_tab.workspace_title')}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-5 pt-4 space-y-4">
                 <Tabs
                     value={activeType}
                     onValueChange={(v) => {
@@ -361,6 +407,7 @@ export default function PayBandSalaryTableTab({
                             onPayBandsUpdate={onPayBandsUpdate}
                             operationCriteria={operationCriteria}
                             onOperationCriteriaUpdate={onOperationCriteriaUpdate}
+                            fieldErrors={fieldErrors}
                         />
                     </TabsContent>
 
@@ -584,6 +631,7 @@ export default function PayBandSalaryTableTab({
                         <CardTitle className="text-base">Operation Criteria</CardTitle>
                     </CardHeader>
                     <CardContent>
+                        <FieldErrorMessage fieldKey="comp-operation-criteria" errors={fieldErrors} className="mb-3" />
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <Label className="mb-2 block">Outlier (Above Max, Below Min)</Label>
@@ -656,7 +704,8 @@ export default function PayBandSalaryTableTab({
                     </CardContent>
                 </Card>
                 )}
-            </div>
+                    </CardContent>
+                </Card>
             <Dialog open={switchDialogOpen} onOpenChange={setSwitchDialogOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
@@ -678,6 +727,7 @@ export default function PayBandSalaryTableTab({
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            </div>
         </div>
     );
 }

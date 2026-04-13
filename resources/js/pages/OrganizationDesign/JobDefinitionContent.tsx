@@ -12,6 +12,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { waitWebAnimationMs } from '@/lib/deferred';
 import { cn } from '@/lib/utils';
 import { readJobAnalysisState, mergeJobAnalysisState } from '@/pages/JobAnalysis/utils/jobAnalysisStorage';
 
@@ -127,7 +128,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
             preserveScroll: true,
             onSuccess: () => {
                 setSaveSuccess(true);
-                setTimeout(() => setSaveSuccess(false), 3000);
+                void waitWebAnimationMs(3000).then(() => setSaveSuccess(false));
             },
             onFinish: () => setSaving(false),
         });
@@ -159,8 +160,12 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                 preserveScroll: false,
                 onSuccess: () => {
                     setSaveSuccess(true);
-                    setTimeout(() => setSaveSuccess(false), 2000);
-                    if (onContinue) setTimeout(() => onContinue(), 400);
+                    void waitWebAnimationMs(2000)
+                        .then(() => setSaveSuccess(false))
+                        .then(() => waitWebAnimationMs(400))
+                        .then(() => {
+                            if (onContinue) onContinue();
+                        });
                 },
                 onFinish: () => setSaving(false),
             });
