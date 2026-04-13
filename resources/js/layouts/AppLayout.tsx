@@ -29,9 +29,9 @@ export default function AppLayout({
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden bg-background">
+            <SidebarInset className="flex min-w-0 flex-col overflow-hidden bg-background">
                 <AppHeader />
-                <main className="flex-1 overflow-auto bg-background">
+                <main className="min-w-0 flex-1 overflow-auto bg-background">
                     {children}
                 </main>
             </SidebarInset>

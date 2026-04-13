@@ -1,5 +1,6 @@
 import { router } from '@inertiajs/react';
 import React, { useEffect, useRef, useState } from 'react';
+import { waitWebAnimationMs } from '@/lib/deferred';
 
 type PreloaderProps = {
     appName?: string;
@@ -8,8 +9,8 @@ type PreloaderProps = {
 export default function Preloader({ appName = 'HR Path-Finder' }: PreloaderProps) {
     const [isVisible, setIsVisible] = useState(true);
     const initialHandledRef = useRef(false);
-    const navigationTimerRef = useRef<number | null>(null);
-    const hardFallbackTimerRef = useRef<number | null>(null);
+    const navigationChainRef = useRef<{ cancelled: boolean } | null>(null);
+    const hardFallbackChainRef = useRef<{ cancelled: boolean } | null>(null);
 
     useEffect(() => {
         if (typeof window === 'undefined' || initialHandledRef.current) {
@@ -21,70 +22,80 @@ export default function Preloader({ appName = 'HR Path-Finder' }: PreloaderProps
         document.body.classList.add('preloader-active');
 
         const hide = () => {
+            if (hardFallbackChainRef.current) {
+                hardFallbackChainRef.current.cancelled = true;
+                hardFallbackChainRef.current = null;
+            }
             const preloaderElement = document.getElementById('preloader');
             if (!preloaderElement) return;
 
-            setTimeout(() => {
+            void waitWebAnimationMs(350).then(() => {
                 preloaderElement.classList.add('hide');
                 setIsVisible(false);
-                if (hardFallbackTimerRef.current) {
-                    window.clearTimeout(hardFallbackTimerRef.current);
-                    hardFallbackTimerRef.current = null;
-                }
-
-                setTimeout(() => {
+                void waitWebAnimationMs(500).then(() => {
                     document.body.classList.remove('preloader-active');
-                }, 500);
-            }, 350);
+                });
+            });
         };
 
-        // Safety net: never keep loader forever on refresh.
-        hardFallbackTimerRef.current = window.setTimeout(hide, 2500);
+        const hardChain = { cancelled: false };
+        hardFallbackChainRef.current = hardChain;
+        void waitWebAnimationMs(2500).then(() => {
+            if (!hardChain.cancelled) hide();
+        });
 
         if (document.readyState === 'complete') {
             hide();
-            return;
+            return () => {
+                hardChain.cancelled = true;
+                window.removeEventListener('load', hide);
+            };
         }
 
         window.addEventListener('load', hide, { once: true });
         return () => {
             window.removeEventListener('load', hide);
-            if (hardFallbackTimerRef.current) {
-                window.clearTimeout(hardFallbackTimerRef.current);
-                hardFallbackTimerRef.current = null;
-            }
+            hardChain.cancelled = true;
         };
     }, []);
 
     useEffect(() => {
+        const hide = () => {
+            if (navigationChainRef.current) {
+                navigationChainRef.current.cancelled = true;
+            }
+            if (hardFallbackChainRef.current) {
+                hardFallbackChainRef.current.cancelled = true;
+                hardFallbackChainRef.current = null;
+            }
+            const chain = { cancelled: false };
+            navigationChainRef.current = chain;
+            void waitWebAnimationMs(250).then(() => {
+                if (chain.cancelled) return;
+                const el = document.getElementById('preloader');
+                if (!el) return;
+                el.classList.add('hide');
+                setIsVisible(false);
+                void waitWebAnimationMs(500).then(() => {
+                    if (chain.cancelled) return;
+                    document.body.classList.remove('preloader-active');
+                });
+            });
+        };
+
         const show = () => {
             setIsVisible(true);
             document.body.classList.add('preloader-active');
             const el = document.getElementById('preloader');
             el?.classList.remove('hide');
-            if (hardFallbackTimerRef.current) {
-                window.clearTimeout(hardFallbackTimerRef.current);
+            if (hardFallbackChainRef.current) {
+                hardFallbackChainRef.current.cancelled = true;
             }
-            hardFallbackTimerRef.current = window.setTimeout(hide, 3000);
-        };
-
-        const hide = () => {
-            if (navigationTimerRef.current) {
-                window.clearTimeout(navigationTimerRef.current);
-            }
-            navigationTimerRef.current = window.setTimeout(() => {
-                const el = document.getElementById('preloader');
-                if (!el) return;
-                el.classList.add('hide');
-                setIsVisible(false);
-                if (hardFallbackTimerRef.current) {
-                    window.clearTimeout(hardFallbackTimerRef.current);
-                    hardFallbackTimerRef.current = null;
-                }
-                window.setTimeout(() => {
-                    document.body.classList.remove('preloader-active');
-                }, 500);
-            }, 250);
+            const hardChain = { cancelled: false };
+            hardFallbackChainRef.current = hardChain;
+            void waitWebAnimationMs(3000).then(() => {
+                if (!hardChain.cancelled) hide();
+            });
         };
 
         const offStart = router.on('start', show);
@@ -101,11 +112,11 @@ export default function Preloader({ appName = 'HR Path-Finder' }: PreloaderProps
             offError();
             offInvalid();
             offException();
-            if (navigationTimerRef.current) {
-                window.clearTimeout(navigationTimerRef.current);
+            if (navigationChainRef.current) {
+                navigationChainRef.current.cancelled = true;
             }
-            if (hardFallbackTimerRef.current) {
-                window.clearTimeout(hardFallbackTimerRef.current);
+            if (hardFallbackChainRef.current) {
+                hardFallbackChainRef.current.cancelled = true;
             }
         };
     }, []);

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/toaster';
 import { toast } from '@/hooks/use-toast';
+import { afterPaint } from '@/lib/deferred';
 import { STEPS, MAX_ORGANIZATIONAL_ISSUES } from './constants';
 import {
     IntroStep,
@@ -291,7 +292,7 @@ export default function CeoPhilosophySurvey({
             const result = validateCurrentStep();
             if (!result.valid) {
                 setValidationError(result.message || 'Please answer this question before continuing.');
-                setTimeout(() => result.ref?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+                afterPaint(() => result.ref?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
                 return;
             }
             setValidationError(null);
@@ -300,9 +301,9 @@ export default function CeoPhilosophySurvey({
             const result = validateCurrentStep();
             if (!result.valid) {
                 setValidationError(result.message || 'Please answer this question before continuing.');
-                setTimeout(() => {
+                afterPaint(() => {
                     result.ref?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 100);
+                });
                 return;
             }
             setValidationError(null);

@@ -9,15 +9,13 @@ import type {
 } from '../types';
 import type { HrProject } from '../types';
 
-const NAVY = '#1A2B4A';
-const MINT = '#2EC4A0';
-const GOLD = '#C6985F';
-const BLUE = '#3E7BFA';
-const BG = '#F4F5F7';
-const BG_SECTION = '#F8F9FB';
-const BORDER = '#E2E6EC';
-const TEXT_MUTED = '#8A96A8';
-const TEXT_MID = '#4A5B78';
+const NAVY = 'hsl(var(--foreground))';
+const MINT = 'var(--hr-mint)';
+const GOLD = 'var(--hr-gold)';
+const BLUE = 'hsl(var(--primary))';
+const BORDER = 'hsl(var(--border))';
+const TEXT_MUTED = 'hsl(var(--muted-foreground))';
+const TEXT_MID = 'hsl(var(--foreground) / 0.85)';
 
 interface ReviewTabProps {
     project: HrProject;
@@ -189,7 +187,7 @@ export default function ReviewTab({
     };
 
     return (
-        <div className="min-h-full" style={{ background: BG, color: NAVY, fontFamily: "'Pretendard', 'DM Sans', -apple-system, sans-serif" }}>
+        <div className="min-h-full bg-background text-foreground font-sans antialiased">
             {/* Hero */}
             <div
                 className="relative overflow-hidden px-7 py-7"
@@ -235,11 +233,11 @@ export default function ReviewTab({
                 </div>
             </div>
 
-            <div className="grid gap-6 px-6 py-6 pb-28 w-full max-w-7xl mx-auto lg:grid-cols-[1fr_280px]">
-                <div className="space-y-3">
+            <div className="flex flex-col gap-6 px-6 py-6 pb-28 w-full max-w-[90rem] mx-auto">
+                <div className="space-y-3 w-full">
                     {/* Snapshot card — from snapshot + benefits/bonus */}
-                    <div className="rounded-xl border overflow-hidden shadow-sm bg-white" style={{ borderColor: BORDER }}>
-                        <div className="flex items-center justify-between px-5 py-3 border-b" style={{ background: BG_SECTION, borderColor: BORDER }}>
+                    <div className="rounded-xl border overflow-hidden shadow-sm bg-card border-border">
+                        <div className="flex items-center justify-between px-5 py-3 border-b bg-muted/50 border-border">
                             <div className="flex items-center gap-2">
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: MINT }}>◈</div>
                                 <span className="text-sm font-semibold" style={{ color: NAVY }}>Strategic Compensation Snapshot</span>
@@ -254,8 +252,8 @@ export default function ReviewTab({
                                     {firstResponses.length > 0 && (
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
                                             {firstResponses.map((item, i) => (
-                                                <div key={i} className="p-4 rounded-lg border" style={{ background: BG_SECTION, borderColor: BORDER }}>
-                                                    <div className="text-[10px] font-medium mb-2 uppercase tracking-wider" style={{ color: TEXT_MUTED }}>{item.label}</div>
+                                                <div key={i} className="p-4 rounded-lg border bg-muted/30 border-border">
+                                                    <div className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">{item.label}</div>
                                                     <div className="text-base font-bold break-words" style={{ color: i === 0 ? GOLD : i === 1 ? NAVY : MINT }}>{item.val}</div>
                                                 </div>
                                             ))}
@@ -282,8 +280,8 @@ export default function ReviewTab({
                     </div>
 
                     {/* Base Salary Framework — from baseSalaryFramework */}
-                    <div className="rounded-xl border overflow-hidden shadow-sm bg-white" style={{ borderColor: BORDER }}>
-                        <div className="flex items-center justify-between px-5 py-3 border-b" style={{ background: BG_SECTION, borderColor: BORDER }}>
+                    <div className="rounded-xl border overflow-hidden shadow-sm bg-card border-border">
+                        <div className="flex items-center justify-between px-5 py-3 border-b bg-muted/50 border-border">
                             <div className="flex items-center gap-2">
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: NAVY }}>A</div>
                                 <span className="text-[10px] font-semibold px-2 py-0.5 border rounded" style={{ color: TEXT_MUTED, borderColor: BORDER }}>REF-CODE-04A</span>
@@ -297,16 +295,16 @@ export default function ReviewTab({
                             ) : (
                                 <>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                    <div className="p-4 rounded-lg border" style={{ background: BG_SECTION, borderColor: BORDER }}>
-                                        <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>Salary Structure Type</div>
-                                        <div className="text-sm font-semibold" style={{ color: NAVY }}>{formatLabel(structureTypeLabel, baseSalaryFramework.salary_structure_type)}</div>
+                                    <div className="p-4 rounded-lg border bg-muted/30 border-border">
+                                        <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider text-muted-foreground">Salary Structure Type</div>
+                                        <div className="text-sm font-semibold text-foreground">{formatLabel(structureTypeLabel, baseSalaryFramework.salary_structure_type)}</div>
                                     </div>
-                                    <div className="p-4 rounded-lg border" style={{ background: BG_SECTION, borderColor: BORDER }}>
-                                        <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>Adjustment Unit</div>
+                                    <div className="p-4 rounded-lg border bg-muted/30 border-border">
+                                        <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider text-muted-foreground">Adjustment Unit</div>
                                         <div className="text-sm font-semibold">{baseSalaryFramework.salary_adjustment_unit || '—'}</div>
                                     </div>
-                                    <div className="p-4 rounded-lg border" style={{ background: BG_SECTION, borderColor: BORDER }}>
-                                        <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>Determination Standard</div>
+                                    <div className="p-4 rounded-lg border bg-muted/30 border-border">
+                                        <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider text-muted-foreground">Determination Standard</div>
                                         <div className="text-sm font-semibold" style={{ color: BLUE }}>{baseSalaryFramework.salary_determination_standard === 'pay_band' ? 'Pay Band' : baseSalaryFramework.salary_determination_standard === 'salary_table' ? 'Salary Table' : (baseSalaryFramework.salary_determination_standard || '—')}</div>
                                     </div>
                                     {(() => {
@@ -320,7 +318,7 @@ export default function ReviewTab({
                                         }
                                         if (total <= 0) return null;
                                         return (
-                                            <div className="p-4 rounded-lg border" style={{ background: BG_SECTION, borderColor: BORDER }}>
+                                            <div className="p-4 rounded-lg border bg-muted/30 border-border">
                                                 <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>Total Base Salary Pool</div>
                                                 <div className="text-sm font-semibold" style={{ color: GOLD }}>{formatKrWon(total)} KRW</div>
                                             </div>
@@ -329,7 +327,7 @@ export default function ReviewTab({
                                 </div>
                                 {payBandRows.length > 0 && (
                                     <>
-                                        <div className="h-px my-3" style={{ background: BORDER }} />
+                                        <div className="h-px my-3 bg-border" />
                                         <div className="text-[10px] font-semibold mb-3" style={{ color: TEXT_MUTED }}>PAY BAND STRUCTURE — Grade Visualization</div>
                                         {payBandRows.map((row, i) => {
                                             const span = scaleMax - scaleMin || 1;
@@ -342,11 +340,11 @@ export default function ReviewTab({
                                                         <span className="text-[11px] font-semibold" style={{ color: NAVY }}>{row.grade}</span>
                                                         <span className="text-[10px]" style={{ color: TEXT_MUTED }}>{row.range}</span>
                                                     </div>
-                                                    <div className="relative h-2.5 rounded border" style={{ background: '#EEF1F6', borderColor: BORDER }}>
+                                                    <div className="relative h-2.5 rounded border bg-muted border-border">
                                                         <div className="absolute top-0 bottom-0 rounded" style={{ left: `${left}%`, width: `${width}%`, background: `linear-gradient(90deg, ${row.color}40, ${row.color}99)` }} />
-                                                        <div className="absolute top-0 bottom-0 w-0.5 -translate-x-px" style={{ left: `${left}%`, background: '#fff', zIndex: 2 }} title={`MIN ${formatKrWon(row.min)}`} />
-                                                        <div className="absolute top-0 bottom-0 w-0.5 -translate-x-px" style={{ left: `${mid}%`, background: '#fff', zIndex: 2 }} title={`MID ${formatKrWon(row.target)}`} />
-                                                        <div className="absolute top-0 bottom-0 w-0.5 -translate-x-px" style={{ left: `${left + width}%`, background: '#fff', zIndex: 2 }} title={`MAX ${formatKrWon(row.max)}`} />
+                                                        <div className="absolute top-0 bottom-0 w-0.5 -translate-x-px bg-card" style={{ left: `${left}%`, zIndex: 2 }} title={`MIN ${formatKrWon(row.min)}`} />
+                                                        <div className="absolute top-0 bottom-0 w-0.5 -translate-x-px bg-card" style={{ left: `${mid}%`, zIndex: 2 }} title={`MID ${formatKrWon(row.target)}`} />
+                                                        <div className="absolute top-0 bottom-0 w-0.5 -translate-x-px bg-card" style={{ left: `${left + width}%`, zIndex: 2 }} title={`MAX ${formatKrWon(row.max)}`} />
                                                     </div>
                                                 </div>
                                             );
@@ -360,8 +358,8 @@ export default function ReviewTab({
                     </div>
 
                     {/* Bonus Pool — from bonusPool */}
-                    <div className="rounded-xl border overflow-hidden shadow-sm bg-white" style={{ borderColor: BORDER }}>
-                        <div className="flex items-center justify-between px-5 py-3 border-b" style={{ background: BG_SECTION, borderColor: BORDER }}>
+                    <div className="rounded-xl border overflow-hidden shadow-sm bg-card border-border">
+                        <div className="flex items-center justify-between px-5 py-3 border-b bg-muted/50 border-border">
                             <div className="flex items-center gap-2">
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: NAVY }}>B</div>
                                 <span className="text-[10px] font-semibold px-2 py-0.5 border rounded" style={{ color: TEXT_MUTED, borderColor: BORDER }}>REF-CODE-04B</span>
@@ -374,20 +372,20 @@ export default function ReviewTab({
                                 <p className="text-sm py-4" style={{ color: TEXT_MUTED }}>Complete the Bonus Pool Configuration step to see your summary here.</p>
                             ) : (
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                    <div className="p-4 rounded-lg border" style={{ background: BG_SECTION, borderColor: BORDER }}>
+                                    <div className="p-4 rounded-lg border bg-muted/30 border-border">
                                         <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>Payment Trigger</div>
                                         <div className="text-sm font-semibold" style={{ color: NAVY }}>{formatLabel(triggerLabel, bonusPool.payment_trigger_condition)}</div>
                                     </div>
-                                    <div className="p-4 rounded-lg border" style={{ background: BG_SECTION, borderColor: BORDER }}>
+                                    <div className="p-4 rounded-lg border bg-muted/30 border-border">
                                         <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>Determination Criteria</div>
                                         <div className="text-sm font-semibold" style={{ color: BLUE }}>{bonusPool.bonus_pool_determination_criteria || '—'}</div>
                                     </div>
-                                    <div className="p-4 rounded-lg border" style={{ background: BG_SECTION, borderColor: BORDER }}>
+                                    <div className="p-4 rounded-lg border bg-muted/30 border-border">
                                         <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>Eligibility Scope</div>
                                         <div className="text-sm font-semibold">{formatLabel(eligibilityLabel, bonusPool.eligibility_scope)}</div>
                                     </div>
                                     {(bonusPool.amount_value != null || bonusPool.ratio_value != null) && (
-                                        <div className="p-4 rounded-lg border" style={{ background: BG_SECTION, borderColor: BORDER }}>
+                                        <div className="p-4 rounded-lg border bg-muted/30 border-border">
                                             <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>Incentive Pool</div>
                                             <div className="text-sm font-semibold" style={{ color: GOLD }}>
                                                 {bonusPool.amount_value != null ? `${formatKrWon(bonusPool.amount_value)} KRW` : bonusPool.ratio_value != null ? `${bonusPool.ratio_value}% of salary` : '—'}
@@ -400,8 +398,8 @@ export default function ReviewTab({
                     </div>
 
                     {/* Benefits — from benefits */}
-                    <div className="rounded-xl border overflow-hidden shadow-sm bg-white" style={{ borderColor: BORDER }}>
-                        <div className="flex items-center justify-between px-5 py-3 border-b" style={{ background: BG_SECTION, borderColor: BORDER }}>
+                    <div className="rounded-xl border overflow-hidden shadow-sm bg-card border-border">
+                        <div className="flex items-center justify-between px-5 py-3 border-b bg-muted/50 border-border">
                             <div className="flex items-center gap-2">
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: NAVY }}>C</div>
                                 <span className="text-[10px] font-semibold px-2 py-0.5 border rounded" style={{ color: TEXT_MUTED, borderColor: BORDER }}>REF-CODE-04C</span>
@@ -415,19 +413,19 @@ export default function ReviewTab({
                             ) : (
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                     {benefits.benefits_expense_ratio != null && (
-                                        <div className="p-4 rounded-lg border" style={{ background: BG_SECTION, borderColor: BORDER }}>
+                                        <div className="p-4 rounded-lg border bg-muted/30 border-border">
                                             <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>Benefits Expense Ratio</div>
                                             <div className="text-sm font-semibold" style={{ color: GOLD }}>{typeof benefits.benefits_expense_ratio === 'number' ? benefits.benefits_expense_ratio.toFixed(1) : benefits.benefits_expense_ratio}%</div>
                                         </div>
                                     )}
                                     {benefits.benefits_strategic_direction && benefits.benefits_strategic_direction.length > 0 && (
-                                        <div className="p-4 rounded-lg border" style={{ background: BG_SECTION, borderColor: BORDER }}>
+                                        <div className="p-4 rounded-lg border bg-muted/30 border-border">
                                             <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>Strategic Direction</div>
                                             <div className="text-sm font-semibold" style={{ color: BLUE }}>{benefits.benefits_strategic_direction.map((d) => stratLabel[d.value] || d.value).join(', ')}</div>
                                         </div>
                                     )}
                                     {benefits.previous_year_total_benefits_expense != null && (
-                                        <div className="p-4 rounded-lg border" style={{ background: BG_SECTION, borderColor: BORDER }}>
+                                        <div className="p-4 rounded-lg border bg-muted/30 border-border">
                                             <div className="text-[10px] font-medium uppercase mb-1.5 tracking-wider" style={{ color: TEXT_MUTED }}>Benefits Funding</div>
                                             <div className="text-sm font-semibold" style={{ color: GOLD }}>{formatKrWon(benefits.previous_year_total_benefits_expense)} KRW</div>
                                         </div>
@@ -438,10 +436,10 @@ export default function ReviewTab({
                     </div>
                 </div>
 
-                {/* Sidebar */}
-                <div className="flex flex-col gap-4">
-                    <div className="rounded-xl border overflow-hidden shadow-sm bg-white" style={{ borderColor: BORDER }}>
-                        <div className="px-3.5 py-2 border-b flex items-center gap-2 text-[11px] font-semibold" style={{ background: BG_SECTION, borderColor: BORDER, color: NAVY }}>
+                {/* Checklist & system info — full width, stacked */}
+                <div className="flex flex-col gap-4 w-full">
+                    <div className="rounded-xl border overflow-hidden shadow-sm bg-card border-border w-full">
+                        <div className="px-3.5 py-2 border-b flex items-center gap-2 text-[11px] font-semibold bg-muted/50 border-border text-foreground">
                             <span style={{ color: MINT }}>✓</span> Module Checklist
                         </div>
                         <div className="p-3">
@@ -455,26 +453,44 @@ export default function ReviewTab({
                             ].map(({ label, done, current }) => (
                                 <div
                                     key={label}
-                                    className={`flex items-center gap-2 p-2.5 rounded border mb-1.5 last:mb-0 ${current ? 'border-[#A8E6D9]' : ''}`}
-                                    style={{ background: current ? '#E6F7F3' : BG_SECTION, borderColor: current ? '#A8E6D9' : BORDER }}
+                                    className={`flex items-center gap-2 p-2.5 rounded border mb-1.5 last:mb-0 ${
+                                        current ? 'border-primary/40 bg-primary/10' : 'border-border bg-muted/30'
+                                    }`}
                                 >
-                                    <div className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0" style={{ background: current ? NAVY : done ? MINT : '#CDD3DC' }}>{current ? '→' : done ? '✓' : '·'}</div>
-                                    <span className={`text-[10px] ${current ? 'font-semibold' : 'font-medium'}`} style={{ color: current ? NAVY : done ? TEXT_MID : TEXT_MUTED }}>{label}</span>
+                                    <div
+                                        className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0"
+                                        style={{ background: current ? NAVY : done ? MINT : 'hsl(var(--muted-foreground) / 0.35)' }}
+                                    >
+                                        {current ? '→' : done ? '✓' : '·'}
+                                    </div>
+                                    <span
+                                        className={`text-[10px] ${current ? 'font-semibold text-foreground' : done ? 'font-medium text-foreground' : 'font-medium text-muted-foreground'}`}
+                                    >
+                                        {label}
+                                    </span>
                                 </div>
                             ))}
                         </div>
                     </div>
-                    <div className="rounded-xl border overflow-hidden shadow-sm bg-white" style={{ borderColor: BORDER }}>
-                        <div className="px-5 py-3 border-b flex items-center gap-2 text-sm font-semibold" style={{ background: BG_SECTION, borderColor: BORDER, color: NAVY }}>
+                    <div className="rounded-xl border overflow-hidden shadow-sm bg-card border-border w-full">
+                        <div className="px-5 py-3 border-b flex items-center gap-2 text-sm font-semibold bg-muted/50 border-border text-foreground">
                             <span style={{ color: MINT }}>⬡</span> System Info
                         </div>
                         <div className="p-4">
                             <div className="flex flex-col gap-0">
-                                <div className="flex justify-between py-2.5 border-b text-sm" style={{ borderColor: BORDER }}><span style={{ color: TEXT_MUTED }}>Company</span><span className="font-medium">{project.company?.name || '—'}</span></div>
-                                <div className="flex justify-between py-2.5 border-b text-sm" style={{ borderColor: BORDER }}><span style={{ color: TEXT_MUTED }}>Completed Modules</span><span className="font-semibold" style={{ color: MINT }}>{completedCount} / {totalModules} Completed</span></div>
+                                <div className="flex justify-between py-2.5 border-b text-sm border-border">
+                                    <span className="text-muted-foreground">Company</span>
+                                    <span className="font-medium">{project.company?.name || '—'}</span>
+                                </div>
+                                <div className="flex justify-between py-2.5 border-b text-sm border-border">
+                                    <span className="text-muted-foreground">Completed Modules</span>
+                                    <span className="font-semibold" style={{ color: MINT }}>
+                                        {completedCount} / {totalModules} Completed
+                                    </span>
+                                </div>
                             </div>
-                            <div className="mt-4 p-4 rounded-lg border text-xs leading-relaxed" style={{ background: '#E6F7F3', borderColor: '#A8E6D9', color: TEXT_MID }}>
-                                <strong className="block mb-1.5" style={{ color: NAVY }}>After Submission</strong>
+                            <div className="mt-4 p-4 rounded-lg border text-xs leading-relaxed bg-primary/10 border-primary/25 text-foreground/90">
+                                <strong className="block mb-1.5 text-foreground">After Submission</strong>
                                 After submission, the full Step 4 modules are completed. The consultant reviews the design and the CEO proceeds with the final approval.
                             </div>
                         </div>

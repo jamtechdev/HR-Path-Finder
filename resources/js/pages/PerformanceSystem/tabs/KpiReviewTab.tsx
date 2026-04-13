@@ -29,6 +29,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
+import { waitWebAnimationMs } from '@/lib/deferred';
 import { toastCopy } from '@/lib/toastCopy';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -189,13 +190,16 @@ export default function KpiReviewTab({
             .finally(() => setLoadingTemplates(false));
     }, [selectedOrg, project?.id]);
 
-    // Auto-close success modal shortly after showing it.
+    // Auto-close success modal shortly after showing it (Web Animations timing).
     useEffect(() => {
         if (!sendSuccessModalOpen) return;
-        const timer = window.setTimeout(() => {
-            setSendSuccessModalOpen(false);
-        }, 1800);
-        return () => window.clearTimeout(timer);
+        let cancelled = false;
+        void waitWebAnimationMs(1800).then(() => {
+            if (!cancelled) setSendSuccessModalOpen(false);
+        });
+        return () => {
+            cancelled = true;
+        };
     }, [sendSuccessModalOpen]);
 
     useEffect(() => {

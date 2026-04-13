@@ -306,8 +306,8 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                 completionPct={completionPct}
             />
             <FieldErrorMessage fieldKey="comp-bonus-pool" errors={fieldErrors} className="mt-4 px-1" />
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_296px] gap-5 pt-6 max-w-[1060px]">
-                <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5 w-full pt-6">
+                <div className="flex flex-col gap-4 w-full">
                     {/* 1. Bonus Pool Determination */}
                     <Card className="shadow-sm border rounded-xl overflow-hidden">
                         <CardContent className="p-5">
@@ -904,9 +904,9 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                     </Card>
                 </div>
 
-                {/* Right panel: Step Purpose + Concept */}
-                <div className="lg:sticky lg:top-6 h-fit">
-                    <Card className="shadow-sm border rounded-xl overflow-hidden">
+                {/* Step purpose + concept — full width */}
+                <div className="w-full">
+                    <Card className="shadow-sm border rounded-xl overflow-hidden w-full">
                         <CardContent className="p-5">
                             <div className="font-semibold text-[#1B2E4B] mb-3">Step Purpose</div>
                             <ul className="space-y-2 text-sm text-muted-foreground">

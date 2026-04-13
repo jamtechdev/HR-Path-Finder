@@ -198,8 +198,12 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
             (entries) => {
                 entries.forEach((entry) => {
                     if (!entry.isIntersecting) return;
-                    entry.target.querySelectorAll('.bm-bar-fill').forEach((bar, i) => {
-                        window.setTimeout(() => bar.classList.add('animated'), i * 120);
+                    requestAnimationFrame(() => {
+                        entry.target.querySelectorAll('.bm-bar-fill').forEach((bar, i) => {
+                            const el = bar as HTMLElement;
+                            el.style.transitionDelay = `${i * 120}ms`;
+                            el.classList.add('animated');
+                        });
                     });
                     barObserver.unobserve(entry.target);
                 });

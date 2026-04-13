@@ -1,6 +1,6 @@
 import { Form } from '@inertiajs/react';
 import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -34,15 +34,15 @@ export default function TwoFactorRecoveryCodes({
 
         setCodesAreVisible(!codesAreVisible);
 
-        if (!codesAreVisible) {
-            setTimeout(() => {
-                codesSectionRef.current?.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'nearest',
-                });
-            });
-        }
     }, [codesAreVisible, recoveryCodesList.length, fetchRecoveryCodes]);
+
+    useLayoutEffect(() => {
+        if (!codesAreVisible) return;
+        codesSectionRef.current?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+        });
+    }, [codesAreVisible]);
 
     useEffect(() => {
         if (!recoveryCodesList.length) {

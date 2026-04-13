@@ -517,7 +517,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                         // Determine button label - "View" for submitted/completed steps, "Continue" for current
                                         const getButtonLabel = () => {
                                             if (status === 'submitted' || isCompleted) {
-                                                return step.id === 'diagnosis' ? t('buttons.view') + ' \u2192' : t('buttons.review') + ' \u2192';
+                                                return t('buttons.view') + ' \u2192';
                                             }
                                             return t('buttons.continue') + ' \u2192';
                                         };

@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout';
+import { waitWebAnimationMs } from '@/lib/deferred';
 import { cn } from '@/lib/utils';
 import { readJobAnalysisState, mergeJobAnalysisState } from '@/pages/JobAnalysis/utils/jobAnalysisStorage';
 
@@ -122,7 +123,7 @@ export default function JobDefinitionPage({ project, jobDefinitions, selectedJob
             preserveScroll: true,
             onSuccess: () => {
                 setSaveSuccess(true);
-                setTimeout(() => setSaveSuccess(false), 3000);
+                void waitWebAnimationMs(3000).then(() => setSaveSuccess(false));
             },
             onFinish: () => setSaving(false),
         });

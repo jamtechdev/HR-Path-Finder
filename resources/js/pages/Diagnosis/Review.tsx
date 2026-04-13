@@ -1,6 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { CheckCircle2, AlertCircle, Mail } from 'lucide-react';
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import InlineErrorSummary, { flattenErrors } from '@/components/Forms/InlineErrorSummary';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -269,12 +269,9 @@ export default function Review({
         setPageErrors({});
     }, [props.errors, t]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!submitError) return;
-        const timeout = window.setTimeout(() => {
-            submitErrorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-        return () => window.clearTimeout(timeout);
+        submitErrorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, [submitError]);
 
     const handleSubmit = () => {
@@ -321,9 +318,9 @@ export default function Review({
                 }
                 setPageErrors(o);
                 setProcessing(false);
-                window.setTimeout(() => {
+                queueMicrotask(() => {
                     submitErrorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 100);
+                });
             },
             preserveState: true,
             preserveScroll: true,

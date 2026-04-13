@@ -5,6 +5,7 @@ import type {
     BenefitsConfiguration,
     CompensationSnapshotQuestion,
     PayBand,
+    PayBandOperationCriteria,
     SalaryTable,
 } from './types';
 
@@ -124,7 +125,14 @@ export function validateCompensationSnapshot(
 ): CompValidationResult {
     const fieldErrors: FieldErrors = {};
     if (!questions?.length) {
-        return { ok: true, message: '', fieldErrors: {} };
+        return {
+            ok: false,
+            message:
+                'Compensation snapshot questions are not configured yet. Contact an administrator before continuing.',
+            fieldErrors: {
+                'comp-snapshot-setup': 'No snapshot questions are available for this project.',
+            },
+        };
     }
     const q17 = questions[16];
     const q18 = questions[17];
@@ -175,10 +183,28 @@ export function validateBaseSalaryFramework(fw: BaseSalaryFramework): CompValida
     return { ok: true, message: '', fieldErrors: {} };
 }
 
+function payBandOperationCriteriaComplete(c: PayBandOperationCriteria | undefined): boolean {
+    if (!c) return false;
+    return (
+        String(c.outlier_handling || '').trim() !== '' &&
+        String(c.promotion_movement_rule || '').trim() !== '' &&
+        String(c.band_review_cycle || '').trim() !== ''
+    );
+}
+
+function salaryTableHasFilledCell(tables: SalaryTable[]): boolean {
+    return (tables ?? []).some((row) =>
+        [row.level_1, row.level_2, row.level_3, row.level_4, row.level_5].some(
+            (v) => v != null && Number(v) > 0
+        )
+    );
+}
+
 export function validatePayBandTab(
     payBands: PayBand[],
     salaryTables: SalaryTable[],
-    framework: BaseSalaryFramework
+    framework: BaseSalaryFramework,
+    operationCriteria: PayBandOperationCriteria
 ): CompValidationResult {
     const std = (framework.salary_determination_standard || '').trim();
     if (std === 'pay_band') {
@@ -191,6 +217,15 @@ export function validatePayBandTab(
                 },
             };
         }
+        if (!payBandOperationCriteriaComplete(operationCriteria)) {
+            return {
+                ok: false,
+                message: 'Complete Operation Criteria (outlier handling, promotion rule, and review cycle) before continuing.',
+                fieldErrors: {
+                    'comp-operation-criteria': 'Select all three operation criteria fields.',
+                },
+            };
+        }
         return { ok: true, message: '', fieldErrors: {} };
     }
     if (std === 'salary_table') {
@@ -200,6 +235,24 @@ export function validatePayBandTab(
                 message: 'Add at least one salary table row before continuing (Salary Table is selected in Base Salary Framework).',
                 fieldErrors: {
                     'comp-pay-band': 'Add salary table data for the selected determination method.',
+                },
+            };
+        }
+        if (!salaryTableHasFilledCell(salaryTables)) {
+            return {
+                ok: false,
+                message: 'Enter at least one salary amount in the salary table before continuing.',
+                fieldErrors: {
+                    'comp-pay-band': 'Fill at least one cell in the salary table.',
+                },
+            };
+        }
+        if (!payBandOperationCriteriaComplete(operationCriteria)) {
+            return {
+                ok: false,
+                message: 'Complete Operation Criteria before continuing.',
+                fieldErrors: {
+                    'comp-operation-criteria': 'Select all three operation criteria fields.',
                 },
             };
         }
@@ -305,6 +358,7 @@ export function validateCompensationStep(
         baseSalaryFramework: BaseSalaryFramework;
         payBands: PayBand[];
         salaryTables: SalaryTable[];
+        operationCriteria: PayBandOperationCriteria;
         bonusPool: BonusPoolConfiguration;
         benefits: BenefitsConfiguration;
     }
@@ -317,7 +371,12 @@ export function validateCompensationStep(
         case 'base-salary-framework':
             return validateBaseSalaryFramework(ctx.baseSalaryFramework);
         case 'pay-band-salary-table':
-            return validatePayBandTab(ctx.payBands, ctx.salaryTables, ctx.baseSalaryFramework);
+            return validatePayBandTab(
+                ctx.payBands,
+                ctx.salaryTables,
+                ctx.baseSalaryFramework,
+                ctx.operationCriteria
+            );
         case 'bonus-pool':
             return validateBonusPoolTab(ctx.bonusPool);
         case 'benefits':

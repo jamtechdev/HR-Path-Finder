@@ -324,13 +324,13 @@ export default function BenefitsTab({
             .map((k) => STRAT_OPTIONS.find((o) => o.key === k)?.label ?? k)
             .join(' · ');
         const taxList = taxItems.slice(0, 4).join(', ') + (taxItems.length > 4 ? ` and ${taxItems.length - 4} more` : '');
-        let s = `The company operates <span class="text-[#5DCAA5] font-bold">${count}</span> benefits programs. `;
+        let s = `The company operates <span class="text-emerald-400 font-bold">${count}</span> benefits programs. `;
         if (strats)
-            s += `<span class="text-[#5DCAA5] font-bold">${strats}</span> set as core strategic directions. `;
+            s += `<span class="text-emerald-400 font-bold">${strats}</span> set as core strategic directions. `;
         if (taxList)
-            s += `<span class="text-[#5DCAA5] font-bold">${taxList}</span> identified as tax-deductible items for cost optimization. `;
+            s += `<span class="text-emerald-400 font-bold">${taxList}</span> identified as tax-deductible items for cost optimization. `;
         if (totalLabor > 0)
-            s += `Benefits expense ratio vs. total labor cost: <span class="text-[#5DCAA5] font-bold">${ratio.toFixed(1)}%</span>. `;
+            s += `Benefits expense ratio vs. total labor cost: <span class="text-emerald-400 font-bold">${ratio.toFixed(1)}%</span>. `;
         s += 'All items are systematically managed by category.';
         return s;
     }, [activeItems.size, stratSelected, taxItems, totalLabor, ratio]);
@@ -353,10 +353,10 @@ export default function BenefitsTab({
             if (!d) return null;
             return (
                 <div className="rounded-lg border bg-muted/30 p-3">
-                    <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full mb-2 bg-[#E8F7F2] text-[#0B6B4A]">
+                    <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full mb-2 bg-emerald-500/15 text-emerald-300">
                         {d.tag}
                     </span>
-                    <div className="font-semibold text-[#1B2E4B] text-sm mb-1">{d.title}</div>
+                    <div className="font-semibold text-foreground text-sm mb-1">{d.title}</div>
                     <div className="text-[10px] font-bold uppercase text-muted-foreground mb-1">
                         Target Persona
                     </div>
@@ -370,11 +370,11 @@ export default function BenefitsTab({
                     </div>
                     {d.rec.map((r, i) => (
                         <div key={i} className="flex gap-2 mb-1">
-                            <span className="text-[#1D9E75] text-xs">✓</span>
+                            <span className="text-emerald-400 text-xs">✓</span>
                             <span className="text-xs text-muted-foreground">{r}</span>
                         </div>
                     ))}
-                    <div className="text-[10px] text-muted-foreground bg-background rounded-md px-2 py-1.5 border-l-2 border-[#1D9E75] mt-2">
+                    <div className="text-[10px] text-muted-foreground bg-background rounded-md px-2 py-1.5 border-l-2 border-emerald-500 mt-2">
                         {d.ex}
                     </div>
                 </div>
@@ -387,12 +387,12 @@ export default function BenefitsTab({
                 <div className="rounded-lg border bg-muted/30 p-3">
                     <span
                         className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-full mb-2 ${
-                            d.tag === 'gold' ? 'bg-amber-100 text-amber-800' : 'bg-[#E8F7F2] text-[#0B6B4A]'
+                            d.tag === 'gold' ? 'bg-amber-500/15 text-amber-300' : 'bg-emerald-500/15 text-emerald-300'
                         }`}
                     >
                         {d.tl}
                     </span>
-                    <div className="font-semibold text-[#1B2E4B] text-sm mb-1">{d.title}</div>
+                    <div className="font-semibold text-foreground text-sm mb-1">{d.title}</div>
                     <p className="text-xs text-muted-foreground leading-relaxed mb-2">{d.desc}</p>
                     <div className="text-[9px] font-bold uppercase text-muted-foreground mb-0.5">
                         BENEFITS
@@ -402,7 +402,7 @@ export default function BenefitsTab({
                         CAUTION
                     </div>
                     <div className="text-xs text-muted-foreground mb-2">{d.caution}</div>
-                    <div className="text-[10px] text-muted-foreground bg-background rounded-md px-2 py-1.5 border-l-2 border-[#1D9E75]">
+                    <div className="text-[10px] text-muted-foreground bg-background rounded-md px-2 py-1.5 border-l-2 border-emerald-500">
                         {d.ex}
                     </div>
                 </div>
@@ -427,8 +427,8 @@ export default function BenefitsTab({
                 completionPct={completionPct}
             />
             <FieldErrorMessage fieldKey="comp-benefits" errors={fieldErrors} className="mt-4 px-1" />
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5 pt-6 max-w-[1100px]">
-                <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5 w-full pt-6">
+                <div className="flex flex-col gap-4 w-full">
                     {/* Budget Overview */}
                     <Card className="shadow-sm border rounded-xl overflow-hidden">
                         <CardContent className="p-5">
@@ -477,14 +477,14 @@ export default function BenefitsTab({
                                     <Label className="text-[10px] font-bold uppercase text-muted-foreground">
                                         Benefits Expense Ratio
                                     </Label>
-                                    <div className="text-2xl font-extrabold text-[#1D9E75] mt-1">
+                                    <div className="text-2xl font-extrabold text-emerald-400 mt-1">
                                         {totalLabor > 0 ? `${ratio.toFixed(2)}%` : '— %'}
                                     </div>
                                     <div className="h-1.5 bg-muted rounded-full overflow-hidden mt-2">
                                         <div
                                             className={`h-full rounded-full transition-all ${
                                                 ratioStatus === 'ok'
-                                                    ? 'bg-[#1D9E75]'
+                                                    ? 'bg-emerald-500'
                                                     : ratioStatus === 'above'
                                                       ? 'bg-destructive'
                                                       : 'bg-amber-500'
@@ -516,7 +516,7 @@ export default function BenefitsTab({
                                             onClick={() => toggleStrat(opt.key)}
                                             className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
                                                 selected
-                                                    ? 'bg-[#1B2E4B] text-white border-[#1B2E4B]'
+                                                    ? 'bg-primary text-primary-foreground border-primary'
                                                     : 'bg-background border-border hover:bg-muted'
                                             }`}
                                         >
@@ -550,7 +550,7 @@ export default function BenefitsTab({
                                     }}
                                 >
                                     <span className="text-lg">{cat.icon}</span>
-                                    <span className="font-bold text-[#1B2E4B] flex-1">{cat.name}</span>
+                                    <span className="font-bold text-foreground flex-1">{cat.name}</span>
                                     <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                                         {count}/{cat.items.length}
                                     </span>
@@ -582,7 +582,7 @@ export default function BenefitsTab({
                                                         }}
                                                         className={`rounded-lg border p-3 cursor-pointer transition-colors ${
                                                             state.active
-                                                                ? 'border-[#1D9E75] bg-[#E8F7F2]'
+                                                                ? 'border-emerald-500/60 bg-emerald-500/10'
                                                                 : 'border-border bg-muted/30 hover:bg-muted/50'
                                                         }`}
                                                     >
@@ -601,13 +601,13 @@ export default function BenefitsTab({
                                                         <div className="flex items-start justify-between gap-2">
                                                             <span
                                                                 className={`font-semibold text-sm ${
-                                                                    state.active ? 'text-[#0B6B4A]' : 'text-foreground'
+                                                                    state.active ? 'text-emerald-300' : 'text-foreground'
                                                                 }`}
                                                             >
                                                                 {item.name}
                                                             </span>
                                                             {state.active && (
-                                                                <span className="w-4 h-4 rounded bg-[#1D9E75] flex items-center justify-center text-white text-xs">
+                                                                <span className="w-4 h-4 rounded bg-emerald-500 flex items-center justify-center text-white text-xs">
                                                                     ✓
                                                                 </span>
                                                             )}
@@ -692,26 +692,26 @@ export default function BenefitsTab({
                     </Card>
                 </div>
 
-                {/* Side panel */}
-                <div className="lg:sticky lg:top-6 h-fit">
-                    <Card className="shadow-sm border rounded-xl overflow-hidden">
+                {/* Step purpose + option guide — full width */}
+                <div className="w-full">
+                    <Card className="shadow-sm border rounded-xl overflow-hidden w-full">
                         <CardContent className="p-5">
-                            <div className="font-semibold text-[#1B2E4B] mb-3">Step Purpose</div>
+                            <div className="font-semibold text-foreground mb-3">Step Purpose</div>
                             <ul className="space-y-2 text-xs text-muted-foreground mb-4">
                                 <li className="flex gap-2">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] mt-1.5 shrink-0" />
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
                                     Diagnose current benefits across <strong>6 categories</strong>.
                                 </li>
                                 <li className="flex gap-2">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] mt-1.5 shrink-0" />
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
                                     <strong>Industry benchmarking data</strong> to identify gaps.
                                 </li>
                                 <li className="flex gap-2">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] mt-1.5 shrink-0" />
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
                                     Identify <strong>tax-deductible</strong> items to maximize cost efficiency.
                                 </li>
                                 <li className="flex gap-2">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] mt-1.5 shrink-0" />
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
                                     <strong>Budget ratio</strong> updates in real time as you select items.
                                 </li>
                             </ul>

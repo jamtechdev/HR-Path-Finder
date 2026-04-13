@@ -28,8 +28,18 @@ export default function SuccessModal({
     onNextStep,
 }: SuccessModalProps) {
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-md">
+        <Dialog
+            open={isOpen}
+            onOpenChange={(open) => {
+                // Close only through explicit modal buttons.
+                if (open) return;
+            }}
+        >
+            <DialogContent
+                onPointerDownOutside={(e) => e.preventDefault()}
+                onEscapeKeyDown={(e) => e.preventDefault()}
+                className="sm:max-w-md"
+            >
                 <DialogHeader>
                     <div className="flex items-center justify-center mb-4">
                         <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">

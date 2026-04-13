@@ -1,5 +1,5 @@
 import { Plus, Trash2, AlertCircle, FileText, Info } from 'lucide-react';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -9,10 +9,98 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { translateStaticOnly } from '@/lib/translateStaticOnly';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import CompensationPageHeader from '../components/CompensationPageHeader';
 import type { CompensationSnapshotQuestion, CompensationSnapshotResponse } from '../types';
+
+function stripCommas(v: string): string {
+    return v.replace(/,/g, '');
+}
+
+function stableSerializeResponses(rec: Record<number, unknown>): string {
+    const keys = Object.keys(rec)
+        .map(Number)
+        .filter((k) => !Number.isNaN(k))
+        .sort((a, b) => a - b);
+    const o: Record<string, unknown> = {};
+    for (const k of keys) {
+        o[String(k)] = rec[k];
+    }
+    return JSON.stringify(o);
+}
+
+/** Normalize numeric strings (including nested objects/arrays) to numbers — matches prior useEffect behavior. */
+function normalizeSnapshotExternalValue(value: unknown): unknown {
+    const numericFromAny = (v: unknown): number | null => {
+        if (v === null || v === undefined) return null;
+        if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+        if (typeof v === 'string') {
+            const n = parseFloat(stripCommas(v));
+            return Number.isFinite(n) ? n : null;
+        }
+        if (typeof v === 'object') {
+            const vo = typeof (v as { valueOf?: () => unknown }).valueOf === 'function' ? (v as { valueOf: () => unknown }).valueOf() : v;
+            if (typeof vo === 'number') return Number.isFinite(vo) ? vo : null;
+            if (typeof vo === 'string') {
+                const n = parseFloat(stripCommas(vo));
+                return Number.isFinite(n) ? n : null;
+            }
+            const n = parseFloat(stripCommas(String(v)));
+            return Number.isFinite(n) ? n : null;
+        }
+        return null;
+    };
+
+    if (typeof value === 'string') {
+        const n = parseFloat(stripCommas(value));
+        return Number.isFinite(n) ? n : value;
+    }
+    const scalar = numericFromAny(value);
+    if (scalar !== null) return scalar;
+
+    if (Array.isArray(value)) {
+        return value.map((item) => {
+            if (item && typeof item === 'object') {
+                const out: Record<string, unknown> = { ...(item as Record<string, unknown>) };
+                Object.entries(out).forEach(([ik, iv]) => {
+                    if (typeof iv === 'string') {
+                        const n = parseFloat(stripCommas(iv));
+                        if (Number.isFinite(n)) out[ik] = n;
+                    }
+                });
+                return out;
+            }
+            return normalizeSnapshotExternalValue(item);
+        });
+    }
+
+    if (value && typeof value === 'object') {
+        const out: Record<string, unknown> = {};
+        Object.entries(value as Record<string, unknown>).forEach(([ik, iv]) => {
+            if (typeof iv === 'string') {
+                const n = parseFloat(stripCommas(iv));
+                out[ik] = Number.isFinite(n) ? n : iv;
+            } else {
+                out[ik] = normalizeSnapshotExternalValue(iv);
+            }
+        });
+        return out;
+    }
+
+    return value;
+}
+
+function normalizeSnapshotRecord(
+    externalResponses: Record<number, unknown>,
+): Record<number, string[] | string | number | object | null> {
+    const normalized: Record<number, unknown> = {};
+    Object.entries(externalResponses).forEach(([k, v]) => {
+        normalized[Number(k)] = normalizeSnapshotExternalValue(v);
+    });
+    return normalized as Record<number, string[] | string | number | object | null>;
+}
 
 interface SnapshotTabProps {
     projectId: number;
@@ -29,7 +117,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
     const tr = (v?: string | null) => {
         const raw = String(v ?? '').trim();
         if (!raw) return '';
-        return t(raw, { defaultValue: raw });
+        return translateStaticOnly(t, raw, ['compensation_system.', 'common.', 'buttons.', 'steps.']);
     };
     const clampPercentage = (value: string): number => {
         const parsed = parseFloat(value.replace(/,/g, ''));
@@ -37,7 +125,6 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
         return Math.min(100, Math.max(0, parsed));
     };
 
-    const stripCommas = (v: string): string => v.replace(/,/g, '');
     const formatWithCommas = (n: number | string | null | undefined): string => {
         if (n === null || n === undefined || n === '') return '';
         const num = typeof n === 'string' ? parseFloat(stripCommas(n)) : n;
@@ -73,7 +160,10 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
             return null;
         };
 
-        if (externalResponses) return externalResponses;
+        const ext = externalResponses as Record<number, unknown> | undefined;
+        if (ext && typeof ext === 'object' && Object.keys(ext).length > 0) {
+            return normalizeSnapshotRecord(ext) as Record<number, string[] | string | number | object | null>;
+        }
         const responses: Record<number, string[] | string | number | object | null> = {};
         initialResponses?.forEach(resp => {
             if (resp.numeric_response !== null && resp.numeric_response !== undefined) {
@@ -90,86 +180,40 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
         return responses;
     });
 
-    // Update local state when external state changes
-    useEffect(() => {
-        if (externalResponses) {
-            // Normalize numeric strings (including nested objects/arrays) to numbers.
-            // This keeps validation/completion logic consistent when backend stores decimals as strings.
-            const normalizeValue = (value: any): any => {
-                // Preserve numeric scalars even if they come in as numeric-like objects.
-                const numericFromAny = (v: any): number | null => {
-                    if (v === null || v === undefined) return null;
-                    if (typeof v === 'number') return Number.isFinite(v) ? v : null;
-                    if (typeof v === 'string') {
-                        const n = parseFloat(stripCommas(v));
-                        return Number.isFinite(n) ? n : null;
-                    }
-                    if (typeof v === 'object') {
-                        const vo = typeof (v as any).valueOf === 'function' ? (v as any).valueOf() : v;
-                        if (typeof vo === 'number') return Number.isFinite(vo) ? vo : null;
-                        if (typeof vo === 'string') {
-                            const n = parseFloat(stripCommas(vo));
-                            return Number.isFinite(n) ? n : null;
-                        }
-                        const n = parseFloat(stripCommas(String(v)));
-                        return Number.isFinite(n) ? n : null;
-                    }
-                    return null;
-                };
+    const snapshotStateRef = useRef(snapshotResponses);
+    snapshotStateRef.current = snapshotResponses;
 
-                if (typeof value === 'string') {
-                    const n = parseFloat(stripCommas(value));
-                    return Number.isFinite(n) ? n : value;
-                }
-                const scalar = numericFromAny(value);
-                if (scalar !== null) return scalar;
+    const externalResponsesRef = useRef(externalResponses);
+    externalResponsesRef.current = externalResponses;
 
-                if (Array.isArray(value)) {
-                    return value.map((item) => {
-                        if (item && typeof item === 'object') {
-                            const out: Record<string, any> = { ...item };
-                            Object.entries(out).forEach(([ik, iv]) => {
-                                if (typeof iv === 'string') {
-                                    const n = parseFloat(stripCommas(iv));
-                                    if (Number.isFinite(n)) out[ik] = n;
-                                }
-                            });
-                            return out;
-                        }
-                        return normalizeValue(item);
-                    });
-                }
-
-                if (value && typeof value === 'object') {
-                    const out: Record<string, any> = {};
-                    Object.entries(value).forEach(([ik, iv]) => {
-                        if (typeof iv === 'string') {
-                            const n = parseFloat(stripCommas(iv));
-                            out[ik] = Number.isFinite(n) ? n : iv;
-                        } else {
-                            out[ik] = normalizeValue(iv);
-                        }
-                    });
-                    return out;
-                }
-
-                return value;
-            };
-
-            const normalized: Record<number, any> = {};
-            Object.entries(externalResponses).forEach(([k, v]) => {
-                normalized[Number(k)] = normalizeValue(v);
-            });
-            setSnapshotResponses(normalized);
-        }
+    const externalSig = useMemo(() => {
+        if (!externalResponses) return '';
+        return stableSerializeResponses(normalizeSnapshotRecord(externalResponses as Record<number, unknown>) as Record<number, unknown>);
     }, [externalResponses]);
+
+    // Update local state when external *content* changes (deps use sig only so new parent object refs do not retrigger).
+    useEffect(() => {
+        const ext = externalResponsesRef.current;
+        if (!ext || externalSig === '') return;
+        const next = normalizeSnapshotRecord(ext as Record<number, unknown>);
+        setSnapshotResponses((prev) => {
+            if (stableSerializeResponses(prev as Record<number, unknown>) === stableSerializeResponses(next as Record<number, unknown>)) {
+                return prev;
+            }
+            return next;
+        });
+    }, [externalSig]);
 
     // Sync local changes to external state if callback provided
     const updateResponses = (newResponses: Record<number, string[] | string | number | object | null>) => {
-        setSnapshotResponses(newResponses);
-        if (onSnapshotResponsesChange) {
-            onSnapshotResponsesChange(newResponses);
+        if (
+            stableSerializeResponses(snapshotStateRef.current as Record<number, unknown>) ===
+            stableSerializeResponses(newResponses as Record<number, unknown>)
+        ) {
+            return;
         }
+        setSnapshotResponses(newResponses);
+        onSnapshotResponsesChange?.(newResponses);
     };
 
     // Q17/Q18 filtering relies on question "order", not array index.
@@ -179,6 +223,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
     // Keep Q18 selection consistent with Q17 (so "invalid" previously selected options are cleared)
     const q18Question = questions.find((q) => q.order === 18);
     const q18Selected = q18Question ? snapshotResponses[q18Question.id] : null;
+    const q18SelectedSig = Array.isArray(q18Selected) ? JSON.stringify(q18Selected) : '';
 
     useEffect(() => {
         if (!q18Question || q18Question.answer_type !== 'select_up_to_2') return;
@@ -196,12 +241,12 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
             next.length !== q18Selected.length || next.some((v, i) => v !== q18Selected[i]);
         if (changed) {
             updateResponses({
-                ...snapshotResponses,
+                ...snapshotStateRef.current,
                 [q18Question.id]: next,
             });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [q17Response.join('|'), q18Question?.id, q18Selected]);
+    }, [q17Response.join('|'), q18Question?.id, q18SelectedSig]);
 
     const answeredCount = useMemo(() => questions.filter(q => {
         const r = snapshotResponses[q.id];
@@ -281,9 +326,9 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                 description={t('compensation_system.snapshot.header_desc')}
                 completionPct={completionPct}
             />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6">
+            <div className="flex flex-col gap-6 w-full pt-6">
                 {/* Main Questions Section */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="w-full space-y-6">
                     {questions && questions.length > 0 ? (
                         questions.map((question, idx) => {
                             const isQ18 = question.order === 18;
@@ -471,7 +516,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                 {!isMultiYearNumeric && !isJobFunctions && !isYearsOfService && question.answer_type === 'select_up_to_2' && (
                                                     <div className="space-y-3">
                                                         {isQ18 && (
-                                                            <div className="p-3 rounded-lg bg-[#f0fdf9] border border-[rgba(46,196,160,0.2)] text-sm text-[#0f1c30]">
+                                                            <div className="p-3 rounded-lg bg-primary/10 border border-primary/25 text-sm text-foreground">
                                                                 <span className="font-medium text-[#152540]">{t('compensation_system.snapshot.based_on_q17')}</span>
                                                                 <span className="text-[#4b5563]"> — {t('compensation_system.snapshot.choose_two_least_effective')}</span>
                                                             </div>
@@ -533,7 +578,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                     onChange={(e) => updateResponses({ ...snapshotResponses, [question.id]: e.target.value })}
                                                                     placeholder={t('compensation_system.snapshot.enter_least_effective')}
                                                                     rows={3}
-                                                                    className="resize-none bg-white"
+                                                                    className="resize-none bg-background"
                                                                 />
                                                             </div>
                                                         )}
@@ -630,9 +675,9 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                             {/* Save & Continue is in the page footer; no duplicate button here */}
                 </div>
                         
-                {/* Right Side Panel */}
-                <div className="lg:col-span-1">
-                            <Card className="sticky top-6 border-2 shadow-sm">
+                {/* Step purpose & help — full width below questions */}
+                <div className="w-full">
+                            <Card className="border-2 shadow-sm w-full">
                                 <CardHeader>
                                     <div className="flex items-center gap-2">
                                         <Info className="w-5 h-5 text-primary" />

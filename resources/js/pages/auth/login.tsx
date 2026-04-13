@@ -1,6 +1,6 @@
 import { Form, Head, Link, useForm } from '@inertiajs/react';
 import { ArrowRight, Sparkles, CheckCircle2, Shield, Zap, ArrowLeft, Eye, EyeOff } from 'lucide-react';
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -40,11 +40,8 @@ export default function Login({
         }
     }, [status]);
 
-    React.useEffect(() => {
-        const t = window.setTimeout(() => {
-            emailInputRef.current?.focus();
-        }, 0);
-        return () => window.clearTimeout(t);
+    useLayoutEffect(() => {
+        emailInputRef.current?.focus();
     }, []);
 
 

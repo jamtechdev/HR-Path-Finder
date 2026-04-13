@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import type { LucideIcon } from 'lucide-react';
 import { Building2, Briefcase, Users, Settings, MessageSquare, FileText, Check } from 'lucide-react';
-import React, { useEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 export type TabId = 'overview' | 'company-info' | 'workforce' | 'executives' | 'leaders' | 'job-grades' | 'organizational-charts' | 'organizational-structure' | 'job-structure' | 'hr-issues' | 'review';
@@ -113,25 +113,18 @@ export default function DiagnosisTabs({
     const tabsContainerRef = useRef<HTMLDivElement>(null);
     const activeTabRef = useRef<HTMLAnchorElement>(null);
     
-    // Auto-scroll to active tab
-    useEffect(() => {
+    // Auto-scroll to active tab after layout (no delayed timers).
+    useLayoutEffect(() => {
         if (activeTabRef.current && tabsContainerRef.current) {
             const container = tabsContainerRef.current;
             const activeTabElement = activeTabRef.current;
-            
-            // Use setTimeout to ensure DOM is fully rendered
-            setTimeout(() => {
-                const containerRect = container.getBoundingClientRect();
-                const tabRect = activeTabElement.getBoundingClientRect();
-                
-                // Calculate scroll position to center the active tab
-                const scrollLeft = activeTabElement.offsetLeft - (containerRect.width / 2) + (tabRect.width / 2);
-                
-                container.scrollTo({
-                    left: Math.max(0, scrollLeft),
-                    behavior: 'smooth'
-                });
-            }, 100);
+            const containerRect = container.getBoundingClientRect();
+            const tabRect = activeTabElement.getBoundingClientRect();
+            const scrollLeft = activeTabElement.offsetLeft - containerRect.width / 2 + tabRect.width / 2;
+            container.scrollTo({
+                left: Math.max(0, scrollLeft),
+                behavior: 'smooth',
+            });
         }
     }, [activeTab]);
     

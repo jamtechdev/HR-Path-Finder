@@ -516,35 +516,33 @@ export default function D3TreeView({ hrSystemSnapshot }: D3TreeViewProps) {
 
         renderTree();
 
-        // Use ResizeObserver for better performance
+        let resizeRaf = 0;
+        const scheduleResize = () => {
+            if (resizeRaf) cancelAnimationFrame(resizeRaf);
+            resizeRaf = requestAnimationFrame(() => {
+                resizeRaf = 0;
+                if (containerRef.current && svgRef.current) {
+                    renderTree();
+                }
+            });
+        };
+
         if (containerRef.current) {
             resizeObserverRef.current = new ResizeObserver(() => {
-                // Debounce resize
-                const timeoutId = setTimeout(() => {
-                    if (containerRef.current && svgRef.current) {
-                        renderTree();
-                    }
-                }, 150);
-                return () => clearTimeout(timeoutId);
+                scheduleResize();
             });
             resizeObserverRef.current.observe(containerRef.current);
         }
 
-        // Handle window resize as fallback
-        let resizeTimeout: NodeJS.Timeout;
         const handleResize = () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                if (containerRef.current && svgRef.current) {
-                    renderTree();
-                }
-            }, 200);
+            scheduleResize();
         };
 
         window.addEventListener('resize', handleResize);
         window.addEventListener('orientationchange', handleResize);
 
         return () => {
+            if (resizeRaf) cancelAnimationFrame(resizeRaf);
             window.removeEventListener('resize', handleResize);
             window.removeEventListener('orientationchange', handleResize);
             if (resizeObserverRef.current && containerRef.current) {

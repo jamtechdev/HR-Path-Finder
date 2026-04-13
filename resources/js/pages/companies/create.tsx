@@ -25,6 +25,7 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import { Toaster } from '@/components/ui/toaster';
 import { toast } from '@/hooks/use-toast';
+import { waitWebAnimationMs } from '@/lib/deferred';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { cn } from '@/lib/utils';
 import { Head, router, useForm } from '@inertiajs/react';
@@ -127,9 +128,9 @@ export default function CreateCompany() {
                     description: t('companies_create.success_desc'),
                     variant: 'success',
                 });
-                window.setTimeout(() => {
+                void waitWebAnimationMs(1800).then(() => {
                     router.get('/hr-manager/dashboard', {}, { replace: true });
-                }, 1800);
+                });
             },
             onError: (errs) => {
                 if (errs.logo && String(errs.logo).includes('too large')) {
