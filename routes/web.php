@@ -383,7 +383,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // CEO Management
         Route::get('ceo', [\App\Http\Controllers\Admin\CeoController::class, 'index'])->name('ceo.index');
         Route::post('ceo/create', [\App\Http\Controllers\Admin\CeoController::class, 'store'])->name('ceo.create');
-        Route::put('users/{user}', [\App\Http\Controllers\Admin\CeoController::class, 'updateUser'])
+        Route::match(['put', 'post'], 'users/{user}', [\App\Http\Controllers\Admin\CeoController::class, 'updateUser'])
             ->name('users.update');
         Route::delete('users/{user}', [\App\Http\Controllers\Admin\CeoController::class, 'destroyUser'])
             ->name('users.destroy');

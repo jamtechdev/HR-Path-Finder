@@ -204,13 +204,30 @@ export default function AdminUsersIndex({
     const handleEditSubmit = (e: FormEvent) => {
         e.preventDefault();
         if (!editUser) return;
-        editForm.put(`/admin/users/${editUser.id}`, {
+
+        const formData = new FormData();
+        formData.append('_method', 'PUT');
+        formData.append('name', editForm.data.name);
+        formData.append('email', editForm.data.email);
+        formData.append('phone', editForm.data.phone ?? '');
+        formData.append('address', editForm.data.address ?? '');
+        formData.append('city', editForm.data.city ?? '');
+        formData.append('state', editForm.data.state ?? '');
+        formData.append('latitude', String(editForm.data.latitude ?? ''));
+        formData.append('longitude', String(editForm.data.longitude ?? ''));
+        if (editForm.data.profile_photo) {
+            formData.append('profile_photo', editForm.data.profile_photo);
+        }
+
+        router.post(`/admin/users/${editUser.id}`, formData, {
             preserveScroll: true,
-            forceFormData: true,
             onSuccess: () => {
                 setEditOpen(false);
                 setEditUser(null);
                 router.reload();
+            },
+            onError: (errors) => {
+                editForm.setError(errors as any);
             },
         });
     };
