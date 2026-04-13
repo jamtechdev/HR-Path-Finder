@@ -10,17 +10,24 @@ interface GeneralStepProps {
     showErrors?: boolean;
 }
 
-function getQuestionMeta(index: number, question: DiagnosisQuestion) {
+function getQuestionMeta(index: number, question: DiagnosisQuestion, isKo: boolean) {
     const preset = GENERAL_QUESTIONS_META[index];
-    if (preset) return preset;
+    if (preset) {
+        return {
+            icon: preset.icon,
+            title: isKo ? preset.titleKo : preset.title,
+            leftLabel: isKo ? preset.leftLabelKo : preset.leftLabel,
+            rightLabel: isKo ? preset.rightLabelKo : preset.rightLabel,
+        };
+    }
     const meta = (question.metadata || {}) as { option_a?: string; option_b?: string };
     const left = meta.option_a || '';
     const right = meta.option_b || '';
     return {
         icon: '📋',
         title: question.question_text,
-        leftLabel: left.slice(0, 30) + (left.length > 30 ? '…' : '') || 'Left',
-        rightLabel: right.slice(0, 30) + (right.length > 30 ? '…' : '') || 'Right',
+        leftLabel: left.slice(0, 30) + (left.length > 30 ? '…' : '') || (isKo ? '왼쪽' : 'Left'),
+        rightLabel: right.slice(0, 30) + (right.length > 30 ? '…' : '') || (isKo ? '오른쪽' : 'Right'),
     };
 }
 
@@ -55,7 +62,9 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                 <div className="relative min-w-0 flex-1">
                     <strong className="block text-xs font-medium text-[#E8C96B] mb-0.5">{isKo ? '운영 철학의 위치를 정확히 선택해 주세요.' : 'Your operational philosophy — placed precisely.'}</strong>
                     <span className="text-[11.5px] text-white/75 font-light">
-                        Each dimension has two legitimate poles. Place yourself honestly between 1 (far left) and 7 (far right).
+                        {isKo
+                            ? '각 항목은 두 가지 합리적인 관점으로 구성됩니다. 1(왼쪽)부터 7(오른쪽) 사이에서 가장 가까운 위치를 선택해 주세요.'
+                            : 'Each dimension has two legitimate poles. Place yourself honestly between 1 (far left) and 7 (far right).'}
                     </span>
                 </div>
             </div>
@@ -68,7 +77,7 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                     const num = typeof value === 'number' && value >= 1 && value <= 7 ? value : null;
                     const answered = num !== null;
                     const hasError = showErrors && !answered;
-                    const meta = getQuestionMeta(qi, question);
+                    const meta = getQuestionMeta(qi, question, isKo);
                     const optionA = ((question.metadata as { option_a?: string }) || {}).option_a || '';
                     const optionB = ((question.metadata as { option_b?: string }) || {}).option_b || '';
 
@@ -91,7 +100,7 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <div className="text-[10px] font-medium uppercase tracking-wider text-[#9A9EB8] mb-0.5">
-                                        Q{qi + 1} of {total}
+                                        {isKo ? `문항 ${qi + 1} / ${total}` : `Q${qi + 1} of ${total}`}
                                     </div>
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <span className="text-sm sm:text-[14.5px] font-medium text-[#1A1A2E] leading-snug dark:text-slate-100">

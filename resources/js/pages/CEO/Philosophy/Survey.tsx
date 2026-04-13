@@ -595,7 +595,12 @@ export default function CeoPhilosophySurvey({
                             message={validationError || submitError}
                             errors={errors}
                         />
-                        <div ref={(el) => { stepRefs.current[currentStep] = el; }}>
+                        <div
+                            ref={(el) => {
+                                stepRefs.current[currentStep] = el;
+                            }}
+                            className="rounded-2xl border border-[#E2DDD4] bg-white/95 p-4 shadow-sm sm:p-6 dark:border-slate-700/80 dark:bg-slate-900/70"
+                        >
                             {renderStepContent()}
                         </div>
                     </div>

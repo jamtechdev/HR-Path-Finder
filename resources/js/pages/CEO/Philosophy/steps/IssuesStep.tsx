@@ -64,8 +64,20 @@ export default function IssuesStep({ hrIssues, data, setData, showError = false 
         );
     };
 
-    const getCategoryMeta = (category: string) =>
-        ISSUE_CATEGORY_META[category] ?? ISSUE_CATEGORY_META.others ?? { name: category, icon: '🔧' };
+    const getCategoryMeta = (category: string) => {
+        const meta = ISSUE_CATEGORY_META[category] ?? ISSUE_CATEGORY_META.others ?? { name: category, icon: '🔧' };
+        if (!isKo) return meta;
+        const koNames: Record<string, string> = {
+            culture_leadership: '문화/리더십',
+            evaluation_compensation: '평가/보상',
+            organization: '조직',
+            organizations: '조직',
+            others: '기타',
+            recruitment_retention: '채용/유지',
+            upskilling: '역량 강화',
+        };
+        return { ...meta, name: koNames[category] ?? meta.name };
+    };
 
     const moveIssue = React.useCallback(
         (activeId: string, overId: string) => {
@@ -192,7 +204,7 @@ export default function IssuesStep({ hrIssues, data, setData, showError = false 
                                 <button
                                     type="button"
                                     onClick={() => removeIssue(item.id)}
-                                    className="w-[22px] h-[22px] rounded-full bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center text-[11px] text-[#E05A5A] flex-shrink-0 transition-colors"
+                                    className="w-[22px] h-[22px] rounded-full bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center text-[11px] text-[#E05A5A] flex-shrink-0 transition-colors cursor-pointer"
                                     title={isKo ? '제거' : 'Remove'}
                                 >
                                     ✕

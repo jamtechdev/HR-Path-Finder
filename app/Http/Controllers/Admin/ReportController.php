@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminComment;
 use App\Models\HrProject;
 use App\Models\ReportUpload;
 use App\Services\ReportDataService;
@@ -35,6 +36,13 @@ class ReportController extends Controller
             ->where('hr_project_id', $hrProject->id)
             ->latest()
             ->get(['id', 'original_name', 'created_at']);
+        $adminComment = AdminComment::query()
+            ->where('hr_project_id', $hrProject->id)
+            ->whereNotNull('comment')
+            ->where('comment', '!=', '')
+            ->with('user:id,name')
+            ->latest('updated_at')
+            ->first();
 
         return Inertia::render('Admin/Report/Index', [
             'project' => $data['project'],
@@ -42,6 +50,11 @@ class ReportController extends Controller
             'projectId' => $hrProject->id,
             'hrSystemSnapshot' => $data['hrSystemSnapshot'],
             'reportUploads' => $reportUploads,
+            'adminComment' => $adminComment ? [
+                'comment' => $adminComment->comment,
+                'author' => $adminComment->user?->name,
+                'updated_at' => optional($adminComment->updated_at)->toIso8601String(),
+            ] : null,
         ]);
     }
 
