@@ -509,7 +509,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('performance-snapshot/reorder', [\App\Http\Controllers\Admin\PerformanceSnapshotQuestionController::class, 'reorder'])->name('performance-snapshot.reorder');
 
         // Compensation Snapshot Questions Management
-        Route::resource('compensation-snapshot', \App\Http\Controllers\Admin\CompensationSnapshotQuestionController::class)->names([
+        Route::resource('compensation-snapshot', \App\Http\Controllers\Admin\CompensationSnapshotQuestionController::class)->parameters([
+            'compensation-snapshot' => 'compensationSnapshotQuestion',
+        ])->names([
             'index' => 'compensation-snapshot.index',
             'create' => 'compensation-snapshot.create',
             'store' => 'compensation-snapshot.store',

@@ -1,13 +1,11 @@
 import { Head, useForm, Link } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import React from 'react';
-import AppHeader from '@/components/Header/AppHeader';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import AdminLayout from '@/layouts/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { useTranslation } from 'react-i18next';
 
@@ -25,15 +23,9 @@ export default function IndustriesCreate() {
     };
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden bg-background">
-                <AppHeader />
-                <main className="flex-1 overflow-auto bg-background">
-                    <Head title={t('admin_industries_create.page_title')} />
-                    <div className="p-6 md:p-8 max-w-3xl mx-auto">
+        <AdminLayout>
+            <Head title={t('admin_industries_create.page_title')} />
+            <div className="p-6 md:p-8 max-w-3xl mx-auto">
                         <div className="mb-6">
                             <Link href="/admin/industries">
                                 <Button variant="ghost" className="mb-4">
@@ -81,8 +73,6 @@ export default function IndustriesCreate() {
                             </CardContent>
                         </Card>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AdminLayout>
     );
 }

@@ -2,14 +2,12 @@ import { Head, useForm, router } from '@inertiajs/react';
 import { ChevronLeft } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import AppHeader from '@/components/Header/AppHeader';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import AdminLayout from '@/layouts/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
 
 export default function PolicySnapshotCreate() {
@@ -31,15 +29,9 @@ export default function PolicySnapshotCreate() {
     };
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden bg-background">
-                <AppHeader />
-                <main className="flex-1 overflow-auto bg-background">
-                    <Head title={t('policy_snapshot_create.page_title')} />
-                    <div className="p-6 md:p-8 max-w-4xl mx-auto">
+        <AdminLayout>
+            <Head title={t('policy_snapshot_create.page_title')} />
+            <div className="p-6 md:p-8 max-w-4xl mx-auto">
                         <div className="mb-6">
                             <Button
                                 variant="ghost"
@@ -112,8 +104,6 @@ export default function PolicySnapshotCreate() {
                             </div>
                         </form>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AdminLayout>
     );
 }

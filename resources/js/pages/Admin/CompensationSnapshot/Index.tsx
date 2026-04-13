@@ -1,17 +1,13 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import AppHeader from '@/components/Header/AppHeader';
+import React, { useState } from 'react';
+import AdminLayout from '@/layouts/AdminLayout';
 import AdminPagination from '@/components/Admin/AdminPagination';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { useTranslation } from 'react-i18next';
-import { toast } from '@/hooks/use-toast';
-import { toastCopy } from '@/lib/toastCopy';
 
 interface CompensationSnapshotQuestion {
     id: number;
@@ -64,22 +60,8 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
     };
 
     const { t } = useTranslation();
-    const { flash } = usePage().props as any;
     const [searchTerm, setSearchTerm] = useState('');
     const [localQuestions, setLocalQuestions] = useState(questions.data);
-
-    useEffect(() => {
-        if (flash?.success) {
-            toast({ title: toastCopy.success, description: flash.success });
-        }
-        if (flash?.error) {
-            toast({
-                title: toastCopy.error,
-                description: flash.error,
-                variant: 'destructive',
-            });
-        }
-    }, [flash]);
 
     React.useEffect(() => {
         setLocalQuestions(questions.data);
@@ -92,13 +74,8 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
     const handleDelete = (questionId: number) => {
         if (confirm(t('compensation_snapshot_index.confirm_delete'))) {
             router.delete(`/admin/compensation-snapshot/${questionId}`, {
-                preserveScroll: true,
                 onSuccess: () => {
                     setLocalQuestions(prev => prev.filter(q => q.id !== questionId));
-                    toast({ title: toastCopy.success, description: 'Question deleted successfully.' });
-                },
-                onError: () => {
-                    toast({ title: toastCopy.error, description: 'Failed to delete question.', variant: 'destructive' });
                 },
             });
         }
@@ -107,14 +84,8 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
     const getAnswerTypeLabel = (type: string) => answerTypes[type] || type;
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden bg-background">
-                <AppHeader />
-                <main className="flex-1 overflow-auto bg-background">
-                    <Head title={t('compensation_snapshot_index.page_title')} />
+        <AdminLayout>
+            <Head title={t('compensation_snapshot_index.page_title')} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
@@ -214,8 +185,6 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
                             </CardContent>
                         </Card>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AdminLayout>
     );
 }

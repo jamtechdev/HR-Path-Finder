@@ -1,14 +1,12 @@
 import { Head, useForm, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Plus, Edit, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
-import AppHeader from '@/components/Header/AppHeader';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import AdminLayout from '@/layouts/AdminLayout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { useTranslation } from 'react-i18next';
 
@@ -46,9 +44,7 @@ export default function IndustriesEdit({ category }: Props) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(`/admin/industries/${category.id}`, {
-            preserveScroll: true,
-        });
+        put(`/admin/industries/${category.id}`);
     };
 
     const handleAddSubCategory = (e: React.FormEvent) => {
@@ -89,15 +85,9 @@ export default function IndustriesEdit({ category }: Props) {
     };
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden bg-background">
-                <AppHeader />
-                <main className="flex-1 overflow-auto bg-background">
-                    <Head title={t('admin_industries_edit.page_title', { name: category?.name || t('admin_industries_edit.fallback_industry') })} />
-                    <div className="p-6 md:p-8 max-w-4xl mx-auto">
+        <AdminLayout>
+            <Head title={t('admin_industries_edit.page_title', { name: category?.name || t('admin_industries_edit.fallback_industry') })} />
+            <div className="p-6 md:p-8 max-w-4xl mx-auto">
                         <div className="mb-6">
                             <Link href="/admin/industries">
                                 <Button variant="ghost" className="mb-4">
@@ -261,8 +251,6 @@ export default function IndustriesEdit({ category }: Props) {
                             </Card>
                         </div>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AdminLayout>
     );
 }

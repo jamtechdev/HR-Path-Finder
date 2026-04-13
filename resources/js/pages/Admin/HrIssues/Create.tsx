@@ -1,18 +1,12 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import AppHeader from '@/components/Header/AppHeader';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import AdminLayout from '@/layouts/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Sidebar,
-    SidebarInset,
-    SidebarProvider,
-} from '@/components/ui/sidebar';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 export default function Create({
@@ -33,17 +27,9 @@ export default function Create({
     };
 
     return (
-        <SidebarProvider>
-            <Sidebar>
-                <RoleBasedSidebar />
-            </Sidebar>
-
-            <SidebarInset className="flex flex-col overflow-hidden bg-background">
-                <AppHeader />
-                <Head title={t('admin_misc_page_titles.hr_issues_create')} />
-
-                <main className="flex-1 overflow-auto bg-background">
-                    <div className="mx-auto max-w-4xl p-6 md:p-8">
+        <AdminLayout>
+            <Head title={t('admin_misc_page_titles.hr_issues_create')} />
+            <div className="mx-auto max-w-4xl p-6 md:p-8">
                         <div className="mb-6">
                             <Link
                                 href="/admin/hr-issues"
@@ -146,8 +132,6 @@ export default function Create({
                             </div>
                         </form>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AdminLayout>
     );
 }

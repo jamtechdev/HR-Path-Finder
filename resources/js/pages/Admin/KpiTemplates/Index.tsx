@@ -1,16 +1,12 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import AppHeader from '@/components/Header/AppHeader';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import { useState } from 'react';
+import AdminLayout from '@/layouts/AdminLayout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Sidebar, SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { toast } from '@/hooks/use-toast';
-import { toastCopy } from '@/lib/toastCopy';
 import { useTranslation } from 'react-i18next';
 
 interface Company {
@@ -47,18 +43,12 @@ interface Props {
 
 export default function KpiTemplatesIndex({ templates, companies }: Props) {
     const { t } = useTranslation();
-    const { flash } = usePage().props as any;
     const [companyFilter, setCompanyFilter] = useState<string>('');
     const [orgFilter, setOrgFilter] = useState<string>('');
 
-    useEffect(() => {
-        if (flash?.success) toast({ title: toastCopy.success, description: flash.success });
-        if (flash?.error) toast({ title: toastCopy.error, description: flash.error, variant: 'destructive' });
-    }, [flash]);
-
     const handleDelete = (id: number) => {
         if (confirm(t('admin_kpi_templates.confirm_delete'))) {
-            router.delete(`/admin/kpi-templates/${id}`, { preserveScroll: true });
+            router.delete(`/admin/kpi-templates/${id}`);
         }
     };
 
@@ -72,14 +62,8 @@ export default function KpiTemplatesIndex({ templates, companies }: Props) {
     const list = templates.data || [];
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden bg-background">
-                <AppHeader />
-                <main className="flex-1 overflow-auto bg-background">
-                    <Head title={t('admin_kpi_templates.page_title')} />
+        <AdminLayout>
+            <Head title={t('admin_kpi_templates.page_title')} />
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
@@ -205,8 +189,6 @@ export default function KpiTemplatesIndex({ templates, companies }: Props) {
                             </CardContent>
                         </Card>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AdminLayout>
     );
 }

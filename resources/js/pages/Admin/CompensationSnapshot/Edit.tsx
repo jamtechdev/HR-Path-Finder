@@ -1,6 +1,5 @@
 import DynamicList from '@/components/Forms/DynamicList';
-import AppHeader from '@/components/Header/AppHeader';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import AdminLayout from '@/layouts/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -13,14 +12,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {
-    Sidebar,
-    SidebarInset,
-    SidebarProvider,
-} from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from '@/hooks/use-toast';
-import { toastCopy } from '@/lib/toastCopy';
 import { Head, router, useForm } from '@inertiajs/react';
 import { ChevronLeft } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
@@ -29,12 +21,7 @@ import { useTranslation } from 'react-i18next';
 interface CompensationSnapshotQuestion {
     id: number;
     question_text: string;
-    answer_type:
-        | 'select_one'
-        | 'select_up_to_2'
-        | 'multiple'
-        | 'numeric'
-        | 'text';
+    answer_type: 'select_one' | 'select_up_to_2' | 'multiple' | 'numeric' | 'text';
     options?: string[] | null;
     order: number;
     is_active: boolean;
@@ -47,482 +34,187 @@ interface Props {
     answerTypes: Record<string, string>;
 }
 
-export default function CompensationSnapshotEdit({
-    question,
-    answerTypes,
-}: Props) {
-    const routeQuestionId = (() => {
-        if (typeof window === 'undefined') return null;
-        const match = window.location.pathname.match(
-            /\/admin\/compensation-snapshot\/(\d+)\/edit$/,
-        );
-        return match?.[1] ?? null;
-    })();
-
-    const effectiveQuestionId =
-        question?.id != null ? String(question.id) : routeQuestionId;
-
+export default function CompensationSnapshotEdit({ question, answerTypes }: Props) {
     const { t } = useTranslation();
-    const [submitting, setSubmitting] = useState(false);
 
-    const initialAnswerType = question.answer_type ?? 'select_one';
-    const initialOptions = question.options || [];
-    const initialExplanation = question.metadata?.explanation || '';
-    const [answerType, setAnswerType] = useState<string>(initialAnswerType);
-    const [options, setOptions] = useState<string[]>(initialOptions);
-    const [explanation, setExplanation] = useState<string>(initialExplanation);
+    const [answerType, setAnswerType] = useState<string>(question.answer_type ?? 'select_one');
+    const [options, setOptions] = useState<string[]>(question.options || []);
+    const [explanation, setExplanation] = useState<string>(question.metadata?.explanation || '');
 
-    const { data, setData, processing, errors, clearErrors, setError } = useForm({
+    const { data, setData, put, processing, errors } = useForm({
         question_text: question.question_text ?? '',
-        answer_type: initialAnswerType,
-        options: initialOptions,
-        order: question.order,
-        is_active: question.is_active,
+        answer_type: question.answer_type ?? 'select_one',
+        options: question.options || [],
+        order: question.order ?? 0,
+        is_active: question.is_active ?? true,
         version: question.version || '',
         metadata: question.metadata || null,
     });
 
     useEffect(() => {
-        const nextAnswerType = question.answer_type ?? 'select_one';
-        const nextOptions = question.options || [];
-        const nextExplanation = question.metadata?.explanation || '';
-
-        setAnswerType(nextAnswerType);
-        setOptions(nextOptions);
-        setExplanation(nextExplanation);
-
-        setData('question_text', question.question_text ?? '');
-        setData('answer_type', nextAnswerType);
-        setData('options', nextOptions);
-        setData('order', question.order ?? 0);
-        setData('is_active', Boolean(question.is_active));
-        setData('version', question.version || '');
-        setData('metadata', question.metadata || null);
-    }, [question.id]);
-
-    useEffect(() => {
-        const pathname = window.location.pathname;
-        const match = pathname.match(
-            /\/admin\/compensation-snapshot\/(\d+)\/edit$/,
-        );
-        const idFromUrl = match?.[1];
-        if (!idFromUrl) return;
-
-        fetch(`/admin/compensation-snapshot/${idFromUrl}/edit-data`, {
-            method: 'GET',
-            headers: {
-                Accept: 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-        })
-            .then(async (res) => {
-                if (!res.ok) return null;
-                const payload = await res.json();
-                return payload?.question ?? null;
-            })
-            .then((freshQuestion) => {
-                if (!freshQuestion) return;
-                setAnswerType(freshQuestion.answer_type ?? 'select_one');
-                setOptions(
-                    Array.isArray(freshQuestion.options)
-                        ? freshQuestion.options
-                        : [],
-                );
-                setExplanation(freshQuestion.metadata?.explanation || '');
-                setData('question_text', freshQuestion.question_text ?? '');
-                setData(
-                    'answer_type',
-                    freshQuestion.answer_type ?? 'select_one',
-                );
-                setData(
-                    'options',
-                    Array.isArray(freshQuestion.options)
-                        ? freshQuestion.options
-                        : [],
-                );
-                setData('order', Number(freshQuestion.order ?? 0));
-                setData('is_active', Boolean(freshQuestion.is_active));
-                setData('version', freshQuestion.version || '');
-                setData('metadata', freshQuestion.metadata || null);
-            })
-            .catch(() => {
-                // No-op: page already has initial props fallback.
-            });
-    }, [question.id]);
-
-    useEffect(() => {
         setData('answer_type', answerType as any);
-        // Only set options if answer type requires them
         if (['select_one', 'select_up_to_2', 'multiple'].includes(answerType)) {
             setData('options', options);
         } else {
             setData('options', []);
         }
-        // Set metadata with explanation
         setData('metadata', explanation ? { explanation } : null);
     }, [answerType, options, explanation]);
 
-    const requiresOptions = [
-        'select_one',
-        'select_up_to_2',
-        'multiple',
-    ].includes(answerType);
-    const displayQuestionText =
-        data.question_text || question.question_text || '';
-    const displayAnswerType =
-        answerType || question.answer_type || 'select_one';
-    const displayOptions =
-        options.length > 0 ? options : question.options || [];
-    const displayVersion = data.version || question.version || '';
-    const displayExplanation =
-        explanation || question.metadata?.explanation || '';
-    const displayIsActive =
-        typeof data.is_active === 'boolean'
-            ? data.is_active
-            : Boolean(question.is_active);
+    const requiresOptions = ['select_one', 'select_up_to_2', 'multiple'].includes(answerType);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setSubmitting(true);
-
-        try {
-            const csrf =
-                (document
-                    .querySelector('meta[name="csrf-token"]')
-                    ?.getAttribute('content') as string | null) || '';
-
-            const payload = {
-                question_text: data.question_text,
-                answer_type: answerType,
-                options: requiresOptions ? options : [],
-                is_active: data.is_active,
-                version: data.version || null,
-                metadata: explanation ? { explanation } : null,
-            };
-
-            if (!effectiveQuestionId) {
-                toast({
-                    title: toastCopy.error,
-                    description: 'Missing question ID for update.',
-                    variant: 'destructive',
-                });
-                return;
-            }
-
-            const res = await fetch(
-                `/admin/compensation-snapshot/${effectiveQuestionId}/update-data`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': csrf,
-                    },
-                    body: JSON.stringify(payload),
-                },
-            );
-
-            if (!res.ok) {
-                const data = await res.json().catch(() => ({}));
-                if (data?.errors && typeof data.errors === 'object') {
-                    Object.entries(data.errors).forEach(([field, msg]) => {
-                        const message = Array.isArray(msg) ? msg[0] : String(msg);
-                        setError(field as any, message);
-                    });
-                } else {
-                    toast({
-                        title: toastCopy.error,
-                        description: 'Failed to update question.',
-                        variant: 'destructive',
-                    });
-                }
-                return;
-            }
-
-            toast({
-                title: toastCopy.success,
-                description: 'Question updated successfully.',
-            });
-            router.visit('/admin/compensation-snapshot');
-        } catch {
-            toast({
-                title: toastCopy.error,
-                description: 'Network error while updating question.',
-                variant: 'destructive',
-            });
-        } finally {
-            setSubmitting(false);
-        }
+        put(`/admin/compensation-snapshot/${question.id}`);
     };
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden bg-background">
-                <AppHeader />
-                <main className="flex-1 overflow-auto bg-background">
-                    <Head
-                        title={t(
-                            'admin_misc_page_titles.compensation_snapshot_edit',
-                        )}
-                    />
-                    <div className="mx-auto max-w-4xl p-6 md:p-8">
-                        <div className="mb-6">
-                            <Button
-                                variant="ghost"
-                                onClick={() =>
-                                    router.visit('/admin/compensation-snapshot')
-                                }
-                                className="mb-4"
-                            >
-                                <ChevronLeft className="mr-2 h-4 w-4" />
-                                {t('buttons.back_to_questions')}
-                            </Button>
-                            <h1 className="text-3xl font-bold">
-                                {t('compensation_snapshot.edit_question')}
-                            </h1>
-                        </div>
+        <AdminLayout>
+            <Head title={t('admin_misc_page_titles.compensation_snapshot_edit')} />
+            <div className="mx-auto max-w-4xl p-6 md:p-8">
+                <div className="mb-6">
+                    <Button
+                        variant="ghost"
+                        onClick={() => router.visit('/admin/compensation-snapshot')}
+                        className="mb-4"
+                    >
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        {t('buttons.back_to_questions')}
+                    </Button>
+                    <h1 className="text-3xl font-bold">
+                        {t('compensation_snapshot.edit_question')}
+                    </h1>
+                </div>
 
-                        <form key={question.id} onSubmit={handleSubmit}>
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Question Details</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div>
-                                        <Label>
-                                            {t(
-                                                'compensation_snapshot.question_text',
-                                            )}{' '}
-                                            <span className="text-destructive">
-                                                *
-                                            </span>
-                                        </Label>
-                                        <Textarea
-                                            value={displayQuestionText}
-                                            onChange={(e) =>
-                                                setData(
-                                                    'question_text',
-                                                    e.target.value,
-                                                )
-                                            }
-                                            rows={3}
-                                            required
-                                        />
-                                        {errors.question_text && (
-                                            <p className="mt-1 text-sm text-destructive">
-                                                {errors.question_text}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <Label>
-                                            {t(
-                                                'compensation_snapshot.answer_type',
-                                            )}{' '}
-                                            <span className="text-destructive">
-                                                *
-                                            </span>
-                                        </Label>
-                                        <Select
-                                            value={displayAnswerType}
-                                            onValueChange={(value) => {
-                                                setAnswerType(value);
-                                                setData(
-                                                    'answer_type',
-                                                    value as any,
-                                                );
-                                            }}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {Object.entries(
-                                                    answerTypes,
-                                                ).map(([key, label]) => (
-                                                    <SelectItem
-                                                        key={key}
-                                                        value={key}
-                                                    >
-                                                        {label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        {errors.answer_type && (
-                                            <p className="mt-1 text-sm text-destructive">
-                                                {errors.answer_type}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {requiresOptions && (
-                                        <div>
-                                            <Label>
-                                                {t(
-                                                    'compensation_snapshot.answer_options',
-                                                )}{' '}
-                                                <span className="text-destructive">
-                                                    *
-                                                </span>
-                                            </Label>
-                                            <p className="mb-2 text-xs text-muted-foreground">
-                                                Add all possible answer options
-                                                for this question
-                                            </p>
-                                            <DynamicList
-                                                label=""
-                                                items={displayOptions}
-                                                onChange={(next) => {
-                                                    setOptions(next);
-                                                    setData('options', next);
-                                                }}
-                                                placeholder={t(
-                                                    'compensation_snapshot.enter_option',
-                                                )}
-                                                addLabel={t(
-                                                    'compensation_snapshot.add_option',
-                                                )}
-                                            />
-                                            {errors.options && (
-                                                <p className="mt-1 text-sm text-destructive">
-                                                    {errors.options}
-                                                </p>
-                                            )}
-                                            {options.length === 0 && (
-                                                <p className="mt-1 text-sm text-muted-foreground">
-                                                    {t(
-                                                        'compensation_snapshot.version_info',
-                                                    )}
-                                                </p>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {!requiresOptions && (
-                                        <div className="rounded-lg bg-muted/50 p-4">
-                                            <p className="text-sm text-muted-foreground">
-                                                {t(
-                                                    answerType === 'numeric'
-                                                        ? 'compensation_snapshot.numeric_info'
-                                                        : 'compensation_snapshot.text_info',
-                                                )}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    <div>
-                                        <Label>
-                                            {t(
-                                                'compensation_snapshot.version_optional',
-                                            )}
-                                        </Label>
-                                        <Input
-                                            value={displayVersion}
-                                            onChange={(e) =>
-                                                setData(
-                                                    'version',
-                                                    e.target.value,
-                                                )
-                                            }
-                                            placeholder="e.g., 1.0, 2.0"
-                                        />
-                                        <p className="mt-1 text-xs text-muted-foreground">
-                                            {t(
-                                                'compensation_snapshot.version_info',
-                                            )}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <Label>
-                                            {t(
-                                                'compensation_snapshot.explanation_optional',
-                                            )}
-                                        </Label>
-                                        <Textarea
-                                            value={displayExplanation}
-                                            onChange={(e) => {
-                                                setExplanation(e.target.value);
-                                                setData(
-                                                    'metadata',
-                                                    e.target.value
-                                                        ? {
-                                                              explanation:
-                                                                  e.target
-                                                                      .value,
-                                                          }
-                                                        : null,
-                                                );
-                                            }}
-                                            rows={4}
-                                            placeholder={t(
-                                                'compensation_snapshot.explanation_placeholder',
-                                            )}
-                                        />
-                                        <p className="mt-1 text-xs text-muted-foreground">
-                                            This explanation will be shown in
-                                            the right side panel when HR
-                                            Managers view this question.
-                                        </p>
-                                    </div>
-
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox
-                                            id="is_active"
-                                            checked={displayIsActive}
-                                            onCheckedChange={(checked) =>
-                                                setData(
-                                                    'is_active',
-                                                    checked as boolean,
-                                                )
-                                            }
-                                        />
-                                        <Label
-                                            htmlFor="is_active"
-                                            className="cursor-pointer"
-                                        >
-                                            {t('compensation_snapshot.active')}
-                                        </Label>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <div className="mt-6 flex justify-end gap-2">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() =>
-                                        router.visit(
-                                            '/admin/compensation-snapshot',
-                                        )
-                                    }
-                                >
-                                    {t('buttons.cancel')}
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    disabled={
-                                        submitting ||
-                                        processing ||
-                                        (requiresOptions &&
-                                            options.length === 0)
-                                    }
-                                >
-                                    {submitting
-                                        ? t('buttons.updating')
-                                        : t('buttons.update_question')}
-                                </Button>
+                <form onSubmit={handleSubmit}>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Question Details</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <Label>
+                                    {t('compensation_snapshot.question_text')}{' '}
+                                    <span className="text-destructive">*</span>
+                                </Label>
+                                <Textarea
+                                    value={data.question_text}
+                                    onChange={(e) => setData('question_text', e.target.value)}
+                                    rows={3}
+                                    required
+                                />
+                                {errors.question_text && (
+                                    <p className="mt-1 text-sm text-destructive">{errors.question_text}</p>
+                                )}
                             </div>
-                        </form>
+
+                            <div>
+                                <Label>
+                                    {t('compensation_snapshot.answer_type')}{' '}
+                                    <span className="text-destructive">*</span>
+                                </Label>
+                                <Select
+                                    value={answerType}
+                                    onValueChange={(value) => setAnswerType(value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Object.entries(answerTypes).map(([key, label]) => (
+                                            <SelectItem key={key} value={key}>
+                                                {label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.answer_type && (
+                                    <p className="mt-1 text-sm text-destructive">{errors.answer_type}</p>
+                                )}
+                            </div>
+
+                            {requiresOptions && (
+                                <div>
+                                    <Label>
+                                        {t('compensation_snapshot.answer_options')}{' '}
+                                        <span className="text-destructive">*</span>
+                                    </Label>
+                                    <p className="mb-2 text-xs text-muted-foreground">
+                                        Add all possible answer options for this question
+                                    </p>
+                                    <DynamicList
+                                        label=""
+                                        items={options}
+                                        onChange={(next) => setOptions(next)}
+                                        placeholder={t('compensation_snapshot.enter_option')}
+                                        addLabel={t('compensation_snapshot.add_option')}
+                                    />
+                                    {errors.options && (
+                                        <p className="mt-1 text-sm text-destructive">{errors.options}</p>
+                                    )}
+                                </div>
+                            )}
+
+                            {!requiresOptions && (
+                                <div className="rounded-lg bg-muted/50 p-4">
+                                    <p className="text-sm text-muted-foreground">
+                                        {t(answerType === 'numeric'
+                                            ? 'compensation_snapshot.numeric_info'
+                                            : 'compensation_snapshot.text_info'
+                                        )}
+                                    </p>
+                                </div>
+                            )}
+
+                            <div>
+                                <Label>{t('compensation_snapshot.version_optional')}</Label>
+                                <Input
+                                    value={data.version}
+                                    onChange={(e) => setData('version', e.target.value)}
+                                    placeholder="e.g., 1.0, 2.0"
+                                />
+                            </div>
+
+                            <div>
+                                <Label>{t('compensation_snapshot.explanation_optional')}</Label>
+                                <Textarea
+                                    value={explanation}
+                                    onChange={(e) => setExplanation(e.target.value)}
+                                    rows={4}
+                                    placeholder={t('compensation_snapshot.explanation_placeholder')}
+                                />
+                            </div>
+
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="is_active"
+                                    checked={data.is_active}
+                                    onCheckedChange={(checked) => setData('is_active', checked as boolean)}
+                                />
+                                <Label htmlFor="is_active" className="cursor-pointer">
+                                    {t('compensation_snapshot.active')}
+                                </Label>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <div className="mt-6 flex justify-end gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => router.visit('/admin/compensation-snapshot')}
+                        >
+                            {t('buttons.cancel')}
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={processing || (requiresOptions && options.length === 0)}
+                        >
+                            {processing ? t('buttons.updating') : t('buttons.update_question')}
+                        </Button>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+                </form>
+            </div>
+        </AdminLayout>
     );
 }
