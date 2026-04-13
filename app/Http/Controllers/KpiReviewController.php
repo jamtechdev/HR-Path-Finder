@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class KpiReviewController extends Controller
 {
@@ -79,7 +80,28 @@ class KpiReviewController extends Controller
             return strtolower(trim($kpi->organization_name)) . '::' . strtolower(trim($kpi->kpi_name));
         })->values();
         
-        $kpis = $uniqueKpis;
+        $kpis = $uniqueKpis->map(function ($kpi) {
+            $history = KpiEditHistory::where('organizational_kpi_id', $kpi->id)
+                ->orderByDesc('id')
+                ->get();
+
+            $hrVersion = $history->first(function ($h) {
+                return ($h->edited_by_type ?? null) === 'hr_manager' && !empty($h->changes['new_values'] ?? null);
+            });
+            $leaderVersion = $history->first(function ($h) {
+                return ($h->edited_by_type ?? null) === 'org_manager' && !empty($h->changes['new_values'] ?? null);
+            });
+            $hrFromLeaderOldValues = $history->first(function ($h) {
+                return ($h->edited_by_type ?? null) === 'org_manager' && !empty($h->changes['old_values'] ?? null);
+            });
+
+            $kpi->hr_draft =
+                $hrVersion?->changes['new_values']
+                ?? $hrFromLeaderOldValues?->changes['old_values']
+                ?? $kpi->toArray();
+            $kpi->leader_latest = $leaderVersion?->changes['new_values'] ?? null;
+            return $kpi;
+        })->values();
 
         // Log for debugging
         \Log::info('KPI Review Token Page Loaded', [
@@ -106,6 +128,19 @@ class KpiReviewController extends Controller
             ];
         })->values();
 
+        $latestReviewComment = '';
+        $kpiIds = $kpis->pluck('id')->filter()->values()->all();
+        if (!empty($kpiIds)) {
+            $commentHistory = KpiEditHistory::whereIn('organizational_kpi_id', $kpiIds)
+                ->where('edited_by_type', 'org_manager')
+                ->orderByDesc('id')
+                ->get()
+                ->first(function ($h) {
+                    return !empty(trim((string) data_get($h->changes, 'new_values.review_comments', '')));
+                });
+            $latestReviewComment = trim((string) data_get($commentHistory?->changes, 'new_values.review_comments', ''));
+        }
+
         return Inertia::render('PerformanceSystem/KpiReviewToken', [
             'token' => $token,
             'project' => $hrProject,
@@ -116,6 +151,7 @@ class KpiReviewController extends Controller
             'reviewerEmail' => $reviewToken->email,
             'isCompleted' => $isCompleted,
             'ceos' => $ceos->toArray(),
+            'reviewComments' => $latestReviewComment,
         ]);
     }
 
@@ -132,8 +168,20 @@ class KpiReviewController extends Controller
         if ($reviewToken->expires_at && $reviewToken->expires_at->isPast()) {
             abort(404, 'This review link has expired.');
         }
-        if ($reviewToken->uses_count >= $reviewToken->max_uses) {
-            abort(404, 'This review link has already reached its usage limit.');
+        $hrProject = $reviewToken->hrProject;
+        $tokenOrganization = trim((string) $reviewToken->organization_name);
+        $hasCeoRevisionRequested = OrganizationalKpi::where('hr_project_id', $hrProject->id)
+            ->whereRaw('TRIM(LOWER(organization_name)) = ?', [strtolower($tokenOrganization)])
+            ->where(function ($q) {
+                $q->whereRaw('LOWER(COALESCE(ceo_approval_status, "")) = ?', ['revision_requested'])
+                    ->orWhereRaw('LOWER(COALESCE(status, "")) = ?', ['revision_requested']);
+            })
+            ->exists();
+
+        if ($reviewToken->uses_count >= $reviewToken->max_uses && !$hasCeoRevisionRequested) {
+            return redirect()->route('kpi-review.token', ['token' => $token])->withErrors([
+                'error' => 'This review link has already been used. Please request a new review link from HR/CEO.',
+            ]);
         }
 
         $isFinalSubmit = (bool) $request->boolean('final_submit', false);
@@ -176,7 +224,6 @@ class KpiReviewController extends Controller
             }
         }
 
-        $hrProject = $reviewToken->hrProject;
         $organizationName = $validated['organization_name'] ?? $reviewToken->organization_name;
 
         // Strictly enforce access scope - token can only access its assigned organization
@@ -184,12 +231,13 @@ class KpiReviewController extends Controller
             abort(403, 'Access denied. This token is restricted to a specific organization.');
         }
 
-        \DB::transaction(function () use ($hrProject, $organizationName, $validated, $reviewToken) {
+        DB::transaction(function () use ($hrProject, $organizationName, $validated, $reviewToken) {
+            $normalizedOrganization = strtolower(trim((string) $organizationName));
             foreach ($validated['kpis'] as $kpiData) {
                 if (isset($kpiData['id']) && $kpiData['id']) {
                     // Update existing KPI
                     $kpi = OrganizationalKpi::find($kpiData['id']);
-                    if ($kpi && $kpi->organization_name === $organizationName) {
+                    if ($kpi && strtolower(trim((string) $kpi->organization_name)) === $normalizedOrganization) {
                         $oldValues = $kpi->toArray();
                         $kpi->update([
                             'kpi_name' => $kpiData['kpi_name'],
@@ -276,14 +324,20 @@ class KpiReviewController extends Controller
 
         // Save review comments to edit history if provided
         if (!empty($validated['review_comments'])) {
+            $anchorKpiId = OrganizationalKpi::where('hr_project_id', $hrProject->id)
+                ->whereRaw('TRIM(LOWER(organization_name)) = ?', [strtolower(trim((string) $organizationName))])
+                ->value('id');
             KpiEditHistory::create([
-                'organizational_kpi_id' => null, // General review comment, not tied to specific KPI
+                'organizational_kpi_id' => $anchorKpiId, // Anchor to org KPI so we can query by project/org later
                 'edited_by_type' => 'org_manager',
                 'edited_by_id' => null,
                 'edited_by_name' => $reviewToken->name,
                 'changes' => [
                     'old_values' => null,
-                    'new_values' => ['review_comments' => $validated['review_comments']],
+                    'new_values' => [
+                        'review_comments' => $validated['review_comments'],
+                        'organization_name' => trim((string) $organizationName),
+                    ],
                     'description' => 'Organization manager provided review comments',
                 ],
             ]);
@@ -376,7 +430,28 @@ class KpiReviewController extends Controller
             return strtolower(trim($kpi->organization_name)) . '::' . strtolower(trim($kpi->kpi_name));
         })->values();
         
-        $kpis = $uniqueKpis;
+        $kpis = $uniqueKpis->map(function ($kpi) {
+            $history = KpiEditHistory::where('organizational_kpi_id', $kpi->id)
+                ->orderByDesc('id')
+                ->get();
+
+            $hrVersion = $history->first(function ($h) {
+                return ($h->edited_by_type ?? null) === 'hr_manager' && !empty($h->changes['new_values'] ?? null);
+            });
+            $leaderVersion = $history->first(function ($h) {
+                return ($h->edited_by_type ?? null) === 'org_manager' && !empty($h->changes['new_values'] ?? null);
+            });
+            $hrFromLeaderOldValues = $history->first(function ($h) {
+                return ($h->edited_by_type ?? null) === 'org_manager' && !empty($h->changes['old_values'] ?? null);
+            });
+
+            $kpi->hr_draft =
+                $hrVersion?->changes['new_values']
+                ?? $hrFromLeaderOldValues?->changes['old_values']
+                ?? $kpi->toArray();
+            $kpi->leader_latest = $leaderVersion?->changes['new_values'] ?? null;
+            return $kpi;
+        })->values();
 
         return response()->json([
             'kpis' => $kpis,

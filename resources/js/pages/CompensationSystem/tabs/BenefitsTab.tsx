@@ -217,11 +217,14 @@ export default function BenefitsTab({
 
     const totalLabor = configuration.previous_year_total_salary ?? 0;
     const totalBenefit = configuration.previous_year_total_benefits_expense ?? 0;
-    const ratio = totalLabor > 0 ? (totalBenefit / totalLabor) * 100 : 0;
+    const rawRatio = totalLabor > 0 ? (totalBenefit / totalLabor) * 100 : 0;
+    const ratio = Math.min(rawRatio, 100);
     const ratioStatus =
-        ratio < 5 ? 'below' : ratio > 15 ? 'above' : 'ok';
+        rawRatio > 100 ? 'invalid' : ratio < 5 ? 'below' : ratio > 15 ? 'above' : 'ok';
     const ratioStatusText =
-        ratioStatus === 'below'
+        ratioStatus === 'invalid'
+            ? 'Benefits expense cannot exceed total labor cost (max 100%).'
+            : ratioStatus === 'below'
             ? 'Below industry average (8–12%)'
             : ratioStatus === 'above'
               ? 'Above industry average — structural review recommended'
@@ -485,7 +488,7 @@ export default function BenefitsTab({
                                             className={`h-full rounded-full transition-all ${
                                                 ratioStatus === 'ok'
                                                     ? 'bg-emerald-500'
-                                                    : ratioStatus === 'above'
+                                                    : ratioStatus === 'above' || ratioStatus === 'invalid'
                                                       ? 'bg-destructive'
                                                       : 'bg-amber-500'
                                             }`}

@@ -1,8 +1,6 @@
 import { Head, useForm, router, usePage } from '@inertiajs/react';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlashToasts } from '@/components/FlashToasts';
-import { Toaster } from '@/components/ui/toaster';
 
 interface OrganizationalKpi {
     id?: number;
@@ -17,6 +15,11 @@ interface OrganizationalKpi {
     is_active: boolean;
     organization_name?: string;
     status?: string;
+    ceo_approval_status?: string;
+    ceo_revision_comment?: string;
+    revision_comment?: string;
+    hr_draft?: Partial<OrganizationalKpi> | null;
+    leader_latest?: Partial<OrganizationalKpi> | null;
     linked_job?: {
         id: number;
         job_name: string;
@@ -42,6 +45,7 @@ interface Props {
     reviewerName?: string;
     reviewerEmail?: string;
     isCompleted?: boolean;
+    reviewComments?: string;
 }
 
 const VALIDATIONS = [
@@ -61,6 +65,7 @@ export default function KpiReviewToken({
     reviewerName,
     reviewerEmail,
     isCompleted = false,
+    reviewComments: initialReviewComments = '',
 }: Props) {
     const { t } = useTranslation();
     const { props } = usePage();
@@ -72,7 +77,7 @@ export default function KpiReviewToken({
         return [];
     });
     const [loading, setLoading] = useState(false);
-    const [reviewComments, setReviewComments] = useState<string>('');
+    const [reviewComments, setReviewComments] = useState<string>(initialReviewComments || '');
     const [completed, setCompleted] = useState<boolean>(isCompleted);
     const [savingKpiIndex, setSavingKpiIndex] = useState<number | null>(null);
     const [confirmed, setConfirmed] = useState<boolean[]>([false, false, false, false]);
@@ -85,6 +90,7 @@ export default function KpiReviewToken({
 
     const [ceoPickerOpen, setCeoPickerOpen] = useState(false);
     const [selectedCeoIds, setSelectedCeoIds] = useState<number[]>(() => ceos.map((c) => c.id));
+    const flash = ((props as any)?.flash ?? {}) as Record<string, string>;
 
     useEffect(() => {
         // Keep selection in sync with available CEO list.
@@ -102,6 +108,10 @@ export default function KpiReviewToken({
             setKpis([]);
         }
     }, [props, initialKpis]);
+
+    useEffect(() => {
+        setReviewComments(initialReviewComments || '');
+    }, [initialReviewComments]);
 
     useEffect(() => {
         if (selectedOrganization) {
@@ -151,7 +161,12 @@ export default function KpiReviewToken({
             const status = String(k.status ?? '').toLowerCase();
             return ceo === 'approved' || status === 'approved' || status === 'verified';
         });
-    const showLeaderSubmittedScreen = completed && !hasCeoRevisionRequest && !hasCeoFinalized;
+    const isReadOnly = completed && !hasCeoRevisionRequest;
+    const showLeaderSubmittedScreen = isReadOnly && !hasCeoFinalized;
+    const ceoRevisionComment =
+        kpis.find((k) => String(k.ceo_revision_comment ?? '').trim())?.ceo_revision_comment ||
+        kpis.find((k) => String(k.revision_comment ?? '').trim())?.revision_comment ||
+        '';
 
     useEffect(() => {
         setData('organization_name', selectedOrganization);
@@ -174,10 +189,19 @@ export default function KpiReviewToken({
     }, [kpis, selectedOrganization, reviewComments, setData]);
 
     useEffect(() => {
-        const flash = (props as any)?.flash;
-        if (flash?.success) setCompleted(true);
+        // Mark completed only for final-submit style messages, not draft-save flashes.
+        const successText = String(flash?.success ?? '');
+        const warningText = String(flash?.warning ?? '');
+        const finalSubmitByFlash =
+            /submitted successfully/i.test(successText) ||
+            /submitted successfully/i.test(warningText);
+        if (finalSubmitByFlash) {
+            setCompleted(true);
+            setSubmitPopupMessage(successText || warningText);
+            setSubmitPopupOpen(true);
+        }
         if (isCompleted) setCompleted(true);
-    }, [props, isCompleted]);
+    }, [flash?.success, flash?.warning, isCompleted]);
 
     const submitFinalReviewToSelectedCeo = (ceoIds: number[]) => {
         router.post(
@@ -205,8 +229,13 @@ export default function KpiReviewToken({
                 preserveScroll: false,
                 onSuccess: () => {
                     router.reload({
-                        onSuccess: () => {
-                            setSubmitPopupMessage('Org KPI review submitted successfully.');
+                        onSuccess: (page) => {
+                            const flash = (page as any)?.props?.flash ?? {};
+                            const submitMessage =
+                                flash?.success ||
+                                flash?.warning ||
+                                'Your KPI review has been submitted successfully.';
+                            setSubmitPopupMessage(String(submitMessage));
                             setSubmitPopupOpen(true);
                             setCompleted(true);
                             setCeoPickerOpen(false);
@@ -248,7 +277,7 @@ export default function KpiReviewToken({
         const hasInvalidKpisLocal = invalidKpiIndicesLocal.length > 0;
 
         let blockingMessage: string | null = null;
-        if (completed && !hasCeoRevisionRequest) {
+        if (isReadOnly) {
             blockingMessage = 'You already submitted this review.';
         } else if (processing || loading) {
             blockingMessage = 'Please wait... the request is being processed.';
@@ -258,7 +287,7 @@ export default function KpiReviewToken({
             blockingMessage = 'No CEO recipient is configured for this company (missing CEO email).';
         } else if (!weightOkLocal) {
             blockingMessage = `Total KPI weight must be 100%. Current: ${totalWeightNormalizedLocal}%.`;
-        } else if (!hasCeoRevisionRequest && !allConfirmedLocal) {
+        } else if (!allConfirmedLocal) {
             blockingMessage = `Please confirm all 4 self-assessment checks (${confirmedCountLocal}/4 confirmed).`;
         } else if (hasInvalidKpisLocal) {
             blockingMessage = `Fix KPI #${invalidKpiIndicesLocal.join(', ')}: KPI name is required and weight must be 0-100.`;
@@ -447,8 +476,6 @@ export default function KpiReviewToken({
 
     return (
         <div className="leader-kpi-review-page">
-            <Toaster />
-            <FlashToasts />
             <Head
                 title={t('page_heads.leader_kpi_review', {
                     organization: selectedOrganization,
@@ -733,17 +760,22 @@ export default function KpiReviewToken({
                     <span>💡</span>
                     <span>
                         {hasCeoRevisionRequest
-                            ? 'CEO requested revision. Please update KPI/comment and resubmit. Self-assessment re-validation is not required in this revision round.'
+                            ? 'CEO requested revision. Please update KPI/comment and resubmit using the same checklist as the first submission.'
                             : "Review the draft prepared by your manager and edit only what's necessary. All 4 self-assessment criteria must be confirmed before submitting to the CEO."}
                     </span>
                 </div>
 
                 {hasCeoRevisionRequest && (
-                    <div className="lkr-comments-card" style={{ borderColor: '#fcd34d', background: '#fffbeb' }}>
-                        <div className="lkr-comments-title" style={{ color: '#92400e' }}>CEO Revision Requested</div>
-                        <div className="lkr-comments-desc" style={{ color: '#b45309' }}>
-                            CEO has requested revision again. Update the KPI details/comments and submit. Validation checks are skipped for this revision cycle.
+                    <div className="lkr-revision-panel">
+                        <div className="lkr-revision-title">CEO Revision Requested</div>
+                        <div className="lkr-revision-desc">
+                            CEO requested updates. Please revise KPI details and submit again following the same process as the first submission.
                         </div>
+                        {ceoRevisionComment && (
+                            <div className="lkr-revision-comment">
+                                <strong>CEO Comment:</strong> {ceoRevisionComment}
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -758,7 +790,7 @@ export default function KpiReviewToken({
                                 Team KPIs
                                 <span className="lkr-count" id="kpiCount">{kpis.length}</span>
                             </div>
-                            <button type="button" className="lkr-btn-add" onClick={addKpi} disabled={completed}>
+                            <button type="button" className="lkr-btn-add" onClick={addKpi} disabled={isReadOnly}>
                                 + Add KPI
                             </button>
                         </div>
@@ -793,7 +825,7 @@ export default function KpiReviewToken({
                                                 className={`lkr-icon-btn ${editingKpiIndex === index ? 'edit-active' : ''}`}
                                                 title={editingKpiIndex === index ? 'Save' : 'Edit'}
                                                 onClick={(e) => { e.stopPropagation(); toggleEdit(index); }}
-                                                disabled={completed || savingKpiIndex === index}
+                                                disabled={isReadOnly || savingKpiIndex === index}
                                             >
                                                 {editingKpiIndex === index ? (savingKpiIndex === index ? '…' : '✓') : '✏'}
                                             </button>
@@ -802,7 +834,7 @@ export default function KpiReviewToken({
                                                 className="lkr-icon-btn danger"
                                                 title="Delete"
                                                 onClick={(e) => { e.stopPropagation(); removeKpi(index); }}
-                                                disabled={completed}
+                                                disabled={isReadOnly}
                                             >
                                                 🗑
                                             </button>
@@ -909,6 +941,31 @@ export default function KpiReviewToken({
                                                         <div className="lkr-field-value">{kpi.measurement_method || '—'}</div>
                                                     </div>
                                                 </div>
+                                                <div className="lkr-field-row full">
+                                                    <div>
+                                                        <div className="lkr-field-label">Revision History (HR Draft vs Leader Latest)</div>
+                                                        <div className="lkr-history-grid">
+                                                            <div className="lkr-history-card">
+                                                                <div className="lkr-history-head">HR Draft</div>
+                                                                <div><strong>KPI:</strong> {kpi.hr_draft?.kpi_name || '—'}</div>
+                                                                <div><strong>Purpose:</strong> {kpi.hr_draft?.purpose || '—'}</div>
+                                                                <div><strong>Formula:</strong> {kpi.hr_draft?.formula || '—'}</div>
+                                                                <div><strong>Category:</strong> {kpi.hr_draft?.category || '—'}</div>
+                                                                <div><strong>Measure:</strong> {kpi.hr_draft?.measurement_method || '—'}</div>
+                                                                <div><strong>Weight:</strong> {kpi.hr_draft?.weight != null ? `${kpi.hr_draft?.weight}%` : '—'}</div>
+                                                            </div>
+                                                            <div className="lkr-history-card">
+                                                                <div className="lkr-history-head">Leader Latest</div>
+                                                                <div><strong>KPI:</strong> {kpi.leader_latest?.kpi_name || kpi.kpi_name || '—'}</div>
+                                                                <div><strong>Purpose:</strong> {kpi.leader_latest?.purpose || kpi.purpose || '—'}</div>
+                                                                <div><strong>Formula:</strong> {kpi.leader_latest?.formula || kpi.formula || '—'}</div>
+                                                                <div><strong>Category:</strong> {kpi.leader_latest?.category || kpi.category || '—'}</div>
+                                                                <div><strong>Measure:</strong> {kpi.leader_latest?.measurement_method || kpi.measurement_method || '—'}</div>
+                                                                <div><strong>Weight:</strong> {(kpi.leader_latest?.weight ?? kpi.weight) != null ? `${kpi.leader_latest?.weight ?? kpi.weight}%` : '—'}</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </>
                                         )}
                                     </div>
@@ -925,37 +982,35 @@ export default function KpiReviewToken({
                                     placeholder="Enter your review comments, feedback, or suggestions here..."
                                     value={reviewComments}
                                     onChange={(e) => setReviewComments(e.target.value)}
-                                    disabled={completed}
+                                    disabled={isReadOnly}
                                 />
                                 <div className="lkr-comments-hint">Your comments will be shared with HR for consideration.</div>
                             </div>
                         )}
 
-                        {!hasCeoRevisionRequest && (
-                            <div className="lkr-validation-section">
-                                <div className="lkr-validation-title">Self-Assessment Before Finalizing KPIs</div>
-                                <div className="lkr-validation-desc">All 4 criteria must be confirmed before you can submit to the CEO. Click each item to review.</div>
-                                <div className="lkr-validation-grid">
-                                    {VALIDATIONS.map((v, idx) => (
-                                        <div
-                                            key={idx}
-                                            className={`lkr-val-card ${confirmed[idx] ? 'confirmed' : ''}`}
-                                        >
-                                            <div className="lkr-val-card-top">
-                                                <span className="lkr-val-tag">{v.title.replace(/\s+/g, ' ')}</span>
-                                                <div className="lkr-val-check">✓</div>
-                                            </div>
-                                            <div className="lkr-val-question">{v.question}</div>
-                                            <div className="lkr-val-hint">{v.hint}</div>
-                                            <button type="button" className="lkr-val-yes-btn" onClick={() => openPopup(idx)}>
-                                                {confirmed[idx] ? 'Selected' : 'Select →'}
-                                            </button>
-                                            <div className="lkr-val-confirmed-label">✓ Confirmed</div>
+                        <div className="lkr-validation-section">
+                            <div className="lkr-validation-title">Self-Assessment Before Finalizing KPIs</div>
+                            <div className="lkr-validation-desc">All 4 criteria must be confirmed before you can submit to the CEO. Click each item to review.</div>
+                            <div className="lkr-validation-grid">
+                                {VALIDATIONS.map((v, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={`lkr-val-card ${confirmed[idx] ? 'confirmed' : ''}`}
+                                    >
+                                        <div className="lkr-val-card-top">
+                                            <span className="lkr-val-tag">{v.title.replace(/\s+/g, ' ')}</span>
+                                            <div className="lkr-val-check">✓</div>
                                         </div>
-                                    ))}
-                                </div>
+                                        <div className="lkr-val-question">{v.question}</div>
+                                        <div className="lkr-val-hint">{v.hint}</div>
+                                        <button type="button" className="lkr-val-yes-btn" onClick={() => openPopup(idx)}>
+                                            {confirmed[idx] ? 'Selected' : 'Select →'}
+                                        </button>
+                                        <div className="lkr-val-confirmed-label">✓ Confirmed</div>
+                                    </div>
+                                ))}
                             </div>
-                        )}
+                        </div>
                         {validationMessage && (
                             <div className="lkr-comments-card" style={{ borderColor: '#fecaca', background: '#fff1f2' }}>
                                 <div className="lkr-comments-title" style={{ color: '#991b1b' }}>Validation Required</div>
@@ -991,7 +1046,7 @@ export default function KpiReviewToken({
                                 <span className="lkr-submit-hint" style={{ color: '#dc2626' }}>
                                     Fix KPI #{invalidKpiIndices.join(', ')}: KPI name is required and weight must be 0-100.
                                 </span>
-                            ) : !hasCeoRevisionRequest && !allConfirmed ? (
+                            ) : !allConfirmed ? (
                                 <span className="lkr-submit-hint">
                                     Confirm all 4 checks first ({confirmedCount}/4 confirmed).
                                 </span>

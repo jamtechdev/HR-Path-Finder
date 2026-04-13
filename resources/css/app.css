@@ -2515,6 +2515,62 @@
     color: var(--lkr-text-secondary);
     margin-top: 4px;
 }
+.leader-kpi-review-page .lkr-revision-panel {
+    background: #fff8ee;
+    border: 1px solid #f8d7a6;
+    border-left: 4px solid #f59e0b;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+}
+.leader-kpi-review-page .lkr-revision-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #92400e;
+    margin-bottom: 4px;
+}
+.leader-kpi-review-page .lkr-revision-desc {
+    font-size: 12px;
+    color: #b45309;
+    line-height: 1.45;
+}
+.leader-kpi-review-page .lkr-revision-comment {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #fde68a;
+    color: #7c2d12;
+    font-size: 12px;
+    line-height: 1.5;
+}
+.leader-kpi-review-page .lkr-history-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+.leader-kpi-review-page .lkr-history-card {
+    border: 1px solid var(--lkr-gray-200);
+    background: var(--lkr-gray-50);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--lkr-text-primary);
+}
+.leader-kpi-review-page .lkr-history-head {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    font-weight: 800;
+    color: var(--lkr-navy);
+    margin-bottom: 6px;
+}
+@media (max-width: 768px) {
+    .leader-kpi-review-page .lkr-history-grid {
+        grid-template-columns: 1fr;
+    }
+}
 
 /* ========== Manager KPI Draft (same design system as kpi.html) ========== */
 .manager-kpi-draft {
@@ -3098,8 +3154,99 @@
     box-shadow: 0 4px 16px rgba(27,43,91,0.28);
 }
 @media (max-width: 1024px) {
+    .ceo-kpi-review-page .ckr-top-bar,
+    .ceo-kpi-review-page .ckr-bottom-bar {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    .ceo-kpi-review-page .ckr-page {
+        padding: 20px 16px 108px;
+    }
+    .ceo-kpi-review-page .ckr-hero-strip,
+    .ceo-kpi-review-page .ckr-toolbar,
+    .ceo-kpi-review-page .ckr-org-row,
+    .ceo-kpi-review-page .ckr-org-body,
+    .ceo-kpi-review-page .ckr-card-footer,
+    .ceo-kpi-review-page .ckr-table-head {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    .ceo-kpi-review-page .ckr-table-head,
+    .ceo-kpi-review-page .ckr-org-row {
+        grid-template-columns: 24px minmax(0, 1fr) 90px 70px 100px 24px;
+        gap: 0 8px;
+    }
+    .ceo-kpi-review-page .ckr-strip-pills {
+        margin-left: 0;
+        width: 100%;
+    }
     .ceo-kpi-review-page .ckr-leader-detail-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .ceo-kpi-review-page .ckr-top-bar {
+        height: auto;
+        min-height: 56px;
+        flex-wrap: wrap;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        gap: 8px;
+    }
+    .ceo-kpi-review-page .ckr-step-counter {
+        margin-left: 0;
+        width: 100%;
+    }
+    .ceo-kpi-review-page .ckr-progress-wrap {
+        top: 72px;
+    }
+    .ceo-kpi-review-page .ckr-hero-strip {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .ceo-kpi-review-page .ckr-table-head {
+        display: none;
+    }
+    .ceo-kpi-review-page .ckr-org-row {
+        display: flex;
+        flex-wrap: wrap;
+        row-gap: 6px;
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+    .ceo-kpi-review-page .ckr-org-chevron-cell {
+        width: 20px;
+        flex: 0 0 20px;
+    }
+    .ceo-kpi-review-page .ckr-org-info {
+        flex: 1 1 calc(100% - 20px);
+    }
+    .ceo-kpi-review-page .ckr-org-leader,
+    .ceo-kpi-review-page .ckr-org-kpi-count,
+    .ceo-kpi-review-page .ckr-org-status-cell {
+        flex: 1 1 100%;
+        padding-left: 20px;
+    }
+    .ceo-kpi-review-page .ckr-bottom-bar {
+        height: auto;
+        min-height: 68px;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .ceo-kpi-review-page .ckr-bottom-hint {
+        order: 3;
+        width: 100%;
+    }
+    .ceo-kpi-review-page .ckr-bottom-actions {
+        width: 100%;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+    .ceo-kpi-review-page .ckr-btn {
+        width: 100%;
     }
 }
 

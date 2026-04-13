@@ -431,6 +431,14 @@ class CompensationSystemController extends Controller
             'future_programs' => ['nullable', 'array'],
         ]);
 
+        $salary = (float) ($validated['previous_year_total_salary'] ?? 0);
+        $benefit = (float) ($validated['previous_year_total_benefits_expense'] ?? 0);
+        if ($salary > 0 && $benefit > $salary) {
+            return back()->withErrors([
+                'comp-benefits' => 'Benefits expense cannot exceed total labor cost (ratio must be 100% or less).',
+            ]);
+        }
+
         // Auto-calculate benefits expense ratio
         if (isset($validated['previous_year_total_salary']) && isset($validated['previous_year_total_benefits_expense'])) {
             if ($validated['previous_year_total_salary'] > 0) {
