@@ -31,6 +31,8 @@ export default function Profile({
 }) {
     const { t } = useTranslation();
     const { auth } = usePage<SharedData>().props;
+    const userName = String(auth.user.name ?? '').trim();
+    const userEmail = String(auth.user.email ?? '').trim();
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -91,7 +93,7 @@ export default function Profile({
                                                         <Input
                                                             id="name"
                                                             className="mt-1 block w-full"
-                                                            defaultValue={auth.user.name}
+                                                            defaultValue={userName}
                                                             name="name"
                                                             required
                                                             autoComplete="name"
@@ -106,7 +108,7 @@ export default function Profile({
                                                             id="email"
                                                             type="email"
                                                             className="mt-1 block w-full"
-                                                            defaultValue={auth.user.email}
+                                                            defaultValue={userEmail}
                                                             name="email"
                                                             required
                                                             autoComplete="username"
