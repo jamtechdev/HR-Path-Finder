@@ -26,7 +26,9 @@
         "no": "아니요",
         "done": "완료",
         "back_to_questions": "질문으로 돌아가기",
-        "create_question": "질문 생성"
+        "create_question": "질문 생성",
+        "view": "보기",
+        "note": "참고"
     },
     "navigation": {
         "dashboard": "대시보드",
@@ -2457,6 +2459,40 @@
         "admin_ceo_show": "CEO - {{name}}",
         "landing_page_editor": "랜딩 페이지 편집",
         "landing_page_editor_sub": "JSON 파일에 저장된 랜딩 페이지 콘텐츠를 편집합니다 (한국어 및 영어)"
+    },
+    "step_verification_card": {
+        "ceo_diagnosis": "CEO 진단",
+        "verified_success": "{{step}} 검증이 완료되었습니다!",
+        "revision_requested": "{{step}} 수정이 요청되었습니다.",
+        "review_step": "{{step}} 검토",
+        "success_title": "성공!",
+        "view": "보기",
+        "view_survey": "설문 보기",
+        "verify": "검증",
+        "request_revision": "수정 요청",
+        "management_philosophy_survey": "경영 철학 설문",
+        "ceo_survey_badge": "CEO 설문",
+        "final_dashboard": "최종 대시보드 (트리)",
+        "tree_badge": "트리",
+        "status": {
+            "pending_verification": "검증 대기",
+            "verified": "검증됨",
+            "in_progress": "진행 중",
+            "not_started": "시작 전"
+        },
+        "pending_reason": {
+            "waiting_for_hr": "HR 대기 중",
+            "complete_survey_first": "먼저 설문을 완료하세요",
+            "pending": "대기"
+        }
+    },
+    "ceo_verification": {
+        "back_to_projects": "프로젝트로 돌아가기",
+        "heading": "단계 검증 - {{company}}",
+        "subheading": "HR 프로젝트의 각 단계를 검토하고 검증하세요",
+        "start_survey": "설문 시작",
+        "start_survey_desc": "이 프로젝트의 경영 철학 설문을 완료하세요",
+        "card_title": "단계 검증"
     },
     "diagnosis_overrides": {},
     "job_analysis_pages": {

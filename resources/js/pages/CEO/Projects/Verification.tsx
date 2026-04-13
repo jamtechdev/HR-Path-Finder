@@ -53,13 +53,13 @@ export default function CeoProjectVerification({ project }: Props) {
                                 className="mb-4"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back to Projects
+                                {t('ceo_verification.back_to_projects')}
                             </Button>
                             <h1 className="text-3xl font-bold mb-2 text-foreground">
-                                Step Verification - {project.company?.name || `Project #${project.id}`}
+                                {t('ceo_verification.heading', { company: project.company?.name || `Project #${project.id}` })}
                             </h1>
                             <p className="text-muted-foreground">
-                                Review and verify each step of the HR project
+                                {t('ceo_verification.subheading')}
                             </p>
                         </div>
 
@@ -74,9 +74,9 @@ export default function CeoProjectVerification({ project }: Props) {
                                             <ClipboardList className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                                         </div>
                                         <div className="flex-1">
-                                            <p className="font-semibold text-lg">Start Survey</p>
+                                            <p className="font-semibold text-lg">{t('ceo_verification.start_survey')}</p>
                                             <p className="text-sm text-muted-foreground">
-                                                Complete the Management Philosophy Survey for this project
+                                                {t('ceo_verification.start_survey_desc')}
                                             </p>
                                         </div>
                                         <ArrowRight className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -87,7 +87,7 @@ export default function CeoProjectVerification({ project }: Props) {
 
                         <Card className="shadow-lg">
                             <CardHeader>
-                                <CardTitle className="text-2xl">Step Verification</CardTitle>
+                                <CardTitle className="text-2xl">{t('ceo_verification.card_title')}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <StepVerificationCard

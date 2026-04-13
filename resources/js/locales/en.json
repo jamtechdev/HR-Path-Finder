@@ -26,7 +26,9 @@
         "no": "No",
         "done": "Done",
         "back_to_questions": "Back to Questions",
-        "create_question": "Create Question"
+        "create_question": "Create Question",
+        "view": "View",
+        "note": "Note"
     },
     "navigation": {
         "dashboard": "Dashboard",
@@ -2458,6 +2460,40 @@
         "admin_ceo_show": "CEO - {{name}}",
         "landing_page_editor": "Landing Page Editor",
         "landing_page_editor_sub": "Edit landing page content stored in JSON files (Korean and English)"
+    },
+    "step_verification_card": {
+        "ceo_diagnosis": "CEO Diagnosis",
+        "verified_success": "{{step}} has been verified successfully!",
+        "revision_requested": "Revision requested for {{step}}.",
+        "review_step": "Review {{step}}",
+        "success_title": "Success!",
+        "view": "View",
+        "view_survey": "View Survey",
+        "verify": "Verify",
+        "request_revision": "Request Revision",
+        "management_philosophy_survey": "Management Philosophy Survey",
+        "ceo_survey_badge": "CEO Survey",
+        "final_dashboard": "Final Dashboard (Tree)",
+        "tree_badge": "Tree",
+        "status": {
+            "pending_verification": "Pending Verification",
+            "verified": "Verified",
+            "in_progress": "In Progress",
+            "not_started": "Not Started"
+        },
+        "pending_reason": {
+            "waiting_for_hr": "Waiting for HR",
+            "complete_survey_first": "Complete Survey First",
+            "pending": "Pending"
+        }
+    },
+    "ceo_verification": {
+        "back_to_projects": "Back to Projects",
+        "heading": "Step Verification - {{company}}",
+        "subheading": "Review and verify each step of the HR project",
+        "start_survey": "Start Survey",
+        "start_survey_desc": "Complete the Management Philosophy Survey for this project",
+        "card_title": "Step Verification"
     },
     "diagnosis_overrides": {},
     "job_analysis_pages": {
