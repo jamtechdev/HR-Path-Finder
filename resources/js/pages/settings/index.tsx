@@ -160,6 +160,22 @@ export default function SettingsIndex({
         test_email: '',
     });
 
+    useEffect(() => {
+        const user = auth?.user;
+        if (!user) return;
+        // Keep profile form state in sync for all roles (admin/ceo/hr)
+        // to avoid accidental empty required fields on first submit.
+        profileForm.setData((prev) => ({
+            ...prev,
+            name: prev.name?.trim() ? prev.name : (user.name || ''),
+            email: prev.email?.trim() ? prev.email : (user.email || ''),
+            phone: prev.phone ?? (user.phone ?? ''),
+            address: prev.address ?? (user.address ?? ''),
+            city: prev.city ?? (user.city ?? ''),
+            state: prev.state ?? (user.state ?? ''),
+        }));
+    }, [auth?.user]);
+
     const handleSmtpSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         smtpForm.post('/settings/smtp/update', {
@@ -197,12 +213,27 @@ export default function SettingsIndex({
     
     const handleProfileSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        const name = String(profileForm.data.name ?? '').trim();
+        const email = String(profileForm.data.email ?? '').trim();
+        profileForm.clearErrors();
+        let hasClientError = false;
+        if (!name) {
+            profileForm.setError('name', t('settings_index.profile.fields.full_name') + ' is required.');
+            hasClientError = true;
+        }
+        if (!email) {
+            profileForm.setError('email', t('settings_index.profile.fields.email_address') + ' is required.');
+            hasClientError = true;
+        }
+        if (hasClientError) return;
+
         const normalizedData = {
             ...profileForm.data,
+            name,
+            email,
             _method: 'patch' as const,
         };
 
-        profileForm.clearErrors();
         profileForm.transform(() => normalizedData as any);
         profileForm.post('/settings/profile', {
             preserveScroll: true,
