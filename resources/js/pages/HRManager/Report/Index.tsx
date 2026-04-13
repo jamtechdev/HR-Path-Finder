@@ -52,6 +52,11 @@ interface Props {
         original_name?: string | null;
         created_at?: string;
     }>;
+    adminComment?: {
+        comment?: string | null;
+        author?: string | null;
+        updated_at?: string | null;
+    } | null;
 }
 
 export default function HrReportIndex({
@@ -60,6 +65,7 @@ export default function HrReportIndex({
     projectId,
     hrSystemSnapshot,
     reportUploads = [],
+    adminComment,
 }: Props) {
     const { t } = useTranslation();
     const na = t('hr_report.not_configured_yet');
@@ -305,9 +311,17 @@ export default function HrReportIndex({
                         <p className="text-[11px] font-semibold tracking-[0.10em] uppercase text-muted-foreground mb-3">
                             {t('hr_report.comment.title')} <span className="normal-case tracking-normal font-normal">{t('hr_report.comment.by_admin')}</span>
                         </p>
-                        <div className="rounded-lg border border-border bg-muted/30 min-h-[90px] px-[18px] py-4 text-[14px] leading-[1.7] text-muted-foreground italic">
-                            {t('hr_report.comment.empty')}
+                        <div className="rounded-lg border border-border bg-muted/30 min-h-[90px] px-[18px] py-4 text-[14px] leading-[1.7] text-muted-foreground">
+                            {adminComment?.comment?.trim() || t('hr_report.comment.empty')}
                         </div>
+                        {adminComment?.author && (
+                            <p className="mt-2 text-xs text-muted-foreground">
+                                {adminComment.author}
+                                {adminComment.updated_at
+                                    ? ` · ${new Date(adminComment.updated_at).toLocaleString()}`
+                                    : ''}
+                            </p>
+                        )}
                         <hr className="my-5 border-border" />
                         {latestUpload && (
                             <p className="text-xs text-muted-foreground mb-3">

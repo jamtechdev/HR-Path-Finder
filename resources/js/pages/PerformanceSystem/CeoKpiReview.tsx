@@ -47,7 +47,9 @@ interface Props {
 
 export default function CeoKpiReview({ project, kpis = [], orgChartMappings = [], isAdmin = false }: Props) {
     const { t } = useTranslation();
+    const tx = (key: string, fallback: string) => t(key, { defaultValue: fallback });
     const { props } = usePage();
+    const pageErrors = ((props as any)?.errors ?? {}) as Record<string, string>;
     const [revisionRequests, setRevisionRequests] = useState<Record<string, string>>({});
     const [expandedOrg, setExpandedOrg] = useState<string | null>(null);
     const [successModalOpen, setSuccessModalOpen] = useState(false);
@@ -118,10 +120,6 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
             { action: 'approve', revision_requests: [] },
             {
                 preserveScroll: true,
-                onSuccess: () => {
-                    setSuccessModalMessage('Company-wide KPIs have been finalized and approved.');
-                    setSuccessModalOpen(true);
-                },
             },
         );
     };
@@ -141,19 +139,15 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
             { action: 'request_revision', revision_requests: requests },
             {
                 preserveScroll: true,
-                onSuccess: () => {
-                    setSuccessModalMessage('Revision requests have been sent to organization leaders.');
-                    setSuccessModalOpen(true);
-                },
             },
         );
     };
 
     const getStatusBadge = (status: string, ceoStatus?: string) => {
         const s = ceoStatus || status;
-        if (s === 'approved') return <span className="ckr-badge ckr-badge-done">Approved</span>;
-        if (s === 'revision_requested') return <span className="ckr-badge ckr-badge-revision">Revision requested</span>;
-        return <span className="ckr-badge ckr-badge-pending">Pending</span>;
+        if (s === 'approved') return <span className="ckr-badge ckr-badge-done">{tx('ceo_kpi.status_approved', 'Approved')}</span>;
+        if (s === 'revision_requested') return <span className="ckr-badge ckr-badge-revision">{tx('ceo_kpi.status_revision_requested', 'Revision requested')}</span>;
+        return <span className="ckr-badge ckr-badge-pending">{tx('ceo_kpi.status_pending', 'Pending')}</span>;
     };
 
     const getOrgStepStatus = (orgKpis: OrganizationalKpi[]) => {
@@ -222,6 +216,11 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                 </div>
             )}
             <div className="ceo-kpi-review-page w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+            {pageErrors.error && (
+                <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {pageErrors.error}
+                </div>
+            )}
             {isAdmin && (
                 <div className="mb-4 rounded-lg border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
                     <strong className="text-foreground">When to use this page:</strong> review submitted company KPIs, request revision per organization, or finalize approved KPIs.
@@ -236,9 +235,9 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                         <path d="M19 12H5M12 5l-7 7 7 7" />
                     </svg>
                 </Link>
-                <span className="ckr-step-title">CEO KPI Review</span>
-                <span className="ckr-step-badge">진행중</span>
-                <span className="ckr-step-counter">1 of 1</span>
+                <span className="ckr-step-title">{tx('ceo_kpi.review.step_title', 'CEO KPI Review')}</span>
+                <span className="ckr-step-badge">{tx('ceo_kpi.review.step_badge', 'In Progress')}</span>
+                <span className="ckr-step-counter">{tx('ceo_kpi.review.step_counter', '1 of 1')}</span>
             </div>
 
             {/* Progress bar: 3px mint fill */}
@@ -251,7 +250,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
             <div className="ckr-page">
                 {/* Section label: same as reference */}
                 <div className="ckr-section-label-wrap">
-                    <span className="ckr-section-label">전사 KPI 검토</span>
+                    <span className="ckr-section-label">{tx('ceo_kpi.review.section_label', 'Company KPI Review')}</span>
                     <span className="ckr-section-line" />
                 </div>
 
@@ -266,30 +265,30 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                             </svg>
                         </div>
                         <div className="ckr-hero-strip-text">
-                            <h2>Company-wide KPI Review</h2>
-                            <p>Review submitted KPIs across all teams. Approve or request revisions per organization.</p>
+                            <h2>{tx('ceo_kpi.review.hero_title', 'Company-wide KPI Review')}</h2>
+                            <p>{tx('ceo_kpi.review.hero_subtitle', 'Review submitted KPIs across all teams. Approve or request revisions per organization.')}</p>
                         </div>
                         <div className="ckr-strip-pills">
                             <div className="ckr-strip-pill">
                                 <div className="ckr-pill-val">{teamCount}</div>
-                                <div className="ckr-pill-lbl">팀 수</div>
+                                <div className="ckr-pill-lbl">{tx('ceo_kpi.review.team_count', 'Teams')}</div>
                             </div>
                             <div className="ckr-strip-pill">
                                 <div className="ckr-pill-val">{totalKpis}</div>
-                                <div className="ckr-pill-lbl">총 KPI 수</div>
+                                <div className="ckr-pill-lbl">{tx('ceo_kpi.review.total_kpi_count', 'Total KPIs')}</div>
                             </div>
                             <div className="ckr-strip-pill">
                                 <div className="ckr-pill-val">{approvedCount}</div>
-                                <div className="ckr-pill-lbl">승인 완료</div>
+                                <div className="ckr-pill-lbl">{tx('ceo_kpi.review.approved_count', 'Approved')}</div>
                             </div>
                             <div className="ckr-strip-pill">
                                 <div className="ckr-pill-val">{pendingCount}</div>
-                                <div className="ckr-pill-lbl">검토 대기</div>
+                                <div className="ckr-pill-lbl">{tx('ceo_kpi.review.pending_count', 'Pending')}</div>
                             </div>
                             <div className="ckr-strip-divider" />
                             <div className="ckr-strip-pill-ratio">
                                 <div className="ckr-pill-val">{averageOrgWeight === 100 ? '100%' : averageOrgWeight > 0 ? `${averageOrgWeight.toFixed(0)}%` : '—'}</div>
-                                <div className="ckr-pill-lbl">가중치 합계</div>
+                                <div className="ckr-pill-lbl">{tx('ceo_kpi.review.weight_sum', 'Weight Sum')}</div>
                             </div>
                         </div>
                     </div>
@@ -297,17 +296,17 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                     {/* Toolbar: hint only */}
                     <div className="ckr-toolbar">
                         <span className="ckr-toolbar-hint">
-                            · 팀별 KPI 확인 · <strong>수정 요청</strong> 시 해당 팀에 코멘트 입력 · 모두 승인 시 <strong>최종 확정</strong>
+                            {tx('ceo_kpi.review.toolbar_hint', 'Review each team KPI · add comments when requesting revision · finalize when all are approved')}
                         </span>
                     </div>
 
                     {/* Table header: Team Progress */}
                     <div className="ckr-table-head">
                         <div />
-                        <div className="ckr-th">조직<span className="ckr-th-sub">ORGANIZATION</span></div>
-                        <div className="ckr-th">리더<span className="ckr-th-sub">LEADER</span></div>
-                        <div className="ckr-th">KPI 수<span className="ckr-th-sub">COUNT</span></div>
-                        <div className="ckr-th">상태<span className="ckr-th-sub">STATUS</span></div>
+                        <div className="ckr-th">{tx('ceo_kpi.review.organization', 'Organization')}<span className="ckr-th-sub">ORGANIZATION</span></div>
+                        <div className="ckr-th">{tx('ceo_kpi.review.leader', 'Leader')}<span className="ckr-th-sub">LEADER</span></div>
+                        <div className="ckr-th">{tx('ceo_kpi.review.kpi_count', 'KPI Count')}<span className="ckr-th-sub">COUNT</span></div>
+                        <div className="ckr-th">{tx('ceo_kpi.review.status', 'Status')}<span className="ckr-th-sub">STATUS</span></div>
                         <div />
                     </div>
 
@@ -315,7 +314,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                     <div className="ckr-org-list">
                         {organizations.length === 0 ? (
                             <div className="ckr-org-empty-row">
-                                <div className="ckr-org-empty">No KPIs submitted yet. Leaders must complete their review first.</div>
+                                <div className="ckr-org-empty">{tx('ceo_kpi.review.no_kpis', 'No KPIs submitted yet. Leaders must complete their review first.')}</div>
                             </div>
                         ) : (
                             organizations.map((orgName) => {
@@ -353,45 +352,45 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                             <div className="ckr-step-progress">
                                                 <div className={`ckr-step-item ${step.draftSent ? 'done' : ''}`}>
                                                     <div className="ckr-step-dot">{step.draftSent ? '✓' : '1'}</div>
-                                                    <div className="ckr-step-label">Draft Sent</div>
+                                                    <div className="ckr-step-label">{tx('ceo_kpi.review.step_draft_sent', 'Draft Sent')}</div>
                                                 </div>
                                                 <div className={`ckr-step-item ${step.underReview ? 'done' : 'active'}`}>
                                                     <div className="ckr-step-dot">{step.underReview ? '✓' : '2'}</div>
-                                                    <div className="ckr-step-label">Under Review</div>
+                                                    <div className="ckr-step-label">{tx('ceo_kpi.review.step_under_review', 'Under Review')}</div>
                                                 </div>
                                                 <div className={`ckr-step-item ${step.ceoRequested ? 'done' : ''}`}>
                                                     <div className="ckr-step-dot">{step.ceoRequested ? '✓' : '3'}</div>
-                                                    <div className="ckr-step-label">CEO Review Requested</div>
+                                                    <div className="ckr-step-label">{tx('ceo_kpi.review.step_ceo_requested', 'CEO Review Requested')}</div>
                                                 </div>
                                             </div>
                                             {revComment && (
                                                 <div className="ckr-revision-box">
-                                                    <strong>Revision comment:</strong> {revComment}
+                                                    <strong>{tx('ceo_kpi.review.revision_comment', 'Revision comment')}:</strong> {revComment}
                                                 </div>
                                             )}
 
                                             <div className="ckr-leader-detail-grid">
                                                 <div className="ckr-leader-detail-card">
-                                                    <div className="ckr-leader-detail-label">Leader</div>
+                                                    <div className="ckr-leader-detail-label">{tx('ceo_kpi.review.leader', 'Leader')}</div>
                                                     <div className="ckr-leader-detail-value">{leader?.org_head_name || 'N/A'}</div>
-                                                    <div className="ckr-leader-detail-sub">{leader?.org_head_email || 'No email configured'}</div>
+                                                    <div className="ckr-leader-detail-sub">{leader?.org_head_email || tx('ceo_kpi.review.no_email', 'No email configured')}</div>
                                                 </div>
                                                 <div className="ckr-leader-detail-card">
-                                                    <div className="ckr-leader-detail-label">Leader Review Status</div>
+                                                    <div className="ckr-leader-detail-label">{tx('ceo_kpi.review.leader_review_status', 'Leader Review Status')}</div>
                                                     <div className="ckr-leader-detail-value">
                                                         {orgKpis.some((k) => (k.status ?? '').toLowerCase() === 'proposed')
-                                                            ? 'Submitted to CEO'
-                                                            : 'Draft in progress'}
+                                                            ? tx('ceo_kpi.review.submitted_to_ceo', 'Submitted to CEO')
+                                                            : tx('ceo_kpi.review.draft_in_progress', 'Draft in progress')}
                                                     </div>
                                                     <div className="ckr-leader-detail-sub">
-                                                        {lastUpdated ? `Last update: ${new Date(lastUpdated).toLocaleString()}` : 'No update timestamp'}
+                                                        {lastUpdated ? `${tx('ceo_kpi.review.last_update', 'Last update')}: ${new Date(lastUpdated).toLocaleString()}` : tx('ceo_kpi.review.no_update_timestamp', 'No update timestamp')}
                                                     </div>
                                                 </div>
                                                 <div className="ckr-leader-detail-card">
-                                                    <div className="ckr-leader-detail-label">Total Team Weight</div>
+                                                    <div className="ckr-leader-detail-label">{tx('ceo_kpi.review.total_team_weight', 'Total Team Weight')}</div>
                                                     <div className="ckr-leader-detail-value">{orgWeight.toFixed(1)}%</div>
                                                     <div className="ckr-leader-detail-sub">
-                                                        {orgWeight === 100 ? 'Balanced (100%)' : 'Needs adjustment to 100%'}
+                                                        {orgWeight === 100 ? tx('ceo_kpi.review.weight_balanced', 'Balanced (100%)') : tx('ceo_kpi.review.weight_needs_adjustment', 'Needs adjustment to 100%')}
                                                     </div>
                                                 </div>
                                             </div>
@@ -410,21 +409,30 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                                     </thead>
                                                     <tbody>
                                                         {orgKpis.map((kpi, idx) => (
+                                                            (() => {
+                                                                const jobLabel =
+                                                                    kpi.linked_job?.job_name ||
+                                                                    (kpi.linked_job_id ? `Job #${kpi.linked_job_id}` : (kpi.leader_latest?.linked_job_id ? `Job #${kpi.leader_latest.linked_job_id}` : (kpi.hr_draft?.linked_job_id ? `Job #${kpi.hr_draft.linked_job_id}` : '')));
+                                                                return (
                                                             <tr key={kpi.id}>
                                                                 <td>{idx + 1}</td>
                                                                 <td className="ckr-td-name">{kpi.kpi_name}</td>
                                                                 <td>{kpi.category || '—'}</td>
                                                                 <td>{kpi.weight != null ? `${kpi.weight}%` : '—'}</td>
                                                                 <td className="ckr-kpi-detail-cell">
-                                                                    <div><strong>HR Draft:</strong> {kpi.hr_draft?.kpi_name || kpi.kpi_name || '—'}</div>
-                                                                    <div><strong>Leader Update:</strong> {kpi.leader_latest?.kpi_name || kpi.kpi_name || '—'}</div>
-                                                                    <div><strong>Purpose:</strong> {kpi.purpose || '—'}</div>
-                                                                    <div><strong>Formula:</strong> {kpi.formula || '—'}</div>
-                                                                    <div><strong>Measure:</strong> {kpi.measurement_method || '—'}</div>
-                                                                    <div><strong>Job:</strong> {kpi.linked_job?.job_name || '—'}</div>
+                                                                    <div><strong>{tx('ceo_kpi.review.hr_draft', 'HR Draft')}:</strong> {kpi.hr_draft?.kpi_name || kpi.kpi_name || '—'}</div>
+                                                                    <div><strong>{tx('ceo_kpi.review.leader_update', 'Leader Update')}:</strong> {kpi.leader_latest?.kpi_name || kpi.kpi_name || '—'}</div>
+                                                                    <div><strong>{tx('ceo_kpi.review.purpose', 'Purpose')}:</strong> {kpi.purpose || '—'}</div>
+                                                                    <div><strong>{tx('ceo_kpi.review.formula', 'Formula')}:</strong> {kpi.formula || '—'}</div>
+                                                                    <div><strong>{tx('ceo_kpi.review.measure', 'Measure')}:</strong> {kpi.measurement_method || '—'}</div>
+                                                                    {jobLabel && (
+                                                                        <div><strong>{tx('ceo_kpi.review.job', 'Job')}:</strong> {jobLabel}</div>
+                                                                    )}
                                                                 </td>
                                                                 <td>{getStatusBadge(kpi.status, kpi.ceo_approval_status)}</td>
                                                             </tr>
+                                                                );
+                                                            })()
                                                         ))}
                                                     </tbody>
                                                 </table>
@@ -432,7 +440,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
 
                                             <div className="ckr-revision-input-wrap">
                                                 <label className="ckr-field-label">
-                                                    Revision comment (if needed)
+                                                    {tx('ceo_kpi.review.revision_comment_optional', 'Revision comment (if needed)')}
                                                     {revisionRequests[orgName]?.trim() && (
                                                         <span style={{ marginLeft: 8, color: '#16a34a', fontWeight: 700 }}>Selected</span>
                                                     )}
@@ -440,7 +448,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                                 <textarea
                                                     className="ckr-field-input"
                                                     rows={2}
-                                                    placeholder="Enter revision comments for this organization..."
+                                                    placeholder={tx('ceo_kpi.review.revision_comment_placeholder', 'Enter revision comments for this organization...')}
                                                     value={revisionRequests[orgName] || ''}
                                                     onChange={(e) => setRevisionRequests({ ...revisionRequests, [orgName]: e.target.value })}
                                                 />
@@ -455,7 +463,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                     {/* Footer inside card: Total weight bar + status alert (same as Job Grades) */}
                     <div className="ckr-card-footer">
                         <div className="ckr-hc-summary">
-                            <span className="ckr-hc-summary-label">Total weight</span>
+                            <span className="ckr-hc-summary-label">{tx('ceo_kpi.review.total_weight', 'Total weight')}</span>
                             <div className="ckr-hc-bar-outer">
                                 <div
                                     className="ckr-hc-bar-fill"
@@ -477,9 +485,9 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                 <line x1="12" y1="16" x2="12.01" y2="16" />
                             </svg>
                             <span>
-                                {statusAlertType === 'ok' && '✓ 가중치 100% — 최종 승인 가능'}
-                                {statusAlertType === 'warn' && `평균 팀 가중치 ${averageOrgWeight.toFixed(1)}%. 각 조직이 100%가 되면 최종 확정할 수 있습니다.`}
-                                {statusAlertType === 'idle' && '팀별 KPI를 검토한 뒤 승인 또는 수정 요청을 선택하세요.'}
+                                {statusAlertType === 'ok' && tx('ceo_kpi.review.alert_ok', 'Weight is 100% — ready to finalize')}
+                                {statusAlertType === 'warn' && t('ceo_kpi.review.alert_warn', { value: averageOrgWeight.toFixed(1), defaultValue: `Average team weight is ${averageOrgWeight.toFixed(1)}%. Set each organization to 100% before finalizing.` })}
+                                {statusAlertType === 'idle' && tx('ceo_kpi.review.alert_idle', 'Review each team KPI, then approve or request revision.')}
                             </span>
                         </div>
                     </div>
@@ -491,10 +499,10 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                             <path d="M19 12H5M12 5l-7 7 7 7" />
                         </svg>
-                        Back
+                        {tx('common.back', 'Back')}
                     </Link>
                     <span className="ckr-bottom-hint">
-                        <strong>CEO KPI Review</strong> · 1 of 1
+                        <strong>{tx('ceo_kpi.review.step_title', 'CEO KPI Review')}</strong> · {tx('ceo_kpi.review.step_counter', '1 of 1')}
                     </span>
                     <div className="ckr-bottom-actions">
                         <button
@@ -503,11 +511,11 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                             onClick={handleRequestRevision}
                             disabled={processing || Object.values(revisionRequests).every((v) => !v.trim())}
                         >
-                            Request Revision
+                            {tx('ceo_kpi.review.request_revision', 'Request Revision')}
                         </button>
                         {!allApproved && (
                             <button type="button" className="ckr-btn ckr-btn-primary" onClick={handleApprove} disabled={processing}>
-                                ✓ Finalize Company-wide KPIs
+                                ✓ {tx('ceo_kpi.review.finalize', 'Finalize Company-wide KPIs')}
                             </button>
                         )}
                     </div>

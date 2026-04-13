@@ -29,22 +29,22 @@ export const VISION_CHUNK_SIZE = 3;
 export const KEYWORD_PRESETS = ['Innovation', 'Trust', 'Speed', 'Expertise', 'Care', 'Integrity', 'Impact'];
 
 /** Scenario metadata for Leadership step (by question order). */
-export const LEADERSHIP_SCENARIOS: { scenario: string; icon: string; leftLabel: string; rightLabel: string }[] = [
-    { scenario: 'Manager Resignation Wave', icon: '👤', leftLabel: 'System & Role First', rightLabel: 'Performance First' },
-    { scenario: 'Repeated Team Errors', icon: '⚙️', leftLabel: 'System & Management', rightLabel: 'Individual Accountability' },
-    { scenario: 'Endless Team Discussions', icon: '🗣️', leftLabel: 'Leader Decides', rightLabel: 'Consensus Priority' },
-    { scenario: 'Role Confusion in the Field', icon: '🔀', leftLabel: 'Clarify Standards', rightLabel: 'Direct Intervention' },
-    { scenario: 'High Performer, Low Compliance', icon: '⭐', leftLabel: 'Standards First', rightLabel: 'Performance Tolerance' },
+export const LEADERSHIP_SCENARIOS: { scenario: string; scenarioKo: string; icon: string; leftLabel: string; leftLabelKo: string; rightLabel: string; rightLabelKo: string }[] = [
+    { scenario: 'Manager Resignation Wave', scenarioKo: '관리자 이탈 증가', icon: '👤', leftLabel: 'System & Role First', leftLabelKo: '시스템/역할 우선', rightLabel: 'Performance First', rightLabelKo: '성과 우선' },
+    { scenario: 'Repeated Team Errors', scenarioKo: '반복되는 팀 오류', icon: '⚙️', leftLabel: 'System & Management', leftLabelKo: '시스템/관리 개선', rightLabel: 'Individual Accountability', rightLabelKo: '개인 책임 강화' },
+    { scenario: 'Endless Team Discussions', scenarioKo: '끝없는 팀 논의', icon: '🗣️', leftLabel: 'Leader Decides', leftLabelKo: '리더 결정 중심', rightLabel: 'Consensus Priority', rightLabelKo: '합의 우선' },
+    { scenario: 'Role Confusion in the Field', scenarioKo: '현장 역할 혼선', icon: '🔀', leftLabel: 'Clarify Standards', leftLabelKo: '기준 명확화', rightLabel: 'Direct Intervention', rightLabelKo: '직접 개입' },
+    { scenario: 'High Performer, Low Compliance', scenarioKo: '고성과자 규정 미준수', icon: '⭐', leftLabel: 'Standards First', leftLabelKo: '원칙 우선', rightLabel: 'Performance Tolerance', rightLabelKo: '성과 중심 유연성' },
 ];
 
 /** Spectrum metadata for General Questions step (by question order). */
-export const GENERAL_QUESTIONS_META: { icon: string; title: string; leftLabel: string; rightLabel: string }[] = [
-    { icon: '👔', title: 'Manager Role Perception', leftLabel: 'Practical Expert', rightLabel: 'Organization / Member Coordinator' },
-    { icon: '⚡', title: 'Source of Performance', leftLabel: 'Key Talents', rightLabel: 'Systems within the Organization' },
-    { icon: '⚖️', title: 'Standards and Discretion', leftLabel: "Manager's Judgment and Discretion", rightLabel: 'Clear Standards and Processes' },
-    { icon: '💼', title: 'Job Value', leftLabel: 'Differential Internal Job Values', rightLabel: 'All Jobs Equally Important' },
-    { icon: '🏃', title: 'Decision-Making', leftLabel: 'Fast Speed, Individual Responsibility', rightLabel: 'Consensus First, Organizational Responsibility' },
-    { icon: '📢', title: 'Sharing Management Information with Members', leftLabel: 'Necessary Scope, Selective Sharing', rightLabel: 'As Transparent Sharing as Possible' },
+export const GENERAL_QUESTIONS_META: { icon: string; title: string; titleKo: string; leftLabel: string; leftLabelKo: string; rightLabel: string; rightLabelKo: string }[] = [
+    { icon: '👔', title: 'Manager Role Perception', titleKo: '관리자 역할 인식', leftLabel: 'Practical Expert', leftLabelKo: '실무 전문가형', rightLabel: 'Organization / Member Coordinator', rightLabelKo: '조직/구성원 조율형' },
+    { icon: '⚡', title: 'Source of Performance', titleKo: '성과 창출 원천', leftLabel: 'Key Talents', leftLabelKo: '핵심 인재 중심', rightLabel: 'Systems within the Organization', rightLabelKo: '조직 시스템 중심' },
+    { icon: '⚖️', title: 'Standards and Discretion', titleKo: '기준과 재량의 균형', leftLabel: "Manager's Judgment and Discretion", leftLabelKo: '관리자 판단/재량', rightLabel: 'Clear Standards and Processes', rightLabelKo: '명확한 기준/프로세스' },
+    { icon: '💼', title: 'Job Value', titleKo: '직무 가치 인식', leftLabel: 'Differential Internal Job Values', leftLabelKo: '직무별 가치 차등', rightLabel: 'All Jobs Equally Important', rightLabelKo: '모든 직무 동등 가치' },
+    { icon: '🏃', title: 'Decision-Making', titleKo: '의사결정 방식', leftLabel: 'Fast Speed, Individual Responsibility', leftLabelKo: '속도/개인 책임', rightLabel: 'Consensus First, Organizational Responsibility', rightLabelKo: '합의/조직 책임' },
+    { icon: '📢', title: 'Sharing Management Information with Members', titleKo: '경영 정보 공유 범위', leftLabel: 'Necessary Scope, Selective Sharing', leftLabelKo: '필요 범위 선택 공유', rightLabel: 'As Transparent Sharing as Possible', rightLabelKo: '가능한 투명 공유' },
 ];
 
 /** Category display names and icons for Organizational Issues step. */

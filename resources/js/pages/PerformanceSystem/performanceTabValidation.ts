@@ -61,6 +61,40 @@ export function validateKpiReviewTab(kpis: unknown[]): PerfValidationResult {
             fieldErrors: { 'kpi-list': 'Add at least one KPI or complete the KPI review.' },
         };
     }
+    const rows = (kpis as Array<Record<string, unknown>>).filter(Boolean);
+    const fieldErrors: FieldErrors = {};
+
+    rows.forEach((kpi, index) => {
+        const name = String(kpi?.kpi_name ?? '').trim();
+        const org = String(kpi?.organization_name ?? '').trim();
+        const formula = String(kpi?.formula ?? '').trim();
+        const method = String(kpi?.measurement_method ?? '').trim();
+        const rawWeight = kpi?.weight;
+        const weight =
+            typeof rawWeight === 'number'
+                ? rawWeight
+                : Number.parseFloat(String(rawWeight ?? ''));
+
+        if (!org) fieldErrors[`kpi-org-${index}`] = 'Organization is required.';
+        if (!name) fieldErrors[`kpi-name-${index}`] = 'KPI name is required.';
+        if (!formula && !method) {
+            fieldErrors[`kpi-measure-${index}`] =
+                'Formula or measurement method is required.';
+        }
+        if (Number.isNaN(weight) || weight < 0 || weight > 100) {
+            fieldErrors[`kpi-weight-${index}`] =
+                'Weight must be between 0 and 100.';
+        }
+    });
+
+    if (Object.keys(fieldErrors).length > 0) {
+        return {
+            valid: false,
+            message: 'Please complete required KPI fields before continuing.',
+            fieldErrors,
+        };
+    }
+
     return { valid: true, message: '', fieldErrors: {} };
 }
 

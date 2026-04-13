@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AdminComment;
 use App\Models\HrProject;
 use App\Models\ReportUpload;
 use App\Services\ReportDataService;
@@ -39,6 +40,13 @@ class CeoReportController extends Controller
             ->where('hr_project_id', $hrProject->id)
             ->latest()
             ->get(['id', 'original_name', 'created_at']);
+        $adminComment = AdminComment::query()
+            ->where('hr_project_id', $hrProject->id)
+            ->whereNotNull('comment')
+            ->where('comment', '!=', '')
+            ->with('user:id,name')
+            ->latest('updated_at')
+            ->first();
 
         return Inertia::render('CEO/Report/Index', [
             'project' => $data['project'],
@@ -46,6 +54,11 @@ class CeoReportController extends Controller
             'projectId' => $hrProject->id,
             'hrSystemSnapshot' => $data['hrSystemSnapshot'],
             'reportUploads' => $reportUploads,
+            'adminComment' => $adminComment ? [
+                'comment' => $adminComment->comment,
+                'author' => $adminComment->user?->name,
+                'updated_at' => optional($adminComment->updated_at)->toIso8601String(),
+            ] : null,
         ]);
     }
 
