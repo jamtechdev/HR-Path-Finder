@@ -1,15 +1,9 @@
-import AppHeader from '@/components/Header/AppHeader';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import AdminLayout from '@/layouts/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Sidebar,
-    SidebarInset,
-    SidebarProvider,
-} from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
 import { Head, Link, useForm } from '@inertiajs/react';
 import React from 'react';
@@ -56,22 +50,13 @@ export default function KpiTemplatesEdit({ template, companies }: Props) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(`/admin/kpi-templates/${template.id}`, {
-            ...data,
-            company_id: data.company_id === '' ? null : Number(data.company_id),
-        });
+        put(`/admin/kpi-templates/${template.id}`);
     };
 
     return (
-        <SidebarProvider>
-            <Sidebar>
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden bg-background">
-                <AppHeader />
-                <Head title={t('admin_kpi_templates_edit.page_title')} />
-                <main className="flex-1 overflow-auto bg-background">
-                    <div className="mx-auto max-w-2xl p-6 md:p-8">
+        <AdminLayout>
+            <Head title={t('admin_kpi_templates_edit.page_title')} />
+            <div className="mx-auto max-w-2xl p-6 md:p-8">
                         <div className="mb-6">
                             <Link
                                 href="/admin/kpi-templates"
@@ -317,8 +302,6 @@ export default function KpiTemplatesEdit({ template, companies }: Props) {
                             </Card>
                         </form>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AdminLayout>
     );
 }

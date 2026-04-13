@@ -1,20 +1,12 @@
-import AppHeader from '@/components/Header/AppHeader';
+import AdminLayout from '@/layouts/AdminLayout';
 import AdminPagination from '@/components/Admin/AdminPagination';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import {
-    Sidebar,
-    SidebarInset,
-    SidebarProvider,
-} from '@/components/ui/sidebar';
-import { toast } from '@/hooks/use-toast';
-import { toastCopy } from '@/lib/toastCopy';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Edit, Plus, Search, Trash2 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface PerformanceSnapshotQuestion {
@@ -63,23 +55,8 @@ export default function PerformanceSnapshotIndex({
     };
 
     const { t, i18n } = useTranslation();
-    const { flash } = usePage().props as any;
-
     const [searchTerm, setSearchTerm] = useState('');
     const [localQuestions, setLocalQuestions] = useState(questions.data);
-
-    useEffect(() => {
-        if (flash?.success) {
-            toast({ title: toastCopy.success, description: flash.success });
-        }
-        if (flash?.error) {
-            toast({
-                title: toastCopy.error,
-                description: flash.error,
-                variant: 'destructive',
-            });
-        }
-    }, [flash]);
 
     // Update local questions when props change
     React.useEffect(() => {
@@ -169,23 +146,15 @@ export default function PerformanceSnapshotIndex({
 
     const handleDelete = (questionId: number) => {
         if (confirm(t('performance_snapshot_index.confirm_delete'))) {
-            router.delete(`/admin/performance-snapshot/${questionId}`, {
-                preserveScroll: true,
-            });
+            router.delete(`/admin/performance-snapshot/${questionId}`);
         }
     };
 
     const getAnswerTypeLabel = (type: string) => answerTypes[type] || type;
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden bg-background">
-                <AppHeader />
-                <main className="flex-1 overflow-auto bg-background">
-                    <Head title={t('performance_snapshot_index.page_title')} />
+        <AdminLayout>
+            <Head title={t('performance_snapshot_index.page_title')} />
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
@@ -379,8 +348,6 @@ export default function PerformanceSnapshotIndex({
                             </CardContent>
                         </Card>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AdminLayout>
     );
 }

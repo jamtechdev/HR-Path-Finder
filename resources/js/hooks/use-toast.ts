@@ -40,7 +40,7 @@ function baseOptions(duration?: number): ToastOptions {
 }
 
 function makeToastId(content: ToastContent, variant: ToastVariant): string {
-    return `app-toast:${variant}:${String(content)}`;
+    return `app-toast:${variant}:${String(content)}:${Date.now()}`;
 }
 
 function toast({ title, description, variant = 'default', duration }: ToastInput) {
@@ -51,30 +51,6 @@ function toast({ title, description, variant = 'default', duration }: ToastInput
         toastId,
         className: variant === 'warning' ? 'toast-warning-emphasis' : undefined,
     };
-
-    // Global safeguard: prevent duplicate active toasts with same variant/content.
-    if (notify.isActive(toastId)) {
-        return {
-            id: String(toastId),
-            dismiss: () => notify.dismiss(toastId),
-            update: (next: ToastInput) =>
-                notify.update(toastId, {
-                    render: toToastContent(next.title, next.description),
-                    type:
-                        next.variant === 'destructive'
-                            ? 'error'
-                            : next.variant === 'success'
-                              ? 'success'
-                              : next.variant === 'warning'
-                                ? 'warning'
-                              : 'default',
-                    autoClose:
-                        typeof next.duration === 'number'
-                            ? Math.max(next.duration, 5000)
-                            : 7000,
-                }),
-        };
-    }
 
     let id: ToastId;
     if (variant === 'destructive') {

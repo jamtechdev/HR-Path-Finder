@@ -1,6 +1,5 @@
 import DynamicList from '@/components/Forms/DynamicList';
-import AppHeader from '@/components/Header/AppHeader';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import AdminLayout from '@/layouts/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -13,11 +12,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {
-    Sidebar,
-    SidebarInset,
-    SidebarProvider,
-} from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
 import { Head, router, useForm } from '@inertiajs/react';
 import { ChevronLeft } from 'lucide-react';
@@ -65,27 +59,13 @@ export default function PerformanceSnapshotEdit({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(`/admin/performance-snapshot/${question.id}`, {
-            onSuccess: () => {
-                router.visit('/admin/performance-snapshot');
-            },
-        });
+        put(`/admin/performance-snapshot/${question.id}`);
     };
 
     return (
-        <SidebarProvider defaultOpen={true}>
-            <Sidebar collapsible="icon" variant="sidebar">
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden bg-background">
-                <AppHeader />
-                <main className="flex-1 overflow-auto bg-background">
-                    <Head
-                        title={t(
-                            'admin_performance_snapshot_question_edit.page_title',
-                        )}
-                    />
-                    <div className="mx-auto max-w-4xl p-6 md:p-8">
+        <AdminLayout>
+            <Head title={t('admin_performance_snapshot_question_edit.page_title')} />
+            <div className="mx-auto max-w-4xl p-6 md:p-8">
                         <div className="mb-6">
                             <Button
                                 variant="ghost"
@@ -296,8 +276,6 @@ export default function PerformanceSnapshotEdit({
                             </div>
                         </form>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AdminLayout>
     );
 }

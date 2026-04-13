@@ -1,13 +1,11 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import React from 'react';
-import AppHeader from '@/components/Header/AppHeader';
-import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
+import AdminLayout from '@/layouts/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Sidebar, SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from 'react-i18next';
 
@@ -41,15 +39,9 @@ export default function KpiTemplatesCreate({ companies }: Props) {
     };
 
     return (
-        <SidebarProvider>
-            <Sidebar>
-                <RoleBasedSidebar />
-            </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden bg-background">
-                <AppHeader />
-                <Head title={t('admin_kpi_templates_create.page_title')} />
-                <main className="flex-1 overflow-auto bg-background">
-                    <div className="mx-auto max-w-2xl p-6 md:p-8">
+        <AdminLayout>
+            <Head title={t('admin_kpi_templates_create.page_title')} />
+            <div className="mx-auto max-w-2xl p-6 md:p-8">
                         <div className="mb-6">
                             <Link href="/admin/kpi-templates" className="text-sm text-muted-foreground hover:underline">
                                 &larr; {t('admin_kpi_templates_create.back')}
@@ -188,8 +180,6 @@ export default function KpiTemplatesCreate({ companies }: Props) {
                             </Card>
                         </form>
                     </div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        </AdminLayout>
     );
 }
