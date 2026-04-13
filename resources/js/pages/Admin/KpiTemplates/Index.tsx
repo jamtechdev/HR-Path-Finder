@@ -39,12 +39,13 @@ interface PaginatedTemplates {
 interface Props {
     templates: PaginatedTemplates;
     companies: Company[];
+    filters?: { company_id?: string; org_unit_name?: string };
 }
 
-export default function KpiTemplatesIndex({ templates, companies }: Props) {
+export default function KpiTemplatesIndex({ templates, companies, filters }: Props) {
     const { t } = useTranslation();
-    const [companyFilter, setCompanyFilter] = useState<string>('');
-    const [orgFilter, setOrgFilter] = useState<string>('');
+    const [companyFilter, setCompanyFilter] = useState<string>(filters?.company_id ?? '');
+    const [orgFilter, setOrgFilter] = useState<string>(filters?.org_unit_name ?? '');
 
     const handleDelete = (id: number) => {
         if (confirm(t('admin_kpi_templates.confirm_delete'))) {
@@ -53,10 +54,10 @@ export default function KpiTemplatesIndex({ templates, companies }: Props) {
     };
 
     const applyFilters = () => {
-        const params = new URLSearchParams();
-        if (companyFilter) params.set('company_id', companyFilter);
-        if (orgFilter) params.set('org_unit_name', orgFilter);
-        router.get(`/admin/kpi-templates?${params.toString()}`);
+        router.get('/admin/kpi-templates', {
+            ...(companyFilter ? { company_id: companyFilter } : {}),
+            ...(orgFilter ? { org_unit_name: orgFilter } : {}),
+        }, { preserveState: true, replace: true });
     };
 
     const list = templates.data || [];

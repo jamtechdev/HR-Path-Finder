@@ -24,6 +24,7 @@ class KpiTemplateController extends Controller
         return Inertia::render('Admin/KpiTemplates/Index', [
             'templates' => $templates,
             'companies' => $companies,
+            'filters' => $request->only(['company_id', 'org_unit_name']),
         ]);
     }
 
