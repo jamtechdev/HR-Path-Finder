@@ -1,6 +1,7 @@
 import React from 'react';
 import LikertScale from '@/components/Forms/LikertScale';
 import type { DiagnosisQuestion, SurveyFormData, StepConfig } from '../types';
+import { usePhilosophyText } from '../uiText';
 
 interface ManagementStepProps {
     stepMeta: StepConfig;
@@ -21,6 +22,7 @@ export default function ManagementStep({
     setData,
     showErrors = false,
 }: ManagementStepProps) {
+    const { isKo } = usePhilosophyText();
     return (
         <div className="w-full space-y-6 sm:space-y-7">
             <div className="flex flex-col sm:flex-row items-start gap-4 mb-6 sm:mb-7 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -60,7 +62,7 @@ export default function ManagementStep({
                         >
                             <div className="text-[10px] font-medium uppercase tracking-widest text-[#9A9EB8] mb-2">
                                 Q{qi + 1}
-                                {answered && <span className="float-right text-[#2E9E6B]">✓ 응답 완료</span>}
+                                {answered && <span className="float-right text-[#2E9E6B]">✓ {isKo ? '응답 완료' : 'Answered'}</span>}
                             </div>
                             <p className="text-[13px] sm:text-[14px] leading-relaxed text-[#1A1A2E] mb-4 break-words dark:text-slate-100">
                                 {question.question_text}
@@ -75,7 +77,7 @@ export default function ManagementStep({
                                     rightLabel="매우\n그렇다"
                                     variant="survey"
                                     required
-                                    error={hasError ? 'Please answer this question.' : undefined}
+                                    error={hasError ? (isKo ? '이 문항에 응답해 주세요.' : 'Please answer this question.') : undefined}
                                 />
                             </div>
                         </div>

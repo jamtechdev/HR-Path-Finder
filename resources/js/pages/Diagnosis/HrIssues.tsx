@@ -125,6 +125,19 @@ export default function HrIssues({
         ? (k: string, v: unknown) => embedSetData(k, v)
         : internalForm.setData;
 
+    const payloadData = useMemo(
+        () => ({
+            hr_issues: Object.values(checked).flat(),
+            custom_hr_issues: customIssue,
+            __draft_hr_issues: {
+                checked,
+                activeCatIdx,
+                customIssue,
+            },
+        }),
+        [checked, activeCatIdx, customIssue],
+    );
+
     // Hydrate from draft
     useDiagnosisDraftHydrate(
         projectId,
@@ -155,10 +168,9 @@ export default function HrIssues({
     );
 
     useEffect(() => {
-        const flat = Object.entries(checked).flatMap(([, issues]) => issues);
-        setData('hr_issues', flat);
-        setData('custom_hr_issues', customIssue);
-    }, [checked, customIssue, setData]);
+        setData('hr_issues', payloadData.hr_issues);
+        setData('custom_hr_issues', payloadData.custom_hr_issues);
+    }, [payloadData, setData]);
 
     // Persist UI draft
     useEffect(() => {
@@ -199,7 +211,7 @@ export default function HrIssues({
     };
 
     const innerContent = (
-        <div className="mx-auto max-w-[780px] space-y-5">
+        <div className="w-full space-y-5">
             <div>
                 <h1 className="text-2xl font-bold text-slate-800 dark:text-[#e2e8f0]">
                     {t('diagnosis_hr_issues.title')}
@@ -480,7 +492,7 @@ export default function HrIssues({
                 projectId={projectId}
                 backRoute="job-structure"
                 nextRoute="review"
-                formData={data}
+                formData={payloadData}
                 saveRoute={
                     projectId ? `/hr-manager/diagnosis/${projectId}` : undefined
                 }

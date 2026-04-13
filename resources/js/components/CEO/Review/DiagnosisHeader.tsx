@@ -51,10 +51,10 @@ export default function DiagnosisHeader({
         <div className="mb-6">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                    <h1 className="text-2xl sm:text-3xl font-extrabold mb-2 text-[#0f2a4a] tracking-tight">
+                    <h1 className="mb-2 text-2xl font-extrabold tracking-tight text-[#0f2a4a] sm:text-3xl dark:text-slate-100">
                         {title}
                     </h1>
-                    <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-3xl">
+                    <p className="max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base dark:text-slate-300">
                         {subtitle}
                     </p>
                 </div>

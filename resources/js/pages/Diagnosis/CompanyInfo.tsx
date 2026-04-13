@@ -10,7 +10,11 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { loadAllTabDrafts, saveTabDraft } from '@/lib/diagnosisDraftStorage';
+import {
+    clearDiagnosisDrafts,
+    loadAllTabDrafts,
+    saveTabDraft,
+} from '@/lib/diagnosisDraftStorage';
 import { getLogoDraftFile, setLogoDraftFile } from '@/lib/diagnosisFileDrafts';
 import { cn } from '@/lib/utils';
 import { Head, useForm } from '@inertiajs/react';
@@ -77,7 +81,7 @@ export default function CompanyInfo({
     stepStatuses,
     projectId,
     industryCategories = [],
-    hqLocations = [],
+    hqLocations: _hqLocations = [],
     embedMode = false,
     readOnly = false,
     embedData,
@@ -100,7 +104,6 @@ export default function CompanyInfo({
     const [logoPreview, setLogoPreview] = useState<string | null>(
         company.logo_path || null,
     );
-    const [customHqInput, setCustomHqInput] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const draftHydrated = useRef(false);
     const logoDraftPreviewHydrated = useRef(false);
@@ -141,23 +144,6 @@ export default function CompanyInfo({
         ? (k: string, v: unknown) => embedSetData!(k, v as never)
         : internalForm.setData;
     const errors = internalForm.errors;
-
-    const hqOptions = React.useMemo(() => {
-        const base = [...hqLocations];
-        const current =
-            typeof data.hq_location === 'string' ? data.hq_location.trim() : '';
-        if (current && !base.includes(current)) {
-            return [current, ...base];
-        }
-        return base;
-    }, [hqLocations, data.hq_location]);
-
-    const isCustomHqSelected = React.useMemo(() => {
-        const current =
-            typeof data.hq_location === 'string' ? data.hq_location.trim() : '';
-        if (!current) return false;
-        return !hqOptions.includes(current);
-    }, [data.hq_location, hqOptions]);
 
     const isFilledString = (v: unknown): boolean =>
         v !== undefined && v !== null && String(v).trim().length > 0;
@@ -204,6 +190,27 @@ export default function CompanyInfo({
 
     // Load draft data
     useEffect(() => {
+        const serverPrimaryIndustryFilled =
+            (diagnosis?.industry_category &&
+                diagnosis.industry_category !== 'Others') ||
+            (diagnosis?.industry_category === 'Others' &&
+                !!diagnosis?.industry_category_other?.trim());
+        const serverSubIndustryFilled =
+            !diagnosis?.industry_category ||
+            diagnosis.industry_category === 'Others' ||
+            (!!diagnosis?.industry_subcategory?.trim() &&
+                (diagnosis.industry_subcategory !== 'Others' ||
+                    !!diagnosis?.industry_other?.trim()));
+        const isServerCompanyInfoComplete =
+            isFilledString(company?.name) &&
+            isFilledString(company?.registration_number) &&
+            isFilledString(company?.foundation_date) &&
+            serverPrimaryIndustryFilled &&
+            serverSubIndustryFilled &&
+            isFilledString(company?.hq_location) &&
+            company?.is_public !== undefined &&
+            company?.is_public !== null;
+
         if (
             draftHydrated.current ||
             !normalizedProjectId ||
@@ -211,6 +218,10 @@ export default function CompanyInfo({
             embedMode
         )
             return;
+        if (isServerCompanyInfoComplete) {
+            clearDiagnosisDrafts(normalizedProjectId);
+            return;
+        }
         draftHydrated.current = true;
         const p = loadAllTabDrafts(normalizedProjectId)['company-info'];
         if (!p) return;
@@ -218,49 +229,16 @@ export default function CompanyInfo({
         Object.entries(p).forEach(([k, v]) => {
             if (v === undefined || v === null || k === 'logo') return;
 
-            if (
-                k === 'hq_location' &&
-                typeof v === 'string' &&
-                v.trim().length === 1 &&
-                hqLocations.length > 0
-            ) {
-                const prefix = v.trim().toLowerCase();
-                const matches = hqLocations.filter((loc) =>
-                    loc.toLowerCase().startsWith(prefix),
-                );
-                if (matches.length === 1) {
-                    setData(
-                        k as keyof typeof internalForm.data,
-                        matches[0] as never,
-                    );
-                    return;
-                }
-            }
             setData(k as keyof typeof internalForm.data, v as never);
         });
-    }, [normalizedProjectId, readOnly, embedMode, setData, hqLocations]);
-
-    // Repair short HQ in embed mode
-    useEffect(() => {
-        const current =
-            typeof data.hq_location === 'string' ? data.hq_location.trim() : '';
-        if (current.length !== 1 || hqOptions.length === 0) return;
-        const prefix = current.toLowerCase();
-        const matches = hqOptions.filter((loc) =>
-            loc.toLowerCase().startsWith(prefix),
-        );
-        if (matches.length === 1 && matches[0] !== data.hq_location) {
-            setData('hq_location', matches[0]);
-        }
-    }, [data.hq_location, hqOptions, setData]);
-
-    useEffect(() => {
-        const current =
-            typeof data.hq_location === 'string' ? data.hq_location.trim() : '';
-        if (current && !hqOptions.includes(current)) {
-            setCustomHqInput(current);
-        }
-    }, [data.hq_location, hqOptions]);
+    }, [
+        normalizedProjectId,
+        readOnly,
+        embedMode,
+        setData,
+        diagnosis,
+        company,
+    ]);
 
     const validateRegistrationNumber = (value: string): boolean => {
         if (!value) return true;
@@ -327,7 +305,7 @@ export default function CompanyInfo({
         <div
             className={cn(
                 'overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-[#2a3a5c] dark:bg-[#1a2744]',
-                embedMode ? 'mx-auto max-w-4xl' : 'w-full',
+                'w-full',
             )}
         >
             {/* Hero strip */}
@@ -740,74 +718,20 @@ export default function CompanyInfo({
                                 <span className="text-red-500">*</span>
                             </Label>
                             <div className="relative">
-                                {hqOptions.length > 0 ? (
-                                    <Select
-                                        value={
-                                            isCustomHqSelected
-                                                ? '__custom__'
-                                                : data.hq_location
-                                        }
-                                        onValueChange={(value) => {
-                                            if (value === '__custom__') {
-                                                setData(
-                                                    'hq_location',
-                                                    customHqInput.trim(),
-                                                );
-                                                return;
-                                            }
-                                            setData('hq_location', value);
-                                        }}
-                                        disabled={readOnly}
-                                    >
-                                        <SelectTrigger
-                                            className={cn(
-                                                'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 pr-9 text-sm dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]',
-                                                errors.hq_location &&
-                                                    'border-red-500',
-                                            )}
-                                        >
-                                            <SelectValue
-                                                placeholder={t(
-                                                    'company_info.hqLocationPlaceholder',
-                                                )}
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {hqOptions.map((location) => (
-                                                <SelectItem
-                                                    key={location}
-                                                    value={location}
-                                                >
-                                                    {location}
-                                                </SelectItem>
-                                            ))}
-                                            {!readOnly && (
-                                                <SelectItem value="__custom__">
-                                                    Custom location...
-                                                </SelectItem>
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                ) : (
-                                    <Input
-                                        value={data.hq_location}
-                                        onChange={(e) =>
-                                            setData(
-                                                'hq_location',
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder={t(
-                                            'company_info.hqLocationPlaceholder',
-                                        )}
-                                        className={cn(
-                                            'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 pr-9 text-sm dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]',
-                                            errors.hq_location &&
-                                                'border-red-500',
-                                        )}
-                                        disabled={readOnly}
-                                    />
-                                )}
+                                <Input
+                                    value={data.hq_location}
+                                    onChange={(e) =>
+                                        setData('hq_location', e.target.value)
+                                    }
+                                    placeholder={t(
+                                        'company_info.hqLocationPlaceholder',
+                                    )}
+                                    className={cn(
+                                        'h-11 w-full rounded-lg border border-teal-100 bg-teal-50/10 pr-9 text-sm dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]',
+                                        errors.hq_location && 'border-red-500',
+                                    )}
+                                    disabled={readOnly}
+                                />
                                 <svg
                                     className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-gray-400"
                                     viewBox="0 0 24 24"
@@ -819,23 +743,6 @@ export default function CompanyInfo({
                                     <circle cx="12" cy="11" r="2.5" />
                                 </svg>
                             </div>
-
-                            {hqOptions.length > 0 &&
-                                !readOnly &&
-                                isCustomHqSelected && (
-                                    <div className="mt-2">
-                                        <Input
-                                            value={customHqInput}
-                                            onChange={(e) => {
-                                                const v = e.target.value;
-                                                setCustomHqInput(v);
-                                                setData('hq_location', v);
-                                            }}
-                                            placeholder="Enter custom location"
-                                            className="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20 dark:text-[#e2e8f0]"
-                                        />
-                                    </div>
-                                )}
                             {errors.hq_location && (
                                 <p className="mt-1 text-xs text-red-500">
                                     {errors.hq_location}
@@ -864,7 +771,7 @@ export default function CompanyInfo({
                             </p>
                         </div>
 
-                        {projectId && !readOnly && (
+                        {projectId && !readOnly && completionPct < 100 && (
                             <div className="pt-4">
                                 <button
                                     type="button"

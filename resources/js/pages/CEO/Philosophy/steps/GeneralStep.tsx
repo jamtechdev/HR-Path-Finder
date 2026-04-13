@@ -1,6 +1,7 @@
 import React from 'react';
 import { GENERAL_QUESTIONS_META } from '../constants';
 import type { DiagnosisQuestion, SurveyFormData } from '../types';
+import { usePhilosophyText } from '../uiText';
 
 interface GeneralStepProps {
     questions: DiagnosisQuestion[];
@@ -24,6 +25,7 @@ function getQuestionMeta(index: number, question: DiagnosisQuestion) {
 }
 
 export default function GeneralStep({ questions, data, setData, showErrors = false }: GeneralStepProps) {
+    const { isKo } = usePhilosophyText();
     const total = questions.length;
 
     return (
@@ -35,13 +37,13 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                 </div>
                 <div className="min-w-0 flex-1">
                     <div className="text-[10px] font-medium uppercase tracking-wider text-[#C9A84C] mb-1">
-                        Step 6 of 8
+                        {isKo ? '섹션 6 / 8' : 'Step 6 of 8'}
                     </div>
                     <h2 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#0E1628] mb-1.5 dark:text-slate-100">
-                        General Questions
+                        {isKo ? '일반 질문' : 'General Questions'}
                     </h2>
-                    <p className="text-[13px] text-[#4A4E69] font-light leading-relaxed dark:text-slate-300">
-                        This section gathers overall operational context to support a balanced and accurate interpretation of your responses.
+                    <p className="text-[13px] text-[#4A4E69] font-light leading-relaxed dark:text-slate-200">
+                        {isKo ? '응답 해석의 정확도를 높이기 위해 전반적인 운영 맥락을 확인하는 섹션입니다.' : 'This section gathers overall operational context to support a balanced and accurate interpretation of your responses.'}
                     </p>
                 </div>
             </div>
@@ -51,10 +53,8 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                 <div className="absolute top-[-30px] right-[-20px] w-[110px] h-[110px] rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.2)_0%,transparent_65%)]" />
                 <span className="text-xl flex-shrink-0 relative">🧭</span>
                 <div className="relative min-w-0 flex-1">
-                    <strong className="block text-xs font-medium text-[#E8C96B] mb-0.5">
-                        Your operational philosophy — placed precisely.
-                    </strong>
-                    <span className="text-[11.5px] text-white/50 font-light">
+                    <strong className="block text-xs font-medium text-[#E8C96B] mb-0.5">{isKo ? '운영 철학의 위치를 정확히 선택해 주세요.' : 'Your operational philosophy — placed precisely.'}</strong>
+                    <span className="text-[11.5px] text-white/75 font-light">
                         Each dimension has two legitimate poles. Place yourself honestly between 1 (far left) and 7 (far right).
                     </span>
                 </div>
@@ -75,7 +75,7 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                     return (
                         <div
                             key={question.id}
-                            className={`bg-white border-[1.5px] rounded-xl overflow-hidden transition-colors dark:bg-slate-800 ${
+                            className={`bg-white border-[1.5px] rounded-xl overflow-hidden transition-colors dark:bg-slate-800/90 ${
                                 hasError ? 'border-red-300 bg-red-50/40 dark:border-red-500/60 dark:bg-red-950/20' : answered ? 'border-[#0E1628]/20 dark:border-slate-600' : 'border-[#E2DDD4] dark:border-slate-600'
                             }`}
                             style={{ animationDelay: `${qi * 0.05}s` }}
@@ -110,7 +110,7 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                             {/* Spectrum body */}
                             <div className="p-4 sm:p-5">
                                 <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center mb-4">
-                                    <div className="bg-[#0E1628]/[0.04] border-l-[3px] border-l-[#0E1628] rounded-md py-2.5 px-3 sm:px-4 dark:bg-slate-700/60">
+                                    <div className="bg-[#0E1628]/[0.04] border-l-[3px] border-l-[#0E1628] rounded-md py-2.5 px-3 sm:px-4 dark:bg-slate-700/50">
                                         <strong className="block text-[10px] font-semibold uppercase tracking-wide text-[#0E1628] mb-1">
                                             {meta.leftLabel}
                                         </strong>
@@ -119,7 +119,7 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                                     <div className="hidden sm:block text-[10px] font-semibold text-[#9A9EB8] text-center whitespace-nowrap">
                                         VS
                                     </div>
-                                    <div className="bg-[#C9A84C]/[0.06] border-r-[3px] border-r-[#C9A84C] rounded-md py-2.5 px-3 sm:px-4 sm:text-right dark:bg-amber-900/20">
+                                    <div className="bg-[#C9A84C]/[0.06] border-r-[3px] border-r-[#C9A84C] rounded-md py-2.5 px-3 sm:px-4 sm:text-right dark:bg-amber-900/15">
                                         <strong className="block text-[10px] font-semibold uppercase tracking-wide text-[#8A6820] mb-1">
                                             {meta.rightLabel}
                                         </strong>
@@ -129,10 +129,10 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
 
                                 {/* 7-point scale */}
                                 <div className="flex flex-col gap-1.5">
-                                    {hasError && <p className="text-sm font-medium text-red-600">Please answer this question.</p>}
+                                    {hasError && <p className="text-sm font-medium text-red-600">{isKo ? '이 문항에 응답해 주세요.' : 'Please answer this question.'}</p>}
                                     <div className="flex justify-between">
-                                        <span className="text-[10px] text-[#9A9EB8]">← {meta.leftLabel}</span>
-                                        <span className="text-[10px] text-[#9A9EB8]">{meta.rightLabel} →</span>
+                                <span className="text-[10px] text-[#9A9EB8] dark:text-slate-300">← {meta.leftLabel}</span>
+                                <span className="text-[10px] text-[#9A9EB8] dark:text-slate-300">{meta.rightLabel} →</span>
                                     </div>
                                     <div className="flex gap-1">
                                         {[1, 2, 3, 4, 5, 6, 7].map((n) => (
@@ -145,11 +145,11 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                                                 className={`
                                                     flex-1 h-9 sm:h-10 rounded-md text-sm font-normal transition-all
                                                     flex items-center justify-center relative
-                                                    ${n === 4 && !answered ? 'border-[1.5px] border-dashed border-[#E2DDD4]' : 'border-[1.5px] border-[#E2DDD4]'}
+                                                    ${n === 4 && !answered ? 'border-[1.5px] border-dashed border-[#E2DDD4] dark:border-slate-500/70' : 'border-[1.5px] border-[#E2DDD4] dark:border-slate-500/70'}
                                                     ${
                                                         num === n
-                                                            ? 'bg-[#0E1628] border-[#0E1628] text-white font-semibold'
-                                                            : 'bg-[#FAFAF8] text-[#4A4E69] hover:border-[#0E1628] hover:text-[#0E1628] hover:bg-[#F8F4ED]'
+                                                            ? 'bg-[#0E1628] border-[#0E1628] text-white font-semibold dark:bg-[#1f3f7a] dark:border-[#1f3f7a]'
+                                                            : 'bg-[#FAFAF8] text-[#4A4E69] hover:border-[#0E1628] hover:text-[#0E1628] hover:bg-[#F8F4ED] dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:border-slate-300 dark:hover:text-white'
                                                     }
                                                 `}
                                             >

@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { VISION_CHUNKS, KEYWORD_PRESETS } from '../constants';
 import type { DiagnosisQuestion, SurveyFormData, VisionChunkConfig } from '../types';
+import { usePhilosophyText } from '../uiText';
 
 interface VisionStepProps {
     currentChunk: number;
@@ -21,8 +22,32 @@ export default function VisionStep({
     setData,
     showErrors = false,
 }: VisionStepProps) {
+    const { isKo } = usePhilosophyText();
     const chunk = VISION_CHUNKS[currentChunk];
     const questions = getChunkQuestions(currentChunk);
+    const chunkLabel = isKo ? `파트 ${currentChunk + 1} / 3` : chunk.label;
+    const chunkName = isKo ? chunk.nameKo : chunk.name;
+    const chunkDesc = isKo
+        ? [
+              '회사의 성장 목표와 시간 축을 정의합니다.',
+              '어떤 경쟁 정체성으로 승부할지 명확히 합니다.',
+              '핵심 가치와 측정 지표를 구체화합니다.',
+          ][currentChunk] ?? chunk.desc
+        : chunk.desc;
+    const chunkCalloutTitle = isKo
+        ? [
+              '성장 목표는 전체 HR 로드맵을 결정합니다.',
+              '경쟁 포지셔닝은 필요한 인재상과 문화를 결정합니다.',
+              '핵심 가치와 지표는 실행의 기준이 됩니다.',
+          ][currentChunk] ?? chunk.callout.title
+        : chunk.callout.title;
+    const chunkCalloutBody = isKo
+        ? [
+              '이 응답은 조직 구조와 성과목표 설계에 직접 반영됩니다.',
+              '이 응답은 채용/육성 우선순위와 문화 방향에 연결됩니다.',
+              '이 응답은 성과/문화 프레임워크에 기준으로 반영됩니다.',
+          ][currentChunk] ?? chunk.callout.body
+        : chunk.callout.body;
 
     return (
         <div className="w-full space-y-6 sm:space-y-7">
@@ -31,17 +56,17 @@ export default function VisionStep({
                     {chunk.icon}
                 </div>
                 <div className="min-w-0 flex-1">
-                    <div className="text-[10px] font-medium uppercase tracking-wider text-[#C9A84C] mb-1">{chunk.label}</div>
-                    <h2 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#0E1628] dark:text-slate-100 mb-1.5">{chunk.name}</h2>
-                    <p className="text-[12px] sm:text-[13px] text-[#4A4E69] dark:text-slate-400 font-light leading-relaxed">{chunk.desc}</p>
+                    <div className="text-[10px] font-medium uppercase tracking-wider text-[#C9A84C] mb-1">{chunkLabel}</div>
+                    <h2 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#0E1628] dark:text-slate-100 mb-1.5">{chunkName}</h2>
+                    <p className="text-[12px] sm:text-[13px] text-[#4A4E69] dark:text-slate-400 font-light leading-relaxed">{chunkDesc}</p>
                 </div>
             </div>
             <div className="bg-[#0E1628] rounded-[10px] px-4 sm:px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 relative overflow-hidden">
                 <div className="absolute -top-8 -right-5 w-[100px] h-[100px] rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.2)_0%,transparent_65%)]" />
                 <span className="text-lg flex-shrink-0 relative">💡</span>
                 <div className="relative min-w-0 flex-1">
-                    <strong className="block text-[12px] sm:text-[13px] font-medium text-[#E8C96B] mb-0.5">{chunk.callout.title}</strong>
-                    <span className="text-[11px] sm:text-[12px] text-white/55 font-light">{chunk.callout.body}</span>
+                    <strong className="block text-[12px] sm:text-[13px] font-medium text-[#E8C96B] mb-0.5">{chunkCalloutTitle}</strong>
+                    <span className="text-[11px] sm:text-[12px] text-white/55 font-light">{chunkCalloutBody}</span>
                 </div>
             </div>
             <div className="flex gap-1.5 flex-wrap mb-4">
@@ -54,7 +79,7 @@ export default function VisionStep({
                             i === currentChunk ? 'bg-[#0E1628] border-[#0E1628] text-white' : 'bg-transparent border-[#E2DDD4] dark:border-slate-600 text-[#9A9EB8] dark:text-slate-400 hover:border-[#0E1628]/50 dark:hover:border-slate-500'
                         }`}
                     >
-                        {c.name}
+                            {isKo ? c.nameKo : c.name}
                     </button>
                 ))}
             </div>
@@ -111,7 +136,7 @@ export default function VisionStep({
                                         <SelectTrigger
                                             className={`w-full h-11 rounded-lg border ${hasError ? 'border-red-300 dark:border-red-500/60' : 'border-[#E2DDD4] dark:border-slate-600'} bg-[#FAFAF8] dark:bg-slate-700`}
                                         >
-                                            <SelectValue placeholder="Select an option" />
+                                            <SelectValue placeholder={isKo ? '옵션 선택' : 'Select an option'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {(question.options || []).map((opt) => (
@@ -156,7 +181,7 @@ export default function VisionStep({
                                     </div>
                                     <Input
                                         type="text"
-                                        placeholder="Or type your own keyword..."
+                                        placeholder={isKo ? '또는 직접 키워드 입력...' : 'Or type your own keyword...'}
                                         value={typeof val === 'string' && !KEYWORD_PRESETS.includes(val) ? val : ''}
                                         onChange={(e) => setData('vision_mission', { ...data.vision_mission, [qId]: e.target.value })}
                                         className={`${hasError ? 'border-red-300 focus-visible:ring-red-200 dark:border-red-500/60' : 'border-[#E2DDD4] dark:border-slate-600'} bg-[#FAFAF8] dark:bg-slate-700 text-[#1A1A2E] dark:text-slate-200 placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500`}
@@ -169,19 +194,19 @@ export default function VisionStep({
                                         value={typeof val === 'string' ? val : (Array.isArray(val) ? (val as string[]).join('\n') : '')}
                                         onChange={(e) => setData('vision_mission', { ...data.vision_mission, [qId]: e.target.value })}
                                         rows={3}
-                                        placeholder="Type your answer..."
+                                        placeholder={isKo ? '답변을 입력해 주세요...' : 'Type your answer...'}
                                         className={`w-full border rounded-lg px-3 py-2.5 text-sm bg-[#FAFAF8] dark:bg-slate-700 text-[#1A1A2E] dark:text-slate-200 focus:bg-white dark:focus:bg-slate-600 outline-none resize-y min-h-[80px] placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500 ${hasError ? 'border-red-300 focus:border-red-500 dark:border-red-500/60' : 'border-[#E2DDD4] dark:border-slate-600 focus:border-[#0E1628] dark:focus:border-slate-400'}`}
                                     />
                                 ) : (
                                     <Input
                                         value={typeof val === 'string' ? val : (val != null ? String(val) : '')}
                                         onChange={(e) => setData('vision_mission', { ...data.vision_mission, [qId]: e.target.value })}
-                                        placeholder="Type your answer..."
+                                        placeholder={isKo ? '답변을 입력해 주세요...' : 'Type your answer...'}
                                         className={`${hasError ? 'border-red-300 focus-visible:ring-red-200 dark:border-red-500/60' : 'border-[#E2DDD4] dark:border-slate-600'} bg-[#FAFAF8] dark:bg-slate-700 text-[#1A1A2E] dark:text-slate-200 focus:bg-white dark:focus:bg-slate-600 placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500`}
                                     />
                                 )
                             )}
-                            {hasError && <p className="mt-2 text-sm font-medium text-red-600 dark:text-red-400">Please answer this question.</p>}
+                            {hasError && <p className="mt-2 text-sm font-medium text-red-600 dark:text-red-400">{isKo ? '이 문항에 응답해 주세요.' : 'Please answer this question.'}</p>}
                         </div>
                     );
                 })}

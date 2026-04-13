@@ -251,7 +251,9 @@ class CompanyInvitationController extends Controller
             'token' => ['required', 'string'],
             'password' => ['required', 'string', 'min:8', 'confirmed', 'regex:/[0-9]/'],
         ], [
-            'password.regex' => 'Password must be at least 8 characters and include at least one number.',
+            'password.min' => 'You have chosen a wrong password. Use at least 8 characters.',
+            'password.confirmed' => 'You have chosen a wrong password confirmation. Please make sure both password fields match.',
+            'password.regex' => 'You have chosen a wrong password format. Include at least one number.',
         ]);
 
         $invitation = CompanyInvitation::where('token', $request->token)->firstOrFail();

@@ -1,6 +1,7 @@
 import React from 'react';
 import { LEADERSHIP_SCENARIOS } from '../constants';
 import type { DiagnosisQuestion, SurveyFormData } from '../types';
+import { usePhilosophyText } from '../uiText';
 
 interface LeadershipStepProps {
     questions: DiagnosisQuestion[];
@@ -24,6 +25,7 @@ function getScenarioMeta(index: number, question: DiagnosisQuestion) {
 }
 
 export default function LeadershipStep({ questions, data, setData, showErrors = false }: LeadershipStepProps) {
+    const { isKo } = usePhilosophyText();
     return (
         <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
             {/* Section header */}
@@ -33,13 +35,13 @@ export default function LeadershipStep({ questions, data, setData, showErrors = 
                 </div>
                 <div className="min-w-0 flex-1">
                     <div className="text-xs sm:text-[10px] font-medium uppercase tracking-wider text-[#C9A84C] mb-1">
-                        Step 5 of 8
+                        {isKo ? '섹션 5 / 8' : 'Step 5 of 8'}
                     </div>
                     <h2 className="font-serif text-lg sm:text-[20px] sm:text-[22px] font-bold text-[#0E1628] mb-1.5 leading-tight dark:text-slate-100">
-                        Leadership
+                        {isKo ? '리더십' : 'Leadership'}
                     </h2>
-                    <p className="text-sm sm:text-[13px] text-[#4A4E69] font-light leading-relaxed dark:text-slate-300">
-                        Real workplace scenarios — choose where you stand on a scale of 1 to 7. This section examines leadership style and management practices to assess how leadership impacts execution and organizational culture.
+                    <p className="text-sm sm:text-[13px] text-[#4A4E69] font-light leading-relaxed dark:text-slate-200">
+                        {isKo ? '실제 업무 상황을 바탕으로 1~7 점수에서 본인의 관점을 선택해 주세요. 리더십 스타일과 운영 방식을 진단하여 실행력과 조직문화에 미치는 영향을 확인합니다.' : 'Real workplace scenarios — choose where you stand on a scale of 1 to 7. This section examines leadership style and management practices to assess how leadership impacts execution and organizational culture.'}
                     </p>
                 </div>
             </div>
@@ -49,12 +51,8 @@ export default function LeadershipStep({ questions, data, setData, showErrors = 
                 <div className="absolute top-[-30px] right-[-20px] w-[110px] h-[110px] rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.2)_0%,transparent_65%)]" />
                 <span className="text-xl flex-shrink-0 relative">⚖️</span>
                 <div className="relative min-w-0 flex-1">
-                    <strong className="block text-xs font-medium text-[#E8C96B] mb-0.5">
-                        No right or wrong answer — only your philosophy.
-                    </strong>
-                    <span className="text-[11.5px] text-white/50 font-light">
-                        Each scenario has two legitimate perspectives. Place yourself honestly between them.
-                    </span>
+                    <strong className="block text-xs font-medium text-[#E8C96B] mb-0.5">{isKo ? '정답은 없습니다. CEO님의 철학을 선택해 주세요.' : 'No right or wrong answer — only your philosophy.'}</strong>
+                    <span className="text-[11.5px] text-white/75 font-light">{isKo ? '각 상황에는 두 가지 합리적인 관점이 있습니다. 가장 가까운 위치를 솔직하게 선택해 주세요.' : 'Each scenario has two legitimate perspectives. Place yourself honestly between them.'}</span>
                 </div>
             </div>
 
@@ -93,7 +91,7 @@ export default function LeadershipStep({ questions, data, setData, showErrors = 
                                             Scenario {qi + 1}
                                         </span>
                                         {answered && (
-                                            <span className="text-[10.5px] text-[#2E9E6B] font-medium">✓ Answered</span>
+                                            <span className="text-[10.5px] text-[#2E9E6B] font-medium">✓ {isKo ? '응답 완료' : 'Answered'}</span>
                                         )}
                                     </div>
                                     <div className="inline-flex items-center gap-1.5 bg-[#C9A84C]/10 border border-[#C9A84C]/25 rounded-[10px] px-2 py-0.5 text-[10.5px] text-[#8A6820] font-medium mb-2">
@@ -109,16 +107,16 @@ export default function LeadershipStep({ questions, data, setData, showErrors = 
                             {/* Choice area */}
                             <div className="p-4 sm:p-5">
                                 <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-2.5 sm:gap-3 items-start mb-4">
-                                    <div className="bg-[#F8F4ED] border border-[#E2DDD4] rounded-lg p-3 sm:p-4 border-l-[3px] border-l-[#0E1628] dark:border-slate-600 dark:bg-slate-700/60">
+                                    <div className="bg-[#F8F4ED] border border-[#E2DDD4] rounded-lg p-3 sm:p-4 border-l-[3px] border-l-[#0E1628] dark:border-slate-600 dark:bg-slate-700/50">
                                         <strong className="block text-[11px] font-semibold text-[#0E1628] uppercase tracking-wide mb-1">
                                             {meta.leftLabel}
                                         </strong>
                                         <p className="text-xs text-[#4A4E69] font-light leading-relaxed dark:text-slate-300">{optionA}</p>
                                     </div>
-                                    <div className="hidden sm:flex w-7 h-7 rounded-full bg-[#E2DDD4] items-center justify-center text-[10px] font-semibold text-[#9A9EB8] flex-shrink-0 mt-3">
+                                    <div className="hidden sm:flex w-7 h-7 rounded-full bg-[#E2DDD4] items-center justify-center text-[10px] font-semibold text-[#9A9EB8] flex-shrink-0 mt-3 dark:bg-slate-700 dark:text-slate-300">
                                         VS
                                     </div>
-                                    <div className="bg-[#F8F4ED] border border-[#E2DDD4] rounded-lg p-3 sm:p-4 border-r-[3px] border-r-[#C9A84C] sm:text-right dark:border-slate-600 dark:bg-slate-700/60">
+                                    <div className="bg-[#F8F4ED] border border-[#E2DDD4] rounded-lg p-3 sm:p-4 border-r-[3px] border-r-[#C9A84C] sm:text-right dark:border-slate-600 dark:bg-slate-700/50">
                                         <strong className="block text-[11px] font-semibold text-[#0E1628] uppercase tracking-wide mb-1">
                                             {meta.rightLabel}
                                         </strong>
@@ -128,10 +126,10 @@ export default function LeadershipStep({ questions, data, setData, showErrors = 
 
                                 {/* 7-point scale */}
                                 <div className="flex flex-col gap-1.5">
-                                    {hasError && <p className="text-sm font-medium text-red-600">Please answer this scenario.</p>}
+                                    {hasError && <p className="text-sm font-medium text-red-600">{isKo ? '이 시나리오에 응답해 주세요.' : 'Please answer this scenario.'}</p>}
                                     <div className="flex justify-between text-xs sm:text-[10px]">
-                                        <span className="text-[#9A9EB8]">← Strongly lean left</span>
-                                        <span className="text-[#9A9EB8]">Strongly lean right →</span>
+                                        <span className="text-[#9A9EB8] dark:text-slate-300">← Strongly lean left</span>
+                                        <span className="text-[#9A9EB8] dark:text-slate-300">Strongly lean right →</span>
                                     </div>
                                     <div className="flex gap-1">
                                         {[1, 2, 3, 4, 5, 6, 7].map((n) => (
@@ -144,11 +142,11 @@ export default function LeadershipStep({ questions, data, setData, showErrors = 
                                                 className={`
                                                     flex-1 h-10 sm:h-11 lg:h-10 rounded-md text-sm font-semibold transition-all min-h-[44px]
                                                     flex items-center justify-center relative
-                                                    ${n === 4 && !answered ? 'border-[1.5px] border-dashed border-[#E2DDD4]' : 'border-[1.5px] border-[#E2DDD4]'}
+                                                    ${n === 4 && !answered ? 'border-[1.5px] border-dashed border-[#E2DDD4] dark:border-slate-500/70' : 'border-[1.5px] border-[#E2DDD4] dark:border-slate-500/70'}
                                                     ${
                                                         num === n
-                                                            ? 'bg-[#0E1628] border-[#0E1628] text-white shadow-sm'
-                                                            : 'bg-[#FAFAF8] text-[#4A4E69] hover:border-[#0E1628] hover:text-[#0E1628] hover:bg-[#F8F4ED]'
+                                                            ? 'bg-[#0E1628] border-[#0E1628] text-white shadow-sm dark:bg-[#1f3f7a] dark:border-[#1f3f7a]'
+                                                            : 'bg-[#FAFAF8] text-[#4A4E69] hover:border-[#0E1628] hover:text-[#0E1628] hover:bg-[#F8F4ED] dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:border-slate-300 dark:hover:text-white'
                                                     }
                                                 `}
                                             >

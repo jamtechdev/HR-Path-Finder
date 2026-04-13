@@ -1,16 +1,21 @@
 import { Link, usePage } from '@inertiajs/react';
 import { LayoutGrid, Building2, Target, FileBarChart, FolderKanban } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface CEOSidebarProps {
     isCollapsed?: boolean;
 }
 
 export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
+    const { i18n } = useTranslation();
+    const isKo = (i18n.resolvedLanguage ?? i18n.language ?? 'en').toLowerCase().startsWith('ko');
     const { url, props } = usePage<any>();
     const currentPath = url.split('?')[0];
     const appName = props?.appConfig?.name || 'HR Path-Finder';
     const appLogo = props?.appConfig?.logo || '/logo.svg';
+    const [logoFailed, setLogoFailed] = useState(false);
 
     const menuItems: {
         href: string;
@@ -20,31 +25,31 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
     }[] = [
         {
             href: '/ceo/dashboard',
-            label: 'Dashboard',
+            label: isKo ? '대시보드' : 'Dashboard',
             icon: LayoutGrid,
             isActive: (path) => path === '/ceo/dashboard' || path.startsWith('/ceo/dashboard/'),
         },
         {
             href: '/ceo/projects',
-            label: 'Companies',
+            label: isKo ? '회사' : 'Companies',
             icon: Building2,
             isActive: (path) => path === '/ceo/projects' || path.startsWith('/ceo/projects/'),
         },
         {
             href: '/ceo/kpi-review',
-            label: 'KPI Review (all)',
+            label: isKo ? 'KPI 검토 (전체)' : 'KPI Review (all)',
             icon: Target,
             isActive: (path) => path === '/ceo/kpi-review' || path.startsWith('/ceo/kpi-review/'),
         },
         {
             href: '/ceo/tree',
-            label: 'Tree',
+            label: isKo ? '트리' : 'Tree',
             icon: FolderKanban,
             isActive: (path) => path === '/ceo/tree' || path.startsWith('/ceo/tree/'),
         },
         {
             href: '/ceo/report',
-            label: 'Report',
+            label: isKo ? '리포트' : 'Report',
             icon: FileBarChart,
             isActive: (path) => path === '/ceo/report' || path.startsWith('/ceo/report/'),
         },
@@ -56,7 +61,16 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
 
             <div className="py-[18px] px-5 border-b border-white/[0.06] flex items-center gap-2.5 flex-shrink-0 relative">
                 <div className="w-8 h-8 bg-[#4ecdc4] rounded-lg flex items-center justify-center font-bold text-[13px] text-[#111d35] flex-shrink-0 overflow-hidden">
-                    <img src={appLogo} alt={appName} className="w-6 h-6 object-contain" />
+                    {!logoFailed ? (
+                        <img
+                            src={appLogo}
+                            alt={appName}
+                            className="w-6 h-6 object-contain"
+                            onError={() => setLogoFailed(true)}
+                        />
+                    ) : (
+                        <span className="text-[12px] font-bold">C</span>
+                    )}
                 </div>
                 {!isCollapsed && (
                     <div className="flex flex-col">
@@ -67,7 +81,7 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
             </div>
 
             <div className="flex-1 overflow-y-auto py-5 px-3 pb-2 min-h-0">
-                <div className="text-[9px] font-semibold tracking-[1.2px] uppercase text-[rgba(155,165,188,0.5)] px-2 mb-1.5">Menu</div>
+                <div className="text-[9px] font-semibold tracking-[1.2px] uppercase text-[rgba(155,165,188,0.5)] px-2 mb-1.5">{isKo ? '메뉴' : 'Menu'}</div>
                 {menuItems.map((item) => {
                     const Icon = item.icon;
                     const active = item.isActive(currentPath);

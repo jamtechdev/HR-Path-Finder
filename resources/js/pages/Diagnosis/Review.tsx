@@ -13,6 +13,7 @@ import { both, tr } from '@/config/diagnosisTranslations';
 import { clearClientDraftCaches } from '@/lib/clientDraftCleanup';
 import { mergeTabDraftsIntoDiagnosis } from '@/lib/diagnosisDraftStorage';
 import { getOrgChartDraftFiles, getLogoDraftFile } from '@/lib/diagnosisFileDrafts';
+import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
 // HR issue categories for grouping on review (id, color, issue strings)
@@ -178,6 +179,9 @@ export default function Review({
     stepStatuses,
     projectId,
 }: Props) {
+    const inviteModalResolvedKey = projectId
+        ? `diagnosis:invite-modal-resolved:${projectId}`
+        : null;
     const { t, i18n } = useTranslation();
     const isKo = (i18n.resolvedLanguage ?? i18n.language ?? 'ko')
         .toLowerCase()
@@ -186,6 +190,7 @@ export default function Review({
     const [processing, setProcessing] = useState(false);
     const [submitError, setSubmitError] = useState('');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showAlreadyDoneModal, setShowAlreadyDoneModal] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteProcessing, setInviteProcessing] = useState(false);
     const [inviteError, setInviteError] = useState('');
@@ -269,6 +274,19 @@ export default function Review({
         setPageErrors({});
     }, [props.errors, t]);
 
+    useEffect(() => {
+        if (!inviteModalResolvedKey) return;
+        if (diagnosisStatus !== 'submitted') return;
+        try {
+            const resolved = window.sessionStorage.getItem(inviteModalResolvedKey);
+            if (resolved !== '1') {
+                setShowSuccessModal(true);
+            }
+        } catch {
+            // ignore storage errors
+        }
+    }, [inviteModalResolvedKey, diagnosisStatus]);
+
     useLayoutEffect(() => {
         if (!submitError) return;
         submitErrorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -310,6 +328,7 @@ export default function Review({
             onError: (payload: Record<string, unknown>) => {
                 const errors = (payload?.errors ?? payload) as Record<string, string | string[]>;
                 const lines = flattenErrors(errors);
+                const alreadyDone = Object.prototype.hasOwnProperty.call(errors, 'already_submitted');
                 setSubmitError(lines[0] ?? t('diagnosis_review.submitFailed'));
                 const o: Record<string, string> = {};
                 for (const [k, v] of Object.entries(errors)) {
@@ -317,6 +336,9 @@ export default function Review({
                     if (typeof m === 'string') o[k] = m;
                 }
                 setPageErrors(o);
+                if (alreadyDone) {
+                    setShowAlreadyDoneModal(true);
+                }
                 setProcessing(false);
                 queueMicrotask(() => {
                     submitErrorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -344,6 +366,13 @@ export default function Review({
             hr_project_id: projectId,
         }, {
             onSuccess: () => {
+                try {
+                    if (inviteModalResolvedKey) {
+                        window.sessionStorage.setItem(inviteModalResolvedKey, '1');
+                    }
+                } catch {
+                    // ignore storage errors
+                }
                 setInviteSuccess(true);
                 setInviteProcessing(false);
                 setInviteError('');
@@ -359,6 +388,13 @@ export default function Review({
     };
 
     const handleCloseModal = () => {
+        try {
+            if (inviteModalResolvedKey) {
+                window.sessionStorage.setItem(inviteModalResolvedKey, '1');
+            }
+        } catch {
+            // ignore storage errors
+        }
         setShowSuccessModal(false);
         setInviteEmail('');
         setInviteError('');
@@ -601,27 +637,27 @@ export default function Review({
                 <DialogContent
                     onPointerDownOutside={(e) => e.preventDefault()}
                     onEscapeKeyDown={(e) => e.preventDefault()}
-                    className="w-[min(92vw,760px)] max-w-[760px] rounded-2xl border-slate-200 bg-white p-8 text-slate-900 shadow-2xl dark:border-[#2a3a5c] dark:bg-[#1a2744] dark:text-[#e2e8f0]"
+                    className="w-[min(92vw,760px)] max-w-[760px] rounded-2xl border-slate-200/80 bg-white/95 p-8 text-slate-900 shadow-2xl backdrop-blur-md dark:border-[#2a3a5c]/80 dark:bg-[#1a2744]/95 dark:text-[#e2e8f0]"
                 >
                     <DialogHeader>
-                        <div className="mb-5 flex items-center justify-center">
+                        <div className="mb-4 flex items-center justify-center">
                             <div className="rounded-full bg-green-100 p-4 dark:bg-green-900/30">
                                 <CheckCircle2 className="h-10 w-10 text-green-600" />
                             </div>
                         </div>
-                        <DialogTitle className="text-center text-3xl font-extrabold">
+                        <DialogTitle className="text-center text-3xl font-extrabold leading-tight">
                             <span className="block">{pickLabel(submitSuccessTitle)}</span>
                         </DialogTitle>
-                        <DialogDescription className="pt-3 text-center text-base text-slate-600 dark:text-[#9AA3B2]">
+                        <DialogDescription className="pt-2 text-center text-base leading-relaxed text-slate-600 dark:text-[#9AA3B2]">
                             <span className="block">{pickLabel(submitSuccessDesc)}</span>
                         </DialogDescription>
                     </DialogHeader>
                     
-                    <div className="py-5">
+                    <div className="py-4">
                         {!inviteSuccess ? (
-                            <form onSubmit={handleInviteCeo} className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="ceo-email" className="space-y-1 text-slate-700 dark:text-[#CBD0DA]">
+                            <form onSubmit={handleInviteCeo} className="space-y-5">
+                                <div className="mt-1 space-y-2.5">
+                                    <Label htmlFor="ceo-email" className="block text-sm font-semibold text-slate-700 dark:text-[#CBD0DA]">
                                         <span className="block">{pickLabel(ceoEmailAddressLabel)}</span>
                                     </Label>
                                     <Input
@@ -632,7 +668,10 @@ export default function Review({
                                         onChange={(e) => setInviteEmail(e.target.value)}
                                         disabled={inviteProcessing}
                                         required
-                                        className={inviteError ? 'border-red-500' : ''}
+                                        className={cn(
+                                            'h-11 rounded-lg border-slate-200 bg-white/90 px-3 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20',
+                                            inviteError && 'border-red-500',
+                                        )}
                                     />
                                     {inviteError && (
                                         <p className="flex items-center gap-1 text-sm text-red-600 dark:text-red-400">
@@ -642,20 +681,20 @@ export default function Review({
                                     )}
                                 </div>
                                 
-                                <DialogFooter className="flex-col sm:flex-row gap-2">
+                                <DialogFooter className="flex-col gap-2.5 pt-1 sm:flex-row">
                                     <Button
                                         type="button"
                                         variant="outline"
                                         onClick={handleCloseModal}
                                         disabled={inviteProcessing}
-                                        className="w-full sm:w-auto"
+                                        className="h-10 w-full sm:w-auto"
                                     >
                                         {pickLabel(skipForNowLabel)}
                                     </Button>
                                     <Button
                                         type="submit"
                                         disabled={inviteProcessing || !inviteEmail}
-                                        className="w-full sm:w-auto"
+                                        className="h-10 w-full sm:w-auto"
                                     >
                                         {inviteProcessing ? (
                                             <>
@@ -695,6 +734,24 @@ export default function Review({
                             </div>
                         )}
                     </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={showAlreadyDoneModal} onOpenChange={setShowAlreadyDoneModal}>
+                <DialogContent className="w-[min(92vw,560px)] max-w-[560px] rounded-2xl border-slate-200 bg-white p-7 text-slate-900 shadow-2xl dark:border-[#2a3a5c] dark:bg-[#1a2744] dark:text-[#e2e8f0]">
+                    <DialogHeader>
+                        <DialogTitle className="text-center text-2xl font-bold">
+                            You have already done diagnosis submission
+                        </DialogTitle>
+                        <DialogDescription className="pt-2 text-center text-sm text-slate-600 dark:text-[#9AA3B2]">
+                            Diagnosis is already submitted. No additional submit is needed.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button onClick={() => setShowAlreadyDoneModal(false)} className="w-full">
+                            OK
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 
@@ -1070,10 +1127,10 @@ export default function Review({
                                 </Link>
                                 <Button
                                     onClick={handleSubmit}
-                                    disabled={processing || diagnosisStatus === 'submitted' || !projectId}
+                                    disabled={processing || ['submitted', 'approved', 'locked'].includes(diagnosisStatus) || !projectId}
                                     className="rounded-xl bg-amber-500 px-6 py-2.5 font-bold text-slate-900 shadow-lg transition-all hover:bg-amber-400 disabled:opacity-60"
                                 >
-                                    {diagnosisStatus === 'submitted' ? (
+                                    {['submitted', 'approved', 'locked'].includes(diagnosisStatus) ? (
                                         <>
                                             <CheckCircle2 className="mr-2 h-4 w-4" />
                                             {t('diagnosis_review.submitted')}

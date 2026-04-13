@@ -67,24 +67,24 @@ class DiagnosisController extends Controller
             $companyUpdates['is_public'] = $request->boolean('is_public');
         }
         
-        if (isset($data['registration_number'])) {
-            $companyUpdates['registration_number'] = $data['registration_number'];
+        if (array_key_exists('registration_number', $data)) {
+            $companyUpdates['registration_number'] = $this->normalizeNullableString($data['registration_number']);
             unset($data['registration_number']); // Remove from diagnosis data
         }
         
-        if (isset($data['foundation_date'])) {
-            $companyUpdates['foundation_date'] = $data['foundation_date'];
+        if (array_key_exists('foundation_date', $data)) {
+            $companyUpdates['foundation_date'] = $this->normalizeNullableDate($data['foundation_date']);
             unset($data['foundation_date']); // Remove from diagnosis data
         }
         
-        if (isset($data['brand_name'])) {
-            $companyUpdates['brand_name'] = $data['brand_name'];
+        if (array_key_exists('brand_name', $data)) {
+            $companyUpdates['brand_name'] = $this->normalizeNullableString($data['brand_name']);
             unset($data['brand_name']); // Remove from diagnosis data
         }
 
         // Keep HQ location on Company (not in diagnoses table).
-        if (isset($data['hq_location'])) {
-            $companyUpdates['hq_location'] = $data['hq_location'];
+        if (array_key_exists('hq_location', $data)) {
+            $companyUpdates['hq_location'] = $this->normalizeNullableString($data['hq_location']);
             unset($data['hq_location']); // Remove from diagnosis payload
         }
 
@@ -341,7 +341,7 @@ class DiagnosisController extends Controller
     protected function persistDiagnosisFromSubmitData(HrProject $hrProject, array $data): Diagnosis
     {
         $companyUpdates = [];
-        foreach (['is_public', 'registration_number', 'foundation_date', 'brand_name'] as $f) {
+        foreach (['is_public'] as $f) {
             if (array_key_exists($f, $data)) {
                 if ($f === 'is_public') {
                     $companyUpdates['is_public'] = (bool) $data[$f];
@@ -361,16 +361,16 @@ class DiagnosisController extends Controller
                 }
             }
         }
-        if (isset($data['registration_number'])) {
-            $companyUpdates['registration_number'] = $data['registration_number'];
+        if (array_key_exists('registration_number', $data)) {
+            $companyUpdates['registration_number'] = $this->normalizeNullableString($data['registration_number']);
             unset($data['registration_number']);
         }
-        if (isset($data['foundation_date'])) {
-            $companyUpdates['foundation_date'] = $data['foundation_date'];
+        if (array_key_exists('foundation_date', $data)) {
+            $companyUpdates['foundation_date'] = $this->normalizeNullableDate($data['foundation_date']);
             unset($data['foundation_date']);
         }
-        if (isset($data['brand_name'])) {
-            $companyUpdates['brand_name'] = $data['brand_name'];
+        if (array_key_exists('brand_name', $data)) {
+            $companyUpdates['brand_name'] = $this->normalizeNullableString($data['brand_name']);
             unset($data['brand_name']);
         }
         if (! empty($companyUpdates)) {
@@ -407,6 +407,28 @@ class DiagnosisController extends Controller
         return $diagnosis->fresh();
     }
 
+    protected function normalizeNullableDate(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = trim((string) $value);
+
+        return $normalized === '' ? null : $normalized;
+    }
+
+    protected function normalizeNullableString(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = trim((string) $value);
+
+        return $normalized === '' ? null : $normalized;
+    }
+
     /**
      * Submit diagnosis for CEO review.
      */
@@ -414,6 +436,13 @@ class DiagnosisController extends Controller
     {
         if (! $request->user()->hasRole('hr_manager')) {
             abort(403);
+        }
+
+        $existingDiagnosis = $hrProject->diagnosis;
+        if ($existingDiagnosis && in_array($existingDiagnosis->status, [StepStatus::SUBMITTED, StepStatus::APPROVED, StepStatus::LOCKED], true)) {
+            return back()->withErrors([
+                'already_submitted' => 'You have already done diagnosis submission.',
+            ]);
         }
 
         $merged = [];
@@ -440,6 +469,22 @@ class DiagnosisController extends Controller
         if ($request->hasFile('company_logo')) {
             $path = $request->file('company_logo')->store('company-logos', 'public');
             $hrProject->company->update(['logo_path' => $path]);
+        }
+
+        // Normalize nullable company fields from JSON payload.
+        // In submit flow we validate using Validator::make($merged, ...), so
+        // ConvertEmptyStringsToNull middleware does not run here.
+        if (array_key_exists('foundation_date', $merged)) {
+            $merged['foundation_date'] = $this->normalizeNullableDate($merged['foundation_date']);
+        }
+        if (array_key_exists('registration_number', $merged)) {
+            $merged['registration_number'] = $this->normalizeNullableString($merged['registration_number']);
+        }
+        if (array_key_exists('brand_name', $merged)) {
+            $merged['brand_name'] = $this->normalizeNullableString($merged['brand_name']);
+        }
+        if (array_key_exists('hq_location', $merged)) {
+            $merged['hq_location'] = $this->normalizeNullableString($merged['hq_location']);
         }
 
         if (count($merged) > 0) {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import type { DiagnosisQuestion } from '../types';
+import { usePhilosophyText } from '../uiText';
 
 const SCAFFOLDS: Record<string, string> = {
     talent: 'Our company is currently facing challenges in [talent acquisition] due to [compensation competitiveness]. The most urgent pressure point is [key role vacancies], which is directly impacting [team performance / growth targets].',
@@ -19,6 +20,14 @@ const CATEGORY_CHIPS: { id: string; icon: string; label: string }[] = [
     { id: 'org', icon: '🏛️', label: 'Org Structure' },
     { id: 'other', icon: '🔧', label: 'Other' },
 ];
+const CATEGORY_CHIPS_KO: { id: string; icon: string; label: string }[] = [
+    { id: 'talent', icon: '🎯', label: '인재 채용' },
+    { id: 'performance', icon: '📊', label: '성과관리 체계' },
+    { id: 'leadership', icon: '🎖️', label: '리더십' },
+    { id: 'culture', icon: '🌱', label: '조직문화/몰입' },
+    { id: 'org', icon: '🏛️', label: '조직 구조' },
+    { id: 'other', icon: '🔧', label: '기타' },
+];
 
 const JOURNEY_CHIPS = [
     'Vision & Mission',
@@ -28,8 +37,10 @@ const JOURNEY_CHIPS = [
     'General Questions',
     'Org Issues',
 ];
+const JOURNEY_CHIPS_KO = ['비전·미션', '경영 철학', '성장 단계', '리더십', '일반 문항', '조직 이슈'];
 
 const AI_TAGS = ['Talent Strategy', 'Org Design', 'Compensation Model', 'Leadership Capability', 'Culture & Engagement'];
+const AI_TAGS_KO = ['인재 전략', '조직 설계', '보상 모델', '리더십 역량', '조직문화/몰입'];
 
 interface ConcernsStepProps {
     question?: DiagnosisQuestion | null;
@@ -39,6 +50,7 @@ interface ConcernsStepProps {
 }
 
 export default function ConcernsStep({ question, value, onChange, showError = false }: ConcernsStepProps) {
+    const { isKo } = usePhilosophyText();
     const [selectedCat, setSelectedCat] = useState<string | null>(null);
     const charCount = value.length;
     const scaffoldText = selectedCat ? (SCAFFOLDS[selectedCat] ?? '') : '';
@@ -56,27 +68,29 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
     };
 
     return (
-        <div className="w-full max-w-[760px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
             {/* Finale hero */}
             <div className="bg-[#0E1628] rounded-2xl p-6 sm:p-8 relative overflow-hidden">
                 <div className="absolute top-[-60px] right-[-40px] w-[220px] h-[220px] rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.25)_0%,transparent_65%)] pointer-events-none" />
                 <div className="absolute bottom-[-40px] left-[-20px] w-[140px] h-[140px] rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.1)_0%,transparent_65%)] pointer-events-none" />
                 <div className="flex flex-wrap items-center gap-2 mb-4 relative">
                     <span className="text-[10px] font-medium uppercase tracking-wider text-[#C9A84C] bg-[#C9A84C]/10 border border-[#C9A84C]/25 rounded-lg px-2.5 py-1">
-                        Final Step · 8 of 8
+                        {isKo ? '최종 단계 · 8 / 8' : 'Final Step · 8 of 8'}
                     </span>
                     <span className="text-[10px] font-semibold text-white bg-[#2E9E6B] rounded-lg px-2.5 py-1 flex items-center gap-1">
-                        ✓ All steps complete
+                        ✓ {isKo ? '모든 단계 완료' : 'All steps complete'}
                     </span>
                 </div>
                 <h1 className="font-serif text-2xl sm:text-[26px] font-bold text-white leading-tight mb-2.5 relative">
-                    Your philosophy is nearly <span className="text-[#E8C96B]">on record.</span>
+                    {isKo ? <>철학 정리가 거의 <span className="text-[#E8C96B]">완료되었습니다.</span></> : <>Your philosophy is nearly <span className="text-[#E8C96B]">on record.</span></>}
                 </h1>
                 <p className="text-[13px] text-white/60 font-light leading-relaxed max-w-[520px] relative mb-6">
-                    Eight stages of thinking, distilled into a framework your organization will be built around. One last question remains — and it may be the most revealing of all.
+                    {isKo
+                        ? '8개 단계의 사고를 조직 실행 프레임으로 정리했습니다. 이제 마지막 한 문항만 남았습니다.'
+                        : 'Eight stages of thinking, distilled into a framework your organization will be built around. One last question remains — and it may be the most revealing of all.'}
                 </p>
                 <div className="flex flex-wrap gap-1.5 relative">
-                    {JOURNEY_CHIPS.map((label) => (
+                    {(isKo ? JOURNEY_CHIPS_KO : JOURNEY_CHIPS).map((label) => (
                         <span
                             key={label}
                             className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-md px-2.5 py-1.5 text-[11px] text-white/50 font-light"
@@ -96,13 +110,17 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
                 </div>
                 <div className="min-w-0 flex-1">
                     <strong className="block text-[13px] font-medium text-[#E8C96B] mb-1">
-                        AI Pathfinder will analyze your response to generate your Top 3 Priority Actions.
+                        {isKo
+                            ? 'AI Pathfinder가 응답을 분석해 핵심 우선 실행과제 Top 3를 제안합니다.'
+                            : 'AI Pathfinder will analyze your response to generate your Top 3 Priority Actions.'}
                     </strong>
                     <p className="text-[12.5px] text-white/55 font-light leading-relaxed">
-                        The more specific your concern, the more targeted the output. Vague answers produce generic recommendations — your precision here directly determines the value of your final report.
+                        {isKo
+                            ? '우려사항을 구체적으로 작성할수록 결과가 정밀해집니다. 모호한 답변은 일반적 권고로 이어지며, 이 문항의 정밀도가 최종 리포트의 품질을 결정합니다.'
+                            : 'The more specific your concern, the more targeted the output. Vague answers produce generic recommendations — your precision here directly determines the value of your final report.'}
                     </p>
                     <div className="flex flex-wrap gap-1.5 mt-3">
-                        {AI_TAGS.map((tag) => (
+                        {(isKo ? AI_TAGS_KO : AI_TAGS).map((tag) => (
                             <span
                                 key={tag}
                                 className="text-[11px] text-white/40 bg-white/5 border border-white/10 rounded-lg px-2.5 py-1"
@@ -125,7 +143,7 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
                             CEO&apos;s Final Input
                         </div>
                         <div className="text-sm sm:text-[14.5px] font-normal text-[#1A1A2E] leading-snug dark:text-slate-100">
-                            {question?.question_text ?? "What is the biggest people or organizational challenge you are currently facing?"}
+                            {question?.question_text ?? (isKo ? '현재 가장 큰 인사/조직 과제는 무엇인가요?' : 'What is the biggest people or organizational challenge you are currently facing?')}
                             <span className="text-red-500 ml-0.5">*</span>
                         </div>
                     </div>
@@ -137,7 +155,7 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
                         Where does your biggest concern live? (optional — select to get a writing prompt)
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        {CATEGORY_CHIPS.map(({ id, icon, label }) => (
+                        {(isKo ? CATEGORY_CHIPS_KO : CATEGORY_CHIPS).map(({ id, icon, label }) => (
                             <button
                                 key={id}
                                 type="button"
@@ -159,7 +177,7 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
                 {scaffoldText && (
                     <div className="mx-4 sm:mx-5 mt-4 p-4 rounded-lg bg-[#C9A84C]/5 border border-[#C9A84C]/20 dark:bg-amber-900/10 dark:border-amber-700/40">
                         <div className="text-[10px] font-medium uppercase tracking-wider text-[#8A6820] mb-2">
-                            ✍️ Writing Prompt — edit the sentence below as a starting point
+                            {isKo ? '✍️ 작성 가이드 — 아래 문장을 시작점으로 수정해 주세요' : '✍️ Writing Prompt — edit the sentence below as a starting point'}
                         </div>
                         <p className="text-[12.5px] text-[#4A4E69] font-light leading-relaxed dark:text-slate-300">
                             {scaffoldText.split(/(\[[^\]]+\])/).map((part, i) =>
@@ -178,21 +196,21 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
                 {/* Textarea */}
                 <div className="p-4 sm:p-5">
                     {hasError && (
-                        <p className="mb-2 text-sm font-medium text-red-600">Please describe your biggest concern before submitting.</p>
+                        <p className="mb-2 text-sm font-medium text-red-600">{isKo ? '제출 전에 가장 큰 우려사항을 작성해 주세요.' : 'Please describe your biggest concern before submitting.'}</p>
                     )}
                     <Textarea
                         value={value}
                         onChange={(e) => onChange(e.target.value)}
-                        placeholder="e.g. We are struggling with [talent acquisition] due to [compensation limits]. The most urgent pressure point is [senior manager attrition], which puts our [2025 growth plan] at risk."
+                        placeholder={isKo ? '예) [보상 경쟁력] 이슈로 [핵심 인재 채용]에 어려움이 있습니다. 가장 시급한 문제는 [중간관리자 이탈]이며, 이는 [2025 성장 목표] 달성에 영향을 주고 있습니다.' : 'e.g. We are struggling with [talent acquisition] due to [compensation limits]. The most urgent pressure point is [senior manager attrition], which puts our [2025 growth plan] at risk.'}
                         rows={6}
                         className={`min-h-[140px] rounded-lg border-[1.5px] bg-[#F8F4ED] text-[13.5px] font-light text-[#1A1A2E] leading-relaxed focus:bg-white resize-y dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:focus:bg-slate-700 dark:placeholder:text-slate-500 ${hasError ? 'border-red-300 focus:border-red-500 dark:border-red-500/60 dark:focus:border-red-400' : 'border-[#E2DDD4] focus:border-[#0E1628] dark:focus:border-slate-400'}`}
                     />
                     <div className="flex flex-wrap justify-between items-center gap-2 mt-2">
                         <span className={`text-[11px] ${charCount >= 100 ? 'text-[#2E9E6B]' : 'text-[#9A9EB8]'}`}>
-                            {charCount} characters{charCount >= 100 ? ' ✓' : ''}
+                            {isKo ? `${charCount}자${charCount >= 100 ? ' ✓' : ''}` : `${charCount} characters${charCount >= 100 ? ' ✓' : ''}`}
                         </span>
                         <span className="text-[11.5px] text-[#9A9EB8] italic">
-                            Aim for 3–5 sentences for best AI output quality
+                            {isKo ? 'AI 품질 향상을 위해 3~5문장 작성을 권장합니다.' : 'Aim for 3–5 sentences for best AI output quality'}
                         </span>
                     </div>
                 </div>

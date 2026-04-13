@@ -120,7 +120,7 @@ class CeoReviewController extends Controller
             'registration_number' => ['nullable', 'string', 'max:255'],
             'hq_location' => ['nullable', 'string', 'max:255'],
             'brand_name' => ['nullable', 'string', 'max:255'],
-            'foundation_date' => ['nullable', 'string', 'max:255'],
+            'foundation_date' => ['nullable', 'date'],
             'industry_category' => ['nullable', 'string', 'max:255'],
             'industry_subcategory' => ['nullable', 'string', 'max:255'],
             'industry_other' => ['nullable', 'string', 'max:255'],
@@ -163,7 +163,13 @@ class CeoReviewController extends Controller
                 }
                 $value = $data[$field];
                 $current = $field === 'is_public' ? ($company->is_public ? 'true' : 'false') : ($company->$field ?? '');
-                $newStr = $field === 'is_public' ? ($value ? 'true' : 'false') : (string) $value;
+                if ($field === 'is_public') {
+                    $newStr = $value ? 'true' : 'false';
+                } elseif ($field === 'foundation_date') {
+                    $newStr = (string) ($this->normalizeNullableDate($value) ?? '');
+                } else {
+                    $newStr = (string) ($this->normalizeNullableString($value) ?? '');
+                }
                 if ($current != $newStr) {
                     CeoReviewLog::create([
                         'hr_project_id' => $hrProject->id,
@@ -176,8 +182,10 @@ class CeoReviewController extends Controller
                 }
                 if ($field === 'is_public') {
                     $companyUpdates['is_public'] = (bool) $value;
+                } elseif ($field === 'foundation_date') {
+                    $companyUpdates['foundation_date'] = $this->normalizeNullableDate($value);
                 } else {
-                    $companyUpdates[$field] = $value;
+                    $companyUpdates[$field] = $this->normalizeNullableString($value);
                 }
                 unset($data[$field]);
             }
@@ -610,5 +618,27 @@ class CeoReviewController extends Controller
         } else {
             return 'large';
         }
+    }
+
+    protected function normalizeNullableDate(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = trim((string) $value);
+
+        return $normalized === '' ? null : $normalized;
+    }
+
+    protected function normalizeNullableString(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = trim((string) $value);
+
+        return $normalized === '' ? null : $normalized;
     }
 }

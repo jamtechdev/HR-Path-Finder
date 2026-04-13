@@ -41,7 +41,7 @@ interface DiagnosisTabsProps {
 
 export default function DiagnosisTabs({ activeTab, onTabChange }: DiagnosisTabsProps) {
     return (
-        <TabsList className="flex w-full flex-wrap gap-1.5 bg-muted/50 p-2 min-h-0 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <TabsList className="!h-auto !justify-start !bg-transparent !p-0 my-3 flex w-full flex-nowrap gap-2 rounded-none border-b border-slate-200 bg-gradient-to-r from-slate-50 via-white to-slate-50 px-4 py-3 dark:border-slate-700 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 min-h-0 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -51,12 +51,16 @@ export default function DiagnosisTabs({ activeTab, onTabChange }: DiagnosisTabsP
                         value={tab.id}
                         onClick={() => onTabChange(tab.id)}
                         className={cn(
-                            'flex items-center gap-1.5 shrink-0 data-[state=active]:bg-white data-[state=active]:shadow-sm',
-                            'px-3 py-2 text-xs sm:text-sm',
+                            'flex items-center gap-2 shrink-0 rounded-full border border-slate-200/80 bg-white/70 text-slate-600 transition-all duration-150',
+                            'dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-300',
+                            'hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:hover:border-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-100',
+                            'data-[state=active]:border-blue-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-50 data-[state=active]:to-indigo-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm',
+                            'dark:data-[state=active]:border-blue-900/70 dark:data-[state=active]:from-blue-950/50 dark:data-[state=active]:to-indigo-950/50 dark:data-[state=active]:text-blue-300',
+                            'px-3.5 py-2 text-xs sm:text-sm',
                             isActive && 'font-semibold'
                         )}
                     >
-                        <Icon className="w-4 h-4 flex-shrink-0" />
+                        <Icon className="h-4 w-4 flex-shrink-0" />
                         <span className="whitespace-nowrap">{tab.label}</span>
                     </TabsTrigger>
                 );

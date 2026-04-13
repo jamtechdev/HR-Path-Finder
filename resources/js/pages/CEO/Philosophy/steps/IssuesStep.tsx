@@ -2,6 +2,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { ISSUE_CATEGORY_META, MAX_ORGANIZATIONAL_ISSUES } from '../constants';
 import type { HrIssue, SurveyFormData } from '../types';
+import { usePhilosophyText } from '../uiText';
 
 interface IssuesStepProps {
     hrIssues: HrIssue[];
@@ -11,6 +12,7 @@ interface IssuesStepProps {
 }
 
 export default function IssuesStep({ hrIssues, data, setData, showError = false }: IssuesStepProps) {
+    const { isKo } = usePhilosophyText();
     const orderedIds = (data.organizational_issues || []).map((id) => id.toString());
     const maxReached = orderedIds.length >= MAX_ORGANIZATIONAL_ISSUES;
     const hasError = showError && orderedIds.length === 0;
@@ -90,13 +92,15 @@ export default function IssuesStep({ hrIssues, data, setData, showError = false 
                 </div>
                 <div className="min-w-0 flex-1">
                     <div className="text-[10px] font-medium uppercase tracking-wider text-[#C9A84C] mb-1">
-                        Step 7 of 8
+                        {isKo ? '섹션 7 / 8' : 'Step 7 of 8'}
                     </div>
                     <h2 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#0E1628] dark:text-slate-100 mb-1.5">
-                        Organizational Issues
+                        {isKo ? '조직 이슈' : 'Organizational Issues'}
                     </h2>
                     <p className="text-[13px] text-[#4A4E69] dark:text-slate-400 font-light leading-relaxed max-w-[580px]">
-                        These issues have been identified by your HR manager as key challenges currently facing the company. Please select the issues that you also agree are relevant from your perspective as CEO.
+                        {isKo
+                            ? '아래 이슈는 HR 담당자가 현재 조직의 핵심 과제로 제시한 항목입니다. CEO 관점에서 공감하는 항목을 선택해 주세요.'
+                            : 'These issues have been identified by your HR manager as key challenges currently facing the company. Please select the issues that you also agree are relevant from your perspective as CEO.'}
                     </p>
                 </div>
             </div>
@@ -107,21 +111,23 @@ export default function IssuesStep({ hrIssues, data, setData, showError = false 
                 <span className="text-xl flex-shrink-0 relative">🎯</span>
                 <div className="relative min-w-0 flex-1">
                     <strong className="block text-xs font-medium text-[#E8C96B] mb-0.5">
-                        Select up to 5 issues that resonate most with you.
+                        {isKo ? '가장 중요하다고 생각하는 이슈를 최대 5개까지 선택해 주세요.' : 'Select up to 5 issues that resonate most with you.'}
                     </strong>
                     <span className="text-[11.5px] text-white/50 font-light">
-                        Your selections will be prioritized in the order chosen — the first issue you pick is weighted as most critical.
+                        {isKo
+                            ? '선택 순서대로 우선순위가 반영됩니다. 첫 번째 선택 항목이 가장 중요한 이슈로 간주됩니다.'
+                            : 'Your selections will be prioritized in the order chosen — the first issue you pick is weighted as most critical.'}
                     </span>
                 </div>
             </div>
             {maxReached && (
                 <div className="text-[12px] text-[#B08C2E] dark:text-[#E8C96B] -mt-3">
-                    You’ve selected the maximum of {MAX_ORGANIZATIONAL_ISSUES}. Remove one to add another.
+                    {isKo ? `최대 ${MAX_ORGANIZATIONAL_ISSUES}개까지 선택할 수 있습니다. 하나를 제거한 뒤 추가해 주세요.` : `You’ve selected the maximum of ${MAX_ORGANIZATIONAL_ISSUES}. Remove one to add another.`}
                 </div>
             )}
             {hasError && (
                 <div className="text-sm font-medium text-red-600 dark:text-red-400 -mt-3">
-                    Please select at least one organizational issue before continuing.
+                    {isKo ? '다음으로 진행하려면 최소 1개의 조직 이슈를 선택해 주세요.' : 'Please select at least one organizational issue before continuing.'}
                 </div>
             )}
 
@@ -130,16 +136,16 @@ export default function IssuesStep({ hrIssues, data, setData, showError = false 
                 <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#0E1628] to-[#C9A84C]" />
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                     <span className="font-serif text-sm font-bold text-[#0E1628] dark:text-slate-100">
-                        Your Top Issues (in priority order)
+                        {isKo ? '선택한 핵심 이슈 (우선순위 순)' : 'Your Top Issues (in priority order)'}
                     </span>
                     <span className="text-[11px] text-[#9A9EB8] dark:text-slate-400">
-                        Drag to reorder · Click × to remove · First = highest priority
+                        {isKo ? '드래그로 순서 변경 · × 클릭으로 제거 · 첫 번째가 최우선' : 'Drag to reorder · Click × to remove · First = highest priority'}
                     </span>
                 </div>
                 <div className="min-h-[44px] flex flex-col gap-2">
                     {selectedDetails.length === 0 ? (
                         <div className="text-center py-4 px-4 text-[12.5px] text-[#9A9EB8] dark:text-slate-400 border-2 border-dashed border-[#E2DDD4] dark:border-slate-600 rounded-lg italic">
-                            Select issues from the categories below — up to 5
+                            {isKo ? '아래 카테고리에서 최대 5개를 선택해 주세요.' : 'Select issues from the categories below — up to 5'}
                         </div>
                     ) : (
                         selectedDetails.map((item, idx) => (
@@ -172,7 +178,7 @@ export default function IssuesStep({ hrIssues, data, setData, showError = false 
                                 className={`flex items-center gap-2.5 bg-[#F8F4ED] dark:bg-slate-800 border border-[#E2DDD4] dark:border-slate-600 rounded-lg py-2.5 px-3.5 animate-in fade-in duration-200 cursor-move select-none ${
                                     draggingId === item.id ? 'ring-2 ring-[#C9A84C]/60' : ''
                                 }`}
-                                title="Drag to reorder"
+                                title={isKo ? '드래그로 순서 변경' : 'Drag to reorder'}
                             >
                                 <div className="w-[22px] h-[22px] rounded-full bg-[#0E1628] text-[#E8C96B] flex items-center justify-center text-[10px] font-bold flex-shrink-0">
                                     {idx + 1}
@@ -187,7 +193,7 @@ export default function IssuesStep({ hrIssues, data, setData, showError = false 
                                     type="button"
                                     onClick={() => removeIssue(item.id)}
                                     className="w-[22px] h-[22px] rounded-full bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center text-[11px] text-[#E05A5A] flex-shrink-0 transition-colors"
-                                    title="Remove"
+                                    title={isKo ? '제거' : 'Remove'}
                                 >
                                     ✕
                                 </button>
@@ -212,7 +218,9 @@ export default function IssuesStep({ hrIssues, data, setData, showError = false 
                                     {meta.name}
                                 </span>
                                 {selectedInCat > 0 && (
-                                    <span className="ml-auto text-[11px] text-[#9A9EB8] dark:text-slate-400">{selectedInCat} selected</span>
+                                    <span className="ml-auto text-[11px] text-[#9A9EB8] dark:text-slate-400">
+                                        {isKo ? `${selectedInCat}개 선택` : `${selectedInCat} selected`}
+                                    </span>
                                 )}
                             </div>
                             <div className="flex flex-wrap gap-2">
@@ -258,12 +266,12 @@ export default function IssuesStep({ hrIssues, data, setData, showError = false 
             {/* Other */}
             <div className="pt-4 border-t border-[#E2DDD4] dark:border-slate-700 space-y-2">
                 <label className="text-sm font-medium text-[#1A1A2E] dark:text-slate-200">
-                    Other (describe additional issues not listed above)
+                    {isKo ? '기타 (위 목록 외 추가 이슈 작성)' : 'Other (describe additional issues not listed above)'}
                 </label>
                 <Input
                     value={data.organizational_issues_other || ''}
                     onChange={(e) => setData('organizational_issues_other', e.target.value)}
-                    placeholder="Please describe additional HR or organizational issues..."
+                    placeholder={isKo ? '추가 HR/조직 이슈를 작성해 주세요...' : 'Please describe additional HR or organizational issues...'}
                     className="border-[#E2DDD4] dark:border-slate-600 bg-[#FAFAF8] dark:bg-slate-800 text-[#1A1A2E] dark:text-slate-200 placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500"
                 />
             </div>

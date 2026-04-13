@@ -334,9 +334,9 @@ export default function CeoReviewDiagnosis({
             </Sidebar>
             <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
-                <main className="flex-1 overflow-auto bg-slate-50/50 dark:bg-slate-900">
+                <main className="flex-1 overflow-auto bg-gradient-to-b from-slate-100/80 via-slate-50 to-slate-100/70 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
                     <Head title={t('ceo_review_diagnosis.page_title', { company: project.company.name })} />
-                    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+                    <div className="mx-auto w-full max-w-[1500px] p-4 md:p-8">
                         <InlineErrorSummary className="mb-6" message={pageError} errors={errors as any} />
                         {saveNotice && (
                             <Alert className="mb-6 border-emerald-200 bg-emerald-50 text-emerald-950 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-50">
@@ -350,7 +350,7 @@ export default function CeoReviewDiagnosis({
                         />
 
                         {diagnosis && (
-                            <div className="rounded-t-[14px] bg-gradient-to-br from-[#0f2a4a] to-[#1a4070] dark:from-slate-800 dark:to-slate-900 px-6 py-5 mb-0">
+                            <div className="mb-0 rounded-t-2xl border border-b-0 border-slate-200/30 bg-gradient-to-br from-[#0f2a4a] via-[#15355d] to-[#1a4070] px-6 py-6 shadow-lg dark:border-slate-700/60 dark:from-slate-800 dark:via-slate-850 dark:to-slate-900">
                                 <div className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#c8a84b]">
                                     {company?.name || project.company?.name || '—'} · {formatValue((data as any)?.industry_category) || '—'}
                                 </div>
@@ -407,65 +407,65 @@ export default function CeoReviewDiagnosis({
                             </Alert>
                         )}
 
-                        <div className="rounded-b-[14px] border border-t-0 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
+                        <div className="overflow-hidden rounded-b-2xl border border-t-0 border-slate-200 bg-white/95 shadow-xl backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95">
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-0">
                             <DiagnosisTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
-                            <TabsContent value="company-info" className="space-y-4 p-6 pt-4">
+                            <TabsContent value="company-info" className="space-y-5 bg-white p-6 pt-6 dark:bg-slate-900">
                                 {diagnosis && project && (
                                     <CompanyInfo project={project} company={company} diagnosis={diagnosis} activeTab="company-info" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} industryCategories={industryCategories} hqLocations={hqLocations ?? []} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
                                 )}
                             </TabsContent>
 
-                            <TabsContent value="workforce" className="space-y-4 p-6 pt-4">
+                            <TabsContent value="workforce" className="space-y-5 bg-white p-6 pt-6 dark:bg-slate-900">
                                 {diagnosis && project && (
                                     <Workforce project={project} company={company} diagnosis={diagnosis} activeTab="workforce" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
                                 )}
                             </TabsContent>
 
-                            <TabsContent value="executives" className="space-y-4 p-6 pt-4">
+                            <TabsContent value="executives" className="space-y-5 bg-white p-6 pt-6 dark:bg-slate-900">
                                 {diagnosis && project && (
                                     <Executives project={project} company={company} diagnosis={diagnosis} activeTab="executives" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
                                 )}
                             </TabsContent>
 
-                            <TabsContent value="leaders" className="space-y-4 p-6 pt-4">
+                            <TabsContent value="leaders" className="space-y-5 bg-white p-6 pt-6 dark:bg-slate-900">
                                 {diagnosis && project && (
                                     <Leaders project={project} company={company} diagnosis={diagnosis} activeTab="leaders" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
                                 )}
                             </TabsContent>
 
-                            <TabsContent value="job-grades" className="space-y-4 p-6 pt-4">
+                            <TabsContent value="job-grades" className="space-y-5 bg-white p-6 pt-6 dark:bg-slate-900">
                                 {diagnosis && project && (
                                     <JobGrades project={project} company={company} diagnosis={diagnosis} activeTab="job-grades" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
                                 )}
                             </TabsContent>
 
-                            <TabsContent value="organizational-charts" className="space-y-4 p-6 pt-4">
+                            <TabsContent value="organizational-charts" className="space-y-5 bg-white p-6 pt-6 dark:bg-slate-900">
                                 {diagnosis && project && (
                                     <OrganizationalCharts project={project} company={company} diagnosis={diagnosis} activeTab="organizational-charts" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
                                 )}
                             </TabsContent>
 
-                            <TabsContent value="organizational-structure" className="space-y-4 p-6 pt-4">
+                            <TabsContent value="organizational-structure" className="space-y-5 bg-white p-6 pt-6 dark:bg-slate-900">
                                 {diagnosis && project && (
                                     <OrganizationalStructure project={project} company={company} diagnosis={diagnosis} activeTab="organizational-structure" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
                                 )}
                             </TabsContent>
 
-                            <TabsContent value="job-structure" className="space-y-4 p-6 pt-4">
+                            <TabsContent value="job-structure" className="space-y-5 bg-white p-6 pt-6 dark:bg-slate-900">
                                 {diagnosis && project && (
                                     <JobStructure project={project} company={company} diagnosis={diagnosis} activeTab="job-structure" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
                                 )}
                             </TabsContent>
 
-                            <TabsContent value="hr-issues" className="space-y-4 p-6 pt-4">
+                            <TabsContent value="hr-issues" className="space-y-5 bg-white p-6 pt-6 dark:bg-slate-900">
                                 {diagnosis && project && (
                                     <HrIssues project={project} company={company} diagnosis={diagnosis} activeTab="hr-issues" diagnosisStatus={diagnosis.status ?? ''} stepStatuses={project?.step_statuses ?? {}} projectId={project.id} embedMode readOnly={diagnosis.status !== 'submitted'} embedData={data} embedSetData={setData} />
                                 )}
                             </TabsContent>
 
-                            <TabsContent value="history" className="space-y-4 p-6 pt-4">
+                            <TabsContent value="history" className="space-y-5 bg-white p-6 pt-6 dark:bg-slate-900">
                                 <ChangeHistoryTab reviewLogs={reviewLogs} />
                             </TabsContent>
                         </Tabs>
