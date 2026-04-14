@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\HrProject;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use Illuminate\Support\Facades\View;
 
 class PdfReportService
 {
@@ -16,14 +17,20 @@ class PdfReportService
     }
 
     /**
-     * Generate full project report PDF.
+     * Generate full project report PDF using blade template.
      */
     public function generateFullReport(HrProject $hrProject): string
     {
         $data = $this->reportDataService->getComprehensiveProjectData($hrProject);
-        
-        $html = $this->buildFullReportHtml($data);
-        
+
+        $html = View::make('pdf.c&bpdfreport', [
+            'project'             => $data['project'],
+            'snapshot'            => $data['hrSystemSnapshot'],
+            'stepStatuses'        => $data['stepStatuses'],
+            'jobDefinitions'      => $data['jobDefinitions'],
+            'compensationDetails' => $data['compensationDetails'],
+        ])->render();
+
         return $this->generatePdf($html);
     }
 

@@ -72,8 +72,8 @@ class ReportController extends Controller
         $pdfService = app(\App\Services\PdfReportService::class);
         $pdfContent = $pdfService->generateFullReport($hrProject);
 
-        $filename = 'HR_Report_' . $hrProject->company->name . '_' . date('Y-m-d') . '.pdf';
-        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $filename);
+        $filename = 'HR_Report_' . $hrProject->company->name . '_' . date('Y-m-d');
+        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $filename) . '.pdf';
 
         return response($pdfContent, 200)
             ->header('Content-Type', 'application/pdf')
@@ -103,8 +103,8 @@ class ReportController extends Controller
         ];
 
         $stepName = $stepNames[$step] ?? $step;
-        $filename = $stepName . '_Report_' . $hrProject->company->name . '_' . date('Y-m-d') . '.pdf';
-        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $filename);
+        $filename = $stepName . '_Report_' . $hrProject->company->name . '_' . date('Y-m-d');
+        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $filename) . '.pdf';
 
         return response($pdfContent, 200)
             ->header('Content-Type', 'application/pdf')
