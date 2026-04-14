@@ -320,6 +320,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('review', [\App\Http\Controllers\AdminReviewController::class, 'list'])->name('review.list');
         Route::get('review/{hrProject}', [\App\Http\Controllers\AdminReviewController::class, 'index'])->name('review.index');
         Route::post('review/{hrProject}/comment', [\App\Http\Controllers\AdminReviewController::class, 'addComment'])->name('review.comment');
+        Route::get('cb-snapshot-review', [\App\Http\Controllers\AdminReviewController::class, 'cbSnapshotReview'])->name('cb-snapshot-review.list');
+        Route::get('cb-snapshot-review/{hrProject}', [\App\Http\Controllers\AdminReviewController::class, 'cbSnapshotReview'])->name('cb-snapshot-review.index');
 
         // KPI Review (list before {hrProject})
         Route::get('kpi-review', [\App\Http\Controllers\Admin\KpiReviewController::class, 'listIndex'])->name('kpi-review.list');

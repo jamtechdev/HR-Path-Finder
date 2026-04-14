@@ -166,6 +166,19 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 <Building2 className="w-4 h-4" />
                                                 <span className="truncate">{t('admin_ui.sidebar.menu.all_companies')}</span>
                                             </Link>
+                                            <Link
+                                                href="/admin/cb-snapshot-review"
+                                                className={cn(
+                                                    menuBtnClass,
+                                                    'py-2 text-xs',
+                                                    isActivePath('/admin/cb-snapshot-review')
+                                                        ? 'bg-sidebar-accent text-sidebar-primary'
+                                                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
+                                                )}
+                                            >
+                                                <DollarSign className="w-4 h-4" />
+                                                <span className="truncate">C&amp;B Snapshot Review</span>
+                                            </Link>
                                         </div>
                                     )}
                                 </div>
