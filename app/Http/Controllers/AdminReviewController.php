@@ -42,6 +42,7 @@ class AdminReviewController extends Controller
             'organizationDesign',
             'performanceSystem',
             'compensationSystem',
+            'compensationSnapshotResponses.question',
             'hrPolicyOs',
             'adminComments',
             'company',
@@ -59,6 +60,20 @@ class AdminReviewController extends Controller
                 'organization_design' => $hrProject->organizationDesign,
                 'performance_system' => $hrProject->performanceSystem,
                 'compensation_system' => $hrProject->compensationSystem,
+                'compensation_snapshot_results' => $hrProject->compensationSnapshotResponses
+                    ->sortBy(fn ($resp) => $resp->question?->order ?? PHP_INT_MAX)
+                    ->values()
+                    ->map(function ($resp) {
+                        return [
+                            'question_order' => $resp->question?->order,
+                            'question_text' => $resp->question?->question_text,
+                            'answer_type' => $resp->question?->answer_type,
+                            'response' => $resp->response,
+                            'text_response' => $resp->text_response,
+                            'numeric_response' => $resp->numeric_response,
+                            'updated_at' => optional($resp->updated_at)?->toDateTimeString(),
+                        ];
+                    }),
                 'hr_policy_os' => $hrProject->hrPolicyOs,
             ],
         ]);

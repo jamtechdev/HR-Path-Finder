@@ -52,12 +52,23 @@ interface Props {
     stepData?: Record<string, unknown>;
 }
 
+type SnapshotResultRow = {
+    question_order?: number | null;
+    question_text?: string | null;
+    answer_type?: string | null;
+    response?: unknown;
+    text_response?: string | null;
+    numeric_response?: number | string | null;
+    updated_at?: string | null;
+};
+
 const STEP_LABELS: Record<string, string> = {
     diagnosis: 'Diagnosis',
     ceo_philosophy: 'CEO philosophy',
     organization_design: 'Organization design',
     performance_system: 'Performance system',
     compensation_system: 'Compensation system',
+    compensation_snapshot_results: 'C&B snapshot results',
     hr_policy_os: 'HR policy OS',
 };
 
@@ -114,6 +125,7 @@ export default function AdminReview({
 
     const selectedProject = project ?? projects.find((p) => p.id === selectedProjectId) ?? null;
     const stepStatuses = selectedProject?.step_statuses ?? {};
+    const snapshotRows = (stepData?.compensation_snapshot_results ?? []) as SnapshotResultRow[];
     const totalSteps = Object.keys(STEP_LABELS).length; // Using labels for consistent count
     const completedSteps = Object.values(stepStatuses).filter((s) =>
         ['approved', 'locked', 'completed', 'submitted'].includes(String(s)),
@@ -122,6 +134,47 @@ export default function AdminReview({
     const dataTabSteps = orderedSteps.filter(
         (step) => step in stepData || step in stepStatuses,
     );
+
+    const findSnapshotByOrder = (order: number): SnapshotResultRow | undefined =>
+        snapshotRows.find((row) => Number(row.question_order) === order);
+
+    const formatSnapshotValue = (row?: SnapshotResultRow): string => {
+        if (!row) return 'No data';
+        if (row.text_response && row.text_response.trim() !== '') return row.text_response;
+        if (row.numeric_response !== null && row.numeric_response !== undefined && row.numeric_response !== '') {
+            return String(row.numeric_response);
+        }
+        if (row.response === null || row.response === undefined) return 'No data';
+        if (Array.isArray(row.response)) {
+            return row.response.map((entry) => {
+                if (entry && typeof entry === 'object') {
+                    const label = String((entry as any).function ?? '').trim();
+                    const amount = (entry as any).amount;
+                    if (label) return `${label}: ${amount ?? '-'}`;
+                }
+                return String(entry);
+            }).join(' · ');
+        }
+        if (typeof row.response === 'object') {
+            return Object.entries(row.response as Record<string, unknown>)
+                .map(([k, v]) => `${k}: ${v ?? '-'}`)
+                .join(' · ');
+        }
+        return String(row.response);
+    };
+
+    const q8 = findSnapshotByOrder(8);
+    const q9 = findSnapshotByOrder(9);
+    const q11 = findSnapshotByOrder(11);
+    const latestSnapshotUpdate = snapshotRows
+        .map((row) => row.updated_at)
+        .filter((v): v is string => Boolean(v))
+        .sort()
+        .at(-1);
+    const diagnosisData = (stepData?.diagnosis ?? {}) as Record<string, unknown>;
+    const totalHeadcount = Number(diagnosisData.present_headcount ?? 0);
+    const fullTimeHeadcount = Number(diagnosisData.full_time_headcount ?? totalHeadcount);
+    const fullTimeRatio = totalHeadcount > 0 ? Math.round((fullTimeHeadcount / totalHeadcount) * 100) : null;
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -249,6 +302,87 @@ export default function AdminReview({
                                                 </CardContent>
                                             </Card>
                                         </div>
+
+                                        {/* C&B Snapshot Review Panel */}
+                                        <Card className="border-none shadow-sm overflow-hidden">
+                                            <CardHeader className="bg-white dark:bg-slate-900 border-b pb-4">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div>
+                                                        <CardTitle className="text-lg font-bold">
+                                                            {selectedProject.company?.name ?? `Project #${selectedProject.id}`} — C&B snapshot answers
+                                                        </CardTitle>
+                                                        <CardDescription>
+                                                            Manager: Jisu Kim · Last updated {latestSnapshotUpdate ? new Date(latestSnapshotUpdate).toLocaleDateString() : '—'}
+                                                        </CardDescription>
+                                                    </div>
+                                                    <Button asChild variant="outline" size="sm">
+                                                        <Link href={`/admin/report/${selectedProject.id}`}>
+                                                            Export
+                                                        </Link>
+                                                    </Button>
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent className="p-5 bg-white dark:bg-slate-900/50 space-y-6">
+                                                <div>
+                                                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                                                        Headcount Overview
+                                                    </h4>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                        <div className="rounded-xl border bg-slate-50 dark:bg-slate-800/40 p-3">
+                                                            <p className="text-xs text-muted-foreground">Total headcount</p>
+                                                            <p className="text-xl font-bold">
+                                                                {totalHeadcount > 0 ? `${totalHeadcount} employees` : '—'}
+                                                            </p>
+                                                        </div>
+                                                        <div className="rounded-xl border bg-slate-50 dark:bg-slate-800/40 p-3">
+                                                            <p className="text-xs text-muted-foreground">Full-time ratio</p>
+                                                            <p className="text-xl font-bold">
+                                                                {fullTimeRatio !== null ? `${fullTimeRatio}%` : '—'}
+                                                            </p>
+                                                        </div>
+                                                        <div className="rounded-xl border bg-slate-50 dark:bg-slate-800/40 p-3">
+                                                            <p className="text-xs text-muted-foreground">Responses captured</p>
+                                                            <p className="text-xl font-bold">{snapshotRows.length}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                                                        Compensation
+                                                    </h4>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                        <div className="rounded-xl border bg-slate-50 dark:bg-slate-800/40 p-3">
+                                                            <p className="text-xs text-muted-foreground mb-1">
+                                                                Avg. salary increase rate (3yr)
+                                                            </p>
+                                                            <p className="text-sm leading-relaxed">
+                                                                {formatSnapshotValue(q8)}
+                                                            </p>
+                                                        </div>
+                                                        <div className="rounded-xl border bg-slate-50 dark:bg-slate-800/40 p-3">
+                                                            <p className="text-xs text-muted-foreground mb-1">
+                                                                Personnel cost ratio (3yr)
+                                                            </p>
+                                                            <p className="text-sm leading-relaxed">
+                                                                {formatSnapshotValue(q9)}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {q11 && (
+                                                    <div>
+                                                        <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                                                            Salary By Job Category
+                                                        </h4>
+                                                        <div className="rounded-xl border bg-slate-50 dark:bg-slate-800/40 p-3">
+                                                            <p className="text-sm leading-relaxed">{formatSnapshotValue(q11)}</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
 
                                         {/* Status Overview Card */}
                                         <Card className="border-none shadow-sm overflow-hidden">

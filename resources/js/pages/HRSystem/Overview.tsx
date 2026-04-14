@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -37,6 +37,19 @@ interface HrSystem {
         compensation_structure?: string;
         incentive_types?: string[];
     };
+    compensation_snapshot_details?: Array<{
+        id: number;
+        order: number;
+        question_text: string;
+        answer_type: string;
+        metadata?: Record<string, any> | null;
+        response?: {
+            response?: any;
+            text_response?: string | null;
+            numeric_response?: number | null;
+            updated_at?: string | null;
+        } | null;
+    }>;
     is_locked: boolean;
 }
 
@@ -46,6 +59,49 @@ interface Props {
 
 export default function HrSystemOverview({ hrSystem }: Props) {
     const { t } = useTranslation();
+    const page = usePage();
+    const isAdmin =
+        ((page.props as any).auth?.user?.roles || []).some(
+            (role: { name?: string }) => role?.name === 'admin',
+        );
+    const snapshotDetails = hrSystem.compensation_snapshot_details || [];
+
+    const formatSnapshotAnswer = (item: NonNullable<HrSystem['compensation_snapshot_details']>[number]): string => {
+        const response = item.response;
+        if (!response) return 'Not answered';
+
+        if (response.text_response && response.text_response.trim() !== '') {
+            return response.text_response;
+        }
+        if (typeof response.numeric_response === 'number' && Number.isFinite(response.numeric_response)) {
+            return String(response.numeric_response);
+        }
+
+        const raw = response.response;
+        if (raw === null || raw === undefined) return 'Not answered';
+
+        if (Array.isArray(raw)) {
+            if (item.answer_type === 'numeric_job_rows') {
+                return raw
+                    .map((entry: any) => {
+                        const label = String(entry?.function || '').trim();
+                        const amount = entry?.amount;
+                        return label !== '' ? `${label}: ${amount ?? '-'}` : null;
+                    })
+                    .filter((v): v is string => v !== null)
+                    .join(', ');
+            }
+            return raw.map((v) => String(v)).join(', ');
+        }
+
+        if (typeof raw === 'object') {
+            return Object.entries(raw as Record<string, unknown>)
+                .map(([k, v]) => `${k}: ${v ?? '-'}`)
+                .join(', ');
+        }
+
+        return String(raw);
+    };
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -298,6 +354,37 @@ export default function HrSystemOverview({ hrSystem }: Props) {
                                 </CardContent>
                             </Card>
                         </div>
+
+                        {isAdmin && (
+                            <Card className="mt-6">
+                                <CardHeader>
+                                    <CardTitle>Compensation Snapshot Results (Client Answers)</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {snapshotDetails.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {snapshotDetails.map((item) => (
+                                                <div key={item.id} className="rounded-lg border p-3">
+                                                    <p className="text-sm font-semibold">
+                                                        Q{item.order}. {item.question_text}
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-muted-foreground">
+                                                        Type: {item.answer_type}
+                                                    </p>
+                                                    <p className="mt-2 text-sm">
+                                                        <strong>Answer:</strong> {formatSnapshotAnswer(item)}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">
+                                            No compensation snapshot answers found for this client yet.
+                                        </p>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
                 </main>
             </SidebarInset>

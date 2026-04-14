@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CompensationSnapshotQuestion;
 use App\Models\HrProject;
 use Illuminate\Http\Request;
 
@@ -28,7 +29,37 @@ class HrSystemOverviewController extends Controller
             'compensationSystem',
             'adminComments',
             'company',
+            'compensationSnapshotResponses.question',
         ]);
+
+        $compensationSnapshotQuestions = CompensationSnapshotQuestion::query()
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->orderBy('id')
+            ->get(['id', 'order', 'question_text', 'answer_type', 'metadata']);
+
+        $snapshotResponsesByQuestionId = $hrProject->compensationSnapshotResponses
+            ->keyBy('question_id');
+
+        $compensationSnapshotDetails = $compensationSnapshotQuestions->map(
+            function (CompensationSnapshotQuestion $question) use ($snapshotResponsesByQuestionId): array {
+                $response = $snapshotResponsesByQuestionId->get($question->id);
+
+                return [
+                    'id' => $question->id,
+                    'order' => (int) $question->order,
+                    'question_text' => (string) ($question->question_text ?? ''),
+                    'answer_type' => (string) ($question->answer_type ?? ''),
+                    'metadata' => is_array($question->metadata) ? $question->metadata : null,
+                    'response' => $response ? [
+                        'response' => $response->response,
+                        'text_response' => $response->text_response,
+                        'numeric_response' => $response->numeric_response !== null ? (float) $response->numeric_response : null,
+                        'updated_at' => optional($response->updated_at)?->toDateTimeString(),
+                    ] : null,
+                ];
+            }
+        )->values();
 
         // Build comprehensive HR system object
         $hrSystem = [
@@ -53,6 +84,7 @@ class HrSystemOverviewController extends Controller
             ],
             'is_locked' => $hrProject->isFullyLocked(),
             'step_statuses' => $hrProject->step_statuses,
+            'compensation_snapshot_details' => $compensationSnapshotDetails,
         ];
 
         return \Inertia\Inertia::render('HRSystem/Overview', [
