@@ -116,11 +116,10 @@ class CompensationSnapshotQuestionSeeder extends Seeder
             [
                 'order' => 8,
                 'question_text' => 'What has been the average annual salary increase rate over the past three years? (Excluding executives)',
-                'answer_type' => 'numeric',
+                'answer_type' => 'numeric_multi_year',
                 'options' => null,
                 'is_active' => true,
                 'metadata' => [
-                    'is_multi_year' => true,
                     'years' => ['2023', '2024', '2025'],
                     'unit' => '%',
                 ],
@@ -128,11 +127,10 @@ class CompensationSnapshotQuestionSeeder extends Seeder
             [
                 'order' => 9,
                 'question_text' => 'What has been your labor cost ratio over the past three years? (Labor cost / annual revenue)',
-                'answer_type' => 'numeric',
+                'answer_type' => 'numeric_multi_year',
                 'options' => null,
                 'is_active' => true,
                 'metadata' => [
-                    'is_multi_year' => true,
                     'years' => ['2023', '2024', '2025'],
                     'unit' => '%',
                 ],
@@ -152,11 +150,10 @@ class CompensationSnapshotQuestionSeeder extends Seeder
             [
                 'order' => 11,
                 'question_text' => 'What is the current average salary by job function?',
-                'answer_type' => 'numeric',
+                'answer_type' => 'numeric_job_rows',
                 'options' => null,
                 'is_active' => true,
                 'metadata' => [
-                    'is_job_functions' => true,
                     'unit' => 'KRW',
                     'default_functions' => ['Overall', 'Management', 'R&D', 'Sales & Marketing', 'Production'],
                 ],
@@ -164,11 +161,10 @@ class CompensationSnapshotQuestionSeeder extends Seeder
             [
                 'order' => 12,
                 'question_text' => 'What is the current average salary by years of service?',
-                'answer_type' => 'numeric',
+                'answer_type' => 'numeric_service_ranges',
                 'options' => null,
                 'is_active' => true,
                 'metadata' => [
-                    'is_years_of_service' => true,
                     'unit' => 'KRW',
                     'service_ranges' => [
                         ['label' => 'Overall', 'key' => 'overall'],
@@ -221,11 +217,10 @@ class CompensationSnapshotQuestionSeeder extends Seeder
             [
                 'order' => 16,
                 'question_text' => 'What has been the average bonus payout ratio over the past three years? (As % of base salary, excluding executives)',
-                'answer_type' => 'numeric',
+                'answer_type' => 'numeric_multi_year',
                 'options' => null,
                 'is_active' => true,
                 'metadata' => [
-                    'is_multi_year' => true,
                     'years' => ['2023', '2024', '2025'],
                     'unit' => '%',
                 ],

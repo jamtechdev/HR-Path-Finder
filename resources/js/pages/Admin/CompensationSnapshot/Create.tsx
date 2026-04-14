@@ -39,22 +39,19 @@ export default function CompensationSnapshotCreate({ answerTypes, parentQuestion
     const { t } = useTranslation(); // translation hook
     const [answerType, setAnswerType] = useState<string>('select_one');
     const [options, setOptions] = useState<string[]>([]);
+    const [showAdditionalSettings, setShowAdditionalSettings] = useState<boolean>(false);
     const [explanation, setExplanation] = useState<string>('');
+    const [enableSubQuestion, setEnableSubQuestion] = useState<boolean>(false);
     const [parentQuestionOrder, setParentQuestionOrder] = useState<string>('none');
     const [showWhenParentAnswered, setShowWhenParentAnswered] = useState<boolean>(true);
     const [showWhenParentOptionIncludes, setShowWhenParentOptionIncludes] = useState<string>('');
     const [unit, setUnit] = useState<string>('');
     const [autoPopulateTo, setAutoPopulateTo] = useState<string>('');
-    const [isMultiYear, setIsMultiYear] = useState<boolean>(false);
     const [yearsCsv, setYearsCsv] = useState<string>('2023, 2024, 2025');
-    const [isJobFunctions, setIsJobFunctions] = useState<boolean>(false);
     const [defaultFunctionsCsv, setDefaultFunctionsCsv] = useState<string>('Overall, Management, R&D, Sales & Marketing, Production');
-    const [isYearsOfService, setIsYearsOfService] = useState<boolean>(false);
     const [serviceRangesText, setServiceRangesText] = useState<string>(
         'Overall|overall\n1-3 years|1_3\n4-7 years|4_7\n8-12 years|8_12\n13-17 years|13_17\n18-20 years|18_20'
     );
-    const [linksToQuestion, setLinksToQuestion] = useState<string>('');
-    const [filtersFromQuestion, setFiltersFromQuestion] = useState<string>('');
 
     const { data, setData, post, processing, errors } = useForm({
         question_text: '',
@@ -75,38 +72,36 @@ export default function CompensationSnapshotCreate({ answerTypes, parentQuestion
         }
         const metadata: Record<string, any> = {};
         if (explanation.trim() !== '') metadata.explanation = explanation.trim();
-        if (parentQuestionOrder !== 'none') {
+        if (enableSubQuestion && parentQuestionOrder !== 'none') {
             metadata.parent_question_order = Number(parentQuestionOrder);
             metadata.show_when_parent_answered = showWhenParentAnswered;
             if (showWhenParentOptionIncludes.trim() !== '') {
                 metadata.show_when_parent_option_includes = showWhenParentOptionIncludes.trim();
             }
         }
-        if (unit.trim() !== '') metadata.unit = unit.trim();
-        if (autoPopulateTo.trim() !== '') metadata.auto_populate_to = autoPopulateTo.trim();
-        const useMultiYear = answerType === 'numeric_multi_year' || isMultiYear;
-        const useJobFunctions = answerType === 'numeric_job_rows' || isJobFunctions;
-        const useServiceRanges = answerType === 'numeric_service_ranges' || isYearsOfService;
-
-        if (useMultiYear) {
+        if (['numeric', 'numeric_multi_year', 'numeric_job_rows', 'numeric_service_ranges'].includes(answerType)) {
+            if (unit.trim() !== '') metadata.unit = unit.trim();
+        }
+        if (answerType === 'numeric' && autoPopulateTo.trim() !== '') {
+            metadata.auto_populate_to = autoPopulateTo.trim();
+        }
+        if (answerType === 'numeric_multi_year') {
             metadata.is_multi_year = true;
             const years = parseCsv(yearsCsv);
             if (years.length > 0) metadata.years = years;
         }
-        if (useJobFunctions) {
+        if (answerType === 'numeric_job_rows') {
             metadata.is_job_functions = true;
             const defaults = parseCsv(defaultFunctionsCsv);
             if (defaults.length > 0) metadata.default_functions = defaults;
         }
-        if (useServiceRanges) {
+        if (answerType === 'numeric_service_ranges') {
             metadata.is_years_of_service = true;
             const ranges = parseServiceRanges(serviceRangesText);
             if (ranges.length > 0) metadata.service_ranges = ranges;
         }
-        if (linksToQuestion.trim() !== '') metadata.links_to_question = Number(linksToQuestion);
-        if (filtersFromQuestion.trim() !== '') metadata.filters_from_question = Number(filtersFromQuestion);
         setData('metadata', Object.keys(metadata).length > 0 ? metadata : null);
-    }, [answerType, options, explanation, parentQuestionOrder, showWhenParentAnswered, showWhenParentOptionIncludes, unit, autoPopulateTo, isMultiYear, yearsCsv, isJobFunctions, defaultFunctionsCsv, isYearsOfService, serviceRangesText, linksToQuestion, filtersFromQuestion]);
+    }, [answerType, options, explanation, enableSubQuestion, parentQuestionOrder, showWhenParentAnswered, showWhenParentOptionIncludes, unit, autoPopulateTo, yearsCsv, defaultFunctionsCsv, serviceRangesText]);
 
     const requiresOptions = ['select_one', 'select_up_to_2', 'multiple'].includes(answerType);
     const isNumericType = ['numeric', 'numeric_multi_year', 'numeric_job_rows', 'numeric_service_ranges'].includes(answerType);
@@ -209,134 +204,141 @@ export default function CompensationSnapshotCreate({ answerTypes, parentQuestion
                                         </div>
                                     )}
 
-                                    <div>
-                                        <Label>{t('compensation_snapshot_create.version')}</Label>
-                                        <Input
-                                            value={data.version}
-                                            onChange={(e) => setData('version', e.target.value)}
-                                            placeholder={t('compensation_snapshot_create.version_placeholder')}
-                                        />
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            {t('compensation_snapshot_create.version_description')}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <Label>{t('compensation_snapshot_create.explanation')}</Label>
-                                        <Textarea
-                                            value={explanation}
-                                            onChange={(e) => setExplanation(e.target.value)}
-                                            rows={4}
-                                            placeholder={t('compensation_snapshot_create.explanation_placeholder')}
-                                        />
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            {t('compensation_snapshot_create.explanation_description')}
-                                        </p>
-                                    </div>
-
                                     <div className="space-y-3 rounded-lg border p-4">
-                                        <Label>Advanced Setup (optional)</Label>
-                                        <p className="text-xs text-muted-foreground">
-                                            Use this section to create structured answer forms like yearly values, job-category salary rows, and years-of-service salary ranges.
-                                        </p>
-                                        <div>
-                                            <Label>Unit</Label>
-                                            <Input
-                                                value={unit}
-                                                onChange={(e) => setUnit(e.target.value)}
-                                                placeholder="KRW or %"
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label>Auto-fill target key (optional)</Label>
-                                            <Input
-                                                value={autoPopulateTo}
-                                                onChange={(e) => setAutoPopulateTo(e.target.value)}
-                                                placeholder="e.g. benefits_previous_year_total_salary"
-                                            />
+                                        <div className="flex items-center justify-between">
+                                            <Label>Additional settings (optional)</Label>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setShowAdditionalSettings((prev) => !prev)}
+                                            >
+                                                {showAdditionalSettings ? 'Hide' : 'Show'}
+                                            </Button>
                                         </div>
 
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="is_multi_year" checked={isMultiYear} onCheckedChange={(c) => setIsMultiYear(Boolean(c))} />
-                                            <Label htmlFor="is_multi_year" className="cursor-pointer">Show year-by-year inputs</Label>
-                                        </div>
-                                        {isMultiYear && (
+                                        {showAdditionalSettings && (
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <Label>{t('compensation_snapshot_create.version')}</Label>
+                                                    <Input
+                                                        value={data.version}
+                                                        onChange={(e) => setData('version', e.target.value)}
+                                                        placeholder={t('compensation_snapshot_create.version_placeholder')}
+                                                    />
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        {t('compensation_snapshot_create.version_description')}
+                                                    </p>
+                                                </div>
+
+                                                <div>
+                                                    <Label>{t('compensation_snapshot_create.explanation')}</Label>
+                                                    <Textarea
+                                                        value={explanation}
+                                                        onChange={(e) => setExplanation(e.target.value)}
+                                                        rows={4}
+                                                        placeholder={t('compensation_snapshot_create.explanation_placeholder')}
+                                                    />
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        {t('compensation_snapshot_create.explanation_description')}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {['numeric', 'numeric_multi_year', 'numeric_job_rows', 'numeric_service_ranges'].includes(answerType) && (
+                                        <div className="space-y-3 rounded-lg border p-4">
+                                            <Label>Advanced Setup</Label>
+                                            <p className="text-xs text-muted-foreground">
+                                                Only fields required for selected Answer Type are shown.
+                                            </p>
+                                            <div>
+                                                <Label>Unit</Label>
+                                                <Input
+                                                    value={unit}
+                                                    onChange={(e) => setUnit(e.target.value)}
+                                                    placeholder="KRW or %"
+                                                />
+                                            </div>
+                                            {answerType === 'numeric' && (
+                                            <div>
+                                                <Label>Auto-fill target key (optional)</Label>
+                                                <Input
+                                                    value={autoPopulateTo}
+                                                    onChange={(e) => setAutoPopulateTo(e.target.value)}
+                                                    placeholder="e.g. benefits_previous_year_total_salary"
+                                                />
+                                            </div>
+                                            )}
+                                            {answerType === 'numeric_multi_year' && (
                                             <div>
                                                 <Label>Year labels (comma separated)</Label>
-                                                <Input value={yearsCsv} onChange={(e) => setYearsCsv(e.target.value)} />
+                                                <Input value={yearsCsv} onChange={(e) => setYearsCsv(e.target.value)} placeholder="Step 1: Enter years (e.g. 2023, 2024, 2025)" />
                                             </div>
-                                        )}
-
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="is_job_functions" checked={isJobFunctions} onCheckedChange={(c) => setIsJobFunctions(Boolean(c))} />
-                                            <Label htmlFor="is_job_functions" className="cursor-pointer">Show job category rows (Text + Numeric)</Label>
-                                        </div>
-                                        {isJobFunctions && (
+                                            )}
+                                            {answerType === 'numeric_job_rows' && (
                                             <div>
                                                 <Label>Default job categories (comma separated)</Label>
-                                                <Input value={defaultFunctionsCsv} onChange={(e) => setDefaultFunctionsCsv(e.target.value)} />
+                                                <Input value={defaultFunctionsCsv} onChange={(e) => setDefaultFunctionsCsv(e.target.value)} placeholder="Step 1: Enter categories (e.g. Staff, R&D, Sales)" />
                                             </div>
-                                        )}
-
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="is_years_of_service" checked={isYearsOfService} onCheckedChange={(c) => setIsYearsOfService(Boolean(c))} />
-                                            <Label htmlFor="is_years_of_service" className="cursor-pointer">Show years-of-service rows</Label>
-                                        </div>
-                                        {isYearsOfService && (
+                                            )}
+                                            {answerType === 'numeric_service_ranges' && (
                                             <div>
                                                 <Label>Years-of-service rows (one per line: Label|Key)</Label>
                                                 <Textarea
                                                     rows={6}
                                                     value={serviceRangesText}
                                                     onChange={(e) => setServiceRangesText(e.target.value)}
-                                                    placeholder={'Overall|overall\n1-3 years|1_3'}
+                                                    placeholder={'Step 1: Add one row per line\nOverall|overall\n1-3 years|1_3'}
                                                 />
                                             </div>
-                                        )}
-
-                                        <div>
-                                            <Label>Links to question order (optional)</Label>
-                                            <Input
-                                                type="number"
-                                                min={1}
-                                                value={linksToQuestion}
-                                                onChange={(e) => setLinksToQuestion(e.target.value)}
-                                                placeholder="e.g. 18"
-                                            />
+                                            )}
                                         </div>
-                                        <div>
-                                            <Label>Filters from question order (optional)</Label>
-                                            <Input
-                                                type="number"
-                                                min={1}
-                                                value={filtersFromQuestion}
-                                                onChange={(e) => setFiltersFromQuestion(e.target.value)}
-                                                placeholder="e.g. 17"
-                                            />
-                                        </div>
-                                    </div>
+                                    )}
 
                                     <div className="space-y-3 rounded-lg border p-4">
                                         <Label>Sub-question Setup (optional)</Label>
-                                        <Select value={parentQuestionOrder} onValueChange={setParentQuestionOrder}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="No parent question" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="none">No parent question</SelectItem>
-                                                {parentQuestionCandidates.map((q) => (
-                                                    <SelectItem key={q.id} value={String(q.order)}>
-                                                        {q.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
                                         <p className="text-xs text-muted-foreground">
-                                            Use this when you want child questions like 7-1, shown only after the parent question.
+                                            Enable only when you need child question flow (example: Q7 then Q7-1).
                                         </p>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id="enable_sub_question"
+                                                checked={enableSubQuestion}
+                                                onCheckedChange={(checked) => {
+                                                    const next = Boolean(checked);
+                                                    setEnableSubQuestion(next);
+                                                    if (!next) {
+                                                        setParentQuestionOrder('none');
+                                                        setShowWhenParentOptionIncludes('');
+                                                        setShowWhenParentAnswered(true);
+                                                    }
+                                                }}
+                                            />
+                                            <Label htmlFor="enable_sub_question" className="cursor-pointer">
+                                                Enable sub-question rules
+                                            </Label>
+                                        </div>
 
-                                        {parentQuestionOrder !== 'none' && (
+                                        {enableSubQuestion && (
                                             <div className="space-y-3">
+                                                <div>
+                                                    <Label>Parent question</Label>
+                                                    <Select value={parentQuestionOrder} onValueChange={setParentQuestionOrder}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Step 1: Select parent question (e.g. Q7)" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="none">Step 1: Select parent question</SelectItem>
+                                                            {parentQuestionCandidates.map((q) => (
+                                                                <SelectItem key={q.id} value={String(q.order)}>
+                                                                    {q.label}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
                                                 <div className="flex items-center space-x-2">
                                                     <Checkbox
                                                         id="show_when_parent_answered"
@@ -354,7 +356,7 @@ export default function CompensationSnapshotCreate({ answerTypes, parentQuestion
                                                     <Input
                                                         value={showWhenParentOptionIncludes}
                                                         onChange={(e) => setShowWhenParentOptionIncludes(e.target.value)}
-                                                        placeholder="e.g. chicken"
+                                                        placeholder="Step 2 (optional): enter parent option text, e.g. chicken"
                                                     />
                                                     <p className="mt-1 text-xs text-muted-foreground">
                                                         For select/multiple parent questions, show this child only if the
