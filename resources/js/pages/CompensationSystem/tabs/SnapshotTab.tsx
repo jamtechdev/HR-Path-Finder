@@ -556,7 +556,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                 {isYearsOfService && isNumericType && (
                                                     <div className="space-y-3">
                                                         {metadataServiceRanges.map((range) => (
-                                                            <div key={range.key} className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
+                                                            <div key={range.key} className="flex items-center gap-4 flex-wrap p-3 bg-muted/30 rounded-lg">
                                                                 <Label className="w-32 text-sm font-medium">{range.label}</Label>
                                                                 <Input
                                                                     type="text"

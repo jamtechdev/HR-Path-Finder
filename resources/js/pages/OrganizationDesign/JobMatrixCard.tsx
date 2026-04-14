@@ -194,7 +194,7 @@ export default function JobMatrixCard({ project, jobDefinition, orgMapping, repo
                         </button>
                     </div>
                     <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-7 rounded-t-lg shadow-lg">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap">
                             <div className="flex-1">
                                 <h2 className={comfortMode ? 'text-5xl font-bold' : 'text-4xl font-bold'}>{project?.company?.name || 'Company Name'}</h2>
                             </div>
@@ -521,7 +521,7 @@ export default function JobMatrixCard({ project, jobDefinition, orgMapping, repo
                                 </div>
 
                                 {/* Legend */}
-                                <div className="mt-4 flex items-center gap-4 justify-end">
+                                <div className="mt-4 flex items-center gap-4 flex-wrap justify-end">
                                     <div className="flex items-center gap-2">
                                         <div className="w-4 h-4 bg-yellow-200 border border-yellow-400 rounded"></div>
                                         <span className="text-xs font-medium">Strategic Initiatives</span>

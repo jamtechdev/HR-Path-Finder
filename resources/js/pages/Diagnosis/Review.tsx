@@ -86,7 +86,7 @@ function ReviewCard({
 }) {
     return (
         <div className="group overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:shadow-md hover:border-slate-300/80 dark:border-[#2a3a5c] dark:bg-[#1a2744]">
-            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-4 py-3 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30">
+            <div className="flex items-center justify-between flex-wrap border-b border-slate-100 bg-slate-50/80 px-4 py-3 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30">
                 <div className="flex items-center gap-2.5">
                     <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-base shadow-sm ring-1 ring-slate-200/80 dark:bg-[#1e3a5f] dark:ring-[#2a3a5c]">
                         {icon}
@@ -1119,7 +1119,7 @@ export default function Review({
                                 <h3 className="text-base font-bold text-white">{t('diagnosis_review.submitConfirmTitle')}</h3>
                                 <p className="mt-1 text-sm text-slate-400">{t('diagnosis_review.submitConfirmDesc')}</p>
                             </div>
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-4 flex-wrap">
                                 <Link href={getEditUrl('hr-issues')}>
                                     <Button variant="outline" size="sm" className="border-slate-500/60 bg-transparent font-medium text-slate-300 hover:bg-white/10 hover:text-white">
                                         {t('diagnosis_review.backBtn')}

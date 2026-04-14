@@ -41,7 +41,7 @@ export default function IntroTextsIndex({ texts }: Props) {
                 <main className="flex-1 overflow-auto bg-background">
                     <Head title={t('admin_intro_texts.page_title')} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
-                        <div className="mb-6 flex items-center justify-between">
+                        <div className="mb-6 flex items-center justify-between flex-wrap flex-wrap">
                             <div>
                                 <h1 className="text-3xl font-bold mb-2 text-foreground">{t('admin_intro_texts.heading')}</h1>
                                 <p className="text-muted-foreground">
@@ -65,7 +65,7 @@ export default function IntroTextsIndex({ texts }: Props) {
                                     {texts.map((text) => (
                                         <div
                                             key={text.id}
-                                            className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
+                                            className="flex items-center justify-between flex-wrap p-4 border rounded-lg hover:bg-muted/50"
                                         >
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-1">

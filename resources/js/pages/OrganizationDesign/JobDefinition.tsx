@@ -150,7 +150,7 @@ export default function JobDefinitionPage({ project, jobDefinitions, selectedJob
             <div className="p-6 md:p-8 max-w-6xl mx-auto">
                         {/* Header */}
                         <div className="mb-8">
-                            <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center justify-between flex-wrap mb-4">
                                 <div className="flex-1">
                                     <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                                         Job Definition
@@ -190,7 +190,7 @@ export default function JobDefinitionPage({ project, jobDefinitions, selectedJob
                         {currentJob && (
                             <Card className="shadow-lg border-border/50">
                                 <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between flex-wrap">
                                         <div className="flex items-center gap-3">
                                             <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
                                                 <FileText className="w-6 h-6 text-primary" />
@@ -572,7 +572,7 @@ export default function JobDefinitionPage({ project, jobDefinitions, selectedJob
                         )}
 
                         {/* Action Buttons */}
-                        <div className="mt-8 flex items-center justify-between pt-6 border-t">
+                        <div className="mt-8 flex items-center justify-between flex-wrap pt-6 border-t">
                             <Button
                                 variant="outline"
                                 onClick={() => router.visit(`/hr-manager/job-analysis/${project.id}/job-list-selection`)}

@@ -393,7 +393,7 @@ export default function CeoDashboard({
                         {pendingReviews.length > 0 && (
                             <Card className="mb-8 border-orange-200 dark:border-orange-800">
                                 <CardHeader>
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between flex-wrap">
                                         <CardTitle className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
                                             <AlertCircle className="w-5 h-5" />
                                             {t('ceo_dashboard.action_required')}
@@ -414,7 +414,7 @@ export default function CeoDashboard({
                                                 <Link
                                                     key={project.id}
                                                     href={`/ceo/review/diagnosis/${project.id}`}
-                                                    className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                                                    className="flex items-center justify-between flex-wrap rounded-lg border p-3 transition-colors hover:bg-muted/50"
                                                 >
                                                     <span className="font-medium">
                                                         {project.company
@@ -440,7 +440,7 @@ export default function CeoDashboard({
                         {/* KPI Review Section */}
                         <Card className="mb-8 border-blue-200 dark:border-blue-800">
                             <CardHeader>
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between flex-wrap">
                                     <CardTitle className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
                                         <Target className="w-5 h-5" />
                                         {t('ceo_dashboard.kpi_review_title')}
@@ -472,7 +472,7 @@ export default function CeoDashboard({
                                                     <Link
                                                         key={project.id}
                                                         href={`/ceo/kpi-review/${project.id}`}
-                                                        className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                                                        className="flex items-center justify-between flex-wrap rounded-lg border p-3 transition-colors hover:bg-muted/50"
                                                     >
                                                         <span className="font-medium">
                                                             {project.company
@@ -504,7 +504,7 @@ export default function CeoDashboard({
                         {needsAttention.length > 0 && (
                             <Card className="mb-8">
                                 <CardHeader>
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between flex-wrap">
                                         <CardTitle>{t('ceo_dashboard.needs_attention.title')}</CardTitle>
                                         <Link href="/hr-projects">
                                             <Button variant="ghost" size="sm">
@@ -540,10 +540,10 @@ export default function CeoDashboard({
                                                             ? `/ceo/philosophy/survey/${project.id}`
                                                             : `/ceo/review/diagnosis/${project.id}`
                                                     }
-                                                    className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50"
+                                                    className="flex items-center justify-between flex-wrap rounded-lg border p-4 transition-colors hover:bg-muted/50"
                                                 >
                                                     <div className="flex-1">
-                                                        <div className="mb-1 flex items-center gap-3">
+                                                        <div className="mb-1 flex items-center gap-3 flex-wrap">
                                                             <p className="font-medium">
                                                                 {project.company
                                                                     ?.name ||
@@ -564,7 +564,7 @@ export default function CeoDashboard({
                                                                 </Badge>
                                                             )}
                                                         </div>
-                                                        <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                                                        <div className="mt-2 flex items-center gap-4 flex-wrap text-xs text-muted-foreground">
                                                             {hrProgress && (
                                                                 <p>
                                                                     {t(
@@ -636,7 +636,7 @@ export default function CeoDashboard({
                                     <Link href="/ceo/projects">
                                         <Card className="cursor-pointer border-2 transition-shadow hover:border-primary/50 hover:shadow-lg">
                                             <CardContent className="p-6">
-                                                <div className="flex items-center gap-4">
+                                                <div className="flex items-center gap-4 flex-wrap">
                                                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                                                         <FolderKanban className="h-6 w-6 text-primary" />
                                                     </div>
@@ -659,7 +659,7 @@ export default function CeoDashboard({
                                         >
                                             <Card className="cursor-pointer border-2 border-emerald-200 transition-shadow hover:border-emerald-400 hover:shadow-lg dark:border-emerald-800 dark:hover:border-emerald-600">
                                                 <CardContent className="p-6">
-                                                    <div className="flex items-center gap-4">
+                                                    <div className="flex items-center gap-4 flex-wrap">
                                                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/20">
                                                             <ClipboardList className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                                                         </div>
@@ -698,7 +698,7 @@ export default function CeoDashboard({
                                         <Link href="/ceo/projects">
                                             <Card className="cursor-pointer border-2 border-orange-200 transition-shadow hover:border-orange-300 hover:shadow-lg dark:border-orange-800 dark:hover:border-orange-600">
                                                 <CardContent className="p-6">
-                                                    <div className="flex items-center gap-4">
+                                                    <div className="flex items-center gap-4 flex-wrap">
                                                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 dark:bg-orange-900/20">
                                                             <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                                                         </div>

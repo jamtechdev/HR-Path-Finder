@@ -296,7 +296,7 @@ export default function PayBandCreatorPanel({
             </div>
 
             <div className="pb-card">
-                <div className="mb-4 flex items-center justify-between"><span className="pb-slabel">{tr('section_standards')}</span></div>
+                <div className="mb-4 flex items-center justify-between flex-wrap"><span className="pb-slabel">{tr('section_standards')}</span></div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: '1rem' }}>
                     <div>
                         <div className="pb-slabel" style={{ marginBottom: 6 }}>{tr('grade_steps')}</div>
@@ -339,7 +339,7 @@ export default function PayBandCreatorPanel({
             </div>
 
             <div className="pb-card">
-                <div className="mb-3 flex items-center justify-between"><span className="pb-slabel">{tr('factor_section')}</span></div>
+                <div className="mb-3 flex items-center justify-between flex-wrap"><span className="pb-slabel">{tr('factor_section')}</span></div>
                 <div className="pb-factor">
                     <div className="pb-fbox">
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -376,7 +376,7 @@ export default function PayBandCreatorPanel({
             </div>
 
             <div className="pb-card">
-                <div className="mb-[10px] flex items-center justify-between">
+                <div className="mb-[10px] flex items-center justify-between flex-wrap">
                     <span className="pb-slabel">{tr('viz_section')}</span>
                     <span className="rounded border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{tr('unit_badge')}</span>
                 </div>
@@ -546,7 +546,7 @@ export default function PayBandCreatorPanel({
             </div>
 
             <div className="pb-card">
-                <div className="mb-4 flex items-center justify-between"><span className="pb-slabel">Operation Criteria</span></div>
+                <div className="mb-4 flex items-center justify-between flex-wrap"><span className="pb-slabel">Operation Criteria</span></div>
                 <FieldErrorMessage fieldKey="comp-operation-criteria" errors={fieldErrors} className="mb-3" />
                 <table className="pb-crit">
                     <thead><tr><th>No.</th><th>항목</th><th>설정값</th></tr></thead>

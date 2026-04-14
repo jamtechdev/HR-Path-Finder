@@ -23,7 +23,7 @@ export default function ProgressTracker({ stepCards, stepStatuses, getStepState 
                 <h3 className="font-semibold tracking-tight text-lg">HR System Design Progress</h3>
             </div>
             <div className="p-3 md:p-6 pt-0">
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                     {stepCards.map((step, index) => {
                         const state = getStepState(step.id);
                         const isCurrent = state === 'current';

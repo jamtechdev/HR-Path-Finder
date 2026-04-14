@@ -410,7 +410,7 @@ export default function Step5OrgChartMapping({
                         className="flex max-h-[min(70vh,600px)] flex-col rounded-xl border border-[#e5e7eb] bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900"
                         style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)', maxHeight: 'min(70vh, 600px)' }}
                     >
-                        <div className="flex items-center justify-between flex-wrap gap-3 mb-5 shrink-0">
+                        <div className="flex items-center justify-between flex-wrap flex-wrap gap-3 mb-5 shrink-0">
                             <div className="flex items-center gap-2">
                                 <FolderTree className="w-5 h-5 text-[#48b082]" aria-hidden />
                                 <span className="text-[12px] font-bold uppercase tracking-wider text-[#121431] dark:text-slate-100">
@@ -678,7 +678,7 @@ export default function Step5OrgChartMapping({
 
                         {/* FINALIZED JOBS progress — slightly darker beige card */}
                         <div className="rounded-xl border border-[#e5e7eb] bg-[#f5f3ef] p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                            <div className="flex items-center justify-between gap-2 mb-2.5">
+                            <div className="flex items-center justify-between flex-wrap gap-2 mb-2.5">
                                 <span className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-[#121431] dark:text-slate-100">
                                     <Briefcase className="h-4 w-4 text-[#121431] dark:text-slate-100" />
                                     FINALIZED JOBS

@@ -271,7 +271,7 @@ export default function HrIssues({
             >
                 {/* Header */}
                 <div
-                    className="flex items-center justify-between border-b px-6 py-5"
+                    className="flex items-center justify-between flex-wrap border-b px-6 py-5"
                     style={{
                         background: `linear-gradient(135deg, ${activeCat.color}12, ${activeCat.color}06)`,
                     }}
@@ -386,7 +386,7 @@ export default function HrIssues({
                 </div>
 
                 {/* Footer Navigation */}
-                <div className="flex items-center justify-between border-t bg-slate-50 px-6 py-3.5 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20">
+                <div className="flex items-center justify-between flex-wrap border-t bg-slate-50 px-6 py-3.5 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20">
                     <button
                         type="button"
                         onClick={goPrev}

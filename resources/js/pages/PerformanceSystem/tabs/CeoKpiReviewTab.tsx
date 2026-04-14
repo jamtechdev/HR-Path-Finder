@@ -209,7 +209,7 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                                         }}
                                     >
                                         <CardHeader>
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex items-center justify-between flex-wrap">
                                                 <CardTitle className="text-lg">{orgName}</CardTitle>
                                                 <Badge 
                                                     variant={
@@ -475,7 +475,7 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                 </Card>
 
                 {/* Action Buttons */}
-                <div className="flex items-center justify-between gap-4 pt-6 border-t border-border">
+                <div className="flex items-center justify-between flex-wrap gap-4 pt-6 border-t border-border">
                     {onBack && (
                         <Button 
                             onClick={onBack} 

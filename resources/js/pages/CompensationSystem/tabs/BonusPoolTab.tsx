@@ -875,7 +875,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                     {/* 5. Summary Note */}
                     <Card className="shadow-sm border rounded-xl overflow-hidden">
                         <CardContent className="p-5">
-                            <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center justify-between flex-wrap mb-3">
                                 <div className="flex items-center gap-2">
                                     <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-xs font-bold flex items-center justify-center">
                                         5

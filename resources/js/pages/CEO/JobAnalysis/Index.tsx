@@ -131,7 +131,7 @@ All inputs are confidential and will not be shared with other employees.`;
                 {/* Header */}
                 <div className="bg-white dark:bg-slate-900 border-b dark:border-slate-700">
                     <div className="max-w-5xl mx-auto px-6 md:px-8 py-8">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap  flex-wrap">
                             <div>
                                 <h1 className="text-3xl font-bold text-gray-800 dark:text-slate-100 mb-2">
                                     {t('ceo_job_analysis.heading')}
@@ -157,7 +157,7 @@ All inputs are confidential and will not be shared with other employees.`;
                             className="cursor-pointer hover:bg-muted/30 transition-colors dark:hover:bg-slate-700/50"
                             onClick={() => toggleSection('intro')}
                         >
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                 <div className="flex items-center gap-3">
                                     <FileText className="w-6 h-6 text-primary" />
                                     <CardTitle className="text-xl dark:text-slate-100">{t('ceo_job_analysis.before_begin')}</CardTitle>
@@ -191,7 +191,7 @@ All inputs are confidential and will not be shared with other employees.`;
                                 className="cursor-pointer hover:bg-muted/30 transition-colors dark:hover:bg-slate-700/50"
                                 onClick={() => toggleSection('policy-answers')}
                             >
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                     <div className="flex items-center gap-3">
                                         <Shield className="w-6 h-6 text-primary" />
                                         <CardTitle className="text-xl dark:text-slate-100">{t('ceo_job_analysis.policy_snapshot_answers')}</CardTitle>
@@ -249,7 +249,7 @@ All inputs are confidential and will not be shared with other employees.`;
                             className="cursor-pointer hover:bg-muted/30 transition-colors dark:hover:bg-slate-700/50"
                             onClick={() => toggleSection('job-list')}
                         >
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                 <div className="flex items-center gap-3">
                                     <List className="w-6 h-6 text-primary" />
                                     <CardTitle className="text-xl dark:text-slate-100">{t('ceo_job_analysis.job_list_selection')}</CardTitle>
@@ -307,7 +307,7 @@ All inputs are confidential and will not be shared with other employees.`;
                                 className="cursor-pointer hover:bg-muted/30 transition-colors dark:hover:bg-slate-700/50"
                                 onClick={() => toggleSection('job-definitions')}
                             >
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                     <div className="flex items-center gap-3">
                                         <FileText className="w-6 h-6 text-primary" />
                                         <CardTitle className="text-xl dark:text-slate-100">{t('ceo_job_analysis.job_definitions')}</CardTitle>
@@ -340,7 +340,7 @@ All inputs are confidential and will not be shared with other employees.`;
                                                 className="cursor-pointer hover:bg-muted/30 transition-colors dark:hover:bg-slate-600/50"
                                                 onClick={() => toggleJob(job.id)}
                                             >
-                                                <div className="flex items-center justify-between">
+                                                <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                                     <CardTitle className="text-lg dark:text-slate-200">{job.job_name}</CardTitle>
                                                     {expandedJobs.has(job.id) ? (
                                                         <ChevronUp className="w-5 h-5 text-muted-foreground" />
@@ -409,7 +409,7 @@ All inputs are confidential and will not be shared with other employees.`;
                                 className="cursor-pointer hover:bg-muted/30 transition-colors dark:hover:bg-slate-700/50"
                                 onClick={() => toggleSection('org-mappings')}
                             >
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                     <div className="flex items-center gap-3">
                                         <List className="w-6 h-6 text-primary" />
                                         <CardTitle className="text-xl dark:text-slate-100">{t('ceo_job_analysis.org_chart_mappings')}</CardTitle>
@@ -470,7 +470,7 @@ All inputs are confidential and will not be shared with other employees.`;
                     <div className="max-w-5xl mx-auto px-6 md:px-8">
                         <Card className="border-2 border-primary/20 bg-primary/5 dark:border-primary/30 dark:bg-primary/10">
                             <CardContent className="p-6">
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                     <div>
                                         <h3 className="font-semibold text-lg mb-2 dark:text-slate-100">{t('ceo_job_analysis.verification.title')}</h3>
                                         <p className="text-sm text-muted-foreground dark:text-slate-400">

@@ -145,7 +145,7 @@ export default function AdminDashboard({
                                 {/* Total HR */}
                                 <Card>
                                     <CardContent className="p-6">
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-between flex-wrap">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
                                                     {t('admin_dashboard.stats.total_hr')}
@@ -164,7 +164,7 @@ export default function AdminDashboard({
                                 {/* Total CEO */}
                                 <Card>
                                     <CardContent className="p-6">
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-between flex-wrap">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
                                                     {t('admin_dashboard.stats.total_ceo')}
@@ -183,7 +183,7 @@ export default function AdminDashboard({
                                 {/* Total Projects */}
                                 <Card>
                                     <CardContent className="p-6">
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-between flex-wrap">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
                                                     {t('admin_dashboard.stats.total_projects')}
@@ -202,7 +202,7 @@ export default function AdminDashboard({
                                 {/* Total Companies */}
                                 <Card>
                                     <CardContent className="p-6">
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-between flex-wrap">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
                                                     {t('admin_dashboard.stats.total_companies')}
@@ -221,7 +221,7 @@ export default function AdminDashboard({
                                 {/* Active Projects */}
                                 <Card>
                                     <CardContent className="p-6">
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-between flex-wrap">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
                                                     {t('admin_dashboard.stats.active_projects')}
@@ -240,7 +240,7 @@ export default function AdminDashboard({
                                 {/* Completed Projects */}
                                 <Card>
                                     <CardContent className="p-6">
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-between flex-wrap">
                                             <div>
                                                 <p className="mb-1 text-sm text-muted-foreground">
                                                     {t('admin_dashboard.stats.completed')}
@@ -263,7 +263,7 @@ export default function AdminDashboard({
                                     t('admin_dashboard.disabled.pending_approval_zero', { defaultValue: 'No pending approvals right now.' }),
                                     <Card className="transition-colors hover:bg-muted/40">
                                         <CardContent className="p-6">
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex items-center justify-between flex-wrap">
                                                 <div>
                                                     <p className="mb-1 text-sm text-muted-foreground">
                                                         {t('admin_dashboard.stats.pending_approval')}
@@ -288,7 +288,7 @@ export default function AdminDashboard({
                             <div className="mb-8">
                                 <Card>
                                     <CardHeader>
-                                        <div className="flex items-center justify-between gap-3">
+                                        <div className="flex items-center justify-between flex-wrap gap-3">
                                             <CardTitle className="flex items-center gap-2">
                                                 <Users className="h-5 w-5 text-primary" />
                                                 {t('admin_dashboard.users.title')}
@@ -366,7 +366,7 @@ export default function AdminDashboard({
                             <div className="mb-8">
                                 <Card>
                                     <CardHeader>
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-between flex-wrap">
                                             <CardTitle className="flex items-center gap-2">
                                                 <FileText className="h-5 w-5" />
                                                 {t('admin_dashboard.pending_survey.title')}
@@ -414,7 +414,7 @@ export default function AdminDashboard({
                                         0 && (
                                         <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/20">
                                             <CardHeader>
-                                                <div className="flex items-center justify-between">
+                                                <div className="flex items-center justify-between flex-wrap">
                                                     <CardTitle className="flex items-center gap-2">
                                                         <Target className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                                                         {t('admin_dashboard.recommendations.performance_title')}
@@ -439,7 +439,7 @@ export default function AdminDashboard({
                                                             <Link
                                                                 key={project.id}
                                                                 href={`/admin/recommendations/performance/${project.id}`}
-                                                                className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-background"
+                                                                className="flex items-center justify-between flex-wrap rounded-lg border p-3 transition-colors hover:bg-background"
                                                             >
                                                                 <p className="text-sm font-medium">
                                                                     {project
@@ -473,7 +473,7 @@ export default function AdminDashboard({
                                         0 && (
                                         <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/20">
                                             <CardHeader>
-                                                <div className="flex items-center justify-between">
+                                                <div className="flex items-center justify-between flex-wrap">
                                                     <CardTitle className="flex items-center gap-2">
                                                         <DollarSign className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                                                         {t('admin_dashboard.recommendations.compensation_title')}
@@ -498,7 +498,7 @@ export default function AdminDashboard({
                                                             <Link
                                                                 key={project.id}
                                                                 href={`/admin/recommendations/compensation/${project.id}`}
-                                                                className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-background"
+                                                                className="flex items-center justify-between flex-wrap rounded-lg border p-3 transition-colors hover:bg-background"
                                                             >
                                                                 <div className="flex-1">
                                                                     <p className="text-sm font-medium">
@@ -535,7 +535,7 @@ export default function AdminDashboard({
                             {/* Recent Projects */}
                             <Card>
                                 <CardHeader>
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between flex-wrap">
                                         <CardTitle>{t('admin_dashboard.recent_projects.title')}</CardTitle>
                                         <Link href="/admin/hr-projects">
                                             <Button variant="ghost" size="sm">
@@ -562,10 +562,10 @@ export default function AdminDashboard({
                                                     <Link
                                                         key={project.id}
                                                         href={`/admin/review/${project.id}`}
-                                                        className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50"
+                                                        className="flex items-center justify-between flex-wrap rounded-lg border p-4 transition-colors hover:bg-muted/50"
                                                     >
                                                         <div className="flex-1">
-                                                            <div className="mb-1 flex items-center gap-3">
+                                                            <div className="mb-1 flex items-center gap-3 flex-wrap">
                                                                 <p className="font-medium">
                                                                     {project
                                                                         .company

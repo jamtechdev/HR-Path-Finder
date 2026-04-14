@@ -66,7 +66,7 @@ export default function KpiTemplatesIndex({ templates, companies, filters }: Pro
         <AdminLayout>
             <Head title={t('admin_kpi_templates.page_title')} />
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
-                        <div className="mb-6 flex items-center justify-between">
+                        <div className="mb-6 flex items-center justify-between flex-wrap flex-wrap">
                             <div>
                                 <h1 className="mb-2 text-3xl font-bold text-foreground">{t('admin_kpi_templates.heading')}</h1>
                                 <p className="text-muted-foreground">

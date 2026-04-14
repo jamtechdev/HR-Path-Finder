@@ -179,7 +179,7 @@ export default function CeoReviewPerformanceSystem({
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 {t('ceo_review_performance.back_to_dashboard')}
                             </Link>
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                 <div>
                                     <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                                         {t('ceo_review_performance.heading')}
@@ -278,7 +278,7 @@ export default function CeoReviewPerformanceSystem({
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                     <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200">
                                         <CardContent className="p-4">
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                                 <div>
                                                     <p className="text-sm font-medium text-blue-900">{t('ceo_review_performance.summary.snapshot_responses')}</p>
                                                     <p className="text-2xl font-bold text-blue-700">
@@ -291,7 +291,7 @@ export default function CeoReviewPerformanceSystem({
                                     </Card>
                                     <Card className="bg-gradient-to-br from-green-50 to-green-100/50 border-green-200">
                                         <CardContent className="p-4">
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                                 <div>
                                                     <p className="text-sm font-medium text-green-900">{t('ceo_review_performance.summary.organizational_kpis')}</p>
                                                     <p className="text-2xl font-bold text-green-700">
@@ -304,7 +304,7 @@ export default function CeoReviewPerformanceSystem({
                                     </Card>
                                     <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200">
                                         <CardContent className="p-4">
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                                 <div>
                                                     <p className="text-sm font-medium text-purple-900">{t('ceo_review_performance.summary.model_assignments')}</p>
                                                     <p className="text-2xl font-bold text-purple-700">
@@ -317,7 +317,7 @@ export default function CeoReviewPerformanceSystem({
                                     </Card>
                                     <Card className="bg-gradient-to-br from-orange-50 to-orange-100/50 border-orange-200">
                                         <CardContent className="p-4">
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                                 <div>
                                                     <p className="text-sm font-medium text-orange-900">{t('ceo_review_performance.summary.job_definitions')}</p>
                                                     <p className="text-2xl font-bold text-orange-700">
@@ -560,7 +560,7 @@ export default function CeoReviewPerformanceSystem({
                         </Tabs>
 
                         {/* Tab Navigation */}
-                        <div className="mt-6 flex items-center justify-between">
+                        <div className="mt-6 flex items-center justify-between flex-wrap  flex-wrap">
                             <Button
                                 type="button"
                                 variant="outline"
@@ -586,7 +586,7 @@ export default function CeoReviewPerformanceSystem({
                         {isSubmitted && (
                             <Card className="mt-8 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 shadow-lg">
                                 <CardContent className="p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-4 flex-wrap">
                                         <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                                             <CheckCircle2 className="w-6 h-6 text-primary" />
                                         </div>

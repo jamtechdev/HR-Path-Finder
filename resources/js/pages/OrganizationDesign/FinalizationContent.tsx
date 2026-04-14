@@ -132,7 +132,7 @@ export default function FinalizationContent({ project, jobDefinitions, finalized
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200">
                     <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap">
                             <div>
                                 <p className="text-sm font-medium text-blue-900">Total Jobs</p>
                                 <p className="text-2xl font-bold text-blue-700">{totalJobs}</p>
@@ -143,7 +143,7 @@ export default function FinalizationContent({ project, jobDefinitions, finalized
                 </Card>
                 <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 border-yellow-200">
                     <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap">
                             <div>
                                 <p className="text-sm font-medium text-yellow-900">Pending Finalization</p>
                                 <p className="text-2xl font-bold text-yellow-700">{jobDefinitions.length}</p>
@@ -154,7 +154,7 @@ export default function FinalizationContent({ project, jobDefinitions, finalized
                 </Card>
                 <Card className="bg-gradient-to-br from-green-50 to-green-100/50 border-green-200">
                     <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap">
                             <div>
                                 <p className="text-sm font-medium text-green-900">Already Finalized</p>
                                 <p className="text-2xl font-bold text-green-700">{finalizedJobs.length}</p>
@@ -169,7 +169,7 @@ export default function FinalizationContent({ project, jobDefinitions, finalized
             {jobDefinitions.length > 0 && (
                 <Card className="mb-6 shadow-lg border-2 border-primary/20">
                     <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border-b-2 border-primary/20">
-                        <div className="flex items-center justify-between flex-wrap gap-4">
+                        <div className="flex items-center justify-between flex-wrap flex-wrap gap-4">
                             <div className="flex-1">
                                 <CardTitle className="text-2xl font-bold flex items-center gap-2">
                                     <Unlock className="w-6 h-6 text-yellow-600" />
@@ -353,7 +353,7 @@ export default function FinalizationContent({ project, jobDefinitions, finalized
             {finalizedJobs.length > 0 && (
                 <Card className="mb-6 shadow-sm border border-green-200">
                     <CardHeader className="bg-gradient-to-r from-green-50 to-green-100/50 border-b border-green-200">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap">
                             <div>
                                 <CardTitle className="text-2xl flex items-center gap-2">
                                     <Lock className="w-5 h-5 text-green-600" />
@@ -373,7 +373,7 @@ export default function FinalizationContent({ project, jobDefinitions, finalized
                             {finalizedJobs.map((job) => (
                                 <div 
                                     key={job.id} 
-                                    className="p-3 border border-green-200 rounded-lg bg-green-50/50 flex items-center justify-between"
+                                    className="p-3 border border-green-200 rounded-lg bg-green-50/50 flex items-center justify-between flex-wrap"
                                 >
                                     <div className="flex items-center gap-2">
                                         <CheckCircle2 className="w-4 h-4 text-green-600" />

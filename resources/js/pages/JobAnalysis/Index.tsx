@@ -552,7 +552,7 @@ export default function JobAnalysisIndex({
             <div className="job-analysis-theme min-h-full bg-[#f5f3ef] text-slate-800 dark:bg-slate-950 dark:text-slate-100">
                 {activeStepLocal === 'overview' ? (
                     <div className="space-y-6">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap">
                             <Link
                                 href="/hr-manager/dashboard"
                                 className="flex items-center gap-1 text-sm font-medium text-[#0f2a4a] hover:text-[#1a4070] dark:text-slate-200 dark:hover:text-white"
@@ -566,7 +566,7 @@ export default function JobAnalysisIndex({
                 ) : (
                     <>
                         {/* Top header: #151535, P icon, HR Path-Finder / Job Analysis, gold In Progress badge */}
-                        <header className="flex items-center justify-between gap-2 bg-[#151535] px-10 py-[14px] text-sm text-white dark:bg-slate-900" >
+                        <header className="flex items-center justify-between flex-wrap gap-2 bg-[#151535] px-10 py-[14px] text-sm text-white dark:bg-slate-900" >
                             <div className="flex items-center gap-2 text-sm">
                                 <div className="w-6 h-6 rounded bg-white flex items-center justify-center text-[#1a1a3d] font-black text-xs shrink-0">P</div>
                                 <strong>{t('hr_job_analysis_page.brand')}</strong>

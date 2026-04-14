@@ -80,7 +80,7 @@ export default function KpiEditHistoryShow({ kpi, editHistory }: Props) {
                                     {editHistory.map((history) => (
                                         <Card key={history.id} className="border-l-4 border-l-primary">
                                             <CardHeader>
-                                                <div className="flex items-center justify-between">
+                                                <div className="flex items-center justify-between flex-wrap">
                                                     <div className="flex items-center gap-3">
                                                         <span className="text-sm font-semibold">
                                                             {new Date(history.created_at).toLocaleString()}

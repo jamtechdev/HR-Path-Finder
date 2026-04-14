@@ -170,7 +170,7 @@ export default function ProfessionalWorkflow({
 
                 {/* Progress Summary */}
                 <div className="mt-8 pt-6 border-t">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap">
                         <div>
                             <p className="text-sm font-medium text-muted-foreground mb-1">Overall Progress</p>
                             <div className="flex items-center gap-2">

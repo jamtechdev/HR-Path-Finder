@@ -55,7 +55,7 @@ export function Footer({ canRegister = true }: FooterProps) {
                             Transform how SMBs build HR frameworks. Our step-by-step guided approach
                             replicates professional consulting engagements inside a modern SaaS platform.
                         </p>
-                        <div className="flex items-center gap-4 pt-2">
+                        <div className="flex items-center gap-4 flex-wrap pt-2">
                             <a
                                 href="mailto:contact@hrpathfinder.com"
                                 className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -174,7 +174,7 @@ export function Footer({ canRegister = true }: FooterProps) {
                             <span className="hidden md:inline">•</span>
                             <span className="hidden md:inline">Made with ❤️ for HR professionals</span>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 flex-wrap">
                             <Link
                                 href={login()}
                                 className="text-sm font-medium text-primary hover:underline flex items-center gap-1"

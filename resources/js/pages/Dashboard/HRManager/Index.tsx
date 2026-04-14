@@ -295,7 +295,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="space-y-8">
                             {/* Welcome Section */}
-                            <div className="flex items-center justify-between flex-wrap gap-4">
+                            <div className="flex items-center justify-between flex-wrap flex-wrap gap-4">
                                 <div>
                                     <h1 className="mb-2 text-3xl font-bold text-foreground md:text-4xl">{t('hr_dashboard.welcome_back', { name: user.name })}</h1>
                                     <p className="text-muted-foreground text-lg">
@@ -333,7 +333,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                     <Card className="relative overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 shadow-lg hover:shadow-xl transition-all duration-300">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
                                         <CardContent className="p-6 relative">
-                                            <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center justify-between flex-wrap mb-4">
                                                 <div className="w-14 h-14 rounded-xl bg-primary/20 flex items-center justify-center shadow-md">
                                                     <TrendingUp className="w-7 h-7 text-primary" />
                                                 </div>
@@ -358,7 +358,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                     <Card className="relative overflow-hidden border-2 border-green-500/20 bg-gradient-to-br from-green-500/5 to-green-500/10 shadow-lg hover:shadow-xl transition-all duration-300">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
                                         <CardContent className="p-6 relative">
-                                            <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center justify-between flex-wrap mb-4">
                                                 <div className="w-14 h-14 rounded-xl bg-green-500/20 flex items-center justify-center shadow-md">
                                                     <Users className="w-7 h-7 text-green-600 dark:text-green-400" />
                                                 </div>
@@ -392,7 +392,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                     <Card className="relative overflow-hidden border-2 border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-blue-500/10 shadow-lg hover:shadow-xl transition-all duration-300">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
                                         <CardContent className="p-6 relative">
-                                            <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center justify-between flex-wrap mb-4">
                                                 <div className="w-14 h-14 rounded-xl bg-blue-500/20 flex items-center justify-center shadow-md">
                                                     <Clock className="w-7 h-7 text-blue-600 dark:text-blue-400" />
                                                 </div>
@@ -416,7 +416,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
                                     <Card className="relative overflow-hidden border-2 border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-purple-500/10 shadow-lg hover:shadow-xl transition-all duration-300">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
                                         <CardContent className="p-6 relative">
-                                            <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center justify-between flex-wrap mb-4">
                                                 <div className="w-14 h-14 rounded-xl bg-purple-500/20 flex items-center justify-center shadow-md">
                                                     <Award className="w-7 h-7 text-purple-600 dark:text-purple-400" />
                                                 </div>
@@ -467,7 +467,7 @@ export default function HrManagerDashboard({ user, activeProject, company, progr
 
                             {/* Design Steps Section - Enhanced Layout */}
                             <div>
-                                <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center justify-between flex-wrap mb-6">
                                     <div>
                                         <h2 className="text-2xl font-bold text-foreground md:text-3xl">{t('hr_dashboard.design_steps')}</h2>
                                         <p className="text-muted-foreground mt-1">

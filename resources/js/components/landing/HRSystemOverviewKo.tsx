@@ -28,7 +28,7 @@ export function HRSystemOverviewKo({
     return (
         <Card className="bg-[#1e293b] text-white py-0 rounded-lg border-0 shadow-lg">
             <CardHeader className="pb-4 px-6 pt-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap">
                     <CardTitle className="text-white text-lg font-semibold">{title}</CardTitle>
                     <span className="text-xs bg-[#10b981] text-white px-2.5 py-1 rounded font-medium">{progressText}</span>
                 </div>
@@ -51,7 +51,7 @@ export function HRSystemOverviewKo({
                 </div>
 
                 <div className="mt-6 space-y-2.5 border-t border-slate-700 pt-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap">
                         <span className="text-sm font-medium text-white">{alignmentLabel}</span>
                         <span className="text-sm text-[#10b981] font-medium">{alignmentScore}</span>
                     </div>

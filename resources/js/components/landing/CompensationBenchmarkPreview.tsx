@@ -35,7 +35,7 @@ export function CompensationBenchmarkPreview({
                         const percentage = (benchmark.value / maxValue) * 100;
                         return (
                             <div key={index} className="space-y-1.5">
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between flex-wrap">
                                     <span className={`text-sm font-medium ${benchmark.isOurCompany ? 'text-[#0a1629] dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
                                         {benchmark.label}
                                     </span>

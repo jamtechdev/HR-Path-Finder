@@ -47,7 +47,7 @@ export function Header({ canRegister = true }: HeaderProps) {
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 dark:bg-[hsl(var(--background))]/95 backdrop-blur-md border-b border-border transition-colors duration-300">
-            <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between flex-wrap">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-3 group">
                     <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center transition-transform group-hover:scale-105">
@@ -74,7 +74,7 @@ export function Header({ canRegister = true }: HeaderProps) {
                 </div>
 
                 {/* Right Side Actions */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
                     {/* Dark Mode Toggle */}
                     {mounted && (
                         <button

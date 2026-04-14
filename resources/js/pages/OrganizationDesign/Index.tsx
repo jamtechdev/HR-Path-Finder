@@ -201,7 +201,7 @@ export default function OrganizationDesignIndex({ project, organizationDesign, r
                                                         <label className="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50">
                                                             <RadioGroupItem value={option.value} id={option.value} />
                                                             <div className="flex-1">
-                                                                <div className="flex items-center justify-between mb-1">
+                                                                <div className="flex items-center justify-between flex-wrap mb-1">
                                                                     <span className="font-semibold">{option.label}</span>
                                                                     {isRecommended && <RecommendationBadge />}
                                                                 </div>
@@ -302,7 +302,7 @@ export default function OrganizationDesignIndex({ project, organizationDesign, r
                         </Card>
 
                         {/* Navigation */}
-                        <div className="flex items-center justify-between pt-6 border-t mt-6">
+                        <div className="flex items-center justify-between flex-wrap pt-6 border-t mt-6">
                             <Button
                                 variant="outline"
                                 onClick={() => {

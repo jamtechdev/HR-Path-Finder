@@ -179,7 +179,7 @@ export default function PolicySnapshot({ project, questions }: Props) {
                             </CardContent>
                         </Card>
 
-                        <div className="mt-8 flex items-center justify-between gap-4">
+                        <div className="mt-8 flex items-center justify-between flex-wrap gap-4">
                             <Button
                                 variant="outline"
                                 size="lg"

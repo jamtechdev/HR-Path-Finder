@@ -163,8 +163,8 @@ export default function ShowCompany({ company }: Props) {
             <Head title={t('companies_show.page_title', { company: company.name })} />
             <div className="p-6 md:p-8 max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="mb-6 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                <div className="mb-6 flex items-center justify-between flex-wrap flex-wrap">
+                    <div className="flex items-center gap-4 flex-wrap">
                         <Link href="/hr-manager/companies">
                             <Button variant="ghost" size="sm">
                                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -194,7 +194,7 @@ export default function ShowCompany({ company }: Props) {
                 {/* Company Info Card */}
                 <Card className="mb-6">
                     <CardHeader>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 flex-wrap">
                             {companyLogo && (
                                 <img 
                                     src={companyLogo} 
@@ -264,7 +264,7 @@ export default function ShowCompany({ company }: Props) {
                                     <div className="space-y-3">
                                         {company.users.map((user) => (
                                             user && (
-                                                <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
+                                                <div key={user.id} className="flex items-center justify-between flex-wrap p-3 border rounded-lg">
                                                     <div>
                                                         <p className="font-medium">{user.name || t('companies_show.na')}</p>
                                                         <p className="text-sm text-muted-foreground">{user.email || t('companies_show.na')}</p>

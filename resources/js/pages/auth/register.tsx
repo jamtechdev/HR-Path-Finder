@@ -260,7 +260,7 @@ export default function Register({ status }: Props) {
                                                 </button>
                                             </div>
                                             <div className="space-y-2">
-                                                <div className="flex items-center justify-between text-xs">
+                                                <div className="flex items-center justify-between flex-wrap text-xs">
                                                     <span className="text-muted-foreground">비밀번호 보안 수준</span>
                                                     <span className="font-medium text-[#0B1E3D]">{passwordStrength.label}</span>
                                                 </div>

@@ -85,7 +85,7 @@ export default function CeoReviewJobDefinitions({
                                                     : 'hover:bg-muted/50 dark:hover:bg-slate-700/50'
                                             }`}
                                         >
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                                 <div className="flex-1">
                                                     <p className="font-medium dark:text-slate-200">{job.job_name}</p>
                                                     {job.is_finalized && (
@@ -110,7 +110,7 @@ export default function CeoReviewJobDefinitions({
                         {selectedJob ? (
                             <Card className="dark:bg-slate-800 dark:border-slate-700">
                                 <CardHeader className="dark:bg-slate-800">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                         <div>
                                             <CardTitle className="dark:text-slate-100">{selectedJob.job_name}</CardTitle>
                                             {selectedJob.job_keyword && (

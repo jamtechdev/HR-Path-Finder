@@ -24,7 +24,7 @@ export function HRSystemOverview({ steps, alignmentScore = 'Medium', companyLogo
     return (
         <Card className="bg-slate-900 text-white">
             <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap">
                     <CardTitle className="text-white">HR System Overview</CardTitle>
                     <span className="text-sm text-slate-400">
                         {completedCount}/{totalSteps} Complete
@@ -49,7 +49,7 @@ export function HRSystemOverview({ steps, alignmentScore = 'Medium', companyLogo
                 </div>
 
                 <div className="mt-6 space-y-2 border-t border-slate-700 pt-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap">
                         <span className="text-sm font-medium">CEO Alignment</span>
                         <span className="text-sm text-brand-green">{alignmentScore}</span>
                     </div>
