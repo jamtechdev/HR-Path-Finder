@@ -34,6 +34,9 @@ export interface CompensationSnapshotQuestion {
         is_multi_year?: boolean;
         is_job_functions?: boolean;
         is_years_of_service?: boolean;
+        parent_question_order?: number;
+        show_when_parent_answered?: boolean;
+        show_when_parent_option_includes?: string;
         [key: string]: any;
     };
 }

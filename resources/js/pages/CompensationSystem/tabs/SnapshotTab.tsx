@@ -248,7 +248,53 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [q17Response.join('|'), q18Question?.id, q18SelectedSig]);
 
-    const answeredCount = useMemo(() => questions.filter(q => {
+    const isQuestionVisible = (
+        q: CompensationSnapshotQuestion,
+        responses: Record<number, string[] | string | number | object | null>,
+    ): boolean => {
+        const parentOrder = q.metadata?.parent_question_order;
+        if (typeof parentOrder !== 'number') return true;
+
+        const parent = questions.find((candidate) => candidate.order === parentOrder);
+        if (!parent) return true;
+
+        const parentResponse = responses[parent.id];
+        const showWhenParentAnswered = q.metadata?.show_when_parent_answered !== false;
+        const requiredOptionRaw = q.metadata?.show_when_parent_option_includes;
+        const requiredOption = typeof requiredOptionRaw === 'string' ? requiredOptionRaw.trim() : '';
+
+        const hasParentAnswer = (() => {
+            if (parentResponse === null || parentResponse === undefined) return false;
+            if (typeof parentResponse === 'string') return parentResponse.trim() !== '';
+            if (typeof parentResponse === 'number') return Number.isFinite(parentResponse);
+            if (Array.isArray(parentResponse)) return parentResponse.length > 0;
+            if (typeof parentResponse === 'object') return Object.keys(parentResponse as object).length > 0;
+            return false;
+        })();
+
+        if (showWhenParentAnswered && !hasParentAnswer) return false;
+
+        if (requiredOption !== '') {
+            if (Array.isArray(parentResponse)) {
+                return parentResponse.some((entry) =>
+                    String(entry).toLowerCase() === requiredOption.toLowerCase()
+                );
+            }
+            if (typeof parentResponse === 'string') {
+                return parentResponse.toLowerCase() === requiredOption.toLowerCase();
+            }
+            return false;
+        }
+
+        return true;
+    };
+
+    const visibleQuestions = useMemo(
+        () => questions.filter((q) => isQuestionVisible(q, snapshotResponses)),
+        [questions, snapshotResponses],
+    );
+
+    const answeredCount = useMemo(() => visibleQuestions.filter(q => {
         const r = snapshotResponses[q.id];
         if (q.answer_type === 'numeric') {
             if (typeof r === 'number') return Number.isFinite(r);
@@ -292,7 +338,10 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                     lower.includes('average salary by years of service');
 
                 if (isMultiYear) {
-                    const years = ['2023', '2024', '2025'] as const;
+                    const years =
+                        Array.isArray(q.metadata?.years) && q.metadata.years.length > 0
+                            ? q.metadata.years.map((year: unknown) => String(year))
+                            : ['2023', '2024', '2025'];
                     return years.every((y) => {
                         const v = (r as any)[y];
                         return typeof v === 'number' && Number.isFinite(v);
@@ -300,7 +349,12 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                 }
 
                 if (isYearsOfService) {
-                    const keys = ['overall', '1_3', '4_7', '8_12', '13_17', '18_20'] as const;
+                    const keys =
+                        Array.isArray(q.metadata?.service_ranges) && q.metadata.service_ranges.length > 0
+                            ? q.metadata.service_ranges
+                                  .map((range: any) => (range && typeof range === 'object' ? String(range.key || '') : ''))
+                                  .filter((key: string) => key.trim() !== '')
+                            : ['overall', '1_3', '4_7', '8_12', '13_17', '18_20'];
                     return keys.every((k) => {
                         const v = (r as any)[k];
                         return typeof v === 'number' && Number.isFinite(v);
@@ -314,8 +368,8 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
         }
         if (q.answer_type === 'text') return typeof r === 'string' && r.trim() !== '';
         return Array.isArray(r) ? r.length > 0 : r != null && r !== '';
-    }).length, [questions, snapshotResponses]);
-    const completionPct = questions.length ? Math.round((answeredCount / questions.length) * 100) : 0;
+    }).length, [visibleQuestions, snapshotResponses]);
+    const completionPct = visibleQuestions.length ? Math.round((answeredCount / visibleQuestions.length) * 100) : 0;
 
     return (
         <div className="space-y-0">
@@ -329,8 +383,8 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
             <div className="flex flex-col gap-6 w-full pt-6">
                 {/* Main Questions Section */}
                 <div className="w-full space-y-6">
-                    {questions && questions.length > 0 ? (
-                        questions.map((question, idx) => {
+                    {visibleQuestions && visibleQuestions.length > 0 ? (
+                        visibleQuestions.map((question, idx) => {
                             const isQ18 = question.order === 18;
                             const isMultiYearNumeric = question.metadata?.is_multi_year === true || 
                                 question.question_text?.toLowerCase().includes('past three years') ||
@@ -341,6 +395,37 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                 question.question_text?.toLowerCase().includes('average salary by job function');
                             const isYearsOfService = question.metadata?.is_years_of_service === true ||
                                 question.question_text?.toLowerCase().includes('average salary by years of service');
+                            const unitLabel = String(question.metadata?.unit || '').trim() || 'KRW';
+                            const metadataYears =
+                                Array.isArray(question.metadata?.years) && question.metadata.years.length > 0
+                                    ? question.metadata.years.map((year: unknown) => String(year))
+                                    : ['2023', '2024', '2025'];
+                            const metadataJobFunctions =
+                                Array.isArray(question.metadata?.default_functions) && question.metadata.default_functions.length > 0
+                                    ? question.metadata.default_functions.map((fn: unknown) => ({ function: String(fn), amount: '' }))
+                                    : [
+                                          { function: 'Overall', amount: '' },
+                                          { function: 'Management', amount: '' },
+                                          { function: 'R&D', amount: '' },
+                                          { function: 'Sales & Marketing', amount: '' },
+                                          { function: 'Production', amount: '' },
+                                      ];
+                            const metadataServiceRanges =
+                                Array.isArray(question.metadata?.service_ranges) && question.metadata.service_ranges.length > 0
+                                    ? question.metadata.service_ranges
+                                          .map((range: any) => ({
+                                              label: String(range?.label || '').trim(),
+                                              key: String(range?.key || '').trim(),
+                                          }))
+                                          .filter((range: { label: string; key: string }) => range.label !== '' && range.key !== '')
+                                    : [
+                                          { label: t('compensation_system.snapshot.overall'), key: 'overall' },
+                                          { label: t('compensation_system.snapshot.years_1_3'), key: '1_3' },
+                                          { label: t('compensation_system.snapshot.years_4_7'), key: '4_7' },
+                                          { label: t('compensation_system.snapshot.years_8_12'), key: '8_12' },
+                                          { label: t('compensation_system.snapshot.years_13_17'), key: '13_17' },
+                                          { label: t('compensation_system.snapshot.years_18_20'), key: '18_20' },
+                                      ];
 
                             return (
                                 <Card
@@ -364,9 +449,9 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                 {isMultiYearNumeric && question.answer_type === 'numeric' && (
                                                     <div className="space-y-4">
                                                         <div className="grid grid-cols-3 gap-4">
-                                                            {['2023', '2024', '2025'].map((year) => (
+                                                            {metadataYears.map((year) => (
                                                                 <div key={year} className="space-y-2">
-                                                                    <Label className="text-sm font-medium text-muted-foreground">{year} (%)</Label>
+                                                                    <Label className="text-sm font-medium text-muted-foreground">{year} ({unitLabel})</Label>
                                                                     <Input
                                                                         type="text"
                                                                         min={0}
@@ -399,7 +484,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                         {(() => {
                                                             const jobFunctions = Array.isArray(snapshotResponses[question.id]) 
                                                                 ? (snapshotResponses[question.id] as any) 
-                                                                : [{ function: 'Overall', amount: '' }, { function: 'Management', amount: '' }, { function: 'R&D', amount: '' }, { function: 'Sales & Marketing', amount: '' }, { function: 'Production', amount: '' }];
+                                                                : metadataJobFunctions;
                                                             return jobFunctions.map((func: any, funcIdx: number) => (
                                                                 <div key={funcIdx} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                                                                     <Input
@@ -420,7 +505,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                             updated[funcIdx] = { ...updated[funcIdx], amount: parseNumberWithCommas(e.target.value) };
                                                                             updateResponses({ ...snapshotResponses, [question.id]: updated });
                                                                         }}
-                                                                        placeholder={t('compensation_system.snapshot.amount_krw')}
+                                                                        placeholder={unitLabel === 'KRW' ? t('compensation_system.snapshot.amount_krw') : `Amount (${unitLabel})`}
                                                                         className="flex-1"
                                                                     />
                                                                     {jobFunctions.length > 1 && (
@@ -462,14 +547,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                 {/* Years of Service */}
                                                 {isYearsOfService && question.answer_type === 'numeric' && (
                                                     <div className="space-y-3">
-                                                        {[
-                                                            { label: t('compensation_system.snapshot.overall'), key: 'overall' },
-                                                            { label: t('compensation_system.snapshot.years_1_3'), key: '1_3' },
-                                                            { label: t('compensation_system.snapshot.years_4_7'), key: '4_7' },
-                                                            { label: t('compensation_system.snapshot.years_8_12'), key: '8_12' },
-                                                            { label: t('compensation_system.snapshot.years_13_17'), key: '13_17' },
-                                                            { label: t('compensation_system.snapshot.years_18_20'), key: '18_20' },
-                                                        ].map((range) => (
+                                                        {metadataServiceRanges.map((range) => (
                                                             <div key={range.key} className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
                                                                 <Label className="w-32 text-sm font-medium">{range.label}</Label>
                                                                 <Input
@@ -486,7 +564,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                                             [question.id]: { ...current, [range.key]: parseNumberWithCommas(e.target.value) }
                                                                         });
                                                                     }}
-                                                                    placeholder={t('compensation_system.snapshot.amount_krw')}
+                                                                    placeholder={unitLabel === 'KRW' ? t('compensation_system.snapshot.amount_krw') : `Amount (${unitLabel})`}
                                                                     className="flex-1 max-w-md"
                                                                 />
                                                             </div>

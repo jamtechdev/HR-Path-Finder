@@ -201,6 +201,10 @@ class CompensationSnapshotQuestionSeeder extends Seeder
                 'answer_type' => 'text',
                 'options' => null,
                 'is_active' => true,
+                'metadata' => [
+                    'parent_question_order' => 13,
+                    'show_when_parent_answered' => true,
+                ],
             ],
             [
                 'order' => 15,
@@ -269,7 +273,8 @@ class CompensationSnapshotQuestionSeeder extends Seeder
                 'options' => null,
                 'is_active' => true,
                 'metadata' => [
-                    'conditional_on_question' => 18, // Only shown if Q18 has answers
+                    'parent_question_order' => 18,
+                    'show_when_parent_answered' => true,
                 ],
             ],
         ];

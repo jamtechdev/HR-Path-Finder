@@ -58,6 +58,17 @@ class CompensationSnapshotQuestionController extends Controller
      */
     public function create(): Response
     {
+        $parentQuestionCandidates = CompensationSnapshotQuestion::query()
+            ->orderBy('order')
+            ->orderBy('id')
+            ->get(['id', 'order', 'question_text'])
+            ->map(fn (CompensationSnapshotQuestion $q) => [
+                'id' => $q->id,
+                'order' => (int) $q->order,
+                'label' => "Q{$q->order} - {$q->question_text}",
+            ])
+            ->values();
+
         return Inertia::render('Admin/CompensationSnapshot/Create', [
             'answerTypes' => [
                 'select_one' => 'Select One',
@@ -66,6 +77,7 @@ class CompensationSnapshotQuestionController extends Controller
                 'numeric' => 'Numeric Input',
                 'text' => 'Text Input',
             ],
+            'parentQuestionCandidates' => $parentQuestionCandidates,
         ]);
     }
 
@@ -118,6 +130,18 @@ class CompensationSnapshotQuestionController extends Controller
      */
     public function edit(CompensationSnapshotQuestion $compensationSnapshotQuestion): Response
     {
+        $parentQuestionCandidates = CompensationSnapshotQuestion::query()
+            ->where('id', '!=', $compensationSnapshotQuestion->id)
+            ->orderBy('order')
+            ->orderBy('id')
+            ->get(['id', 'order', 'question_text'])
+            ->map(fn (CompensationSnapshotQuestion $q) => [
+                'id' => $q->id,
+                'order' => (int) $q->order,
+                'label' => "Q{$q->order} - {$q->question_text}",
+            ])
+            ->values();
+
         return Inertia::render('Admin/CompensationSnapshot/Edit', [
             'question' => $this->toQuestionPayload($compensationSnapshotQuestion),
             'answerTypes' => [
@@ -127,6 +151,7 @@ class CompensationSnapshotQuestionController extends Controller
                 'numeric' => 'Numeric Input',
                 'text' => 'Text Input',
             ],
+            'parentQuestionCandidates' => $parentQuestionCandidates,
         ]);
     }
 
@@ -223,6 +248,31 @@ class CompensationSnapshotQuestionController extends Controller
             ]);
         } else {
             $validated['options'] = null;
+        }
+
+        if (is_array($validated['metadata'] ?? null)) {
+            $metadata = $validated['metadata'];
+
+            if (array_key_exists('parent_question_order', $metadata)) {
+                $value = $metadata['parent_question_order'];
+                $metadata['parent_question_order'] = ($value === '' || $value === null)
+                    ? null
+                    : (int) $value;
+            }
+
+            if (array_key_exists('show_when_parent_option_includes', $metadata)) {
+                $value = $metadata['show_when_parent_option_includes'];
+                $metadata['show_when_parent_option_includes'] =
+                    is_string($value) && trim($value) === '' ? null : $value;
+            }
+
+            $validated['metadata'] = array_filter(
+                $metadata,
+                fn ($value) => $value !== null && $value !== ''
+            );
+            if ($validated['metadata'] === []) {
+                $validated['metadata'] = null;
+            }
         }
 
         return $validated;

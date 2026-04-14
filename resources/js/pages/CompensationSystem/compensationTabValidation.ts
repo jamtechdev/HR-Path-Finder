@@ -87,7 +87,10 @@ function isSnapshotQuestionAnswered(
                 lower.includes('average salary by years of service');
 
             if (isMultiYear) {
-                const years = ['2023', '2024', '2025'] as const;
+                const years =
+                    Array.isArray(q.metadata?.years) && q.metadata.years.length > 0
+                        ? q.metadata.years.map((year: unknown) => String(year))
+                        : ['2023', '2024', '2025'];
                 return years.every((y) => {
                     const v = (r as any)[y];
                     const n = numericFromAny(v);
@@ -96,7 +99,12 @@ function isSnapshotQuestionAnswered(
             }
 
             if (isYearsOfService) {
-                const keys = ['overall', '1_3', '4_7', '8_12', '13_17', '18_20'] as const;
+                const keys =
+                    Array.isArray(q.metadata?.service_ranges) && q.metadata.service_ranges.length > 0
+                        ? q.metadata.service_ranges
+                              .map((range: any) => (range && typeof range === 'object' ? String(range.key || '') : ''))
+                              .filter((key: string) => key.trim() !== '')
+                        : ['overall', '1_3', '4_7', '8_12', '13_17', '18_20'];
                 return keys.every((k) => {
                     const v = (r as any)[k];
                     const n = numericFromAny(v);
@@ -140,7 +148,47 @@ export function validateCompensationSnapshot(
         ? ((responses[q17.id] as string[]) ?? [])
         : [];
 
+    const isQuestionVisible = (q: CompensationSnapshotQuestion): boolean => {
+        const parentOrder = q.metadata?.parent_question_order;
+        if (typeof parentOrder !== 'number') return true;
+
+        const parent = questions.find((candidate) => candidate.order === parentOrder);
+        if (!parent) return true;
+
+        const parentResponse = responses[parent.id];
+        const showWhenParentAnswered = q.metadata?.show_when_parent_answered !== false;
+        const requiredOptionRaw = q.metadata?.show_when_parent_option_includes;
+        const requiredOption = typeof requiredOptionRaw === 'string' ? requiredOptionRaw.trim() : '';
+
+        const hasParentAnswer = (() => {
+            if (parentResponse === null || parentResponse === undefined) return false;
+            if (typeof parentResponse === 'string') return parentResponse.trim() !== '';
+            if (typeof parentResponse === 'number') return Number.isFinite(parentResponse);
+            if (Array.isArray(parentResponse)) return parentResponse.length > 0;
+            if (typeof parentResponse === 'object') return Object.keys(parentResponse as object).length > 0;
+            return false;
+        })();
+
+        if (showWhenParentAnswered && !hasParentAnswer) return false;
+
+        if (requiredOption !== '') {
+            if (Array.isArray(parentResponse)) {
+                return parentResponse.some((entry) => String(entry).toLowerCase() === requiredOption.toLowerCase());
+            }
+            if (typeof parentResponse === 'string') {
+                return parentResponse.toLowerCase() === requiredOption.toLowerCase();
+            }
+            return false;
+        }
+
+        return true;
+    };
+
     for (const q of questions) {
+        if (!isQuestionVisible(q)) {
+            continue;
+        }
+
         // Q18 depends on Q17 selections. If Q17 has no usable choices yet,
         // skip Q18 required validation to avoid a false error state.
         if (q18 && q.id === q18.id) {
