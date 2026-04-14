@@ -279,7 +279,7 @@ export default function LandingPage({ canRegister }: { canRegister?: boolean }) 
 
                     <div id="benchmark-card" className="relative z-[1]">
                         <div className="rounded-2xl overflow-hidden border shadow-[0_40px_80px_rgba(0,0,0,.5)]" style={{ background: 'var(--navy-deep)', borderColor: 'var(--border)' }}>
-                            <div className="px-6 py-5 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
+                            <div className="px-6 py-5 border-b flex items-center justify-between flex-wrap" style={{ borderColor: 'var(--border)' }}>
                                 <div className="flex items-center gap-2.5">
                                     <div className="w-2 h-2 rounded-full shadow-[0_0_8px_var(--teal)]" style={{ background: 'var(--teal)' }} />
                                     <div className="text-[.8rem] font-bold tracking-[.03em]" style={{ color: 'var(--text-secondary)' }}>{t('landing.benchmark_card.header.left_label')}</div>

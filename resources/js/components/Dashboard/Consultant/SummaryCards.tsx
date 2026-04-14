@@ -15,7 +15,7 @@ export default function SummaryCards({ stats }: SummaryCardsProps) {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
                 <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap">
                         <div>
                             <p className="text-sm text-muted-foreground mb-1">Active Companies</p>
                             <p className="text-2xl font-bold">{stats.active_companies}</p>
@@ -27,7 +27,7 @@ export default function SummaryCards({ stats }: SummaryCardsProps) {
 
             <Card>
                 <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap">
                         <div>
                             <p className="text-sm text-muted-foreground mb-1">Steps Complete</p>
                             <p className="text-2xl font-bold">{stats.steps_complete}</p>
@@ -39,7 +39,7 @@ export default function SummaryCards({ stats }: SummaryCardsProps) {
 
             <Card>
                 <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap">
                         <div>
                             <p className="text-sm text-muted-foreground mb-1">CEO Survey</p>
                             <p className="text-2xl font-bold">
@@ -53,7 +53,7 @@ export default function SummaryCards({ stats }: SummaryCardsProps) {
 
             <Card>
                 <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap">
                         <div>
                             <p className="text-sm text-muted-foreground mb-1">Final Status</p>
                             <p className="text-2xl font-bold">

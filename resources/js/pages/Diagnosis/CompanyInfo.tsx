@@ -310,7 +310,7 @@ export default function CompanyInfo({
         >
             {/* Hero strip */}
             <div className="flex flex-wrap items-center justify-between bg-[#1e293b] px-6 py-5 text-white">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
                     <div className="rounded-lg bg-teal-500/20 p-3 text-teal-400">
                         <svg
                             className="h-5 w-5"
@@ -752,7 +752,7 @@ export default function CompanyInfo({
 
                         {/* Completion Bar */}
                         <div className="mt-2 pt-6">
-                            <div className="mb-2 flex items-center justify-between">
+                            <div className="mb-2 flex items-center justify-between flex-wrap">
                                 <span className="text-xs font-bold text-teal-600">
                                     {t('company_info.completionTitle')}
                                 </span>

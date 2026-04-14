@@ -284,7 +284,7 @@ export default function PerformanceRecommendation({
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-4 pt-4 border-t">
+                                    <div className="flex items-center gap-4 flex-wrap pt-4 border-t">
                                         <Button
                                             type="submit"
                                             disabled={processing || !data.recommended_option || !data.rationale || data.rationale.length < 50}

@@ -130,7 +130,7 @@ export default function ShowProject({ project }: Props) {
                                         {steps.map((step) => (
                                             <div
                                                 key={step.key}
-                                                className="flex items-center justify-between rounded-lg border p-3"
+                                                className="flex items-center justify-between flex-wrap rounded-lg border p-3"
                                             >
                                                 <div className="flex items-center gap-3">
                                                     {getStatusIcon(step.status)}

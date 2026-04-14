@@ -60,7 +60,7 @@ export default function PolicySnapshotIndex({ questions }: Props) {
             <Head title={t('admin_policy_snapshot_index.page_title')} />
 
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
-                        <div className="mb-6 flex items-center justify-between">
+                        <div className="mb-6 flex items-center justify-between flex-wrap flex-wrap">
                             <div>
                                 <h1 className="mb-2 text-3xl font-bold text-foreground">
                                     {t(
@@ -96,7 +96,7 @@ export default function PolicySnapshotIndex({ questions }: Props) {
                                     {questions.data.map((question) => (
                                         <div
                                             key={question.id}
-                                            className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50"
+                                            className="flex items-center justify-between flex-wrap rounded-lg border p-4 hover:bg-muted/50"
                                         >
                                             <div className="flex-1">
                                                 <div className="mb-1 flex items-center gap-2">

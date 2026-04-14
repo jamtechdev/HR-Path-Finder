@@ -80,7 +80,7 @@ export function HeroRevision({
 
             <div className="relative hidden lg:block">
                 <div className="bg-white rounded-2xl overflow-hidden shadow-[0_40px_120px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08)] transform perspective-[1000px] rotate-y-[-4deg] rotate-x-[2deg] transition-transform duration-300 hover:rotate-y-[-1deg] hover:rotate-x-0">
-                    <div className="bg-[#0B1E3D] px-6 py-5 flex items-center justify-between">
+                    <div className="bg-[#0B1E3D] px-6 py-5 flex items-center justify-between flex-wrap">
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-[#2ECFAB]" />
                             <span className="text-white text-[13px] font-semibold">HR Pathfinder · 분석 리포트</span>
@@ -99,7 +99,7 @@ export function HeroRevision({
                             { label: '성과 측정 체계', value: 45 },
                             { label: '보상 공정성 지수', value: 52 },
                         ].map((row) => (
-                            <div key={row.label} className="flex items-center justify-between mb-2.5">
+                            <div key={row.label} className="flex items-center justify-between flex-wrap mb-2.5">
                                 <span className="text-[13px] text-[#3D5068] font-medium">{row.label}</span>
                                 <div className="flex-1 mx-3 h-1.5 bg-[#EEF0F4] rounded-sm overflow-hidden">
                                     <div className="h-full rounded-sm bg-gradient-to-r from-[#2ECFAB] to-[#7EE8D0]" style={{ width: `${row.value}%` }} />
@@ -129,7 +129,7 @@ export function HeroRevision({
                             </tbody>
                         </table>
                     </div>
-                    <div className="bg-[#F8F9FB] px-6 py-3.5 flex items-center justify-between border-t border-[#EEF0F4]">
+                    <div className="bg-[#F8F9FB] px-6 py-3.5 flex items-center justify-between flex-wrap border-t border-[#EEF0F4]">
                         <span className="text-[11px] text-[#6B82A0]">컨설턴트 검수 완료 · 2025.06</span>
                         <span className="text-[11px] font-bold text-[#0B1E3D]">HR Pathfinder</span>
                     </div>

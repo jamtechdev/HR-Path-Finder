@@ -795,7 +795,7 @@ export default function Leaders({
             </div>
 
             {/* Ratio Bar */}
-            <div className="mx-7 mb-5 flex items-center gap-4 rounded-lg border border-[#E2E6ED] bg-[#F8F9FB] px-4 py-3.5 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20">
+            <div className="mx-7 mb-5 flex items-center gap-4 flex-wrap rounded-lg border border-[#E2E6ED] bg-[#F8F9FB] px-4 py-3.5 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/20">
                 <span className="shrink-0 text-[12px] font-bold text-[#6B7585] dark:text-[#9AA3B2]">
                     {t('diagnosis_leaders.ratioLabel')}
                 </span>

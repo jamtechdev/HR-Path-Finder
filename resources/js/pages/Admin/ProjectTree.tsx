@@ -114,7 +114,7 @@ export default function ProjectTree({ projects }: Props) {
                             </div>
                           </div>
 
-                          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                             <Badge variant="outline" className="h-7 px-2 text-xs font-medium">
                               {progress.completed}/{progress.total}
                             </Badge>

@@ -116,7 +116,7 @@ export default function TranslationsIndex({
                 <main className="flex-1 overflow-auto bg-background">
                     <Head title={t('admin_misc_page_titles.translations_index')} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
-                        <div className="mb-6 flex items-center justify-between">
+                        <div className="mb-6 flex items-center justify-between flex-wrap flex-wrap">
                             <div>
                                 <h1 className="text-3xl font-bold mb-2 text-foreground">
                                     Translation Center
@@ -221,7 +221,7 @@ export default function TranslationsIndex({
 
                         <Card>
                             <CardHeader>
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between flex-wrap">
                                     <CardTitle>
                                         {entries.length} translations
                                     </CardTitle>

@@ -72,7 +72,7 @@ export default function CeoReviewJobListSelection({
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <Card className="dark:bg-slate-800 dark:border-slate-700">
                         <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                 <div>
                                     <p className="text-sm text-muted-foreground dark:text-slate-400">{t('ceo_review_job_list.summary.total_selected')}</p>
                                     <p className="text-2xl font-bold dark:text-slate-100">{selectedJobs.length}</p>
@@ -83,7 +83,7 @@ export default function CeoReviewJobListSelection({
                     </Card>
                     <Card className="dark:bg-slate-800 dark:border-slate-700">
                         <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                 <div>
                                     <p className="text-sm text-muted-foreground dark:text-slate-400">{t('ceo_review_job_list.summary.ungrouped')}</p>
                                     <p className="text-2xl font-bold dark:text-slate-100">{ungroupedJobs.length}</p>
@@ -94,7 +94,7 @@ export default function CeoReviewJobListSelection({
                     </Card>
                     <Card className="dark:bg-slate-800 dark:border-slate-700">
                         <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                 <div>
                                     <p className="text-sm text-muted-foreground dark:text-slate-400">{t('ceo_review_job_list.summary.grouped')}</p>
                                     <p className="text-2xl font-bold dark:text-slate-100">{groupedJobs.length}</p>
@@ -196,7 +196,7 @@ export default function CeoReviewJobListSelection({
                                             key={job.id}
                                             className="p-4 border border-green-500 rounded-lg bg-green-50 dark:bg-green-950/20 dark:border-green-800"
                                         >
-                                            <div className="flex items-center justify-between mb-2">
+                                            <div className="flex items-center justify-between flex-wrap  flex-wrap mb-2">
                                                 <h4 className="font-semibold text-green-900 dark:text-green-100">
                                                     {job.job_name}
                                                 </h4>

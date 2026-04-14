@@ -106,7 +106,7 @@ export default function OrgNode({ data, id, onDataChange, readOnly = false }: Or
                     : 'border-primary/20 hover:border-primary/40'
             }`}>
                 <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap">
                         <CardTitle className="text-sm font-semibold truncate">
                             {data.orgUnitName || data.label}
                         </CardTitle>

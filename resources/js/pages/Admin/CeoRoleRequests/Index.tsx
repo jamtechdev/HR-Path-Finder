@@ -99,7 +99,7 @@ export default function CeoRoleRequestsIndex({ requests }: Props) {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                             <Card>
                                 <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between flex-wrap">
                                         <div>
                                             <p className="text-sm text-muted-foreground mb-1">{t('admin_ceo_role_requests.stats.pending')}</p>
                                             <p className="text-3xl font-bold">{pendingRequests.length}</p>
@@ -110,7 +110,7 @@ export default function CeoRoleRequestsIndex({ requests }: Props) {
                             </Card>
                             <Card>
                                 <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between flex-wrap">
                                         <div>
                                             <p className="text-sm text-muted-foreground mb-1">{t('admin_ceo_role_requests.stats.approved')}</p>
                                             <p className="text-3xl font-bold">{approvedRequests.length}</p>
@@ -121,7 +121,7 @@ export default function CeoRoleRequestsIndex({ requests }: Props) {
                             </Card>
                             <Card>
                                 <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between flex-wrap">
                                         <div>
                                             <p className="text-sm text-muted-foreground mb-1">{t('admin_ceo_role_requests.stats.rejected')}</p>
                                             <p className="text-3xl font-bold">{rejectedRequests.length}</p>
@@ -201,7 +201,7 @@ export default function CeoRoleRequestsIndex({ requests }: Props) {
                                     ) : (
                                         requests.map((request) => (
                                             <div key={request.id} className="p-4 border rounded-lg">
-                                                <div className="flex items-center justify-between">
+                                                <div className="flex items-center justify-between flex-wrap">
                                                     <div className="flex-1">
                                                         <div className="flex items-center gap-3 mb-2">
                                                             <Building2 className="w-5 h-5 text-muted-foreground" />

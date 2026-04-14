@@ -246,7 +246,7 @@ export default function PathFinderDashboard({
               {/* Step 1 - Active */}
               <div className="bg-white dark:bg-slate-900 border border-[#4ecdc4] rounded-xl p-5 pl-[22px] transition-all relative overflow-hidden shadow-[0_0_0_1px_#4ecdc4,0_4px_20px_rgba(78,205,196,0.12)]">
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#4ecdc4] to-[#3ab5ad]" />
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between flex-wrap mb-3">
                   <div className="flex items-center gap-1.5">
                     <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">{t('pathfinder_dashboard.step_n', { n: 1 })}</span>
                     <span className="text-[10px] font-semibold text-[#2ea89e] bg-[var(--hr-mint-dim)] py-0.5 px-2 rounded-[20px]">● {t('dashboard.pathfinder.in_progress')}</span>
@@ -266,7 +266,7 @@ export default function PathFinderDashboard({
                     <div className="h-full bg-gradient-to-r from-[#4ecdc4] to-[#3ab5ad] rounded transition-[width] duration-500" style={{ width: `${onboardingProgress}%` }} />
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap">
                   <span />
                   <Link
                     href="/hr-manager/companies"
@@ -279,7 +279,7 @@ export default function PathFinderDashboard({
               {/* Steps 2–4 locked */}
               {STEP_CONFIG.slice(1, 4).map((step) => (
                 <div key={step.id} className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 opacity-70">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between flex-wrap mb-3">
                     <div className="flex items-center gap-1.5">
                       <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">{t('pathfinder_dashboard.step_n', { n: step.num })}</span>
                       <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px] inline-flex items-center gap-1">
@@ -329,7 +329,7 @@ export default function PathFinderDashboard({
 
                     {/* Submitted - waiting for CEO banner */}
                     {phaseStatusText && (
-                        <div className="mb-6 flex items-center gap-4 rounded-xl border border-[var(--hr-mint)] bg-[rgba(78,205,196,0.08)] px-5 py-4">
+                        <div className="mb-6 flex items-center gap-4 flex-wrap rounded-xl border border-[var(--hr-mint)] bg-[rgba(78,205,196,0.08)] px-5 py-4">
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--hr-mint)] text-[var(--hr-navy-deep)]">
                                 <CheckCircle2 className="h-5 w-5" />
                             </div>
@@ -348,7 +348,7 @@ export default function PathFinderDashboard({
             <div className="grid grid=cols-1 md:grid-cols-4 gap-3 mb-6">
               <div className="bg-gradient-to-br from-[var(--hr-navy)] to-[var(--hr-navy-mid)] border-0 rounded-xl p-[18px] pr-5 relative overflow-hidden hover:shadow-md transition-shadow">
                 <div className="absolute -top-5 -right-5 w-20 h-20 rounded-full bg-[rgba(78,205,196,0.1)] pointer-events-none" />
-                <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center justify-between flex-wrap mb-2.5">
                   <span className="text-[10.5px] font-semibold text-white/45 uppercase tracking-[0.6px]">{t('dashboard.pathfinder.overall_progress')}</span>
                   <span className="text-[9.5px] font-semibold py-0.5 px-1.5 rounded-[20px] bg-[rgba(78,205,196,0.15)] text-[var(--hr-mint)]">
                     {isCurrentStepSubmitted ? t('dashboard.pathfinder.submitted_short', 'Submitted') : t('dashboard.pathfinder.in_progress')}
@@ -375,7 +375,7 @@ export default function PathFinderDashboard({
                 </div>
               </div>
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-[18px] pr-5 relative overflow-hidden hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-shadow">
-                <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center justify-between flex-wrap mb-2.5">
                   <span className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.6px]">{t('dashboard.pathfinder.current_step')}</span>
                   <span className="text-[9.5px] font-semibold py-0.5 px-1.5 rounded-[20px] bg-[rgba(78,205,196,0.12)] text-[#2ea89e]">{t('dashboard.pathfinder.active')}</span>
                 </div>
@@ -462,7 +462,7 @@ export default function PathFinderDashboard({
                       key={card.step}
                       className="col-span-1 md:col-span-2 flex flex-col md:flex-row items-center justify-between py-[18px] px-[22px] rounded-xl border border-[var(--hr-mint)] bg-white dark:bg-slate-900"
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 flex-wrap">
                         <div className="w-9 h-9 rounded-[9px] bg-[rgba(78,205,196,0.15)] flex items-center justify-center text-base">
                           <CheckCircle2 className="w-4 h-4 text-[#2ea89e]" />
                         </div>
@@ -483,7 +483,7 @@ export default function PathFinderDashboard({
                     </div>
                   ) : card.status === 'current' ? (
                     <div key={card.step} className="col-span-1 md:col-span-2 flex flex-col md:flex-row items-center justify-between py-[18px] px-[22px] rounded-xl border border-[#4ecdc4] bg-white dark:bg-slate-900 shadow-[0_0_0_1px_#4ecdc4,0_4px_20px_rgba(78,205,196,0.12)]">
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 flex-wrap">
                         <div className="w-9 h-9 rounded-[9px] bg-[rgba(78,205,196,0.12)] flex items-center justify-center text-base">
                           <Building2 className="w-4 h-4 text-[#4ecdc4]" />
                         </div>
@@ -546,7 +546,7 @@ export default function PathFinderDashboard({
                     key={card.step}
                     className="col-span-1 md:col-span-2 flex flex-col md:flex-row items-center justify-between py-[18px] px-[22px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 opacity-70"
                   >
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 flex-wrap">
                       <div className="w-9 h-9 rounded-[9px] bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-base">
                         <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                       </div>
@@ -575,7 +575,7 @@ export default function PathFinderDashboard({
                     className="bg-white dark:bg-slate-900 border border-[var(--hr-mint)] rounded-xl p-5 pl-[22px] relative overflow-hidden"
                   >
                     <div className="absolute top-0 left-0 right-0 h-0.5 bg-[var(--hr-mint)]" />
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-between flex-wrap mb-3">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">
                           {t('pathfinder_dashboard.step_n', { n: card.step })}
@@ -609,7 +609,7 @@ export default function PathFinderDashboard({
                     className="bg-white dark:bg-slate-900 border border-[#4ecdc4] rounded-xl p-5 pl-[22px] transition-all relative overflow-hidden shadow-[0_0_0_1px_#4ecdc4,0_4px_20px_rgba(78,205,196,0.12)]"
                   >
                     <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#4ecdc4] to-[#3ab5ad]" />
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-between flex-wrap mb-3">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">
                           {t('pathfinder_dashboard.step_n', { n: card.step })}
@@ -636,7 +636,7 @@ export default function PathFinderDashboard({
                         />
                       </div>
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap">
                       <span />
                       <Link
                         href={getStepRoute(card.id, projectId)}
@@ -651,7 +651,7 @@ export default function PathFinderDashboard({
                     key={card.step}
                     className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 opacity-70"
                   >
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-between flex-wrap mb-3">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 py-0.5 px-2 rounded-[20px]">
                             {t('pathfinder_dashboard.step_n', { n: card.step })}

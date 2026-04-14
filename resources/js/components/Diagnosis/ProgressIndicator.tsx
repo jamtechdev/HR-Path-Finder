@@ -21,7 +21,7 @@ export default function ProgressIndicator({ steps, currentStep }: ProgressIndica
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap">
                 <div>
                     <p className="text-sm font-medium">Progress</p>
                     <p className="text-xs text-muted-foreground">

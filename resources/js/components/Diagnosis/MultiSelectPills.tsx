@@ -34,7 +34,7 @@ export default function MultiSelectPills({
 
     return (
         <div className={cn('space-y-3', className)}>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap">
                 <label className="text-sm font-medium">
                     {label}
                     {required && <span className="text-destructive ml-1">*</span>}

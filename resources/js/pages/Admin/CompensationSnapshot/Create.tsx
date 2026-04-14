@@ -205,7 +205,7 @@ export default function CompensationSnapshotCreate({ answerTypes, parentQuestion
                                     )}
 
                                     <div className="space-y-3 rounded-lg border p-4">
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-between flex-wrap">
                                             <Label>Additional settings (optional)</Label>
                                             <Button
                                                 type="button"

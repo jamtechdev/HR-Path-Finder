@@ -33,7 +33,7 @@ export default function RightSidePanel({
         <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 overflow-y-auto border-l">
             <Card className="h-full rounded-none border-0 shadow-none">
                 <CardHeader className="sticky top-0 bg-white z-10 border-b">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap">
                         <CardTitle className="text-lg">{optionName || 'Option Details'}</CardTitle>
                         <Button
                             variant="ghost"

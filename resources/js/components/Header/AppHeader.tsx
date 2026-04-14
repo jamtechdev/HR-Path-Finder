@@ -83,16 +83,16 @@ return (
             'sticky top-0 z-50 w-full flex-shrink-0 h-[var(--hr-topbar-h)] backdrop-blur supports-[backdrop-filter]:backdrop-blur border-b bg-card/95 border-border dark:bg-card/95'
         )}>
             <div className="flex h-full items-center justify-between px-5 md:px-7 w-full">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
 <SidebarTrigger className="flex size-9 rounded-lg -ml-1 hover:bg-accent/50" />
-<div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+<div className="flex items-center gap-2 text-[12px] text-muted-foreground hidden sm:hidden">
                         <span>{appName}</span>
                         <span>&nbsp;/&nbsp;</span>
                         <strong className="font-semibold text-foreground">{breadcrumbLabel}</strong>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
                     <Button
                         type="button"
                         variant="ghost"
@@ -117,7 +117,7 @@ return (
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-96 max-h-[70vh] overflow-auto">
-                            <DropdownMenuLabel className="flex items-center justify-between">
+                            <DropdownMenuLabel className="flex items-center justify-between flex-wrap">
                                 <span>{t('admin_ui.header.notifications.title')}</span>
                                 <span className="text-xs text-muted-foreground">{t('admin_ui.header.notifications.unread_count', { count: unreadCount })}</span>
                             </DropdownMenuLabel>

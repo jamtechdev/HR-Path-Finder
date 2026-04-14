@@ -883,7 +883,7 @@ export default function CompensationSystemIndex({
 
                 {isOverview ? (
                     <div className="space-y-6">
-                        <div className="flex items-center justify-between px-6 pt-6 max-w-[90rem] mx-auto">
+                        <div className="flex items-center justify-between flex-wrap px-6 pt-6 max-w-[90rem] mx-auto">
                             <Link
                                 href="/hr-manager/dashboard"
                                 className="text-sm font-medium text-foreground/80 hover:text-primary flex items-center gap-1"
@@ -1161,7 +1161,7 @@ export default function CompensationSystemIndex({
 
                         {/* Sticky footer: starts after sidebar (same as overview content area) */}
                         <footer
-                            className="fixed bottom-0 right-0 bg-card border-t border-border px-6 py-3.5 flex items-center justify-between z-50 shadow-lg"
+                            className="fixed bottom-0 right-0 bg-card border-t border-border px-6 py-3.5 flex items-center justify-between flex-wrap z-50 shadow-lg"
                             style={{ left: 'var(--sidebar-width, 16rem)' }}
                         >
                             <Button

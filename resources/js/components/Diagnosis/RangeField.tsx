@@ -31,7 +31,7 @@ export function RangeField({
 
     return (
         <div className={cn('space-y-2', className)}>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap">
                 <span className="text-sm font-medium">{label}</span>
                 <span className="text-sm font-semibold text-muted-foreground">{displayValue}</span>
             </div>

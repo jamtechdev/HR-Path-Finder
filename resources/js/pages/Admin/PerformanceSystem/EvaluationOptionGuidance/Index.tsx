@@ -58,7 +58,7 @@ export default function EvaluationOptionGuidanceIndex({ guidances, optionKeys }:
                 <div className="p-6 md:p-8 max-w-7xl mx-auto">
                     <Head title={t('admin_eval_option_guidance.page_title')} />
                     
-                    <div className="mb-6 flex items-center justify-between">
+                    <div className="mb-6 flex items-center justify-between flex-wrap flex-wrap">
                         <div>
                             <h1 className="text-3xl font-bold">{t('admin_eval_option_guidance.heading')}</h1>
                             <p className="text-muted-foreground mt-1">
@@ -75,7 +75,7 @@ export default function EvaluationOptionGuidanceIndex({ guidances, optionKeys }:
 
                     <Card>
                         <CardHeader>
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-4 flex-wrap">
                                 <div className="flex-1">
                                     <div className="relative">
                                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -109,7 +109,7 @@ export default function EvaluationOptionGuidanceIndex({ guidances, optionKeys }:
                                     filteredGuidances.map((guidance) => (
                                         <Card key={guidance.id} className="hover:shadow-md transition-shadow">
                                             <CardHeader>
-                                                <div className="flex items-center justify-between">
+                                                <div className="flex items-center justify-between flex-wrap">
                                                     <div className="flex items-center gap-3">
                                                         <Badge variant="outline">{guidance.option_key}</Badge>
                                                         <span className="font-semibold">{guidance.option_value}</span>

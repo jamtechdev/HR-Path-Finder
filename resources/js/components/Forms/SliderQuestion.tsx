@@ -33,7 +33,7 @@ export default function SliderQuestion({
                 {required && <span className="text-red-500 ml-1">*</span>}
             </Label>
             <div className="px-2">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between flex-wrap mb-2">
                     <span className="text-xs text-muted-foreground">{optionA || 'Option A'}</span>
                     <span className="text-xs text-muted-foreground">{optionB || 'Option B'}</span>
                 </div>

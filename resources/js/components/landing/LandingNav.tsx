@@ -41,7 +41,7 @@ export function LandingNav({
     const externalInquiryHref = 'https://better.odw.co.kr';
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between h-16 px-6 md:px-12 bg-[#0B1E3D]/95 backdrop-blur-md border-b border-[#2ECFAB]/10">
+        <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between flex-wrap h-16 px-6 md:px-12 bg-[#0B1E3D]/95 backdrop-blur-md border-b border-[#2ECFAB]/10">
             <a href="#" className="flex items-center gap-2.5 font-serif text-lg font-bold text-white no-underline">
                 HR <span className="text-[#2ECFAB]">Pathfinder</span>
             </a>

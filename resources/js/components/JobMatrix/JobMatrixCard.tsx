@@ -76,7 +76,7 @@ export default function JobMatrixCard({
         <Card className="w-full border-2 shadow-lg">
             {/* Header */}
             <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white pb-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap">
                     <div className="flex-1">
                         {companyName && (
                             <h2 className="text-2xl font-bold mb-1">{companyName}</h2>
@@ -270,7 +270,7 @@ export default function JobMatrixCard({
                         <div className="space-y-4">
                             {job.competency_levels.map((level, idx) => (
                                 <div key={idx} className="border rounded-lg p-4 bg-gray-50">
-                                    <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center justify-between flex-wrap mb-2">
                                         <Badge variant="outline" className="font-semibold">
                                             {level.level}
                                         </Badge>

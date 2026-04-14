@@ -21,7 +21,7 @@ export default function StepVerificationItem({
     onVerify,
 }: StepVerificationItemProps) {
     return (
-        <div className="flex items-center justify-between p-3 border rounded-lg">
+        <div className="flex items-center justify-between flex-wrap p-3 border rounded-lg">
             <div className="flex items-center gap-3">
                 <StepStatusIcon status={status} isVerified={isVerified} />
                 <span className="text-sm font-medium">{label}</span>

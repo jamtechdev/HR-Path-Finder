@@ -94,7 +94,7 @@ export default function CBSnapshotReview({ projects, selectedProject }: Props) {
             </Sidebar>
             <SidebarInset className="flex flex-col overflow-auto">
                 <AppHeader />
-                <main className="flex-1 overflow-auto">
+                <main className="flex-1 overflow-visible">
                     <Head title="C&B Snapshot Review" />
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
                         <h1 className="mb-4 text-2xl font-bold">C&B snapshot review</h1>
@@ -112,7 +112,7 @@ export default function CBSnapshotReview({ projects, selectedProject }: Props) {
                                             <Link
                                                 key={project.id}
                                                 href={`/admin/cb-snapshot-review/${project.id}`}
-                                                className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
+                                                className={`flex items-center justify-between flex-wrap rounded-lg border p-3 transition-colors ${
                                                     active ? 'border-primary bg-primary/10' : 'hover:bg-muted/50'
                                                 }`}
                                             >
@@ -204,7 +204,7 @@ export default function CBSnapshotReview({ projects, selectedProject }: Props) {
                                                 <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                                     All answers
                                                 </h3>
-                                                <div className="max-h-80 space-y-2 overflow-auto pr-1">
+                                                <div className="space-y-2">
                                                     {selectedProject.snapshot_rows.map((row) => (
                                                         <div key={row.question_id} className="rounded-lg border p-3">
                                                             <p className="text-sm font-semibold">

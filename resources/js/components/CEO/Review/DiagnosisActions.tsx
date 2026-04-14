@@ -46,7 +46,7 @@ export default function DiagnosisActions({
     if (isFinalized) {
         return (
             <div className="mt-8 space-y-3">
-                <div className="flex items-center justify-between pt-6 border-t flex-wrap gap-3">
+                <div className="flex items-center justify-between flex-wrap pt-6 border-t flex-wrap gap-3">
                     <div className="flex items-center gap-3">
                         <Button
                             variant="outline"
@@ -83,7 +83,7 @@ export default function DiagnosisActions({
     return (
         <div className="mt-8 space-y-4">
             {/* Action Buttons */}
-            <div className="flex items-center justify-between pt-6 border-t flex-wrap gap-3">
+            <div className="flex items-center justify-between flex-wrap pt-6 border-t flex-wrap gap-3">
                 <div className="flex items-center gap-3">
                     <Button
                         variant="outline"

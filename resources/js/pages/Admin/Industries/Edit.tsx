@@ -137,7 +137,7 @@ export default function IndustriesEdit({ category }: Props) {
                             {/* Subcategories */}
                             <Card>
                                 <CardHeader>
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between flex-wrap">
                                         <CardTitle>{t('admin_industries_edit.sub_industries.title')}</CardTitle>
                                         <Button
                                             onClick={() => setShowAddSubCategory(!showAddSubCategory)}
@@ -186,7 +186,7 @@ export default function IndustriesEdit({ category }: Props) {
                                         {(category.subCategories || []).map((subCategory) => (
                                             <div
                                                 key={subCategory.id}
-                                                className="flex items-center justify-between p-3 border rounded-lg"
+                                                className="flex items-center justify-between flex-wrap p-3 border rounded-lg"
                                             >
                                                 {editingSubCategory === subCategory.id ? (
                                                     <form

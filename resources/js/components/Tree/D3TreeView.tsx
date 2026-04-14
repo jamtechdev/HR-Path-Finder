@@ -560,7 +560,7 @@ export default function D3TreeView({ hrSystemSnapshot }: D3TreeViewProps) {
         return (
             <Card className="h-full border-l-2" style={{ borderColor: colors.stroke }}>
                 <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap">
                         <CardTitle className="text-xl" style={{ color: colors.text }}>
                             {selectedNode.name}
                         </CardTitle>

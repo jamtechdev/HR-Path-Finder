@@ -20,7 +20,7 @@ export default function PhilosophySurveyCard({ project, ceoPhilosophyStatus }: P
                 </div>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap">
                     <span className="text-sm text-muted-foreground">Status</span>
                     {ceoPhilosophyStatus === 'completed' ? (
                         <Badge className="bg-green-500 text-white">
