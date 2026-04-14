@@ -415,7 +415,7 @@ export default function PayBandSalaryTableTab({
                         <div className="space-y-4">
                             <div
                                 id="structCtrl"
-                                className="flex items-center gap-4 mb-2 p-3 bg-muted/50 rounded-lg border"
+                                className="flex items-center gap-4 flex-wrap mb-2 p-3 bg-muted/50 rounded-lg border"
                             >
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs font-semibold uppercase text-muted-foreground">

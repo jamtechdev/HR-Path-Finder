@@ -259,28 +259,28 @@ export default function Step6ReviewSubmit({
 
                 {/* Summary cards */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
-                    <div className="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-800/60 dark:bg-blue-950/30">
+                    <div className="flex items-center justify-between flex-wrap rounded-xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-800/60 dark:bg-blue-950/30">
                         <div>
                             <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-blue-900 dark:text-blue-200">Jobs Defined</p>
                             <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{jobsCount}</p>
                         </div>
                         <FileText className="w-9 h-9 text-blue-600 shrink-0" />
                     </div>
-                    <div className="flex items-center justify-between rounded-xl border border-green-200 bg-green-50 p-5 dark:border-green-800/60 dark:bg-green-950/30">
+                    <div className="flex items-center justify-between flex-wrap rounded-xl border border-green-200 bg-green-50 p-5 dark:border-green-800/60 dark:bg-green-950/30">
                         <div>
                             <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-green-900 dark:text-green-200">Org Units Mapped</p>
                             <p className="text-2xl font-bold text-green-700 dark:text-green-300">{orgUnitsCount}</p>
                         </div>
                         <Network className="w-9 h-9 text-green-600 shrink-0" />
                     </div>
-                    <div className="flex items-center justify-between rounded-xl border border-purple-200 bg-purple-50 p-5 dark:border-purple-800/60 dark:bg-purple-950/30">
+                    <div className="flex items-center justify-between flex-wrap rounded-xl border border-purple-200 bg-purple-50 p-5 dark:border-purple-800/60 dark:bg-purple-950/30">
                         <div>
                             <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-purple-900 dark:text-purple-200">CSFs Generated</p>
                             <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">{csfsCount}</p>
                         </div>
                         <Target className="w-9 h-9 text-purple-600 shrink-0" />
                     </div>
-                    <div className="flex items-center justify-between rounded-xl border border-orange-200 bg-orange-50 p-5 dark:border-orange-800/60 dark:bg-orange-950/30">
+                    <div className="flex items-center justify-between flex-wrap rounded-xl border border-orange-200 bg-orange-50 p-5 dark:border-orange-800/60 dark:bg-orange-950/30">
                         <div>
                             <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-orange-900 dark:text-orange-200">Role Owners</p>
                             <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">{roleOwnersCount}</p>

@@ -59,8 +59,8 @@ export default function HrPolicyOsCeoReview({
                 <SidebarInset className="flex-1 overflow-auto">
                     <AppHeader />
                     <div className="px-6">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-between flex-wrap">
+                            <div className="flex items-center gap-4 flex-wrap">
                                 <Button
                                     variant="ghost"
                                     size="sm"

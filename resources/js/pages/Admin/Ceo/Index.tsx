@@ -230,7 +230,7 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                 <main className="flex-1 overflow-auto bg-background">
                     <Head title={t('admin_ceo.page_title')} />
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
-                        <div className="mb-8 flex items-center justify-between">
+                        <div className="mb-8 flex items-center justify-between flex-wrap">
                             <div>
                                 <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg dark:from-blue-600 dark:to-purple-700">
                                     <Users className="h-8 w-8 text-white" />
@@ -437,7 +437,7 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                         <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
                             <Card>
                                 <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between flex-wrap">
                                         <div>
                                             <p className="mb-1 text-sm text-muted-foreground">
                                                 {t(
@@ -457,7 +457,7 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
 
                             <Card>
                                 <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between flex-wrap">
                                         <div>
                                             <p className="mb-1 text-sm text-muted-foreground">
                                                 {t(
@@ -477,7 +477,7 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
 
                             <Card>
                                 <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between flex-wrap">
                                         <div>
                                             <p className="mb-1 text-sm text-muted-foreground">
                                                 {t('admin_ceo.stats.accepted')}
@@ -495,7 +495,7 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
 
                             <Card>
                                 <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between flex-wrap">
                                         <div>
                                             <p className="mb-1 text-sm text-muted-foreground">
                                                 {t('admin_ceo.stats.rejected')}
@@ -531,7 +531,7 @@ export default function AdminCeoIndex({ ceos, companies, invitations }: Props) {
                             >
                                 <Card>
                                     <CardHeader>
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-between flex-wrap">
                                             <div>
                                                 <CardTitle>
                                                     {t(

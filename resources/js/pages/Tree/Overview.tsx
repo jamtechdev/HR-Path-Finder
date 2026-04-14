@@ -121,7 +121,7 @@ export default function TreeOverview({
             />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
                         <div className="mb-6">
-                            <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center justify-between flex-wrap mb-2">
                                 <div>
                                     <h1 className="text-3xl font-bold mb-2">TREE</h1>
                                     <p className="text-muted-foreground">
@@ -152,7 +152,7 @@ export default function TreeOverview({
                             <TabsContent value="overview" className="space-y-6">
                                 {/* Job Matrix Cards Section */}
                                 <div>
-                                    <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center justify-between flex-wrap mb-4">
                                         <div>
                                             <h2 className="text-2xl font-semibold mb-1">Job Matrix Cards</h2>
                                             <p className="text-sm text-muted-foreground">
@@ -230,7 +230,7 @@ export default function TreeOverview({
                                 {isAdminView && (
                                     <Card className="border-yellow-200 bg-yellow-50">
                                         <CardHeader>
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex items-center justify-between flex-wrap">
                                                 <CardTitle className="flex items-center gap-2">
                                                     <MessageSquare className="w-5 h-5 text-yellow-600" />
                                                     Admin Recommendations
@@ -280,7 +280,7 @@ export default function TreeOverview({
                                 {canSubmit && (
                                     <Card className="border-green-200 bg-green-50">
                                         <CardContent className="p-6">
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex items-center justify-between flex-wrap">
                                                 <div>
                                                     <h3 className="font-semibold mb-1">Ready to Submit?</h3>
                                                     <p className="text-sm text-muted-foreground">

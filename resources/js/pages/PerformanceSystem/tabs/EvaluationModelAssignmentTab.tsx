@@ -292,7 +292,7 @@ export default function EvaluationModelAssignmentTab({
                                 const badgeClass = model === 'mbo' ? 'bg-[#fff7ed] text-[#f97316] border-[#fed7aa]' : model === 'bsc' ? 'bg-[#eff6ff] text-[#3b82f6] border-[#bfdbfe]' : 'bg-[#ede9fe] text-[#7c3aed] border-[#c4b5fd]';
                                 return (
                                     <div key={model} className="rounded-[14px] border border-[#e2e8f0] bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
-                                        <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center justify-between flex-wrap mb-2">
                                             <span className={cn('text-[13px] font-extrabold px-3 py-0.5 rounded-lg border', badgeClass)}>{model.toUpperCase()}</span>
                                             <Button variant="outline" size="sm" className="h-7 rounded-full border-[#e2e8f0] px-2 text-[10.5px] font-semibold text-[#94a3b8] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800" onClick={() => setModelModal(model)}>{t('common.view')}</Button>
                                         </div>

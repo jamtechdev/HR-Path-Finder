@@ -166,7 +166,7 @@ export default function StepVerificationCard({ projectId, stepStatuses, surveyAv
                     return (
                         <div
                             key={step}
-                            className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                            className="flex items-center justify-between flex-wrap p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                         >
                             <div className="flex items-center gap-3 flex-1">
                                 {getStatusIcon(status)}
@@ -238,7 +238,7 @@ export default function StepVerificationCard({ projectId, stepStatuses, surveyAv
 
                 {/* CEO Survey — View when diagnosis is verified */}
                 {showSurveyRow && (
-                    <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center justify-between flex-wrap p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                         <div className="flex items-center gap-3 flex-1">
                             <ClipboardList className="w-4 h-4 text-indigo-500" />
                             <div className="flex-1">
@@ -262,7 +262,7 @@ export default function StepVerificationCard({ projectId, stepStatuses, surveyAv
                 )}
 
                 {/* Final Dashboard is Tree only (not a separate verification step) */}
-                <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-between flex-wrap p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                     <div className="flex items-center gap-3 flex-1">
                         <Network className="w-4 h-4 text-teal-600" />
                         <div className="flex-1">

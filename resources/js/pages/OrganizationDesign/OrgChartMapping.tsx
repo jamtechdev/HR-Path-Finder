@@ -519,7 +519,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                         {/* Organization Units */}
                         <Card className="mt-6 shadow-sm border">
                             <CardHeader>
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between flex-wrap">
                                     <CardTitle>Organization Units</CardTitle>
                                     <Button variant="outline" size="sm" onClick={addOrgUnit}>
                                         <Plus className="w-4 h-4 mr-2" />
@@ -614,7 +614,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
 
                                         {/* Job Specialists */}
                                         <div className="space-y-2">
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex items-center justify-between flex-wrap">
                                                 <Label>Job Specialists</Label>
                                                 <Button
                                                     variant="outline"
@@ -688,7 +688,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                         <div className="mt-8 pt-6 border-t">
                             <Card className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-primary/20">
                                 <CardContent className="p-6">
-                                    <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center justify-between flex-wrap gap-4">
                                         <div className="flex-1">
                                             <h3 className="text-lg font-semibold mb-2">Ready to Complete Job Analysis?</h3>
                                             <p className="text-sm text-muted-foreground">

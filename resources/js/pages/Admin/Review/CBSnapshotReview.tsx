@@ -112,7 +112,7 @@ export default function CBSnapshotReview({ projects, selectedProject }: Props) {
                                             <Link
                                                 key={project.id}
                                                 href={`/admin/cb-snapshot-review/${project.id}`}
-                                                className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
+                                                className={`flex items-center justify-between flex-wrap rounded-lg border p-3 transition-colors ${
                                                     active ? 'border-primary bg-primary/10' : 'hover:bg-muted/50'
                                                 }`}
                                             >

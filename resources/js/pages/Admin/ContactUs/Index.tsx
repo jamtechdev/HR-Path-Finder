@@ -76,7 +76,7 @@ export default function ContactUsAdminIndex({ submissions }: Props) {
 
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="flex items-center justify-between">
+                                    <CardTitle className="flex items-center justify-between flex-wrap">
                                         <span>{t('contact.submissions')}</span>
                                         <Badge variant="outline">
                                             {submissions.length}

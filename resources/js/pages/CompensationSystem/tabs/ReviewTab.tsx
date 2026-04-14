@@ -237,7 +237,7 @@ export default function ReviewTab({
                 <div className="space-y-3 w-full">
                     {/* Snapshot card — from snapshot + benefits/bonus */}
                     <div className="rounded-xl border overflow-hidden shadow-sm bg-card border-border">
-                        <div className="flex items-center justify-between px-5 py-3 border-b bg-muted/50 border-border">
+                        <div className="flex items-center justify-between flex-wrap px-5 py-3 border-b bg-muted/50 border-border">
                             <div className="flex items-center gap-2">
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: MINT }}>◈</div>
                                 <span className="text-sm font-semibold" style={{ color: NAVY }}>Strategic Compensation Snapshot</span>
@@ -281,7 +281,7 @@ export default function ReviewTab({
 
                     {/* Base Salary Framework — from baseSalaryFramework */}
                     <div className="rounded-xl border overflow-hidden shadow-sm bg-card border-border">
-                        <div className="flex items-center justify-between px-5 py-3 border-b bg-muted/50 border-border">
+                        <div className="flex items-center justify-between flex-wrap px-5 py-3 border-b bg-muted/50 border-border">
                             <div className="flex items-center gap-2">
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: NAVY }}>A</div>
                                 <span className="text-[10px] font-semibold px-2 py-0.5 border rounded" style={{ color: TEXT_MUTED, borderColor: BORDER }}>REF-CODE-04A</span>
@@ -359,7 +359,7 @@ export default function ReviewTab({
 
                     {/* Bonus Pool — from bonusPool */}
                     <div className="rounded-xl border overflow-hidden shadow-sm bg-card border-border">
-                        <div className="flex items-center justify-between px-5 py-3 border-b bg-muted/50 border-border">
+                        <div className="flex items-center justify-between flex-wrap px-5 py-3 border-b bg-muted/50 border-border">
                             <div className="flex items-center gap-2">
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: NAVY }}>B</div>
                                 <span className="text-[10px] font-semibold px-2 py-0.5 border rounded" style={{ color: TEXT_MUTED, borderColor: BORDER }}>REF-CODE-04B</span>
@@ -399,7 +399,7 @@ export default function ReviewTab({
 
                     {/* Benefits — from benefits */}
                     <div className="rounded-xl border overflow-hidden shadow-sm bg-card border-border">
-                        <div className="flex items-center justify-between px-5 py-3 border-b bg-muted/50 border-border">
+                        <div className="flex items-center justify-between flex-wrap px-5 py-3 border-b bg-muted/50 border-border">
                             <div className="flex items-center gap-2">
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: NAVY }}>C</div>
                                 <span className="text-[10px] font-semibold px-2 py-0.5 border rounded" style={{ color: TEXT_MUTED, borderColor: BORDER }}>REF-CODE-04C</span>

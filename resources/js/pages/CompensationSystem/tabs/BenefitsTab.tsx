@@ -667,7 +667,7 @@ export default function BenefitsTab({
                     {/* Summary Note */}
                     <Card className="shadow-sm border rounded-xl overflow-hidden">
                         <CardContent className="p-5">
-                            <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center justify-between flex-wrap mb-3">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                                     Summary Note
                                 </span>

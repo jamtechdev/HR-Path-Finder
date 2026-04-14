@@ -154,7 +154,7 @@ export function HRSystemTree({
 
                                             {/* Content */}
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center justify-between flex-wrap mb-2">
                                                     <h3 className="text-lg font-semibold text-foreground">
                                                         {node.label}
                                                     </h3>

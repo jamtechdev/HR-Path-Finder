@@ -49,7 +49,7 @@ export default function StepLayout({
                 {/* Progress Overview */}
                 {completedCount !== undefined && totalCount !== undefined && (
                     <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center justify-between flex-wrap mb-2">
                             <span className="text-sm font-medium text-gray-700">{progressLabel || 'Progress'}</span>
                             <span className="text-sm text-gray-600">{completedCount} of {totalCount}</span>
                         </div>

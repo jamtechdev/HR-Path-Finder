@@ -47,9 +47,9 @@ export default function ActiveCompaniesList({ companies }: ActiveCompaniesListPr
                         return (
                             <div
                                 key={company.id}
-                                className="flex items-center justify-between p-4 border rounded-lg"
+                                className="flex items-center justify-between flex-wrap p-4 border rounded-lg"
                             >
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-4 flex-wrap">
                                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                                         <Building2 className="w-5 h-5 text-primary" />
                                     </div>

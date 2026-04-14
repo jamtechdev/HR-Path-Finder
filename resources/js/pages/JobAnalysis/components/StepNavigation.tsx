@@ -24,7 +24,7 @@ export default function StepNavigation({
     showNext = true,
 }: StepNavigationProps) {
     return (
-        <div className="flex items-center justify-between gap-4 pt-6 border-t border-border">
+        <div className="flex items-center justify-between flex-wrap gap-4 pt-6 border-t border-border">
             {showBack && onBack && (
                 <Button
                     onClick={onBack}

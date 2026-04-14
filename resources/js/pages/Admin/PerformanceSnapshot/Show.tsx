@@ -56,7 +56,7 @@ export default function PerformanceSnapshotShow({ question }: Props) {
                                 <ChevronLeft className="w-4 h-4 mr-2" />
                                 {t('admin_perf_snapshot_detail.back_to_questions')}
                             </Button>
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between flex-wrap">
                                 <h1 className="text-3xl font-bold">
                                     {t('admin_perf_snapshot_detail.question_heading')}
                                 </h1>

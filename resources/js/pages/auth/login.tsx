@@ -158,7 +158,7 @@ export default function Login({
                             </div>
 
                             <div className="space-y-2">
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between flex-wrap">
                                     <Label htmlFor="password" className="text-sm font-medium leading-none cursor-pointer">
                                         {t('auth.login.password_label')}
                                     </Label>

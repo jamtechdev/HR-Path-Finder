@@ -34,7 +34,7 @@ export default function DynamicFieldList({
 }: DynamicFieldListProps) {
     return (
         <div className={cn('space-y-4', className)}>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap">
                 <label className="text-sm font-medium">{label}</label>
                 <Button type="button" variant="outline" size="sm" onClick={onAdd}>
                     <Plus className="w-4 h-4 mr-2" />

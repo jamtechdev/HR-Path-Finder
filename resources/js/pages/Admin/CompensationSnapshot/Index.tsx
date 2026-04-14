@@ -95,7 +95,7 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
         <AdminLayout>
             <Head title={t('compensation_snapshot_index.page_title')} />
                     <div className="p-6 md:p-8 max-w-7xl mx-auto">
-                        <div className="mb-6 flex items-center justify-between">
+                        <div className="mb-6 flex items-center justify-between flex-wrap flex-wrap">
                             <div>
                                 <h1 className="text-3xl font-bold mb-2 text-foreground">
                                     {t('compensation_snapshot_index.header_title')}
@@ -114,7 +114,7 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
 
                         <Card>
                             <CardHeader>
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between flex-wrap">
                                     <CardTitle>
                                         {t('compensation_snapshot_index.questions_count', { count: questions.data.length })}
                                     </CardTitle>
@@ -183,7 +183,7 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
                                         </div>
                                     )}
                                 </div>
-                                <div className="mt-6 flex items-center justify-between border-t pt-4">
+                                <div className="mt-6 flex items-center justify-between flex-wrap border-t pt-4">
                                     <p className="text-sm text-muted-foreground">
                                         {t('compensation_snapshot_index.page_info', { current: questions.current_page, last: questions.last_page, perPage: questions.per_page })}
                                     </p>

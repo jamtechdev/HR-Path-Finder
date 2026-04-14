@@ -115,7 +115,7 @@ export default function HrSystemOverview({ hrSystem }: Props) {
                         title={`${hrSystem.company.name} - ${t('admin_hr_system_overview.page_title')}`}
                     />
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
-                        <div className="mb-6 flex items-center justify-between">
+                        <div className="mb-6 flex items-center justify-between flex-wrap flex-wrap">
                             <div>
                                 <h1 className="text-3xl font-bold">
                                     {hrSystem.company.name} -{' '}

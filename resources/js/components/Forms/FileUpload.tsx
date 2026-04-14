@@ -77,7 +77,7 @@ export default function FileUpload({
                         {files.map((file, index) => (
                             <div
                                 key={index}
-                                className="flex items-center justify-between p-2 border rounded-md"
+                                className="flex items-center justify-between flex-wrap p-2 border rounded-md"
                             >
                                 <div className="flex items-center gap-2">
                                     <File className="w-4 h-4 text-muted-foreground" />

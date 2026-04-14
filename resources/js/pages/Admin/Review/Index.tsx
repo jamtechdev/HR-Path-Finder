@@ -209,7 +209,7 @@ export default function AdminReview({
                         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
                             {/* Left Column: Project List */}
                             <div className="lg:col-span-3 space-y-4">
-                                <div className="flex items-center justify-between px-1">
+                                <div className="flex items-center justify-between flex-wrap px-1">
                                     <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                                         <Layers className="h-4 w-4" /> {t('admin_review.projects')}
                                     </h2>
@@ -224,7 +224,7 @@ export default function AdminReview({
                                                 href={`/admin/review/${p.id}`}
                                                 onClick={() => setSelectedProjectId(p.id)}
                                                 className={cn(
-                                                    "group flex items-center justify-between rounded-lg px-4 py-3 text-sm transition-all duration-200",
+                                                    "group flex items-center justify-between flex-wrap rounded-lg px-4 py-3 text-sm transition-all duration-200",
                                                     p.id === (project?.id ?? selectedProjectId)
                                                         ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
                                                         : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
@@ -262,7 +262,7 @@ export default function AdminReview({
                                         {/* Summary Stats Grid */}
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <Card className="border-none shadow-sm bg-white dark:bg-slate-900">
-                                                <CardContent className="p-5 flex items-center gap-4">
+                                                <CardContent className="p-5 flex items-center gap-4 flex-wrap">
                                                     <div className="h-12 w-12 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600">
                                                         <Layers className="h-6 w-6" />
                                                     </div>
@@ -291,7 +291,7 @@ export default function AdminReview({
                                             </Card>
 
                                             <Card className="border-none shadow-sm bg-white dark:bg-slate-900">
-                                                <CardContent className="p-5 flex items-center gap-4">
+                                                <CardContent className="p-5 flex items-center gap-4 flex-wrap">
                                                     <div className="h-12 w-12 rounded-xl bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center text-purple-600">
                                                         <MessageSquareText className="h-6 w-6" />
                                                     </div>
@@ -306,7 +306,7 @@ export default function AdminReview({
                                         {/* C&B Snapshot Review Panel */}
                                         <Card className="border-none shadow-sm overflow-hidden">
                                             <CardHeader className="bg-white dark:bg-slate-900 border-b pb-4">
-                                                <div className="flex items-center justify-between gap-3">
+                                                <div className="flex items-center justify-between flex-wrap gap-3">
                                                     <div>
                                                         <CardTitle className="text-lg font-bold">
                                                             {selectedProject.company?.name ?? `Project #${selectedProject.id}`} — C&B snapshot answers
@@ -387,7 +387,7 @@ export default function AdminReview({
                                         {/* Status Overview Card */}
                                         <Card className="border-none shadow-sm overflow-hidden">
                                             <CardHeader className="bg-white dark:bg-slate-900 border-b pb-4">
-                                                <div className="flex items-center justify-between">
+                                                <div className="flex items-center justify-between flex-wrap">
                                                     <CardTitle className="text-lg font-bold flex items-center gap-2">
                                                         <Clock className="h-5 w-5 text-primary" />
                                                         Workflow Status
@@ -424,7 +424,7 @@ export default function AdminReview({
 
                                         {/* Main Step Data View */}
                                         <div className="space-y-6">
-                                            <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-4 flex-wrap">
                                                 <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
                                                 <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em]">{t('admin_review.submitted_step_data')}</h3>
                                                 <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
@@ -463,7 +463,7 @@ export default function AdminReview({
                                                                 return (
                                                                     <TabsContent key={step} value={step} className="mt-4">
                                                                         <div className="rounded-lg border bg-slate-50/40 dark:bg-slate-800/20">
-                                                                            <div className="border-b px-4 py-3 flex items-center justify-between">
+                                                                            <div className="border-b px-4 py-3 flex items-center justify-between flex-wrap">
                                                                                 <span className="text-sm font-semibold">
                                                                                     {STEP_LABELS[step] ?? step}
                                                                                 </span>
@@ -567,7 +567,7 @@ export default function AdminReview({
                                                             comments.map((c, idx) => (
                                                                 <div key={c.id} className="relative pl-6 border-l-2 border-slate-100 dark:border-slate-800 last:border-l-transparent">
                                                                     <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-white dark:bg-slate-900 border-2 border-primary" />
-                                                                    <div className="flex items-center justify-between mb-1">
+                                                                    <div className="flex items-center justify-between flex-wrap mb-1">
                                                                         <Badge variant="outline" className="text-[10px] uppercase font-bold text-primary border-primary/20 bg-primary/5">
                                                                             {STEP_LABELS[c.step] ?? c.step}
                                                                         </Badge>

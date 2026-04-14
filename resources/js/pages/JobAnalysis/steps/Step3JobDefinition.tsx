@@ -347,7 +347,7 @@ export default function Step3JobDefinition({
                 <div className="rounded-lg border border-[#e0ddd5] bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     {activeTab === 'description' && (
                         <>
-                            <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
+                            <div className="flex items-center justify-between flex-wrap flex-wrap gap-2 mb-4">
                                 <div className="flex items-center gap-2">
                                     <span className="font-bold text-[#1a1a3d] dark:text-slate-100">JOB DESCRIPTION</span>
                                     <span className="rounded bg-[#e0ddd5] px-2 py-0.5 text-[10px] text-[#666] dark:bg-slate-700 dark:text-slate-300">
@@ -408,7 +408,7 @@ export default function Step3JobDefinition({
                                         key={key}
                                         className="rounded-lg border border-[#e0ddd5] bg-[#fafaf9] p-4 dark:border-slate-700 dark:bg-slate-800/60"
                                     >
-                                        <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center justify-between flex-wrap mb-3">
                                             <span className="font-bold text-sm">{label}</span>
                                             <div className="flex items-center gap-2">
                                                 <span className="rounded bg-[#e0ddd5] px-2 py-0.5 text-[10px] dark:bg-slate-700 dark:text-slate-300">
@@ -471,7 +471,7 @@ export default function Step3JobDefinition({
 
                     {activeTab === 'competency' && (
                         <>
-                            <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center justify-between flex-wrap mb-4">
                                 <span className="font-bold text-[#1a1a3d] dark:text-slate-100">Competency Levels</span>
                                 <Button
                                     onClick={handleAddLevel}
@@ -520,7 +520,7 @@ export default function Step3JobDefinition({
 
                     {activeTab === 'csfs' && (
                         <>
-                            <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center justify-between flex-wrap mb-4">
                                 <span className="font-bold text-[#1a1a3d] dark:text-slate-100">
                                     Critical Success Factors (CSFs)
                                 </span>

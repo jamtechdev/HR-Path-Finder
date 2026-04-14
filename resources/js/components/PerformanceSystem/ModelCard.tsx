@@ -71,7 +71,7 @@ export default function ModelCard({
             onClick={onClick}
         >
             <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap">
                     <CardTitle className="text-xl font-bold">{title}</CardTitle>
                     <Info className="w-5 h-5 text-primary cursor-pointer hover:text-primary/80" />
                 </div>

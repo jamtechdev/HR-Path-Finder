@@ -448,7 +448,7 @@ export default function JobListSelectionContent({ project, suggestedJobs, select
             )}
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-between gap-4 pt-6 border-t border-border">
+            <div className="flex items-center justify-between flex-wrap gap-4 pt-6 border-t border-border">
                 {onBack && (
                     <Button 
                         onClick={onBack} 

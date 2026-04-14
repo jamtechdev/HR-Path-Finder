@@ -176,7 +176,7 @@ export default function TreeManagementOverview({
                             <CardContent>
                                 <div className="space-y-2">
                                     {Object.entries(stepStatuses).map(([step, status]) => (
-                                        <div key={step} className="flex items-center justify-between">
+                                        <div key={step} className="flex items-center justify-between flex-wrap">
                                             <span className="text-sm capitalize">{step.replace('_', ' ')}</span>
                                             <Badge variant={status === 'locked' ? 'default' : 'secondary'}>
                                                 {status}

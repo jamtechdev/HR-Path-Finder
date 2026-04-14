@@ -291,7 +291,7 @@ export default function OrganizationalCharts({
                             )}
                         >
                             <div className={cn(
-                                'px-4 py-4 pb-3 border-b flex items-center justify-between dark:border-[#2a3a5c]',
+                                'px-4 py-4 pb-3 border-b flex items-center justify-between flex-wrap dark:border-[#2a3a5c]',
                                 isActive && !isUploaded && 'bg-gradient-to-br from-[#1a2744] to-[#223058] text-white'
                             )}>
                                 <div>

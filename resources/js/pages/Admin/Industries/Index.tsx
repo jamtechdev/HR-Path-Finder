@@ -57,7 +57,7 @@ export default function IndustriesIndex({ categories }: Props) {
         <AdminLayout>
             <Head title={t('admin_industries.page_title')} />
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
-                        <div className="mb-6 flex items-center justify-between">
+                        <div className="mb-6 flex items-center justify-between flex-wrap flex-wrap">
                             <div>
                                 <h1 className="mb-2 text-3xl font-bold text-foreground">
                                     {t('admin_industries.heading')}
@@ -78,7 +78,7 @@ export default function IndustriesIndex({ categories }: Props) {
                             {(categories.data || []).map((category) => (
                                 <Card key={category.id}>
                                     <CardHeader>
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-between flex-wrap">
                                             <div className="flex items-center gap-3">
                                                 <CardTitle>
                                                     {category.name}
@@ -127,7 +127,7 @@ export default function IndustriesIndex({ categories }: Props) {
                                                                 key={
                                                                     subCategory.id
                                                                 }
-                                                                className="flex items-center justify-between rounded-lg border p-2"
+                                                                className="flex items-center justify-between flex-wrap rounded-lg border p-2"
                                                             >
                                                                 <span className="text-sm">
                                                                     {

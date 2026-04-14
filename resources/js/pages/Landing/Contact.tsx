@@ -64,7 +64,7 @@ export default function Contact() {
 
                     <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-lg overflow-hidden">
                         <div className="px-6 py-6 border-b border-white/10">
-                            <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center justify-between flex-wrap gap-4">
                                 <Link href="/" className="text-sm font-bold text-white/70 hover:text-white transition-colors">
                                     {t('landing_contact_page.back_home')}
                                 </Link>

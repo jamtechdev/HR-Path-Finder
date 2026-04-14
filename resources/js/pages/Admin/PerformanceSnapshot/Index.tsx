@@ -155,52 +155,52 @@ export default function PerformanceSnapshotIndex({
     return (
         <AdminLayout>
             <Head title={t('performance_snapshot_index.page_title')} />
-                    <div className="mx-auto max-w-7xl p-6 md:p-8">
-                        <div className="mb-6 flex items-center justify-between">
-                            <div>
-                                <h1 className="mb-2 text-3xl font-bold text-foreground">
-                                    {t(
-                                        'performance_snapshot_index.header_title',
-                                    )}
-                                </h1>
-                                <p className="text-muted-foreground">
-                                    {t(
-                                        'performance_snapshot_index.header_description',
-                                    )}
-                                </p>
-                            </div>
-                            <Link href="/admin/performance-snapshot/create">
-                                <Button>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    {t(
-                                        'performance_snapshot_index.add_question',
-                                    )}
-                                </Button>
-                            </Link>
-                        </div>
+            <div className="mx-auto max-w-7xl p-6 md:p-8">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-0 mb-6">
+                    <div>
+                        <h1 className="mb-2 text-2xl sm:text-3xl font-bold text-foreground">
+                            {t(
+                                'performance_snapshot_index.header_title',
+                            )}
+                        </h1>
+                        <p className="text-muted-foreground">
+                            {t(
+                                'performance_snapshot_index.header_description',
+                            )}
+                        </p>
+                    </div>
+                    <Link href="/admin/performance-snapshot/create">
+                        <Button>
+                            <Plus className="mr-2 h-4 w-4" />
+                            {t(
+                                'performance_snapshot_index.add_question',
+                            )}
+                        </Button>
+                    </Link>
+                </div>
 
                         <Card>
                             <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle>
-                                        {t(
-                                            'performance_snapshot_index.questions_count',
-                                            { count: filteredQuestions.length },
-                                        )}
-                                    </CardTitle>
-                                    <div className="relative w-64">
-                                        <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            placeholder={t(
-                                                'performance_snapshot_index.search_placeholder',
-                                            )}
-                                            value={searchTerm}
-                                            onChange={(e) =>
-                                                setSearchTerm(e.target.value)
-                                            }
-                                            className="pl-8"
-                                        />
-                                    </div>
+                                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-0">
+                            <CardTitle className="flex-1">
+                                {t(
+                                    'performance_snapshot_index.questions_count',
+                                    { count: filteredQuestions.length },
+                                )}
+                            </CardTitle>
+                            <div className="relative w-full max-w-md lg:w-64">
+                                <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder={t(
+                                        'performance_snapshot_index.search_placeholder',
+                                    )}
+                                    value={searchTerm}
+                                    onChange={(e) =>
+                                        setSearchTerm(e.target.value)
+                                    }
+                                    className="pl-8"
+                                />
+                            </div>
                                 </div>
                             </CardHeader>
 
@@ -215,11 +215,11 @@ export default function PerformanceSnapshotIndex({
                                             return (
                                                 <div
                                                     key={question.id}
-                                                    className="flex items-start justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50"
+                                                    className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-0 rounded-lg border p-4 transition-colors hover:bg-muted/50"
                                                 >
                                                     <div className="flex flex-1 items-start gap-3">
-                                                        <div className="flex-1">
-                                                            <div className="mb-2 flex items-center gap-2">
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="mb-2 flex flex-wrap items-center gap-2">
                                                                 <Badge variant="outline">
                                                                     {getAnswerTypeLabel(
                                                                         question.answer_type,
@@ -241,7 +241,7 @@ export default function PerformanceSnapshotIndex({
                                                                     </Badge>
                                                                 )}
                                                             </div>
-                                                            <p className="mb-2 text-sm font-medium">
+                                                            <p className="mb-2 text-sm font-medium break-words">
                                                                 {normalizeText(
                                                                     question.question_text,
                                                                 )}
@@ -260,7 +260,7 @@ export default function PerformanceSnapshotIndex({
                                                                             {normalizedOptions.length}
                                                                             ):
                                                                         </span>
-                                                                        <div className="mt-1 flex flex-wrap gap-1">
+                                                                        <div className="mt-1 flex flex-wrap gap-1.5">
                                                                             {normalizedOptions
                                                                                 .slice(
                                                                                     0,
@@ -305,7 +305,7 @@ export default function PerformanceSnapshotIndex({
                                                                 )}
                                                         </div>
                                                     </div>
-                                                    <div className="ml-4 flex items-center gap-2">
+                                                    <div className="mt-2 sm:mt-0 sm:ml-4 flex shrink-0 items-center gap-2">
                                                         <Link
                                                             href={`/admin/performance-snapshot/${question.id}/edit`}
                                                         >

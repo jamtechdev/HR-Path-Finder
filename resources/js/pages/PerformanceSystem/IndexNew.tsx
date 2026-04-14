@@ -163,8 +163,8 @@ export default function PerformanceSystemIndexNew({
                 {/* Header */}
                 <div className="bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg">
                     <div className="max-w-7xl mx-auto px-6 py-8">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-between flex-wrap">
+                            <div className="flex items-center gap-4 flex-wrap">
                                 <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
                                     <Shield className="w-6 h-6" />
                                 </div>

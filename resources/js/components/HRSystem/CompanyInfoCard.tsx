@@ -14,7 +14,7 @@ export default function CompanyInfoCard({ company }: CompanyInfoCardProps) {
     return (
         <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
             <CardContent className="p-6">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
                     <div className="w-16 h-16 rounded-xl bg-primary/20 flex items-center justify-center">
                         <Building2 className="w-8 h-8 text-primary" />
                     </div>

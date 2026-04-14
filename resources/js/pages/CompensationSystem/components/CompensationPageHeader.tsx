@@ -47,7 +47,7 @@ export default function CompensationPageHeader({
                     </p>
                 </div>
                 {completionPct != null && (
-                    <div className="flex items-center gap-4 shrink-0">
+                    <div className="flex items-center gap-4 flex-wrap shrink-0">
                         <div className="text-center">
                             <div className="relative w-16 h-16">
                                 <svg className="w-16 h-16 -rotate-90" viewBox="0 0 64 64">

@@ -59,6 +59,24 @@ class ReportController extends Controller
     }
 
     /**
+     * View full report PDF inline in browser.
+     */
+    public function viewFullReport(Request $request, HrProject $hrProject)
+    {
+        if (!$request->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        $pdfContent = app(\App\Services\PdfReportService::class)->generateFullReport($hrProject);
+
+        $filename = 'HR_Report_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $hrProject->company->name) . '_' . date('Y-m-d') . '.pdf';
+
+        return response($pdfContent, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="' . $filename . '"');
+    }
+
+    /**
      * Download full report PDF.
      */
     public function downloadFullReport(Request $request, HrProject $hrProject)
@@ -72,8 +90,8 @@ class ReportController extends Controller
         $pdfService = app(\App\Services\PdfReportService::class);
         $pdfContent = $pdfService->generateFullReport($hrProject);
 
-        $filename = 'HR_Report_' . $hrProject->company->name . '_' . date('Y-m-d') . '.pdf';
-        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $filename);
+        $filename = 'HR_Report_' . $hrProject->company->name . '_' . date('Y-m-d');
+        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $filename) . '.pdf';
 
         return response($pdfContent, 200)
             ->header('Content-Type', 'application/pdf')
@@ -103,8 +121,8 @@ class ReportController extends Controller
         ];
 
         $stepName = $stepNames[$step] ?? $step;
-        $filename = $stepName . '_Report_' . $hrProject->company->name . '_' . date('Y-m-d') . '.pdf';
-        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $filename);
+        $filename = $stepName . '_Report_' . $hrProject->company->name . '_' . date('Y-m-d');
+        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $filename) . '.pdf';
 
         return response($pdfContent, 200)
             ->header('Content-Type', 'application/pdf')

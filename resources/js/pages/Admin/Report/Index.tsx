@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { AlertCircle, Check, Download, Eye, List, OctagonAlert } from 'lucide-react';
+import { AlertCircle, Check, Download, Eye, List, OctagonAlert, X } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -41,6 +41,8 @@ export default function AdminReportIndex({
     const [showMissingReportDialog, setShowMissingReportDialog] = useState(false);
     const [showFinalConfirmDialog, setShowFinalConfirmDialog] = useState(false);
     const [showContactDialog, setShowContactDialog] = useState(false);
+    const [showPdfModal, setShowPdfModal] = useState(false);
+    const [pdfUrl, setPdfUrl] = useState<string>('');
 
     const isCompleted = (status: string) =>
         ['submitted', 'approved', 'locked', 'completed'].includes(status);
@@ -51,23 +53,41 @@ export default function AdminReportIndex({
         isCompleted(stepStatuses.compensation || 'not_started');
 
     const latestUpload = useMemo(() => reportUploads[0] ?? null, [reportUploads]);
-    const hasConsultantReport = Boolean(latestUpload);
-    const statusStep = hasConsultantReport ? 4 : allMainDone ? 2 : 1;
 
-    const openOrWarn = () => {
+    const getReportUrl = (type: 'view' | 'download') => {
         if (latestUpload) {
-            window.open(`/admin/report/${projectId}/upload/${latestUpload.id}/download`, '_blank');
-            return;
+            // uploaded consultant report — only download available
+            return `/admin/report/${projectId}/upload/${latestUpload.id}/download`;
         }
         if (allMainDone) {
-            window.open(`/admin/report/${projectId}/download`, '_blank');
-            return;
+            return type === 'view'
+                ? `/admin/report/${projectId}/view`
+                : `/admin/report/${projectId}/download`;
         }
-        if (!latestUpload) {
+        return null;
+    };
+
+    const handleView = () => {
+        const url = getReportUrl('view');
+        if (!url) {
             setShowMissingReportDialog(true);
             return;
         }
+        setPdfUrl(url);
+        setShowPdfModal(true);
     };
+
+    const handleDownload = () => {
+        const url = getReportUrl('download');
+        if (!url) {
+            setShowMissingReportDialog(true);
+            return;
+        }
+        window.location.href = url;
+    };
+
+    const hasConsultantReport = Boolean(latestUpload);
+    const statusStep = hasConsultantReport ? 4 : allMainDone ? 2 : 1;
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -166,11 +186,18 @@ export default function AdminReportIndex({
                                 )}
                                 <hr className="my-5 border-[#eeede9] dark:border-slate-700" />
                                 <div className="flex gap-3 flex-wrap">
-                                    <Button variant="outline" className="h-10 px-5 rounded-lg border-[1.5px] border-[#eeede9] dark:border-slate-600 text-[#2e2e2c] dark:text-slate-200 hover:border-[#1A1744] dark:hover:border-slate-300 hover:text-[#1A1744] dark:hover:text-white" onClick={openOrWarn}>
+                                    <Button
+                                        variant="outline"
+                                        className="h-10 px-5 rounded-lg border-[1.5px] border-[#eeede9] dark:border-slate-600 text-[#2e2e2c] dark:text-slate-200 hover:border-[#1A1744] dark:hover:border-slate-300 hover:text-[#1A1744] dark:hover:text-white"
+                                        onClick={handleView}
+                                    >
                                         <Eye className="w-4 h-4 mr-2" />
                                         {t('hr_report.actions.view_report')}
                                     </Button>
-                                    <Button className="h-10 px-5 rounded-lg bg-[#1A1744] hover:bg-[#2a2660] dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-white text-white" onClick={openOrWarn}>
+                                    <Button
+                                        className="h-10 px-5 rounded-lg bg-[#1A1744] hover:bg-[#2a2660] dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-white text-white"
+                                        onClick={handleDownload}
+                                    >
                                         <Download className="w-4 h-4 mr-2" />
                                         {t('hr_report.actions.download_report')}
                                     </Button>
@@ -195,6 +222,40 @@ export default function AdminReportIndex({
                     </div>
                 </main>
             </SidebarInset>
+
+            {/* PDF Preview Modal */}
+            {showPdfModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                    <div className="relative w-[90vw] h-[90vh] bg-white dark:bg-slate-900 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+                        <div className="flex items-center justify-between px-5 py-3 border-b border-[#eeede9] dark:border-slate-700 shrink-0">
+                            <span className="text-sm font-semibold text-[#1A1744] dark:text-slate-100">
+                                {project.company.name} — HR System Report
+                            </span>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    size="sm"
+                                    className="h-8 px-4 bg-[#1A1744] hover:bg-[#2a2660] text-white text-xs"
+                                    onClick={handleDownload}
+                                >
+                                    <Download className="w-3 h-3 mr-1" />
+                                    Download
+                                </Button>
+                                <button
+                                    onClick={() => setShowPdfModal(false)}
+                                    className="p-1.5 rounded-lg hover:bg-[#f3f3f0] dark:hover:bg-slate-700 text-[#6b6a66] dark:text-slate-400"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                        <iframe
+                            src={pdfUrl}
+                            className="flex-1 w-full border-0"
+                            title="HR Report Preview"
+                        />
+                    </div>
+                </div>
+            )}
 
             <Dialog open={showMissingReportDialog} onOpenChange={setShowMissingReportDialog}>
                 <DialogContent className="sm:max-w-[520px] rounded-[14px]">

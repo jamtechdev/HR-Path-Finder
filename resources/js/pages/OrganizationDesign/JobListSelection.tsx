@@ -447,7 +447,7 @@ export default function JobListSelection({ project, suggestedJobs, selectedJobs,
                             </>
                         )}
 
-                        <div className="mt-6 flex items-center justify-between">
+                        <div className="mt-6 flex items-center justify-between flex-wrap">
                             <Button
                                 variant="outline"
                                 onClick={() => router.visit(`/hr-manager/job-analysis/${project.id}/policy-snapshot`)}

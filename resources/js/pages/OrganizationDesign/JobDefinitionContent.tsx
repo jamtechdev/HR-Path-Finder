@@ -192,7 +192,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
         <div className="space-y-6">
             {/* Header */}
             <div className="mb-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between flex-wrap mb-4">
                     <div className="flex-1">
                         <h2 className="text-2xl font-bold mb-2">Step 3 — Job Definition</h2>
                         <p className="text-muted-foreground">
@@ -230,7 +230,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
             {currentJob && (
                 <Card className="shadow-sm border">
                     <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap">
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
                                     <FileText className="w-6 h-6 text-primary" />
@@ -649,7 +649,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                                         </Card>
                                                     </div>
 
-                                                    <div className="flex items-center justify-between pt-2 border-t">
+                                                    <div className="flex items-center justify-between flex-wrap pt-2 border-t">
                                                         <div className="flex items-center gap-2">
                                                             <Label className="text-sm font-medium">Rank (Optional):</Label>
                                                             <Input

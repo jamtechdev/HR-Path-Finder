@@ -489,7 +489,7 @@ export default function SettingsIndex({
                                                 </div>
                                             )}
 
-                                            <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-4 flex-wrap">
                                                 <Button type="submit" disabled={profileForm.processing}>
                                                     {profileForm.processing ? (
                                                         <>{t('settings_index.common.saving')}</>
@@ -585,7 +585,7 @@ export default function SettingsIndex({
                                                         <InputError message={errors.password_confirmation} />
                                                     </div>
 
-                                                    <div className="flex items-center gap-4">
+                                                    <div className="flex items-center gap-4 flex-wrap">
                                                         <Button disabled={processing} data-test="update-password-button">
                                                             <Save className="w-4 h-4 mr-2" />
                                                             {t('settings_index.password.save_password')}
@@ -612,7 +612,7 @@ export default function SettingsIndex({
                                         <>
                                             <CheckCircle2 className="h-4 w-4 text-success" />
                                             <AlertDescription>
-                                                <div className="flex items-center justify-between">
+                                                <div className="flex items-center justify-between flex-wrap">
                                                     <span className="text-success font-medium">{t('settings_index.smtp.configured_active')}</span>
                                                     <Badge variant="outline" className="bg-success/10 text-success border-success/20">
                                                         {t('settings_index.smtp.active')}
@@ -624,7 +624,7 @@ export default function SettingsIndex({
                                         <>
                                             <AlertCircle className="h-4 w-4 text-orange-600" />
                                             <AlertDescription>
-                                                <div className="flex items-center justify-between">
+                                                <div className="flex items-center justify-between flex-wrap">
                                                     <span className="text-orange-800 dark:text-orange-200 font-medium">
                                                         {t('settings_index.smtp.not_configured')}
                                                     </span>
@@ -774,7 +774,7 @@ export default function SettingsIndex({
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center gap-4 pt-4">
+                                            <div className="flex items-center gap-4 flex-wrap pt-4">
                                                 <Button type="submit" disabled={smtpForm.processing}>
                                                     {smtpForm.processing ? (
                                                         <>{t('settings_index.common.saving')}</>
@@ -868,7 +868,7 @@ export default function SettingsIndex({
 
                                             <div className="space-y-2">
                                                 <Label htmlFor="app_logo">{t('settings_index.app.fields.application_logo')}</Label>
-                                                <div className="flex items-center gap-4">
+                                                <div className="flex items-center gap-4 flex-wrap">
                                                     {appSettings.logo && (
                                                         <img 
                                                             src={appSettings.logo} 
@@ -896,7 +896,7 @@ export default function SettingsIndex({
                                             </div>
 
                                             <div className="space-y-2 border rounded-md p-4 bg-muted/30">
-                                                <div className="flex items-center justify-between gap-4">
+                                                <div className="flex items-center justify-between flex-wrap gap-4">
                                                     <div>
                                                         <Label htmlFor="require_admin_approval">{t('settings_index.app.fields.require_admin_approval')}</Label>
                                                         <p className="text-xs text-muted-foreground mt-1">

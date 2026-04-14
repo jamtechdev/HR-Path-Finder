@@ -835,7 +835,7 @@ export default function KpiReviewTab({
                                                     return ceo === 'approved' || status === 'approved';
                                                 });
                                             return (
-                                                <div key={orgName} className="flex items-center justify-between rounded-lg border border-[#e2e6ed] bg-white px-4 py-2 text-sm dark:border-slate-700 dark:bg-slate-900">
+                                                <div key={orgName} className="flex items-center justify-between flex-wrap rounded-lg border border-[#e2e6ed] bg-white px-4 py-2 text-sm dark:border-slate-700 dark:bg-slate-900">
                                                     <span className="font-medium text-[#1a2b4a] dark:text-slate-100">{orgName}</span>
                                                     <div className="flex items-center gap-2">
                                                         {orgKpiCount === 0 ? (

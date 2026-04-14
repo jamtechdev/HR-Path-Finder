@@ -58,7 +58,7 @@ export default function DiagnosisProgressBar({
         )}>
             {/* Progress Bar */}
             <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between flex-wrap text-sm">
                     <span className={cn(
                         "font-medium flex items-center gap-2",
                         allCompleted ? "text-green-700 dark:text-green-400" : "text-foreground"
@@ -85,7 +85,7 @@ export default function DiagnosisProgressBar({
             </div>
             
             {/* Step Indicators */}
-            <div className="flex items-center justify-between gap-2 overflow-x-auto pb-2">
+            <div className="flex items-center justify-between flex-wrap gap-2 overflow-x-auto pb-2">
                 {steps.map((step, index) => {
                     // Review tab is completed when diagnosis is submitted
                     let isCompleted = false;

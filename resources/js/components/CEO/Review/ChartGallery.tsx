@@ -100,7 +100,7 @@ export default function ChartGallery({ charts, title = 'Reference Charts', showT
             <Dialog open={!!selectedChart} onOpenChange={() => setSelectedChart(null)}>
                 <DialogContent className="max-w-5xl max-h-[90vh] overflow-auto">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center justify-between">
+                        <DialogTitle className="flex items-center justify-between flex-wrap">
                             <span>Organizational Chart - {selectedChart?.year}</span>
                             <Button
                                 variant="ghost"

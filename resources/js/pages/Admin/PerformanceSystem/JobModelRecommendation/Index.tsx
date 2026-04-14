@@ -81,7 +81,7 @@ export default function JobModelRecommendationIndex({ recommendations, jobKeywor
                 <div className="p-6 md:p-8 max-w-7xl mx-auto">
                     <Head title={t('admin_job_model_recommendation.page_title')} />
                     
-                    <div className="mb-6 flex items-center justify-between">
+                    <div className="mb-6 flex items-center justify-between flex-wrap flex-wrap">
                         <div>
                             <h1 className="text-3xl font-bold">{t('admin_job_model_recommendation.heading')}</h1>
                             <p className="text-muted-foreground mt-1">

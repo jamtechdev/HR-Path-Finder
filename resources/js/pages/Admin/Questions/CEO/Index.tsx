@@ -83,7 +83,7 @@ export default function CEOQuestionsIndex({
             <Head title={t('admin_ceo_questions.page_title')} />
 
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
-                        <div className="mb-6 flex items-center justify-between">
+                        <div className="mb-6 flex items-center justify-between flex-wrap flex-wrap">
                             <div>
                                 <h1 className="mb-2 text-3xl font-bold text-foreground">
                                     {t('admin_ceo_questions.page_title')}
@@ -103,12 +103,12 @@ export default function CEOQuestionsIndex({
 
                         <Card>
                             <CardHeader>
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between flex-wrap">
                                     <CardTitle>
                                         {t('admin_ceo_questions.questions')}
                                     </CardTitle>
 
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-4 flex-wrap">
                                         <Select
                                             value={currentCategory || 'all'}
                                             onValueChange={(value) => {
@@ -168,7 +168,7 @@ export default function CEOQuestionsIndex({
                                     {filteredQuestions.map((question) => (
                                         <div
                                             key={question.id}
-                                            className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50"
+                                            className="flex items-center justify-between flex-wrap rounded-lg border p-4 hover:bg-muted/50"
                                         >
                                             <div className="flex-1">
                                                 <div className="mb-1 flex items-center gap-2">

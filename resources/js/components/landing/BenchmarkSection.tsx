@@ -60,7 +60,7 @@ export function BenchmarkSection({
                     </p>
                 </div>
                 <div className="bg-white rounded-2xl border border-[#E4E8EF] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.07)]">
-                    <div className="bg-[#0B1E3D] px-5 py-4 flex items-center justify-between">
+                    <div className="bg-[#0B1E3D] px-5 py-4 flex items-center justify-between flex-wrap">
                         <span className="text-white text-sm font-normal tracking-wide font-sans">보상지수 벤치마크</span>
                         <span className="bg-[#2ECFAB]/15 border border-[#2ECFAB] text-[#2ECFAB] text-[10px] font-bold py-0.5 px-2.5 rounded-full tracking-wider">
                             BENCHMARK

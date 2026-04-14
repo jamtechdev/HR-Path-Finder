@@ -66,7 +66,7 @@ export default function CeoFinalReview({ project, adminComments = [] }: Props) {
                             {['diagnosis', 'organization', 'performance', 'compensation'].map((step) => (
                                 <Card key={step}>
                                     <CardHeader>
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                             <CardTitle className="capitalize">{step}</CardTitle>
                                             <Badge>
                                                 {project.step_statuses?.[step] || t('ceo_final_review.status.not_started')}
@@ -101,7 +101,7 @@ export default function CeoFinalReview({ project, adminComments = [] }: Props) {
                             {/* Actions */}
                             <Card>
                                 <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between flex-wrap  flex-wrap">
                                         <div>
                                             <h3 className="font-semibold text-lg mb-2">{t('ceo_final_review.actions.title')}</h3>
                                             <p className="text-sm text-muted-foreground">

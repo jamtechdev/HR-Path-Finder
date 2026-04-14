@@ -286,7 +286,7 @@ export default function JobStructure({
             >
                 {/* Left: Category List */}
                 <div className="flex flex-col border-r border-slate-200 dark:border-[#2a3a5c]">
-                    <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30">
+                    <div className="flex items-center justify-between flex-wrap border-b border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-[#2a3a5c] dark:bg-[#1e3a5f]/30">
                         <span className="text-xs font-bold tracking-wider text-slate-400 uppercase dark:text-[#6B7585]">
                             {t('diagnosis_job_structure.categoryList')}
                         </span>

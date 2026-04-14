@@ -345,7 +345,7 @@ export default function CompensationSystemIndex({
                 </div>
 
                 <div className="mb-6">
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between flex-wrap mb-2">
                         <span className="text-sm font-medium text-gray-700">Progress</span>
                         <span className="text-sm text-gray-600">{completedTabsCount} of {TABS.filter(t => t.id !== 'overview').length}</span>
                     </div>
@@ -544,7 +544,7 @@ export default function CompensationSystemIndex({
                     </TabsContent>
                 </Tabs>
 
-                <div className="flex items-center justify-between pt-6 border-t mt-6">
+                <div className="flex items-center justify-between flex-wrap pt-6 border-t mt-6">
                     <Button 
                         variant="outline" 
                         onClick={() => {

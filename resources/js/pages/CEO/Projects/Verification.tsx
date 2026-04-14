@@ -69,7 +69,7 @@ export default function CeoProjectVerification({ project }: Props) {
                                 className="block mb-6"
                             >
                                 <Card className="shadow-lg border-2 border-emerald-200 dark:border-emerald-800 hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-md transition-all cursor-pointer">
-                                    <CardContent className="p-6 flex items-center gap-4">
+                                    <CardContent className="p-6 flex items-center gap-4 flex-wrap">
                                         <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center shrink-0">
                                             <ClipboardList className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                                         </div>

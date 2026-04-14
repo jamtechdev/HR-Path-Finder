@@ -270,7 +270,7 @@ export default function CompaniesIndex({ companies }: Props) {
                 ) : (
                     /* Company created: show card-style companies list (dashboard-style) */
                     <>
-                <div className="mb-6 flex items-center justify-between">
+                <div className="mb-6 flex items-center justify-between flex-wrap flex-wrap">
                     <div>
                         <h1 className="text-3xl font-bold text-foreground">{t('companies_index.my_companies')}</h1>
                         <p className="text-muted-foreground mt-1">
@@ -296,7 +296,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                 <Card key={company.id} className="overflow-hidden">
                                     <Collapsible open={isExpanded} onOpenChange={() => toggleCompany(company.id)}>
                                         <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex items-center justify-between flex-wrap">
                                                 <div className="flex items-center gap-3 flex-1">
                                                     <CollapsibleTrigger asChild>
                                                         <Button variant="ghost" size="icon" className="h-8 w-8">
