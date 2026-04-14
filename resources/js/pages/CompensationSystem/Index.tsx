@@ -658,18 +658,22 @@ export default function CompensationSystemIndex({
 
         const responseData = (snapshotQuestions || []).map((q: { id: number; answer_type?: string }) => {
             const response = snapshotResponses[q.id];
-            if (q.answer_type === 'numeric') {
+            const isNumericType = ['numeric', 'numeric_multi_year', 'numeric_job_rows', 'numeric_service_ranges'].includes(String(q.answer_type || ''));
+            if (isNumericType) {
                 const lower = (q as any).question_text?.toLowerCase?.() ?? '';
                 const isJobFunctions =
+                    (q as any).answer_type === 'numeric_job_rows' ||
                     (q as any).metadata?.is_job_functions === true ||
                     lower.includes('average salary by job function');
                 const isMultiYear =
+                    (q as any).answer_type === 'numeric_multi_year' ||
                     (q as any).metadata?.is_multi_year === true ||
                     lower.includes('past three years') ||
                     lower.includes('average annual salary increase rate') ||
                     lower.includes('labor cost ratio') ||
                     lower.includes('average bonus payout ratio');
                 const isYearsOfService =
+                    (q as any).answer_type === 'numeric_service_ranges' ||
                     (q as any).metadata?.is_years_of_service === true ||
                     lower.includes('average salary by years of service');
 

@@ -296,11 +296,13 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
 
     const answeredCount = useMemo(() => visibleQuestions.filter(q => {
         const r = snapshotResponses[q.id];
-        if (q.answer_type === 'numeric') {
+        const isNumericType = ['numeric', 'numeric_multi_year', 'numeric_job_rows', 'numeric_service_ranges'].includes(q.answer_type);
+        if (isNumericType) {
             if (typeof r === 'number') return Number.isFinite(r);
 
             if (Array.isArray(r)) {
                 const isJobFunctions =
+                    q.answer_type === 'numeric_job_rows' ||
                     q.metadata?.is_job_functions === true ||
                     (q.question_text?.toLowerCase().includes('average salary by job function') ?? false);
 
@@ -327,6 +329,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
             if (typeof r === 'object' && r !== null) {
                 const lower = q.question_text?.toLowerCase() ?? '';
                 const isMultiYear =
+                    q.answer_type === 'numeric_multi_year' ||
                     q.metadata?.is_multi_year === true ||
                     lower.includes('past three years') ||
                     lower.includes('average annual salary increase rate') ||
@@ -334,6 +337,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                     lower.includes('average bonus payout ratio');
 
                 const isYearsOfService =
+                    q.answer_type === 'numeric_service_ranges' ||
                     q.metadata?.is_years_of_service === true ||
                     lower.includes('average salary by years of service');
 
@@ -386,14 +390,18 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                     {visibleQuestions && visibleQuestions.length > 0 ? (
                         visibleQuestions.map((question, idx) => {
                             const isQ18 = question.order === 18;
-                            const isMultiYearNumeric = question.metadata?.is_multi_year === true || 
+                            const isNumericType = ['numeric', 'numeric_multi_year', 'numeric_job_rows', 'numeric_service_ranges'].includes(question.answer_type);
+                            const isMultiYearNumeric = question.answer_type === 'numeric_multi_year' ||
+                                question.metadata?.is_multi_year === true || 
                                 question.question_text?.toLowerCase().includes('past three years') ||
                                 question.question_text?.toLowerCase().includes('average annual salary increase rate') ||
                                 question.question_text?.toLowerCase().includes('labor cost ratio') ||
                                 question.question_text?.toLowerCase().includes('average bonus payout ratio');
-                            const isJobFunctions = question.metadata?.is_job_functions === true ||
+                            const isJobFunctions = question.answer_type === 'numeric_job_rows' ||
+                                question.metadata?.is_job_functions === true ||
                                 question.question_text?.toLowerCase().includes('average salary by job function');
-                            const isYearsOfService = question.metadata?.is_years_of_service === true ||
+                            const isYearsOfService = question.answer_type === 'numeric_service_ranges' ||
+                                question.metadata?.is_years_of_service === true ||
                                 question.question_text?.toLowerCase().includes('average salary by years of service');
                             const unitLabel = String(question.metadata?.unit || '').trim() || 'KRW';
                             const metadataYears =
@@ -446,7 +454,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                 </Label>
                                             
                                                 {/* Multi-year numeric inputs */}
-                                                {isMultiYearNumeric && question.answer_type === 'numeric' && (
+                                                {isMultiYearNumeric && isNumericType && (
                                                     <div className="space-y-4">
                                                         <div className="grid grid-cols-3 gap-4">
                                                             {metadataYears.map((year) => (
@@ -479,7 +487,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                 )}
                                             
                                                 {/* Job Functions with add/remove */}
-                                                {isJobFunctions && question.answer_type === 'numeric' && (
+                                                {isJobFunctions && isNumericType && (
                                                     <div className="space-y-4">
                                                         {(() => {
                                                             const jobFunctions = Array.isArray(snapshotResponses[question.id]) 
@@ -545,7 +553,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                 )}
                                             
                                                 {/* Years of Service */}
-                                                {isYearsOfService && question.answer_type === 'numeric' && (
+                                                {isYearsOfService && isNumericType && (
                                                     <div className="space-y-3">
                                                         {metadataServiceRanges.map((range) => (
                                                             <div key={range.key} className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
@@ -707,7 +715,7 @@ export default function SnapshotTab({ projectId, questions = [], responses: init
                                                 )}
                                             
                                                 {/* Regular numeric input */}
-                                                {!isMultiYearNumeric && !isJobFunctions && !isYearsOfService && question.answer_type === 'numeric' && (
+                                                {!isMultiYearNumeric && !isJobFunctions && !isYearsOfService && isNumericType && (
                                                     <Input
                                                         type="text"
                                                         value={formatWithCommas(snapshotResponses[question.id] as any)}

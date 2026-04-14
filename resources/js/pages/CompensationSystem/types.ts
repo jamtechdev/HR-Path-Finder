@@ -26,7 +26,15 @@ export interface AlgorithmRecommendation {
 export interface CompensationSnapshotQuestion {
     id: number;
     question_text: string;
-    answer_type: 'select_one' | 'select_up_to_2' | 'multiple' | 'numeric' | 'text';
+    answer_type:
+        | 'select_one'
+        | 'select_up_to_2'
+        | 'multiple'
+        | 'numeric'
+        | 'numeric_multi_year'
+        | 'numeric_job_rows'
+        | 'numeric_service_ranges'
+        | 'text';
     options?: string[] | null;
     order: number;
     metadata?: {

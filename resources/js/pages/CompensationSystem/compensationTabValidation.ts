@@ -45,13 +45,15 @@ function isSnapshotQuestionAnswered(
         return null;
     };
 
-    if (q.answer_type === 'numeric') {
+    const isNumericType = ['numeric', 'numeric_multi_year', 'numeric_job_rows', 'numeric_service_ranges'].includes(q.answer_type);
+    if (isNumericType) {
         const scalar = numericFromAny(r);
         if (scalar !== null) return true;
 
         // Job functions (stored as an array of {function, amount})
         if (Array.isArray(r)) {
             const isJobFunctions =
+                q.answer_type === 'numeric_job_rows' ||
                 q.metadata?.is_job_functions === true ||
                 (q.question_text?.toLowerCase().includes('average salary by job function') ?? false);
             if (isJobFunctions) {
@@ -77,12 +79,14 @@ function isSnapshotQuestionAnswered(
         if (typeof r === 'object' && r !== null) {
             const lower = q.question_text?.toLowerCase() ?? '';
             const isMultiYear =
+                q.answer_type === 'numeric_multi_year' ||
                 q.metadata?.is_multi_year === true ||
                 lower.includes('past three years') ||
                 lower.includes('average annual salary increase rate') ||
                 lower.includes('labor cost ratio') ||
                 lower.includes('average bonus payout ratio');
             const isYearsOfService =
+                q.answer_type === 'numeric_service_ranges' ||
                 q.metadata?.is_years_of_service === true ||
                 lower.includes('average salary by years of service');
 

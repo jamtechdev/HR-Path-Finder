@@ -12,7 +12,15 @@ import { useTranslation } from 'react-i18next';
 interface CompensationSnapshotQuestion {
     id: number;
     question_text: string;
-    answer_type: 'select_one' | 'select_up_to_2' | 'multiple' | 'numeric' | 'text';
+    answer_type:
+        | 'select_one'
+        | 'select_up_to_2'
+        | 'multiple'
+        | 'numeric'
+        | 'numeric_multi_year'
+        | 'numeric_job_rows'
+        | 'numeric_service_ranges'
+        | 'text';
     options?: string[] | null;
     order: number;
     is_active: boolean;
@@ -145,9 +153,9 @@ export default function CompensationSnapshotIndex({ questions, answerTypes }: Pr
                                                                 {t('compensation_snapshot_index.options')}: {question.options.join(', ')}
                                                             </p>
                                                         )}
-                                                        {(question.answer_type === 'numeric' || question.answer_type === 'text') && (
+                                                        {(['numeric', 'numeric_multi_year', 'numeric_job_rows', 'numeric_service_ranges'].includes(question.answer_type) || question.answer_type === 'text') && (
                                                             <p className="text-sm text-muted-foreground mt-1">
-                                                                {question.answer_type === 'numeric'
+                                                                {['numeric', 'numeric_multi_year', 'numeric_job_rows', 'numeric_service_ranges'].includes(question.answer_type)
                                                                     ? t('compensation_snapshot_index.numeric_input')
                                                                     : t('compensation_snapshot_index.text_input')}
                                                             </p>

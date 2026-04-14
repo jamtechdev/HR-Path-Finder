@@ -48,6 +48,9 @@ class CompensationSnapshotQuestionController extends Controller
                 'select_up_to_2' => 'Select up to 2',
                 'multiple' => 'Multiple Selection (Unlimited)',
                 'numeric' => 'Numeric Input',
+                'numeric_multi_year' => 'Numeric - Year by Year',
+                'numeric_job_rows' => 'Text + Numeric Rows',
+                'numeric_service_ranges' => 'Numeric - Years of Service',
                 'text' => 'Text Input',
             ],
         ]);
@@ -75,6 +78,9 @@ class CompensationSnapshotQuestionController extends Controller
                 'select_up_to_2' => 'Select up to 2',
                 'multiple' => 'Multiple Selection (Unlimited)',
                 'numeric' => 'Numeric Input',
+                'numeric_multi_year' => 'Numeric - Year by Year',
+                'numeric_job_rows' => 'Text + Numeric Rows',
+                'numeric_service_ranges' => 'Numeric - Years of Service',
                 'text' => 'Text Input',
             ],
             'parentQuestionCandidates' => $parentQuestionCandidates,
@@ -88,7 +94,7 @@ class CompensationSnapshotQuestionController extends Controller
     {
         $validated = $request->validate([
             'question_text' => ['required', 'string'],
-            'answer_type' => ['required', 'string', 'in:select_one,select_up_to_2,multiple,numeric,text'],
+            'answer_type' => ['required', 'string', 'in:select_one,select_up_to_2,multiple,numeric,numeric_multi_year,numeric_job_rows,numeric_service_ranges,text'],
             'options' => ['nullable', 'array'],
             'options.*' => ['nullable', 'string'],
             'order' => ['nullable', 'integer', 'min:0'],
@@ -149,6 +155,9 @@ class CompensationSnapshotQuestionController extends Controller
                 'select_up_to_2' => 'Select up to 2',
                 'multiple' => 'Multiple Selection (Unlimited)',
                 'numeric' => 'Numeric Input',
+                'numeric_multi_year' => 'Numeric - Year by Year',
+                'numeric_job_rows' => 'Text + Numeric Rows',
+                'numeric_service_ranges' => 'Numeric - Years of Service',
                 'text' => 'Text Input',
             ],
             'parentQuestionCandidates' => $parentQuestionCandidates,
@@ -233,7 +242,7 @@ class CompensationSnapshotQuestionController extends Controller
     {
         $validated = $request->validate([
             'question_text' => ['required', 'string'],
-            'answer_type' => ['required', 'string', 'in:select_one,select_up_to_2,multiple,numeric,text'],
+            'answer_type' => ['required', 'string', 'in:select_one,select_up_to_2,multiple,numeric,numeric_multi_year,numeric_job_rows,numeric_service_ranges,text'],
             'options' => ['nullable', 'array'],
             'options.*' => ['nullable', 'string'],
             'order' => ['nullable', 'integer', 'min:0'],

@@ -21,7 +21,15 @@ import { useTranslation } from 'react-i18next';
 interface CompensationSnapshotQuestion {
     id: number;
     question_text: string;
-    answer_type: 'select_one' | 'select_up_to_2' | 'multiple' | 'numeric' | 'text';
+    answer_type:
+        | 'select_one'
+        | 'select_up_to_2'
+        | 'multiple'
+        | 'numeric'
+        | 'numeric_multi_year'
+        | 'numeric_job_rows'
+        | 'numeric_service_ranges'
+        | 'text';
     options?: string[] | null;
     order: number;
     is_active: boolean;
@@ -133,17 +141,21 @@ export default function CompensationSnapshotEdit({ question, answerTypes, parent
         }
         if (unit.trim() !== '') metadata.unit = unit.trim();
         if (autoPopulateTo.trim() !== '') metadata.auto_populate_to = autoPopulateTo.trim();
-        if (isMultiYear) {
+        const useMultiYear = answerType === 'numeric_multi_year' || isMultiYear;
+        const useJobFunctions = answerType === 'numeric_job_rows' || isJobFunctions;
+        const useServiceRanges = answerType === 'numeric_service_ranges' || isYearsOfService;
+
+        if (useMultiYear) {
             metadata.is_multi_year = true;
             const years = parseCsv(yearsCsv);
             if (years.length > 0) metadata.years = years;
         }
-        if (isJobFunctions) {
+        if (useJobFunctions) {
             metadata.is_job_functions = true;
             const defaults = parseCsv(defaultFunctionsCsv);
             if (defaults.length > 0) metadata.default_functions = defaults;
         }
-        if (isYearsOfService) {
+        if (useServiceRanges) {
             metadata.is_years_of_service = true;
             const ranges = parseServiceRanges(serviceRangesText);
             if (ranges.length > 0) metadata.service_ranges = ranges;
@@ -154,6 +166,7 @@ export default function CompensationSnapshotEdit({ question, answerTypes, parent
     }, [answerType, options, explanation, parentQuestionOrder, showWhenParentAnswered, showWhenParentOptionIncludes, unit, autoPopulateTo, isMultiYear, yearsCsv, isJobFunctions, defaultFunctionsCsv, isYearsOfService, serviceRangesText, linksToQuestion, filtersFromQuestion]);
 
     const requiresOptions = ['select_one', 'select_up_to_2', 'multiple'].includes(answerType);
+    const isNumericType = ['numeric', 'numeric_multi_year', 'numeric_job_rows', 'numeric_service_ranges'].includes(answerType);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -250,7 +263,7 @@ export default function CompensationSnapshotEdit({ question, answerTypes, parent
                             {!requiresOptions && (
                                 <div className="rounded-lg bg-muted/50 p-4">
                                     <p className="text-sm text-muted-foreground">
-                                        {t(answerType === 'numeric'
+                                        {t(isNumericType
                                             ? 'compensation_snapshot.numeric_info'
                                             : 'compensation_snapshot.text_info'
                                         )}
