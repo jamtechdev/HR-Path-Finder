@@ -582,6 +582,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Report (Admin)
         Route::get('report/{hrProject}', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('report.index');
         Route::get('report/{hrProject}/upload/{reportUpload}/download', [\App\Http\Controllers\Admin\ReportController::class, 'downloadUploadedReport'])->name('report.upload.download');
+        Route::get('report/{hrProject}/view', [\App\Http\Controllers\Admin\ReportController::class, 'viewFullReport'])->name('report.view');
         Route::get('report/{hrProject}/download', [\App\Http\Controllers\Admin\ReportController::class, 'downloadFullReport'])->name('report.download');
         Route::get('report/{hrProject}/download/{step}', [\App\Http\Controllers\Admin\ReportController::class, 'downloadStepReport'])->name('report.download.step');
 
