@@ -92,9 +92,9 @@ export default function CBSnapshotReview({ projects, selectedProject }: Props) {
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
-            <SidebarInset className="flex flex-col overflow-hidden">
+            <SidebarInset className="flex flex-col overflow-visible">
                 <AppHeader />
-                <main className="flex-1 overflow-auto">
+                <main className="flex-1 overflow-visible">
                     <Head title="C&B Snapshot Review" />
                     <div className="mx-auto max-w-7xl p-6 md:p-8">
                         <h1 className="mb-4 text-2xl font-bold">C&B snapshot review</h1>
@@ -204,7 +204,7 @@ export default function CBSnapshotReview({ projects, selectedProject }: Props) {
                                                 <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                                     All answers
                                                 </h3>
-                                                <div className="max-h-80 space-y-2 overflow-auto pr-1">
+                                                <div className="space-y-2">
                                                     {selectedProject.snapshot_rows.map((row) => (
                                                         <div key={row.question_id} className="rounded-lg border p-3">
                                                             <p className="text-sm font-semibold">
