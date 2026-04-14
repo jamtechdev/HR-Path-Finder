@@ -59,6 +59,24 @@ class ReportController extends Controller
     }
 
     /**
+     * View full report PDF inline in browser.
+     */
+    public function viewFullReport(Request $request, HrProject $hrProject)
+    {
+        if (!$request->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        $pdfContent = app(\App\Services\PdfReportService::class)->generateFullReport($hrProject);
+
+        $filename = 'HR_Report_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $hrProject->company->name) . '_' . date('Y-m-d') . '.pdf';
+
+        return response($pdfContent, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="' . $filename . '"');
+    }
+
+    /**
      * Download full report PDF.
      */
     public function downloadFullReport(Request $request, HrProject $hrProject)
