@@ -92,7 +92,7 @@ export default function CBSnapshotReview({ projects, selectedProject }: Props) {
             <Sidebar collapsible="icon" variant="sidebar">
                 <RoleBasedSidebar />
             </Sidebar>
-            <SidebarInset className="flex flex-col overflow-visible">
+            <SidebarInset className="flex flex-col overflow-hidden">
                 <AppHeader />
                 <main className="flex-1 overflow-visible">
                     <Head title="C&B Snapshot Review" />

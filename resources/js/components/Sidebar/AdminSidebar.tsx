@@ -73,7 +73,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                 )}
             </div>
 
-            <nav className="flex-1 overflow-y-visible">
+            <nav className="flex-1 overflow-y-auto">
                 <div className={cn('transition-all duration-200', isCollapsed ? 'px-3 py-6' : 'px-6 py-8')}>
                     <div className={cn('transition-all duration-200', isCollapsed ? 'space-y-2' : 'space-y-2')}>
                         {isAdmin && (
