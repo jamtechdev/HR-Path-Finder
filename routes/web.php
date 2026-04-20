@@ -534,6 +534,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Translations Management (JSON-based)
         Route::get('translations', [\App\Http\Controllers\Admin\TranslationController::class, 'index'])->name('translations.index');
+        Route::get('translations/export', [\App\Http\Controllers\Admin\TranslationController::class, 'export'])->name('translations.export');
+        Route::post('translations/import', [\App\Http\Controllers\Admin\TranslationController::class, 'import'])->name('translations.import');
         Route::put('translations', [\App\Http\Controllers\Admin\TranslationController::class, 'update'])->name('translations.update');
         Route::post('translations', [\App\Http\Controllers\Admin\TranslationController::class, 'store'])->name('translations.store');
         Route::post('translations/update-key', [\App\Http\Controllers\Admin\TranslationController::class, 'updateKey'])->name('translations.update-key');

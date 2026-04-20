@@ -1,6 +1,6 @@
 import { Head, router } from '@inertiajs/react';
-import { Save, Search } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { Download, Save, Search, Upload } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/Header/AppHeader';
 import RoleBasedSidebar from '@/components/Sidebar/RoleBasedSidebar';
@@ -55,6 +55,7 @@ export default function TranslationsIndex({
     const [role, setRole] = useState(currentRole);
     const [searchMode, setSearchMode] = useState<'contains' | 'exact'>(initialSearchMode);
     const [status, setStatus] = useState(currentStatus);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
         setEntries(translations);
@@ -133,6 +134,40 @@ export default function TranslationsIndex({
         handleFilterChange(currentPage, role, searchMode, nextStatus);
     };
 
+    const handleExportCsv = () => {
+        const params = new URLSearchParams({
+            page: currentPage,
+            role,
+            searchMode,
+            status,
+            search,
+        });
+        window.location.href = `/admin/translations/export?${params.toString()}`;
+    };
+
+    const handleImportFile: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+        const file = event.target.files?.[0];
+        if (!file) {
+            return;
+        }
+
+        router.post(
+            '/admin/translations/import',
+            { file },
+            {
+                forceFormData: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    event.target.value = '';
+                    handleFilterChange(currentPage, role, searchMode, status);
+                },
+                onError: () => {
+                    event.target.value = '';
+                },
+            },
+        );
+    };
+
     return (
         <SidebarProvider defaultOpen={true}>
             <Sidebar collapsible="icon" variant="sidebar">
@@ -152,10 +187,27 @@ export default function TranslationsIndex({
                                     Manage English and Korean translations in one place.
                                 </p>
                             </div>
-                            <Button onClick={handleSave} disabled={Object.keys(dirtyKeys).length === 0}>
-                                <Save className="w-4 h-4 mr-2" />
-                                Save all changes
-                            </Button>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept=".csv,text/csv"
+                                    className="hidden"
+                                    onChange={handleImportFile}
+                                />
+                                <Button variant="outline" onClick={handleExportCsv}>
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Export CSV
+                                </Button>
+                                <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+                                    <Upload className="w-4 h-4 mr-2" />
+                                    Import CSV
+                                </Button>
+                                <Button onClick={handleSave} disabled={Object.keys(dirtyKeys).length === 0}>
+                                    <Save className="w-4 h-4 mr-2" />
+                                    Save all changes
+                                </Button>
+                            </div>
                         </div>
 
                         <Card className="mb-6">

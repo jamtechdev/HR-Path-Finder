@@ -199,6 +199,92 @@ class TranslationController extends Controller
     }
 
     /**
+     * Export current translation scope as CSV (key,en,ko).
+     */
+    public function export(Request $request)
+    {
+        $page = $request->get('page', 'all');
+        $search = $request->get('search', '');
+        $role = $request->get('role', 'all');
+        $searchMode = $request->get('searchMode', 'contains');
+        $status = $request->get('status', 'all');
+
+        $rows = $this->collectFilteredRows($page, $search, $role, $searchMode, $status);
+        $filename = sprintf('translations-%s-%s.csv', $page, now()->format('Ymd-His'));
+
+        return response()->streamDownload(function () use ($rows) {
+            $handle = fopen('php://output', 'w');
+            if ($handle === false) {
+                return;
+            }
+
+            fputcsv($handle, ['key', 'en', 'ko']);
+            foreach ($rows as $row) {
+                fputcsv($handle, [$row['key'], $row['en'], $row['ko']]);
+            }
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    /**
+     * Import CSV and upsert translation keys for EN/KO.
+     */
+    public function import(Request $request)
+    {
+        $validated = $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,txt'],
+        ]);
+
+        $file = $validated['file'];
+        $handle = fopen($file->getRealPath(), 'r');
+        if ($handle === false) {
+            return back()->withErrors(['error' => 'Unable to open the uploaded CSV file.']);
+        }
+
+        $enTranslations = $this->translationService->getTranslations('en');
+        $koTranslations = $this->translationService->getTranslations('ko');
+
+        $header = fgetcsv($handle);
+        if ($header === false) {
+            fclose($handle);
+            return back()->withErrors(['error' => 'CSV file is empty.']);
+        }
+
+        $normalized = array_map(fn ($v) => mb_strtolower(trim((string) $v)), $header);
+        $expected = ['key', 'en', 'ko'];
+        if ($normalized !== $expected) {
+            fclose($handle);
+            return back()->withErrors(['error' => 'CSV header must be: key,en,ko']);
+        }
+
+        $updated = 0;
+        while (($row = fgetcsv($handle)) !== false) {
+            $key = trim((string) ($row[0] ?? ''));
+            if ($key === '') {
+                continue;
+            }
+
+            $enValue = (string) ($row[1] ?? '');
+            $koValue = (string) ($row[2] ?? '');
+            $this->setNestedValue($enTranslations, $key, $enValue);
+            $this->setNestedValue($koTranslations, $key, $koValue);
+            $updated++;
+        }
+        fclose($handle);
+
+        $savedEn = $this->translationService->saveTranslations('en', $enTranslations);
+        $savedKo = $this->translationService->saveTranslations('ko', $koTranslations);
+
+        if (!$savedEn || !$savedKo) {
+            return back()->withErrors(['error' => 'Failed to save imported translations.']);
+        }
+
+        return back()->with('success', "Imported {$updated} translation rows successfully.");
+    }
+
+    /**
      * Update a single translation key
      */
     public function updateKey(Request $request)
@@ -436,5 +522,47 @@ class TranslationController extends Controller
             'missing_ko' => $missingKo,
             'same_text' => $sameText,
         ];
+    }
+
+    /**
+     * Collect filtered rows by the same criteria used in index().
+     *
+     * @return array<int, array{key:string,en:string,ko:string}>
+     */
+    protected function collectFilteredRows(
+        string $page,
+        string $search,
+        string $role,
+        string $searchMode,
+        string $status,
+    ): array {
+        $enTranslations = $this->translationService->getFlatTranslations('en', $page);
+        $koTranslations = $this->translationService->getFlatTranslations('ko', $page);
+        $keys = array_unique(array_merge(array_keys($enTranslations), array_keys($koTranslations)));
+        sort($keys);
+
+        $rows = [];
+        foreach ($keys as $key) {
+            $enValue = (string) ($enTranslations[$key] ?? '');
+            $koValue = (string) ($koTranslations[$key] ?? '');
+
+            if (!$this->matchesRole($key, $role)) {
+                continue;
+            }
+            if (!$this->matchesStatus($status, $enValue, $koValue)) {
+                continue;
+            }
+            if ($search !== '' && !$this->matchesSearch($searchMode, $search, $key, $enValue, $koValue)) {
+                continue;
+            }
+
+            $rows[] = [
+                'key' => $key,
+                'en' => $enValue,
+                'ko' => $koValue,
+            ];
+        }
+
+        return $rows;
     }
 }
