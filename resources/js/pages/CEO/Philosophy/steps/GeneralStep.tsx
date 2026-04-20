@@ -1,6 +1,5 @@
 import React from 'react';
-import { GENERAL_QUESTIONS_META } from '../constants';
-import type { DiagnosisQuestion, SurveyFormData } from '../types';
+import type { DiagnosisQuestion, QuestionMetadata, SurveyFormData } from '../types';
 import { usePhilosophyText } from '../uiText';
 
 interface GeneralStepProps {
@@ -10,24 +9,16 @@ interface GeneralStepProps {
     showErrors?: boolean;
 }
 
-function getQuestionMeta(index: number, question: DiagnosisQuestion, isKo: boolean) {
-    const preset = GENERAL_QUESTIONS_META[index];
-    if (preset) {
-        return {
-            icon: preset.icon,
-            title: isKo ? preset.titleKo : preset.title,
-            leftLabel: isKo ? preset.leftLabelKo : preset.leftLabel,
-            rightLabel: isKo ? preset.rightLabelKo : preset.rightLabel,
-        };
-    }
-    const meta = (question.metadata || {}) as { option_a?: string; option_b?: string };
-    const left = meta.option_a || '';
-    const right = meta.option_b || '';
+function getQuestionMeta(question: DiagnosisQuestion, isKo: boolean) {
+    const meta = (question.metadata || {}) as QuestionMetadata;
+    const left = (isKo ? meta.option_a_label_ko : meta.option_a_label) || meta.option_a || (isKo ? '왼쪽' : 'Left');
+    const right = (isKo ? meta.option_b_label_ko : meta.option_b_label) || meta.option_b || (isKo ? '오른쪽' : 'Right');
+    const title = (isKo ? meta.title_ko : meta.title) || question.question_text;
     return {
-        icon: '📋',
-        title: question.question_text,
-        leftLabel: left.slice(0, 30) + (left.length > 30 ? '…' : '') || (isKo ? '왼쪽' : 'Left'),
-        rightLabel: right.slice(0, 30) + (right.length > 30 ? '…' : '') || (isKo ? '오른쪽' : 'Right'),
+        icon: meta.icon || '📋',
+        title,
+        leftLabel: left.slice(0, 30) + (left.length > 30 ? '…' : ''),
+        rightLabel: right.slice(0, 30) + (right.length > 30 ? '…' : ''),
     };
 }
 
@@ -77,7 +68,7 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                     const num = typeof value === 'number' && value >= 1 && value <= 7 ? value : null;
                     const answered = num !== null;
                     const hasError = showErrors && !answered;
-                    const meta = getQuestionMeta(qi, question, isKo);
+                    const meta = getQuestionMeta(question, isKo);
                     const optionA = ((question.metadata as { option_a?: string }) || {}).option_a || '';
                     const optionB = ((question.metadata as { option_b?: string }) || {}).option_b || '';
 

@@ -12,11 +12,76 @@ export const STEPS: StepConfig[] = [
 ];
 
 export const GROWTH_STAGES: GrowthStageConfig[] = [
-    { id: 'foundation', icon: '🧱', title: 'Foundation Building', keyword: 'Revenue structure unstable', desc: 'Actively building workforce and organization, but revenue structure is not yet stable.', detail: 'Your company is in the critical early phase of building its people and org infrastructure. The immediate priority is establishing core roles, compensation frameworks, and a culture foundation before rapid scaling.', hrIssues: ['No formal job leveling yet', 'Compensation set case-by-case', 'Culture is founder-driven', 'Onboarding is informal', 'Roles overlap frequently'] },
-    { id: 'acceleration', icon: '🚀', title: 'Growth Acceleration', keyword: 'Compensation & roles emerging', desc: 'Revenue or customers are rapidly increasing, and issues related to organizational contribution, compensation, and roles emerge.', detail: "You're scaling fast — but without structured HR systems, growth creates chaos. The key challenge is formalizing roles, compensation bands, and performance accountability before the org outgrows informal norms.", hrIssues: ['Role clarity breaking down', 'Pay equity becoming a risk', 'High-performer retention pressure', 'Management layer needed', 'Performance gaps widening'] },
-    { id: 'expansion', icon: '🌳', title: 'Stable Expansion', keyword: 'Roles & responsibilities clarifying', desc: 'Growth momentum has slowed, but the organization is expanding and roles/responsibilities are being clarified.', detail: 'Your organization is maturing. The priority shifts from hiring speed to talent optimization — defining career paths, formalizing performance management, and retaining key contributors through structured development.', hrIssues: ['Career path expectations rising', 'Middle management effectiveness', 'Succession planning needed', 'Engagement scores plateauing', 'Cross-functional friction'] },
-    { id: 'optimization', icon: '⚙️', title: 'Profit Optimization', keyword: 'Efficiency & cost management', desc: 'Performance growth is stagnant or limited, focusing on operational efficiency and cost management rather than revenue expansion.', detail: 'Growth has plateaued and the focus is on doing more with less. HR strategy pivots to workforce productivity, talent redeployment, and ensuring compensation ROI.', hrIssues: ['Productivity measurement gaps', 'Over-staffing in some functions', 'Variable pay tied to efficiency', 'Reskilling vs. backfilling decisions', 'Low-performer management'] },
-    { id: 'restructuring', icon: '🔄', title: 'Business Restructuring', keyword: 'Workforce & structure adjustment', desc: 'Market size is shrinking or competitiveness is weakening, reviewing business structure adjustment or workforce adjustment.', detail: 'The business model itself is under pressure. HR\'s role becomes critical in managing workforce transitions, preserving institutional knowledge, maintaining morale during uncertainty, and rebuilding capability.', hrIssues: ['Workforce reduction planning', 'Key talent retention at risk', 'Culture resilience under stress', 'Role consolidation required', 'Change management capability'] },
+    {
+        id: 'foundation',
+        icon: '🧱',
+        title: 'Foundation Building',
+        titleKo: '기반 구축',
+        keyword: 'Revenue structure unstable',
+        keywordKo: '매출 구조 불안정',
+        desc: 'Actively building workforce and organization, but revenue structure is not yet stable.',
+        descKo: '인력과 조직을 구축 중이지만 아직 매출 구조가 안정화되지 않은 단계입니다.',
+        detail: 'Your company is in the critical early phase of building its people and org infrastructure. The immediate priority is establishing core roles, compensation frameworks, and a culture foundation before rapid scaling.',
+        detailKo: '인력/조직 인프라를 구축하는 초기 핵심 단계입니다. 급격한 확장 전에 핵심 역할, 보상 체계, 조직 문화 기반을 먼저 정립해야 합니다.',
+        hrIssues: ['No formal job leveling yet', 'Compensation set case-by-case', 'Culture is founder-driven', 'Onboarding is informal', 'Roles overlap frequently'],
+        hrIssuesKo: ['직무 레벨 체계 미정', '케이스별 보상 운영', '창업자 중심 문화', '온보딩 체계 부족', '역할 중복 빈번'],
+    },
+    {
+        id: 'acceleration',
+        icon: '🚀',
+        title: 'Growth Acceleration',
+        titleKo: '성장 가속',
+        keyword: 'Compensation & roles emerging',
+        keywordKo: '보상·역할 이슈 대두',
+        desc: 'Revenue or customers are rapidly increasing, and issues related to organizational contribution, compensation, and roles emerge.',
+        descKo: '매출 또는 고객이 빠르게 증가하며 조직 기여도, 보상, 역할 관련 이슈가 나타나는 단계입니다.',
+        detail: "You're scaling fast — but without structured HR systems, growth creates chaos. The key challenge is formalizing roles, compensation bands, and performance accountability before the org outgrows informal norms.",
+        detailKo: '빠르게 성장하는 시기이지만 HR 시스템이 구조화되지 않으면 혼선이 커집니다. 비공식 운영 한계를 넘기 전에 역할, 보상 밴드, 성과 책임 기준을 정립해야 합니다.',
+        hrIssues: ['Role clarity breaking down', 'Pay equity becoming a risk', 'High-performer retention pressure', 'Management layer needed', 'Performance gaps widening'],
+        hrIssuesKo: ['역할 명확성 저하', '보상 공정성 리스크', '핵심인재 유지 압박', '관리자층 필요', '성과 격차 확대'],
+    },
+    {
+        id: 'expansion',
+        icon: '🌳',
+        title: 'Stable Expansion',
+        titleKo: '안정 확장',
+        keyword: 'Roles & responsibilities clarifying',
+        keywordKo: '역할·책임 명확화',
+        desc: 'Growth momentum has slowed, but the organization is expanding and roles/responsibilities are being clarified.',
+        descKo: '성장 속도는 완화되었지만 조직은 확장 중이며 역할/책임을 정교화하는 단계입니다.',
+        detail: 'Your organization is maturing. The priority shifts from hiring speed to talent optimization — defining career paths, formalizing performance management, and retaining key contributors through structured development.',
+        detailKo: '조직이 성숙기로 진입한 단계입니다. 채용 속도보다 인재 최적화가 중요하며 경력경로, 성과관리, 핵심인재 유지 체계를 고도화해야 합니다.',
+        hrIssues: ['Career path expectations rising', 'Middle management effectiveness', 'Succession planning needed', 'Engagement scores plateauing', 'Cross-functional friction'],
+        hrIssuesKo: ['커리어 경로 기대 증가', '중간관리자 역량 과제', '승계 계획 필요', '몰입도 정체', '부서 간 마찰'],
+    },
+    {
+        id: 'optimization',
+        icon: '⚙️',
+        title: 'Profit Optimization',
+        titleKo: '수익 최적화',
+        keyword: 'Efficiency & cost management',
+        keywordKo: '효율·원가 관리',
+        desc: 'Performance growth is stagnant or limited, focusing on operational efficiency and cost management rather than revenue expansion.',
+        descKo: '성과 성장이 정체/제한되어 매출 확장보다 운영 효율과 원가 관리가 중요한 단계입니다.',
+        detail: 'Growth has plateaued and the focus is on doing more with less. HR strategy pivots to workforce productivity, talent redeployment, and ensuring compensation ROI.',
+        detailKo: '성장이 정체되어 적은 자원으로 더 높은 성과를 내야 하는 구간입니다. 인력 생산성, 인재 재배치, 보상 ROI 중심으로 HR 전략을 재정렬해야 합니다.',
+        hrIssues: ['Productivity measurement gaps', 'Over-staffing in some functions', 'Variable pay tied to efficiency', 'Reskilling vs. backfilling decisions', 'Low-performer management'],
+        hrIssuesKo: ['생산성 측정 공백', '기능별 인력 비효율', '성과연동 보상 설계', '재교육 vs 충원 의사결정', '저성과 관리'],
+    },
+    {
+        id: 'restructuring',
+        icon: '🔄',
+        title: 'Business Restructuring',
+        titleKo: '구조 재편',
+        keyword: 'Workforce & structure adjustment',
+        keywordKo: '인력·조직 재조정',
+        desc: 'Market size is shrinking or competitiveness is weakening, reviewing business structure adjustment or workforce adjustment.',
+        descKo: '시장 축소나 경쟁력 약화로 사업 구조 또는 인력 구조 재조정을 검토하는 단계입니다.',
+        detail: 'The business model itself is under pressure. HR\'s role becomes critical in managing workforce transitions, preserving institutional knowledge, maintaining morale during uncertainty, and rebuilding capability.',
+        detailKo: '사업모델 자체가 압박받는 시기입니다. 인력 전환 관리, 핵심 지식 유지, 불확실성 속 조직 사기 관리, 역량 재구축이 핵심 과제입니다.',
+        hrIssues: ['Workforce reduction planning', 'Key talent retention at risk', 'Culture resilience under stress', 'Role consolidation required', 'Change management capability'],
+        hrIssuesKo: ['인력 조정 계획', '핵심인재 이탈 리스크', '문화 회복 탄력성', '역할 통합 필요', '변화관리 역량'],
+    },
 ];
 
 export const VISION_CHUNKS: VisionChunkConfig[] = [
@@ -27,25 +92,6 @@ export const VISION_CHUNKS: VisionChunkConfig[] = [
 
 export const VISION_CHUNK_SIZE = 3;
 export const KEYWORD_PRESETS = ['Innovation', 'Trust', 'Speed', 'Expertise', 'Care', 'Integrity', 'Impact'];
-
-/** Scenario metadata for Leadership step (by question order). */
-export const LEADERSHIP_SCENARIOS: { scenario: string; scenarioKo: string; icon: string; leftLabel: string; leftLabelKo: string; rightLabel: string; rightLabelKo: string }[] = [
-    { scenario: 'Manager Resignation Wave', scenarioKo: '관리자 이탈 증가', icon: '👤', leftLabel: 'System & Role First', leftLabelKo: '시스템/역할 우선', rightLabel: 'Performance First', rightLabelKo: '성과 우선' },
-    { scenario: 'Repeated Team Errors', scenarioKo: '반복되는 팀 오류', icon: '⚙️', leftLabel: 'System & Management', leftLabelKo: '시스템/관리 개선', rightLabel: 'Individual Accountability', rightLabelKo: '개인 책임 강화' },
-    { scenario: 'Endless Team Discussions', scenarioKo: '끝없는 팀 논의', icon: '🗣️', leftLabel: 'Leader Decides', leftLabelKo: '리더 결정 중심', rightLabel: 'Consensus Priority', rightLabelKo: '합의 우선' },
-    { scenario: 'Role Confusion in the Field', scenarioKo: '현장 역할 혼선', icon: '🔀', leftLabel: 'Clarify Standards', leftLabelKo: '기준 명확화', rightLabel: 'Direct Intervention', rightLabelKo: '직접 개입' },
-    { scenario: 'High Performer, Low Compliance', scenarioKo: '고성과자 규정 미준수', icon: '⭐', leftLabel: 'Standards First', leftLabelKo: '원칙 우선', rightLabel: 'Performance Tolerance', rightLabelKo: '성과 중심 유연성' },
-];
-
-/** Spectrum metadata for General Questions step (by question order). */
-export const GENERAL_QUESTIONS_META: { icon: string; title: string; titleKo: string; leftLabel: string; leftLabelKo: string; rightLabel: string; rightLabelKo: string }[] = [
-    { icon: '👔', title: 'Manager Role Perception', titleKo: '관리자 역할 인식', leftLabel: 'Practical Expert', leftLabelKo: '실무 전문가형', rightLabel: 'Organization / Member Coordinator', rightLabelKo: '조직/구성원 조율형' },
-    { icon: '⚡', title: 'Source of Performance', titleKo: '성과 창출 원천', leftLabel: 'Key Talents', leftLabelKo: '핵심 인재 중심', rightLabel: 'Systems within the Organization', rightLabelKo: '조직 시스템 중심' },
-    { icon: '⚖️', title: 'Standards and Discretion', titleKo: '기준과 재량의 균형', leftLabel: "Manager's Judgment and Discretion", leftLabelKo: '관리자 판단/재량', rightLabel: 'Clear Standards and Processes', rightLabelKo: '명확한 기준/프로세스' },
-    { icon: '💼', title: 'Job Value', titleKo: '직무 가치 인식', leftLabel: 'Differential Internal Job Values', leftLabelKo: '직무별 가치 차등', rightLabel: 'All Jobs Equally Important', rightLabelKo: '모든 직무 동등 가치' },
-    { icon: '🏃', title: 'Decision-Making', titleKo: '의사결정 방식', leftLabel: 'Fast Speed, Individual Responsibility', leftLabelKo: '속도/개인 책임', rightLabel: 'Consensus First, Organizational Responsibility', rightLabelKo: '합의/조직 책임' },
-    { icon: '📢', title: 'Sharing Management Information with Members', titleKo: '경영 정보 공유 범위', leftLabel: 'Necessary Scope, Selective Sharing', leftLabelKo: '필요 범위 선택 공유', rightLabel: 'As Transparent Sharing as Possible', rightLabelKo: '가능한 투명 공유' },
-];
 
 /** Category display names and icons for Organizational Issues step. */
 export const ISSUE_CATEGORY_META: Record<string, { name: string; icon: string }> = {

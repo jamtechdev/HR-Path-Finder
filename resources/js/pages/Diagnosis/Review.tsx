@@ -431,6 +431,20 @@ export default function Review({
         return `${numValue.toFixed(1)}%`;
     };
 
+    const formatReviewDate = (value: unknown): string => {
+        if (value === null || value === undefined) return '-';
+        const raw = String(value).trim();
+        if (!raw) return '-';
+
+        const normalized = raw.replace(/\./g, '-').replace(/\//g, '-');
+        const parsed = new Date(normalized);
+        if (!Number.isNaN(parsed.getTime())) {
+            return parsed.toISOString().slice(0, 10);
+        }
+
+        return raw;
+    };
+
     const formatCurrency = (value: number | string | null | undefined): string => {
         if (value === null || value === undefined || value === '') return '-';
         const numValue = typeof value === 'string' ? parseFloat(value) : value;
@@ -903,10 +917,10 @@ export default function Review({
                             <ReviewCard title={t('diagnosis_review.companyCardTitle')} icon="🏢" editUrl={getEditUrl(STEP_MAP.company)}>
                                 <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                                     {[
-                                        [tr('foundedDate'), formatValue(company?.foundation_date) || '—'],
+                                        [tr('foundedDate'), formatReviewDate(preview?.foundation_date ?? company?.foundation_date)],
                                         [tr('size'), totalHeadcount ? String(totalHeadcount) : '—'],
                                         [tr('sector'), [preview?.industry_category, preview?.industry_subcategory].filter(Boolean).map((v) => formatValue(v)).join(' · ') || '—'],
-                                        [tr('listedShort'), company?.public_listing_status ? String(company.public_listing_status) : (company?.is_public != null ? (company.is_public ? 'Yes' : 'No') : '—')],
+                                        [tr('listedShort'), company?.public_listing_status ? String(company.public_listing_status) : ((preview?.is_public ?? company?.is_public) != null ? ((preview?.is_public ?? company?.is_public) ? 'Yes' : 'No') : '—')],
                                     ].map(([k, v], idx) => (
                                         <div key={`company-${idx}-${String(k ?? '')}`}>
                                             <p className="text-xs font-medium text-slate-500 dark:text-[#9AA3B2]">{k}</p>

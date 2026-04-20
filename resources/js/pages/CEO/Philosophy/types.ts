@@ -3,7 +3,31 @@ export interface DiagnosisQuestion {
     question_text: string;
     question_type: string;
     options?: string[];
-    metadata?: Record<string, unknown>;
+    metadata?: QuestionMetadata;
+}
+
+export interface QuestionMetadata {
+    [key: string]: unknown;
+    title?: string;
+    title_ko?: string;
+    description?: string;
+    description_ko?: string;
+    icon?: string;
+    option_a?: string;
+    option_b?: string;
+    option_a_label?: string;
+    option_a_label_ko?: string;
+    option_b_label?: string;
+    option_b_label_ko?: string;
+    scenario?: string;
+    scenario_ko?: string;
+    callout_title?: string;
+    callout_title_ko?: string;
+    callout_body?: string;
+    callout_body_ko?: string;
+    keyword_presets?: string[];
+    keyword_presets_ko?: string[];
+    unit?: string;
 }
 
 export interface HrIssue {
@@ -46,10 +70,15 @@ export interface GrowthStageConfig {
     id: string;
     icon: string;
     title: string;
+    titleKo: string;
     keyword: string;
+    keywordKo: string;
     desc: string;
+    descKo: string;
     detail: string;
+    detailKo: string;
     hrIssues: string[];
+    hrIssuesKo: string[];
 }
 
 export interface VisionChunkConfig {

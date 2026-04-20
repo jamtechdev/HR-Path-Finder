@@ -11,6 +11,7 @@ use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class DiagnosisController extends Controller
 {
@@ -415,7 +416,29 @@ class DiagnosisController extends Controller
 
         $normalized = trim((string) $value);
 
-        return $normalized === '' ? null : $normalized;
+        if ($normalized === '') {
+            return null;
+        }
+
+        $formats = ['Y-m-d', 'Y/m/d', 'Y.m.d'];
+        foreach ($formats as $format) {
+            $parsed = Carbon::createFromFormat($format, $normalized);
+            if ($parsed !== false) {
+                return $parsed->format('Y-m-d');
+            }
+        }
+
+        // Accept year-month values from legacy data/drafts and normalize to first day.
+        $yearMonthFormats = ['Y-m', 'Y/m', 'Y.m'];
+        foreach ($yearMonthFormats as $format) {
+            $parsed = Carbon::createFromFormat($format, $normalized);
+            if ($parsed !== false) {
+                return $parsed->startOfMonth()->format('Y-m-d');
+            }
+        }
+
+        // Keep as-is when unparseable so validator can return a clear field error.
+        return $normalized;
     }
 
     protected function normalizeNullableString(mixed $value): ?string

@@ -1,6 +1,5 @@
 import React from 'react';
-import { LEADERSHIP_SCENARIOS } from '../constants';
-import type { DiagnosisQuestion, SurveyFormData } from '../types';
+import type { DiagnosisQuestion, QuestionMetadata, SurveyFormData } from '../types';
 import { usePhilosophyText } from '../uiText';
 
 interface LeadershipStepProps {
@@ -10,24 +9,18 @@ interface LeadershipStepProps {
     showErrors?: boolean;
 }
 
-function getScenarioMeta(index: number, question: DiagnosisQuestion, isKo: boolean) {
-    const preset = LEADERSHIP_SCENARIOS[index];
-    if (preset) {
-        return {
-            scenario: isKo ? preset.scenarioKo : preset.scenario,
-            icon: preset.icon,
-            leftLabel: isKo ? preset.leftLabelKo : preset.leftLabel,
-            rightLabel: isKo ? preset.rightLabelKo : preset.rightLabel,
-        };
-    }
-    const meta = (question.metadata || {}) as { option_a?: string; option_b?: string };
-    const left = meta.option_a || '';
-    const right = meta.option_b || '';
+function getScenarioMeta(question: DiagnosisQuestion, isKo: boolean) {
+    const meta = (question.metadata || {}) as QuestionMetadata;
+    const left = (isKo ? meta.option_a_label_ko : meta.option_a_label) || meta.option_a || (isKo ? '왼쪽' : 'Left');
+    const right = (isKo ? meta.option_b_label_ko : meta.option_b_label) || meta.option_b || (isKo ? '오른쪽' : 'Right');
+    const scenario = (isKo ? meta.scenario_ko : meta.scenario)
+        || (isKo ? meta.title_ko : meta.title)
+        || question.question_text;
     return {
-        scenario: question.question_text.slice(0, 40) + (question.question_text.length > 40 ? '…' : ''),
-        icon: '📋',
-        leftLabel: left.slice(0, 28) + (left.length > 28 ? '…' : '') || (isKo ? '왼쪽' : 'Left'),
-        rightLabel: right.slice(0, 28) + (right.length > 28 ? '…' : '') || (isKo ? '오른쪽' : 'Right'),
+        scenario: scenario.slice(0, 40) + (scenario.length > 40 ? '…' : ''),
+        icon: meta.icon || '📋',
+        leftLabel: left.slice(0, 28) + (left.length > 28 ? '…' : ''),
+        rightLabel: right.slice(0, 28) + (right.length > 28 ? '…' : ''),
     };
 }
 
@@ -71,7 +64,7 @@ export default function LeadershipStep({ questions, data, setData, showErrors = 
                     const num = typeof value === 'number' && value >= 1 && value <= 7 ? value : null;
                     const answered = num !== null;
                     const hasError = showErrors && !answered;
-                    const meta = getScenarioMeta(qi, question, isKo);
+                    const meta = getScenarioMeta(question, isKo);
                     const optionA = ((question.metadata as { option_a?: string }) || {}).option_a || '';
                     const optionB = ((question.metadata as { option_b?: string }) || {}).option_b || '';
 
