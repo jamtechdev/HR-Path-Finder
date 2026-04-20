@@ -24,6 +24,16 @@ interface Props {
     currentRole: string;
     roles: Record<string, string>;
     searchMode: 'contains' | 'exact';
+    currentStatus: string;
+    statuses: Record<string, string>;
+    stats: {
+        total: number;
+        complete: number;
+        missing_any: number;
+        missing_en: number;
+        missing_ko: number;
+        same_text: number;
+    };
 }
 
 export default function TranslationsIndex({ 
@@ -34,6 +44,9 @@ export default function TranslationsIndex({
     currentRole,
     roles,
     searchMode: initialSearchMode,
+    currentStatus,
+    statuses,
+    stats,
 }: Props) {
     const { t } = useTranslation();
     const [search, setSearch] = useState(initialSearch);
@@ -41,6 +54,7 @@ export default function TranslationsIndex({
     const [dirtyKeys, setDirtyKeys] = useState<Record<string, boolean>>({});
     const [role, setRole] = useState(currentRole);
     const [searchMode, setSearchMode] = useState<'contains' | 'exact'>(initialSearchMode);
+    const [status, setStatus] = useState(currentStatus);
 
     useEffect(() => {
         setEntries(translations);
@@ -48,13 +62,20 @@ export default function TranslationsIndex({
         setRole(currentRole);
         setSearch(initialSearch);
         setSearchMode(initialSearchMode);
-    }, [translations, currentRole, initialSearch, initialSearchMode]);
+        setStatus(currentStatus);
+    }, [translations, currentRole, initialSearch, initialSearchMode, currentStatus]);
 
-    const handleFilterChange = (newPage: string, newRole: string, newSearchMode: 'contains' | 'exact') => {
+    const handleFilterChange = (
+        newPage: string,
+        newRole: string,
+        newSearchMode: 'contains' | 'exact',
+        newStatus: string,
+    ) => {
         router.get('/admin/translations', {
             page: newPage,
             role: newRole,
             searchMode: newSearchMode,
+            status: newStatus,
             search: search,
         }, {
             preserveState: true,
@@ -67,6 +88,7 @@ export default function TranslationsIndex({
             page: currentPage,
             role,
             searchMode,
+            status,
             search: search,
         }, {
             preserveState: true,
@@ -106,6 +128,11 @@ export default function TranslationsIndex({
         );
     };
 
+    const handleStatusShortcut = (nextStatus: string) => {
+        setStatus(nextStatus);
+        handleFilterChange(currentPage, role, searchMode, nextStatus);
+    };
+
     return (
         <SidebarProvider defaultOpen={true}>
             <Sidebar collapsible="icon" variant="sidebar">
@@ -136,13 +163,13 @@ export default function TranslationsIndex({
                                 <CardTitle>Filters</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                                     <div>
                                         <label className="text-sm font-medium mb-2 block">
                                             Section
                                         </label>
                                         <Select value={currentPage} onValueChange={(v) => {
-                                            handleFilterChange(v, role, searchMode);
+                                            handleFilterChange(v, role, searchMode, status);
                                         }}>
                                             <SelectTrigger>
                                                 <SelectValue />
@@ -162,7 +189,7 @@ export default function TranslationsIndex({
                                             value={role}
                                             onValueChange={(v) => {
                                                 setRole(v);
-                                                handleFilterChange(currentPage, v, searchMode);
+                                                handleFilterChange(currentPage, v, searchMode, status);
                                             }}
                                         >
                                             <SelectTrigger>
@@ -183,7 +210,7 @@ export default function TranslationsIndex({
                                             value={searchMode}
                                             onValueChange={(v: 'contains' | 'exact') => {
                                                 setSearchMode(v);
-                                                handleFilterChange(currentPage, role, v);
+                                                handleFilterChange(currentPage, role, v, status);
                                             }}
                                         >
                                             <SelectTrigger>
@@ -192,6 +219,27 @@ export default function TranslationsIndex({
                                             <SelectContent>
                                                 <SelectItem value="contains">Contains</SelectItem>
                                                 <SelectItem value="exact">Exact</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium mb-2 block">Status</label>
+                                        <Select
+                                            value={status}
+                                            onValueChange={(v) => {
+                                                setStatus(v);
+                                                handleFilterChange(currentPage, role, searchMode, v);
+                                            }}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Object.entries(statuses).map(([key, label]) => (
+                                                    <SelectItem key={key} value={key}>
+                                                        {label}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -218,6 +266,57 @@ export default function TranslationsIndex({
                                 </div>
                             </CardContent>
                         </Card>
+
+                        <div className="mb-6 grid grid-cols-2 md:grid-cols-6 gap-3">
+                            <Button
+                                variant={status === 'all' ? 'default' : 'outline'}
+                                className="justify-between"
+                                onClick={() => handleStatusShortcut('all')}
+                            >
+                                All
+                                <Badge variant="secondary">{stats.total}</Badge>
+                            </Button>
+                            <Button
+                                variant={status === 'missing_any' ? 'default' : 'outline'}
+                                className="justify-between"
+                                onClick={() => handleStatusShortcut('missing_any')}
+                            >
+                                Missing Any
+                                <Badge variant="secondary">{stats.missing_any}</Badge>
+                            </Button>
+                            <Button
+                                variant={status === 'missing_en' ? 'default' : 'outline'}
+                                className="justify-between"
+                                onClick={() => handleStatusShortcut('missing_en')}
+                            >
+                                Missing EN
+                                <Badge variant="secondary">{stats.missing_en}</Badge>
+                            </Button>
+                            <Button
+                                variant={status === 'missing_ko' ? 'default' : 'outline'}
+                                className="justify-between"
+                                onClick={() => handleStatusShortcut('missing_ko')}
+                            >
+                                Missing KO
+                                <Badge variant="secondary">{stats.missing_ko}</Badge>
+                            </Button>
+                            <Button
+                                variant={status === 'same_text' ? 'default' : 'outline'}
+                                className="justify-between"
+                                onClick={() => handleStatusShortcut('same_text')}
+                            >
+                                Same Text
+                                <Badge variant="secondary">{stats.same_text}</Badge>
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="justify-between"
+                                onClick={() => handleStatusShortcut('all')}
+                            >
+                                Complete
+                                <Badge variant="secondary">{stats.complete}</Badge>
+                            </Button>
+                        </div>
 
                         <Card>
                             <CardHeader>

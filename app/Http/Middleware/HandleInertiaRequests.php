@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Setting;
+use App\Services\TranslationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
@@ -108,6 +109,12 @@ class HandleInertiaRequests extends Middleware
         if ($user) {
             $shared['activeRole'] = $request->session()->get('active_role');
             $shared['canSwitchToHr'] = $user->hasRole('hr_manager') && $request->session()->get('active_role') === 'ceo';
+
+            if ($user->hasRole('admin')) {
+                /** @var TranslationService $translationService */
+                $translationService = app(TranslationService::class);
+                $shared['translationPages'] = $translationService->getPages();
+            }
         }
         
         // Add projects to shared data for roles that need them in sidebar (with step_statuses and kpi_review_status for KPI list menu)

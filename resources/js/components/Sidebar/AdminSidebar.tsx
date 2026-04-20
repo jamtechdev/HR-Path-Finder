@@ -25,9 +25,21 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
     const appName = (props as any).appConfig?.name || t('admin_ui.sidebar.app_name');
     const appLogo = (props as any).appConfig?.logo || '/logo.svg';
 
-    const translationPages = [
-        { key: 'all', label: t('admin_ui.sidebar.menu.translations'), path: '/admin/translations?page=all' },
-    ];
+    const pageMap = ((props as any).translationPages ?? {}) as Record<string, string>;
+    const translationPages = Object.entries(pageMap)
+        .map(([key, label]) => ({
+            key,
+            label,
+            path: `/admin/translations?page=${encodeURIComponent(key)}`,
+        }))
+        .slice(0, 9);
+    if (translationPages.length === 0) {
+        translationPages.push({
+            key: 'all',
+            label: t('admin_ui.sidebar.menu.translations'),
+            path: '/admin/translations?page=all',
+        });
+    }
 
     const isActivePath = (path: string) => {
         if (path === '/admin/kpi-review') {
@@ -368,6 +380,18 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                             </Link>
                                                         );
                                                     })}
+                                                    <Link
+                                                        href="/admin/hr-translations"
+                                                        className={cn(
+                                                            'w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs transition-all duration-200',
+                                                            isActivePath('/admin/hr-translations')
+                                                                ? 'bg-sidebar-accent/50 text-sidebar-primary font-medium'
+                                                                : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground',
+                                                        )}
+                                                    >
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50" />
+                                                        <span className="truncate">HR Diagnosis</span>
+                                                    </Link>
                                                 </div>
                                             )}
                                             <Link

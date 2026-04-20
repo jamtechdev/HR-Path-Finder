@@ -33,12 +33,14 @@ class TranslationController extends Controller
         $search = $request->get('search', '');
         $role = $request->get('role', 'all');
         $searchMode = $request->get('searchMode', 'contains');
+        $status = $request->get('status', 'all');
 
         $enTranslations = $this->translationService->getFlatTranslations('en', $page);
         $koTranslations = $this->translationService->getFlatTranslations('ko', $page);
 
         $keys = array_unique(array_merge(array_keys($enTranslations), array_keys($koTranslations)));
         sort($keys);
+        $stats = $this->buildStats($keys, $enTranslations, $koTranslations, $role);
 
         $translations = [];
         foreach ($keys as $key) {
@@ -46,6 +48,10 @@ class TranslationController extends Controller
             $koValue = (string) ($koTranslations[$key] ?? '');
 
             if (!$this->matchesRole($key, $role)) {
+                continue;
+            }
+
+            if (!$this->matchesStatus($status, $enValue, $koValue)) {
                 continue;
             }
 
@@ -71,6 +77,7 @@ class TranslationController extends Controller
             'search' => $search,
             'currentRole' => $role,
             'searchMode' => $searchMode,
+            'currentStatus' => $status,
             'roles' => [
                 'all' => 'All Roles',
                 'admin' => 'Admin',
@@ -78,6 +85,14 @@ class TranslationController extends Controller
                 'ceo' => 'CEO',
                 'common' => 'Common/Shared',
             ],
+            'statuses' => [
+                'all' => 'All Statuses',
+                'missing_any' => 'Missing EN or KO',
+                'missing_en' => 'Missing English',
+                'missing_ko' => 'Missing Korean',
+                'same_text' => 'Same EN and KO text',
+            ],
+            'stats' => $stats,
         ]);
     }
 
@@ -349,5 +364,77 @@ class TranslationController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Filter by translation completeness/quality status.
+     */
+    protected function matchesStatus(string $status, string $enValue, string $koValue): bool
+    {
+        $en = trim($enValue);
+        $ko = trim($koValue);
+        $missingEn = $en === '';
+        $missingKo = $ko === '';
+        $sameText = $en !== '' && $ko !== '' && mb_strtolower($en) === mb_strtolower($ko);
+
+        return match ($status) {
+            'missing_any' => $missingEn || $missingKo,
+            'missing_en' => $missingEn,
+            'missing_ko' => $missingKo,
+            'same_text' => $sameText,
+            default => true,
+        };
+    }
+
+    /**
+     * Build QA stats for current page + role scope.
+     */
+    protected function buildStats(array $keys, array $enTranslations, array $koTranslations, string $role): array
+    {
+        $total = 0;
+        $missingAny = 0;
+        $missingEn = 0;
+        $missingKo = 0;
+        $sameText = 0;
+        $complete = 0;
+
+        foreach ($keys as $key) {
+            if (!$this->matchesRole($key, $role)) {
+                continue;
+            }
+
+            $enValue = (string) ($enTranslations[$key] ?? '');
+            $koValue = (string) ($koTranslations[$key] ?? '');
+            $en = trim($enValue);
+            $ko = trim($koValue);
+            $isMissingEn = $en === '';
+            $isMissingKo = $ko === '';
+            $isSameText = !$isMissingEn && !$isMissingKo && mb_strtolower($en) === mb_strtolower($ko);
+
+            $total++;
+            if ($isMissingEn) {
+                $missingEn++;
+            }
+            if ($isMissingKo) {
+                $missingKo++;
+            }
+            if ($isMissingEn || $isMissingKo) {
+                $missingAny++;
+            } else {
+                $complete++;
+            }
+            if ($isSameText) {
+                $sameText++;
+            }
+        }
+
+        return [
+            'total' => $total,
+            'complete' => $complete,
+            'missing_any' => $missingAny,
+            'missing_en' => $missingEn,
+            'missing_ko' => $missingKo,
+            'same_text' => $sameText,
+        ];
     }
 }
