@@ -114,7 +114,7 @@ class LandingPageSectionSeeder extends Seeder
                 'is_active' => true,
             ],
 
-            // Why HR Path-Finder Section
+            // Why HR Path Finder Section
             [
                 'section_key' => 'why_title',
                 'section_type' => 'text',
@@ -411,11 +411,11 @@ class LandingPageSectionSeeder extends Seeder
                 'is_active' => true,
             ],
 
-            // Why HR Path-Finder Section (English)
+            // Why HR Path Finder Section (English)
             [
                 'section_key' => 'why_title',
                 'section_type' => 'text',
-                'content' => 'Why Choose HR Path-Finder?',
+                'content' => 'Why Choose HR Path Finder?',
                 'locale' => 'en',
                 'order' => 20,
                 'is_active' => true,

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Regression coverage for HR Path-Finder / diagnosis stability (org charts, workforce split).
+ * Regression coverage for HR Path Finder / diagnosis stability (org charts, workforce split).
  * Run `php artisan test --filter=DiagnosisRegression` after changes to DiagnosisController or StoreDiagnosisRequest.
  */
 

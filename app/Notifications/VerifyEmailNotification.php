@@ -18,7 +18,7 @@ class VerifyEmailNotification extends BaseVerifyEmail
         $verificationUrl = $this->verificationUrl($notifiable);
 
         return (new MailMessage)
-            ->subject('Verify Your Email Address - HR Path-Finder')
+            ->subject('Verify Your Email Address - HR Path Finder')
             ->view('emails.verify-email', [
                 'verificationUrl' => $verificationUrl,
                 'user' => $notifiable,

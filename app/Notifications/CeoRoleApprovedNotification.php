@@ -65,7 +65,7 @@ class CeoRoleApprovedNotification extends Notification implements ShouldQueue
             ->line('4. Start reviewing and managing HR projects')
             ->action('🔑 Login to CEO Dashboard', $loginUrl)
             ->line('If you have any questions, please contact the administrator.')
-            ->salutation('Best regards,<br>The HR Path-Finder Team');
+            ->salutation('Best regards,<br>The HR Path Finder Team');
     }
 
     /**

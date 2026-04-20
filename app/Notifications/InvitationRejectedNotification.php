@@ -64,7 +64,7 @@ class InvitationRejectedNotification extends Notification implements ShouldQueue
             ->line('• If this was sent by mistake, no further action is needed')
             ->action('View Company Details', route('companies.show', $company->id))
             ->line('If you have any questions or need assistance, please contact our support team.')
-            ->salutation('Best regards,<br>The HR Path-Finder Team');
+            ->salutation('Best regards,<br>The HR Path Finder Team');
     }
 
     /**

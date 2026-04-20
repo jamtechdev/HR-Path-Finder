@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password Reset OTP - HR Path-Finder</title>
+    <title>Password Reset OTP - HR Path Finder</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -95,7 +95,7 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <h1>🔐 HR Path-Finder</h1>
+            <h1>🔐 HR Path Finder</h1>
         </div>
         
         <div class="greeting">
@@ -103,7 +103,7 @@
         </div>
         
         <div class="content">
-            <p>You have requested to reset your password for your HR Path-Finder account.</p>
+            <p>You have requested to reset your password for your HR Path Finder account.</p>
             
             <div class="otp-container">
                 <div class="otp-label">Your OTP Code</div>
@@ -126,7 +126,7 @@
         
         <div class="footer">
             Best regards,<br>
-            <strong>The HR Path-Finder Team</strong>
+            <strong>The HR Path Finder Team</strong>
         </div>
     </div>
 </body>

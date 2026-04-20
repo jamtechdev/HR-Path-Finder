@@ -149,7 +149,7 @@ class CompanyController extends Controller
         $company = $this->workspaceService->create($data, $request->user());
 
         return redirect()->route('hr-manager.dashboard')
-            ->with('success', 'Company created successfully. You can now start the diagnosis process.');
+            ->with('success', __('messages.company_created'));
     }
 
     /**

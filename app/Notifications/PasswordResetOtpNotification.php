@@ -31,9 +31,9 @@ class PasswordResetOtpNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('🔐 Password Reset OTP - HR Path-Finder')
+            ->subject('🔐 Password Reset OTP - HR Path Finder')
             ->greeting('Hello!')
-            ->line('You have requested to reset your password for your HR Path-Finder account.')
+            ->line('You have requested to reset your password for your HR Path Finder account.')
             ->line('**Your OTP Code:**')
             ->line('## ' . $this->otp)
             ->line('**Important:**')
@@ -41,6 +41,6 @@ class PasswordResetOtpNotification extends Notification
             ->line('• Do not share this OTP with anyone')
             ->line('• If you did not request this, please ignore this email')
             ->line('• For security, this OTP can only be used once')
-            ->salutation('Best regards,<br>The HR Path-Finder Team');
+            ->salutation('Best regards,<br>The HR Path Finder Team');
     }
 }

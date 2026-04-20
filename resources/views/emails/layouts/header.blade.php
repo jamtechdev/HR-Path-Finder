@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>{{ $subject ?? 'HR Path-Finder' }}</title>
+    <title>{{ $subject ?? 'HR Path Finder' }}</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f3f4f6;">
@@ -18,7 +18,7 @@
                             @else
                                 <div style="width: 60px; height: 60px; background: rgba(255, 255, 255, 0.2); border-radius: 12px; margin: 0 auto 15px; display: inline-block; line-height: 60px; font-size: 28px;">🏢</div>
                             @endif
-                            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">HR Path-Finder</h1>
+                            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">HR Path Finder</h1>
                             <p style="margin: 8px 0 0 0; color: rgba(255, 255, 255, 0.9); font-size: 13px;">by BetterCompany</p>
                         </td>
                     </tr>

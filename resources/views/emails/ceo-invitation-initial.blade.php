@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HR Path-Finder — CEO Invitation</title>
+    <title>HR Path Finder — CEO Invitation</title>
     <style>
         @media only screen and (max-width: 700px) {
             .container { width: 100% !important; }
@@ -31,7 +31,7 @@
                                         <tr>
                                             <td style="width:38px; height:38px; background:rgba(201,168,76,0.22); border:1px solid rgba(201,168,76,0.38); border-radius:9px; text-align:center; vertical-align:middle; font-size:18px;">&#127970;</td>
                                             <td style="padding-left:10px;">
-                                                <div style="font-size:24px; line-height:26px; font-weight:700; color:#FFFFFF;">HR Path-Finder</div>
+                                                <div style="font-size:24px; line-height:26px; font-weight:700; color:#FFFFFF;">HR Path Finder</div>
                                                 <div style="font-size:11px; line-height:16px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(255,255,255,0.58);">by BetterCompany</div>
                                             </td>
                                         </tr>
@@ -70,7 +70,7 @@
                                             <td style="padding:14px 16px;">
                                                 <div style="font-size:10px; line-height:14px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:#B08E35;">프로젝트 소개</div>
                                                 <div style="margin-top:6px; font-size:14px; line-height:22px; color:#3E4968;">
-                                                    HR Path-Finder는 귀사의 HR 전략을 5단계로 체계화하는 종합 진단 플랫폼입니다. 컨설턴트와 함께 맞춤형 HR 시스템 보고서를 완성하게 됩니다.
+                                                    HR Path Finder는 귀사의 HR 전략을 5단계로 체계화하는 종합 진단 플랫폼입니다. 컨설턴트와 함께 맞춤형 HR 시스템 보고서를 완성하게 됩니다.
                                                 </div>
                                             </td>
                                         </tr>
@@ -243,7 +243,7 @@
                         <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
                             <tr>
                                 <td style="font-size:11px; line-height:16px; color:#7E88A7;">문의: support@bettercompany.co.kr</td>
-                                <td align="right" style="font-size:11px; line-height:16px; color:#7E88A7;">HR Path-Finder</td>
+                                <td align="right" style="font-size:11px; line-height:16px; color:#7E88A7;">HR Path Finder</td>
                             </tr>
                         </table>
                     </td>

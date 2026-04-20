@@ -230,7 +230,7 @@ class PasswordResetController extends Controller
         try {
             Mail::send([], [], function ($message) use ($email, $otp) {
                 $message->to($email)
-                    ->subject('🔐 Password Reset OTP - HR Path-Finder');
+                    ->subject('🔐 Password Reset OTP - HR Path Finder');
 
                 $html = view('emails.password-reset-otp', [
                     'otp' => $otp,

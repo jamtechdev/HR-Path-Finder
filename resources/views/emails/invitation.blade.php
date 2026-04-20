@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $subject ?? 'CEO Invitation - HR Path-Finder' }}</title>
+    <title>{{ $subject ?? 'CEO Invitation - HR Path Finder' }}</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -91,7 +91,7 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <h1>🎯 HR Path-Finder</h1>
+            <h1>🎯 HR Path Finder</h1>
         </div>
         
         <div class="greeting">

@@ -24,11 +24,9 @@ import {
 } from '@/components/ui/sidebar';
 import { Spinner } from '@/components/ui/spinner';
 import { Toaster } from '@/components/ui/toaster';
-import { toast } from '@/hooks/use-toast';
-import { waitWebAnimationMs } from '@/lib/deferred';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 import { cn } from '@/lib/utils';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import {
     AlertCircle,
     Building2,
@@ -121,17 +119,7 @@ export default function CreateCompany() {
         submitInFlight.current = true;
         post('/hr-manager/companies', {
             forceFormData: true,
-            onSuccess: () => {
-                setLogoPreview(null);
-                toast({
-                    title: t('companies_create.success_title'),
-                    description: t('companies_create.success_desc'),
-                    variant: 'success',
-                });
-                void waitWebAnimationMs(1800).then(() => {
-                    router.get('/hr-manager/dashboard', {}, { replace: true });
-                });
-            },
+            onSuccess: () => setLogoPreview(null),
             onError: (errs) => {
                 if (errs.logo && String(errs.logo).includes('too large')) {
                     alert(t('companies_create.alert_file_size'));

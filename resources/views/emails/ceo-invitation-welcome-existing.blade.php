@@ -1,6 +1,6 @@
 @include('emails.layouts.header', ['companyLogo' => $companyLogo, 'companyName' => $companyName, 'subject' => $subject])
 
-<h2 style="margin: 0 0 20px 0; color: #1f2937; font-size: 24px; font-weight: 600;">Welcome back to HR Path-Finder!</h2>
+<h2 style="margin: 0 0 20px 0; color: #1f2937; font-size: 24px; font-weight: 600;">Welcome back to HR Path Finder!</h2>
 
 <p style="margin: 0 0 15px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
     <strong>Great news!</strong> <strong>{{ $inviterName }}</strong> has assigned you as <strong>CEO</strong> for <strong>{{ $companyName }}</strong>.

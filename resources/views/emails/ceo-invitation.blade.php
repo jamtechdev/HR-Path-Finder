@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>{{ $subject ?? 'CEO Invitation - HR Path-Finder' }}</title>
+    <title>{{ $subject ?? 'CEO Invitation - HR Path Finder' }}</title>
     <!--[if mso]>
     <style type="text/css">
         body, table, td, a { font-family: Arial, Helvetica, sans-serif !important; }
@@ -36,7 +36,7 @@
                                 <tr>
                                     <td align="center">
                                         <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
-                                            HR Path-Finder
+                                            HR Path Finder
                                         </h1>
                                         <p style="margin: 8px 0 0 0; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 400;">
                                             by BetterCompany
@@ -124,7 +124,7 @@
                                 <tr>
                                     <td style="padding: 30px 0 20px 0; border-top: 1px solid #e5e7eb;">
                                         <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.6; text-align: center;">
-                                            {!! $salutation ?? 'Best regards,<br>The HR Path-Finder Team' !!}
+                                            {!! $salutation ?? 'Best regards,<br>The HR Path Finder Team' !!}
                                         </p>
                                     </td>
                                 </tr>
@@ -139,7 +139,7 @@
                                 <tr>
                                     <td style="padding-bottom: 15px;">
                                         <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 600;">
-                                            HR Path-Finder
+                                            HR Path Finder
                                         </p>
                                         <p style="margin: 5px 0 0 0; color: #9ca3af; font-size: 12px;">
                                             by BetterCompany
@@ -163,7 +163,7 @@
                     <tr>
                         <td style="padding: 20px 0; text-align: center;">
                             <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-                                This email was sent by HR Path-Finder. If you have any questions, please contact support.
+                                This email was sent by HR Path Finder. If you have any questions, please contact support.
                             </p>
                         </td>
                     </tr>

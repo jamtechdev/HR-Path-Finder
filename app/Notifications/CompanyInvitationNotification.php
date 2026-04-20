@@ -85,10 +85,10 @@ class CompanyInvitationNotification extends Notification
             // New user - send credentials email
             if ($this->invitation->temporary_password) {
                 $subject = '🎉 Welcome to ' . $company->name . ' - Your CEO Account is Ready!';
-                $greeting = 'Welcome to HR Path-Finder!';
+                $greeting = 'Welcome to HR Path Finder!';
                 
                 $content = '<p style="margin: 10px 0; color: #4b5563; font-size: 16px; line-height: 1.6;"><strong>Congratulations!</strong> Your CEO account for <strong>' . e($company->name) . '</strong> has been successfully created.</p>';
-                $content .= '<p style="margin: 10px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">' . e($inviter->name) . ' has set up your account and you are now ready to begin your journey with HR Path-Finder.</p>';
+                $content .= '<p style="margin: 10px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">' . e($inviter->name) . ' has set up your account and you are now ready to begin your journey with HR Path Finder.</p>';
                 
                 $content .= '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0; background-color: #f3f4f6; border: 2px solid #d1d5db; border-radius: 8px; padding: 20px;">';
                 $content .= '<tr><td>';
@@ -135,14 +135,14 @@ class CompanyInvitationNotification extends Notification
                         'content' => $content,
                         'loginUrl' => $loginUrl,
                         'outro' => $outro,
-                        'salutation' => 'Best regards,<br>The HR Path-Finder Team',
+                        'salutation' => 'Best regards,<br>The HR Path Finder Team',
                         'companyLogo' => $companyLogo,
                         'companyName' => $company->name,
                     ]);
             } else {
                 // Existing user - send welcome email
                 $subject = '🎉 Welcome! You\'re Now CEO of ' . $company->name;
-                $greeting = 'Welcome back to HR Path-Finder!';
+                $greeting = 'Welcome back to HR Path Finder!';
                 
                 $content = '<p style="margin: 10px 0; color: #4b5563; font-size: 16px; line-height: 1.6;"><strong>Great news!</strong> <strong>' . e($inviter->name) . '</strong> has assigned you as <strong>CEO</strong> for <strong>' . e($company->name) . '</strong>.</p>';
                 $content .= '<p style="margin: 10px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">Your invitation has been accepted and you are now ready to lead the HR transformation journey.</p>';
@@ -180,7 +180,7 @@ class CompanyInvitationNotification extends Notification
                         'content' => $content,
                         'loginUrl' => $loginUrl,
                         'outro' => $outro,
-                        'salutation' => 'Best regards,<br>The HR Path-Finder Team',
+                        'salutation' => 'Best regards,<br>The HR Path Finder Team',
                         'companyLogo' => $companyLogo,
                         'companyName' => $company->name,
                     ]);
@@ -194,10 +194,10 @@ class CompanyInvitationNotification extends Notification
                 ? $this->invitation->expires_at->format('F j, Y \a\t g:i A') 
                 : '7 days from now';
             
-            $subject = '🎯 CEO Invitation: Join ' . $company->name . ' on HR Path-Finder';
+            $subject = '🎯 CEO Invitation: Join ' . $company->name . ' on HR Path Finder';
             $greeting = 'Dear Future CEO,';
             
-            $content = '<p style="margin: 10px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">We are excited to inform you that <strong>' . e($inviter->name) . '</strong> has invited you to join <strong>' . e($company->name) . '</strong> as <strong>Chief Executive Officer (CEO)</strong> on HR Path-Finder.</p>';
+            $content = '<p style="margin: 10px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">We are excited to inform you that <strong>' . e($inviter->name) . '</strong> has invited you to join <strong>' . e($company->name) . '</strong> as <strong>Chief Executive Officer (CEO)</strong> on HR Path Finder.</p>';
             $content .= '<p style="margin: 10px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">This is an important opportunity to lead and shape the human resources strategy for your organization.</p>';
             
             if ($project) {
@@ -260,7 +260,7 @@ class CompanyInvitationNotification extends Notification
                     'acceptUrl' => $acceptUrl,
                     'rejectUrl' => $rejectUrl,
                     'outro' => $outro,
-                    'salutation' => 'Best regards,<br>The HR Path-Finder Team',
+                    'salutation' => 'Best regards,<br>The HR Path Finder Team',
                     'companyLogo' => $companyLogo,
                     'companyName' => $company->name,
                 ]);

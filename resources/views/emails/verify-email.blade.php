@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Your Email - HR Path-Finder</title>
+    <title>Verify Your Email - HR Path Finder</title>
     <style>
         body { background:#f0f2f5; font-family: "DM Sans", Arial, sans-serif; margin:0; padding:40px 16px; color:#1a1744; }
         .email-wrapper { max-width:560px; margin:0 auto; }
@@ -39,7 +39,7 @@
 <div class="email-wrapper">
     <div class="topbar">
         <div class="topbar-logo">HR</div>
-        <span class="topbar-name">HR Path-Finder · by BetterCompany</span>
+        <span class="topbar-name">HR Path Finder · by BetterCompany</span>
     </div>
     <div class="card">
         <div class="card-header">
@@ -50,7 +50,7 @@
         <div class="card-body">
             <p class="greeting">Hello {{ $user->name ?? 'there' }}!</p>
             <p class="intro-text">
-                Thank you for signing up for HR Path-Finder. To complete your registration and start designing your HR system,
+                Thank you for signing up for HR Path Finder. To complete your registration and start designing your HR system,
                 please verify your email address by clicking the button below.
             </p>
             <div class="cta-wrap">
@@ -71,11 +71,11 @@
             </div>
         </div>
         <div class="card-footer">
-            <strong>BetterCompany</strong> · HR Path-Finder
+            <strong>BetterCompany</strong> · HR Path Finder
         </div>
     </div>
     <p class="bottom-note">
-        If you did not create an account with HR Path-Finder, please ignore this email. No further action is required.
+        If you did not create an account with HR Path Finder, please ignore this email. No further action is required.
     </p>
 </div>
 </body>

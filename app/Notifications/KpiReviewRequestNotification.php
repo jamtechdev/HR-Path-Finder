@@ -51,6 +51,6 @@ class KpiReviewRequestNotification extends Notification
             ->line("This review link will expire on " . $this->reviewToken->expires_at->format('F d, Y') . ".")
             ->line("You can submit your review up to 3 times using this link.")
             ->line('If you did not expect this request, please ignore this email.')
-            ->salutation('Best regards, HR Path-Finder Team');
+            ->salutation('Best regards, HR Path Finder Team');
     }
 }

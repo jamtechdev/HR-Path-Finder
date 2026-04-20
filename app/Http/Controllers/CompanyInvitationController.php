@@ -286,7 +286,7 @@ class CompanyInvitationController extends Controller
         Auth::login($user, true);
 
         return redirect()->route('ceo.dashboard')
-            ->with('success', 'Your account is ready. Welcome to HR Path-Finder!');
+            ->with('success', 'Your account is ready. Welcome to HR Path Finder!');
     }
 
     /**
@@ -612,7 +612,7 @@ class CompanyInvitationController extends Controller
                     ? $invitation->expires_at->format('F j, Y \a\t g:i A') 
                     : '7 days from now';
                 
-                $subject = '🎯 CEO Invitation: Join ' . $company->name . ' on HR Path-Finder';
+                $subject = '🎯 CEO Invitation: Join ' . $company->name . ' on HR Path Finder';
                 $view = 'emails.ceo-invitation-initial';
                 $existingUser = User::where('email', $invitation->email)->first();
                 
