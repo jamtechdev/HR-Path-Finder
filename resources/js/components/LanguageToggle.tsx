@@ -24,6 +24,7 @@ export function LanguageToggle({ iconOnly = false }: LanguageToggleProps) {
         i18nInstance.changeLanguage(code);
         try {
             localStorage.setItem('i18nextLng', code);
+            document.cookie = `i18nextLng=${code}; path=/; max-age=31536000; samesite=lax`;
         } catch (_) {}
         window.dispatchEvent(new CustomEvent('languageChanged', { detail: { language: code } }));
     };
@@ -41,7 +42,7 @@ export function LanguageToggle({ iconOnly = false }: LanguageToggleProps) {
                 <Button
                     variant="ghost"
                     size={iconOnly ? 'icon' : 'sm'}
-                    className={iconOnly ? 'size-9' : 'gap-2 text-sm font-medium class="text-sm font-medium text-white/70 hover:text-[#2ECFAB] no-underline transition-colors" hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'}
+                    className={iconOnly ? 'size-9' : 'gap-2 text-sm font-medium text-white/70 no-underline transition-colors hover:text-[#2ECFAB] hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'}
                     title={iconOnly ? `${currentLanguage.flag} ${currentLanguage.name}` : undefined}
                 >
                     <Globe className="w-4 h-4" />

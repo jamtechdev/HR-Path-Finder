@@ -103,8 +103,8 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                             <span className="text-white font-bold text-lg">HR</span>
                         </div>
                         <div>
-                            <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
-                            <p className="text-white/70 text-sm">by BetterCompany</p>
+                            <h1 className="font-display text-2xl font-bold">{t('auth.brand_title_hyphen', 'HR Path-Finder')}</h1>
+                            <p className="text-white/70 text-sm">{t('auth.brand_by', 'by BetterCompany')}</p>
                         </div>
                     </Link>
                 </div>
@@ -115,12 +115,12 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                             <Mail className="w-10 h-10 text-white" />
                         </div>
                         <h2 className="font-display text-5xl font-bold leading-tight mb-4">
-                            Verify your email<br />
-                            to unlock full<br />
-                            <span className="text-success drop-shadow-lg">access.</span>
+                            {t('auth_verify_email.hero_line_1', 'Verify your email')}<br />
+                            {t('auth_verify_email.hero_line_2', 'to unlock full')}<br />
+                            <span className="text-success drop-shadow-lg">{t('auth_verify_email.hero_highlight', 'access.')}</span>
                         </h2>
                         <p className="text-white/80 text-lg max-w-md leading-relaxed">
-                            We've sent a verification link to your email. Click it to complete your registration and start designing your HR system with consulting-grade precision.
+                            {t('auth_verify_email.hero_description', "We've sent a verification link to your email. Click it to complete your registration and start designing your HR system with consulting-grade precision.")}
                         </p>
                     </div>
                     
@@ -129,19 +129,19 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                             <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
                                 <CheckCircle className="w-5 h-5 text-success" />
                             </div>
-                            <span className="text-sm">Secure email verification</span>
+                            <span className="text-sm">{t('auth_verify_email.hero_feature_secure', 'Secure email verification')}</span>
                         </div>
                         <div className="flex items-center gap-3 text-white/90">
                             <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
                                 <CheckCircle className="w-5 h-5 text-success" />
                             </div>
-                            <span className="text-sm">Quick and easy setup</span>
+                            <span className="text-sm">{t('auth_verify_email.hero_feature_quick', 'Quick and easy setup')}</span>
                         </div>
                         <div className="flex items-center gap-3 text-white/90">
                             <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
                                 <CheckCircle className="w-5 h-5 text-success" />
                             </div>
-                            <span className="text-sm">Instant access to dashboard</span>
+                            <span className="text-sm">{t('auth_verify_email.hero_feature_instant', 'Instant access to dashboard')}</span>
                         </div>
                     </div>
                 </div>
@@ -149,10 +149,10 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                 <div className="flex items-center gap-8 text-white/60 text-sm animate-in fade-in slide-in-from-left-4 duration-1000 delay-500">
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-success animate-pulse"></div>
-                        <span>Email verification</span>
+                        <span>{t('auth_verify_email.hero_footer_verification', 'Email verification')}</span>
                     </div>
                     <span>•</span>
-                    <span>Secure access</span>
+                    <span>{t('auth_verify_email.hero_footer_secure_access', 'Secure access')}</span>
                 </div>
             </div>
 
@@ -168,8 +168,8 @@ export default function VerifyEmail({ status, smtpConfigured = true }: { status?
                                 <span className="text-white font-bold">HR</span>
                             </div>
                             <div>
-                                <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
-                                <p className="text-muted-foreground text-sm">by BetterCompany</p>
+                                <h1 className="font-display text-2xl font-bold">{t('auth.brand_title_hyphen', 'HR Path-Finder')}</h1>
+                                <p className="text-muted-foreground text-sm">{t('auth.brand_by', 'by BetterCompany')}</p>
                             </div>
                         </Link>
                     </div>

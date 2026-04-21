@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowRight, ChevronDown, Menu, Moon, Sun, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useAppearance } from '@/hooks/use-appearance';
 import { dashboard, login } from '@/routes';
@@ -11,6 +12,7 @@ interface HeaderProps {
 }
 
 export function Header({ canRegister = true }: HeaderProps) {
+    const { t } = useTranslation();
     const { auth } = usePage<SharedData>().props;
     const { appearance, updateAppearance } = useAppearance();
     const [mounted, setMounted] = useState(false);
@@ -21,10 +23,10 @@ export function Header({ canRegister = true }: HeaderProps) {
     }, []);
 
     const navLinks = [
-        { name: 'Features', href: '#features' },
-        { name: 'How It Works', href: '#how-it-works' },
-        { name: 'Pricing', href: '#pricing' },
-        { name: 'Resources', href: '#resources' },
+        { name: t('site_header.nav.features', 'Features'), href: '#features' },
+        { name: t('site_header.nav.how_it_works', 'How It Works'), href: '#how-it-works' },
+        { name: t('site_header.nav.pricing', 'Pricing'), href: '#pricing' },
+        { name: t('site_header.nav.resources', 'Resources'), href: '#resources' },
     ];
 
     const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -54,8 +56,8 @@ export function Header({ canRegister = true }: HeaderProps) {
                         <span className="text-white font-bold text-sm">HR</span>
                     </div>
                     <div className="sm:block hidden">
-                        <span className="font-display font-bold text-foreground">HR Path-Finder</span>
-                        <span className="text-muted-foreground text-xs ml-2">by BetterCompany</span>
+                        <span className="font-display font-bold text-foreground">{t('auth.brand_title_hyphen', 'HR Path-Finder')}</span>
+                        <span className="text-muted-foreground text-xs ml-2">{t('auth.brand_by', 'by BetterCompany')}</span>
                     </div>
                 </Link>
 
@@ -80,7 +82,7 @@ export function Header({ canRegister = true }: HeaderProps) {
                         <button
                             onClick={() => updateAppearance(appearance === 'dark' ? 'light' : 'dark')}
                             className="p-2 rounded-lg hover:bg-muted transition-colors hidden md:flex"
-                            aria-label="Toggle theme"
+                            aria-label={t('site_header.toggle_theme', 'Toggle theme')}
                         >
                             {appearance === 'dark' ? (
                                 <Sun className="size-5" />
@@ -93,17 +95,17 @@ export function Header({ canRegister = true }: HeaderProps) {
                     {/* Auth Buttons */}
                     {auth.user ? (
                         <Button asChild variant="ghost" className="hidden md:flex h-10 px-4">
-                            <Link href={dashboard()}>Dashboard</Link>
+                            <Link href={dashboard()}>{t('landing.header.dashboard', 'Dashboard')}</Link>
                         </Button>
                     ) : (
                         <>
                             <Button asChild variant="ghost" className="hidden md:flex h-10 px-4">
-                                <Link href={login()}>Sign in</Link>
+                                <Link href={login()}>{t('landing.header.sign_in', 'Sign In')}</Link>
                             </Button>
                             {canRegister && (
                                 <Button asChild className="h-10 px-4">
                                     <Link href={login()}>
-                                        Get Started
+                                        {t('landing.header.get_started', 'Get Started')}
                                         <ArrowRight className="ml-2 size-4" />
                                     </Link>
                                 </Button>
@@ -115,7 +117,7 @@ export function Header({ canRegister = true }: HeaderProps) {
                     <button
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                         className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors"
-                        aria-label="Toggle menu"
+                        aria-label={t('site_header.toggle_menu', 'Toggle menu')}
                     >
                         {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
                     </button>
@@ -142,17 +144,17 @@ export function Header({ canRegister = true }: HeaderProps) {
                         <div className="pt-4 border-t border-border space-y-2">
                             {auth.user ? (
                                 <Button asChild variant="outline" className="w-full">
-                                    <Link href={dashboard()}>Dashboard</Link>
+                                    <Link href={dashboard()}>{t('landing.header.dashboard', 'Dashboard')}</Link>
                                 </Button>
                             ) : (
                                 <>
                                     <Button asChild variant="outline" className="w-full">
-                                        <Link href={login()}>Sign in</Link>
+                                        <Link href={login()}>{t('landing.header.sign_in', 'Sign In')}</Link>
                                     </Button>
                                     {canRegister && (
                                         <Button asChild className="w-full">
                                             <Link href={login()}>
-                                                Get Started
+                                                {t('landing.header.get_started', 'Get Started')}
                                                 <ArrowRight className="ml-2 size-4" />
                                             </Link>
                                         </Button>

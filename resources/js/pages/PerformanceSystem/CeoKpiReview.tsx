@@ -71,7 +71,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
         const orgRows = kpisByOrganization[orgName] || [];
         return orgRows.reduce((sum, row) => sum + (Number(row.weight) || 0), 0);
     });
-    const WEIGHT_EPS = 0.501;
+    const WEIGHT_EPS = 0.01;
     const isOrgWeightBalanced = (w: number) => Math.abs(w - 100) <= WEIGHT_EPS;
     const everyOrgBalanced = organizations.length === 0 || orgTotals.every(isOrgWeightBalanced);
     const minOrgWeight = orgTotals.length > 0 ? Math.min(...orgTotals) : 0;
@@ -347,6 +347,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                     orgKpis.find((k) => (k.revision_comment ?? '').trim())?.revision_comment ||
                                     '';
                                 const orgWeight = orgKpis.reduce((sum, item) => sum + (Number(item.weight) || 0), 0);
+                                const orgWeightNormalized = Math.round(orgWeight * 100) / 100;
                                 const lastUpdated = orgKpis
                                     .map((item) => item.updated_at)
                                     .filter(Boolean)
@@ -408,9 +409,11 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                                 </div>
                                                 <div className="ckr-leader-detail-card">
                                                     <div className="ckr-leader-detail-label">{tx('ceo_kpi.review.total_team_weight', 'Total Team Weight')}</div>
-                                                    <div className="ckr-leader-detail-value">{orgWeight.toFixed(1)}%</div>
+                                                    <div className="ckr-leader-detail-value">{orgWeightNormalized.toFixed(1)}%</div>
                                                     <div className="ckr-leader-detail-sub">
-                                                        {orgWeight === 100 ? tx('ceo_kpi.review.weight_balanced', 'Balanced (100%)') : tx('ceo_kpi.review.weight_needs_adjustment', 'Needs adjustment to 100%')}
+                                                        {isOrgWeightBalanced(orgWeightNormalized)
+                                                            ? tx('ceo_kpi.review.weight_balanced', 'Balanced (100%)')
+                                                            : tx('ceo_kpi.review.weight_needs_adjustment', 'Needs adjustment to 100%')}
                                                     </div>
                                                 </div>
                                             </div>

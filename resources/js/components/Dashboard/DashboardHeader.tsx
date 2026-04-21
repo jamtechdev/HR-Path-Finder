@@ -8,6 +8,7 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import { useTranslation } from 'react-i18next';
 
 interface BreadcrumbItem {
     title: string;
@@ -22,6 +23,7 @@ interface DashboardHeaderProps {
 }
 
 export default function DashboardHeader({ title, subtitle, userName, breadcrumbs }: DashboardHeaderProps) {
+    const { t } = useTranslation();
     return (
         <div className="space-y-4">
             {/* Breadcrumbs */}
@@ -32,7 +34,7 @@ export default function DashboardHeader({ title, subtitle, userName, breadcrumbs
                             <BreadcrumbLink asChild>
                                 <Link href="/dashboard" className="flex items-center gap-1.5">
                                     <Home className="h-4 w-4" />
-                                    <span>Dashboard</span>
+                                    <span>{t('navigation.dashboard', 'Dashboard')}</span>
                                 </Link>
                             </BreadcrumbLink>
                         </BreadcrumbItem>
@@ -60,7 +62,7 @@ export default function DashboardHeader({ title, subtitle, userName, breadcrumbs
             {/* Header Content */}
             <div>
     <h1 className="text-4xl font-display font-bold tracking-tight text-foreground">
-                    {userName ? `Welcome back, ${userName}` : title}
+                    {userName ? t('dashboard_header.welcome_back', { name: userName, defaultValue: `Welcome back, ${userName}` }) : title}
                 </h1>
                 <p className="text-muted-foreground mt-2 text-lg">
                     {subtitle}

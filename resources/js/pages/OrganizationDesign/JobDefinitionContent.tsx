@@ -64,7 +64,8 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
     const currentJob = jobDefinitions.find(j => j.id === activeJobId) || selectedJob;
     // Get template from currentJob if it has one, otherwise use passed template
     const currentTemplate = (currentJob as any)?.template || template;
-    const isFinalized = currentJob?.is_finalized || false;
+    const isFinalized = false;
+    const isAlreadyFinallySubmitted = currentJob?.is_finalized || false;
 
     const { data, setData } = useForm({
         job_description: currentJob?.job_description || currentTemplate?.job_description || '',
@@ -104,6 +105,10 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
 
     const handleSave = () => {
         if (!activeJobId || !currentJob) return;
+        if (isAlreadyFinallySubmitted) {
+            alert(tx('org_design_job_definition_content.final_submission_block_save', '최종 제출이 완료되어 수정 내용을 저장할 수 없습니다. 관리자에게 문의해 주세요.'));
+            return;
+        }
         const key = currentJob.job_keyword_id != null
             ? String(currentJob.job_keyword_id)
             : `group-${currentJob.id}`;
@@ -139,6 +144,10 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
 
     const handleSaveAndNext = () => {
         if (activeJobId && currentJob) {
+            if (isAlreadyFinallySubmitted) {
+                alert(tx('org_design_job_definition_content.final_submission_block_save', '최종 제출이 완료되어 수정 내용을 저장할 수 없습니다. 관리자에게 문의해 주세요.'));
+                return;
+            }
             setSaving(true);
             mergeJobAnalysisState(project.id, {
                 jobDefinitions: {
@@ -258,7 +267,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                             <Alert className="mb-6 border-yellow-200 bg-yellow-50">
                                 <AlertCircle className="h-4 w-4 text-yellow-600" />
                                 <AlertDescription className="text-yellow-800">
-                                    <strong>{tx('org_design_job_definition_content.note', 'Note')}:</strong> {tx('org_design_job_definition_content.finalized_note', 'This job definition has been finalized and cannot be edited. Please contact admin if changes are needed.')}
+                                    <strong>{tx('org_design_job_definition_content.note', '안내')}:</strong> {tx('org_design_job_definition_content.finalized_note', '최종 제출이 완료되어 저장은 불가합니다. 수정 후 저장하려면 관리자에게 문의해 주세요.')}
                                 </AlertDescription>
                             </Alert>
                         )}
@@ -705,7 +714,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                 <Button 
                     variant="outline" 
                     onClick={handleSave} 
-                    disabled={saving || currentJob?.is_finalized}
+                    disabled={saving}
                     size="lg"
                 >
                     {saving ? (
@@ -722,7 +731,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                 </Button>
                 <Button
                     onClick={handleSaveAndNext}
-                    disabled={saving || currentJob?.is_finalized}
+                    disabled={saving}
                     size="lg"
                     className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
                 >

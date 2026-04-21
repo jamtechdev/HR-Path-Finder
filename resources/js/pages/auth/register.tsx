@@ -82,8 +82,8 @@ export default function Register({ status }: Props) {
                     <Link href={home()} className="flex items-center gap-3 mb-8 cursor-pointer">
                         <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-[#2ECFAB]/20">HR</div>
                         <div>
-                            <h1 className="font-serif text-2xl font-bold">HR <span className="text-[#2ECFAB]">Pathfinder</span></h1>
-                            <p className="text-white/60 text-sm">powered by BetterCompany</p>
+                            <h1 className="font-serif text-2xl font-bold">{t('auth.brand_title', 'HR Pathfinder')}</h1>
+                            <p className="text-white/60 text-sm">{t('auth.brand_powered_by', 'powered by BetterCompany')}</p>
                         </div>
                     </Link>
                 </div>
@@ -123,8 +123,8 @@ export default function Register({ status }: Props) {
                         <Link href={home()} className="flex items-center gap-3">
                             <div className="w-12 h-12 rounded-xl bg-[#0B1E3D] flex items-center justify-center text-white font-bold">HR</div>
                             <div>
-                                <h1 className="font-serif text-2xl font-bold text-[#0D1B2A]">HR <span className="text-[#2ECFAB]">Pathfinder</span></h1>
-                                <p className="text-muted-foreground text-sm">powered by BetterCompany</p>
+                                <h1 className="font-serif text-2xl font-bold text-[#0D1B2A]">{t('auth.brand_title', 'HR Pathfinder')}</h1>
+                                <p className="text-muted-foreground text-sm">{t('auth.brand_powered_by', 'powered by BetterCompany')}</p>
                             </div>
                         </Link>
                     </div>
@@ -245,8 +245,8 @@ export default function Register({ status }: Props) {
                                                     type="button"
                                                     onClick={generatePassword}
                                                     className="absolute inset-y-0 right-9 flex items-center px-2 text-[#6B7585]"
-                                                    aria-label="Generate secure password"
-                                                    title="Generate secure password"
+                                                    aria-label={t('auth.common.generate_secure_password', 'Generate secure password')}
+                                                    title={t('auth.common.generate_secure_password', 'Generate secure password')}
                                                 >
                                                     <WandSparkles className="h-4 w-4" />
                                                 </button>
@@ -254,7 +254,7 @@ export default function Register({ status }: Props) {
                                                     type="button"
                                                     onClick={() => setShowPassword((s) => !s)}
                                                     className="absolute inset-y-0 right-0 flex items-center px-3 text-[#6B7585]"
-                                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                                    aria-label={showPassword ? t('auth.common.hide_password', 'Hide password') : t('auth.common.show_password', 'Show password')}
                                                 >
                                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                                 </button>
@@ -301,7 +301,7 @@ export default function Register({ status }: Props) {
                                                     type="button"
                                                     onClick={() => setShowPasswordConfirmation((s) => !s)}
                                                     className="absolute inset-y-0 right-0 flex items-center px-3 text-[#6B7585]"
-                                                    aria-label={showPasswordConfirmation ? 'Hide confirmation password' : 'Show confirmation password'}
+                                                    aria-label={showPasswordConfirmation ? t('auth.common.hide_confirmation_password', 'Hide confirmation password') : t('auth.common.show_confirmation_password', 'Show confirmation password')}
                                                 >
                                                     {showPasswordConfirmation ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                                 </button>

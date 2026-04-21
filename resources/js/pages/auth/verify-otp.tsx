@@ -90,8 +90,8 @@ export default function VerifyOtp({ email, status }: PageProps) {
                             <span className="text-white font-bold">HR</span>
                         </div>
                         <div>
-                            <h1 className="font-display text-xl font-bold">HR Path-Finder</h1>
-                            <p className="text-white/60 text-sm">by BetterCompany</p>
+                            <h1 className="font-display text-xl font-bold">{t('auth.brand_title_hyphen', 'HR Path-Finder')}</h1>
+                            <p className="text-white/60 text-sm">{t('auth.brand_by', 'by BetterCompany')}</p>
                         </div>
                     </Link>
                 </div>
@@ -126,8 +126,8 @@ export default function VerifyOtp({ email, status }: PageProps) {
                                 <span className="text-white font-bold">HR</span>
                             </div>
                             <div>
-                                <h1 className="font-display text-xl font-bold">HR Path-Finder</h1>
-                                <p className="text-muted-foreground text-sm">by BetterCompany</p>
+                                <h1 className="font-display text-xl font-bold">{t('auth.brand_title_hyphen', 'HR Path-Finder')}</h1>
+                                <p className="text-muted-foreground text-sm">{t('auth.brand_by', 'by BetterCompany')}</p>
                             </div>
                         </Link>
                     </div>

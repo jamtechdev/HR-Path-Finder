@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { User, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
@@ -16,6 +17,7 @@ interface UserDropdownProps {
 }
 
 export default function UserDropdown({ user, getInitials }: UserDropdownProps) {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -36,10 +38,13 @@ export default function UserDropdown({ user, getInitials }: UserDropdownProps) {
     }, [isOpen]);
 
     const roleName = user?.roles?.[0]?.name || '';
-    const roleLabel = roleName === 'ceo' ? 'CEO' : 
-                     roleName === 'hr_manager' ? 'HR Manager' : 
-                     roleName === 'consultant' ? 'Consultant' : 
-                     'User';
+    const roleLabel = roleName === 'ceo'
+        ? t('user_dropdown.role.ceo', 'CEO')
+        : roleName === 'hr_manager'
+            ? t('user_dropdown.role.hr_manager', 'HR Manager')
+            : roleName === 'consultant'
+                ? t('user_dropdown.role.consultant', 'Consultant')
+                : t('user_dropdown.role.user', 'User');
 
     return (
         <div className="relative" ref={dropdownRef}>
@@ -49,15 +54,15 @@ export default function UserDropdown({ user, getInitials }: UserDropdownProps) {
             >
                 <span className="relative flex shrink-0 overflow-hidden rounded-full w-8 h-8">
                     <span className="flex h-full w-full items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-xs">
-                        {user ? getInitials(user.name) : 'U'}
+                        {user ? getInitials(user.name) : t('user_dropdown.initial', 'U')}
                     </span>
                 </span>
                 <div className="flex-1 text-left min-w-0">
                     <p className="text-sm font-medium text-sidebar-foreground truncate">
-                        {user?.name || 'User'}
+                        {user?.name || t('user_dropdown.role.user', 'User')}
                     </p>
                     <p className="text-xs text-sidebar-foreground/60 truncate">
-                        {user?.email || 'user@company.com'}
+                        {user?.email || t('user_dropdown.email_fallback', 'user@company.com')}
                     </p>
                 </div>
                 <ChevronDown className={`w-4 h-4 text-sidebar-foreground/60 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -67,7 +72,7 @@ export default function UserDropdown({ user, getInitials }: UserDropdownProps) {
                 <div className="absolute bottom-full left-0 mb-2 w-full bg-card rounded-lg shadow-lg border border-border z-50 overflow-hidden">
                     {/* User Info Section */}
                     <div className="p-4 border-b border-border">
-                        <p className="font-semibold text-sm text-foreground">{user?.name || 'User'}</p>
+                        <p className="font-semibold text-sm text-foreground">{user?.name || t('user_dropdown.role.user', 'User')}</p>
                         <Badge className="mt-1 bg-primary text-primary-foreground text-xs">
                             {roleLabel}
                         </Badge>
@@ -81,7 +86,7 @@ export default function UserDropdown({ user, getInitials }: UserDropdownProps) {
                             onClick={() => setIsOpen(false)}
                         >
                             <User className="w-4 h-4" />
-                            <span>Profile</span>
+                            <span>{t('user_dropdown.menu.profile', 'Profile')}</span>
                         </Link>
                         <Link
                             href={edit().url}
@@ -89,7 +94,7 @@ export default function UserDropdown({ user, getInitials }: UserDropdownProps) {
                             onClick={() => setIsOpen(false)}
                         >
                             <Settings className="w-4 h-4" />
-                            <span>Settings</span>
+                            <span>{t('user_dropdown.menu.settings', 'Settings')}</span>
                         </Link>
                         <div className="border-t border-border my-1" />
                         <Link
@@ -100,7 +105,7 @@ export default function UserDropdown({ user, getInitials }: UserDropdownProps) {
                             onClick={() => setIsOpen(false)}
                         >
                             <LogOut className="w-4 h-4" />
-                            <span>Log out</span>
+                            <span>{t('user_dropdown.menu.logout', 'Log out')}</span>
                         </Link>
                     </div>
                 </div>

@@ -189,7 +189,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                 )}
                                             >
                                                 <DollarSign className="w-4 h-4" />
-                                                <span className="truncate">C&amp;B Snapshot Review</span>
+                                                <span className="truncate">{t('admin_ui.sidebar.menu.cb_snapshot_review', 'C&B Snapshot Review')}</span>
                                             </Link>
                                         </div>
                                     )}
@@ -390,7 +390,7 @@ export default function AdminSidebar({ isCollapsed = false }: AdminSidebarProps)
                                                         )}
                                                     >
                                                         <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50" />
-                                                        <span className="truncate">HR Diagnosis</span>
+                                                        <span className="truncate">{t('admin_ui.sidebar.menu.hr_diagnosis', 'HR Diagnosis')}</span>
                                                     </Link>
                                                 </div>
                                             )}

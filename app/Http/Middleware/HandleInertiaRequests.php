@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\Setting;
 use App\Services\TranslationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Middleware;
@@ -39,6 +40,8 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $this->applyRequestLocale($request);
+
         $user = $request->user();
         $path = $request->path();
         
@@ -72,13 +75,13 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'flash' => [
-                'success' => $request->session()->get('success'),
+                'success' => $this->translateFlash($request->session()->get('success')),
                 'registration_created' => $request->session()->get('registration_created'),
-                'registration_message' => $request->session()->get('registration_message'),
-                'error' => $request->session()->get('error'),
-                'warning' => $request->session()->get('warning'),
-                'info' => $request->session()->get('info'),
-                'message' => $request->session()->get('message'),
+                'registration_message' => $this->translateFlash($request->session()->get('registration_message')),
+                'error' => $this->translateFlash($request->session()->get('error')),
+                'warning' => $this->translateFlash($request->session()->get('warning')),
+                'info' => $this->translateFlash($request->session()->get('info')),
+                'message' => $this->translateFlash($request->session()->get('message')),
                 'nextStep' => $request->session()->get('nextStep'),
                 'nextStepRoute' => $request->session()->get('nextStepRoute'),
                 'ceo_password' => $request->session()->get('ceo_password'),
@@ -178,5 +181,25 @@ class HandleInertiaRequests extends Middleware
         }
         
         return $shared;
+    }
+
+    private function applyRequestLocale(Request $request): void
+    {
+        $rawLocale = (string) ($request->cookie('i18nextLng')
+            ?? $request->header('X-Locale')
+            ?? $request->header('X-Language')
+            ?? 'ko');
+
+        $locale = str_starts_with($rawLocale, 'en') ? 'en' : 'ko';
+        App::setLocale($locale);
+    }
+
+    private function translateFlash(mixed $value): mixed
+    {
+        if (!is_string($value) || $value === '') {
+            return $value;
+        }
+
+        return __($value);
     }
 }

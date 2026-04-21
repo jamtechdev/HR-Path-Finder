@@ -99,8 +99,8 @@ return (
                         size="icon"
                         onClick={() => updateAppearance(resolvedAppearance === 'dark' ? 'light' : 'dark')}
                         className="relative h-8 w-8 rounded-lg bg-muted hover:bg-muted/80"
-                        aria-label="Toggle theme"
-                        title="Toggle theme"
+                        aria-label={t('site_header.toggle_theme', 'Toggle theme')}
+                        title={t('site_header.toggle_theme', 'Toggle theme')}
                     >
                         {resolvedAppearance === 'dark' ? (
                             <Sun className="h-4 w-4" />

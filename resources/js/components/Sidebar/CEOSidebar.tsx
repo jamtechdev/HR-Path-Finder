@@ -9,11 +9,10 @@ interface CEOSidebarProps {
 }
 
 export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
-    const { i18n } = useTranslation();
-    const isKo = (i18n.resolvedLanguage ?? i18n.language ?? 'en').toLowerCase().startsWith('ko');
+    const { t } = useTranslation();
     const { url, props } = usePage<any>();
     const currentPath = url.split('?')[0];
-    const appName = props?.appConfig?.name || 'HR Path-Finder';
+    const appName = props?.appConfig?.name || t('auth.brand_title_hyphen', 'HR Path-Finder');
     const appLogo = props?.appConfig?.logo || '/logo.svg';
     const [logoFailed, setLogoFailed] = useState(false);
 
@@ -25,31 +24,31 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
     }[] = [
         {
             href: '/ceo/dashboard',
-            label: isKo ? '대시보드' : 'Dashboard',
+            label: t('navigation.dashboard', 'Dashboard'),
             icon: LayoutGrid,
             isActive: (path) => path === '/ceo/dashboard' || path.startsWith('/ceo/dashboard/'),
         },
         {
             href: '/ceo/projects',
-            label: isKo ? '회사' : 'Companies',
+            label: t('navigation.companies', 'Companies'),
             icon: Building2,
             isActive: (path) => path === '/ceo/projects' || path.startsWith('/ceo/projects/'),
         },
         {
             href: '/ceo/kpi-review',
-            label: isKo ? 'KPI 검토 (전체)' : 'KPI Review (all)',
+            label: t('ceo_sidebar.kpi_review_all', 'KPI Review (all)'),
             icon: Target,
             isActive: (path) => path === '/ceo/kpi-review' || path.startsWith('/ceo/kpi-review/'),
         },
         {
             href: '/ceo/tree',
-            label: isKo ? '트리' : 'Tree',
+            label: t('ceo_sidebar.tree', 'Tree'),
             icon: FolderKanban,
             isActive: (path) => path === '/ceo/tree' || path.startsWith('/ceo/tree/'),
         },
         {
             href: '/ceo/report',
-            label: isKo ? '리포트' : 'Report',
+            label: t('ceo_sidebar.report', 'Report'),
             icon: FileBarChart,
             isActive: (path) => path === '/ceo/report' || path.startsWith('/ceo/report/'),
         },
@@ -75,13 +74,13 @@ export default function CEOSidebar({ isCollapsed = false }: CEOSidebarProps) {
                 {!isCollapsed && (
                     <div className="flex flex-col">
                         <strong className="text-[13px] font-bold text-white tracking-[-0.2px] leading-tight">{appName}</strong>
-                        <span className="text-[10px] text-[#9ba5bc] font-normal">by BetterCompany</span>
+                        <span className="text-[10px] text-[#9ba5bc] font-normal">{t('auth.brand_by', 'by BetterCompany')}</span>
                     </div>
                 )}
             </div>
 
             <div className="flex-1 overflow-y-auto py-5 px-3 pb-2 min-h-0">
-                <div className="text-[9px] font-semibold tracking-[1.2px] uppercase text-[rgba(155,165,188,0.5)] px-2 mb-1.5">{isKo ? '메뉴' : 'Menu'}</div>
+                <div className="text-[9px] font-semibold tracking-[1.2px] uppercase text-[rgba(155,165,188,0.5)] px-2 mb-1.5">{t('sidebar.menu', 'Menu')}</div>
                 {menuItems.map((item) => {
                     const Icon = item.icon;
                     const active = item.isActive(currentPath);

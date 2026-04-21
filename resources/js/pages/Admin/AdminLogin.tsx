@@ -51,8 +51,8 @@ export default function AdminLogin({
                             HR
                         </div>
                         <div>
-                            <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
-                            <p className="text-white/70 text-sm">by BetterCompany</p>
+                            <h1 className="font-display text-2xl font-bold">{t('auth.brand_title_hyphen', 'HR Path-Finder')}</h1>
+                            <p className="text-white/70 text-sm">{t('auth.brand_by', 'by BetterCompany')}</p>
                         </div>
                     </Link>
                 </div>
@@ -111,8 +111,8 @@ export default function AdminLogin({
                                 HR
                             </div>
                             <div>
-                                <h1 className="font-display text-2xl font-bold">HR Path-Finder</h1>
-                                <p className="text-muted-foreground text-sm">by BetterCompany</p>
+                                <h1 className="font-display text-2xl font-bold">{t('auth.brand_title_hyphen', 'HR Path-Finder')}</h1>
+                                <p className="text-muted-foreground text-sm">{t('auth.brand_by', 'by BetterCompany')}</p>
                             </div>
                         </Link>
                     </div>

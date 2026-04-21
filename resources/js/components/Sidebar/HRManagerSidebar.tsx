@@ -30,7 +30,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?
         || {};
     const projectId = (props as any).projectId || (props as any).project?.id;
     const ceoPhilosophyStatus = (props as any).ceoPhilosophyStatus || 'not_started';
-    const appName = (props as any).appConfig?.name || 'HR Path-Finder';
+    const appName = (props as any).appConfig?.name || t('auth.brand_title_hyphen', 'HR Path-Finder');
     const appLogo = (props as any).appConfig?.logo || '/logo.svg';
 
     const isDashboardActive = currentPath === '/hr-manager/dashboard' || currentPath.startsWith('/hr-manager/dashboard/');
@@ -113,7 +113,7 @@ export default function HRManagerSidebar({ isCollapsed = false }: { isCollapsed?
                 {!isCollapsed && (
                     <div className="flex flex-col">
                         <strong className="text-[13px] font-bold text-white tracking-[-0.2px] leading-tight">{appName}</strong>
-                        <span className="text-[10px] text-[#9ba5bc] font-normal">by BetterCompany</span>
+                        <span className="text-[10px] text-[#9ba5bc] font-normal">{t('auth.brand_by', 'by BetterCompany')}</span>
                     </div>
                 )}
             </div>

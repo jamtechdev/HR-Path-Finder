@@ -138,6 +138,8 @@ export default function KpiReviewTab({
     kpiVerificationNotice = null,
 }: Props) {
     const { t } = useTranslation();
+    const tx = (key: string, fallback: string) => t(key, { defaultValue: fallback });
+    const WEIGHT_EPS = 0.01;
     const [inlineMsg, setInlineMsg] = useState<string | null>(null);
     const [kpis, setKpis] = useState<Kpi[]>(() => normalizeKpis(organizationalKpis || []));
     const [selectedOrg, setSelectedOrg] = useState('');
@@ -238,7 +240,8 @@ export default function KpiReviewTab({
     const orgSelectedKpis = isDefaultAutoSelectedSingleKpi ? orgKpis : orgActiveKpis;
 
     const totalWeight = orgSelectedKpis.reduce((s, k) => s + (k.weight || 0), 0);
-    const weightOk = orgSelectedKpis.length <= 1 ? orgSelectedKpis.length === 1 : Math.abs(totalWeight - 100) < 0.01;
+    const totalWeightNormalized = Math.round(totalWeight * 100) / 100;
+    const weightOk = orgSelectedKpis.length > 0 && Math.abs(totalWeightNormalized - 100) <= WEIGHT_EPS;
 
     const getValidation = (kpiKey: string): ValidationState =>
         validationByKpi[kpiKey] ?? defaultValidation();
@@ -316,7 +319,7 @@ export default function KpiReviewTab({
     };
 
     const handleDeleteKpi = (index: number) => {
-        if (!confirm('Are you sure you want to delete this KPI?')) return;
+        if (!confirm(tx('performance_system_kpi_review.confirm_delete_kpi', '이 KPI를 삭제하시겠습니까?'))) return;
         const target = kpis[index];
         if (!target) return;
 
@@ -343,10 +346,10 @@ export default function KpiReviewTab({
             preserveState: true,
             onSuccess: () => {
                 removeLocally();
-                setInlineMsg('KPI deleted successfully.');
+                setInlineMsg(tx('performance_system_kpi_review.kpi_deleted', 'KPI가 삭제되었습니다.'));
             },
             onError: () => {
-                setInlineMsg('Failed to delete KPI. Please try again.');
+                setInlineMsg(tx('performance_system_kpi_review.kpi_delete_failed', 'KPI 삭제에 실패했습니다. 다시 시도해 주세요.'));
             },
         });
     };
@@ -370,11 +373,11 @@ export default function KpiReviewTab({
         const base = kpis[index];
         const kpi = { ...base, ...(override ?? {}) };
         if (!kpi.kpi_name?.trim()) {
-            setInlineMsg('KPI name is required.');
+            setInlineMsg(tx('performance_system_kpi_review.kpi_name_required', 'KPI 이름은 필수입니다.'));
             return;
         }
         if ((kpi.weight ?? 0) < 0 || (kpi.weight ?? 0) > 100) {
-            setInlineMsg('Weight must be between 0 and 100.');
+            setInlineMsg(tx('performance_system_kpi_review.weight_range_error', '가중치는 0~100 사이여야 합니다.'));
             return;
         }
         setInlineMsg(null);
@@ -386,7 +389,7 @@ export default function KpiReviewTab({
                 .filter((row) => row.organization_name === targetOrg && row.is_active)
                 .reduce((sum, row) => sum + (row.weight || 0), 0);
             if (total > 100) {
-                setInlineMsg(`Total active KPI weight for "${targetOrg}" cannot exceed 100%.`);
+                setInlineMsg(tx('performance_system_kpi_review.weight_total_over_100', '활성 KPI의 총 가중치는 100%를 초과할 수 없습니다.') + ` (${targetOrg})`);
             }
             return next;
         });
@@ -406,7 +409,7 @@ export default function KpiReviewTab({
                 preserveState: true,
                 onSuccess: () => {},
                 onError: () => {
-                    setInlineMsg('Failed to save KPI draft. Please try again.');
+                    setInlineMsg(tx('performance_system_kpi_review.kpi_draft_save_failed', 'KPI 임시저장에 실패했습니다. 다시 시도해 주세요.'));
                 },
             },
         );
@@ -432,7 +435,7 @@ export default function KpiReviewTab({
     };
     const saveReviewerForOrg = () => {
         if (!project?.id || !reviewerOrgName || !reviewerEmail.trim()) {
-            setInlineMsg('Reviewer email is required.');
+            setInlineMsg(tx('performance_system_kpi_review.reviewer_email_required', '검토자 이메일은 필수입니다.'));
             return;
         }
         setSavingReviewer(true);
@@ -454,11 +457,11 @@ export default function KpiReviewTab({
                 onSuccess: () => {
                     setSavingReviewer(false);
                     setReviewerModalOpen(false);
-                    setInlineMsg(`KPI Reviewer saved for ${reviewerOrgName}.`);
+                    setInlineMsg(tx('performance_system_kpi_review.reviewer_saved', 'KPI 검토자 정보가 저장되었습니다.') + ` (${reviewerOrgName})`);
                 },
                 onError: () => {
                     setSavingReviewer(false);
-                    setInlineMsg('Failed to save KPI Reviewer. Please check email format and try again.');
+                    setInlineMsg(tx('performance_system_kpi_review.reviewer_save_failed', 'KPI 검토자 저장에 실패했습니다. 이메일 형식을 확인하고 다시 시도해 주세요.'));
                 },
             },
         );
@@ -470,7 +473,7 @@ export default function KpiReviewTab({
     const getOrgReviewEligibility = (orgName: string) => {
         const orgRows = kpis.filter((k) => k.organization_name === orgName);
         if (orgRows.length === 0) {
-            return { canSend: false, reason: 'No KPIs available for this organization.' };
+            return { canSend: false, reason: tx('performance_system_kpi_review.no_kpi_for_org_reason', '이 조직에는 KPI가 없습니다.') };
         }
         const hasCeoRevisionRequested = orgRows.some((k) => {
             const ceo = (k.ceo_approval_status ?? '').toLowerCase();
@@ -485,7 +488,7 @@ export default function KpiReviewTab({
         if (allApproved && !hasCeoRevisionRequested) {
             return {
                 canSend: false,
-                reason: 'Already verified by CEO. Re-send is blocked unless CEO requests revision.',
+                reason: tx('performance_system_kpi_review.verified_locked_reason', '이미 CEO 승인 완료되어 재요청이 잠겨 있습니다. CEO가 수정요청한 경우에만 재전송할 수 있습니다.'),
             };
         }
         return { canSend: true, reason: null as string | null };
@@ -493,7 +496,7 @@ export default function KpiReviewTab({
     const selectedHasReviewSent = selectedOrg ? getHasReviewSent(selectedOrg) : false;
     const selectedEligibility = selectedOrg
         ? getOrgReviewEligibility(selectedOrg)
-        : { canSend: false, reason: 'Select organization first.' };
+        : { canSend: false, reason: tx('performance_system_kpi_review.select_org_first', '먼저 조직을 선택하세요.') };
 
     // NOTE:
     // We intentionally do NOT auto-call setKpis here.
@@ -504,21 +507,21 @@ export default function KpiReviewTab({
         if (!selectedOrg || !project?.id) return;
         if (sendingReview) return;
         if (!hasSelectedOrgReviewer) {
-            setInlineMsg('Set KPI Reviewer first, then send review request.');
+            setInlineMsg(tx('performance_system_kpi_review.set_reviewer_first', '먼저 KPI 검토자를 설정한 뒤 검토 요청을 보내세요.'));
             return;
         }
         if (!selectedEligibility.canSend) {
-            setInlineMsg((selectedEligibility.reason || 'This organization cannot be sent for review.') + ' 준비가 완료되면 다시 시도해 주세요.');
+            setInlineMsg((selectedEligibility.reason || tx('performance_system_kpi_review.org_not_sendable', '이 조직은 현재 검토 요청을 보낼 수 없습니다.')) + ' 준비가 완료되면 다시 시도해 주세요.');
             return;
         }
         if (!selectedKpisReady) {
             setInlineMsg(
-                'For selected KPIs, make sure all 4 validation criteria are checked and measurability text (measurement method or formula) is set. 필수 검증을 완료해 주세요.',
+                tx('performance_system_kpi_review.validation_before_send', '선택한 KPI는 4개 검증 기준을 모두 체크하고 측정 가능성(측정방법 또는 수식)을 입력해야 합니다.'),
             );
             return;
         }
         if (!weightOk) {
-            setInlineMsg('Total selected KPI weight must be exactly 100% before sending review request.');
+            setInlineMsg(tx('performance_system_kpi_review.weight_must_be_100_before_send', '검토 요청 전 선택한 KPI의 총 가중치는 정확히 100%여야 합니다.'));
             return;
         }
 
@@ -561,7 +564,7 @@ export default function KpiReviewTab({
                         '';
                     setInlineMsg(
                         firstError ||
-                            'Failed to send review request. Check KPI Reviewer email in Org Chart Mapping and ensure selected KPI total weight is 100%.',
+                            tx('performance_system_kpi_review.review_request_failed', '검토 요청 전송에 실패했습니다. 조직도 매핑의 검토자 이메일과 선택 KPI 총 가중치(100%)를 확인해 주세요.'),
                     );
                     setSendingReview(false);
                 },
@@ -571,7 +574,7 @@ export default function KpiReviewTab({
 
     const handleConfirmAllRecommended = () => {
         // Optional: bulk confirm recommended KPIs; for UI we just close any edit and show feedback
-        setInlineMsg('All recommended KPIs confirmed (draft).');
+        setInlineMsg(tx('performance_system_kpi_review.recommended_confirmed', '추천 KPI 전체를 확인 처리했습니다.'));
     };
 
     const currentCriterion = validationModal ? VALIDATION_CRITERIA.find((c) => c.id === validationModal.criterion) : null;
@@ -603,7 +606,7 @@ export default function KpiReviewTab({
             <Dialog open={!!validationModal} onOpenChange={(open) => !open && closeValidationModal()}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Validation</DialogTitle>
+                        <DialogTitle>{tx('performance_system_kpi_review.validation_dialog_title', '검증')}</DialogTitle>
                         <DialogDescription>
                             {validationModalNoHint ? (
                                 <span className="text-amber-700 font-medium">{validationModalNoHint}</span>
@@ -616,13 +619,13 @@ export default function KpiReviewTab({
                     </DialogHeader>
                     <div className="flex gap-2 justify-end mt-4">
                         {validationModalNoHint ? (
-                            <Button onClick={closeValidationModal}>Close</Button>
+                            <Button onClick={closeValidationModal}>{tx('common.close', '닫기')}</Button>
                         ) : (
                             <>
                                 <Button variant="outline" onClick={confirmValidationNo}>
-                                    No
+                                    {tx('common.no', '아니오')}
                                 </Button>
-                                <Button onClick={confirmValidationYes}>Yes</Button>
+                                <Button onClick={confirmValidationYes}>{tx('common.yes', '예')}</Button>
                             </>
                         )}
                     </div>
@@ -635,50 +638,50 @@ export default function KpiReviewTab({
                     onEscapeKeyDown={(e) => e.preventDefault()}
                 >
                     <DialogHeader>
-                        <DialogTitle>Success</DialogTitle>
+                        <DialogTitle>{tx('common.success', '성공')}</DialogTitle>
                         <DialogDescription>
-                            Review request sent to Leader successfully.
+                            {tx('performance_system_kpi_review.review_request_sent_success', '리더에게 검토 요청을 성공적으로 전송했습니다.')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="flex justify-end mt-4">
-                        <Button onClick={() => setSendSuccessModalOpen(false)}>OK</Button>
+                        <Button onClick={() => setSendSuccessModalOpen(false)}>{tx('common.ok', '확인')}</Button>
                     </div>
                 </DialogContent>
             </Dialog>
             <Dialog open={reviewerModalOpen} onOpenChange={setReviewerModalOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Add KPI Reviewer</DialogTitle>
+                        <DialogTitle>{tx('performance_system_kpi_review.add_kpi_reviewer', 'KPI 검토자 등록')}</DialogTitle>
                         <DialogDescription>
-                            Set reviewer details for <strong>{reviewerOrgName || 'selected organization'}</strong>.
+                            {tx('performance_system_kpi_review.reviewer_modal_desc_prefix', '다음 조직의 검토자 정보를 설정하세요:')} <strong>{reviewerOrgName || tx('performance_system_kpi_review.selected_org', '선택된 조직')}</strong>.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-3 mt-2">
                         <div>
-                            <Label className="text-xs">Reviewer Name (optional)</Label>
+                            <Label className="text-xs">{tx('performance_system_kpi_review.reviewer_name_optional', '검토자 이름 (선택)')}</Label>
                             <Input
                                 value={reviewerName}
                                 onChange={(e) => setReviewerName(e.target.value)}
-                                placeholder="Reviewer name"
+                                placeholder={tx('performance_system_kpi_review.reviewer_name_placeholder', '검토자 이름')}
                                 className="mt-1"
                             />
                         </div>
                         <div>
-                            <Label className="text-xs">Reviewer Email</Label>
+                            <Label className="text-xs">{tx('performance_system_kpi_review.reviewer_email', '검토자 이메일')}</Label>
                             <Input
                                 type="email"
                                 value={reviewerEmail}
                                 onChange={(e) => setReviewerEmail(e.target.value)}
-                                placeholder="name@company.com"
+                                placeholder={tx('performance_system_kpi_review.reviewer_email_placeholder', 'name@company.com')}
                                 className="mt-1"
                             />
                         </div>
                         <div className="flex justify-end gap-2 pt-1">
                             <Button variant="outline" onClick={() => setReviewerModalOpen(false)} disabled={savingReviewer}>
-                                Cancel
+                                {tx('common.cancel', '취소')}
                             </Button>
                             <Button onClick={saveReviewerForOrg} disabled={savingReviewer || !reviewerEmail.trim()}>
-                                {savingReviewer ? 'Saving...' : 'Save Reviewer'}
+                                {savingReviewer ? tx('common.saving', '저장 중...') : tx('performance_system_kpi_review.save_reviewer', '검토자 저장')}
                             </Button>
                         </div>
                     </div>
@@ -904,7 +907,7 @@ export default function KpiReviewTab({
                                             weightOk ? 'text-[#2ec4a0]' : 'text-[#1a2b4a]'
                                         )}
                                     >
-                                        {totalWeight}%
+                                        {totalWeightNormalized}%
                                     </span>
                                 </span>
                                 {orgKpis.length > 0 && (

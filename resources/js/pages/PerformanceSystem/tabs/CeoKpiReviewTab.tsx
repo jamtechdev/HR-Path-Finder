@@ -40,6 +40,7 @@ interface Props {
 export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack, isViewOnly = false }: Props) {
     const { t } = useTranslation();
     const tx = (key: string, fallback: string) => t(key, { defaultValue: fallback });
+    const WEIGHT_EPS = 0.01;
     const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
     const [orgPopupOpen, setOrgPopupOpen] = useState<string | null>(null);
     const [revisionComments, setRevisionComments] = useState<Record<string, string>>({});
@@ -47,6 +48,11 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
     const [rightPanelContent, setRightPanelContent] = useState<any>(null);
 
     const orgNames = Array.from(new Set(kpis.map(k => k.organization_name).filter(Boolean)));
+    const getOrgWeight = (orgName: string) =>
+        kpis
+            .filter((k) => k.organization_name === orgName)
+            .reduce((sum, k) => sum + (Number(k.weight) || 0), 0);
+    const isOrgWeightBalanced = (orgName: string) => Math.abs(getOrgWeight(orgName) - 100) <= WEIGHT_EPS;
 
     const getOrgStatus = (orgName: string): 'not_reviewed' | 'revision_requested' | 'approved' => {
         const orgKpis = kpis.filter(k => k.organization_name === orgName);
@@ -133,6 +139,16 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
 
     const handleFinalize = () => {
         if (isViewOnly) return;
+        const invalidWeightOrgs = orgNames.filter((org) => !isOrgWeightBalanced(org));
+        if (invalidWeightOrgs.length > 0) {
+            alert(
+                tx(
+                    'ceo_kpi.review.weight_100_required',
+                    '각 조직의 KPI 가중치 합은 정확히 100%여야 최종 확정할 수 있습니다.',
+                ) + ` (${invalidWeightOrgs.join(', ')})`,
+            );
+            return;
+        }
         const allApproved = orgNames.every(org => getOrgStatus(org) === 'approved');
         if (!allApproved) {
             if (!confirm(tx('ceo_kpi.review.legacy.not_all_approved_confirm', 'Not all organizations have been approved. Do you want to finalize anyway?'))) {
@@ -199,6 +215,8 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                             {orgNames.map((orgName) => {
                                 const orgKpis = kpis.filter(k => k.organization_name === orgName);
                                 const status = getOrgStatus(orgName);
+                                const orgWeight = getOrgWeight(orgName);
+                                const orgWeightNormalized = Math.round(orgWeight * 100) / 100;
                                 
                                 return (
                                     <Card 
@@ -230,6 +248,9 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                                         <CardContent>
                                             <p className="text-sm text-muted-foreground">
                                                 {tx('ceo_kpi.review.legacy.kpi_count_label', '{{count}} KPI').replace('{{count}}', String(orgKpis.length))}
+                                            </p>
+                                            <p className={`text-xs mt-1 ${isOrgWeightBalanced(orgName) ? 'text-emerald-700' : 'text-amber-700'}`}>
+                                                {tx('ceo_kpi.review.total_weight', 'Total weight')}: {orgWeightNormalized}% / 100%
                                             </p>
                                         </CardContent>
                                     </Card>

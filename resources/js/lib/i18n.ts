@@ -102,9 +102,11 @@ export async function initializeI18n(): Promise<void> {
             escapeValue: false,
         },
         detection: {
-            order: ['localStorage', 'navigator'],
+            order: ['localStorage', 'cookie', 'navigator'],
             lookupLocalStorage: STORAGE_KEY,
-            caches: ['localStorage'],
+            lookupCookie: STORAGE_KEY,
+            caches: ['localStorage', 'cookie'],
+            cookieMinutes: 60 * 24 * 365,
         },
     });
 }

@@ -29,21 +29,19 @@ export function LandingNav({
     ctaLabel = '',
     signInLabel = '',
     getStartedLabel = '',
-    dashboardLabel = 'Dashboard',
+    dashboardLabel = '',
 }: LandingNavProps) {
-    const { t, i18n } = useTranslation();
-    const lang = i18n.language?.startsWith('en') ? 'en' : 'ko';
+    const { t } = useTranslation();
 
-    const contactLabel = ctaLabel || (lang === 'ko' ? '문의하기 →' : 'Inquiry →');
-    const startLabel = getStartedLabel || (lang === 'ko' ? '시작하기' : 'Get Started');
-    const signInText = signInLabel || (lang === 'ko' ? '로그인' : 'Log in');
+    const signInText = signInLabel || t('landing.header.sign_in', 'Sign In');
     const contactUsText = t('landing.nav.cta_label');
+    const dashboardText = dashboardLabel || t('landing.header.dashboard', 'Dashboard');
     const externalInquiryHref = 'https://better.odw.co.kr';
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between flex-wrap h-16 px-6 md:px-12 bg-[#0B1E3D]/95 backdrop-blur-md border-b border-[#2ECFAB]/10">
             <a href="#" className="flex items-center gap-2.5 font-serif text-lg font-bold text-white no-underline">
-                HR <span className="text-[#2ECFAB]">Pathfinder</span>
+                {t('auth.brand_title', 'HR Pathfinder')}
             </a>
             <div className="md:flex items-center gap-8">
                 <div className="flex items-center gap-3">
@@ -51,7 +49,7 @@ export function LandingNav({
                     {isAuthenticated ? (
                         <Button asChild className="bg-[#2ECFAB] text-[#0B1E3D] hover:bg-[#7EE8D0] font-bold px-5 py-2.5 rounded-md text-sm h-auto transition-all">
                             <Link href={dashboard()}>
-                                {dashboardLabel}
+                                {dashboardText}
                                 <ArrowRight className="ml-2 w-4 h-4" />
                             </Link>
                         </Button>
