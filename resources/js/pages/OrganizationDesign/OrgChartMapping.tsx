@@ -62,6 +62,7 @@ interface Props {
 
 export default function OrgChartMapping({ project, jobDefinitions, mappings, organizationalCharts, onSubmit: externalOnSubmit }: Props) {
     const { t } = useTranslation();
+    const tx = (key: string, fallback: string) => t(key, { defaultValue: fallback });
     const [viewMode, setViewMode] = useState<'diagram' | 'list'>('diagram');
     const [submitting, setSubmitting] = useState(false);
     const [orgUnits, setOrgUnits] = useState<Array<OrgChartMapping & { id?: number }>>(
@@ -204,14 +205,17 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                 };
                 toast({
                     title: toastCopy.success,
-                    description: `${jobDef.job_name} has been assigned to ${unit.org_unit_name || 'organization unit'}. 직무가 할당되었습니다.`,
+                    description: tx('org_chart_mapping_legacy.toast.assigned', '{{job}} has been assigned to {{unit}}.')
+                        .replace('{{job}}', jobDef.job_name)
+                        .replace('{{unit}}', unit.org_unit_name || tx('org_chart_mapping_legacy.organization_unit', 'organization unit')),
                 });
                 return newUnits;
             }
 
             toast({
                 title: toastCopy.info,
-                description: `${jobDef.job_name} is already assigned to this unit. 이미 이 조직에 포함되어 있습니다.`,
+                description: tx('org_chart_mapping_legacy.toast.already_assigned', '{{job}} is already assigned to this unit.')
+                    .replace('{{job}}', jobDef.job_name),
                 variant: 'default',
             });
             return prev;
@@ -293,7 +297,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                         setSubmitting(false);
                         toast({
                             title: toastCopy.submitFailed,
-                            description: 'Please review required fields and try again. 필수 항목을 확인해 주세요.',
+                            description: tx('org_chart_mapping_legacy.toast.submit_failed', 'Please review required fields and try again.'),
                             variant: 'destructive',
                         });
                     },
@@ -303,7 +307,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                 setSubmitting(false);
                 toast({
                     title: toastCopy.saveFailed,
-                    description: 'Could not save mapping. Please try again. 저장에 실패했습니다.',
+                    description: tx('org_chart_mapping_legacy.toast.save_failed', 'Could not save mapping. Please try again.'),
                     variant: 'destructive',
                 });
             },
@@ -324,10 +328,10 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                             <div className="flex items-start justify-between gap-4 mb-4">
                                 <div className="flex-1">
                                     <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                                        Organization Chart Mapping
+                                        {tx('org_chart_mapping_legacy.title', 'Organization Chart Mapping')}
                                     </h1>
                                     <p className="text-lg text-muted-foreground leading-relaxed">
-                                        Map finalized job definitions to organizational units and assign personnel to create your organizational structure.
+                                        {tx('org_chart_mapping_legacy.subtitle', 'Map finalized job definitions to organizational units and assign personnel to create your organizational structure.')}
                                     </p>
                                 </div>
                                 <TooltipProvider>
@@ -339,7 +343,8 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                         </TooltipTrigger>
                                         <TooltipContent className="max-w-sm">
                                             <p className="text-sm">
-                                                <strong>How to use:</strong> Drag job cards from the right panel onto organization nodes in the diagram, or drop them into organization units in the list view. You can assign multiple jobs to each unit.
+                                                <strong>{tx('org_chart_mapping_legacy.how_to_use', 'How to use:')}</strong>{' '}
+                                                {tx('org_chart_mapping_legacy.how_to_use_desc', 'Drag job cards from the right panel onto organization nodes in the diagram, or drop them into organization units in the list view. You can assign multiple jobs to each unit.')}
                                             </p>
                                         </TooltipContent>
                                     </Tooltip>
@@ -357,15 +362,15 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                         </div>
                                         <div className="flex-1 space-y-2">
                                             <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">
-                                                Professional HR Consulting Workflow
+                                                {tx('org_chart_mapping_legacy.workflow_title', 'Professional HR Consulting Workflow')}
                                             </p>
                                             <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
-                                                This step connects your finalized job definitions to your organizational structure. Drag and drop job cards onto organizational units in the diagram or list view. Each unit can have multiple roles assigned. Complete this mapping to establish your organizational hierarchy before proceeding to the Performance Management stage.
+                                                {tx('org_chart_mapping_legacy.workflow_desc', 'This step connects your finalized job definitions to your organizational structure. Drag and drop job cards onto organizational units in the diagram or list view. Each unit can have multiple roles assigned. Complete this mapping to establish your organizational hierarchy before proceeding to the Performance Management stage.')}
                                             </p>
                                             <div className="flex items-center gap-2 pt-2">
                                                 <CheckCircle2 className="w-4 h-4 text-green-600" />
                                                 <span className="text-xs text-blue-700 dark:text-blue-300">
-                                                    {jobDefinitions.length} finalized {jobDefinitions.length === 1 ? 'job' : 'jobs'} available for assignment
+                                                    {tx('org_chart_mapping_legacy.finalized_jobs_available', '{{count}} finalized jobs available for assignment').replace('{{count}}', String(jobDefinitions.length))}
                                                 </span>
                                             </div>
                                         </div>
@@ -378,11 +383,11 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                             <TabsList className="mb-4">
                                 <TabsTrigger value="diagram">
                                     <Layout className="w-4 h-4 mr-2" />
-                                    Visual Diagram
+                                    {tx('org_chart_mapping_legacy.visual_diagram', 'Visual Diagram')}
                                 </TabsTrigger>
                                 <TabsTrigger value="list">
                                     <List className="w-4 h-4 mr-2" />
-                                    List View
+                                    {tx('org_chart_mapping_legacy.list_view', 'List View')}
                                 </TabsTrigger>
                             </TabsList>
 
@@ -392,7 +397,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                     <div className="lg:col-span-7 space-y-4">
                                         <Card className="shadow-sm border">
                                             <CardHeader>
-                                                <CardTitle>Organization Chart Diagram</CardTitle>
+                                                <CardTitle>{tx('org_chart_mapping_legacy.org_chart_diagram', 'Organization Chart Diagram')}</CardTitle>
                                             </CardHeader>
                                             <CardContent className="p-6">
                                                 <DiagramEditor
@@ -405,7 +410,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                             </CardContent>
                                         </Card>
                                         {organizationalCharts && Object.keys(organizationalCharts).length > 0 && (
-                                            <ChartGallery charts={organizationalCharts} title="Reference Charts" />
+                                            <ChartGallery charts={organizationalCharts} title={tx('org_chart_mapping_legacy.reference_charts', 'Reference Charts')} />
                                         )}
                                     </div>
 
@@ -413,21 +418,21 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                     <div className="lg:col-span-3 space-y-4">
                                         <Card className="shadow-sm border">
                                             <CardHeader>
-                                                <CardTitle>Finalized Jobs</CardTitle>
+                                                <CardTitle>{tx('org_chart_mapping_legacy.finalized_jobs', 'Finalized Jobs')}</CardTitle>
                                             </CardHeader>
                                             <CardContent className="p-6">
                                                 <div className="mb-3">
                                                     <p className="text-sm font-medium text-foreground mb-1">
-                                                        Finalized Jobs
+                                                        {tx('org_chart_mapping_legacy.finalized_jobs', 'Finalized Jobs')}
                                                     </p>
                                                     <p className="text-xs text-muted-foreground">
-                                                        Drag jobs onto organization nodes in the diagram or drop them into organization units below
+                                                        {tx('org_chart_mapping_legacy.drag_jobs_hint', 'Drag jobs onto organization nodes in the diagram or drop them into organization units below')}
                                                     </p>
                                                 </div>
                                                 <div className="space-y-2">
                                                     {jobDefinitions.length === 0 ? (
                                                         <p className="text-sm text-muted-foreground text-center py-4">
-                                                            No finalized jobs available. Please finalize job definitions first.
+                                                            {tx('org_chart_mapping_legacy.no_finalized_jobs', 'No finalized jobs available. Please finalize job definitions first.')}
                                                         </p>
                                                     ) : (
                                                         jobDefinitions.map((job) => (
@@ -445,7 +450,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                                             >
                                                                 <GripVertical className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                                                                 <span className="text-sm font-medium flex-1">{job.job_name}</span>
-                                                                <Badge variant="outline" className="text-xs">Drag me</Badge>
+                                                                <Badge variant="outline" className="text-xs">{tx('org_chart_mapping_legacy.drag_me', 'Drag me')}</Badge>
                                                             </div>
                                                         ))
                                                     )}
@@ -462,14 +467,14 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                     <div className="lg:col-span-2 space-y-4">
                                         <Card>
                                             <CardHeader>
-                                                <CardTitle>Organization Chart</CardTitle>
+                                                <CardTitle>{tx('org_chart_mapping_legacy.organization_chart', 'Organization Chart')}</CardTitle>
                                             </CardHeader>
                                             <CardContent>
                                                 {organizationalCharts && Object.keys(organizationalCharts).length > 0 ? (
                                                     <ChartGallery charts={organizationalCharts} title="" showTitle={false} />
                                                 ) : (
                                                     <p className="text-muted-foreground text-center py-8">
-                                                        Organization chart will be displayed here. For MVP, admin can manually create diagrams.
+                                                        {tx('org_chart_mapping_legacy.org_chart_placeholder', 'Organization chart will be displayed here. For MVP, admin can manually create diagrams.')}
                                                     </p>
                                                 )}
                                             </CardContent>
@@ -480,13 +485,13 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                     <div className="space-y-4">
                                         <Card>
                                             <CardHeader>
-                                                <CardTitle>Finalized Jobs</CardTitle>
+                                                <CardTitle>{tx('org_chart_mapping_legacy.finalized_jobs', 'Finalized Jobs')}</CardTitle>
                                             </CardHeader>
                                             <CardContent>
                                                 <div className="space-y-2">
                                                     {jobDefinitions.length === 0 ? (
                                                         <p className="text-sm text-muted-foreground text-center py-4">
-                                                            No finalized jobs available. Please finalize job definitions first.
+                                                            {tx('org_chart_mapping_legacy.no_finalized_jobs', 'No finalized jobs available. Please finalize job definitions first.')}
                                                         </p>
                                                     ) : (
                                                         jobDefinitions.map((job) => (
@@ -504,7 +509,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                                             >
                                                                 <GripVertical className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                                                                 <span className="text-sm font-medium flex-1">{job.job_name}</span>
-                                                                <Badge variant="outline" className="text-xs">Drag me</Badge>
+                                                                <Badge variant="outline" className="text-xs">{tx('org_chart_mapping_legacy.drag_me', 'Drag me')}</Badge>
                                                             </div>
                                                         ))
                                                     )}
@@ -523,7 +528,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                     <CardTitle>Organization Units</CardTitle>
                                     <Button variant="outline" size="sm" onClick={addOrgUnit}>
                                         <Plus className="w-4 h-4 mr-2" />
-                                        Add Unit
+                                        {tx('org_chart_mapping_legacy.add_unit', 'Add Unit')}
                                     </Button>
                                 </div>
                             </CardHeader>
@@ -541,7 +546,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                         onDrop={(e) => handleDrop(e, index)}
                                     >
                                         <Input
-                                            placeholder="Organization Unit Name"
+                                            placeholder={tx('org_chart_mapping_legacy.org_unit_name', 'Organization Unit Name')}
                                             value={unit.org_unit_name || ''}
                                             onChange={(e) => updateOrgUnit(index, { org_unit_name: e.target.value })}
                                         />
@@ -549,7 +554,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                         {/* Assigned Jobs */}
                                         {unit.job_keyword_ids && unit.job_keyword_ids.length > 0 && (
                                             <div className="space-y-2">
-                                                <Label>Assigned Jobs</Label>
+                                                <Label>{tx('org_chart_mapping_legacy.assigned_jobs', 'Assigned Jobs')}</Label>
                                                 <div className="flex flex-wrap gap-2">
                                                     {unit.job_keyword_ids.map((jobKeywordId) => {
                                                         const jobDef = jobDefinitions.find(j => j.job_keyword_id === jobKeywordId);
@@ -572,30 +577,30 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                         {/* Drop Zone Hint */}
                                         {(!unit.job_keyword_ids || unit.job_keyword_ids.length === 0) && (
                                             <div className="p-4 border-2 border-dashed rounded text-center text-muted-foreground">
-                                                Drag a job here to assign it to this unit
+                                                {tx('org_chart_mapping_legacy.drop_zone', 'Drag a job here to assign it to this unit')}
                                             </div>
                                         )}
 
                                         {/* Organization Head */}
                                         <div className="space-y-2">
-                                            <Label>Organization Head</Label>
+                                            <Label>{tx('org_chart_mapping_legacy.organization_head', 'Organization Head')}</Label>
                                             <div className="grid grid-cols-2 gap-2">
                                                 <Input
-                                                    placeholder="Name"
+                                                    placeholder={tx('org_chart_mapping_legacy.name', 'Name')}
                                                     value={unit.org_head?.name || ''}
                                                     onChange={(e) => updateOrgUnit(index, {
                                                         org_head: { ...unit.org_head, name: e.target.value },
                                                     })}
                                                 />
                                                 <Input
-                                                    placeholder="Rank"
+                                                    placeholder={tx('org_chart_mapping_legacy.rank', 'Rank')}
                                                     value={unit.org_head?.rank || ''}
                                                     onChange={(e) => updateOrgUnit(index, {
                                                         org_head: { ...unit.org_head, rank: e.target.value },
                                                     })}
                                                 />
                                                 <Input
-                                                    placeholder="Title"
+                                                    placeholder={tx('org_chart_mapping_legacy.title_label', 'Title')}
                                                     value={unit.org_head?.title || ''}
                                                     onChange={(e) => updateOrgUnit(index, {
                                                         org_head: { ...unit.org_head, title: e.target.value },
@@ -603,7 +608,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                                 />
                                                 <Input
                                                     type="email"
-                                                    placeholder="Email"
+                                                    placeholder={tx('org_chart_mapping_legacy.email', 'Email')}
                                                     value={unit.org_head?.email || ''}
                                                     onChange={(e) => updateOrgUnit(index, {
                                                         org_head: { ...unit.org_head, email: e.target.value },
@@ -615,21 +620,21 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                         {/* Job Specialists */}
                                         <div className="space-y-2">
                                             <div className="flex items-center justify-between flex-wrap">
-                                                <Label>Job Specialists</Label>
+                                                <Label>{tx('org_chart_mapping_legacy.job_specialists', 'Job Specialists')}</Label>
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() => addJobSpecialist(index)}
                                                 >
                                                     <Plus className="w-4 h-4 mr-2" />
-                                                    Add Specialist
+                                                    {tx('org_chart_mapping_legacy.add_specialist', 'Add Specialist')}
                                                 </Button>
                                             </div>
                                             {unit.job_specialists?.map((specialist, specIndex) => (
                                                 <div key={specIndex} className="p-3 border rounded space-y-2">
                                                     <div className="grid grid-cols-2 gap-2">
                                                         <Input
-                                                            placeholder="Name"
+                                                            placeholder={tx('org_chart_mapping_legacy.name', 'Name')}
                                                             value={specialist.name}
                                                             onChange={(e) => {
                                                                 const newSpecialists = [...(unit.job_specialists || [])];
@@ -638,7 +643,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                                             }}
                                                         />
                                                         <Input
-                                                            placeholder="Rank"
+                                                            placeholder={tx('org_chart_mapping_legacy.rank', 'Rank')}
                                                             value={specialist.rank}
                                                             onChange={(e) => {
                                                                 const newSpecialists = [...(unit.job_specialists || [])];
@@ -647,7 +652,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                                             }}
                                                         />
                                                         <Input
-                                                            placeholder="Title"
+                                                            placeholder={tx('org_chart_mapping_legacy.title_label', 'Title')}
                                                             value={specialist.title}
                                                             onChange={(e) => {
                                                                 const newSpecialists = [...(unit.job_specialists || [])];
@@ -657,7 +662,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                                         />
                                                         <Input
                                                             type="email"
-                                                            placeholder="Email"
+                                                            placeholder={tx('org_chart_mapping_legacy.email', 'Email')}
                                                             value={specialist.email}
                                                             onChange={(e) => {
                                                                 const newSpecialists = [...(unit.job_specialists || [])];
@@ -675,7 +680,7 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                                         }}
                                                     >
                                                         <X className="w-4 h-4 mr-2" />
-                                                        Remove
+                                                        {tx('org_chart_mapping_legacy.remove', 'Remove')}
                                                     </Button>
                                                 </div>
                                             ))}
@@ -690,9 +695,9 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between flex-wrap gap-4">
                                         <div className="flex-1">
-                                            <h3 className="text-lg font-semibold mb-2">Ready to Complete Job Analysis?</h3>
+                                            <h3 className="text-lg font-semibold mb-2">{tx('org_chart_mapping_legacy.ready_title', 'Ready to Complete Job Analysis?')}</h3>
                                             <p className="text-sm text-muted-foreground">
-                                                Make sure all finalized jobs are mapped to organizational units. Once submitted, you'll be able to proceed to the Performance System stage.
+                                                {tx('org_chart_mapping_legacy.ready_desc', "Make sure all finalized jobs are mapped to organizational units. Once submitted, you'll be able to proceed to the Performance System stage.")}
                                             </p>
                                         </div>
                                         <Button 
@@ -704,12 +709,12 @@ export default function OrgChartMapping({ project, jobDefinitions, mappings, org
                                             {submitting ? (
                                                 <>
                                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                                                    Submitting...
+                                                    {tx('org_chart_mapping_legacy.submitting', 'Submitting...')}
                                                 </>
                                             ) : (
                                                 <>
                                                     <CheckCircle2 className="w-5 h-5 mr-2" />
-                                                    Save & Complete
+                                                    {tx('org_chart_mapping_legacy.save_complete', 'Save & Complete')}
                                                 </>
                                             )}
                                         </Button>

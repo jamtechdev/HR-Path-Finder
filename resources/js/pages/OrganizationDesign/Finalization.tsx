@@ -61,6 +61,7 @@ interface Props {
 
 export default function Finalization({ project, jobDefinitions, finalizedJobs = [], hasJobsToFinalize = true, errors }: Props) {
     const { t } = useTranslation();
+    const tx = (key: string, fallback: string) => t(key, { defaultValue: fallback });
     const [confirmed, setConfirmed] = useState(false);
     const [expandedJobs, setExpandedJobs] = useState<Set<number>>(new Set());
 
@@ -117,10 +118,10 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                        Finalization of Job List
+                        {tx('org_design_finalization_legacy.title', 'Finalization of Job List')}
                     </h1>
                     <p className="text-lg text-muted-foreground leading-relaxed">
-                        Review and finalize all job definitions. Once finalized, these will be used for performance management and compensation system design.
+                        {tx('org_design_finalization_legacy.subtitle', 'Review and finalize all job definitions. Once finalized, these will be used for performance management and compensation system design.')}
                     </p>
                 </div>
 
@@ -138,7 +139,7 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between flex-wrap">
                                 <div>
-                                    <p className="text-sm font-medium text-blue-900">Total Jobs</p>
+                                    <p className="text-sm font-medium text-blue-900">{tx('org_design_finalization_legacy.total_jobs', 'Total Jobs')}</p>
                                     <p className="text-2xl font-bold text-blue-700">{totalJobs}</p>
                                 </div>
                                 <FileText className="w-8 h-8 text-blue-600" />
@@ -149,7 +150,7 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between flex-wrap">
                                 <div>
-                                    <p className="text-sm font-medium text-yellow-900">Pending Finalization</p>
+                                    <p className="text-sm font-medium text-yellow-900">{tx('org_design_finalization_legacy.pending_finalization', 'Pending Finalization')}</p>
                                     <p className="text-2xl font-bold text-yellow-700">{jobDefinitions.length}</p>
                                 </div>
                                 <Unlock className="w-8 h-8 text-yellow-600" />
@@ -160,7 +161,7 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between flex-wrap">
                                 <div>
-                                    <p className="text-sm font-medium text-green-900">Already Finalized</p>
+                                    <p className="text-sm font-medium text-green-900">{tx('org_design_finalization_legacy.already_finalized', 'Already Finalized')}</p>
                                     <p className="text-2xl font-bold text-green-700">{finalizedJobs.length}</p>
                                 </div>
                                 <Lock className="w-8 h-8 text-green-600" />
@@ -175,13 +176,13 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                         <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b">
                             <div className="flex items-center justify-between flex-wrap">
                                 <div>
-                                    <CardTitle className="text-2xl">Jobs Pending Finalization</CardTitle>
+                                    <CardTitle className="text-2xl">{tx('org_design_finalization_legacy.jobs_pending', 'Jobs Pending Finalization')}</CardTitle>
                                     <CardDescription className="mt-1">
-                                        Review the details below. These jobs will be locked once you finalize.
+                                        {tx('org_design_finalization_legacy.jobs_pending_desc', 'Review the details below. These jobs will be locked once you finalize.')}
                                     </CardDescription>
                                 </div>
                                 <Badge variant="outline" className="text-lg px-4 py-2">
-                                    {jobDefinitions.length} {jobDefinitions.length === 1 ? 'Job' : 'Jobs'}
+                                    {jobDefinitions.length} {jobDefinitions.length === 1 ? tx('org_design_finalization_legacy.job_singular', 'Job') : tx('org_design_finalization_legacy.job_plural', 'Jobs')}
                                 </Badge>
                             </div>
                         </CardHeader>
@@ -224,25 +225,25 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                                                             {hasDescription && (
                                                                 <Badge variant="outline" className="text-xs">
                                                                     <FileText className="w-3 h-3 mr-1" />
-                                                                    Description
+                                                                    {tx('org_design_finalization_legacy.description', 'Description')}
                                                                 </Badge>
                                                             )}
                                                             {hasSpec && (
                                                                 <Badge variant="outline" className="text-xs">
                                                                     <User className="w-3 h-3 mr-1" />
-                                                                    Spec
+                                                                    {tx('org_design_finalization_legacy.spec', 'Spec')}
                                                                 </Badge>
                                                             )}
                                                             {hasComp && (
                                                                 <Badge variant="outline" className="text-xs">
                                                                     <TrendingUp className="w-3 h-3 mr-1" />
-                                                                    Levels: {job.competency_levels?.length || 0}
+                                                                    {tx('org_design_finalization_legacy.levels', 'Levels')}: {job.competency_levels?.length || 0}
                                                                 </Badge>
                                                             )}
                                                             {hasCSF && (
                                                                 <Badge variant="outline" className="text-xs">
                                                                     <Target className="w-3 h-3 mr-1" />
-                                                                    CSFs: {job.csfs?.length || 0}
+                                                                    {tx('org_design_finalization_legacy.csfs', 'CSFs')}: {job.csfs?.length || 0}
                                                                 </Badge>
                                                             )}
                                                         </div>
@@ -262,7 +263,7 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                                                         <div>
                                                             <Label className="text-sm font-semibold flex items-center gap-2 mb-2">
                                                                 <FileText className="w-4 h-4" />
-                                                                Job Description
+                                                                {tx('org_design_finalization_legacy.job_description', 'Job Description')}
                                                             </Label>
                                                             <div className="p-3 bg-muted rounded-lg">
                                                                 <p className="text-sm whitespace-pre-wrap">{job.job_description}</p>
@@ -275,18 +276,18 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                                                         <div>
                                                             <Label className="text-sm font-semibold flex items-center gap-2 mb-2">
                                                                 <User className="w-4 h-4" />
-                                                                Job Specification
+                                                                {tx('org_design_finalization_legacy.job_specification', 'Job Specification')}
                                                             </Label>
                                                             <div className="grid grid-cols-2 gap-3 p-3 bg-muted rounded-lg">
                                                                 {job.job_specification?.education?.required && (
                                                                     <div>
-                                                                        <p className="text-xs text-muted-foreground">Education (Required)</p>
+                                                                    <p className="text-xs text-muted-foreground">{tx('org_design_finalization_legacy.education_required', 'Education (Required)')}</p>
                                                                         <p className="text-sm font-medium">{job.job_specification.education.required}</p>
                                                                     </div>
                                                                 )}
                                                                 {job.job_specification?.experience?.required && (
                                                                     <div>
-                                                                        <p className="text-xs text-muted-foreground">Experience (Required)</p>
+                                                                    <p className="text-xs text-muted-foreground">{tx('org_design_finalization_legacy.experience_required', 'Experience (Required)')}</p>
                                                                         <p className="text-sm font-medium">{job.job_specification.experience.required}</p>
                                                                     </div>
                                                                 )}
@@ -299,7 +300,7 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                                                         <div>
                                                             <Label className="text-sm font-semibold flex items-center gap-2 mb-2">
                                                                 <TrendingUp className="w-4 h-4" />
-                                                                Competency Levels ({job.competency_levels?.length || 0})
+                                                                {tx('org_design_finalization_legacy.competency_levels', 'Competency Levels')} ({job.competency_levels?.length || 0})
                                                             </Label>
                                                             <div className="space-y-2">
                                                                 {job.competency_levels?.map((level, idx) => (
@@ -319,7 +320,7 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                                                         <div>
                                                             <Label className="text-sm font-semibold flex items-center gap-2 mb-2">
                                                                 <Target className="w-4 h-4" />
-                                                                Critical Success Factors ({job.csfs?.length || 0})
+                                                                {tx('org_design_finalization_legacy.critical_success_factors', 'Critical Success Factors')} ({job.csfs?.length || 0})
                                                             </Label>
                                                             <div className="space-y-2">
                                                                 {job.csfs?.map((csf, idx) => (
@@ -336,7 +337,7 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
 
                                                     {!hasDescription && !hasSpec && !hasComp && !hasCSF && (
                                                         <div className="text-center py-4 text-muted-foreground text-sm">
-                                                            No additional details available for this job.
+                                                            {tx('org_design_finalization_legacy.no_additional_details', 'No additional details available for this job.')}
                                                         </div>
                                                     )}
                                                 </div>
@@ -357,14 +358,14 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                                 <div>
                                     <CardTitle className="text-2xl flex items-center gap-2">
                                         <Lock className="w-5 h-5 text-green-600" />
-                                        Already Finalized Jobs
+                                        {tx('org_design_finalization_legacy.already_finalized_jobs', 'Already Finalized Jobs')}
                                     </CardTitle>
                                     <CardDescription className="mt-1">
-                                        These jobs have already been finalized and locked.
+                                        {tx('org_design_finalization_legacy.already_finalized_desc', 'These jobs have already been finalized and locked.')}
                                     </CardDescription>
                                 </div>
                                 <Badge variant="outline" className="text-lg px-4 py-2 bg-green-50 border-green-300">
-                                    {finalizedJobs.length} {finalizedJobs.length === 1 ? 'Job' : 'Jobs'}
+                                    {finalizedJobs.length} {finalizedJobs.length === 1 ? tx('org_design_finalization_legacy.job_singular', 'Job') : tx('org_design_finalization_legacy.job_plural', 'Jobs')}
                                 </Badge>
                             </div>
                         </CardHeader>
@@ -380,7 +381,7 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                                             <span className="font-medium">{job.job_name}</span>
                                         </div>
                                         <Badge variant="outline" className="bg-green-100 border-green-300 text-green-700">
-                                            Finalized
+                                            {tx('org_design_finalization_legacy.finalized', 'Finalized')}
                                         </Badge>
                                     </div>
                                 ))}
@@ -394,12 +395,12 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                     <Card className="mb-6">
                         <CardContent className="p-12 text-center">
                             <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                            <h3 className="text-xl font-semibold mb-2">No Job Definitions Found</h3>
+                            <h3 className="text-xl font-semibold mb-2">{tx('org_design_finalization_legacy.no_job_definitions', 'No Job Definitions Found')}</h3>
                             <p className="text-muted-foreground mb-6">
-                                Please create job definitions before finalizing.
+                                {tx('org_design_finalization_legacy.no_job_definitions_desc', 'Please create job definitions before finalizing.')}
                             </p>
                             <Button onClick={() => router.visit(`/hr-manager/job-analysis/${project.id}/job-definition`)}>
-                                Go to Job Definitions
+                                {tx('org_design_finalization_legacy.go_to_job_definitions', 'Go to Job Definitions')}
                             </Button>
                         </CardContent>
                     </Card>
@@ -409,9 +410,9 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                 {hasJobsToFinalize && jobDefinitions.length > 0 && (
                     <Card className="mt-6 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 shadow-lg">
                         <CardHeader>
-                            <CardTitle>Finalize Job Setup</CardTitle>
+                            <CardTitle>{tx('org_design_finalization_legacy.finalize_job_setup', 'Finalize Job Setup')}</CardTitle>
                             <CardDescription>
-                                Once finalized, all job definitions will be locked and used as baseline inputs for performance management and compensation systems.
+                                {tx('org_design_finalization_legacy.finalize_job_setup_desc', 'Once finalized, all job definitions will be locked and used as baseline inputs for performance management and compensation systems.')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -424,7 +425,7 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                                 />
                                 <Label htmlFor="confirm-finalize" className="flex-1 cursor-pointer">
                                     <span className="font-semibold text-base block mb-1">
-                                        I confirm that all job definitions are complete and accurate
+                                        {tx('org_design_finalization_legacy.confirm_label', 'I confirm that all job definitions are complete and accurate')}
                                     </span>
                                     <p className="text-sm text-muted-foreground">
                                         By finalizing, you lock all {jobDefinitions.length} job definition{jobDefinitions.length !== 1 ? 's' : ''}. 
@@ -443,12 +444,12 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                                 {processing ? (
                                     <>
                                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                                        Finalizing...
+                                        {tx('org_design_finalization_legacy.finalizing', 'Finalizing...')}
                                     </>
                                 ) : (
                                     <>
                                         <CheckCircle2 className="w-5 h-5 mr-2" />
-                                        Finalize {jobDefinitions.length} Job{jobDefinitions.length !== 1 ? 's' : ''}
+                                        {tx('org_design_finalization_legacy.finalize_jobs', 'Finalize {{count}} Jobs').replace('{{count}}', String(jobDefinitions.length))}
                                     </>
                                 )}
                             </Button>
@@ -463,7 +464,7 @@ export default function Finalization({ project, jobDefinitions, finalizedJobs = 
                         onClick={() => router.visit(`/hr-manager/job-analysis/${project.id}/job-definition`)}
                     >
                         <ChevronLeft className="w-4 h-4 mr-2" />
-                        Back to Job Definitions
+                        {tx('org_design_finalization_legacy.back_to_job_definitions', 'Back to Job Definitions')}
                     </Button>
                 </div>
             </div>

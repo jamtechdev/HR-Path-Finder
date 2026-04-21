@@ -1,6 +1,7 @@
 import { useForm, router } from '@inertiajs/react';
 import { Plus, ChevronRight, X, FileText, User, TrendingUp, Target, Save, CheckCircle2, AlertCircle } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import DynamicList from '@/components/Forms/DynamicList';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -53,6 +54,8 @@ interface Props {
 }
 
 export default function JobDefinitionContent({ project, jobDefinitions, selectedJob, template, onContinue }: Props) {
+    const { t } = useTranslation();
+    const tx = (key: string, fallback: string) => t(key, { defaultValue: fallback });
     const [activeJobId, setActiveJobId] = useState<number | null>(selectedJob?.id || jobDefinitions[0]?.id || null);
     const [activeTab, setActiveTab] = useState('description');
     const [saveSuccess, setSaveSuccess] = useState(false);
@@ -194,21 +197,21 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
             <div className="mb-6">
                 <div className="flex items-center justify-between flex-wrap mb-4">
                     <div className="flex-1">
-                        <h2 className="text-2xl font-bold mb-2">Step 3 — Job Definition</h2>
+                        <h2 className="text-2xl font-bold mb-2">{tx('org_design_job_definition_content.step_title', 'Step 3 — Job Definition')}</h2>
                         <p className="text-muted-foreground">
-                            Define job standards for each selected role. You can use suggested content or customize as needed.
+                            {tx('org_design_job_definition_content.step_desc', 'Define job standards for each selected role. You can use suggested content or customize as needed.')}
                         </p>
                     </div>
                     <Select value={activeJobId?.toString() || ''} onValueChange={(value) => setActiveJobId(parseInt(value))}>
                         <SelectTrigger className="w-64 h-11 shadow-sm">
-                            <SelectValue placeholder="Select a job" />
+                            <SelectValue placeholder={tx('org_design_job_definition_content.select_job', 'Select a job')} />
                         </SelectTrigger>
                         <SelectContent>
                             {jobDefinitions.map((job) => (
                                 <SelectItem key={job.id} value={job.id.toString()}>
                                     {job.job_name}
                                     {job.is_finalized && (
-                                        <Badge variant="outline" className="ml-2 text-xs">Finalized</Badge>
+                                        <Badge variant="outline" className="ml-2 text-xs">{tx('org_design_job_definition_content.finalized', 'Finalized')}</Badge>
                                     )}
                                 </SelectItem>
                             ))}
@@ -221,7 +224,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                     <Alert className="mb-4 border-green-200 bg-green-50 animate-in slide-in-from-top-2">
                         <CheckCircle2 className="h-4 w-4 text-green-600" />
                         <AlertDescription className="text-green-800">
-                            Job definition saved successfully!
+                            {tx('org_design_job_definition_content.saved_success', 'Job definition saved successfully!')}
                         </AlertDescription>
                     </Alert>
                 )}
@@ -238,14 +241,14 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                 <div>
                                     <CardTitle className="text-2xl">{currentJob.job_name}</CardTitle>
                                     <p className="text-sm text-muted-foreground mt-1">
-                                        Define complete job standards and requirements
+                                        {tx('org_design_job_definition_content.card_desc', 'Define complete job standards and requirements')}
                                     </p>
                                 </div>
                             </div>
                             {currentJob.is_finalized && (
                                 <Badge className="px-4 py-2 bg-green-500 text-white border-0">
                                     <CheckCircle2 className="w-4 h-4 mr-2" />
-                                    Finalized
+                                    {tx('org_design_job_definition_content.finalized', 'Finalized')}
                                 </Badge>
                             )}
                         </div>
@@ -255,7 +258,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                             <Alert className="mb-6 border-yellow-200 bg-yellow-50">
                                 <AlertCircle className="h-4 w-4 text-yellow-600" />
                                 <AlertDescription className="text-yellow-800">
-                                    <strong>Note:</strong> This job definition has been finalized and cannot be edited. Please contact admin if changes are needed.
+                                    <strong>{tx('org_design_job_definition_content.note', 'Note')}:</strong> {tx('org_design_job_definition_content.finalized_note', 'This job definition has been finalized and cannot be edited. Please contact admin if changes are needed.')}
                                 </AlertDescription>
                             </Alert>
                         )}
@@ -269,8 +272,8 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                     )}
                                 >
                                     <FileText className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Job Description</span>
-                                    <span className="sm:hidden">Description</span>
+                                    <span className="hidden sm:inline">{tx('org_design_job_definition_content.tab_job_description', 'Job Description')}</span>
+                                    <span className="sm:hidden">{tx('org_design_job_definition_content.tab_description', 'Description')}</span>
                                 </TabsTrigger>
                                 <TabsTrigger 
                                     value="specification"
@@ -280,8 +283,8 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                     )}
                                 >
                                     <User className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Job Specification</span>
-                                    <span className="sm:hidden">Specification</span>
+                                    <span className="hidden sm:inline">{tx('org_design_job_definition_content.tab_job_specification', 'Job Specification')}</span>
+                                    <span className="sm:hidden">{tx('org_design_job_definition_content.tab_specification', 'Specification')}</span>
                                 </TabsTrigger>
                                 <TabsTrigger 
                                     value="competency"
@@ -291,8 +294,8 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                     )}
                                 >
                                     <TrendingUp className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Competency Levels</span>
-                                    <span className="sm:hidden">Competency</span>
+                                    <span className="hidden sm:inline">{tx('org_design_job_definition_content.tab_competency_levels', 'Competency Levels')}</span>
+                                    <span className="sm:hidden">{tx('org_design_job_definition_content.tab_competency', 'Competency')}</span>
                                 </TabsTrigger>
                                 <TabsTrigger 
                                     value="csfs"
@@ -302,8 +305,8 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                     )}
                                 >
                                     <Target className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Critical Success Factors</span>
-                                    <span className="sm:hidden">CSFs</span>
+                                    <span className="hidden sm:inline">{tx('org_design_job_definition_content.tab_critical_success_factors', 'Critical Success Factors')}</span>
+                                    <span className="sm:hidden">{tx('org_design_job_definition_content.tab_csfs', 'CSFs')}</span>
                                 </TabsTrigger>
                             </TabsList>
 
@@ -311,16 +314,16 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                 <div className="space-y-2">
                                     <Label className="text-base font-semibold flex items-center gap-2">
                                         <FileText className="w-5 h-5 text-primary" />
-                                        Job Description
+                                        {tx('org_design_job_definition_content.section_job_description', 'Job Description')}
                                     </Label>
                                     <p className="text-sm text-muted-foreground">
-                                        Define the job purpose, key responsibilities, and scope of work.
+                                        {tx('org_design_job_definition_content.section_job_description_desc', 'Define the job purpose, key responsibilities, and scope of work.')}
                                     </p>
                                     <Textarea
                                         value={data.job_description}
                                         onChange={(e) => setData('job_description', e.target.value)}
                                         rows={12}
-                                        placeholder="Job purpose, key responsibilities, scope..."
+                                        placeholder={tx('org_design_job_definition_content.job_description_placeholder', 'Job purpose, key responsibilities, scope...')}
                                         disabled={isFinalized}
                                         className={cn(
                                             "mt-2 resize-y",
@@ -334,17 +337,17 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                 <div className="space-y-2 mb-4">
                                     <Label className="text-base font-semibold flex items-center gap-2">
                                         <User className="w-5 h-5 text-primary" />
-                                        Job Specification
+                                        {tx('org_design_job_definition_content.section_job_specification', 'Job Specification')}
                                     </Label>
                                     <p className="text-sm text-muted-foreground">
-                                        Define required competencies, skills, and personal attributes. Each item can be marked as Required or Preferred.
+                                        {tx('org_design_job_definition_content.section_job_specification_desc', 'Define required competencies, skills, and personal attributes. Each item can be marked as Required or Preferred.')}
                                     </p>
                                 </div>
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <Label className="text-sm font-medium flex items-center gap-2">
-                                            Education - Required
-                                            <Badge variant="destructive" className="text-xs px-1.5 py-0">Required</Badge>
+                                            {tx('org_design_job_definition_content.education_required', 'Education - Required')}
+                                            <Badge variant="destructive" className="text-xs px-1.5 py-0">{tx('org_design_job_definition_content.required', 'Required')}</Badge>
                                         </Label>
                                         <Input
                                             value={data.job_specification.education?.required || ''}
@@ -360,8 +363,8 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-sm font-medium flex items-center gap-2">
-                                            Education - Preferred
-                                            <Badge variant="outline" className="text-xs px-1.5 py-0 bg-green-50 text-green-700 border-green-300">Preferred</Badge>
+                                            {tx('org_design_job_definition_content.education_preferred', 'Education - Preferred')}
+                                            <Badge variant="outline" className="text-xs px-1.5 py-0 bg-green-50 text-green-700 border-green-300">{tx('org_design_job_definition_content.preferred', 'Preferred')}</Badge>
                                         </Label>
                                         <Input
                                             value={data.job_specification.education?.preferred || ''}
@@ -377,8 +380,8 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-sm font-medium flex items-center gap-2">
-                                            Experience - Required
-                                            <Badge variant="destructive" className="text-xs px-1.5 py-0">Required</Badge>
+                                            {tx('org_design_job_definition_content.experience_required', 'Experience - Required')}
+                                            <Badge variant="destructive" className="text-xs px-1.5 py-0">{tx('org_design_job_definition_content.required', 'Required')}</Badge>
                                         </Label>
                                         <Input
                                             value={data.job_specification.experience?.required || ''}
@@ -394,8 +397,8 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-sm font-medium flex items-center gap-2">
-                                            Experience - Preferred
-                                            <Badge variant="outline" className="text-xs px-1.5 py-0 bg-green-50 text-green-700 border-green-300">Preferred</Badge>
+                                            {tx('org_design_job_definition_content.experience_preferred', 'Experience - Preferred')}
+                                            <Badge variant="outline" className="text-xs px-1.5 py-0 bg-green-50 text-green-700 border-green-300">{tx('org_design_job_definition_content.preferred', 'Preferred')}</Badge>
                                         </Label>
                                         <Input
                                             value={data.job_specification.experience?.preferred || ''}
@@ -411,8 +414,8 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-sm font-medium flex items-center gap-2">
-                                            Skills - Required
-                                            <Badge variant="destructive" className="text-xs px-1.5 py-0">Required</Badge>
+                                            {tx('org_design_job_definition_content.skills_required', 'Skills - Required')}
+                                            <Badge variant="destructive" className="text-xs px-1.5 py-0">{tx('org_design_job_definition_content.required', 'Required')}</Badge>
                                         </Label>
                                         <Textarea
                                             value={data.job_specification.skills?.required || ''}
@@ -429,8 +432,8 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-sm font-medium flex items-center gap-2">
-                                            Skills - Preferred
-                                            <Badge variant="outline" className="text-xs px-1.5 py-0 bg-green-50 text-green-700 border-green-300">Preferred</Badge>
+                                            {tx('org_design_job_definition_content.skills_preferred', 'Skills - Preferred')}
+                                            <Badge variant="outline" className="text-xs px-1.5 py-0 bg-green-50 text-green-700 border-green-300">{tx('org_design_job_definition_content.preferred', 'Preferred')}</Badge>
                                         </Label>
                                         <Textarea
                                             value={data.job_specification.skills?.preferred || ''}
@@ -447,8 +450,8 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-sm font-medium flex items-center gap-2">
-                                            Communication - Required
-                                            <Badge variant="destructive" className="text-xs px-1.5 py-0">Required</Badge>
+                                            {tx('org_design_job_definition_content.communication_required', 'Communication - Required')}
+                                            <Badge variant="destructive" className="text-xs px-1.5 py-0">{tx('org_design_job_definition_content.required', 'Required')}</Badge>
                                         </Label>
                                         <Input
                                             value={data.job_specification.communication?.required || ''}
@@ -464,8 +467,8 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-sm font-medium flex items-center gap-2">
-                                            Communication - Preferred
-                                            <Badge variant="outline" className="text-xs px-1.5 py-0 bg-green-50 text-green-700 border-green-300">Preferred</Badge>
+                                            {tx('org_design_job_definition_content.communication_preferred', 'Communication - Preferred')}
+                                            <Badge variant="outline" className="text-xs px-1.5 py-0 bg-green-50 text-green-700 border-green-300">{tx('org_design_job_definition_content.preferred', 'Preferred')}</Badge>
                                         </Label>
                                         <Input
                                             value={data.job_specification.communication?.preferred || ''}
@@ -486,18 +489,18 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                 <div className="space-y-2 mb-4">
                                     <Label className="text-base font-semibold flex items-center gap-2">
                                         <TrendingUp className="w-5 h-5 text-primary" />
-                                        Competency Levels
+                                        {tx('org_design_job_definition_content.section_competency_levels', 'Competency Levels')}
                                     </Label>
                                     <p className="text-sm text-muted-foreground">
-                                        Classify levels of execution difficulty and capability. You can add or remove levels as needed.
+                                        {tx('org_design_job_definition_content.section_competency_levels_desc', 'Classify levels of execution difficulty and capability. You can add or remove levels as needed.')}
                                     </p>
                                 </div>
                                 <div className="space-y-4">
-                                    {data.competency_levels.map((level, index) => (
+                                    {data.competency_levels.map((level: { level: string; description: string }, index: number) => (
                                         <div key={index} className="flex items-start gap-3 p-4 border-2 border-border rounded-lg hover:border-primary/40 transition-colors bg-card">
                                             <div className="w-28">
                                                 <Badge variant="outline" className="w-full justify-center py-2 text-sm font-semibold">
-                                                    {level.level || 'Level'}
+                                                    {level.level || tx('org_design_job_definition_content.level_fallback', 'Level')}
                                                 </Badge>
                                                 <Input
                                                     value={level.level}
@@ -507,7 +510,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                                         setData('competency_levels', newLevels);
                                                     }}
                                                     className="w-full mt-2"
-                                                    placeholder="LV1, LV2, etc."
+                                                    placeholder={tx('org_design_job_definition_content.level_placeholder', 'LV1, LV2, etc.')}
                                                     disabled={isFinalized}
                                                 />
                                             </div>
@@ -518,7 +521,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                                     newLevels[index].description = e.target.value;
                                                     setData('competency_levels', newLevels);
                                                 }}
-                                                placeholder="Description..."
+                                                placeholder={tx('org_design_job_definition_content.description_placeholder', 'Description...')}
                                                 className="flex-1"
                                                 rows={2}
                                                 disabled={isFinalized}
@@ -527,7 +530,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => {
-                                                    setData('competency_levels', data.competency_levels.filter((_, i) => i !== index));
+                                                    setData('competency_levels', data.competency_levels.filter((_: { level: string; description: string }, i: number) => i !== index));
                                                 }}
                                                 disabled={isFinalized}
                                             >
@@ -542,7 +545,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                         className="w-full border-dashed border-2 hover:border-primary hover:bg-primary/5"
                                     >
                                         <Plus className="w-4 h-4 mr-2" />
-                                        Add Competency Level
+                                        {tx('org_design_job_definition_content.add_competency_level', 'Add Competency Level')}
                                     </Button>
                                 </div>
                             </TabsContent>
@@ -551,19 +554,19 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                 <div className="space-y-2 mb-4">
                                     <Label className="text-base font-semibold flex items-center gap-2">
                                         <Target className="w-5 h-5 text-primary" />
-                                        Critical Success Factors (CSFs)
+                                        {tx('org_design_job_definition_content.section_csf', 'Critical Success Factors (CSFs)')}
                                     </Label>
                                     <p className="text-sm text-muted-foreground">
-                                        Define the key criteria used to evaluate performance and success in this role. Set strategic importance and execution capability for each CSF.
+                                        {tx('org_design_job_definition_content.section_csf_desc', 'Define the key criteria used to evaluate performance and success in this role. Set strategic importance and execution capability for each CSF.')}
                                     </p>
                                 </div>
                                 <div className="space-y-4">
-                                    {data.csfs.map((csf, index) => (
+                                    {data.csfs.map((csf: any, index: number) => (
                                         <Card key={index} className="p-5 border-2 border-border hover:border-primary/40 transition-colors shadow-sm">
                                             <CardContent className="space-y-4 p-0">
                                                 <div className="space-y-3">
                                                     <div>
-                                                        <Label className="text-sm font-semibold mb-2 block">CSF Name</Label>
+                                                        <Label className="text-sm font-semibold mb-2 block">{tx('org_design_job_definition_content.csf_name', 'CSF Name')}</Label>
                                                         <Input
                                                             value={csf.name || ''}
                                                             onChange={(e) => {
@@ -571,14 +574,14 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                                                 newCsfs[index] = { ...newCsfs[index], name: e.target.value };
                                                                 setData('csfs', newCsfs);
                                                             }}
-                                                            placeholder="Enter CSF name (e.g., Alignment of Performance & Compensation System)"
+                                                            placeholder={tx('org_design_job_definition_content.csf_name_placeholder', 'Enter CSF name (e.g., Alignment of Performance & Compensation System)')}
                                                             disabled={isFinalized}
                                                             className="w-full"
                                                         />
                                                     </div>
                                                     
                                                     <div>
-                                                        <Label className="text-sm font-semibold mb-2 block">Description</Label>
+                                                        <Label className="text-sm font-semibold mb-2 block">{tx('org_design_job_definition_content.description', 'Description')}</Label>
                                                         <Textarea
                                                             value={csf.description || ''}
                                                             onChange={(e) => {
@@ -586,7 +589,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                                                 newCsfs[index] = { ...newCsfs[index], description: e.target.value };
                                                                 setData('csfs', newCsfs);
                                                             }}
-                                                            placeholder="Enter CSF description..."
+                                                            placeholder={tx('org_design_job_definition_content.csf_description_placeholder', 'Enter CSF description...')}
                                                             rows={3}
                                                             disabled={isFinalized}
                                                             className="w-full"
@@ -595,7 +598,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
 
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <Card className="p-4 bg-blue-50/50 border-blue-200">
-                                                            <Label className="text-sm font-semibold mb-3 block text-blue-900">Strategic Importance</Label>
+                                                            <Label className="text-sm font-semibold mb-3 block text-blue-900">{tx('org_design_job_definition_content.strategic_importance', 'Strategic Importance')}</Label>
                                                             <RadioGroup
                                                                 value={csf.strategic_importance || ''}
                                                                 onValueChange={(value) => {
@@ -603,26 +606,25 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                                                     newCsfs[index] = { ...newCsfs[index], strategic_importance: value as 'high' | 'medium' | 'low' };
                                                                     setData('csfs', newCsfs);
                                                                 }}
-                                                                disabled={isFinalized}
                                                                 className="space-y-2"
                                                             >
                                                                 <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-blue-100 cursor-pointer">
                                                                     <RadioGroupItem value="high" id={`csf-${index}-importance-high`} />
-                                                                    <Label htmlFor={`csf-${index}-importance-high`} className="font-normal cursor-pointer flex-1">High</Label>
+                                                                    <Label htmlFor={`csf-${index}-importance-high`} className="font-normal cursor-pointer flex-1">{tx('org_design_job_definition_content.high', 'High')}</Label>
                                                                 </div>
                                                                 <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-blue-100 cursor-pointer">
                                                                     <RadioGroupItem value="medium" id={`csf-${index}-importance-medium`} />
-                                                                    <Label htmlFor={`csf-${index}-importance-medium`} className="font-normal cursor-pointer flex-1">Medium</Label>
+                                                                    <Label htmlFor={`csf-${index}-importance-medium`} className="font-normal cursor-pointer flex-1">{tx('org_design_job_definition_content.medium', 'Medium')}</Label>
                                                                 </div>
                                                                 <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-blue-100 cursor-pointer">
                                                                     <RadioGroupItem value="low" id={`csf-${index}-importance-low`} />
-                                                                    <Label htmlFor={`csf-${index}-importance-low`} className="font-normal cursor-pointer flex-1">Low</Label>
+                                                                    <Label htmlFor={`csf-${index}-importance-low`} className="font-normal cursor-pointer flex-1">{tx('org_design_job_definition_content.low', 'Low')}</Label>
                                                                 </div>
                                                             </RadioGroup>
                                                         </Card>
 
                                                         <Card className="p-4 bg-green-50/50 border-green-200">
-                                                            <Label className="text-sm font-semibold mb-3 block text-green-900">Internal Execution Capability</Label>
+                                                            <Label className="text-sm font-semibold mb-3 block text-green-900">{tx('org_design_job_definition_content.execution_capability', 'Internal Execution Capability')}</Label>
                                                             <RadioGroup
                                                                 value={csf.execution_capability || ''}
                                                                 onValueChange={(value) => {
@@ -630,20 +632,19 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                                                     newCsfs[index] = { ...newCsfs[index], execution_capability: value as 'high' | 'medium' | 'low' };
                                                                     setData('csfs', newCsfs);
                                                                 }}
-                                                                disabled={isFinalized}
                                                                 className="space-y-2"
                                                             >
                                                                 <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-green-100 cursor-pointer">
                                                                     <RadioGroupItem value="high" id={`csf-${index}-capability-high`} />
-                                                                    <Label htmlFor={`csf-${index}-capability-high`} className="font-normal cursor-pointer flex-1">High</Label>
+                                                                    <Label htmlFor={`csf-${index}-capability-high`} className="font-normal cursor-pointer flex-1">{tx('org_design_job_definition_content.high', 'High')}</Label>
                                                                 </div>
                                                                 <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-green-100 cursor-pointer">
                                                                     <RadioGroupItem value="medium" id={`csf-${index}-capability-medium`} />
-                                                                    <Label htmlFor={`csf-${index}-capability-medium`} className="font-normal cursor-pointer flex-1">Medium</Label>
+                                                                    <Label htmlFor={`csf-${index}-capability-medium`} className="font-normal cursor-pointer flex-1">{tx('org_design_job_definition_content.medium', 'Medium')}</Label>
                                                                 </div>
                                                                 <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-green-100 cursor-pointer">
                                                                     <RadioGroupItem value="low" id={`csf-${index}-capability-low`} />
-                                                                    <Label htmlFor={`csf-${index}-capability-low`} className="font-normal cursor-pointer flex-1">Low</Label>
+                                                                    <Label htmlFor={`csf-${index}-capability-low`} className="font-normal cursor-pointer flex-1">{tx('org_design_job_definition_content.low', 'Low')}</Label>
                                                                 </div>
                                                             </RadioGroup>
                                                         </Card>
@@ -651,7 +652,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
 
                                                     <div className="flex items-center justify-between flex-wrap pt-2 border-t">
                                                         <div className="flex items-center gap-2">
-                                                            <Label className="text-sm font-medium">Rank (Optional):</Label>
+                                                            <Label className="text-sm font-medium">{tx('org_design_job_definition_content.rank_optional', 'Rank (Optional):')}</Label>
                                                             <Input
                                                                 type="number"
                                                                 value={csf.rank || ''}
@@ -660,7 +661,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                                                     newCsfs[index] = { ...newCsfs[index], rank: e.target.value ? parseInt(e.target.value) : undefined };
                                                                     setData('csfs', newCsfs);
                                                                 }}
-                                                                placeholder="1"
+                                                            placeholder={tx('org_design_job_definition_content.rank_placeholder', '1')}
                                                                 disabled={isFinalized}
                                                                 className="w-20"
                                                                 min="1"
@@ -670,13 +671,13 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                                             variant="ghost"
                                                             size="sm"
                                                             onClick={() => {
-                                                                setData('csfs', data.csfs.filter((_, i) => i !== index));
+                                                                setData('csfs', data.csfs.filter((_: any, i: number) => i !== index));
                                                             }}
                                                             disabled={isFinalized}
                                                             className="text-destructive hover:text-destructive hover:bg-destructive/10"
                                                         >
                                                             <X className="w-4 h-4 mr-2" />
-                                                            Remove CSF
+                                                            {tx('org_design_job_definition_content.remove_csf', 'Remove CSF')}
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -690,7 +691,7 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                                         className="w-full border-dashed border-2 hover:border-primary hover:bg-primary/5"
                                     >
                                         <Plus className="w-4 h-4 mr-2" />
-                                        Add Critical Success Factor
+                                        {tx('org_design_job_definition_content.add_csf', 'Add Critical Success Factor')}
                                     </Button>
                                 </div>
                             </TabsContent>
@@ -710,12 +711,12 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                     {saving ? (
                         <>
                             <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                            Saving...
+                            {tx('common.saving', 'Saving...')}
                         </>
                     ) : (
                         <>
                             <Save className="w-4 h-4 mr-2" />
-                            Save
+                            {tx('common.save', 'Save')}
                         </>
                     )}
                 </Button>
@@ -728,11 +729,11 @@ export default function JobDefinitionContent({ project, jobDefinitions, selected
                     {saving ? (
                         <>
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                            Saving...
+                            {tx('common.saving', 'Saving...')}
                         </>
                     ) : (
                         <>
-                            Save & Next
+                            {tx('job_analysis_pages.common.save_continue', 'Save & Continue')}
                             <ChevronRight className="w-4 h-4 ml-2" />
                         </>
                     )}
