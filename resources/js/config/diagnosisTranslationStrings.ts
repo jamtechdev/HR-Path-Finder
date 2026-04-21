@@ -5,6 +5,7 @@ export const diagnosisTranslationStrings = {
     // Common
     back: { en: 'Back', ko: '이전' },
     next: { en: 'Next', ko: '다음' },
+    saveAndContinue: { en: 'Save & Continue', ko: '저장 후 계속' },
     saving: { en: 'Saving...', ko: '저장 중...' },
     saved: { en: 'Saved', ko: '저장됨' },
     savedDesc: {
@@ -18,6 +19,11 @@ export const diagnosisTranslationStrings = {
     },
     validationError: { en: 'Validation error', ko: '입력 오류' },
     saveFailed: { en: 'Save failed', ko: '저장 실패' },
+    step1DiagnosisTitle: { en: 'Step 1: Diagnosis', ko: '1단계: 진단' },
+    diagnosisAwaitingCeoReview: {
+        en: 'Diagnosis has been submitted and is awaiting CEO review.',
+        ko: '진단이 제출되어 CEO 검토를 기다리는 중입니다.',
+    },
 
     // Leaders
     leadersTitle: { en: 'Leaders (Excluding Executives)', ko: '리더 (임원 제외)' },

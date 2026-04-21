@@ -1,5 +1,6 @@
 import { CheckCircle2 } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -22,11 +23,17 @@ interface SuccessModalProps {
 export default function SuccessModal({
     isOpen,
     onClose,
-    title = 'Success!',
-    message = 'Operation completed successfully.',
-    nextStepLabel = 'Next Step',
+    title,
+    message,
+    nextStepLabel,
     onNextStep,
 }: SuccessModalProps) {
+    const { t } = useTranslation();
+    const resolvedTitle = title ?? t('job_analysis_pages.success_modal.default_title');
+    const resolvedMessage = message ?? t('job_analysis_pages.success_modal.default_message');
+    const resolvedNext = nextStepLabel ?? t('job_analysis_pages.success_modal.default_next');
+    const closeLabel = t('job_analysis_pages.success_modal.close');
+
     return (
         <Dialog
             open={isOpen}
@@ -46,19 +53,19 @@ export default function SuccessModal({
                             <CheckCircle2 className="w-10 h-10 text-green-600 dark:text-green-400" />
                         </div>
                     </div>
-                    <DialogTitle className="text-center text-2xl">{title}</DialogTitle>
+                    <DialogTitle className="text-center text-2xl">{resolvedTitle}</DialogTitle>
                     <DialogDescription className="text-center text-base mt-2 whitespace-pre-line">
-                        {message}
+                        {resolvedMessage}
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:justify-center">
                     {onNextStep && (
                         <Button onClick={onNextStep} className="w-full sm:w-auto">
-                            {nextStepLabel}
+                            {resolvedNext}
                         </Button>
                     )}
                     <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
-                        Close
+                        {closeLabel}
                     </Button>
                 </DialogFooter>
             </DialogContent>

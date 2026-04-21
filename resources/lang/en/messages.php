@@ -12,4 +12,5 @@ return [
     'create_success' => 'Created successfully',
     'create_failed' => 'Create failed',
     'company_created' => 'Company created successfully. You can now start the diagnosis process.',
+    'job_analysis_locked_save' => 'This Job Analysis has already been submitted and can no longer be edited. Please contact an administrator if you need changes.',
 ];

@@ -812,7 +812,7 @@ export default function Review({
                         )}
                         {diagnosisStatus === 'submitted' && (
                             <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-blue-800">
-                                <p className="text-sm font-medium">Diagnosis has been submitted and is awaiting CEO review.</p>
+                                <p className="text-sm font-medium">{tr('diagnosisAwaitingCeoReview')}</p>
                             </div>
                         )}
 
@@ -896,7 +896,7 @@ export default function Review({
                             </div>
                             <div className="h-14 w-px bg-slate-200 shrink-0 hidden sm:block dark:bg-[#2a3a5c]" />
                             <div className="min-w-0 flex-1">
-                                <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-[#9AA3B2]">Job Structure</span>
+                                <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-[#9AA3B2]">{tr('jobStructureTitle')}</span>
                                 <div className="mt-2 flex flex-wrap gap-2">
                                     {jobStructureForReview.flatMap((cat) =>
                                         cat.functions.map((fn, fnIdx) => (

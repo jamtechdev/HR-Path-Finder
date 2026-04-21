@@ -8,6 +8,15 @@ import { DIAGNOSIS_ORG_CHART_REQUIRED_YEARS } from '@/config/diagnosisConstants'
 import { diagnosisTabs } from '@/config/diagnosisTabs';
 import { tr } from '@/config/diagnosisTranslations';
 import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import AppLayout from '@/layouts/AppLayout';
 import { saveTabDraft } from '@/lib/diagnosisDraftStorage';
 import { waitWebAnimationMs } from '@/lib/deferred';
@@ -235,6 +244,7 @@ export default function FormLayout({
     const [validationError, setValidationError] = useState<string | null>(null);
     const [diagnosisFieldErrors, setDiagnosisFieldErrors] = useState<FieldErrors>({});
     const [dismissValidationBanner, setDismissValidationBanner] = useState(false);
+    const [readOnlyEditAttemptOpen, setReadOnlyEditAttemptOpen] = useState(false);
     const validateBeforeNextRef = useRef(validateBeforeNext);
     validateBeforeNextRef.current = validateBeforeNext;
     const activeValidationMessage = validationError || liveValidationError || null;
@@ -335,6 +345,20 @@ export default function FormLayout({
             }
         }
 
+        if (isReadOnly && formData && diagnosis && typeof diagnosis === 'object') {
+            const merged = mergeDiagnosisWithFormData(diagnosis, formData) as Record<string, unknown>;
+            const base = diagnosis as Record<string, unknown>;
+            try {
+                if (formSignature(merged) !== formSignature(base)) {
+                    setReadOnlyEditAttemptOpen(true);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    return;
+                }
+            } catch {
+                // ignore compare errors
+            }
+        }
+
         const isSubmitted = diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked';
         if (isSubmitted) {
             if (onNext) onNext();
@@ -393,7 +417,7 @@ export default function FormLayout({
                         // ignore storage errors
                     }
                     toast({
-                        title: 'Diagnosis step saved successfully.',
+                        title: t('form_layout.diagnosis_step_saved'),
                         variant: 'success',
                         duration: SAVE_SUCCESS_TOAST_MS,
                     });
@@ -529,7 +553,7 @@ export default function FormLayout({
                                     <path d="M19 12H5M12 5l-7 7 7 7" />
                                 </svg>
                             </Link>
-                            <span className="dx-step-title">Step 1: Diagnosis</span>
+                            <span className="dx-step-title">{tr('step1DiagnosisTitle')}</span>
                             <span className={`dx-step-badge ${statusForHeader !== 'in_progress' ? '!bg-[#F0F2F5] !text-[#6B7585] !border-[#E2E6ED]' : ''}`}>
                                 {badgeLabel}
                             </span>
@@ -566,7 +590,7 @@ export default function FormLayout({
                         {(diagnosisStatus === 'submitted' || diagnosisStatus === 'approved' || diagnosisStatus === 'locked') && (
                             <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
                                 <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
-                                    This diagnosis has been submitted and is currently in read-only mode. You can view the data but cannot make changes.
+                                    {t('form_layout.read_only_notice')}
                                 </p>
                             </div>
                         )}
@@ -579,7 +603,7 @@ export default function FormLayout({
                                         <span className="text-destructive text-xs font-bold">!</span>
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-sm font-semibold text-destructive mb-1">Validation Error</p>
+                                        <p className="text-sm font-semibold text-destructive mb-1">{t('form_layout.validation_title')}</p>
                                         <p className="text-sm text-destructive/90">{activeValidationMessage}</p>
                                     </div>
                                     <button
@@ -627,7 +651,7 @@ export default function FormLayout({
                                             disabled={processing}
                                             className="dx-btn-next"
                                         >
-                                            {nextLabel ?? tr('next')}
+                                            {nextLabel ?? tr('saveAndContinue')}
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                                                 <path d="M5 12h14M12 5l7 7-7 7" />
                                             </svg>
@@ -642,6 +666,20 @@ export default function FormLayout({
                             </div>
                         )}
             </div>
+
+            <Dialog open={readOnlyEditAttemptOpen} onOpenChange={setReadOnlyEditAttemptOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>{t('form_layout.read_only_edit_title')}</DialogTitle>
+                        <DialogDescription>{t('form_layout.read_only_edit_body')}</DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button type="button" onClick={() => setReadOnlyEditAttemptOpen(false)}>
+                            {t('form_layout.read_only_edit_ok')}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }

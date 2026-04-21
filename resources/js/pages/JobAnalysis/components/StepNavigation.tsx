@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 
 interface StepNavigationProps {
@@ -16,13 +17,17 @@ interface StepNavigationProps {
 export default function StepNavigation({
     onBack,
     onNext,
-    backLabel = 'Back',
-    nextLabel = 'Continue',
+    backLabel,
+    nextLabel,
     nextDisabled = false,
     nextLoading = false,
     showBack = true,
     showNext = true,
 }: StepNavigationProps) {
+    const { t } = useTranslation();
+    const resolvedBackLabel = backLabel ?? t('common.back', { defaultValue: 'Back' });
+    const resolvedNextLabel = nextLabel ?? t('job_analysis_pages.common.save_continue', { defaultValue: 'Save & Continue' });
+
     return (
         <div className="flex items-center justify-between flex-wrap gap-4 pt-6 border-t border-border">
             {showBack && onBack && (
@@ -33,7 +38,7 @@ export default function StepNavigation({
                     className="flex items-center gap-2"
                 >
                     <ChevronLeft className="w-4 h-4" />
-                    {backLabel}
+                    {resolvedBackLabel}
                 </Button>
             )}
             {!showBack && <div />}
@@ -48,11 +53,11 @@ export default function StepNavigation({
                     {nextLoading ? (
                         <>
                             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                            Processing...
+                            {t('common.processing', { defaultValue: 'Processing...' })}
                         </>
                     ) : (
                         <>
-                            {nextLabel}
+                            {resolvedNextLabel}
                             <ChevronRight className="w-4 h-4" />
                         </>
                     )}

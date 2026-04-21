@@ -1,4 +1,5 @@
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 
 interface StepFooterProps {
@@ -18,10 +19,14 @@ export default function StepFooter({
     canGoBack = true,
     canGoNext = true,
     isNextDisabled = false,
-    nextLabel = 'Next',
-    backLabel = 'Back',
+    nextLabel,
+    backLabel,
     showFooter = true,
 }: StepFooterProps) {
+    const { t } = useTranslation();
+    const resolvedBackLabel = backLabel ?? t('common.back', { defaultValue: 'Back' });
+    const resolvedNextLabel = nextLabel ?? t('job_analysis_pages.common.save_continue', { defaultValue: 'Save & Continue' });
+
     if (!showFooter) return null;
 
     return (
@@ -33,14 +38,14 @@ export default function StepFooter({
                 className="flex items-center gap-2"
             >
                 <ArrowLeft className="w-4 h-4" />
-                {backLabel}
+                {resolvedBackLabel}
             </Button>
             <Button
                 onClick={onNext}
                 disabled={!canGoNext || isNextDisabled}
                 className="flex items-center gap-2"
             >
-                {nextLabel}
+                {resolvedNextLabel}
                 <ArrowRight className="w-4 h-4" />
             </Button>
         </div>

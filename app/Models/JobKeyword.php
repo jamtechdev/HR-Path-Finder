@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class JobKeyword extends Model
 {
     protected $fillable = [
+        'slug',
         'name',
         'industry_category',
         'company_size_range',

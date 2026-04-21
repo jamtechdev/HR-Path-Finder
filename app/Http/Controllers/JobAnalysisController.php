@@ -27,6 +27,22 @@ class JobAnalysisController extends Controller
     }
 
     /**
+     * After Job Analysis is submitted (or later states), block further saves.
+     */
+    private function ensureJobAnalysisEditable(HrProject $hrProject): ?\Illuminate\Http\RedirectResponse
+    {
+        $hrProject->initializeStepStatuses();
+        $st = $hrProject->getStepStatus('job_analysis');
+        if ($st && ! $st->canEdit()) {
+            return back()->withErrors([
+                'locked' => __('messages.job_analysis_locked_save'),
+            ]);
+        }
+
+        return null;
+    }
+
+    /**
      * Determine company size range from workforce count.
      */
     private function determineSizeRange(int $workforce): string
@@ -266,6 +282,10 @@ class JobAnalysisController extends Controller
             abort(403);
         }
 
+        if ($response = $this->ensureJobAnalysisEditable($hrProject)) {
+            return $response;
+        }
+
         // Mark job analysis as in progress
         $hrProject->setStepStatus('job_analysis', StepStatus::IN_PROGRESS);
 
@@ -279,6 +299,10 @@ class JobAnalysisController extends Controller
     {
         if (!$request->user()->hasRole('hr_manager')) {
             abort(403);
+        }
+
+        if ($response = $this->ensureJobAnalysisEditable($hrProject)) {
+            return $response;
         }
 
         $validated = $request->validate([
@@ -313,6 +337,10 @@ class JobAnalysisController extends Controller
     {
         if (!$request->user()->hasRole('hr_manager')) {
             abort(403);
+        }
+
+        if ($response = $this->ensureJobAnalysisEditable($hrProject)) {
+            return $response;
         }
 
         $validated = $request->validate([
@@ -404,6 +432,10 @@ class JobAnalysisController extends Controller
             abort(403);
         }
 
+        if ($response = $this->ensureJobAnalysisEditable($hrProject)) {
+            return $response;
+        }
+
         $validated = $request->validate([
             'job_description' => ['nullable', 'string'],
             'job_specification' => ['nullable', 'array'],
@@ -437,6 +469,10 @@ class JobAnalysisController extends Controller
     {
         if (!$request->user()->hasRole('hr_manager')) {
             abort(403);
+        }
+
+        if ($response = $this->ensureJobAnalysisEditable($hrProject)) {
+            return $response;
         }
 
         $validated = $request->validate([
@@ -611,6 +647,10 @@ class JobAnalysisController extends Controller
             abort(403);
         }
 
+        if ($response = $this->ensureJobAnalysisEditable($hrProject)) {
+            return $response;
+        }
+
         $validated = $request->validate([
             'policy_answers' => ['nullable', 'array'],
             'policy_answers.*.question_id' => ['required', 'exists:policy_snapshot_questions,id'],
@@ -760,6 +800,10 @@ class JobAnalysisController extends Controller
     {
         if (!$request->user()->hasRole('hr_manager')) {
             abort(403);
+        }
+
+        if ($response = $this->ensureJobAnalysisEditable($hrProject)) {
+            return $response;
         }
 
         $validated = $request->validate([

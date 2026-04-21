@@ -67,13 +67,15 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
     const totalKpis = kpis.length;
     const approvedCount = kpis.filter((k) => k.ceo_approval_status === 'approved' || k.status === 'approved').length;
     const pendingCount = totalKpis - approvedCount;
-    const totalWeight = kpis.reduce((s, k) => s + (Number(k.weight) || 0), 0);
-    const orgTotals = Object.values(kpisByOrganization).map((orgRows) =>
-        orgRows.reduce((sum, row) => sum + (Number(row.weight) || 0), 0),
-    );
-    const averageOrgWeight = orgTotals.length > 0
-        ? orgTotals.reduce((a, b) => a + b, 0) / orgTotals.length
-        : 0;
+    const orgTotals = organizations.map((orgName) => {
+        const orgRows = kpisByOrganization[orgName] || [];
+        return orgRows.reduce((sum, row) => sum + (Number(row.weight) || 0), 0);
+    });
+    const WEIGHT_EPS = 0.501;
+    const isOrgWeightBalanced = (w: number) => Math.abs(w - 100) <= WEIGHT_EPS;
+    const everyOrgBalanced = organizations.length === 0 || orgTotals.every(isOrgWeightBalanced);
+    const minOrgWeight = orgTotals.length > 0 ? Math.min(...orgTotals) : 0;
+    const maxOrgWeight = orgTotals.length > 0 ? Math.max(...orgTotals) : 0;
     const teamCount = organizations.length;
     const allApproved = totalKpis > 0 && approvedCount === totalKpis;
 
@@ -129,7 +131,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
             .filter(([_, comment]) => comment.trim())
             .map(([org, comment]) => ({ organization_name: org, comment: comment.trim() }));
         if (requests.length === 0) {
-            alert('Please add at least one revision comment.');
+            alert(tx('ceo_kpi.review.revision_alert', 'Please add at least one revision comment.'));
             return;
         }
         const route = isAdmin ? `/admin/kpi-review/${project.id}` : `/ceo/kpi-review/${project.id}`;
@@ -159,8 +161,15 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
     };
 
     const backHref = isAdmin ? '/admin/dashboard' : '/ceo/dashboard';
-    const weightPct = Math.min(100, averageOrgWeight);
-    const statusAlertType = averageOrgWeight === 100 ? 'ok' : averageOrgWeight > 0 ? 'warn' : 'idle';
+    const weightBarWidthPct = everyOrgBalanced ? 100 : Math.min(100, minOrgWeight);
+    const weightBarOverCap = maxOrgWeight > 100 + WEIGHT_EPS;
+    const statusAlertType: 'ok' | 'warn' | 'idle' = everyOrgBalanced ? 'ok' : orgTotals.some((w) => w > 0) ? 'warn' : 'idle';
+    const topProgressPct =
+        totalKpis > 0 && approvedCount === totalKpis && everyOrgBalanced
+            ? 100
+            : totalKpis > 0
+              ? (approvedCount / totalKpis) * 100
+              : 0;
 
     return (
         <AppLayout>
@@ -193,7 +202,9 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                             padding: '18px 20px',
                         }}
                     >
-                        <div style={{ fontWeight: 700, color: '#0f2a4a', marginBottom: 8 }}>Submission Status</div>
+                        <div style={{ fontWeight: 700, color: '#0f2a4a', marginBottom: 8 }}>
+                            {tx('ceo_kpi.review.submission_modal_title', 'Submission status')}
+                        </div>
                         <div style={{ color: '#334155', fontSize: 14, lineHeight: 1.5 }}>{successModalMessage}</div>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
                             <button
@@ -209,7 +220,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                     cursor: 'pointer',
                                 }}
                             >
-                                OK
+                                {tx('ceo_kpi.review.submission_modal_ok', 'OK')}
                             </button>
                         </div>
                     </div>
@@ -223,8 +234,15 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
             )}
             {isAdmin && (
                 <div className="mb-4 rounded-lg border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-                    <strong className="text-foreground">When to use this page:</strong> review submitted company KPIs, request revision per organization, or finalize approved KPIs.
-                    <span className="ml-1">For default KPI catalogs before project data exists, use <Link href="/admin/kpi-templates" className="underline">KPI Templates</Link>.</span>
+                    <strong className="text-foreground">{tx('ceo_kpi.review.admin_usage_title', 'When to use this page')}</strong>
+                    {': '}
+                    {tx(
+                        'ceo_kpi.review.admin_usage_body',
+                        'Review submitted company KPIs, request revision per organization, or finalize approved KPIs. For default KPI catalogs before project data exists, use KPI Templates.',
+                    )}{' '}
+                    <Link href="/admin/kpi-templates" className="underline">
+                        {tx('ceo_kpi.review.admin_templates_link', 'KPI Templates')}
+                    </Link>
                 </div>
             )}
 
@@ -243,7 +261,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
             {/* Progress bar: 3px mint fill */}
             <div className="ckr-progress-wrap">
                 <div className="ckr-progress-track">
-                    <div className="ckr-progress-fill" style={{ width: totalWeight === 100 && approvedCount === totalKpis ? '100%' : '60%' }} />
+                    <div className="ckr-progress-fill" style={{ width: `${Math.min(100, topProgressPct)}%` }} />
                 </div>
             </div>
 
@@ -287,7 +305,9 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                             </div>
                             <div className="ckr-strip-divider" />
                             <div className="ckr-strip-pill-ratio">
-                                <div className="ckr-pill-val">{averageOrgWeight === 100 ? '100%' : averageOrgWeight > 0 ? `${averageOrgWeight.toFixed(0)}%` : '—'}</div>
+                                <div className="ckr-pill-val">
+                                    {everyOrgBalanced ? '100%' : orgTotals.length > 0 ? `${maxOrgWeight.toFixed(1)}%` : '—'}
+                                </div>
                                 <div className="ckr-pill-lbl">{tx('ceo_kpi.review.weight_sum', 'Weight Sum')}</div>
                             </div>
                         </div>
@@ -303,10 +323,10 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                     {/* Table header: Team Progress */}
                     <div className="ckr-table-head">
                         <div />
-                        <div className="ckr-th">{tx('ceo_kpi.review.organization', 'Organization')}<span className="ckr-th-sub">ORGANIZATION</span></div>
-                        <div className="ckr-th">{tx('ceo_kpi.review.leader', 'Leader')}<span className="ckr-th-sub">LEADER</span></div>
-                        <div className="ckr-th">{tx('ceo_kpi.review.kpi_count', 'KPI Count')}<span className="ckr-th-sub">COUNT</span></div>
-                        <div className="ckr-th">{tx('ceo_kpi.review.status', 'Status')}<span className="ckr-th-sub">STATUS</span></div>
+                        <div className="ckr-th">{tx('ceo_kpi.review.organization', 'Organization')}</div>
+                        <div className="ckr-th">{tx('ceo_kpi.review.leader', 'Leader')}</div>
+                        <div className="ckr-th">{tx('ceo_kpi.review.kpi_count', 'KPI Count')}</div>
+                        <div className="ckr-th">{tx('ceo_kpi.review.status', 'Status')}</div>
                         <div />
                     </div>
 
@@ -399,12 +419,12 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                                 <table className="ckr-kpi-table">
                                                     <thead>
                                                         <tr>
-                                                            <th>No.</th>
-                                                            <th>Name</th>
-                                                            <th>Category</th>
-                                                            <th>Weight</th>
-                                                            <th>Details</th>
-                                                            <th>Status</th>
+                                                            <th>{tx('ceo_kpi.review.kpi_table_no', 'No.')}</th>
+                                                            <th>{tx('ceo_kpi.review.kpi_table_name', 'Name')}</th>
+                                                            <th>{tx('ceo_kpi.review.kpi_table_category', 'Category')}</th>
+                                                            <th>{tx('ceo_kpi.review.kpi_table_weight', 'Weight')}</th>
+                                                            <th>{tx('ceo_kpi.review.kpi_table_details', 'Details')}</th>
+                                                            <th>{tx('ceo_kpi.review.kpi_table_status', 'Status')}</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -442,7 +462,9 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                                 <label className="ckr-field-label">
                                                     {tx('ceo_kpi.review.revision_comment_optional', 'Revision comment (if needed)')}
                                                     {revisionRequests[orgName]?.trim() && (
-                                                        <span style={{ marginLeft: 8, color: '#16a34a', fontWeight: 700 }}>Selected</span>
+                                                        <span style={{ marginLeft: 8, color: '#16a34a', fontWeight: 700 }}>
+                                                            {tx('ceo_kpi.review.selected_label', 'Selected')}
+                                                        </span>
                                                     )}
                                                 </label>
                                                 <textarea
@@ -468,13 +490,19 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                 <div
                                     className="ckr-hc-bar-fill"
                                     style={{
-                                        width: `${weightPct}%`,
-                                        background: totalWeight === 100 ? 'linear-gradient(90deg, #2EC4A9, #3DD6BD)' : totalWeight > 100 ? 'linear-gradient(90deg, #E05252, #f87171)' : 'linear-gradient(90deg, #F59E0B, #FCD34D)',
+                                        width: `${weightBarWidthPct}%`,
+                                        background: everyOrgBalanced
+                                            ? 'linear-gradient(90deg, #2EC4A9, #3DD6BD)'
+                                            : weightBarOverCap
+                                              ? 'linear-gradient(90deg, #E05252, #f87171)'
+                                              : 'linear-gradient(90deg, #F59E0B, #FCD34D)',
                                     }}
                                 />
                             </div>
                             <div className="ckr-hc-nums">
-                                <span className="ckr-hc-total-val">{averageOrgWeight.toFixed(1)}%</span>
+                                <span className="ckr-hc-total-val">
+                                    {everyOrgBalanced ? '100%' : `${minOrgWeight.toFixed(1)}% – ${maxOrgWeight.toFixed(1)}%`}
+                                </span>
                                 <span className="ckr-hc-of">/ 100%</span>
                             </div>
                         </div>
@@ -486,7 +514,11 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                             </svg>
                             <span>
                                 {statusAlertType === 'ok' && tx('ceo_kpi.review.alert_ok', 'Weight is 100% — ready to finalize')}
-                                {statusAlertType === 'warn' && t('ceo_kpi.review.alert_warn', { value: averageOrgWeight.toFixed(1), defaultValue: `Average team weight is ${averageOrgWeight.toFixed(1)}%. Set each organization to 100% before finalizing.` })}
+                                {statusAlertType === 'warn' &&
+                                    tx(
+                                        'ceo_kpi.review.alert_warn_per_org',
+                                        'Each organization must have KPI weights totaling exactly 100%. One or more teams are above or below 100% — adjust before finalizing.',
+                                    )}
                                 {statusAlertType === 'idle' && tx('ceo_kpi.review.alert_idle', 'Review each team KPI, then approve or request revision.')}
                             </span>
                         </div>
@@ -514,7 +546,20 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                             {tx('ceo_kpi.review.request_revision', 'Request Revision')}
                         </button>
                         {!allApproved && (
-                            <button type="button" className="ckr-btn ckr-btn-primary" onClick={handleApprove} disabled={processing}>
+                            <button
+                                type="button"
+                                className="ckr-btn ckr-btn-primary"
+                                onClick={handleApprove}
+                                disabled={processing || !everyOrgBalanced}
+                                title={
+                                    !everyOrgBalanced
+                                        ? tx(
+                                              'ceo_kpi.review.alert_warn_per_org',
+                                              'Each organization must total 100% weight before finalizing.',
+                                          )
+                                        : undefined
+                                }
+                            >
                                 ✓ {tx('ceo_kpi.review.finalize', 'Finalize Company-wide KPIs')}
                             </button>
                         )}

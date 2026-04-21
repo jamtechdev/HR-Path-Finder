@@ -49,11 +49,11 @@ interface Props {
 }
 
 const VALIDATIONS = [
-    { icon: '🎯', title: 'Outcome Influence', question: "Do these KPIs directly influence the team's core outcomes?", hint: 'Verify they are tied to real results (revenue, quality, speed) — not just activity metrics like meeting attendance.' },
-    { icon: '📋', title: 'Job Relevance', question: 'Do these KPIs align with the responsibilities of this team?', hint: "Check that no item overlaps with another team's scope or falls outside what this team can realistically control." },
-    { icon: '📐', title: 'Measurability', question: 'Can all KPIs be measured with objective criteria or numbers?', hint: 'Ensure each KPI has a clearly defined formula, a designated measurement owner, and a set frequency.' },
-    { icon: '🗄', title: 'Data Availability', question: 'Is the data needed for measurement actually accessible?', hint: 'Confirm that data sources (systems, reports, etc.) exist and can be accessed on a regular basis.' },
-];
+    { icon: '🎯', key: 'outcome_influence' },
+    { icon: '📋', key: 'job_relevance' },
+    { icon: '📐', key: 'measurability' },
+    { icon: '🗄', key: 'data_availability' },
+] as const;
 
 export default function KpiReviewToken({
     token,
@@ -68,6 +68,7 @@ export default function KpiReviewToken({
     reviewComments: initialReviewComments = '',
 }: Props) {
     const { t } = useTranslation();
+    const tx = (key: string, fallback: string) => t(key, { defaultValue: fallback });
     const { props } = usePage();
     const propsKpis = (props as any)?.kpis;
     const [selectedOrganization, setSelectedOrganization] = useState<string>(defaultOrganizationName);
@@ -234,7 +235,7 @@ export default function KpiReviewToken({
                             const submitMessage =
                                 flash?.success ||
                                 flash?.warning ||
-                                'Your KPI review has been submitted successfully.';
+                                tx('kpi_review_token.review_submitted_success', 'Your KPI review has been submitted successfully.');
                             setSubmitPopupMessage(String(submitMessage));
                             setSubmitPopupOpen(true);
                             setCompleted(true);
@@ -248,7 +249,7 @@ export default function KpiReviewToken({
                     const msg =
                         typeof firstError === 'string'
                             ? firstError
-                            : 'Failed to submit review. Please try again.';
+                            : tx('kpi_review_token.submit_failed', 'Failed to submit review. Please try again.');
                     setValidationMessage(msg);
                 },
             },
@@ -278,19 +279,19 @@ export default function KpiReviewToken({
 
         let blockingMessage: string | null = null;
         if (isReadOnly) {
-            blockingMessage = 'You already submitted this review.';
+            blockingMessage = tx('kpi_review_token.already_submitted_block', 'You already submitted this review.');
         } else if (processing || loading) {
-            blockingMessage = 'Please wait... the request is being processed.';
+            blockingMessage = tx('kpi_review_token.please_wait_processing', 'Please wait... the request is being processed.');
         } else if (kpis.length === 0) {
-            blockingMessage = 'Add at least one KPI before requesting a CEO review.';
+            blockingMessage = tx('kpi_review_token.add_one_kpi_required', 'Add at least one KPI before requesting a CEO review.');
         } else if (ceos.length === 0) {
-            blockingMessage = 'No CEO recipient is configured for this company (missing CEO email).';
+            blockingMessage = tx('kpi_review_token.no_ceo_configured', 'No CEO recipient is configured for this company (missing CEO email).');
         } else if (!weightOkLocal) {
-            blockingMessage = `Total KPI weight must be 100%. Current: ${totalWeightNormalizedLocal}%.`;
+            blockingMessage = tx('kpi_review_token.total_weight_must_be_100', 'Total KPI weight must be 100%. Current: {{value}}%.').replace('{{value}}', String(totalWeightNormalizedLocal));
         } else if (!allConfirmedLocal) {
-            blockingMessage = `Please confirm all 4 self-assessment checks (${confirmedCountLocal}/4 confirmed).`;
+            blockingMessage = tx('kpi_review_token.confirm_all_checks', 'Please confirm all 4 self-assessment checks ({{count}}/4 confirmed).').replace('{{count}}', String(confirmedCountLocal));
         } else if (hasInvalidKpisLocal) {
-            blockingMessage = `Fix KPI #${invalidKpiIndicesLocal.join(', ')}: KPI name is required and weight must be 0-100.`;
+            blockingMessage = tx('kpi_review_token.fix_invalid_kpi', 'Fix KPI #{{indices}}: KPI name is required and weight must be 0-100.').replace('{{indices}}', invalidKpiIndicesLocal.join(', '));
         }
 
         if (blockingMessage) {
@@ -304,7 +305,7 @@ export default function KpiReviewToken({
         if (ceos.length <= 1) {
             const firstId = ceos[0]?.id;
             if (!firstId) {
-                setValidationMessage('No CEO recipient is configured for this company (missing CEO email).');
+                setValidationMessage(tx('kpi_review_token.no_ceo_configured', 'No CEO recipient is configured for this company (missing CEO email).'));
                 return;
             }
             submitFinalReviewToSelectedCeo([firstId]);
@@ -378,7 +379,7 @@ export default function KpiReviewToken({
     const handleSaveKpi = async (index: number) => {
         const kpi = kpis[index];
         if (!kpi.kpi_name?.trim()) {
-            alert('Please enter KPI name');
+            alert(tx('kpi_review_token.enter_kpi_name', 'Please enter KPI name'));
             return;
         }
         setSavingKpiIndex(index);
@@ -406,7 +407,7 @@ export default function KpiReviewToken({
                     .then((res) => res.json())
                     .then((data) => setKpis(data.kpis || []))
                     .catch((err) => console.error('Error reloading:', err));
-                setSubmitPopupMessage('KPI draft saved successfully.');
+                setSubmitPopupMessage(tx('kpi_review_token.kpi_draft_saved', 'KPI draft saved successfully.'));
                 setSubmitPopupOpen(true);
                 setSavingKpiIndex(null);
                 setEditingKpiIndex(null);
@@ -414,7 +415,7 @@ export default function KpiReviewToken({
             onError: (errors) => {
                 console.error('Error saving KPI:', errors);
                 const firstError = Object.values(errors || {})[0];
-                setSubmitPopupMessage(typeof firstError === 'string' ? firstError : 'Failed to save KPI. Please try again.');
+                setSubmitPopupMessage(typeof firstError === 'string' ? firstError : tx('kpi_review_token.kpi_save_failed', 'Failed to save KPI. Please try again.'));
                 setSubmitPopupOpen(true);
                 setSavingKpiIndex(null);
             },
@@ -504,7 +505,9 @@ export default function KpiReviewToken({
                             padding: '18px 20px',
                         }}
                     >
-                        <div style={{ fontWeight: 700, color: '#0f2a4a', marginBottom: 8 }}>Submission Status</div>
+                        <div style={{ fontWeight: 700, color: '#0f2a4a', marginBottom: 8 }}>
+                            {tx('kpi_review_token.submission_status', 'Submission Status')}
+                        </div>
                         <div style={{ color: '#334155', fontSize: 14, lineHeight: 1.5 }}>{submitPopupMessage}</div>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
                             <button
@@ -520,7 +523,7 @@ export default function KpiReviewToken({
                                     cursor: 'pointer',
                                 }}
                             >
-                                OK
+                                {tx('kpi_review_token.ok', 'OK')}
                             </button>
                         </div>
                     </div>
@@ -552,16 +555,16 @@ export default function KpiReviewToken({
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div style={{ fontWeight: 800, color: '#0f2a4a', marginBottom: 6 }}>
-                            Choose CEO recipient(s)
+                            {tx('kpi_review_token.choose_ceo_recipients', 'Choose CEO recipient(s)')}
                         </div>
                         <div style={{ color: '#334155', fontSize: 13, lineHeight: 1.5, marginBottom: 12 }}>
-                            Select which CEO(s) should receive the KPI review request email.
+                            {tx('kpi_review_token.choose_ceo_recipients_desc', 'Select which CEO(s) should receive the KPI review request email.')}
                         </div>
 
                         <div style={{ maxHeight: 300, overflowY: 'auto', paddingRight: 6 }}>
                             {ceos.length === 0 ? (
                                 <div style={{ color: '#b91c1c', fontSize: 13 }}>
-                                    No CEO recipients are available (missing email).
+                                    {tx('kpi_review_token.no_ceo_recipients', 'No CEO recipients are available (missing email).')}
                                 </div>
                             ) : (
                                 ceos.map((ceo) => {
@@ -620,7 +623,7 @@ export default function KpiReviewToken({
                                         cursor: 'pointer',
                                     }}
                                 >
-                                    Select All
+                                    {tx('kpi_review_token.select_all', 'Select All')}
                                 </button>
                                 <button
                                     type="button"
@@ -635,7 +638,7 @@ export default function KpiReviewToken({
                                         cursor: 'pointer',
                                     }}
                                 >
-                                    Select None
+                                    {tx('kpi_review_token.select_none', 'Select None')}
                                 </button>
                             </div>
                             <button
@@ -651,13 +654,13 @@ export default function KpiReviewToken({
                                     cursor: 'pointer',
                                 }}
                             >
-                                Cancel
+                                {tx('kpi_review_token.cancel', 'Cancel')}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => {
                                     if (selectedCeoIds.length === 0) {
-                                        setValidationMessage('Please select at least one CEO recipient.');
+                                        setValidationMessage(tx('kpi_review_token.select_at_least_one_ceo', 'Please select at least one CEO recipient.'));
                                         return;
                                     }
                                     setValidationMessage(null);
@@ -673,7 +676,7 @@ export default function KpiReviewToken({
                                     cursor: 'pointer',
                                 }}
                             >
-                                Send to selected CEO(s)
+                                {tx('kpi_review_token.send_to_selected_ceos', 'Send to selected CEO(s)')}
                             </button>
                         </div>
                     </div>
@@ -684,7 +687,7 @@ export default function KpiReviewToken({
                 <div className="lkr-header-left">
                     <div className="lkr-header-logo">HR <span>Path-Finder</span></div>
                     <div className="lkr-header-divider" />
-                    <div className="lkr-header-stage">Performance Management · KPI Design</div>
+                    <div className="lkr-header-stage">{tx('kpi_review_token.header_stage', 'Performance Management · KPI Design')}</div>
                 </div>
             </header>
 
@@ -693,8 +696,8 @@ export default function KpiReviewToken({
                     <div className="lkr-success-banner">
                         <span className="lkr-success-icon">✓</span>
                         <div>
-                            <div className="lkr-success-title">Review Submitted Successfully!</div>
-                            <div className="lkr-success-desc">Your KPI review has been submitted. Thank you for your feedback!</div>
+                            <div className="lkr-success-title">{tx('kpi_review_token.review_submitted_title', 'Review Submitted Successfully!')}</div>
+                            <div className="lkr-success-desc">{tx('kpi_review_token.review_submitted_desc', 'Your KPI review has been submitted. Thank you for your feedback!')}</div>
                         </div>
                     </div>
                 )}
@@ -703,11 +706,11 @@ export default function KpiReviewToken({
                     <div className="lkr-context-left">
                         <div className="lkr-context-icon">🏢</div>
                         <div>
-                            <div className="lkr-context-label">My Organization</div>
+                            <div className="lkr-context-label">{tx('kpi_review_token.my_organization', 'My Organization')}</div>
                             <div className="lkr-context-value">{selectedOrganization}</div>
                             {allOrganizations.length > 1 && (
                                 <div className="lkr-org-select">
-                                    <label htmlFor="lkr-org-switcher">Switch Organization</label>
+                                    <label htmlFor="lkr-org-switcher">{tx('kpi_review_token.switch_organization', 'Switch Organization')}</label>
                                     <select
                                         id="lkr-org-switcher"
                                         value={selectedOrganization}
@@ -722,20 +725,20 @@ export default function KpiReviewToken({
                         </div>
                     </div>
                     <div className="lkr-context-meta">
-                        <span className="lkr-context-tag cycle">KPI Design in Progress</span>
+                        <span className="lkr-context-tag cycle">{tx('kpi_review_token.kpi_design_in_progress', 'KPI Design in Progress')}</span>
                     </div>
                 </div>
 
                 {hasCeoFinalized && (
                     <div className="lkr-kpi-card" style={{ padding: '36px', textAlign: 'center' }}>
                         <div className="lkr-success-title" style={{ fontSize: 24, marginBottom: 8 }}>
-                            CEO Finalized
+                            {tx('kpi_review_token.ceo_finalized', 'CEO Finalized')}
                         </div>
                         <div className="lkr-success-desc" style={{ marginBottom: 16 }}>
-                            CEO has finalized this KPI review. No further action is required on this link.
+                            {tx('kpi_review_token.ceo_finalized_desc', 'CEO has finalized this KPI review. No further action is required on this link.')}
                         </div>
                         <button type="button" className="lkr-btn-submit" onClick={() => router.reload()}>
-                            Refresh
+                            {tx('kpi_review_token.refresh', 'Refresh')}
                         </button>
                     </div>
                 )}
@@ -743,13 +746,13 @@ export default function KpiReviewToken({
                 {showLeaderSubmittedScreen && (
                     <div className="lkr-kpi-card" style={{ padding: '36px', textAlign: 'center' }}>
                         <div className="lkr-success-title" style={{ fontSize: 24, marginBottom: 8 }}>
-                            You have submitted successfully
+                            {tx('kpi_review_token.already_submitted_title', 'You have submitted successfully')}
                         </div>
                         <div className="lkr-success-desc" style={{ marginBottom: 16 }}>
-                            Your review is already submitted. Please refresh this page to see latest CEO status.
+                            {tx('kpi_review_token.already_submitted_desc', 'Your review is already submitted. Please refresh this page to see latest CEO status.')}
                         </div>
                         <button type="button" className="lkr-btn-submit" onClick={() => router.reload()}>
-                            Refresh
+                            {tx('kpi_review_token.refresh', 'Refresh')}
                         </button>
                     </div>
                 )}
@@ -760,20 +763,20 @@ export default function KpiReviewToken({
                     <span>💡</span>
                     <span>
                         {hasCeoRevisionRequest
-                            ? 'CEO requested revision. Please update KPI/comment and resubmit using the same checklist as the first submission.'
-                            : "Review the draft prepared by your manager and edit only what's necessary. All 4 self-assessment criteria must be confirmed before submitting to the CEO."}
+                            ? tx('kpi_review_token.guide_revision', 'CEO requested revision. Please update KPI/comment and resubmit using the same checklist as the first submission.')
+                            : tx('kpi_review_token.guide_default', "Review the draft prepared by your manager and edit only what's necessary. All 4 self-assessment criteria must be confirmed before submitting to the CEO.")}
                     </span>
                 </div>
 
                 {hasCeoRevisionRequest && (
                     <div className="lkr-revision-panel">
-                        <div className="lkr-revision-title">CEO Revision Requested</div>
+                        <div className="lkr-revision-title">{tx('kpi_review_token.ceo_revision_requested', 'CEO Revision Requested')}</div>
                         <div className="lkr-revision-desc">
-                            CEO requested updates. Please revise KPI details and submit again following the same process as the first submission.
+                            {tx('kpi_review_token.ceo_revision_desc', 'CEO requested updates. Please revise KPI details and submit again following the same process as the first submission.')}
                         </div>
                         {ceoRevisionComment && (
                             <div className="lkr-revision-comment">
-                                <strong>CEO Comment:</strong> {ceoRevisionComment}
+                                <strong>{tx('kpi_review_token.ceo_comment', 'CEO Comment')}:</strong> {ceoRevisionComment}
                             </div>
                         )}
                     </div>
@@ -781,23 +784,23 @@ export default function KpiReviewToken({
 
                 {loading ? (
                     <div className="lkr-section-header">
-                        <div className="lkr-section-title">Loading KPIs...</div>
+                        <div className="lkr-section-title">{tx('kpi_review_token.loading_kpis', 'Loading KPIs...')}</div>
                     </div>
                 ) : (
                     <form id="lkr-review-form" onSubmit={handleSubmit}>
                         <div className="lkr-section-header">
                             <div className="lkr-section-title">
-                                Team KPIs
+                                {tx('kpi_review_token.team_kpis', 'Team KPIs')}
                                 <span className="lkr-count" id="kpiCount">{kpis.length}</span>
                             </div>
                             <button type="button" className="lkr-btn-add" onClick={addKpi} disabled={isReadOnly}>
-                                + Add KPI
+                                {tx('kpi_review_token.add_kpi', '+ Add KPI')}
                             </button>
                         </div>
 
                         {kpis.length === 0 ? (
                             <div className="lkr-kpi-card" style={{ padding: '24px', textAlign: 'center' }}>
-                                <p style={{ color: 'var(--lkr-text-secondary)' }}>No KPIs yet. Add one using the button above.</p>
+                                <p style={{ color: 'var(--lkr-text-secondary)' }}>{tx('kpi_review_token.no_kpis', 'No KPIs yet. Add one using the button above.')}</p>
                             </div>
                         ) : (
                             kpis.map((kpi, index) => (
@@ -812,10 +815,10 @@ export default function KpiReviewToken({
                                                 {index + 1}
                                             </div>
                                             <div style={{ flex: 1 }} onClick={() => toggleKpiExpand(index)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && toggleKpiExpand(index)}>
-                                                <div className="lkr-kpi-name">{kpi.kpi_name || '(Untitled KPI)'}</div>
+                                                <div className="lkr-kpi-name">{kpi.kpi_name || tx('kpi_review_token.untitled_kpi', '(Untitled KPI)')}</div>
                                                 <div className="lkr-kpi-badges">
                                                     <span className="lkr-badge lkr-badge-cycle">{kpi.category || '—'}</span>
-                                                    <span className="lkr-badge lkr-badge-weight">Weight {kpi.weight != null ? `${kpi.weight}%` : '—'}</span>
+                                                    <span className="lkr-badge lkr-badge-weight">{tx('kpi_review_token.weight', 'Weight')} {kpi.weight != null ? `${kpi.weight}%` : '—'}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -823,7 +826,7 @@ export default function KpiReviewToken({
                                             <button
                                                 type="button"
                                                 className={`lkr-icon-btn ${editingKpiIndex === index ? 'edit-active' : ''}`}
-                                                title={editingKpiIndex === index ? 'Save' : 'Edit'}
+                                                title={editingKpiIndex === index ? tx('kpi_review_token.save', 'Save') : tx('kpi_review_token.edit', 'Edit')}
                                                 onClick={(e) => { e.stopPropagation(); toggleEdit(index); }}
                                                 disabled={isReadOnly || savingKpiIndex === index}
                                             >
@@ -832,7 +835,7 @@ export default function KpiReviewToken({
                                             <button
                                                 type="button"
                                                 className="lkr-icon-btn danger"
-                                                title="Delete"
+                                                title={tx('kpi_review_token.delete', 'Delete')}
                                                 onClick={(e) => { e.stopPropagation(); removeKpi(index); }}
                                                 disabled={isReadOnly}
                                             >
@@ -846,7 +849,7 @@ export default function KpiReviewToken({
                                             <>
                                                 <div className="lkr-field-row">
                                                     <div>
-                                                        <div className="lkr-field-label">KPI Name *</div>
+                                                        <div className="lkr-field-label">{tx('kpi_review_token.kpi_name_required', 'KPI Name *')}</div>
                                                         <input
                                                             type="text"
                                                             className="lkr-field-input"
@@ -855,7 +858,7 @@ export default function KpiReviewToken({
                                                         />
                                                     </div>
                                                     <div>
-                                                        <div className="lkr-field-label">Weight (%)</div>
+                                                        <div className="lkr-field-label">{tx('kpi_review_token.weight_percent', 'Weight (%)')}</div>
                                                         <input
                                                             type="text"
                                                             className="lkr-field-input"
@@ -866,7 +869,7 @@ export default function KpiReviewToken({
                                                 </div>
                                                 <div className="lkr-field-row full">
                                                     <div>
-                                                        <div className="lkr-field-label">Purpose</div>
+                                                        <div className="lkr-field-label">{tx('kpi_review_token.purpose', 'Purpose')}</div>
                                                         <textarea
                                                             className="lkr-field-input"
                                                             rows={2}
@@ -877,7 +880,7 @@ export default function KpiReviewToken({
                                                 </div>
                                                 <div className="lkr-field-row">
                                                     <div>
-                                                        <div className="lkr-field-label">Formula</div>
+                                                        <div className="lkr-field-label">{tx('kpi_review_token.formula', 'Formula')}</div>
                                                         <input
                                                             type="text"
                                                             className="lkr-field-input"
@@ -886,7 +889,7 @@ export default function KpiReviewToken({
                                                         />
                                                     </div>
                                                     <div>
-                                                        <div className="lkr-field-label">Category</div>
+                                                        <div className="lkr-field-label">{tx('kpi_review_token.category', 'Category')}</div>
                                                         <input
                                                             type="text"
                                                             className="lkr-field-input"
@@ -897,7 +900,7 @@ export default function KpiReviewToken({
                                                 </div>
                                                 <div className="lkr-field-row full">
                                                     <div>
-                                                        <div className="lkr-field-label">Measurement Method</div>
+                                                        <div className="lkr-field-label">{tx('kpi_review_token.measurement_method', 'Measurement Method')}</div>
                                                         <textarea
                                                             className="lkr-field-input"
                                                             rows={3}
@@ -911,57 +914,57 @@ export default function KpiReviewToken({
                                             <>
                                                 <div className="lkr-field-row">
                                                     <div>
-                                                        <div className="lkr-field-label">KPI Name</div>
+                                                        <div className="lkr-field-label">{tx('kpi_review_token.kpi_name', 'KPI Name')}</div>
                                                         <div className="lkr-field-value">{kpi.kpi_name || '—'}</div>
                                                     </div>
                                                     <div>
-                                                        <div className="lkr-field-label">Weight (%)</div>
+                                                        <div className="lkr-field-label">{tx('kpi_review_token.weight_percent', 'Weight (%)')}</div>
                                                         <div className="lkr-field-value">{kpi.weight != null ? kpi.weight : '—'}</div>
                                                     </div>
                                                 </div>
                                                 <div className="lkr-field-row full">
                                                     <div>
-                                                        <div className="lkr-field-label">Purpose</div>
+                                                        <div className="lkr-field-label">{tx('kpi_review_token.purpose', 'Purpose')}</div>
                                                         <div className="lkr-field-value">{kpi.purpose || '—'}</div>
                                                     </div>
                                                 </div>
                                                 <div className="lkr-field-row">
                                                     <div>
-                                                        <div className="lkr-field-label">Formula</div>
+                                                        <div className="lkr-field-label">{tx('kpi_review_token.formula', 'Formula')}</div>
                                                         <div className="lkr-field-value">{kpi.formula || '—'}</div>
                                                     </div>
                                                     <div>
-                                                        <div className="lkr-field-label">Category</div>
+                                                        <div className="lkr-field-label">{tx('kpi_review_token.category', 'Category')}</div>
                                                         <div className="lkr-field-value">{kpi.category || '—'}</div>
                                                     </div>
                                                 </div>
                                                 <div className="lkr-field-row full">
                                                     <div>
-                                                        <div className="lkr-field-label">Measurement Method</div>
+                                                        <div className="lkr-field-label">{tx('kpi_review_token.measurement_method', 'Measurement Method')}</div>
                                                         <div className="lkr-field-value">{kpi.measurement_method || '—'}</div>
                                                     </div>
                                                 </div>
                                                 <div className="lkr-field-row full">
                                                     <div>
-                                                        <div className="lkr-field-label">Revision History (HR Draft vs Leader Latest)</div>
+                                                        <div className="lkr-field-label">{tx('kpi_review_token.revision_history', 'Revision History (HR Draft vs Leader Latest)')}</div>
                                                         <div className="lkr-history-grid">
                                                             <div className="lkr-history-card">
-                                                                <div className="lkr-history-head">HR Draft</div>
-                                                                <div><strong>KPI:</strong> {kpi.hr_draft?.kpi_name || '—'}</div>
-                                                                <div><strong>Purpose:</strong> {kpi.hr_draft?.purpose || '—'}</div>
-                                                                <div><strong>Formula:</strong> {kpi.hr_draft?.formula || '—'}</div>
-                                                                <div><strong>Category:</strong> {kpi.hr_draft?.category || '—'}</div>
-                                                                <div><strong>Measure:</strong> {kpi.hr_draft?.measurement_method || '—'}</div>
-                                                                <div><strong>Weight:</strong> {kpi.hr_draft?.weight != null ? `${kpi.hr_draft?.weight}%` : '—'}</div>
+                                                                <div className="lkr-history-head">{tx('kpi_review_token.hr_draft', 'HR Draft')}</div>
+                                                                <div><strong>{tx('kpi_review_token.kpi', 'KPI')}:</strong> {kpi.hr_draft?.kpi_name || '—'}</div>
+                                                                <div><strong>{tx('kpi_review_token.purpose', 'Purpose')}:</strong> {kpi.hr_draft?.purpose || '—'}</div>
+                                                                <div><strong>{tx('kpi_review_token.formula', 'Formula')}:</strong> {kpi.hr_draft?.formula || '—'}</div>
+                                                                <div><strong>{tx('kpi_review_token.category', 'Category')}:</strong> {kpi.hr_draft?.category || '—'}</div>
+                                                                <div><strong>{tx('kpi_review_token.measure', 'Measure')}:</strong> {kpi.hr_draft?.measurement_method || '—'}</div>
+                                                                <div><strong>{tx('kpi_review_token.weight', 'Weight')}:</strong> {kpi.hr_draft?.weight != null ? `${kpi.hr_draft?.weight}%` : '—'}</div>
                                                             </div>
                                                             <div className="lkr-history-card">
-                                                                <div className="lkr-history-head">Leader Latest</div>
-                                                                <div><strong>KPI:</strong> {kpi.leader_latest?.kpi_name || kpi.kpi_name || '—'}</div>
-                                                                <div><strong>Purpose:</strong> {kpi.leader_latest?.purpose || kpi.purpose || '—'}</div>
-                                                                <div><strong>Formula:</strong> {kpi.leader_latest?.formula || kpi.formula || '—'}</div>
-                                                                <div><strong>Category:</strong> {kpi.leader_latest?.category || kpi.category || '—'}</div>
-                                                                <div><strong>Measure:</strong> {kpi.leader_latest?.measurement_method || kpi.measurement_method || '—'}</div>
-                                                                <div><strong>Weight:</strong> {(kpi.leader_latest?.weight ?? kpi.weight) != null ? `${kpi.leader_latest?.weight ?? kpi.weight}%` : '—'}</div>
+                                                                <div className="lkr-history-head">{tx('kpi_review_token.leader_latest', 'Leader Latest')}</div>
+                                                                <div><strong>{tx('kpi_review_token.kpi', 'KPI')}:</strong> {kpi.leader_latest?.kpi_name || kpi.kpi_name || '—'}</div>
+                                                                <div><strong>{tx('kpi_review_token.purpose', 'Purpose')}:</strong> {kpi.leader_latest?.purpose || kpi.purpose || '—'}</div>
+                                                                <div><strong>{tx('kpi_review_token.formula', 'Formula')}:</strong> {kpi.leader_latest?.formula || kpi.formula || '—'}</div>
+                                                                <div><strong>{tx('kpi_review_token.category', 'Category')}:</strong> {kpi.leader_latest?.category || kpi.category || '—'}</div>
+                                                                <div><strong>{tx('kpi_review_token.measure', 'Measure')}:</strong> {kpi.leader_latest?.measurement_method || kpi.measurement_method || '—'}</div>
+                                                                <div><strong>{tx('kpi_review_token.weight', 'Weight')}:</strong> {(kpi.leader_latest?.weight ?? kpi.weight) != null ? `${kpi.leader_latest?.weight ?? kpi.weight}%` : '—'}</div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -975,22 +978,22 @@ export default function KpiReviewToken({
 
                         {kpis.length > 0 && (
                             <div className="lkr-comments-card">
-                                <div className="lkr-comments-title">💬 Overall Review Comments</div>
-                                <div className="lkr-comments-desc">Please provide any additional comments or feedback about the KPIs:</div>
+                                <div className="lkr-comments-title">💬 {tx('kpi_review_token.overall_review_comments', 'Overall Review Comments')}</div>
+                                <div className="lkr-comments-desc">{tx('kpi_review_token.overall_review_comments_desc', 'Please provide any additional comments or feedback about the KPIs:')}</div>
                                 <textarea
                                     className="lkr-comments-textarea"
-                                    placeholder="Enter your review comments, feedback, or suggestions here..."
+                                    placeholder={tx('kpi_review_token.comments_placeholder', 'Enter your review comments, feedback, or suggestions here...')}
                                     value={reviewComments}
                                     onChange={(e) => setReviewComments(e.target.value)}
                                     disabled={isReadOnly}
                                 />
-                                <div className="lkr-comments-hint">Your comments will be shared with HR for consideration.</div>
+                                <div className="lkr-comments-hint">{tx('kpi_review_token.comments_hint', 'Your comments will be shared with HR for consideration.')}</div>
                             </div>
                         )}
 
                         <div className="lkr-validation-section">
-                            <div className="lkr-validation-title">Self-Assessment Before Finalizing KPIs</div>
-                            <div className="lkr-validation-desc">All 4 criteria must be confirmed before you can submit to the CEO. Click each item to review.</div>
+                            <div className="lkr-validation-title">{tx('kpi_review_token.self_assessment_title', 'Self-Assessment Before Finalizing KPIs')}</div>
+                            <div className="lkr-validation-desc">{tx('kpi_review_token.self_assessment_desc', 'All 4 criteria must be confirmed before you can submit to the CEO. Click each item to review.')}</div>
                             <div className="lkr-validation-grid">
                                 {VALIDATIONS.map((v, idx) => (
                                     <div
@@ -998,22 +1001,22 @@ export default function KpiReviewToken({
                                         className={`lkr-val-card ${confirmed[idx] ? 'confirmed' : ''}`}
                                     >
                                         <div className="lkr-val-card-top">
-                                            <span className="lkr-val-tag">{v.title.replace(/\s+/g, ' ')}</span>
+                                            <span className="lkr-val-tag">{tx(`kpi_review_token.validation.${v.key}.title`, v.key)}</span>
                                             <div className="lkr-val-check">✓</div>
                                         </div>
-                                        <div className="lkr-val-question">{v.question}</div>
-                                        <div className="lkr-val-hint">{v.hint}</div>
+                                        <div className="lkr-val-question">{tx(`kpi_review_token.validation.${v.key}.question`, '')}</div>
+                                        <div className="lkr-val-hint">{tx(`kpi_review_token.validation.${v.key}.hint`, '')}</div>
                                         <button type="button" className="lkr-val-yes-btn" onClick={() => openPopup(idx)}>
-                                            {confirmed[idx] ? 'Selected' : 'Select →'}
+                                            {confirmed[idx] ? tx('kpi_review_token.selected', 'Selected') : tx('kpi_review_token.select_arrow', 'Select →')}
                                         </button>
-                                        <div className="lkr-val-confirmed-label">✓ Confirmed</div>
+                                        <div className="lkr-val-confirmed-label">✓ {tx('kpi_review_token.confirmed', 'Confirmed')}</div>
                                     </div>
                                 ))}
                             </div>
                         </div>
                         {validationMessage && (
                             <div className="lkr-comments-card" style={{ borderColor: '#fecaca', background: '#fff1f2' }}>
-                                <div className="lkr-comments-title" style={{ color: '#991b1b' }}>Validation Required</div>
+                                <div className="lkr-comments-title" style={{ color: '#991b1b' }}>{tx('kpi_review_token.validation_required', 'Validation Required')}</div>
                                 <div className="lkr-comments-desc" style={{ color: '#b91c1c' }}>{validationMessage}</div>
                             </div>
                         )}
@@ -1023,17 +1026,17 @@ export default function KpiReviewToken({
                 <div className="lkr-bottom-bar">
                     <div className="lkr-submit-summary">
                         <div className="lkr-summary-chip">
-                            <span className="lkr-s-label">KPIs</span>
+                            <span className="lkr-s-label">{tx('kpi_review_token.kpis', 'KPIs')}</span>
                             <span className="lkr-s-value">{kpis.length}</span>
                         </div>
                         <div className="lkr-summary-divider" />
                         <div className="lkr-summary-chip">
-                            <span className="lkr-s-label">Total Weight</span>
+                            <span className="lkr-s-label">{tx('kpi_review_token.total_weight', 'Total Weight')}</span>
                             <span className={`lkr-s-value ${weightOk ? 'ok' : ''}`}>{totalWeightNormalized}%</span>
                         </div>
                         <div className="lkr-summary-divider" />
                         <div className="lkr-summary-chip">
-                            <span className="lkr-s-label">Self-Assessment</span>
+                            <span className="lkr-s-label">{tx('kpi_review_token.self_assessment', 'Self-Assessment')}</span>
                             <div className="lkr-val-dots" style={{ marginTop: 2 }}>
                                 {[0, 1, 2, 3].map((i) => (
                                     <div key={i} className={`lkr-val-dot ${confirmed[i] ? 'done' : ''}`} />
@@ -1044,25 +1047,25 @@ export default function KpiReviewToken({
                     <div className="lkr-submit-right">
                             {hasInvalidKpis ? (
                                 <span className="lkr-submit-hint" style={{ color: '#dc2626' }}>
-                                    Fix KPI #{invalidKpiIndices.join(', ')}: KPI name is required and weight must be 0-100.
+                                    {tx('kpi_review_token.fix_invalid_kpi', 'Fix KPI #{{indices}}: KPI name is required and weight must be 0-100.').replace('{{indices}}', invalidKpiIndices.join(', '))}
                                 </span>
                             ) : !allConfirmed ? (
                                 <span className="lkr-submit-hint">
-                                    Confirm all 4 checks first ({confirmedCount}/4 confirmed).
+                                    {tx('kpi_review_token.confirm_all_checks', 'Confirm all 4 checks first ({{count}}/4 confirmed).').replace('{{count}}', String(confirmedCount))}
                                 </span>
                             ) : !weightOk ? (
                                 <span className="lkr-submit-hint">
-                                    Total weight must be 100%. Current: {totalWeightNormalized}%.
+                                    {tx('kpi_review_token.total_weight_must_be_100', 'Total weight must be 100%. Current: {{value}}%.').replace('{{value}}', String(totalWeightNormalized))}
                                 </span>
                             ) : (
-                                <span className="lkr-submit-hint hidden">Ready</span>
+                                <span className="lkr-submit-hint hidden">{tx('kpi_review_token.ready', 'Ready')}</span>
                             )}
                         <button
                             type="submit"
                             form="lkr-review-form"
                             className="lkr-btn-submit"
                         >
-                            Request CEO Review →
+                            {tx('kpi_review_token.request_ceo_review', 'Request CEO Review →')}
                         </button>
                     </div>
                 </div>
@@ -1081,15 +1084,21 @@ export default function KpiReviewToken({
                     {currentValIdx !== null && (
                         <>
                             <div className="lkr-popup-icon">{VALIDATIONS[currentValIdx].icon}</div>
-                            <div className="lkr-popup-title" id="lkr-popup-title">{VALIDATIONS[currentValIdx].title}</div>
-                            <div className="lkr-popup-question">{VALIDATIONS[currentValIdx].question}</div>
-                            <div className="lkr-popup-hint">{VALIDATIONS[currentValIdx].hint}</div>
+                            <div className="lkr-popup-title" id="lkr-popup-title">
+                                {tx(`kpi_review_token.validation.${VALIDATIONS[currentValIdx].key}.title`, '')}
+                            </div>
+                            <div className="lkr-popup-question">
+                                {tx(`kpi_review_token.validation.${VALIDATIONS[currentValIdx].key}.question`, '')}
+                            </div>
+                            <div className="lkr-popup-hint">
+                                {tx(`kpi_review_token.validation.${VALIDATIONS[currentValIdx].key}.hint`, '')}
+                            </div>
                             <div className="lkr-popup-actions">
                                 <button type="button" className="lkr-btn-cancel" onClick={closePopup}>
-                                    No
+                                    {tx('kpi_review_token.no', 'No')}
                                 </button>
                                 <button type="button" className="lkr-btn-confirm" onClick={confirmVal}>
-                                    Yes, Confirmed
+                                    {tx('kpi_review_token.yes_confirmed', 'Yes, Confirmed')}
                                 </button>
                             </div>
                         </>

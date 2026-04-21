@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, CheckCircle2, XCircle, Send, Save } from 'lucide-react';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import RightSidePanel from '@/components/PerformanceSystem/RightSidePanel';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,8 @@ interface Props {
 }
 
 export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack, isViewOnly = false }: Props) {
+    const { t } = useTranslation();
+    const tx = (key: string, fallback: string) => t(key, { defaultValue: fallback });
     const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
     const [orgPopupOpen, setOrgPopupOpen] = useState<string | null>(null);
     const [revisionComments, setRevisionComments] = useState<Record<string, string>>({});
@@ -68,7 +71,7 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
             })),
         }, {
             onSuccess: () => {
-                alert('KPI review saved successfully.');
+                alert(tx('ceo_kpi.review.legacy.saved', 'KPI review saved successfully.'));
             },
         });
     };
@@ -77,7 +80,7 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
         if (isViewOnly) return;
         const comment = revisionComments[orgName] || '';
         if (!comment.trim()) {
-            alert('Please enter a revision comment.');
+            alert(tx('ceo_kpi.review.revision_alert', 'Please add at least one revision comment.'));
             return;
         }
 
@@ -99,7 +102,7 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
             })),
         }, {
             onSuccess: () => {
-                alert('Revision request sent to organization leader.');
+                alert(tx('ceo_kpi.review.legacy.revision_sent', 'Revision request sent to organization leader.'));
                 setRevisionComments({ ...revisionComments, [orgName]: '' });
             },
         });
@@ -123,7 +126,7 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
             })),
         }, {
             onSuccess: () => {
-                alert(`${orgName} KPIs approved.`);
+                alert(tx('ceo_kpi.review.legacy.org_approved', '{{org}} KPIs approved.').replace('{{org}}', orgName));
             },
         });
     };
@@ -132,7 +135,7 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
         if (isViewOnly) return;
         const allApproved = orgNames.every(org => getOrgStatus(org) === 'approved');
         if (!allApproved) {
-            if (!confirm('Not all organizations have been approved. Do you want to finalize anyway?')) {
+            if (!confirm(tx('ceo_kpi.review.legacy.not_all_approved_confirm', 'Not all organizations have been approved. Do you want to finalize anyway?'))) {
                 return;
             }
         }
@@ -152,40 +155,40 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
             <div className="space-y-6">
                 <Card className="shadow-lg border-2">
                     <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b-2">
-                        <CardTitle className="text-2xl font-bold">CEO KPI Review</CardTitle>
+                        <CardTitle className="text-2xl font-bold">{tx('ceo_kpi.review.step_title', 'CEO KPI Review')}</CardTitle>
                         <CardDescription className="text-base mt-2">
-                            Review and finalize the KPIs submitted by each organization from a company-wide perspective.
+                            {tx('ceo_kpi.review.legacy.review_desc', 'Review and finalize the KPIs submitted by each organization from a company-wide perspective.')}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="p-6 space-y-6">
                         {/* Review Guide */}
                         <Card className="bg-blue-50 border-blue-200">
                             <CardHeader>
-                                <CardTitle className="text-lg">CEO KPI Review Guide</CardTitle>
+                                <CardTitle className="text-lg">{tx('ceo_kpi.review.legacy.guide_title', 'CEO KPI Review Guide')}</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-3 text-sm">
                                 <div>
-                                    <h4 className="font-semibold mb-1">1. Strategic Alignment</h4>
+                                    <h4 className="font-semibold mb-1">{tx('ceo_kpi.review.legacy.guide_1_title', '1. Strategic Alignment')}</h4>
                                     <p className="text-muted-foreground">
-                                        Are they aligned with the company's overall strategy? Ensure each organizational KPI is clearly linked to key strategic priorities.
+                                        {tx('ceo_kpi.review.legacy.guide_1_body', "Are they aligned with the company's overall strategy? Ensure each organizational KPI is clearly linked to key strategic priorities.")}
                                     </p>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold mb-1">2. Balance Across Organizations</h4>
+                                    <h4 className="font-semibold mb-1">{tx('ceo_kpi.review.legacy.guide_2_title', '2. Balance Across Organizations')}</h4>
                                     <p className="text-muted-foreground">
-                                        Is there an appropriate balance? Review whether responsibilities are fairly distributed.
+                                        {tx('ceo_kpi.review.legacy.guide_2_body', 'Is there an appropriate balance? Review whether responsibilities are fairly distributed.')}
                                     </p>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold mb-1">3. Overlaps and Gaps</h4>
+                                    <h4 className="font-semibold mb-1">{tx('ceo_kpi.review.legacy.guide_3_title', '3. Overlaps and Gaps')}</h4>
                                     <p className="text-muted-foreground">
-                                        Are there any overlaps or gaps in accountability? Ensure no redundancy and no important areas left without ownership.
+                                        {tx('ceo_kpi.review.legacy.guide_3_body', 'Are there any overlaps or gaps in accountability? Ensure no redundancy and no important areas left without ownership.')}
                                     </p>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold mb-1">4. Practical Scope</h4>
+                                    <h4 className="font-semibold mb-1">{tx('ceo_kpi.review.legacy.guide_4_title', '4. Practical Scope')}</h4>
                                     <p className="text-muted-foreground">
-                                        Is the scope practical and manageable? Confirm that the number of KPIs is reasonable.
+                                        {tx('ceo_kpi.review.legacy.guide_4_body', 'Is the scope practical and manageable? Confirm that the number of KPIs is reasonable.')}
                                     </p>
                                 </div>
                             </CardContent>
@@ -218,15 +221,15 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                                                         'secondary'
                                                     }
                                                 >
-                                                    {status === 'approved' ? 'Approved' :
-                                                     status === 'revision_requested' ? 'Revision Requested' :
-                                                     'Not Reviewed'}
+                                                    {status === 'approved' ? tx('ceo_kpi.status_approved', 'Approved') :
+                                                     status === 'revision_requested' ? tx('ceo_kpi.status_revision_requested', 'Revision Requested') :
+                                                     tx('ceo_kpi.review.legacy.not_reviewed', 'Not Reviewed')}
                                                 </Badge>
                                             </div>
                                         </CardHeader>
                                         <CardContent>
                                             <p className="text-sm text-muted-foreground">
-                                                {orgKpis.length} KPI{orgKpis.length !== 1 ? 's' : ''}
+                                                {tx('ceo_kpi.review.legacy.kpi_count_label', '{{count}} KPI').replace('{{count}}', String(orgKpis.length))}
                                             </p>
                                         </CardContent>
                                     </Card>
@@ -238,9 +241,9 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                         <Dialog open={orgPopupOpen !== null} onOpenChange={(open) => setOrgPopupOpen(open ? orgPopupOpen : null)}>
                             <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
                                 <DialogHeader>
-                                    <DialogTitle>{orgPopupOpen} - KPI Review</DialogTitle>
+                                    <DialogTitle>{orgPopupOpen} - {tx('ceo_kpi.review.step_title', 'CEO KPI Review')}</DialogTitle>
                                     <DialogDescription>
-                                        Review and manage KPIs for this organization. You can approve, request revisions, or send feedback to the organization leader.
+                                        {tx('ceo_kpi.review.legacy.dialog_desc', 'Review and manage KPIs for this organization. You can approve, request revisions, or send feedback to the organization leader.')}
                                     </DialogDescription>
                                 </DialogHeader>
                                 {orgPopupOpen && (
@@ -251,14 +254,14 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                                                 <TableHeader>
                                                     <TableRow>
                                                         <TableHead>No.</TableHead>
-                                                        <TableHead>Name</TableHead>
-                                                        <TableHead>Purpose</TableHead>
-                                                        <TableHead>Linked Job</TableHead>
-                                                        <TableHead>Linked CSF</TableHead>
-                                                        <TableHead>Formula</TableHead>
-                                                        <TableHead>Measurement Method</TableHead>
-                                                        <TableHead>Weight</TableHead>
-                                                        <TableHead>Status</TableHead>
+                                                        <TableHead>{tx('ceo_kpi.review.kpi_table_name', 'Name')}</TableHead>
+                                                        <TableHead>{tx('ceo_kpi.review.purpose', 'Purpose')}</TableHead>
+                                                        <TableHead>{tx('ceo_kpi.review.legacy.linked_job', 'Linked Job')}</TableHead>
+                                                        <TableHead>{tx('ceo_kpi.review.legacy.linked_csf', 'Linked CSF')}</TableHead>
+                                                        <TableHead>{tx('ceo_kpi.review.formula', 'Formula')}</TableHead>
+                                                        <TableHead>{tx('ceo_kpi.review.legacy.measurement_method', 'Measurement Method')}</TableHead>
+                                                        <TableHead>{tx('ceo_kpi.review.kpi_table_weight', 'Weight')}</TableHead>
+                                                        <TableHead>{tx('ceo_kpi.review.status', 'Status')}</TableHead>
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
@@ -276,9 +279,9 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                                                                 <TableCell>{kpi.weight || 0}%</TableCell>
                                                                 <TableCell>
                                                                     <Badge variant={kpi.ceo_approval_status === 'approved' ? 'default' : 'secondary'}>
-                                                                        {kpi.ceo_approval_status === 'approved' ? 'Approved' : 
-                                                                         kpi.ceo_approval_status === 'revision_requested' ? 'Revision Requested' : 
-                                                                         'Not Reviewed'}
+                                                                        {kpi.ceo_approval_status === 'approved' ? tx('ceo_kpi.status_approved', 'Approved') : 
+                                                                         kpi.ceo_approval_status === 'revision_requested' ? tx('ceo_kpi.status_revision_requested', 'Revision Requested') : 
+                                                                         tx('ceo_kpi.review.legacy.not_reviewed', 'Not Reviewed')}
                                                                     </Badge>
                                                                 </TableCell>
                                                             </TableRow>
@@ -290,11 +293,11 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                                         {/* Action Buttons */}
                                         <div className="space-y-4 pt-4 border-t">
                                             <div>
-                                                <Label className="text-sm font-semibold mb-2 block">Revision Comment</Label>
+                                                <Label className="text-sm font-semibold mb-2 block">{tx('ceo_kpi.review.revision_comment', 'Revision comment')}</Label>
                                                 <Textarea
                                                     value={revisionComments[orgPopupOpen] || ''}
                                                     onChange={(e) => setRevisionComments({ ...revisionComments, [orgPopupOpen]: e.target.value })}
-                                                    placeholder="Enter revision comments for the organization leader..."
+                                                    placeholder={tx('ceo_kpi.review.revision_comment_placeholder', 'Enter revision comments for this organization...')}
                                                     rows={4}
                                                     disabled={isViewOnly}
                                                 />
@@ -310,7 +313,7 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                                                         className="flex items-center gap-2"
                                                     >
                                                         <Save className="w-4 h-4" />
-                                                        Save
+                                                        {tx('common.save', 'Save')}
                                                     </Button>
                                                     <Button
                                                         onClick={() => {
@@ -321,7 +324,7 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                                                         className="flex items-center gap-2"
                                                         disabled={!revisionComments[orgPopupOpen]?.trim()}
                                                     >
-                                                        Request Revision
+                                                        {tx('ceo_kpi.review.request_revision', 'Request Revision')}
                                                     </Button>
                                                     <Button
                                                         onClick={() => {
@@ -331,7 +334,7 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                                                         className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
                                                     >
                                                         <CheckCircle2 className="w-4 h-4" />
-                                                        Approve {orgPopupOpen}
+                                                        {tx('ceo_kpi.status_approved', 'Approved')} {orgPopupOpen}
                                                     </Button>
                                                     <Button
                                                         onClick={() => {
@@ -345,13 +348,13 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                                                         disabled={!revisionComments[orgPopupOpen]?.trim()}
                                                     >
                                                         <Send className="w-4 h-4" />
-                                                        Send to Organization Leader
+                                                        {tx('ceo_kpi.review.legacy.send_to_leader', 'Send to Organization Leader')}
                                                     </Button>
                                                 </div>
                                             )}
                                             {isViewOnly && (
                                                 <div className="p-3 bg-muted rounded-md text-sm text-muted-foreground">
-                                                    This is a view-only mode. To make changes, please access this section from the CEO dashboard.
+                                                    {tx('ceo_kpi.review.legacy.view_only', 'This is a view-only mode. To make changes, please access this section from the CEO dashboard.')}
                                                 </div>
                                             )}
                                         </div>
@@ -364,21 +367,21 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                         {selectedOrg && (
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>{selectedOrg} - KPIs</CardTitle>
+                                    <CardTitle>{selectedOrg} - {tx('ceo_kpi.review.legacy.kpis_title', 'KPIs')}</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
                                                 <TableHead>No.</TableHead>
-                                                <TableHead>Name</TableHead>
-                                                <TableHead>Purpose</TableHead>
-                                                <TableHead>Linked Job</TableHead>
-                                                <TableHead>Linked CSF</TableHead>
-                                                <TableHead>Formula</TableHead>
-                                                <TableHead>Measurement Method</TableHead>
-                                                <TableHead>Weight</TableHead>
-                                                <TableHead>Actions</TableHead>
+                                                <TableHead>{tx('ceo_kpi.review.kpi_table_name', 'Name')}</TableHead>
+                                                <TableHead>{tx('ceo_kpi.review.purpose', 'Purpose')}</TableHead>
+                                                <TableHead>{tx('ceo_kpi.review.legacy.linked_job', 'Linked Job')}</TableHead>
+                                                <TableHead>{tx('ceo_kpi.review.legacy.linked_csf', 'Linked CSF')}</TableHead>
+                                                <TableHead>{tx('ceo_kpi.review.formula', 'Formula')}</TableHead>
+                                                <TableHead>{tx('ceo_kpi.review.legacy.measurement_method', 'Measurement Method')}</TableHead>
+                                                <TableHead>{tx('ceo_kpi.review.kpi_table_weight', 'Weight')}</TableHead>
+                                                <TableHead>{tx('ceo_kpi.review.legacy.actions', 'Actions')}</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -404,7 +407,7 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                                                                 {kpi.ceo_approval_status === 'approved' ? (
                                                                     <CheckCircle2 className="w-4 h-4" />
                                                                 ) : (
-                                                                    'Activate'
+                                                                    tx('ceo_kpi.review.legacy.activate', 'Activate')
                                                                 )}
                                                             </Button>
                                                         </TableCell>
@@ -417,11 +420,11 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                                     {!isViewOnly && (
                                         <div className="mt-6 space-y-4">
                                             <div>
-                                                <Label className="text-sm font-semibold mb-2 block">Revision Comment</Label>
+                                                <Label className="text-sm font-semibold mb-2 block">{tx('ceo_kpi.review.revision_comment', 'Revision comment')}</Label>
                                                 <Textarea
                                                     value={revisionComments[selectedOrg] || ''}
                                                     onChange={(e) => setRevisionComments({ ...revisionComments, [selectedOrg]: e.target.value })}
-                                                    placeholder="Enter revision comments..."
+                                                    placeholder={tx('ceo_kpi.review.revision_comment_placeholder', 'Enter revision comments for this organization...')}
                                                     rows={3}
                                                 />
                                             </div>
@@ -432,21 +435,21 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                                                     className="flex items-center gap-2"
                                                 >
                                                     <Save className="w-4 h-4" />
-                                                    Save
+                                                    {tx('common.save', 'Save')}
                                                 </Button>
                                                 <Button
                                                     onClick={() => handleRequestRevision(selectedOrg)}
                                                     variant="outline"
                                                     className="flex items-center gap-2"
                                                 >
-                                                    Request Revision
+                                                    {tx('ceo_kpi.review.request_revision', 'Request Revision')}
                                                 </Button>
                                                 <Button
                                                     onClick={() => handleOrgApproval(selectedOrg)}
                                                     className="flex items-center gap-2"
                                                 >
                                                     <CheckCircle2 className="w-4 h-4" />
-                                                    {selectedOrg} Approval
+                                                    {selectedOrg} {tx('ceo_kpi.status_approved', 'Approved')}
                                                 </Button>
                                                 <Button
                                                     onClick={() => {
@@ -458,14 +461,14 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                                                     className="flex items-center gap-2"
                                                 >
                                                     <Send className="w-4 h-4" />
-                                                    Send to Organization Leader
+                                                    {tx('ceo_kpi.review.legacy.send_to_leader', 'Send to Organization Leader')}
                                                 </Button>
                                             </div>
                                         </div>
                                     )}
                                     {isViewOnly && (
                                         <div className="mt-6 p-3 bg-muted rounded-md text-sm text-muted-foreground">
-                                            This is a view-only mode. To make changes, please access this section from the CEO dashboard.
+                                            {tx('ceo_kpi.review.legacy.view_only', 'This is a view-only mode. To make changes, please access this section from the CEO dashboard.')}
                                         </div>
                                     )}
                                 </CardContent>
@@ -484,7 +487,7 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                             className="flex items-center gap-2"
                         >
                             <ChevronLeft className="w-4 h-4" />
-                            Back
+                            {tx('common.back', 'Back')}
                         </Button>
                     )}
                     <div className="flex-1" />
@@ -494,7 +497,7 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                             size="lg"
                             className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
                         >
-                            Save & Finalize Company-wide KPIs
+                            {tx('ceo_kpi.review.legacy.save_finalize', 'Save & Finalize Company-wide KPIs')}
                             <ChevronRight className="w-4 h-4" />
                         </Button>
                     )}
@@ -506,7 +509,7 @@ export default function CeoKpiReviewTab({ project, kpis = [], onContinue, onBack
                 isOpen={rightPanelOpen}
                 onClose={() => setRightPanelOpen(false)}
                 content={rightPanelContent}
-                title="Guidance"
+                title={tx('ceo_kpi.review.legacy.guidance', 'Guidance')}
             />
         </>
     );

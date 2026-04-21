@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { Save, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 
 interface DiagnosisActionsProps {
@@ -34,6 +35,7 @@ export default function DiagnosisActions({
     isDiagnosisComplete = false,
     projectId,
 }: DiagnosisActionsProps) {
+    const { t } = useTranslation();
     const isFinalized =
         diagnosisStatus === 'approved' ||
         diagnosisStatus === 'locked' ||
@@ -56,12 +58,12 @@ export default function DiagnosisActions({
                             disabled={!canGoBackTab}
                         >
                             <ArrowLeft className="w-4 h-4 mr-2" />
-                            Back
+                            {t('common.back', { defaultValue: 'Back' })}
                         </Button>
                     </div>
                     <div className="flex items-center gap-3 ml-auto">
                         <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                            Diagnosis already verified
+                            {t('diagnosis_review.alreadyVerified', { defaultValue: 'Diagnosis already verified' })}
                         </span>
                         {showNextButton && (
                             <Button
@@ -71,7 +73,7 @@ export default function DiagnosisActions({
                                 disabled={!canGoNextTab}
                             >
                                 <ArrowRight className="w-4 h-4 mr-2" />
-                                Next
+                                {t('job_analysis_pages.common.save_continue', { defaultValue: 'Save & Continue' })}
                             </Button>
                         )}
                     </div>
@@ -93,7 +95,7 @@ export default function DiagnosisActions({
                         disabled={!canGoBackTab}
                     >
                         <ArrowLeft className="w-4 h-4 mr-2" />
-                        Back
+                        {t('common.back', { defaultValue: 'Back' })}
                     </Button>
                 </div>
 
@@ -108,12 +110,12 @@ export default function DiagnosisActions({
                         {processing ? (
                             <>
                                 <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                                Saving...
+                                {t('common.saving', { defaultValue: 'Saving...' })}
                             </>
                         ) : (
                             <>
                                 <Save className="w-4 h-4 mr-2" />
-                                Save
+                                {t('common.save', { defaultValue: 'Save' })}
                             </>
                         )}
                     </Button>
@@ -126,19 +128,21 @@ export default function DiagnosisActions({
                             className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all min-w-[160px]"
                         >
                             <ArrowRight className="w-4 h-4 mr-2" />
-                            Next
+                            {t('job_analysis_pages.common.save_continue', { defaultValue: 'Save & Continue' })}
                         </Button>
                     )}
                 </div>
             </div>
             {diagnosisStatus === 'submitted' && !hasSurveyCompleted && (
                 <p className="text-sm text-amber-700">
-                    Complete the CEO survey first, then use Next.
+                    {t('diagnosis_review.completeSurveyFirst', { defaultValue: 'Complete the CEO survey first, then continue.' })}
                 </p>
             )}
             {needsCompleteDiagnosis && (
                 <p className="text-sm text-amber-700">
-                    Complete all required diagnosis sections before verification.
+                    {t('diagnosis_review.completeRequiredBeforeVerification', {
+                        defaultValue: 'Complete all required diagnosis sections before verification.',
+                    })}
                 </p>
             )}
         </div>

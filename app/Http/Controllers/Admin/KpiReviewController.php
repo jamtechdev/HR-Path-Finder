@@ -116,6 +116,19 @@ class KpiReviewController extends Controller
         $action = $request->input('action'); // 'approve' or 'request_revision'
 
         if ($action === 'approve') {
+            $weightByOrg = OrganizationalKpi::where('hr_project_id', $hrProject->id)
+                ->get()
+                ->groupBy(fn ($k) => trim((string) $k->organization_name))
+                ->map(function ($rows) {
+                    return (float) $rows->sum(fn ($k) => (float) ($k->weight ?? 0));
+                });
+            $invalidOrg = $weightByOrg->first(fn ($sum, $org) => trim((string) $org) !== '' && round($sum, 2) !== 100.0);
+            if ($invalidOrg !== null) {
+                return back()->withErrors([
+                    'error' => '조직별 KPI 가중치 합계가 100%가 되어야 최종 확정할 수 있습니다.',
+                ]);
+            }
+
             // Approve all KPIs
             OrganizationalKpi::where('hr_project_id', $hrProject->id)
                 ->update([
@@ -127,7 +140,7 @@ class KpiReviewController extends Controller
             $hrProject->setStepStatus('performance', \App\Enums\StepStatus::APPROVED);
 
             return redirect()->route('admin.dashboard')
-                ->with('success', 'Company-wide KPIs have been finalized and approved.');
+                ->with('success', '전사 KPI가 최종 확정 및 승인되었습니다.');
         } elseif ($action === 'request_revision') {
             $validated = $request->validate([
                 'revision_requests' => ['required', 'array'],
@@ -148,9 +161,9 @@ class KpiReviewController extends Controller
                 }
             });
 
-            return back()->with('success', 'Revision requests have been sent to organization leaders.');
+            return back()->with('success', '조직 리더에게 수정 요청을 전송했습니다.');
         }
 
-        return back()->withErrors(['error' => 'Invalid action.']);
+        return back()->withErrors(['error' => '유효하지 않은 요청입니다.']);
     }
 }

@@ -51,6 +51,7 @@ class JobKeywordController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'slug' => ['nullable', 'string', 'max:100', 'unique:job_keywords,slug'],
             'name' => ['required', 'string', 'max:255'],
             'industry_category' => ['nullable', 'string'],
             'company_size_range' => ['nullable', 'string'],
@@ -81,6 +82,7 @@ class JobKeywordController extends Controller
     public function update(Request $request, JobKeyword $jobKeyword)
     {
         $validated = $request->validate([
+            'slug' => ['nullable', 'string', 'max:100', 'unique:job_keywords,slug,' . $jobKeyword->id],
             'name' => ['required', 'string', 'max:255'],
             'industry_category' => ['nullable', 'string'],
             'company_size_range' => ['nullable', 'string'],

@@ -1,5 +1,6 @@
-import { Plus, X, Minus, ChevronDown, ChevronRight, FolderTree, Folder, Briefcase, BarChart3, Coins, Users, Building2, GripVertical } from 'lucide-react';
+import { Plus, X, ChevronDown, ChevronRight, FolderTree, Folder, Briefcase, BarChart3, Coins, Users, Building2, GripVertical } from 'lucide-react';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,6 +61,7 @@ export default function Step5OrgChartMapping({
     onBack,
     fieldErrors = {},
 }: Step5OrgChartMappingProps) {
+    const { t } = useTranslation();
     const [orgUnits, setOrgUnits] = useState<OrgChartMapping[]>(() =>
         buildTreeOrder(orgMappings.map((u, i) => normalizeMapping(u as OrgChartMapping & { parent_id?: number | string | null }, i)))
     );
@@ -347,7 +349,7 @@ export default function Step5OrgChartMapping({
         const def = Object.values(jobDefinitions).find(
             (d) => d.job_keyword_id === jobId || d.grouped_job_keyword_ids?.includes(jobId)
         );
-        return def?.job_name ?? `Job ${jobId}`;
+        return def?.job_name ?? t('job_analysis_pages.common.job_fallback', { id: jobId });
     };
 
     const getInitials = (name: string) => {
@@ -359,21 +361,33 @@ export default function Step5OrgChartMapping({
             .slice(0, 2);
     };
 
+    const jobNameMatchesFinance = (name: string) => {
+        const n = name.toLowerCase();
+        return (
+            n.includes('accounting') ||
+            n.includes('finance') ||
+            name.includes(t('job_analysis_pages.step5.finance_kw')) ||
+            name.includes(t('job_analysis_pages.step5.accounting_kw'))
+        );
+    };
+
     const getJobIcon = (jobId: number) => {
-        const name = getJobName(jobId).toLowerCase();
-        if (name.includes('accounting') || name.includes('finance')) return <BarChart3 className="w-3.5 h-3.5 text-white shrink-0" />;
-        if (name.includes('treasury')) return <Coins className="w-3.5 h-3.5 text-white shrink-0" />;
-        if (name.includes('hr')) return <Users className="w-3.5 h-3.5 text-white shrink-0" />;
-        if (name.includes('clinical')) return <Building2 className="w-3.5 h-3.5 text-white shrink-0" />;
+        const name = getJobName(jobId);
+        const nl = name.toLowerCase();
+        if (jobNameMatchesFinance(name)) return <BarChart3 className="w-3.5 h-3.5 text-white shrink-0" />;
+        if (nl.includes('treasury') || name.includes(t('job_analysis_pages.step5.treasury_kw'))) return <Coins className="w-3.5 h-3.5 text-white shrink-0" />;
+        if (nl.includes('hr') || name.includes(t('job_analysis_pages.step5.hr_kw'))) return <Users className="w-3.5 h-3.5 text-white shrink-0" />;
+        if (nl.includes('clinical') || name.includes(t('job_analysis_pages.step5.clinical_kw'))) return <Building2 className="w-3.5 h-3.5 text-white shrink-0" />;
         return <Briefcase className="w-3.5 h-3.5 text-white shrink-0" />;
     };
 
     const JobIconForList = ({ jobId }: { jobId: number }) => {
-        const name = getJobName(jobId).toLowerCase();
-        if (name.includes('accounting') || name.includes('finance')) return <BarChart3 className="h-4 w-4 shrink-0 text-[#6b7280] dark:text-slate-300" />;
-        if (name.includes('treasury')) return <Coins className="h-4 w-4 shrink-0 text-[#6b7280] dark:text-slate-300" />;
-        if (name.includes('hr')) return <Users className="h-4 w-4 shrink-0 text-[#6b7280] dark:text-slate-300" />;
-        if (name.includes('clinical')) return <Building2 className="h-4 w-4 shrink-0 text-[#6b7280] dark:text-slate-300" />;
+        const name = getJobName(jobId);
+        const nl = name.toLowerCase();
+        if (jobNameMatchesFinance(name)) return <BarChart3 className="h-4 w-4 shrink-0 text-[#6b7280] dark:text-slate-300" />;
+        if (nl.includes('treasury') || name.includes(t('job_analysis_pages.step5.treasury_kw'))) return <Coins className="h-4 w-4 shrink-0 text-[#6b7280] dark:text-slate-300" />;
+        if (nl.includes('hr') || name.includes(t('job_analysis_pages.step5.hr_kw'))) return <Users className="h-4 w-4 shrink-0 text-[#6b7280] dark:text-slate-300" />;
+        if (nl.includes('clinical') || name.includes(t('job_analysis_pages.step5.clinical_kw'))) return <Building2 className="h-4 w-4 shrink-0 text-[#6b7280] dark:text-slate-300" />;
         return <Briefcase className="h-4 w-4 shrink-0 text-[#6b7280] dark:text-slate-300" />;
     };
 
@@ -381,14 +395,13 @@ export default function Step5OrgChartMapping({
         <div className="min-h-full flex flex-col bg-[#f9f7f2] text-[#121431] dark:bg-slate-950 dark:text-slate-100">
             <div className="flex-1 min-h-0 max-w-[1200px] mx-auto w-full py-10 px-5 pb-8" style={{ padding: '0 20px' }}>
                 <div className="mb-2 text-[11px] font-bold tracking-[1.2px] text-[#b88a44] dark:text-amber-300">
-                    STEP 5 OF 6 – ORG CHART MAPPING
+                    {t('job_analysis_pages.step5.stage')}
                 </div>
                 <h1 className="m-0 mb-3 text-3xl font-bold text-[#121431] dark:text-slate-100">
-                    Organization Chart Mapping
+                    {t('job_analysis_pages.step5.title')}
                 </h1>
                 <p className="mb-6 max-w-[900px] text-[15px] leading-relaxed text-[#6b7280] dark:text-slate-300">
-                    The finalized Job Definition documents are mapped to your organizational structure, and the responsible owners for each organization unit and role are identified.
-                    This stage is not intended to change the organizational structure or make HR or personnel decisions. Drag jobs from the right panel and drop them into the appropriate unit.
+                    {t('job_analysis_pages.step5.intro')}
                 </p>
 
                 {validationError && (
@@ -398,9 +411,9 @@ export default function Step5OrgChartMapping({
                         style={{ background: '#dc2626' }}
                         role="alert"
                     >
-                        <p className="font-bold text-[15px] m-0 mb-1">Validation</p>
+                        <p className="font-bold text-[15px] m-0 mb-1">{t('job_analysis_pages.step5.validation_title')}</p>
                         <p className="text-[14px] m-0 font-normal opacity-95">{validationError}</p>
-                        <p className="text-[13px] m-0 mt-2 opacity-90">Type the unit name in the box next to the folder icon at the top of each card (e.g. &quot;Division A&quot;, &quot;Finance Team&quot;), then click Continue again.</p>
+                        <p className="text-[13px] m-0 mt-2 opacity-90">{t('job_analysis_pages.step5.validation_hint')}</p>
                     </div>
                 )}
 
@@ -414,16 +427,18 @@ export default function Step5OrgChartMapping({
                             <div className="flex items-center gap-2">
                                 <FolderTree className="w-5 h-5 text-[#48b082]" aria-hidden />
                                 <span className="text-[12px] font-bold uppercase tracking-wider text-[#121431] dark:text-slate-100">
-                                    ORGANIZATIONAL UNITS
+                                    {t('job_analysis_pages.step5.org_units')}
                                 </span>
-                                <span className="text-[13px] text-[#9ca3af] dark:text-slate-400">{orgUnits.length} units</span>
+                                <span className="text-[13px] text-[#9ca3af] dark:text-slate-400">
+                                    {t('job_analysis_pages.step5.units_count', { count: orgUnits.length })}
+                                </span>
                             </div>
                             <Button
                                 onClick={handleAddOrgUnit}
                                 className="rounded-lg bg-[#121431] hover:bg-[#1e2a4a] text-white text-[13px] font-semibold px-4 py-2 shadow-sm"
                             >
                                 <Plus className="w-4 h-4 mr-1.5" />
-                                Add Unit
+                                {t('job_analysis_pages.step5.add_unit')}
                             </Button>
                         </div>
 
@@ -433,7 +448,7 @@ export default function Step5OrgChartMapping({
                         >
                             {orgUnits.length === 0 && (
                                 <div className="rounded-xl border-2 border-dashed border-[#e5e7eb] bg-[#faf9f7] p-8 text-center text-[13px] text-[#6b7280] dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300">
-                                    No organizational units yet. Click &quot;+ Add Unit&quot; to create one.
+                                    {t('job_analysis_pages.step5.empty_units')}
                                 </div>
                             )}
                             {buildTreeOrder(orgUnits).map((unit, index) => {
@@ -475,7 +490,7 @@ export default function Step5OrgChartMapping({
                                                 onDragStart={(e) => handleUnitDragStart(e, unit.id)}
                                                 onDragEnd={handleUnitDragEnd}
                                                 className="shrink-0 cursor-grab rounded p-1 hover:bg-[#e5e7eb]/60 active:cursor-grabbing dark:hover:bg-slate-700/60"
-                                                title="Drag to reorder"
+                                                title={t('job_analysis_pages.step5.drag_reorder')}
                                                 onClick={(e) => e.stopPropagation()}
                                             >
                                                 <GripVertical className="h-4 w-4 text-[#64748b] dark:text-slate-400" />
@@ -492,7 +507,7 @@ export default function Step5OrgChartMapping({
                                                     handleUpdateOrgUnit(unit.id, { org_unit_name: e.target.value })
                                                 }
                                                 onClick={(e) => e.stopPropagation()}
-                                                placeholder="Unit name (e.g. Division A, Finance Team)"
+                                                placeholder={t('job_analysis_pages.step5.unit_name_placeholder')}
                                                 className={cn(
                                                     'h-auto min-w-0 flex-1 rounded bg-transparent py-0 text-[14px] font-semibold text-[#121431] transition-colors focus-visible:ring-0 dark:text-slate-100',
                                                     emptyUnitIds.has(unit.id) || fieldErrors[`unit-${unit.id}`]
@@ -500,7 +515,9 @@ export default function Step5OrgChartMapping({
                                                         : 'border-0 shadow-none'
                                                 )}
                                             />
-                                            <span className="shrink-0 text-[13px] text-[#9ca3af] dark:text-slate-400">{jobCount} jobs</span>
+                                            <span className="shrink-0 text-[13px] text-[#9ca3af] dark:text-slate-400">
+                                                {t('job_analysis_pages.step5.jobs_count', { count: jobCount })}
+                                            </span>
                                         </div>
                                         <div className="px-4 pb-1">
                                             <FieldErrorMessage fieldKey={`unit-${unit.id}`} errors={fieldErrors} />
@@ -519,7 +536,7 @@ export default function Step5OrgChartMapping({
                                                             handleRemoveUnit(unit.id);
                                                         }}
                                                     >
-                                                        Delete
+                                                        {t('job_analysis_pages.step5.delete')}
                                                     </Button>
                                                     <div
                                                         className="w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold text-white shrink-0"
@@ -533,7 +550,7 @@ export default function Step5OrgChartMapping({
                                                             onChange={(e) =>
                                                                 handleUpdateOrgUnit(unit.id, { org_head_name: e.target.value })
                                                             }
-                                                            placeholder="Name"
+                                                            placeholder={t('job_analysis_pages.step5.placeholder_name')}
                                                             className="h-9 rounded-lg border-[#e5e7eb] bg-white text-[13px] font-semibold dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                                                         />
                                                         <Input
@@ -541,7 +558,7 @@ export default function Step5OrgChartMapping({
                                                             onChange={(e) =>
                                                                 handleUpdateOrgUnit(unit.id, { org_head_title: e.target.value })
                                                             }
-                                                            placeholder="Title (e.g. Director, Team Lead)"
+                                                            placeholder={t('job_analysis_pages.step5.placeholder_title')}
                                                             className="h-9 rounded-lg border-[#e5e7eb] bg-white text-[13px] text-[#6b7280] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
                                                         />
                                                         <Input
@@ -549,7 +566,7 @@ export default function Step5OrgChartMapping({
                                                             onChange={(e) =>
                                                                 handleUpdateOrgUnit(unit.id, { org_head_rank: e.target.value })
                                                             }
-                                                            placeholder="Rank"
+                                                            placeholder={t('job_analysis_pages.step5.placeholder_rank')}
                                                             className="h-9 rounded-lg border-[#e5e7eb] bg-white text-[13px] text-[#6b7280] sm:col-span-2 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
                                                         />
                                                         <div className="flex items-center gap-2 sm:col-span-2">
@@ -566,7 +583,7 @@ export default function Step5OrgChartMapping({
                                                                 className="h-4 w-4 rounded border-[#e5e7eb] text-[#121431] focus:ring-[#121431]"
                                                             />
                                                             <label htmlFor={`kpi-reviewer-${unit.id}`} className="text-[13px] font-medium text-[#121431] dark:text-slate-200">
-                                                                KPI Reviewer
+                                                                {t('job_analysis_pages.step5.kpi_reviewer')}
                                                             </label>
                                                         </div>
                                                         {unit.is_kpi_reviewer && (
@@ -575,7 +592,7 @@ export default function Step5OrgChartMapping({
                                                                 onChange={(e) =>
                                                                     handleUpdateOrgUnit(unit.id, { org_head_email: e.target.value })
                                                                 }
-                                                                placeholder="Email address (required for KPI Reviewer)"
+                                                                placeholder={t('job_analysis_pages.step5.placeholder_email')}
                                                                 type="email"
                                                                 className="h-9 rounded-lg border-[#e5e7eb] bg-white text-[13px] text-[#6b7280] sm:col-span-2 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
                                                             />
@@ -596,7 +613,7 @@ export default function Step5OrgChartMapping({
                                                 >
                                                     {jobCount === 0 ? (
                                                         <p className="w-full py-0 text-center text-[13px] text-[#9ca3af] dark:text-slate-400">
-                                                            Drop jobs here
+                                                            {t('job_analysis_pages.step5.drop_jobs')}
                                                         </p>
                                                     ) : (
                                                         unit.job_keyword_ids.map((jobId) => (
@@ -614,7 +631,7 @@ export default function Step5OrgChartMapping({
                                                                         handleRemoveJobFromUnit(unit.id, jobId);
                                                                     }}
                                                                     className="hover:opacity-80 rounded-full p-0.5"
-                                                                    aria-label={`Remove ${getJobName(jobId)}`}
+                                                                    aria-label={t('job_analysis_pages.step5.remove_job_aria', { name: getJobName(jobId) })}
                                                                 >
                                                                     <X className="w-3 h-3 text-white" />
                                                                 </button>
@@ -633,7 +650,7 @@ export default function Step5OrgChartMapping({
                                                         className="flex items-center gap-1.5 text-[13px] font-medium text-[#6b7280] hover:text-[#121431] hover:underline dark:text-slate-400 dark:hover:text-slate-100"
                                                     >
                                                         <Plus className="w-3.5 h-3.5" />
-                                                        Add Sub-Unit
+                                                        {t('job_analysis_pages.step5.add_sub_unit')}
                                                     </button>
                                                 )}
                                             </div>
@@ -652,11 +669,11 @@ export default function Step5OrgChartMapping({
                         >
                             <div className="mb-3 flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-[#121431] dark:text-slate-100">
                                 <Briefcase className="h-4 w-4 text-[#121431] dark:text-slate-100" />
-                                Finalized Jobs
+                                {t('job_analysis_pages.step5.finalized_jobs')}
                             </div>
                             {allJobIds.length === 0 ? (
                                 <p className="py-4 text-center text-[13px] text-[#6b7280] dark:text-slate-300">
-                                    No finalized jobs. Complete Job Definition first.
+                                    {t('job_analysis_pages.step5.no_finalized_jobs')}
                                 </p>
                             ) : (
                                 <div className="space-y-2">
@@ -681,10 +698,10 @@ export default function Step5OrgChartMapping({
                             <div className="flex items-center justify-between flex-wrap gap-2 mb-2.5">
                                 <span className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-[#121431] dark:text-slate-100">
                                     <Briefcase className="h-4 w-4 text-[#121431] dark:text-slate-100" />
-                                    FINALIZED JOBS
+                                    {t('job_analysis_pages.step5.finalized_jobs_progress')}
                                 </span>
                                 <span className="text-[13px] font-medium" style={{ color: '#48b082' }}>
-                                    {mappedCount}/{totalJobs} mapped
+                                    {t('job_analysis_pages.step5.mapped_progress', { mapped: mappedCount, total: totalJobs })}
                                 </span>
                             </div>
                             <div className="h-2 overflow-hidden rounded-full bg-[#e5e7eb] dark:bg-slate-700">
@@ -721,9 +738,9 @@ export default function Step5OrgChartMapping({
                 }}
             >
                 <p className="text-[13px] font-medium text-[#94a3b8] dark:text-slate-400">
-                    Units: <strong className="text-[#121431] dark:text-slate-100">{orgUnits.length}</strong>
+                    {t('job_analysis_pages.step5.footer_units', { count: orgUnits.length })}
                     {' · '}
-                    Jobs mapped: <strong className="text-[#121431] dark:text-slate-100">{mappedCount} / {totalJobs}</strong>
+                    {t('job_analysis_pages.step5.footer_mapped', { mapped: mappedCount, total: totalJobs })}
                 </p>
                 <div className="flex gap-3">
                     <Button
@@ -732,7 +749,7 @@ export default function Step5OrgChartMapping({
                         onClick={onBack}
                         className="rounded-lg border-[#e0ddd5] px-8 py-6 font-bold dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                     >
-                        ← Back
+                        {t('job_analysis_pages.step5.back')}
                     </Button>
                     <Button
                         type="button"
@@ -740,7 +757,7 @@ export default function Step5OrgChartMapping({
                             const empty = orgUnits.filter((u) => !String(u.org_unit_name ?? '').trim());
                             if (empty.length > 0) {
                                 setEmptyUnitIds(new Set(empty.map((u) => u.id)));
-                                setValidationError('Please enter a name for every organizational unit in the unit name field (top row of each card, next to the folder icon).');
+                                setValidationError(t('job_analysis_pages.step5.validation_unit_names'));
                                 setExpandedUnits((prev) => new Set([...prev, ...empty.map((u) => u.id)]));
                                 return;
                             }
@@ -750,7 +767,7 @@ export default function Step5OrgChartMapping({
                         }}
                         className="bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white font-bold px-9 py-6 rounded-lg"
                     >
-                        Continue to Review & Submit →
+                        {t('job_analysis_pages.step5.continue_review')}
                     </Button>
                 </div>
             </footer>

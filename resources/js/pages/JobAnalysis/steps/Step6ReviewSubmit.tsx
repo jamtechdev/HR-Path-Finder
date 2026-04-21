@@ -11,6 +11,7 @@ import {
     Briefcase,
 } from 'lucide-react';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import FieldErrorMessage, { type FieldErrors } from '@/components/Forms/FieldErrorMessage';
 import InlineErrorSummary, { flattenErrors } from '@/components/Forms/InlineErrorSummary';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,6 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { toastCopy } from '@/lib/toastCopy';
 import type { PolicyAnswer, JobSelection, JobDefinition, OrgChartMapping } from '../hooks/useJobAnalysisState';
 
 interface Question {
@@ -53,6 +53,7 @@ export default function Step6ReviewSubmit({
     onBack,
     fieldErrors = {},
 }: Step6ReviewSubmitProps) {
+    const { t } = useTranslation();
     const [processing, setProcessing] = useState(false);
     const [expandedPolicy, setExpandedPolicy] = useState(false);
     const [expandedJobDefs, setExpandedJobDefs] = useState(false);
@@ -86,7 +87,7 @@ export default function Step6ReviewSubmit({
         const def = Object.values(jobDefinitions).find(
             (d) => d.job_keyword_id === jobId || d.grouped_job_keyword_ids?.includes(jobId)
         );
-        return def?.job_name ?? `Job ${jobId}`;
+        return def?.job_name ?? t('job_analysis_pages.common.job_fallback', { id: jobId });
     };
 
     const handleSubmit = () => {
@@ -94,7 +95,7 @@ export default function Step6ReviewSubmit({
         setSubmitErr(null);
         setSubmitFieldErrors({});
         if (jobsCount === 0) {
-            setSubmitErr('Add at least one job definition before submitting.');
+            setSubmitErr(t('job_analysis_pages.step6.submit_err_jobs'));
             return;
         }
         setProcessing(true);
@@ -147,8 +148,8 @@ export default function Step6ReviewSubmit({
                 setProcessing(false);
                 setSubmitted(true);
                 toast({
-                    title: toastCopy.submitted,
-                    description: 'Your job analysis has been submitted. 직무 분석이 제출되었습니다.',
+                    title: t('job_analysis_pages.step6.toast_title'),
+                    description: t('job_analysis_pages.step6.toast_desc'),
                     variant: 'success',
                     duration: 2000,
                 });
@@ -164,7 +165,7 @@ export default function Step6ReviewSubmit({
                 }
                 setSubmitFieldErrors(fe);
                 const lines = flattenErrors(errors);
-                setSubmitErr(lines.length ? lines.join(' ') : 'Error submitting. Please try again.');
+                setSubmitErr(lines.length ? lines.join(' ') : t('job_analysis_pages.step6.submit_err_generic'));
                 setProcessing(false);
             },
         });
@@ -192,33 +193,31 @@ export default function Step6ReviewSubmit({
                             </div>
                         </div>
                         <DialogTitle className="text-center text-2xl">
-                            <span className="block">Job analysis submitted</span>
-                            <span className="block text-sm font-medium opacity-90 mt-1">직무 분석 제출이 완료되었습니다</span>
+                            <span className="block">{t('job_analysis_pages.step6.dialog_title')}</span>
+                            <span className="block text-sm font-medium opacity-90 mt-1">{t('job_analysis_pages.step6.dialog_title_ko')}</span>
                         </DialogTitle>
                         <DialogDescription className="text-center pt-2">
-                            <span className="block">All data has been submitted successfully. </span>
-                            <span className="block opacity-90 mt-1">
-                                제출이 완료되었습니다. 아래 요약이 반영되었습니다.
-                            </span>
+                            <span className="block">{t('job_analysis_pages.step6.dialog_desc')}</span>
+                            <span className="block opacity-90 mt-1">{t('job_analysis_pages.step6.dialog_desc_ko')}</span>
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="px-2 pb-2 text-sm space-y-2">
                         <div className="flex items-center gap-2 justify-center">
                             <FileText className="w-4 h-4 text-blue-600" />
-                            <span className="font-semibold">Jobs: {jobsCount}</span>
+                            <span className="font-semibold">{t('job_analysis_pages.step6.dialog_jobs', { count: jobsCount })}</span>
                         </div>
                         <div className="flex items-center gap-2 justify-center">
                             <Network className="w-4 h-4 text-green-600" />
-                            <span className="font-semibold">Org units: {orgUnitsCount}</span>
+                            <span className="font-semibold">{t('job_analysis_pages.step6.dialog_org', { count: orgUnitsCount })}</span>
                         </div>
                         <div className="flex items-center gap-2 justify-center">
                             <Target className="w-4 h-4 text-purple-600" />
-                            <span className="font-semibold">CSFs: {csfsCount}</span>
+                            <span className="font-semibold">{t('job_analysis_pages.step6.dialog_csfs', { count: csfsCount })}</span>
                         </div>
                         <div className="flex items-center gap-2 justify-center">
                             <User className="w-4 h-4 text-orange-600" />
-                            <span className="font-semibold">Role owners: {roleOwnersCount}</span>
+                            <span className="font-semibold">{t('job_analysis_pages.step6.dialog_owners', { count: roleOwnersCount })}</span>
                         </div>
                     </div>
 
@@ -228,8 +227,8 @@ export default function Step6ReviewSubmit({
                             onClick={() => router.visit('/hr-manager/dashboard')}
                             className="w-full sm:w-auto h-11 rounded-lg bg-[#121431] hover:bg-[#1e2a4a] text-white font-semibold"
                         >
-                            Done
-                            <span className="block text-xs opacity-80">대시보드로 이동</span>
+                            {t('job_analysis_pages.step6.done')}
+                            <span className="block text-xs opacity-80">{t('job_analysis_pages.step6.done_sub')}</span>
                         </button>
                     </DialogFooter>
                 </DialogContent>
@@ -241,13 +240,13 @@ export default function Step6ReviewSubmit({
         <div className="min-h-full flex flex-col bg-[#f9f7f2] text-[#121431] dark:bg-slate-950 dark:text-slate-100">
             <div className="flex-1 min-h-0 max-w-[1000px] mx-auto w-full py-10 px-5 pb-8">
                 <div className="mb-2 text-[11px] font-bold tracking-[1.2px] text-[#b88a44] dark:text-amber-300">
-                    STEP 6 OF 6 – JOB ANALYSIS
+                    {t('job_analysis_pages.step6.stage')}
                 </div>
                 <h1 className="m-0 mb-2 text-3xl font-bold text-[#121431] dark:text-slate-100">
-                    Step 6 — Review & Submit
+                    {t('job_analysis_pages.step6.title')}
                 </h1>
                 <p className="mb-8 text-[15px] leading-relaxed text-[#6b7280] dark:text-slate-300">
-                    Review all collected data before final submission. Once submitted, the Job Analysis step will be completed.
+                    {t('job_analysis_pages.step6.intro')}
                 </p>
 
                 <FieldErrorMessage fieldKey="review-submit" errors={fieldErrors} className="mb-4" />
@@ -261,28 +260,28 @@ export default function Step6ReviewSubmit({
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
                     <div className="flex items-center justify-between flex-wrap rounded-xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-800/60 dark:bg-blue-950/30">
                         <div>
-                            <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-blue-900 dark:text-blue-200">Jobs Defined</p>
+                            <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-blue-900 dark:text-blue-200">{t('job_analysis_pages.step6.summary_jobs')}</p>
                             <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{jobsCount}</p>
                         </div>
                         <FileText className="w-9 h-9 text-blue-600 shrink-0" />
                     </div>
                     <div className="flex items-center justify-between flex-wrap rounded-xl border border-green-200 bg-green-50 p-5 dark:border-green-800/60 dark:bg-green-950/30">
                         <div>
-                            <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-green-900 dark:text-green-200">Org Units Mapped</p>
+                            <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-green-900 dark:text-green-200">{t('job_analysis_pages.step6.summary_org')}</p>
                             <p className="text-2xl font-bold text-green-700 dark:text-green-300">{orgUnitsCount}</p>
                         </div>
                         <Network className="w-9 h-9 text-green-600 shrink-0" />
                     </div>
                     <div className="flex items-center justify-between flex-wrap rounded-xl border border-purple-200 bg-purple-50 p-5 dark:border-purple-800/60 dark:bg-purple-950/30">
                         <div>
-                            <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-purple-900 dark:text-purple-200">CSFs Generated</p>
+                            <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-purple-900 dark:text-purple-200">{t('job_analysis_pages.step6.summary_csfs')}</p>
                             <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">{csfsCount}</p>
                         </div>
                         <Target className="w-9 h-9 text-purple-600 shrink-0" />
                     </div>
                     <div className="flex items-center justify-between flex-wrap rounded-xl border border-orange-200 bg-orange-50 p-5 dark:border-orange-800/60 dark:bg-orange-950/30">
                         <div>
-                            <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-orange-900 dark:text-orange-200">Role Owners</p>
+                            <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-orange-900 dark:text-orange-200">{t('job_analysis_pages.step6.summary_owners')}</p>
                             <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">{roleOwnersCount}</p>
                         </div>
                         <CheckCircle2 className="w-9 h-9 text-orange-600 shrink-0" />
@@ -298,8 +297,8 @@ export default function Step6ReviewSubmit({
                     >
                         <div className="flex items-center gap-3">
                             <Shield className="h-5 w-5 text-[#6b7280] dark:text-slate-400" />
-                            <span className="font-semibold text-[#121431] dark:text-slate-100">Policy Snapshot Answers</span>
-                            <span className="text-sm text-[#6b7280] dark:text-slate-400">{policyAnswerCount} Answers</span>
+                            <span className="font-semibold text-[#121431] dark:text-slate-100">{t('job_analysis_pages.step6.policy_heading')}</span>
+                            <span className="text-sm text-[#6b7280] dark:text-slate-400">{t('job_analysis_pages.step6.answers_count', { count: policyAnswerCount })}</span>
                         </div>
                         {expandedPolicy ? (
                             <ChevronDown className="h-5 w-5 text-[#6b7280] dark:text-slate-400" />
@@ -314,11 +313,15 @@ export default function Step6ReviewSubmit({
                                 return (
                                     <div key={qId} className="rounded-lg border border-[#e5e7eb] bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
                                         <p className="mb-2 text-sm font-medium text-[#121431] dark:text-slate-100">
-                                            {q?.question_text ?? `Question ${idx + 1}`}
+                                            {q?.question_text ?? t('job_analysis_pages.step6.question_fallback', { n: idx + 1 })}
                                         </p>
                                         <p className="text-sm text-[#6b7280] dark:text-slate-300">
                                             <span className="font-semibold text-[#374151] dark:text-slate-100">
-                                                {answer.answer === 'yes' ? 'Yes' : answer.answer === 'no' ? 'No' : 'Not sure'}
+                                                {answer.answer === 'yes'
+                                                    ? t('job_analysis_pages.step6.answer_yes')
+                                                    : answer.answer === 'no'
+                                                      ? t('job_analysis_pages.step6.answer_no')
+                                                      : t('job_analysis_pages.step6.answer_not_sure')}
                                             </span>
                                             {answer.conditional_text && (
                                                 <span className="block mt-1"> — {answer.conditional_text}</span>
@@ -340,7 +343,7 @@ export default function Step6ReviewSubmit({
                     >
                         <div className="flex items-center gap-3">
                             <FileText className="h-5 w-5 text-[#6b7280] dark:text-slate-400" />
-                            <span className="font-semibold text-[#121431] dark:text-slate-100">Job Definitions ({jobsCount})</span>
+                            <span className="font-semibold text-[#121431] dark:text-slate-100">{t('job_analysis_pages.step6.job_defs_heading', { count: jobsCount })}</span>
                         </div>
                         {expandedJobDefs ? (
                             <ChevronDown className="h-5 w-5 text-[#6b7280] dark:text-slate-400" />
@@ -366,7 +369,7 @@ export default function Step6ReviewSubmit({
                                                 setShowJobMatrix(true);
                                             }}
                                         >
-                                            Open Job Matrix Card
+                                            {t('job_analysis_pages.step6.open_matrix')}
                                         </Button>
                                     </div>
                                 </div>
@@ -379,9 +382,9 @@ export default function Step6ReviewSubmit({
                     <div className="mb-4 overflow-hidden rounded-xl border border-[#e5e7eb] bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                         <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-[#f8fafc] px-5 py-4 dark:border-slate-700 dark:bg-slate-800/60">
                             <div>
-                                <h3 className="font-semibold text-[#121431] dark:text-slate-100">Job Matrix Card</h3>
+                                <h3 className="font-semibold text-[#121431] dark:text-slate-100">{t('job_analysis_pages.step6.matrix_title')}</h3>
                                 <p className="text-xs text-[#6b7280] dark:text-slate-400">
-                                    {activeMatrixJob.job_name} · Stage 3 draft data (editable preview for confirmation)
+                                    {t('job_analysis_pages.step6.matrix_subtitle', { name: activeMatrixJob.job_name })}
                                 </p>
                             </div>
                             <div className="flex items-center gap-2">
@@ -390,42 +393,42 @@ export default function Step6ReviewSubmit({
                                     variant="outline"
                                     onClick={() => setShowJobMatrix(false)}
                                 >
-                                    Close
+                                    {t('job_analysis_pages.step6.close')}
                                 </Button>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 gap-4 p-5 text-sm md:grid-cols-2">
                             <div>
-                                <p className="mb-1 text-xs text-[#6b7280] dark:text-slate-400">Job Name</p>
+                                <p className="mb-1 text-xs text-[#6b7280] dark:text-slate-400">{t('job_analysis_pages.step6.label_job_name')}</p>
                                 <div className="rounded border bg-[#fafafa] px-3 py-2 dark:border-slate-700 dark:bg-slate-900">{activeMatrixJob.job_name}</div>
                             </div>
                             <div>
-                                <p className="mb-1 text-xs text-[#6b7280] dark:text-slate-400">Job Code</p>
+                                <p className="mb-1 text-xs text-[#6b7280] dark:text-slate-400">{t('job_analysis_pages.step6.label_job_code')}</p>
                                 <div className="rounded border bg-[#fafafa] px-3 py-2 dark:border-slate-700 dark:bg-slate-900">
-                                    {activeMatrixJob.job_keyword_id ?? '—'}
+                                    {activeMatrixJob.job_keyword_id ?? t('job_analysis_pages.common.dash')}
                                 </div>
                             </div>
                             <div className="md:col-span-2">
-                                <p className="mb-1 text-xs text-[#6b7280] dark:text-slate-400">Job Purpose</p>
+                                <p className="mb-1 text-xs text-[#6b7280] dark:text-slate-400">{t('job_analysis_pages.step6.label_job_purpose')}</p>
                                 <div className="whitespace-pre-wrap rounded border bg-[#fafafa] px-3 py-2 dark:border-slate-700 dark:bg-slate-900">
-                                    {activeMatrixJob.job_description || '—'}
+                                    {activeMatrixJob.job_description || t('job_analysis_pages.common.dash')}
                                 </div>
                             </div>
                             <div className="md:col-span-2">
-                                <p className="mb-1 text-xs text-[#6b7280] dark:text-slate-400">Competency Levels</p>
+                                <p className="mb-1 text-xs text-[#6b7280] dark:text-slate-400">{t('job_analysis_pages.step6.label_competency')}</p>
                                 <div className="overflow-hidden rounded border bg-[#fafafa] dark:border-slate-700 dark:bg-slate-900">
                                     <table className="w-full text-xs">
                                         <thead className="bg-[#f1f5f9] dark:bg-slate-800">
                                             <tr>
-                                                <th className="text-left px-2 py-1.5">Level</th>
-                                                <th className="text-left px-2 py-1.5">Expected Behavior</th>
+                                                <th className="text-left px-2 py-1.5">{t('job_analysis_pages.step6.matrix_level_col')}</th>
+                                                <th className="text-left px-2 py-1.5">{t('job_analysis_pages.step6.matrix_behavior_col')}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {(activeMatrixJob.competency_levels || []).map((lv, idx) => (
                                                 <tr key={idx} className="border-t">
                                                     <td className="px-2 py-1.5">{lv.level || `Lv.${idx + 1}`}</td>
-                                                    <td className="px-2 py-1.5">{lv.description || '—'}</td>
+                                                    <td className="px-2 py-1.5">{lv.description || t('job_analysis_pages.common.dash')}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -433,16 +436,19 @@ export default function Step6ReviewSubmit({
                                 </div>
                             </div>
                             <div className="md:col-span-2">
-                                <p className="mb-1 text-xs text-[#6b7280] dark:text-slate-400">CSFs</p>
+                                <p className="mb-1 text-xs text-[#6b7280] dark:text-slate-400">{t('job_analysis_pages.step6.label_csfs')}</p>
                                 <div className="rounded border bg-[#fafafa] px-3 py-2 dark:border-slate-700 dark:bg-slate-900">
                                     {(activeMatrixJob.csfs || []).length > 0 ? (
                                         <ul className="list-disc pl-5 space-y-1">
                                             {(activeMatrixJob.csfs || []).map((c, idx) => (
-                                                <li key={idx}>{c.name || '—'}{c.description ? ` — ${c.description}` : ''}</li>
+                                                <li key={idx}>
+                                                    {c.name || t('job_analysis_pages.common.dash')}
+                                                    {c.description ? ` — ${c.description}` : ''}
+                                                </li>
                                             ))}
                                         </ul>
                                     ) : (
-                                        <span>—</span>
+                                        <span>{t('job_analysis_pages.common.dash')}</span>
                                     )}
                                 </div>
                             </div>
@@ -460,7 +466,7 @@ export default function Step6ReviewSubmit({
                         >
                             <div className="flex items-center gap-3">
                                 <Network className="h-5 w-5 text-[#6b7280] dark:text-slate-400" />
-                                <span className="font-semibold text-[#121431] dark:text-slate-100">Organization Chart Mappings ({orgUnitsCount})</span>
+                                <span className="font-semibold text-[#121431] dark:text-slate-100">{t('job_analysis_pages.step6.org_map_heading', { count: orgUnitsCount })}</span>
                             </div>
                             {expandedOrg ? (
                                 <ChevronDown className="h-5 w-5 text-[#6b7280] dark:text-slate-400" />
@@ -481,7 +487,7 @@ export default function Step6ReviewSubmit({
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <Briefcase className="h-4 w-4 text-[#6b7280] dark:text-slate-400" />
-                                                    <span className="font-medium text-[#121431] dark:text-slate-100">{mapping.org_unit_name || 'Unnamed unit'}</span>
+                                                    <span className="font-medium text-[#121431] dark:text-slate-100">{mapping.org_unit_name || t('job_analysis_pages.step6.unnamed_unit')}</span>
                                                 </div>
                                                 {isOpen ? (
                                                     <ChevronDown className="h-4 w-4 text-[#6b7280] dark:text-slate-400" />
@@ -493,9 +499,9 @@ export default function Step6ReviewSubmit({
                                                 <div className="space-y-3 border-t border-[#e5e7eb] p-4 text-sm dark:border-slate-700">
                                                     {(mapping.org_head_name || mapping.org_head_title || mapping.org_head_email) && (
                                                         <div>
-                                                            <p className="mb-1 font-semibold text-[#121431] dark:text-slate-100">Organization Head</p>
+                                                            <p className="mb-1 font-semibold text-[#121431] dark:text-slate-100">{t('job_analysis_pages.step6.org_head')}</p>
                                                             <p className="text-[#6b7280] dark:text-slate-300">
-                                                                {mapping.org_head_name || '—'}
+                                                                {mapping.org_head_name || t('job_analysis_pages.common.dash')}
                                                                 {mapping.org_head_title && ` · ${mapping.org_head_title}`}
                                                                 {mapping.org_head_rank && ` (${mapping.org_head_rank})`}
                                                                 {mapping.org_head_email && ` · ${mapping.org_head_email}`}
@@ -504,7 +510,7 @@ export default function Step6ReviewSubmit({
                                                     )}
                                                     {(mapping.job_keyword_ids?.length ?? 0) > 0 && (
                                                         <div>
-                                                            <p className="mb-1 font-semibold text-[#121431] dark:text-slate-100">Mapped Jobs</p>
+                                                            <p className="mb-1 font-semibold text-[#121431] dark:text-slate-100">{t('job_analysis_pages.step6.mapped_jobs')}</p>
                                                             <div className="flex flex-wrap gap-2">
                                                                 {mapping.job_keyword_ids!.map((jobId) => (
                                                                     <span
@@ -519,7 +525,7 @@ export default function Step6ReviewSubmit({
                                                     )}
                                                     {(mapping.job_specialists?.length ?? 0) > 0 && (
                                                         <div>
-                                                            <p className="mb-1 font-semibold text-[#121431] dark:text-slate-100">Job Specialists</p>
+                                                            <p className="mb-1 font-semibold text-[#121431] dark:text-slate-100">{t('job_analysis_pages.step6.job_specialists')}</p>
                                                             <ul className="space-y-1 text-[#6b7280] dark:text-slate-300">
                                                                 {mapping.job_specialists!.map((s, i) => (
                                                                     <li key={i}>
@@ -544,9 +550,7 @@ export default function Step6ReviewSubmit({
                 {jobsCount === 0 && (
                     <div className="rounded-xl border border-red-200 bg-red-50 p-4 flex items-center gap-3 mb-6">
                         <Target className="w-5 h-5 text-red-600 shrink-0" />
-                        <p className="text-red-900 font-semibold text-sm">
-                            No jobs have been finalized. Please go back to Finalization to complete at least one job.
-                        </p>
+                        <p className="text-red-900 font-semibold text-sm">{t('job_analysis_pages.step6.no_jobs_warning')}</p>
                     </div>
                 )}
             </div>
@@ -559,11 +563,7 @@ export default function Step6ReviewSubmit({
                 }}
             >
                 <p className="text-[13px] font-medium text-[#94a3b8] dark:text-slate-400">
-                    Jobs: <strong className="text-[#121431] dark:text-slate-100">{jobsCount}</strong>
-                    {' · '}
-                    Org units: <strong className="text-[#121431] dark:text-slate-100">{orgUnitsCount}</strong>
-                    {' · '}
-                    Review above, then submit.
+                    {t('job_analysis_pages.step6.footer_review', { jobs: jobsCount, orgs: orgUnitsCount })}
                 </p>
                 <div className="flex gap-3">
                     <Button
@@ -573,7 +573,7 @@ export default function Step6ReviewSubmit({
                         disabled={processing}
                         className="rounded-lg border-[#e0ddd5] px-8 py-6 font-bold dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                     >
-                        ← Back
+                        {t('job_analysis_pages.step6.back')}
                     </Button>
                     <Button
                         type="button"
@@ -581,7 +581,7 @@ export default function Step6ReviewSubmit({
                         disabled={processing}
                         className="bg-[#1a1a3d] hover:bg-[#2d2d5c] text-white font-bold px-9 py-6 rounded-lg"
                     >
-                        {processing ? 'Submitting...' : 'Submit Job Analysis'}
+                        {processing ? t('job_analysis_pages.step6.submitting') : t('job_analysis_pages.step6.submit')}
                     </Button>
                 </div>
             </footer>
