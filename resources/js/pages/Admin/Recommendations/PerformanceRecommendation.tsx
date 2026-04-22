@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from '@/hooks/use-toast';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 interface Project {
@@ -58,10 +59,10 @@ interface Props {
 }
 
 const PERFORMANCE_OPTIONS = [
-    { value: 'kpi', label: 'KPI', desc: 'Key Performance Indicators - Track measurable targets and metrics.' },
-    { value: 'mbo', label: 'MBO', desc: 'Management by Objectives - Goal-setting approach focused on specific objectives.' },
-    { value: 'okr', label: 'OKR', desc: 'Objectives and Key Results - Align individual and team goals with strategic objectives.' },
-    { value: 'bsc', label: 'BSC', desc: 'Balanced Scorecard - Holistic performance measurement across multiple perspectives.' },
+    { value: 'kpi' },
+    { value: 'mbo' },
+    { value: 'okr' },
+    { value: 'bsc' },
 ];
 
 export default function PerformanceRecommendation({ 
@@ -89,7 +90,7 @@ export default function PerformanceRecommendation({
         e.preventDefault();
         post(`/admin/recommendations/performance/${project.id}`, {
             onSuccess: () => {
-                // Success handled by flash message
+                toast({ title: t('messages.save_success'), variant: 'success' });
             },
         });
     };
@@ -120,57 +121,57 @@ export default function PerformanceRecommendation({
                                 className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back to Dashboard
+                                {t('admin_recommendations.back_to_dashboard', 'Back to Dashboard')}
                             </Link>
                             <div className="flex items-center gap-3 mb-2">
                                 <Target className="w-8 h-8 text-primary" />
-                                <h1 className="text-3xl font-bold">Step 3.5: Prepare Performance Management Recommendation</h1>
+                                <h1 className="text-3xl font-bold">{t('admin_recommendations.performance.title', 'Step 3.5: Prepare Performance Management Recommendation')}</h1>
                             </div>
                             <p className="text-muted-foreground">
-                                Review the project context and prepare a recommendation for the Performance Management system.
+                                {t('admin_recommendations.performance.subtitle', 'Review the project context and prepare a recommendation for the Performance Management system.')}
                             </p>
                         </div>
 
                         {/* Project Context */}
                         <Card className="mb-6">
                             <CardHeader>
-                                <CardTitle>Project Context</CardTitle>
-                                <CardDescription>Key information from previous steps</CardDescription>
+                                <CardTitle>{t('admin_recommendations.project_context', 'Project Context')}</CardTitle>
+                                <CardDescription>{t('admin_recommendations.project_context_desc', 'Key information from previous steps')}</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div>
-                                    <Label className="text-sm font-semibold">Company</Label>
+                                    <Label className="text-sm font-semibold">{t('common.company', 'Company')}</Label>
                                     <p className="text-sm text-muted-foreground">{project?.company?.name || 'N/A'}</p>
                                 </div>
                                 {project?.diagnosis?.industry_category && (
                                     <div>
-                                        <Label className="text-sm font-semibold">Industry</Label>
+                                        <Label className="text-sm font-semibold">{t('common.industry', 'Industry')}</Label>
                                         <p className="text-sm text-muted-foreground">{project.diagnosis.industry_category}</p>
                                     </div>
                                 )}
                                 {project?.companyAttributes?.growth_stage && (
                                     <div>
-                                        <Label className="text-sm font-semibold">Growth Stage</Label>
+                                        <Label className="text-sm font-semibold">{t('admin_recommendations.growth_stage', 'Growth Stage')}</Label>
                                         <p className="text-sm text-muted-foreground">{project.companyAttributes.growth_stage}</p>
                                     </div>
                                 )}
                                 {project?.ceoPhilosophy?.main_trait && (
                                     <div>
-                                        <Label className="text-sm font-semibold">CEO Philosophy</Label>
+                                        <Label className="text-sm font-semibold">{t('admin_recommendations.ceo_philosophy', 'CEO Philosophy')}</Label>
                                         <p className="text-sm text-muted-foreground capitalize">{project.ceoPhilosophy.main_trait}</p>
                                     </div>
                                 )}
                                 {project?.organizationDesign?.structure_type && (
                                     <div>
-                                        <Label className="text-sm font-semibold">Organization Structure</Label>
+                                        <Label className="text-sm font-semibold">{t('admin_recommendations.org_structure', 'Organization Structure')}</Label>
                                         <p className="text-sm text-muted-foreground capitalize">{project.organizationDesign.structure_type}</p>
                                     </div>
                                 )}
                                 {jobDefinitions.length > 0 && (
                                     <div>
-                                        <Label className="text-sm font-semibold">Job Definitions</Label>
+                                        <Label className="text-sm font-semibold">{t('admin_recommendations.job_definitions', 'Job Definitions')}</Label>
                                         <p className="text-sm text-muted-foreground">
-                                            {jobDefinitions.length} job{jobDefinitions.length !== 1 ? 's' : ''} defined
+                                            {t('admin_recommendations.job_definitions_count', '{{count}} jobs defined', { count: jobDefinitions.length })}
                                         </p>
                                     </div>
                                 )}
@@ -183,19 +184,19 @@ export default function PerformanceRecommendation({
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2">
                                         <Info className="w-5 h-5 text-blue-600" />
-                                        Algorithm-Based Recommendation (Reference)
+                                        {t('admin_recommendations.algorithm_reference', 'Algorithm-Based Recommendation (Reference)')}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2">
                                             <Badge variant="default" className="bg-blue-600">
-                                                Recommended: {PERFORMANCE_OPTIONS.find(o => o.value === algorithmRecommended)?.label}
+                                                {t('admin_recommendations.recommended', 'Recommended')}: {t(`admin_recommendations.performance.options.${algorithmRecommended}.label`, String(algorithmRecommended).toUpperCase())}
                                             </Badge>
                                         </div>
                                         {algorithmRecommendations[algorithmRecommended]?.reasons && (
                                             <div className="mt-2">
-                                                <p className="text-sm font-semibold mb-1">Reasons:</p>
+                                                <p className="text-sm font-semibold mb-1">{t('admin_recommendations.reasons', 'Reasons')}:</p>
                                                 <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
                                                     {algorithmRecommendations[algorithmRecommended].reasons.map((reason, idx) => (
                                                         <li key={idx}>{reason}</li>
@@ -211,15 +212,15 @@ export default function PerformanceRecommendation({
                         {/* Recommendation Form */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Your Recommendation</CardTitle>
+                                <CardTitle>{t('admin_recommendations.your_recommendation', 'Your Recommendation')}</CardTitle>
                                 <CardDescription>
-                                    Select the performance management method you recommend and provide a clear rationale.
+                                    {t('admin_recommendations.performance.select_method_desc', 'Select the performance management method you recommend and provide a clear rationale.')}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <form onSubmit={handleSubmit} className="space-y-6">
                                     <div>
-                                        <Label className="text-base font-semibold mb-4 block">Performance Management Method</Label>
+                                        <Label className="text-base font-semibold mb-4 block">{t('admin_recommendations.performance.method_label', 'Performance Management Method')}</Label>
                                         <RadioGroup
                                             value={data.recommended_option}
                                             onValueChange={(value) => setData('recommended_option', value)}
@@ -235,17 +236,21 @@ export default function PerformanceRecommendation({
                                                             className="flex-1 cursor-pointer space-y-1"
                                                         >
                                                             <div className="flex items-center gap-2">
-                                                                <span className="font-semibold">{option.label}</span>
+                                                                <span className="font-semibold">
+                                                                    {t(`admin_recommendations.performance.options.${option.value}.label`, option.value.toUpperCase())}
+                                                                </span>
                                                                 {algoRec?.recommended && (
                                                                     <Badge variant="outline" className="text-xs">
-                                                                        Algorithm Recommended
+                                                                        {t('admin_recommendations.algorithm_recommended', 'Algorithm Recommended')}
                                                                     </Badge>
                                                                 )}
                                                             </div>
-                                                            <p className="text-sm text-muted-foreground">{option.desc}</p>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {t(`admin_recommendations.performance.options.${option.value}.desc`, '')}
+                                                            </p>
                                                             {algoRec && algoRec.score > 0 && (
                                                                 <p className="text-xs text-muted-foreground">
-                                                                    Score: {algoRec.score} | {algoRec.reasons.length} reason{algoRec.reasons.length !== 1 ? 's' : ''}
+                                                                    {t('admin_recommendations.score_with_reason_count', 'Score: {{score}} | {{count}} reasons', { score: algoRec.score, count: algoRec.reasons.length })}
                                                                 </p>
                                                             )}
                                                         </Label>
@@ -257,28 +262,27 @@ export default function PerformanceRecommendation({
 
                                     <div>
                                         <Label htmlFor="rationale" className="text-base font-semibold mb-2 block">
-                                            Rationale <span className="text-red-500">*</span>
+                                            {t('admin_recommendations.rationale', 'Rationale')} <span className="text-red-500">*</span>
                                         </Label>
                                         <p className="text-sm text-muted-foreground mb-2">
-                                            Explain why this option fits the company's growth stage, matches the CEO's management philosophy, 
-                                            and aligns with the defined CSFs. Write in clear, client-friendly language.
+                                            {t('admin_recommendations.performance.rationale_help', "Explain why this option fits the company's growth stage, matches the CEO's management philosophy, and aligns with the defined CSFs. Write in clear, client-friendly language.")}
                                         </p>
                                         <Textarea
                                             id="rationale"
                                             value={data.rationale}
                                             onChange={handleRationaleChange}
-                                            placeholder="Example: Based on your company's growth stage and CEO philosophy, we recommend KPI because..."
+                                            placeholder={t('admin_recommendations.performance.rationale_placeholder', "Example: Based on your company's growth stage and CEO philosophy, we recommend KPI because...")}
                                             className="min-h-[200px]"
                                             required
                                             maxLength={5000}
                                         />
                                         <div className="flex justify-between items-center mt-2">
                                             <p className="text-xs text-muted-foreground">
-                                                {charCount} / 5000 characters
+                                                {t('admin_recommendations.character_count', '{{count}} / 5000 characters', { count: charCount })}
                                             </p>
                                             {charCount < 100 && (
                                                 <p className="text-xs text-amber-600">
-                                                    Please provide a more detailed rationale (minimum 100 characters recommended)
+                                                    {t('admin_recommendations.min_rationale_hint', 'Please provide a more detailed rationale (minimum 100 characters recommended)')}
                                                 </p>
                                             )}
                                         </div>
@@ -293,18 +297,20 @@ export default function PerformanceRecommendation({
                                             {processing ? (
                                                 <>
                                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                                    Saving...
+                                                    {t('common.saving', 'Saving...')}
                                                 </>
                                             ) : (
                                                 <>
                                                     <CheckCircle2 className="w-4 h-4" />
-                                                    {existingRecommendation ? 'Update Recommendation' : 'Save Recommendation'}
+                                                    {existingRecommendation
+                                                        ? t('admin_recommendations.update_recommendation', 'Update Recommendation')
+                                                        : t('admin_recommendations.save_recommendation', 'Save Recommendation')}
                                                 </>
                                             )}
                                         </Button>
                                         {existingRecommendation && (
                                             <p className="text-sm text-muted-foreground">
-                                                This will replace the existing recommendation.
+                                                {t('admin_recommendations.replace_existing', 'This will replace the existing recommendation.')}
                                             </p>
                                         )}
                                     </div>

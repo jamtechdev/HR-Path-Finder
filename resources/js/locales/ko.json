@@ -545,6 +545,12 @@
         "page_title": "사용자 및 베타 접근",
         "heading": "사용자 및 베타 접근",
         "subheading": "관리자 승인 기능이 켜져 있을 때 관리자 외 사용자(CEO/HR)를 관리하고 대기 계정을 승인하세요.",
+        "help": {
+            "pending_access_explainer": "승인 대기 상태는 계정에 접근 권한이 아직 부여되지 않은 상태입니다(access_granted_at 값이 비어 있음). 아래 숫자를 클릭하면 대기 탭이 열리며, URL도 함께 변경되어 북마크/새로고침 시 유지됩니다.",
+            "primary_action_explainer": "기본 액션 버튼은 대기 사용자에게는 Activate, 활성 사용자에게는 Deactivate로 표시됩니다.",
+            "admin_approval_off": "앱 설정에서 관리자 승인이 꺼져 있으면 새 사용자는 보통 바로 활성 상태로 생성되어 대기 수가 0으로 유지될 수 있습니다.",
+            "admin_guide": "관리자 가이드: Activate는 대기 계정 승인, Deactivate는 로그인 차단, 휴지통 아이콘은 사용자 접근 영구 삭제입니다."
+        },
         "open_pending_title": "대기 사용자 목록 열기",
         "search_placeholder": "이름, 이메일 또는 회사로 검색...",
         "filter_role": "역할 필터",
@@ -576,6 +582,8 @@
         "fields": {
             "name": "이름",
             "email": "이메일",
+            "name_placeholder": "홍길동",
+            "email_placeholder": "you@company.com",
             "role": "역할",
             "company": "회사",
             "select_role": "역할 선택",
@@ -589,7 +597,8 @@
             "state": "주/도",
             "latitude": "위도",
             "longitude": "경도",
-            "role_companies": "역할 / 회사 (읽기 전용)"
+            "role_companies": "역할 / 회사 (읽기 전용)",
+            "last_updated": "최근 수정"
         },
         "actions": {
             "creating": "생성 중...",
@@ -4485,5 +4494,44 @@
         "note": "안내",
         "finalized_note": "이 직무 정의는 이미 최종 확정되어 수정할 수 없습니다. 변경이 필요하면 관리자에게 문의하세요.",
         "final_submission_block_save": "최종 제출이 완료되어 수정 내용을 저장할 수 없습니다. 관리자에게 문의해 주세요."
+    },
+    "admin_recommendations": {
+        "back_to_dashboard": "대시보드로 돌아가기",
+        "performance": {
+            "options": {
+                "kpi": {
+                    "label": "KPI",
+                    "desc": "핵심성과지표(KPI) 기반으로 측정 가능한 목표와 지표를 관리합니다."
+                },
+                "mbo": {
+                    "label": "MBO",
+                    "desc": "목표관리(MBO) 방식으로 명확한 목표 중심의 성과 관리를 수행합니다."
+                },
+                "okr": {
+                    "label": "OKR",
+                    "desc": "목표와 핵심결과(OKR)로 개인/팀 목표를 전략 방향과 정렬합니다."
+                },
+                "bsc": {
+                    "label": "BSC",
+                    "desc": "균형성과표(BSC)로 다양한 관점에서 성과를 종합적으로 측정합니다."
+                }
+            }
+        },
+        "compensation": {
+            "options": {
+                "fixed": {
+                    "label": "고정형 보상",
+                    "desc": "변동 요소를 최소화한 안정적이고 예측 가능한 보상 구조입니다."
+                },
+                "mixed": {
+                    "label": "혼합형 보상",
+                    "desc": "기본급에 성과 연동형 변동 보상을 결합한 구조입니다."
+                },
+                "performance_based": {
+                    "label": "성과연동형 보상",
+                    "desc": "성과 지표와 결과에 강하게 연동되는 보상 구조입니다."
+                }
+            }
+        }
     }
 }

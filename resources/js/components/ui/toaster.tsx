@@ -16,13 +16,13 @@ export function Toaster() {
             />
             <style>{`
                 .toast-warning-emphasis {
-                    background: #fef08a !important;
-                    color: #78350f !important;
-                    border: 2px solid #facc15 !important;
-                    font-weight: 800 !important;
-                    font-size: 16px !important;
-                    line-height: 1.35 !important;
-                    box-shadow: 0 10px 24px rgba(250, 204, 21, 0.35) !important;
+                    background: #fffbeb !important;
+                    color: #92400e !important;
+                    border: 1px solid #f59e0b !important;
+                    font-weight: 600 !important;
+                    font-size: 14px !important;
+                    line-height: 1.4 !important;
+                    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.18) !important;
                 }
             `}</style>
         </>

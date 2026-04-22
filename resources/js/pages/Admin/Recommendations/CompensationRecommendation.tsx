@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from '@/hooks/use-toast';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 interface Project {
@@ -52,21 +53,9 @@ interface Props {
 }
 
 const COMPENSATION_OPTIONS = [
-    { 
-        value: 'fixed', 
-        label: 'Fixed Compensation', 
-        desc: 'Stable, predictable compensation structure with minimal variable components.' 
-    },
-    { 
-        value: 'mixed', 
-        label: 'Mixed Compensation', 
-        desc: 'Combination of fixed base salary with variable performance-based components.' 
-    },
-    { 
-        value: 'performance_based', 
-        label: 'Performance-Based Compensation', 
-        desc: 'Compensation heavily tied to performance metrics and results.' 
-    },
+    { value: 'fixed' },
+    { value: 'mixed' },
+    { value: 'performance_based' },
 ];
 
 export default function CompensationRecommendation({ 
@@ -93,7 +82,7 @@ export default function CompensationRecommendation({
         e.preventDefault();
         post(`/admin/recommendations/compensation/${project.id}`, {
             onSuccess: () => {
-                // Success handled by flash message
+                toast({ title: t('messages.save_success'), variant: 'success' });
             },
         });
     };
@@ -124,43 +113,43 @@ export default function CompensationRecommendation({
                                 className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back to Dashboard
+                                {t('admin_recommendations.back_to_dashboard', 'Back to Dashboard')}
                             </Link>
                             <div className="flex items-center gap-3 mb-2">
                                 <DollarSign className="w-8 h-8 text-primary" />
-                                <h1 className="text-3xl font-bold">Step 4.5: Prepare Compensation & Benefits Recommendation</h1>
+                                <h1 className="text-3xl font-bold">{t('admin_recommendations.compensation.title', 'Step 4.5: Prepare Compensation & Benefits Recommendation')}</h1>
                             </div>
                             <p className="text-muted-foreground">
-                                Review the project context and prepare a recommendation for the Compensation & Benefits system.
+                                {t('admin_recommendations.compensation.subtitle', 'Review the project context and prepare a recommendation for the Compensation & Benefits system.')}
                             </p>
                         </div>
 
                         {/* Project Context */}
                         <Card className="mb-6">
                             <CardHeader>
-                                <CardTitle>Project Context</CardTitle>
-                                <CardDescription>Key information from previous steps</CardDescription>
+                                <CardTitle>{t('admin_recommendations.project_context', 'Project Context')}</CardTitle>
+                                <CardDescription>{t('admin_recommendations.project_context_desc', 'Key information from previous steps')}</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div>
-                                    <Label className="text-sm font-semibold">Company</Label>
+                                    <Label className="text-sm font-semibold">{t('common.company', 'Company')}</Label>
                                     <p className="text-sm text-muted-foreground">{project?.company?.name || 'N/A'}</p>
                                 </div>
                                 {project?.diagnosis?.industry_category && (
                                     <div>
-                                        <Label className="text-sm font-semibold">Industry</Label>
+                                        <Label className="text-sm font-semibold">{t('common.industry', 'Industry')}</Label>
                                         <p className="text-sm text-muted-foreground">{project.diagnosis.industry_category}</p>
                                     </div>
                                 )}
                                 {project?.ceoPhilosophy?.main_trait && (
                                     <div>
-                                        <Label className="text-sm font-semibold">CEO Philosophy</Label>
+                                        <Label className="text-sm font-semibold">{t('admin_recommendations.ceo_philosophy', 'CEO Philosophy')}</Label>
                                         <p className="text-sm text-muted-foreground capitalize">{project.ceoPhilosophy.main_trait}</p>
                                     </div>
                                 )}
                                 {project?.performanceSystem?.performance_method && (
                                     <div>
-                                        <Label className="text-sm font-semibold">Performance System Selected</Label>
+                                        <Label className="text-sm font-semibold">{t('admin_recommendations.performance_system_selected', 'Performance System Selected')}</Label>
                                         <p className="text-sm text-muted-foreground uppercase">
                                             {project.performanceSystem.performance_method}
                                         </p>
@@ -168,13 +157,13 @@ export default function CompensationRecommendation({
                                 )}
                                 {project?.performanceSystem?.evaluation_unit && (
                                     <div>
-                                        <Label className="text-sm font-semibold">Evaluation Unit</Label>
+                                        <Label className="text-sm font-semibold">{t('admin_recommendations.evaluation_unit', 'Evaluation Unit')}</Label>
                                         <p className="text-sm text-muted-foreground">{project.performanceSystem.evaluation_unit}</p>
                                     </div>
                                 )}
                                 {project?.organizationalSentiment?.reward_sensitivity && (
                                     <div>
-                                        <Label className="text-sm font-semibold">Reward Sensitivity</Label>
+                                        <Label className="text-sm font-semibold">{t('admin_recommendations.reward_sensitivity', 'Reward Sensitivity')}</Label>
                                         <p className="text-sm text-muted-foreground">
                                             {project.organizationalSentiment.reward_sensitivity} / 5
                                         </p>
@@ -189,19 +178,19 @@ export default function CompensationRecommendation({
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2">
                                         <Info className="w-5 h-5 text-blue-600" />
-                                        Algorithm-Based Recommendation (Reference)
+                                        {t('admin_recommendations.algorithm_reference', 'Algorithm-Based Recommendation (Reference)')}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2">
                                             <Badge variant="default" className="bg-blue-600">
-                                                Recommended: {COMPENSATION_OPTIONS.find(o => o.value === algorithmRecommended)?.label}
+                                                {t('admin_recommendations.recommended', 'Recommended')}: {t(`admin_recommendations.compensation.options.${algorithmRecommended}.label`, String(algorithmRecommended))}
                                             </Badge>
                                         </div>
                                         {algorithmRecommendations[algorithmRecommended]?.reasons && (
                                             <div className="mt-2">
-                                                <p className="text-sm font-semibold mb-1">Reasons:</p>
+                                                <p className="text-sm font-semibold mb-1">{t('admin_recommendations.reasons', 'Reasons')}:</p>
                                                 <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
                                                     {algorithmRecommendations[algorithmRecommended].reasons.map((reason, idx) => (
                                                         <li key={idx}>{reason}</li>
@@ -217,16 +206,15 @@ export default function CompensationRecommendation({
                         {/* Recommendation Form */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Your Recommendation</CardTitle>
+                                <CardTitle>{t('admin_recommendations.your_recommendation', 'Your Recommendation')}</CardTitle>
                                 <CardDescription>
-                                    Select the compensation structure you recommend and provide a clear rationale explaining 
-                                    how it connects to the performance design and job structure.
+                                    {t('admin_recommendations.compensation.select_method_desc', 'Select the compensation structure you recommend and provide a clear rationale explaining how it connects to the performance design and job structure.')}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <form onSubmit={handleSubmit} className="space-y-6">
                                     <div>
-                                        <Label className="text-base font-semibold mb-4 block">Compensation Structure</Label>
+                                        <Label className="text-base font-semibold mb-4 block">{t('admin_recommendations.compensation.structure_label', 'Compensation Structure')}</Label>
                                         <RadioGroup
                                             value={data.recommended_option}
                                             onValueChange={(value) => setData('recommended_option', value)}
@@ -242,17 +230,21 @@ export default function CompensationRecommendation({
                                                             className="flex-1 cursor-pointer space-y-1"
                                                         >
                                                             <div className="flex items-center gap-2">
-                                                                <span className="font-semibold">{option.label}</span>
+                                                                <span className="font-semibold">
+                                                                    {t(`admin_recommendations.compensation.options.${option.value}.label`, option.value)}
+                                                                </span>
                                                                 {algoRec?.recommended && (
                                                                     <Badge variant="outline" className="text-xs">
-                                                                        Algorithm Recommended
+                                                                        {t('admin_recommendations.algorithm_recommended', 'Algorithm Recommended')}
                                                                     </Badge>
                                                                 )}
                                                             </div>
-                                                            <p className="text-sm text-muted-foreground">{option.desc}</p>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {t(`admin_recommendations.compensation.options.${option.value}.desc`, '')}
+                                                            </p>
                                                             {algoRec && algoRec.score > 0 && (
                                                                 <p className="text-xs text-muted-foreground">
-                                                                    Score: {algoRec.score} | {algoRec.reasons.length} reason{algoRec.reasons.length !== 1 ? 's' : ''}
+                                                                    {t('admin_recommendations.score_with_reason_count', 'Score: {{score}} | {{count}} reasons', { score: algoRec.score, count: algoRec.reasons.length })}
                                                                 </p>
                                                             )}
                                                         </Label>
@@ -264,28 +256,27 @@ export default function CompensationRecommendation({
 
                                     <div>
                                         <Label htmlFor="rationale" className="text-base font-semibold mb-2 block">
-                                            Rationale <span className="text-red-500">*</span>
+                                            {t('admin_recommendations.rationale', 'Rationale')} <span className="text-red-500">*</span>
                                         </Label>
                                         <p className="text-sm text-muted-foreground mb-2">
-                                            Explain why this pay mix is realistic, how it connects to the performance design 
-                                            selected in Step 4, and how it aligns with the job structure. Write in clear, client-friendly language.
+                                            {t('admin_recommendations.compensation.rationale_help', 'Explain why this pay mix is realistic, how it connects to the performance design selected in Step 4, and how it aligns with the job structure. Write in clear, client-friendly language.')}
                                         </p>
                                         <Textarea
                                             id="rationale"
                                             value={data.rationale}
                                             onChange={handleRationaleChange}
-                                            placeholder="Example: Based on your performance system selection and company context, we recommend mixed compensation because..."
+                                            placeholder={t('admin_recommendations.compensation.rationale_placeholder', 'Example: Based on your performance system selection and company context, we recommend mixed compensation because...')}
                                             className="min-h-[200px]"
                                             required
                                             maxLength={5000}
                                         />
                                         <div className="flex justify-between items-center mt-2">
                                             <p className="text-xs text-muted-foreground">
-                                                {charCount} / 5000 characters
+                                                {t('admin_recommendations.character_count', '{{count}} / 5000 characters', { count: charCount })}
                                             </p>
                                             {charCount < 100 && (
                                                 <p className="text-xs text-amber-600">
-                                                    Please provide a more detailed rationale (minimum 100 characters recommended)
+                                                    {t('admin_recommendations.min_rationale_hint', 'Please provide a more detailed rationale (minimum 100 characters recommended)')}
                                                 </p>
                                             )}
                                         </div>
@@ -300,18 +291,20 @@ export default function CompensationRecommendation({
                                             {processing ? (
                                                 <>
                                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                                    Saving...
+                                                    {t('common.saving', 'Saving...')}
                                                 </>
                                             ) : (
                                                 <>
                                                     <CheckCircle2 className="w-4 h-4" />
-                                                    {existingRecommendation ? 'Update Recommendation' : 'Save Recommendation'}
+                                                    {existingRecommendation
+                                                        ? t('admin_recommendations.update_recommendation', 'Update Recommendation')
+                                                        : t('admin_recommendations.save_recommendation', 'Save Recommendation')}
                                                 </>
                                             )}
                                         </Button>
                                         {existingRecommendation && (
                                             <p className="text-sm text-muted-foreground">
-                                                This will replace the existing recommendation.
+                                                {t('admin_recommendations.replace_existing', 'This will replace the existing recommendation.')}
                                             </p>
                                         )}
                                     </div>

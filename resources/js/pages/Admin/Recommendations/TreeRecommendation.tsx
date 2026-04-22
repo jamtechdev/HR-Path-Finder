@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Label } from '@/components/ui/label';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from '@/hooks/use-toast';
 import { clearInertiaFieldError } from '@/lib/inertiaFormLiveErrors';
 
 interface JobDefinition {
@@ -61,6 +62,9 @@ export default function TreeRecommendationPage({
         e.preventDefault();
         post(`/admin/recommendations/tree/${project.id}`, {
             preserveScroll: true,
+            onSuccess: () => {
+                toast({ title: t('messages.save_success'), variant: 'success' });
+            },
         });
     };
 
@@ -85,17 +89,17 @@ export default function TreeRecommendationPage({
                                 className="mb-4"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back to TREE Overview
+                                {t('admin_tree.back_to_overview', 'Back to TREE Overview')}
                             </Button>
-                            <h1 className="text-3xl font-bold mb-2 text-foreground">TREE Recommendations</h1>
+                            <h1 className="text-3xl font-bold mb-2 text-foreground">{t('admin_tree.recommendations_title', 'TREE Recommendations')}</h1>
                             <p className="text-muted-foreground">
-                                Review job matrix cards and provide recommendations for the HR team.
+                                {t('admin_tree.recommendations_subtitle', 'Review job matrix cards and provide recommendations for the HR team.')}
                             </p>
                         </div>
 
                         {/* Job Matrix Cards */}
                         <div className="mb-6">
-                            <h2 className="text-xl font-semibold mb-4">Job Matrix Cards</h2>
+                            <h2 className="text-xl font-semibold mb-4">{t('admin_tree.job_matrix_cards', 'Job Matrix Cards')}</h2>
                             <div className="space-y-6">
                                 {jobDefinitions.map((job) => (
                                     <JobMatrixCard
@@ -113,22 +117,21 @@ export default function TreeRecommendationPage({
                         {/* Recommendation Form */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Provide Recommendations</CardTitle>
+                                <CardTitle>{t('admin_tree.provide_recommendations', 'Provide Recommendations')}</CardTitle>
                                 <CardDescription>
-                                    Review the job matrix cards above and provide your recommendations for the HR team.
-                                    These recommendations will be visible to HR managers.
+                                    {t('admin_tree.provide_recommendations_desc', 'Review the job matrix cards above and provide your recommendations for the HR team. These recommendations will be visible to HR managers.')}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <form onSubmit={handleSubmit} className="space-y-4">
                                     <div>
-                                        <Label htmlFor="comment">Recommendations</Label>
+                                        <Label htmlFor="comment">{t('admin_tree.recommendations', 'Recommendations')}</Label>
                                         <Textarea
                                             id="comment"
                                             value={data.comment}
                                             onChange={(e) => setData('comment', e.target.value)}
                                             rows={8}
-                                            placeholder="Provide your recommendations based on the job matrix cards above..."
+                                            placeholder={t('admin_tree.recommendations_placeholder', 'Provide your recommendations based on the job matrix cards above...')}
                                             className="mt-2"
                                         />
                                         {errors.comment && (
@@ -140,7 +143,7 @@ export default function TreeRecommendationPage({
                                         <Alert>
                                             <CheckCircle2 className="h-4 w-4" />
                                             <AlertDescription>
-                                                You have an existing recommendation. Submitting will update it.
+                                                {t('admin_tree.recommendations_existing_update', 'You have an existing recommendation. Submitting will update it.')}
                                             </AlertDescription>
                                         </Alert>
                                     )}
@@ -151,11 +154,13 @@ export default function TreeRecommendationPage({
                                             variant="outline"
                                             onClick={() => router.visit(`/admin/tree/${project.id}/overview`)}
                                         >
-                                            Cancel
+                                            {t('common.cancel', 'Cancel')}
                                         </Button>
                                         <Button type="submit" disabled={processing}>
                                             <Save className="w-4 h-4 mr-2" />
-                                            {existingRecommendation ? 'Update Recommendation' : 'Save Recommendation'}
+                                            {existingRecommendation
+                                                ? t('admin_recommendations.update_recommendation', 'Update Recommendation')
+                                                : t('admin_recommendations.save_recommendation', 'Save Recommendation')}
                                         </Button>
                                     </div>
                                 </form>

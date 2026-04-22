@@ -29,11 +29,11 @@ class TranslationController extends Controller
      */
     public function index(Request $request): Response
     {
-        $page = $request->get('page', 'all');
-        $search = $request->get('search', '');
-        $role = $request->get('role', 'all');
-        $searchMode = $request->get('searchMode', 'contains');
-        $status = $request->get('status', 'all');
+        $page = $this->stringInput($request, 'page', 'all');
+        $search = $this->stringInput($request, 'search', '');
+        $role = $this->stringInput($request, 'role', 'all');
+        $searchMode = $this->stringInput($request, 'searchMode', 'contains');
+        $status = $this->stringInput($request, 'status', 'all');
 
         $enTranslations = $this->translationService->getFlatTranslations('en', $page);
         $koTranslations = $this->translationService->getFlatTranslations('ko', $page);
@@ -203,11 +203,11 @@ class TranslationController extends Controller
      */
     public function export(Request $request)
     {
-        $page = $request->get('page', 'all');
-        $search = $request->get('search', '');
-        $role = $request->get('role', 'all');
-        $searchMode = $request->get('searchMode', 'contains');
-        $status = $request->get('status', 'all');
+        $page = $this->stringInput($request, 'page', 'all');
+        $search = $this->stringInput($request, 'search', '');
+        $role = $this->stringInput($request, 'role', 'all');
+        $searchMode = $this->stringInput($request, 'searchMode', 'contains');
+        $status = $this->stringInput($request, 'status', 'all');
 
         $rows = $this->collectFilteredRows($page, $search, $role, $searchMode, $status);
         $filename = sprintf('translations-%s-%s.csv', $page, now()->format('Ymd-His'));
@@ -396,6 +396,16 @@ class TranslationController extends Controller
 
             $current = &$current[$key];
         }
+    }
+
+    /**
+     * Safely read request input as string with fallback.
+     */
+    protected function stringInput(Request $request, string $key, string $default = ''): string
+    {
+        $value = $request->input($key, $default);
+
+        return is_string($value) ? $value : $default;
     }
 
     /**

@@ -307,23 +307,18 @@ export default function AdminUsersIndex({
                                             {t('admin_users.subheading')}
                                         </p>
                                         <p className="text-xs text-muted-foreground mt-2">
-                                            Pending approval means the account is waiting for you to grant access (
-                                            <code className="rounded bg-muted px-1">access_granted_at</code> is empty). Click the
-                                            number below to open the Pending tab (URL updates so you can bookmark or refresh).
+                                            {t('admin_users.help.pending_access_explainer', 'Pending approval means the account is waiting for you to grant access (access_granted_at is empty). Click the number below to open the Pending tab (URL updates so you can bookmark or refresh).')}
                                         </p>
                                         <p className="text-xs text-muted-foreground mt-1">
-                                            The primary action shows <strong>Activate</strong> only on pending users; active users show{' '}
-                                            <strong>Deactivate</strong>.
+                                            {t('admin_users.help.primary_action_explainer', 'The primary action shows Activate only on pending users; active users show Deactivate.')}
                                             {!require_admin_approval && (
                                                 <>
-                                                    {' '}
-                                                    Admin approval is currently <strong>off</strong> in app settings, so new users are
-                                                    usually created active and the pending count may stay at 0.
+                                                    {' '}{t('admin_users.help.admin_approval_off', 'Admin approval is currently off in app settings, so new users are usually created active and the pending count may stay at 0.')}
                                                 </>
                                             )}
                                         </p>
                                         <p className="text-xs text-blue-600 mt-1">
-                                            Admin guide: use Activate to approve pending accounts, Deactivate to block sign-in, and the trash icon to permanently delete user access.
+                                            {t('admin_users.help.admin_guide', 'Admin guide: use Activate to approve pending accounts, Deactivate to block sign-in, and the trash icon to permanently delete user access.')}
                                         </p>
                                     </div>
                                 </div>
@@ -436,6 +431,7 @@ export default function AdminUsersIndex({
                                                     id="create-name"
                                                     value={createForm.data.name}
                                                     onChange={(e) => createForm.setData('name', e.target.value)}
+                                                    placeholder={t('admin_users.fields.name_placeholder', 'John Doe')}
                                                 />
                                                 {createForm.errors.name && (
                                                     <p className="text-sm text-destructive">{createForm.errors.name}</p>
@@ -449,6 +445,7 @@ export default function AdminUsersIndex({
                                                     type="email"
                                                     value={createForm.data.email}
                                                     onChange={(e) => createForm.setData('email', e.target.value)}
+                                                    placeholder={t('admin_users.fields.email_placeholder', 'you@company.com')}
                                                 />
                                                 {createForm.errors.email && (
                                                     <p className="text-sm text-destructive">{createForm.errors.email}</p>
@@ -573,6 +570,7 @@ export default function AdminUsersIndex({
                                                                 id="edit-name"
                                                                 value={editForm.data.name}
                                                                 onChange={(e) => editForm.setData('name', e.target.value)}
+                                                                placeholder={t('admin_users.fields.name_placeholder', 'John Doe')}
                                                             />
                                                             {editForm.errors.name && (
                                                                 <p className="text-sm text-destructive">{editForm.errors.name}</p>
@@ -586,6 +584,7 @@ export default function AdminUsersIndex({
                                                                 type="email"
                                                                 value={editForm.data.email}
                                                                 onChange={(e) => editForm.setData('email', e.target.value)}
+                                                                placeholder={t('admin_users.fields.email_placeholder', 'you@company.com')}
                                                             />
                                                             {editForm.errors.email && (
                                                                 <p className="text-sm text-destructive">{editForm.errors.email}</p>
@@ -675,7 +674,7 @@ export default function AdminUsersIndex({
                                                             </div>
                                                             <p className="text-xs text-muted-foreground">
                                                                 User record created {new Date(editUser.created_at).toLocaleDateString()}
-                                                                {editUser.updated_at ? ` · last updated ${new Date(editUser.updated_at).toLocaleDateString()}` : ''}
+                                                                {editUser.updated_at ? ` · ${t('admin_users.fields.last_updated', 'last updated')} ${new Date(editUser.updated_at).toLocaleDateString()}` : ''}
                                                             </p>
                                                         </div>
                                                     </div>

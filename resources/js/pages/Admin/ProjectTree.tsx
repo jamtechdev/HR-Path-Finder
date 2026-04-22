@@ -124,7 +124,7 @@ export default function ProjectTree({ projects }: Props) {
                               variant="outline"
                               size="sm"
                               onClick={() => setPendingAction({ type: 'reset', project })}
-                              className="h-8 gap-1.5 border-amber-500/40 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20 hover:text-amber-100"
+                              className="h-8 gap-1.5 border-amber-500/40 bg-amber-500/10 text-amber-900 hover:bg-amber-500/20 hover:text-amber-950 dark:text-amber-100 dark:hover:text-amber-50"
                             >
                               <RotateCcw className="h-3.5 w-3.5" />
                               {t('project_view.reset_project')}

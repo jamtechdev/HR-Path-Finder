@@ -274,13 +274,13 @@ export default function CompaniesIndex({ companies }: Props) {
                     <div>
                         <h1 className="text-3xl font-bold text-foreground">{t('companies_index.my_companies')}</h1>
                         <p className="text-muted-foreground mt-1">
-                            Manage your companies and CEO assignments
+                            {t('companies_index.manage_subheading', 'Manage your companies and CEO assignments')}
                         </p>
                     </div>
                     <Link href="/hr-manager/companies/create">
                         <Button>
                             <Plus className="w-4 h-4 mr-2" />
-                            Create Company
+                            {t('companies_index.create_company', 'Create Company')}
                         </Button>
                     </Link>
                 </div>
@@ -353,10 +353,10 @@ export default function CompaniesIndex({ companies }: Props) {
                                                 <Tabs defaultValue="ceos" className="w-full">
                                                     <TabsList className="grid w-full grid-cols-2">
                                                         <TabsTrigger value="ceos">
-                                                            Assigned CEOs ({company.ceos.length})
+                                                            {t('companies_index.assigned_ceos', 'Assigned CEOs')} ({company.ceos.length})
                                                         </TabsTrigger>
                                                         <TabsTrigger value="invitations">
-                                                            Invitations ({company.invitations.length})
+                                                            {t('companies_index.invitations', 'Invitations')} ({company.invitations.length})
                                                         </TabsTrigger>
                                                     </TabsList>
                                                     
@@ -367,9 +367,9 @@ export default function CompaniesIndex({ companies }: Props) {
                                                                     <TableHeader>
                                                                         <TableRow>
                                                                             <TableHead>Name</TableHead>
-                                                                            <TableHead>Email</TableHead>
-                                                                            <TableHead>Status</TableHead>
-                                                                            <TableHead>Actions</TableHead>
+                                                                            <TableHead>{t('common.email', 'Email')}</TableHead>
+                                                                            <TableHead>{t('common.status', 'Status')}</TableHead>
+                                                                            <TableHead>{t('common.actions', 'Actions')}</TableHead>
                                                                         </TableRow>
                                                                     </TableHeader>
                                                                     <TableBody>
@@ -380,7 +380,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                                                                 <TableCell>{getStatusBadge(ceo.status)}</TableCell>
                                                                                 <TableCell>
                                                                                     <Link href={`/hr-manager/companies/${company.id}`}>
-                                                                                        <Button variant="ghost" size="sm">View</Button>
+                                                                                        <Button variant="ghost" size="sm">{t('common.view', 'View')}</Button>
                                                                                     </Link>
                                                                                 </TableCell>
                                                                             </TableRow>
@@ -391,7 +391,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                                         ) : (
                                                             <div className="text-center py-8 text-muted-foreground">
                                                                 <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                                                                <p>No CEOs assigned yet</p>
+                                                                <p>{t('companies_index.no_ceos_assigned', 'No CEOs assigned yet')}</p>
                                                                 <Button
                                                                     onClick={() => openInviteDialog(company)}
                                                                     variant="outline"
@@ -412,12 +412,12 @@ export default function CompaniesIndex({ companies }: Props) {
                                                                     <TableHeader>
                                                                         <TableRow>
                                                                             <TableHead>Email</TableHead>
-                                                                            <TableHead>Status</TableHead>
-                                                                            <TableHead>Invited By</TableHead>
-                                                                            <TableHead>Invited At</TableHead>
-                                                                            <TableHead>Expires At</TableHead>
-                                                                            <TableHead>Accepted/Rejected At</TableHead>
-                                                                            <TableHead>Actions</TableHead>
+                                                                            <TableHead>{t('common.status', 'Status')}</TableHead>
+                                                                            <TableHead>{t('companies_index.invited_by', 'Invited By')}</TableHead>
+                                                                            <TableHead>{t('companies_index.invited_at', 'Invited At')}</TableHead>
+                                                                            <TableHead>{t('companies_index.expires_at', 'Expires At')}</TableHead>
+                                                                            <TableHead>{t('companies_index.accepted_or_rejected_at', 'Accepted/Rejected At')}</TableHead>
+                                                                            <TableHead>{t('common.actions', 'Actions')}</TableHead>
                                                                         </TableRow>
                                                                     </TableHeader>
                                                                     <TableBody>
@@ -520,7 +520,7 @@ export default function CompaniesIndex({ companies }: Props) {
                             >
                                 <div>
                                     <Label htmlFor="ceo-email">
-                                        CEO Email Address *
+                                        {t('companies_index.ceo_email_address', 'CEO Email Address')} *
                                     </Label>
                                     <Input
                                         id="ceo-email"
@@ -533,7 +533,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                                 'email',
                                             );
                                         }}
-                                        placeholder="ceo@example.com"
+                                        placeholder={t('companies_index.email_placeholder', 'ceo@example.com')}
                                         required
                                         className={
                                             errors.email ? 'border-red-500' : ''
@@ -546,8 +546,7 @@ export default function CompaniesIndex({ companies }: Props) {
                                     )}
                                     {selectedCompany.activeProject && (
                                         <p className="mt-2 text-xs text-muted-foreground">
-                                            This invitation will be linked to
-                                            the active HR project for{' '}
+                                            {t('companies_index.invite_linked_active_project', 'This invitation will be linked to the active HR project for')}{' '}
                                             {selectedCompany.name}.
                                         </p>
                                     )}
