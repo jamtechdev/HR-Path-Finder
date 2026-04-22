@@ -33,6 +33,7 @@ const PRESET_LEADERS: {
     label: string;
     korean: string;
     desc: string;
+    descKey: string;
     icon: string;
 }[] = [
     {
@@ -40,6 +41,7 @@ const PRESET_LEADERS: {
         label: 'Division Head',
         korean: '본부장',
         desc: 'Oversees an entire business division',
+        descKey: 'diagnosis_leaders_ui.desc_division_head',
         icon: '🏢',
     },
     {
@@ -47,6 +49,7 @@ const PRESET_LEADERS: {
         label: 'Department Head',
         korean: '부서장',
         desc: 'Manages a specific department',
+        descKey: 'diagnosis_leaders_ui.desc_department_head',
         icon: '🏬',
     },
     {
@@ -54,6 +57,7 @@ const PRESET_LEADERS: {
         label: 'Team Leader',
         korean: '팀장',
         desc: 'Leads a cross-functional team',
+        descKey: 'diagnosis_leaders_ui.desc_team_leader',
         icon: '👥',
     },
     {
@@ -61,6 +65,7 @@ const PRESET_LEADERS: {
         label: 'Group Leader',
         korean: '그룹장',
         desc: 'Manages a sub-group within a team',
+        descKey: 'diagnosis_leaders_ui.desc_group_leader',
         icon: '🔷',
     },
     {
@@ -68,6 +73,7 @@ const PRESET_LEADERS: {
         label: 'Part Leader',
         korean: '파트장',
         desc: 'Oversees a specific work unit',
+        descKey: 'diagnosis_leaders_ui.desc_part_leader',
         icon: '📌',
     },
 ];
@@ -122,6 +128,7 @@ export default function Leaders({
     const [customTitle, setCustomTitle] = useState('');
     const [customKorean, setCustomKorean] = useState('');
     const customIdRef = useRef(0);
+    const lastSyncedLeadershipRef = useRef<number | null>(null);
     const [order, setOrder] = useState<string[]>(() => [
         ...PRESET_LEADERS.map((l) => l.id),
     ]);
@@ -239,7 +246,13 @@ export default function Leaders({
     );
 
     useEffect(() => {
-        if ((Number(data.leadership_count) || 0) === totalHead) return;
+        const current = Number(data.leadership_count) || 0;
+        if (current === totalHead) {
+            lastSyncedLeadershipRef.current = totalHead;
+            return;
+        }
+        if (lastSyncedLeadershipRef.current === totalHead) return;
+        lastSyncedLeadershipRef.current = totalHead;
         setData('leadership_count', totalHead);
     }, [totalHead, data.leadership_count, setData]);
 
@@ -466,7 +479,7 @@ export default function Leaders({
                             {totalPos}
                         </div>
                         <div className="mt-0.5 text-xs text-white/50">
-                            포지션 수
+                            {t('diagnosis_leaders_ui.position_count')}
                         </div>
                     </div>
                     <div className="flex min-w-[58px] flex-1 flex-col justify-center rounded-lg bg-white/10 px-2 py-1 text-center sm:px-2.5 sm:py-1.5 lg:flex-none">
@@ -521,7 +534,7 @@ export default function Leaders({
                     </span>
                 </div>
                 <span className="ml-1 text-xs text-[#9AA3B2] sm:text-[11px]">
-                    · 실제 연동 시 자동으로 불러옵니다
+                    · {t('diagnosis_leaders_ui.workforce_auto_hint')}
                 </span>
             </div>
 
@@ -546,7 +559,7 @@ export default function Leaders({
                                   id: custom.id,
                                   label: custom.label,
                                   korean: custom.korean,
-                                  desc: '커스텀 포지션',
+                                  desc: t('diagnosis_leaders_ui.custom_position'),
                                   icon: '🏷',
                               }
                             : null);
@@ -644,7 +657,11 @@ export default function Leaders({
                                     )}
                                 </div>
                                 <div className="mt-0.5 text-[11.5px] text-[#9AA3B2]">
-                                    {row.desc}
+                                    {preset
+                                        ? t(preset.descKey, {
+                                              defaultValue: preset.desc,
+                                          })
+                                        : row.desc}
                                 </div>
                             </div>
 
@@ -732,7 +749,7 @@ export default function Leaders({
                                     if (e.key === 'Enter') confirmCustom();
                                     if (e.key === 'Escape') cancelCustom();
                                 }}
-                                placeholder="직급명 (예: Unit Leader, Cell Leader…)"
+                                placeholder={t('diagnosis_leaders_ui.custom_name_placeholder')}
                                 maxLength={30}
                                 autoFocus
                                 className="h-[38px] flex-1 rounded-lg border-[1.5px] border-[#B2EDE5] px-3 text-[13px] font-semibold text-[#1B2B5B] outline-none focus:border-[#2EC4A9] focus:ring-[3px] focus:ring-[rgba(46,196,169,0.12)] dark:bg-[#1e3a5f]/30 dark:text-[#e2e8f0]"
@@ -747,7 +764,7 @@ export default function Leaders({
                                     if (e.key === 'Enter') confirmCustom();
                                     if (e.key === 'Escape') cancelCustom();
                                 }}
-                                placeholder="한국어 명칭"
+                                placeholder={t('diagnosis_leaders_ui.custom_korean_placeholder')}
                                 maxLength={10}
                                 className="h-[38px] w-[110px] rounded-lg border-[1.5px] border-[#B2EDE5] px-3 text-[13px] text-[#3A4356] outline-none focus:border-[#2EC4A9] focus:ring-[3px] focus:ring-[rgba(46,196,169,0.12)] dark:bg-[#1e3a5f]/30 dark:text-[#e2e8f0]"
                             />
@@ -756,7 +773,7 @@ export default function Leaders({
                                 onClick={confirmCustom}
                                 className="h-[38px] rounded-lg bg-[#2EC4A9] px-4 text-[12.5px] font-bold whitespace-nowrap text-white hover:bg-[#25A891]"
                             >
-                                추가
+                                {t('diagnosis_leaders_ui.add')}
                             </button>
                             <button
                                 type="button"
@@ -767,7 +784,7 @@ export default function Leaders({
                             </button>
                         </div>
                         <div className="text-[11px] text-[#25A891]">
-                            Enter 키로 빠르게 추가할 수 있습니다
+                            {t('diagnosis_leaders_ui.enter_quick_add')}
                         </div>
                     </div>
                 )}
@@ -788,7 +805,7 @@ export default function Leaders({
                         </div>
                         <span className="text-[13px] font-semibold">
                             {t('diagnosis_leaders.addCustom') ||
-                                '커스텀 직급 추가'}
+                                t('diagnosis_leaders_ui.add_custom')}
                         </span>
                     </div>
                 )}
@@ -842,7 +859,7 @@ export default function Leaders({
                 <div className="flex flex-1 flex-wrap gap-1.5">
                     {allSelected.length === 0 ? (
                         <span className="text-[12px] text-[#CBD0DA] italic">
-                            선택된 포지션이 없습니다
+                            {t('diagnosis_leaders_ui.no_selected_positions')}
                         </span>
                     ) : (
                         allSelected.map((r) => (
@@ -886,7 +903,10 @@ export default function Leaders({
                 }
                 liveValidationError={
                     tooManyLeaders && !isReadOnly
-                        ? `Leadership count (${totalHead}) cannot exceed total workforce (${totalWorkforce}).`
+                        ? t('diagnosis_leaders_ui.validation_exceeded_live', {
+                              totalHead,
+                              totalWorkforce,
+                          })
                         : null
                 }
                 validateBeforeNext={() => {

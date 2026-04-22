@@ -181,10 +181,10 @@ export default function TranslationsIndex({
                         <div className="mb-6 flex items-center justify-between flex-wrap flex-wrap">
                             <div>
                                 <h1 className="text-3xl font-bold mb-2 text-foreground">
-                                    Translation Center
+                                    {t('admin_translations_center.title', 'Translation Center')}
                                 </h1>
                                 <p className="text-muted-foreground">
-                                    Manage English and Korean translations in one place.
+                                    {t('admin_translations_center.subtitle', 'Manage English and Korean translations in one place.')}
                                 </p>
                             </div>
                             <div className="flex items-center gap-2">
@@ -197,28 +197,28 @@ export default function TranslationsIndex({
                                 />
                                 <Button variant="outline" onClick={handleExportCsv}>
                                     <Download className="w-4 h-4 mr-2" />
-                                    Export CSV
+                                    {t('admin_translations_center.actions.export_csv', 'Export CSV')}
                                 </Button>
                                 <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
                                     <Upload className="w-4 h-4 mr-2" />
-                                    Import CSV
+                                    {t('admin_translations_center.actions.import_csv', 'Import CSV')}
                                 </Button>
                                 <Button onClick={handleSave} disabled={Object.keys(dirtyKeys).length === 0}>
                                     <Save className="w-4 h-4 mr-2" />
-                                    Save all changes
+                                    {t('admin_translations_center.actions.save_all', 'Save all changes')}
                                 </Button>
                             </div>
                         </div>
 
                         <Card className="mb-6">
                             <CardHeader>
-                                <CardTitle>Filters</CardTitle>
+                                <CardTitle>{t('admin_translations_center.filters.title', 'Filters')}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                                     <div>
                                         <label className="text-sm font-medium mb-2 block">
-                                            Section
+                                            {t('admin_translations_center.filters.section', 'Section')}
                                         </label>
                                         <Select value={currentPage} onValueChange={(v) => {
                                             handleFilterChange(v, role, searchMode, status);
@@ -236,7 +236,7 @@ export default function TranslationsIndex({
                                         </Select>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium mb-2 block">Role</label>
+                                        <label className="text-sm font-medium mb-2 block">{t('admin_translations_center.filters.role', 'Role')}</label>
                                         <Select
                                             value={role}
                                             onValueChange={(v) => {
@@ -257,7 +257,7 @@ export default function TranslationsIndex({
                                         </Select>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium mb-2 block">Search mode</label>
+                                        <label className="text-sm font-medium mb-2 block">{t('admin_translations_center.filters.search_mode', 'Search mode')}</label>
                                         <Select
                                             value={searchMode}
                                             onValueChange={(v: 'contains' | 'exact') => {
@@ -269,13 +269,13 @@ export default function TranslationsIndex({
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="contains">Contains</SelectItem>
-                                                <SelectItem value="exact">Exact</SelectItem>
+                                                <SelectItem value="contains">{t('admin_translations_center.filters.search_mode_contains', 'Contains')}</SelectItem>
+                                                <SelectItem value="exact">{t('admin_translations_center.filters.search_mode_exact', 'Exact')}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium mb-2 block">Status</label>
+                                        <label className="text-sm font-medium mb-2 block">{t('admin_translations_center.filters.status', 'Status')}</label>
                                         <Select
                                             value={status}
                                             onValueChange={(v) => {
@@ -297,11 +297,11 @@ export default function TranslationsIndex({
                                     </div>
                                     <div>
                                         <label className="text-sm font-medium mb-2 block">
-                                            Search key or value
+                                            {t('admin_translations_center.filters.search_key_or_value', 'Search key or value')}
                                         </label>
                                         <div className="flex gap-2">
                                             <Input
-                                                placeholder="Search..."
+                                                placeholder={t('admin_translations_center.filters.search_placeholder', 'Search...')}
                                                 value={search}
                                                 onChange={(e) => setSearch(e.target.value)}
                                                 onKeyDown={(e) => {
@@ -325,7 +325,7 @@ export default function TranslationsIndex({
                                 className="justify-between"
                                 onClick={() => handleStatusShortcut('all')}
                             >
-                                All
+                                {t('admin_translations_center.stats.all', 'All')}
                                 <Badge variant="secondary">{stats.total}</Badge>
                             </Button>
                             <Button
@@ -333,7 +333,7 @@ export default function TranslationsIndex({
                                 className="justify-between"
                                 onClick={() => handleStatusShortcut('missing_any')}
                             >
-                                Missing Any
+                                {t('admin_translations_center.stats.missing_any', 'Missing Any')}
                                 <Badge variant="secondary">{stats.missing_any}</Badge>
                             </Button>
                             <Button
@@ -341,7 +341,7 @@ export default function TranslationsIndex({
                                 className="justify-between"
                                 onClick={() => handleStatusShortcut('missing_en')}
                             >
-                                Missing EN
+                                {t('admin_translations_center.stats.missing_en', 'Missing EN')}
                                 <Badge variant="secondary">{stats.missing_en}</Badge>
                             </Button>
                             <Button
@@ -349,7 +349,7 @@ export default function TranslationsIndex({
                                 className="justify-between"
                                 onClick={() => handleStatusShortcut('missing_ko')}
                             >
-                                Missing KO
+                                {t('admin_translations_center.stats.missing_ko', 'Missing KO')}
                                 <Badge variant="secondary">{stats.missing_ko}</Badge>
                             </Button>
                             <Button
@@ -357,7 +357,7 @@ export default function TranslationsIndex({
                                 className="justify-between"
                                 onClick={() => handleStatusShortcut('same_text')}
                             >
-                                Same Text
+                                {t('admin_translations_center.stats.same_text', 'Same Text')}
                                 <Badge variant="secondary">{stats.same_text}</Badge>
                             </Button>
                             <Button
@@ -365,7 +365,7 @@ export default function TranslationsIndex({
                                 className="justify-between"
                                 onClick={() => handleStatusShortcut('all')}
                             >
-                                Complete
+                                {t('admin_translations_center.stats.complete', 'Complete')}
                                 <Badge variant="secondary">{stats.complete}</Badge>
                             </Button>
                         </div>
@@ -374,7 +374,7 @@ export default function TranslationsIndex({
                             <CardHeader>
                                 <div className="flex items-center justify-between flex-wrap">
                                     <CardTitle>
-                                        {entries.length} translations
+                                        {t('admin_translations_center.translations_count', '{{count}} translations', { count: entries.length })}
                                     </CardTitle>
                                     <Badge variant="outline">
                                         {pages[currentPage]} | {roles[role]}
@@ -398,14 +398,14 @@ export default function TranslationsIndex({
                                                     </Badge>
                                                     {dirtyKeys[entry.key] && (
                                                         <Badge variant="secondary" className="text-xs">
-                                                            Edited
+                                                            {t('admin_translations_center.edited_badge', 'Edited')}
                                                         </Badge>
                                                     )}
                                                 </div>
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div>
-                                                        <p className="text-xs font-medium mb-1">English</p>
+                                                        <p className="text-xs font-medium mb-1">{t('admin_translations_center.columns.english', 'English')}</p>
                                                         <Textarea
                                                             value={entry.en}
                                                             onChange={(e) =>
@@ -415,7 +415,7 @@ export default function TranslationsIndex({
                                                         />
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs font-medium mb-1">Korean</p>
+                                                        <p className="text-xs font-medium mb-1">{t('admin_translations_center.columns.korean', 'Korean')}</p>
                                                         <Textarea
                                                             value={entry.ko}
                                                             onChange={(e) =>
@@ -430,7 +430,7 @@ export default function TranslationsIndex({
                                     ))}
                                     {entries.length === 0 && (
                                         <div className="text-center py-12 text-muted-foreground">
-                                            No translations found for this filter.
+                                            {t('admin_translations_center.empty', 'No translations found for this filter.')}
                                         </div>
                                     )}
                                 </div>

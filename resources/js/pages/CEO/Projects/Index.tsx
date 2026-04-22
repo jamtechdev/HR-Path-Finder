@@ -209,18 +209,32 @@ export default function CeoProjectsIndex({ projects }: Props) {
                                                                 </Link>
 
                                                                 {surveyDone ? (
-                                                                    <Link
-                                                                        href={`/ceo/review/diagnosis/${project.id}`}
-                                                                    >
-                                                                        <Button
-                                                                            size="sm"
-                                                                            variant="outline"
+                                                                    <>
+                                                                        <Link
+                                                                            href={`/ceo/philosophy/survey/${project.id}`}
                                                                         >
-                                                                            {t(
-                                                                                'ceo_project.view_diagnosis',
-                                                                            )}
-                                                                        </Button>
-                                                                    </Link>
+                                                                            <Button
+                                                                                size="sm"
+                                                                                variant="outline"
+                                                                            >
+                                                                                {t(
+                                                                                    'ceo_project.view_survey',
+                                                                                )}
+                                                                            </Button>
+                                                                        </Link>
+                                                                        <Link
+                                                                            href={`/ceo/review/diagnosis/${project.id}`}
+                                                                        >
+                                                                            <Button
+                                                                                size="sm"
+                                                                                variant="outline"
+                                                                            >
+                                                                                {t(
+                                                                                    'ceo_project.view_diagnosis',
+                                                                                )}
+                                                                            </Button>
+                                                                        </Link>
+                                                                    </>
                                                                 ) : (
                                                                     <Link
                                                                         href={`/ceo/philosophy/survey/${project.id}`}

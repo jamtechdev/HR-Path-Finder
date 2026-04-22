@@ -11,27 +11,29 @@ import {
     History,
 } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
 // Same tab order and labels as HR diagnosis (company-info through hr-issues), plus Change History for CEO
 interface Tab {
     id: string;
-    label: string;
+    labelKey: string;
+    fallback: string;
     icon: React.ComponentType<{ className?: string }>;
 }
 
 const tabs: Tab[] = [
-    { id: 'company-info', label: 'Basic Info', icon: Building2 },
-    { id: 'workforce', label: 'Workforce', icon: Users },
-    { id: 'executives', label: 'Executives', icon: UserCog },
-    { id: 'leaders', label: 'Leaders', icon: UserCheck },
-    { id: 'job-grades', label: 'Job Grades', icon: BriefcaseBusiness },
-    { id: 'organizational-charts', label: 'Org Charts', icon: Upload },
-    { id: 'organizational-structure', label: 'Org Structure', icon: Network },
-    { id: 'job-structure', label: 'Job Structure', icon: Layers },
-    { id: 'hr-issues', label: 'HR Issues', icon: AlertTriangle },
-    { id: 'history', label: 'Change History', icon: History },
+    { id: 'company-info', labelKey: 'ceo_review_diagnosis.tabs.company_info', fallback: 'Basic Info', icon: Building2 },
+    { id: 'workforce', labelKey: 'ceo_review_diagnosis.tabs.workforce', fallback: 'Workforce', icon: Users },
+    { id: 'executives', labelKey: 'ceo_review_diagnosis.tabs.executives', fallback: 'Executives', icon: UserCog },
+    { id: 'leaders', labelKey: 'ceo_review_diagnosis.tabs.leaders', fallback: 'Leaders', icon: UserCheck },
+    { id: 'job-grades', labelKey: 'ceo_review_diagnosis.tabs.job_grades', fallback: 'Job Grades', icon: BriefcaseBusiness },
+    { id: 'organizational-charts', labelKey: 'ceo_review_diagnosis.tabs.org_charts', fallback: 'Org Charts', icon: Upload },
+    { id: 'organizational-structure', labelKey: 'ceo_review_diagnosis.tabs.org_structure', fallback: 'Org Structure', icon: Network },
+    { id: 'job-structure', labelKey: 'ceo_review_diagnosis.tabs.job_structure', fallback: 'Job Structure', icon: Layers },
+    { id: 'hr-issues', labelKey: 'ceo_review_diagnosis.tabs.hr_issues', fallback: 'HR Issues', icon: AlertTriangle },
+    { id: 'history', labelKey: 'ceo_review_diagnosis.tabs.change_history', fallback: 'Change History', icon: History },
 ];
 
 interface DiagnosisTabsProps {
@@ -40,6 +42,7 @@ interface DiagnosisTabsProps {
 }
 
 export default function DiagnosisTabs({ activeTab, onTabChange }: DiagnosisTabsProps) {
+    const { t } = useTranslation();
     return (
         <TabsList className="!h-auto !justify-start !bg-transparent !p-0 my-3 flex w-full flex-nowrap gap-2 rounded-none border-b border-slate-200 bg-gradient-to-r from-slate-50 via-white to-slate-50 px-4 py-3 dark:border-slate-700 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 min-h-0 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {tabs.map((tab) => {
@@ -61,7 +64,7 @@ export default function DiagnosisTabs({ activeTab, onTabChange }: DiagnosisTabsP
                         )}
                     >
                         <Icon className="h-4 w-4 flex-shrink-0" />
-                        <span className="whitespace-nowrap">{tab.label}</span>
+                        <span className="whitespace-nowrap">{t(tab.labelKey, { defaultValue: tab.fallback })}</span>
                     </TabsTrigger>
                 );
             })}

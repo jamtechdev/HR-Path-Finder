@@ -994,6 +994,18 @@
     },
     "ceo_review_diagnosis": {
         "page_title": "Review Diagnosis - {{company}}",
+        "tabs": {
+            "company_info": "Basic Info",
+            "workforce": "Workforce",
+            "executives": "Executives",
+            "leaders": "Leaders",
+            "job_grades": "Job Grades",
+            "org_charts": "Org Charts",
+            "org_structure": "Org Structure",
+            "job_structure": "Job Structure",
+            "hr_issues": "HR Issues",
+            "change_history": "Change History"
+        },
         "header": {
             "title": "Review HR Diagnosis Inputs",
             "subtitle": "Review and edit the diagnosis data submitted by your HR Manager. All changes will be logged."
@@ -1020,6 +1032,23 @@
             "message": "Thank you for your time. Your part of the process is now complete.\n\n1. Next Step: Our HR Manager will now begin drafting the system design based on your responses.\n2. Final Report: Once the draft is finalized, a professional consultant's report will be delivered within 2 weeks.\n\nWe appreciate your patience while we prepare the best results for you.",
             "next": "Go to Dashboard"
         }
+    },
+    "diagnosis_leaders_ui": {
+        "position_count": "Position count",
+        "workforce_auto_hint": "Automatically populated from integrated workforce data",
+        "custom_position": "Custom position",
+        "custom_name_placeholder": "Position name (e.g. Unit Leader, Cell Leader...)",
+        "custom_korean_placeholder": "Korean label",
+        "add": "Add",
+        "enter_quick_add": "Press Enter to add quickly",
+        "add_custom": "Add custom position",
+        "no_selected_positions": "No positions selected",
+        "validation_exceeded_live": "Leadership count ({{totalHead}}) cannot exceed total workforce ({{totalWorkforce}}).",
+        "desc_division_head": "Oversees an entire business division",
+        "desc_department_head": "Manages a specific department",
+        "desc_team_leader": "Leads a cross-functional team",
+        "desc_group_leader": "Manages a sub-group within a team",
+        "desc_part_leader": "Oversees a specific work unit"
     },
     "admin_industries": {
         "page_title": "Industries Management",
@@ -1852,6 +1881,7 @@
         "survey_pending": "Pending",
         "survey_na": "N/A",
         "verify": "Verify",
+        "view_survey": "View Survey",
         "view_diagnosis": "View Diagnosis",
         "start_survey": "Start Survey",
         "no_projects": "No projects available",
@@ -2153,6 +2183,18 @@
             "confirm_password": "Confirm password",
             "confirm_password_placeholder": "Confirm password"
         }
+    },
+    "settings_delete_account": {
+        "heading_title": "Delete account",
+        "heading_description": "Delete your account and all of its resources",
+        "warning_title": "Warning",
+        "warning_body": "Please proceed with caution, this cannot be undone.",
+        "delete_button": "Delete account",
+        "confirm_title": "Are you sure you want to delete your account?",
+        "confirm_description": "Once your account is deleted, all of its resources and data will also be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.",
+        "password_label": "Password",
+        "password_placeholder": "Password",
+        "cancel_button": "Cancel"
     },
     "settings_two_factor": {
         "page_title": "Two-Factor Authentication",
@@ -2568,6 +2610,15 @@
         "subheading": "Admin-only: Manage organization trees for {{company}}",
         "notice_strong": "Admin Access:",
         "notice_body": "This is an admin-only feature for managing organization trees. HR Managers and CEOs do not have access to this functionality.",
+        "back_to_overview": "Back to TREE Overview",
+        "recommendations_title": "TREE Recommendations",
+        "recommendations_subtitle": "Review job matrix cards and provide recommendations for the HR team.",
+        "job_matrix_cards": "Job Matrix Cards",
+        "provide_recommendations": "Provide Recommendations",
+        "provide_recommendations_desc": "Review the job matrix cards above and provide your recommendations for the HR team. These recommendations will be visible to HR managers.",
+        "recommendations": "Recommendations",
+        "recommendations_placeholder": "Provide your recommendations based on the job matrix cards above...",
+        "recommendations_existing_update": "You have an existing recommendation. Submitting will update it.",
         "job_definitions": "Job Definitions",
         "job_definitions_desc": "Finalized job roles and their organizational structure",
         "no_jobs": "No job definitions found. Please complete Job Analysis step first.",
@@ -3364,8 +3415,29 @@
         "option_a": "Option A",
         "option_b": "Option B",
         "scale_labels": "Scale Labels",
+        "scale_labels_placeholder": "Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree",
         "unit": "Unit",
+        "unit_placeholder": "Billions of KRW",
         "order": "Order",
+        "display_order": "Display Order",
+        "display_order_placeholder": "Auto (append at end)",
+        "enter_option": "Enter option",
+        "invalid_json": "Invalid JSON format",
+        "survey_copy_title": "Survey Copy (Form Fields)",
+        "survey_copy_desc": "Fill EN/KO copy here. Values are saved into metadata automatically.",
+        "question_text_en": "Question Text (EN)",
+        "question_text_ko": "Question Text (KO)",
+        "section_title_en": "Section Title (EN)",
+        "section_title_ko": "Section Title (KO)",
+        "section_description_en": "Section Description (EN)",
+        "section_description_ko": "Section Description (KO)",
+        "callout_title_en": "Callout Title (EN)",
+        "callout_title_ko": "Callout Title (KO)",
+        "callout_body_en": "Callout Body (EN)",
+        "callout_body_ko": "Callout Body (KO)",
+        "metadata_json": "Metadata (JSON)",
+        "metadata_json_placeholder": "{\"title\":\"...\", \"description\":\"...\", \"callout_title\":\"...\", \"callout_body\":\"...\"}",
+        "metadata_help": "Use metadata to control survey UI copy from Admin (EN/KO variants supported, e.g. title_ko, description_ko, callout_title_ko, callout_body_ko).",
         "active": "Active",
         "cancel": "Cancel",
         "create_question": "Create Question"
@@ -3383,8 +3455,28 @@
         "option_a": "Option A",
         "option_b": "Option B",
         "scale_labels": "Scale Labels",
+        "scale_labels_placeholder": "Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree",
         "unit": "Unit",
+        "unit_placeholder": "Billions of KRW",
         "order": "Order",
+        "display_order": "Display Order",
+        "enter_option": "Enter option",
+        "invalid_json": "Invalid JSON format",
+        "survey_copy_title": "Survey Copy (Form Fields)",
+        "survey_copy_desc": "Fill EN/KO copy here. Values are saved into metadata automatically.",
+        "question_text_en": "Question Text (EN)",
+        "question_text_ko": "Question Text (KO)",
+        "section_title_en": "Section Title (EN)",
+        "section_title_ko": "Section Title (KO)",
+        "section_description_en": "Section Description (EN)",
+        "section_description_ko": "Section Description (KO)",
+        "callout_title_en": "Callout Title (EN)",
+        "callout_title_ko": "Callout Title (KO)",
+        "callout_body_en": "Callout Body (EN)",
+        "callout_body_ko": "Callout Body (KO)",
+        "metadata_json": "Metadata (JSON)",
+        "metadata_json_placeholder": "{\"title\":\"...\", \"description\":\"...\", \"callout_title\":\"...\", \"callout_body\":\"...\"}",
+        "metadata_help": "You can manage survey section/callout text from Admin metadata (EN/KO keys supported).",
         "active": "Active",
         "cancel": "Cancel",
         "update_question": "Update Question"
@@ -4494,7 +4586,35 @@
     },
     "admin_recommendations": {
         "back_to_dashboard": "Back to Dashboard",
+        "project_context": "Project Context",
+        "project_context_desc": "Key information from previous steps",
+        "growth_stage": "Growth Stage",
+        "ceo_philosophy": "CEO Philosophy",
+        "org_structure": "Organization Structure",
+        "job_definitions": "Job Definitions",
+        "job_definitions_count": "{{count}} jobs defined",
+        "algorithm_reference": "Algorithm-Based Recommendation (Reference)",
+        "recommended": "Recommended",
+        "reasons": "Reasons",
+        "your_recommendation": "Your Recommendation",
+        "algorithm_recommended": "Algorithm Recommended",
+        "score_with_reason_count": "Score: {{score}} | {{count}} reasons",
+        "rationale": "Rationale",
+        "character_count": "{{count}} / 5000 characters",
+        "min_rationale_hint": "Please provide a more detailed rationale (minimum 100 characters recommended)",
+        "update_recommendation": "Update Recommendation",
+        "save_recommendation": "Save Recommendation",
+        "replace_existing": "This will replace the existing recommendation.",
+        "performance_system_selected": "Performance System Selected",
+        "evaluation_unit": "Evaluation Unit",
+        "reward_sensitivity": "Reward Sensitivity",
         "performance": {
+            "title": "Step 3.5: Prepare Performance Management Recommendation",
+            "subtitle": "Review the project context and prepare a recommendation for the Performance Management system.",
+            "select_method_desc": "Select the performance management method you recommend and provide a clear rationale.",
+            "method_label": "Performance Management Method",
+            "rationale_help": "Explain why this option fits the company's growth stage, matches the CEO's management philosophy, and aligns with the defined CSFs. Write in clear, client-friendly language.",
+            "rationale_placeholder": "Example: Based on your company's growth stage and CEO philosophy, we recommend KPI because...",
             "options": {
                 "kpi": {
                     "label": "KPI",
@@ -4515,6 +4635,12 @@
             }
         },
         "compensation": {
+            "title": "Step 4.5: Prepare Compensation & Benefits Recommendation",
+            "subtitle": "Review the project context and prepare a recommendation for the Compensation & Benefits system.",
+            "select_method_desc": "Select the compensation structure you recommend and provide a clear rationale explaining how it connects to the performance design and job structure.",
+            "structure_label": "Compensation Structure",
+            "rationale_help": "Explain why this pay mix is realistic, how it connects to the performance design selected in Step 4, and how it aligns with the job structure. Write in clear, client-friendly language.",
+            "rationale_placeholder": "Example: Based on your performance system selection and company context, we recommend mixed compensation because...",
             "options": {
                 "fixed": {
                     "label": "Fixed Compensation",
@@ -4530,5 +4656,40 @@
                 }
             }
         }
+    },
+    "admin_translations_center": {
+        "title": "Translation Center",
+        "subtitle": "Manage English and Korean translations in one place.",
+        "actions": {
+            "export_csv": "Export CSV",
+            "import_csv": "Import CSV",
+            "save_all": "Save all changes"
+        },
+        "filters": {
+            "title": "Filters",
+            "section": "Section",
+            "role": "Role",
+            "search_mode": "Search mode",
+            "search_mode_contains": "Contains",
+            "search_mode_exact": "Exact",
+            "status": "Status",
+            "search_key_or_value": "Search key or value",
+            "search_placeholder": "Search..."
+        },
+        "stats": {
+            "all": "All",
+            "missing_any": "Missing Any",
+            "missing_en": "Missing EN",
+            "missing_ko": "Missing KO",
+            "same_text": "Same Text",
+            "complete": "Complete"
+        },
+        "translations_count": "{{count}} translations",
+        "edited_badge": "Edited",
+        "columns": {
+            "english": "English",
+            "korean": "Korean"
+        },
+        "empty": "No translations found for this filter."
     }
 }

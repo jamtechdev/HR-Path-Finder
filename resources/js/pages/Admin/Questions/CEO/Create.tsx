@@ -59,9 +59,9 @@ export default function CEOQuestionCreate({
             setMetadata(parsed && typeof parsed === 'object' ? parsed : {});
             setMetadataJsonError('');
         } catch {
-            setMetadataJsonError('Invalid JSON format');
+            setMetadataJsonError(t('admin_ceo_questions_create.invalid_json', 'Invalid JSON format'));
         }
-    }, [metadataJson]);
+    }, [metadataJson, t]);
 
     const updateMetadata = (key: string, value: unknown) => {
         const next = { ...(metadata || {}), [key]: value };
@@ -214,7 +214,7 @@ export default function CEOQuestionCreate({
 
                                     {/* Order */}
                                     <div>
-                                        <Label>Display Order</Label>
+                                        <Label>{t('admin_ceo_questions_create.display_order', 'Display Order')}</Label>
                                         <Input
                                             type="number"
                                             min={0}
@@ -225,7 +225,7 @@ export default function CEOQuestionCreate({
                                                     e.target.value === '' ? null : Number(e.target.value),
                                                 )
                                             }
-                                            placeholder="Auto (append at end)"
+                                            placeholder={t('admin_ceo_questions_create.display_order_placeholder', 'Auto (append at end)')}
                                         />
                                         {errors.order && (
                                             <p className="mt-1 text-sm text-destructive">
@@ -246,7 +246,7 @@ export default function CEOQuestionCreate({
                                                 label=""
                                                 items={options}
                                                 onChange={setOptions}
-                                                placeholder="Enter option"
+                                                placeholder={t('admin_ceo_questions_create.enter_option', 'Enter option')}
                                                 addLabel={t(
                                                     'admin_ceo_questions_create.add_option',
                                                 )}
@@ -321,7 +321,7 @@ export default function CEOQuestionCreate({
                                                             ),
                                                     })
                                                 }
-                                                placeholder="Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree"
+                                                placeholder={t('admin_ceo_questions_create.scale_labels_placeholder', 'Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree')}
                                             />
                                         </div>
                                     )}
@@ -341,20 +341,20 @@ export default function CEOQuestionCreate({
                                                         unit: e.target.value,
                                                     })
                                                 }
-                                                placeholder="Billions of KRW"
+                                                placeholder={t('admin_ceo_questions_create.unit_placeholder', 'Billions of KRW')}
                                             />
                                         </div>
                                     )}
 
                                     {/* Metadata JSON (admin-driven survey text/callouts) */}
                                     <div className="space-y-3 rounded-md border p-4">
-                                        <p className="text-sm font-medium">Survey Copy (Form Fields)</p>
+                                        <p className="text-sm font-medium">{t('admin_ceo_questions_create.survey_copy_title', 'Survey Copy (Form Fields)')}</p>
                                         <p className="text-xs text-muted-foreground">
-                                            Fill EN/KO copy here. Values are saved into metadata automatically.
+                                            {t('admin_ceo_questions_create.survey_copy_desc', 'Fill EN/KO copy here. Values are saved into metadata automatically.')}
                                         </p>
                                         <div className="grid gap-3 md:grid-cols-2">
                                             <div>
-                                                <Label>Question Text (EN)</Label>
+                                                <Label>{t('admin_ceo_questions_create.question_text_en', 'Question Text (EN)')}</Label>
                                                 <Textarea
                                                     value={metadata.question_text_en || ''}
                                                     onChange={(e) => updateMetadata('question_text_en', e.target.value)}
@@ -362,7 +362,7 @@ export default function CEOQuestionCreate({
                                                 />
                                             </div>
                                             <div>
-                                                <Label>Question Text (KO)</Label>
+                                                <Label>{t('admin_ceo_questions_create.question_text_ko', 'Question Text (KO)')}</Label>
                                                 <Textarea
                                                     value={metadata.question_text_ko || ''}
                                                     onChange={(e) => updateMetadata('question_text_ko', e.target.value)}
@@ -370,21 +370,21 @@ export default function CEOQuestionCreate({
                                                 />
                                             </div>
                                             <div>
-                                                <Label>Section Title (EN)</Label>
+                                                <Label>{t('admin_ceo_questions_create.section_title_en', 'Section Title (EN)')}</Label>
                                                 <Input
                                                     value={metadata.section_title || ''}
                                                     onChange={(e) => updateMetadata('section_title', e.target.value)}
                                                 />
                                             </div>
                                             <div>
-                                                <Label>Section Title (KO)</Label>
+                                                <Label>{t('admin_ceo_questions_create.section_title_ko', 'Section Title (KO)')}</Label>
                                                 <Input
                                                     value={metadata.section_title_ko || ''}
                                                     onChange={(e) => updateMetadata('section_title_ko', e.target.value)}
                                                 />
                                             </div>
                                             <div>
-                                                <Label>Section Description (EN)</Label>
+                                                <Label>{t('admin_ceo_questions_create.section_description_en', 'Section Description (EN)')}</Label>
                                                 <Textarea
                                                     value={metadata.section_description || ''}
                                                     onChange={(e) => updateMetadata('section_description', e.target.value)}
@@ -392,7 +392,7 @@ export default function CEOQuestionCreate({
                                                 />
                                             </div>
                                             <div>
-                                                <Label>Section Description (KO)</Label>
+                                                <Label>{t('admin_ceo_questions_create.section_description_ko', 'Section Description (KO)')}</Label>
                                                 <Textarea
                                                     value={metadata.section_description_ko || ''}
                                                     onChange={(e) => updateMetadata('section_description_ko', e.target.value)}
@@ -400,21 +400,21 @@ export default function CEOQuestionCreate({
                                                 />
                                             </div>
                                             <div>
-                                                <Label>Callout Title (EN)</Label>
+                                                <Label>{t('admin_ceo_questions_create.callout_title_en', 'Callout Title (EN)')}</Label>
                                                 <Input
                                                     value={metadata.section_callout_title || ''}
                                                     onChange={(e) => updateMetadata('section_callout_title', e.target.value)}
                                                 />
                                             </div>
                                             <div>
-                                                <Label>Callout Title (KO)</Label>
+                                                <Label>{t('admin_ceo_questions_create.callout_title_ko', 'Callout Title (KO)')}</Label>
                                                 <Input
                                                     value={metadata.section_callout_title_ko || ''}
                                                     onChange={(e) => updateMetadata('section_callout_title_ko', e.target.value)}
                                                 />
                                             </div>
                                             <div>
-                                                <Label>Callout Body (EN)</Label>
+                                                <Label>{t('admin_ceo_questions_create.callout_body_en', 'Callout Body (EN)')}</Label>
                                                 <Textarea
                                                     value={metadata.section_callout_body || ''}
                                                     onChange={(e) => updateMetadata('section_callout_body', e.target.value)}
@@ -422,7 +422,7 @@ export default function CEOQuestionCreate({
                                                 />
                                             </div>
                                             <div>
-                                                <Label>Callout Body (KO)</Label>
+                                                <Label>{t('admin_ceo_questions_create.callout_body_ko', 'Callout Body (KO)')}</Label>
                                                 <Textarea
                                                     value={metadata.section_callout_body_ko || ''}
                                                     onChange={(e) => updateMetadata('section_callout_body_ko', e.target.value)}
@@ -432,12 +432,12 @@ export default function CEOQuestionCreate({
                                         </div>
                                     </div>
                                     <div>
-                                        <Label>Metadata (JSON)</Label>
+                                        <Label>{t('admin_ceo_questions_create.metadata_json', 'Metadata (JSON)')}</Label>
                                         <Textarea
                                             value={metadataJson}
                                             onChange={(e) => setMetadataJson(e.target.value)}
                                             rows={8}
-                                            placeholder='{"title":"...", "description":"...", "callout_title":"...", "callout_body":"..."}'
+                                            placeholder={t('admin_ceo_questions_create.metadata_json_placeholder', '{"title":"...", "description":"...", "callout_title":"...", "callout_body":"..."}')}
                                         />
                                         {metadataJsonError && (
                                             <p className="mt-1 text-sm text-destructive">
@@ -445,7 +445,7 @@ export default function CEOQuestionCreate({
                                             </p>
                                         )}
                                         <p className="mt-1 text-xs text-muted-foreground">
-                                            Use metadata to control survey UI copy from Admin (EN/KO variants supported, e.g. title_ko, description_ko, callout_title_ko, callout_body_ko).
+                                            {t('admin_ceo_questions_create.metadata_help', 'Use metadata to control survey UI copy from Admin (EN/KO variants supported, e.g. title_ko, description_ko, callout_title_ko, callout_body_ko).')}
                                         </p>
                                     </div>
 

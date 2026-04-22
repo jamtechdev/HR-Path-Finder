@@ -31,9 +31,9 @@ class TranslationController extends Controller
     {
         $page = $this->stringInput($request, 'page', 'all');
         $search = $this->stringInput($request, 'search', '');
-        $role = $this->stringInput($request, 'role', 'all');
-        $searchMode = $this->stringInput($request, 'searchMode', 'contains');
-        $status = $this->stringInput($request, 'status', 'all');
+        $role = $this->normalizeRole($this->stringInput($request, 'role', 'all'));
+        $searchMode = $this->normalizeSearchMode($this->stringInput($request, 'searchMode', 'contains'));
+        $status = $this->normalizeStatus($this->stringInput($request, 'status', 'all'));
 
         $enTranslations = $this->translationService->getFlatTranslations('en', $page);
         $koTranslations = $this->translationService->getFlatTranslations('ko', $page);
@@ -205,9 +205,9 @@ class TranslationController extends Controller
     {
         $page = $this->stringInput($request, 'page', 'all');
         $search = $this->stringInput($request, 'search', '');
-        $role = $this->stringInput($request, 'role', 'all');
-        $searchMode = $this->stringInput($request, 'searchMode', 'contains');
-        $status = $this->stringInput($request, 'status', 'all');
+        $role = $this->normalizeRole($this->stringInput($request, 'role', 'all'));
+        $searchMode = $this->normalizeSearchMode($this->stringInput($request, 'searchMode', 'contains'));
+        $status = $this->normalizeStatus($this->stringInput($request, 'status', 'all'));
 
         $rows = $this->collectFilteredRows($page, $search, $role, $searchMode, $status);
         $filename = sprintf('translations-%s-%s.csv', $page, now()->format('Ymd-His'));
@@ -252,7 +252,10 @@ class TranslationController extends Controller
             return back()->withErrors(['error' => 'CSV file is empty.']);
         }
 
-        $normalized = array_map(fn ($v) => mb_strtolower(trim((string) $v)), $header);
+        $normalized = array_map(function ($v) {
+            $cell = mb_strtolower(trim((string) $v));
+            return $this->stripUtf8Bom($cell);
+        }, $header);
         $expected = ['key', 'en', 'ko'];
         if ($normalized !== $expected) {
             fclose($handle);
@@ -406,6 +409,29 @@ class TranslationController extends Controller
         $value = $request->input($key, $default);
 
         return is_string($value) ? $value : $default;
+    }
+
+    protected function normalizeRole(string $role): string
+    {
+        $allowed = ['all', 'admin', 'ceo', 'hr', 'common'];
+        return in_array($role, $allowed, true) ? $role : 'all';
+    }
+
+    protected function normalizeSearchMode(string $searchMode): string
+    {
+        $allowed = ['contains', 'exact'];
+        return in_array($searchMode, $allowed, true) ? $searchMode : 'contains';
+    }
+
+    protected function normalizeStatus(string $status): string
+    {
+        $allowed = ['all', 'missing_any', 'missing_en', 'missing_ko', 'same_text'];
+        return in_array($status, $allowed, true) ? $status : 'all';
+    }
+
+    protected function stripUtf8Bom(string $value): string
+    {
+        return preg_replace('/^\xEF\xBB\xBF/u', '', $value) ?? $value;
     }
 
     /**
