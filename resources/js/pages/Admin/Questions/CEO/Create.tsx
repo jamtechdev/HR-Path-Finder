@@ -32,6 +32,8 @@ export default function CEOQuestionCreate({
     const [questionType, setQuestionType] = useState<string>('text');
     const [options, setOptions] = useState<string[]>([]);
     const [metadata, setMetadata] = useState<any>({});
+    const [metadataJson, setMetadataJson] = useState<string>('{}');
+    const [metadataJsonError, setMetadataJsonError] = useState<string>('');
 
     const { data, setData, post, processing, errors } = useForm({
         category: '',
@@ -48,10 +50,24 @@ export default function CEOQuestionCreate({
         if (questionType === 'select') setData('options', options);
         else setData('options', null);
 
-        if (['likert', 'slider', 'number'].includes(questionType))
-            setData('metadata', metadata);
-        else setData('metadata', null);
-    }, [questionType, options, metadata]);
+        setData('metadata', metadata);
+    }, [questionType, options, metadata, setData]);
+
+    useEffect(() => {
+        try {
+            const parsed = JSON.parse(metadataJson);
+            setMetadata(parsed && typeof parsed === 'object' ? parsed : {});
+            setMetadataJsonError('');
+        } catch {
+            setMetadataJsonError('Invalid JSON format');
+        }
+    }, [metadataJson]);
+
+    const updateMetadata = (key: string, value: unknown) => {
+        const next = { ...(metadata || {}), [key]: value };
+        setMetadata(next);
+        setMetadataJson(JSON.stringify(next, null, 2));
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -196,6 +212,28 @@ export default function CEOQuestionCreate({
                                         </Select>
                                     </div>
 
+                                    {/* Order */}
+                                    <div>
+                                        <Label>Display Order</Label>
+                                        <Input
+                                            type="number"
+                                            min={0}
+                                            value={data.order ?? ''}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'order',
+                                                    e.target.value === '' ? null : Number(e.target.value),
+                                                )
+                                            }
+                                            placeholder="Auto (append at end)"
+                                        />
+                                        {errors.order && (
+                                            <p className="mt-1 text-sm text-destructive">
+                                                {errors.order}
+                                            </p>
+                                        )}
+                                    </div>
+
                                     {/* Options */}
                                     {questionType === 'select' && (
                                         <div>
@@ -307,6 +345,109 @@ export default function CEOQuestionCreate({
                                             />
                                         </div>
                                     )}
+
+                                    {/* Metadata JSON (admin-driven survey text/callouts) */}
+                                    <div className="space-y-3 rounded-md border p-4">
+                                        <p className="text-sm font-medium">Survey Copy (Form Fields)</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Fill EN/KO copy here. Values are saved into metadata automatically.
+                                        </p>
+                                        <div className="grid gap-3 md:grid-cols-2">
+                                            <div>
+                                                <Label>Question Text (EN)</Label>
+                                                <Textarea
+                                                    value={metadata.question_text_en || ''}
+                                                    onChange={(e) => updateMetadata('question_text_en', e.target.value)}
+                                                    rows={2}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Question Text (KO)</Label>
+                                                <Textarea
+                                                    value={metadata.question_text_ko || ''}
+                                                    onChange={(e) => updateMetadata('question_text_ko', e.target.value)}
+                                                    rows={2}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Section Title (EN)</Label>
+                                                <Input
+                                                    value={metadata.section_title || ''}
+                                                    onChange={(e) => updateMetadata('section_title', e.target.value)}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Section Title (KO)</Label>
+                                                <Input
+                                                    value={metadata.section_title_ko || ''}
+                                                    onChange={(e) => updateMetadata('section_title_ko', e.target.value)}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Section Description (EN)</Label>
+                                                <Textarea
+                                                    value={metadata.section_description || ''}
+                                                    onChange={(e) => updateMetadata('section_description', e.target.value)}
+                                                    rows={2}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Section Description (KO)</Label>
+                                                <Textarea
+                                                    value={metadata.section_description_ko || ''}
+                                                    onChange={(e) => updateMetadata('section_description_ko', e.target.value)}
+                                                    rows={2}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Callout Title (EN)</Label>
+                                                <Input
+                                                    value={metadata.section_callout_title || ''}
+                                                    onChange={(e) => updateMetadata('section_callout_title', e.target.value)}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Callout Title (KO)</Label>
+                                                <Input
+                                                    value={metadata.section_callout_title_ko || ''}
+                                                    onChange={(e) => updateMetadata('section_callout_title_ko', e.target.value)}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Callout Body (EN)</Label>
+                                                <Textarea
+                                                    value={metadata.section_callout_body || ''}
+                                                    onChange={(e) => updateMetadata('section_callout_body', e.target.value)}
+                                                    rows={2}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Callout Body (KO)</Label>
+                                                <Textarea
+                                                    value={metadata.section_callout_body_ko || ''}
+                                                    onChange={(e) => updateMetadata('section_callout_body_ko', e.target.value)}
+                                                    rows={2}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <Label>Metadata (JSON)</Label>
+                                        <Textarea
+                                            value={metadataJson}
+                                            onChange={(e) => setMetadataJson(e.target.value)}
+                                            rows={8}
+                                            placeholder='{"title":"...", "description":"...", "callout_title":"...", "callout_body":"..."}'
+                                        />
+                                        {metadataJsonError && (
+                                            <p className="mt-1 text-sm text-destructive">
+                                                {metadataJsonError}
+                                            </p>
+                                        )}
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                            Use metadata to control survey UI copy from Admin (EN/KO variants supported, e.g. title_ko, description_ko, callout_title_ko, callout_body_ko).
+                                        </p>
+                                    </div>
 
                                     {/* Active */}
                                     <div className="flex items-center space-x-2">

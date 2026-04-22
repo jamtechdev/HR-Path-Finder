@@ -26,6 +26,15 @@ function getScenarioMeta(question: DiagnosisQuestion, isKo: boolean) {
 
 export default function LeadershipStep({ questions, data, setData, showErrors = false }: LeadershipStepProps) {
     const { isKo } = usePhilosophyText();
+    const sectionMeta = ((questions[0]?.metadata || {}) as QuestionMetadata);
+    const sectionTitle = (isKo ? sectionMeta.section_title_ko : sectionMeta.section_title) || (isKo ? '리더십' : 'Leadership');
+    const sectionDesc =
+        (isKo ? sectionMeta.section_description_ko : sectionMeta.section_description) ||
+        (isKo
+            ? '실제 업무 상황을 바탕으로 1~7 점수에서 본인의 관점을 선택해 주세요. 리더십 스타일과 운영 방식을 진단하여 실행력과 조직문화에 미치는 영향을 확인합니다.'
+            : 'Real workplace scenarios — choose where you stand on a scale of 1 to 7. This section examines leadership style and management practices to assess how leadership impacts execution and organizational culture.');
+    const calloutTitle = (isKo ? sectionMeta.section_callout_title_ko : sectionMeta.section_callout_title);
+    const calloutBody = (isKo ? sectionMeta.section_callout_body_ko : sectionMeta.section_callout_body);
     return (
         <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
             {/* Section header */}
@@ -38,10 +47,10 @@ export default function LeadershipStep({ questions, data, setData, showErrors = 
                         {isKo ? '섹션 5 / 8' : 'Step 5 of 8'}
                     </div>
                     <h2 className="font-serif text-lg sm:text-[20px] sm:text-[22px] font-bold text-[#0E1628] mb-1.5 leading-tight dark:text-slate-100">
-                        {isKo ? '리더십' : 'Leadership'}
+                        {sectionTitle}
                     </h2>
                     <p className="text-sm sm:text-[13px] text-[#4A4E69] font-light leading-relaxed dark:text-slate-200">
-                        {isKo ? '실제 업무 상황을 바탕으로 1~7 점수에서 본인의 관점을 선택해 주세요. 리더십 스타일과 운영 방식을 진단하여 실행력과 조직문화에 미치는 영향을 확인합니다.' : 'Real workplace scenarios — choose where you stand on a scale of 1 to 7. This section examines leadership style and management practices to assess how leadership impacts execution and organizational culture.'}
+                        {sectionDesc}
                     </p>
                 </div>
             </div>
@@ -51,8 +60,12 @@ export default function LeadershipStep({ questions, data, setData, showErrors = 
                 <div className="absolute top-[-30px] right-[-20px] w-[110px] h-[110px] rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.2)_0%,transparent_65%)]" />
                 <span className="text-xl flex-shrink-0 relative">⚖️</span>
                 <div className="relative min-w-0 flex-1">
-                    <strong className="block text-xs font-medium text-[#E8C96B] mb-0.5">{isKo ? '정답은 없습니다. CEO님의 철학을 선택해 주세요.' : 'No right or wrong answer — only your philosophy.'}</strong>
-                    <span className="text-[11.5px] text-white/75 font-light">{isKo ? '각 상황에는 두 가지 합리적인 관점이 있습니다. 가장 가까운 위치를 솔직하게 선택해 주세요.' : 'Each scenario has two legitimate perspectives. Place yourself honestly between them.'}</span>
+                    <strong className="block text-xs font-medium text-[#E8C96B] mb-0.5">
+                        {calloutTitle || (isKo ? '정답은 없습니다. CEO님의 철학을 선택해 주세요.' : 'No right or wrong answer — only your philosophy.')}
+                    </strong>
+                    <span className="text-[11.5px] text-white/75 font-light">
+                        {calloutBody || (isKo ? '각 상황에는 두 가지 합리적인 관점이 있습니다. 가장 가까운 위치를 솔직하게 선택해 주세요.' : 'Each scenario has two legitimate perspectives. Place yourself honestly between them.')}
+                    </span>
                 </div>
             </div>
 
@@ -98,7 +111,9 @@ export default function LeadershipStep({ questions, data, setData, showErrors = 
                                         📋 {meta.scenario}
                                     </div>
                                     <p className="text-sm text-[#1A1A2E] leading-relaxed dark:text-slate-100">
-                                        {question.question_text}
+                                        {(isKo
+                                            ? ((question.metadata as QuestionMetadata)?.question_text_ko as string)
+                                            : ((question.metadata as QuestionMetadata)?.question_text_en as string)) || question.question_text}
                                         <span className="text-[#E05A5A] ml-0.5">*</span>
                                     </p>
                                 </div>

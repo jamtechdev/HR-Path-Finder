@@ -10,4 +10,21 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    build: {
+        // Suppress chunk-size yellow warning in production build logs.
+        chunkSizeWarningLimit: 1000,
+        rollupOptions: {
+            onwarn(warning, warn) {
+                // Ignore noisy third-party "use client" directive warnings from node_modules.
+                if (
+                    warning.code === 'MODULE_LEVEL_DIRECTIVE' &&
+                    typeof warning.id === 'string' &&
+                    warning.id.includes('node_modules')
+                ) {
+                    return;
+                }
+                warn(warning);
+            },
+        },
+    },
 });

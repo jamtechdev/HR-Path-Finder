@@ -28,6 +28,14 @@ function valueToStageId(value: string): string | null {
 export default function GrowthStep({ question, stepMeta, stepIndex, totalSteps, value, onChange, showError = false }: GrowthStepProps) {
     const { isKo } = usePhilosophyText();
     const metadata = ((question?.metadata || {}) as QuestionMetadata);
+    const sectionTitle = (isKo ? metadata.section_title_ko : metadata.section_title) || (isKo ? (stepMeta.nameKo || stepMeta.name) : stepMeta.name);
+    const sectionDesc =
+        (isKo ? metadata.section_description_ko : metadata.section_description) ||
+        (isKo ? metadata.description_ko : metadata.description) ||
+        (isKo ? (stepMeta.descKo || stepMeta.desc) : stepMeta.desc);
+    const questionText =
+        (isKo ? metadata.question_text_ko : metadata.question_text_en) ||
+        question?.question_text;
     const selectedId = useMemo(() => valueToStageId(value), [value]);
     const selectedStage = useMemo(
         () => GROWTH_STAGES.find((s) => s.id === selectedId),
@@ -56,11 +64,10 @@ export default function GrowthStep({ question, stepMeta, stepIndex, totalSteps, 
                         {isKo ? `섹션 ${stepIndex + 1} / ${totalSteps}` : `Step ${stepIndex + 1} of ${totalSteps}`}
                     </div>
                     <h2 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#0E1628] mb-1.5 dark:text-slate-100">
-                        {isKo ? (stepMeta.nameKo || stepMeta.name) : stepMeta.name}
+                        {sectionTitle}
                     </h2>
                     <p className="text-[12px] sm:text-[13px] text-[#4A4E69] font-light leading-relaxed max-w-[560px] dark:text-slate-300">
-                        {(isKo ? metadata.description_ko : metadata.description)
-                            || stepMeta.desc}
+                        {sectionDesc}
                     </p>
                 </div>
             </div>
@@ -68,7 +75,7 @@ export default function GrowthStep({ question, stepMeta, stepIndex, totalSteps, 
             {/* Question */}
             <div className="space-y-1">
                 <p className="text-sm sm:text-[14px] text-[#1A1A2E] leading-relaxed font-normal dark:text-slate-100">
-                    {question?.question_text || (isKo ? '현재 회사 상황과 가장 가까운 성장 단계를 선택해 주세요.' : "What is the growth stage closest to your company's current situation?")}
+                    {questionText || (isKo ? '현재 회사 상황과 가장 가까운 성장 단계를 선택해 주세요.' : "What is the growth stage closest to your company's current situation?")}
                     <span className="text-[#E05A5A] ml-0.5">*</span>
                 </p>
                 <p className="text-xs text-[#9A9EB8] italic mt-1 dark:text-slate-400">

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "entry": [
+    "resources/js/app.tsx",
+    "resources/js/ssr.tsx",
+    "resources/js/pages/**/*.tsx"
+  ],
+  "project": [
+    "resources/js/**/*.{ts,tsx}"
+  ],
+  "ignore": [
+    "resources/js/**/types.ts"
+  ]
+}

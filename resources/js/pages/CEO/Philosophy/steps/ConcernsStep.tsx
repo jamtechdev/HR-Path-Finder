@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
-import type { DiagnosisQuestion } from '../types';
+import type { DiagnosisQuestion, QuestionMetadata } from '../types';
 import { usePhilosophyText } from '../uiText';
 
 const SCAFFOLDS: Record<string, string> = {
@@ -51,9 +51,23 @@ interface ConcernsStepProps {
 
 export default function ConcernsStep({ question, value, onChange, showError = false }: ConcernsStepProps) {
     const { isKo } = usePhilosophyText();
+    const meta = ((question?.metadata || {}) as QuestionMetadata);
     const [selectedCat, setSelectedCat] = useState<string | null>(null);
     const charCount = value.length;
-    const scaffoldText = selectedCat ? (SCAFFOLDS[selectedCat] ?? '') : '';
+    const scaffolds = isKo ? (meta.scaffolds_ko || meta.scaffolds || SCAFFOLDS) : (meta.scaffolds || SCAFFOLDS);
+    const categoryChips = (() => {
+        if (Array.isArray(meta.category_chips) && meta.category_chips.length > 0) {
+            return meta.category_chips.map((chip) => ({
+                id: chip.id,
+                icon: chip.icon || '🔹',
+                label: isKo ? (chip.label_ko || chip.label) : chip.label,
+            }));
+        }
+        return isKo ? CATEGORY_CHIPS_KO : CATEGORY_CHIPS;
+    })();
+    const journeyChips = isKo ? (meta.journey_chips_ko || meta.journey_chips || JOURNEY_CHIPS_KO) : (meta.journey_chips || JOURNEY_CHIPS);
+    const aiTags = isKo ? (meta.ai_tags_ko || meta.ai_tags || AI_TAGS_KO) : (meta.ai_tags || AI_TAGS);
+    const scaffoldText = selectedCat ? (scaffolds[selectedCat] ?? '') : '';
     const hasError = showError && !value.trim();
 
     const handleSelectCat = (catId: string) => {
@@ -62,8 +76,8 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
             return;
         }
         setSelectedCat(catId);
-        if (!value.trim() && SCAFFOLDS[catId]) {
-            onChange(SCAFFOLDS[catId].replace(/\[([^\]]+)\]/g, '$1'));
+        if (!value.trim() && scaffolds[catId]) {
+            onChange(scaffolds[catId].replace(/\[([^\]]+)\]/g, '$1'));
         }
     };
 
@@ -82,15 +96,17 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
                     </span>
                 </div>
                 <h1 className="font-serif text-2xl sm:text-[26px] font-bold text-white leading-tight mb-2.5 relative">
-                    {isKo ? <>철학 정리가 거의 <span className="text-[#E8C96B]">완료되었습니다.</span></> : <>Your philosophy is nearly <span className="text-[#E8C96B]">on record.</span></>}
+                    {(isKo ? meta.section_title_ko : meta.section_title)
+                        ? (isKo ? meta.section_title_ko : meta.section_title)
+                        : (isKo ? <>철학 정리가 거의 <span className="text-[#E8C96B]">완료되었습니다.</span></> : <>Your philosophy is nearly <span className="text-[#E8C96B]">on record.</span></>)}
                 </h1>
                 <p className="text-[13px] text-white/60 font-light leading-relaxed max-w-[520px] relative mb-6">
-                    {isKo
+                    {(isKo ? meta.section_description_ko : meta.section_description) || (isKo
                         ? '8개 단계의 사고를 조직 실행 프레임으로 정리했습니다. 이제 마지막 한 문항만 남았습니다.'
-                        : 'Eight stages of thinking, distilled into a framework your organization will be built around. One last question remains — and it may be the most revealing of all.'}
+                        : 'Eight stages of thinking, distilled into a framework your organization will be built around. One last question remains — and it may be the most revealing of all.')}
                 </p>
                 <div className="flex flex-wrap gap-1.5 relative">
-                    {(isKo ? JOURNEY_CHIPS_KO : JOURNEY_CHIPS).map((label) => (
+                    {journeyChips.map((label) => (
                         <span
                             key={label}
                             className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-md px-2.5 py-1.5 text-[11px] text-white/50 font-light"
@@ -110,17 +126,17 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
                 </div>
                 <div className="min-w-0 flex-1">
                     <strong className="block text-[13px] font-medium text-[#E8C96B] mb-1">
-                        {isKo
+                        {(isKo ? meta.section_callout_title_ko : meta.section_callout_title) || (isKo
                             ? 'AI Pathfinder가 응답을 분석해 핵심 우선 실행과제 Top 3를 제안합니다.'
-                            : 'AI Pathfinder will analyze your response to generate your Top 3 Priority Actions.'}
+                            : 'AI Pathfinder will analyze your response to generate your Top 3 Priority Actions.')}
                     </strong>
                     <p className="text-[12.5px] text-white/55 font-light leading-relaxed">
-                        {isKo
+                        {(isKo ? meta.section_callout_body_ko : meta.section_callout_body) || (isKo
                             ? '우려사항을 구체적으로 작성할수록 결과가 정밀해집니다. 모호한 답변은 일반적 권고로 이어지며, 이 문항의 정밀도가 최종 리포트의 품질을 결정합니다.'
-                            : 'The more specific your concern, the more targeted the output. Vague answers produce generic recommendations — your precision here directly determines the value of your final report.'}
+                            : 'The more specific your concern, the more targeted the output. Vague answers produce generic recommendations — your precision here directly determines the value of your final report.')}
                     </p>
                     <div className="flex flex-wrap gap-1.5 mt-3">
-                        {(isKo ? AI_TAGS_KO : AI_TAGS).map((tag) => (
+                        {aiTags.map((tag) => (
                             <span
                                 key={tag}
                                 className="text-[11px] text-white/40 bg-white/5 border border-white/10 rounded-lg px-2.5 py-1"
@@ -140,10 +156,10 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
                     </div>
                     <div className="min-w-0 flex-1">
                         <div className="text-[10px] font-medium uppercase tracking-wider text-[#9A9EB8] mb-1">
-                            CEO&apos;s Final Input
+                            {isKo ? 'CEO 최종 입력' : "CEO's Final Input"}
                         </div>
                         <div className="text-sm sm:text-[14.5px] font-normal text-[#1A1A2E] leading-snug dark:text-slate-100">
-                            {question?.question_text ?? (isKo ? '현재 가장 큰 인사/조직 과제는 무엇인가요?' : 'What is the biggest people or organizational challenge you are currently facing?')}
+                            {(isKo ? meta.question_text_ko : meta.question_text_en) ?? question?.question_text ?? (isKo ? '현재 가장 큰 인사/조직 과제는 무엇인가요?' : 'What is the biggest people or organizational challenge you are currently facing?')}
                             <span className="text-red-500 ml-0.5">*</span>
                         </div>
                     </div>
@@ -152,10 +168,12 @@ export default function ConcernsStep({ question, value, onChange, showError = fa
                 {/* Category chips (optional) */}
                 <div className="px-4 sm:px-5 pt-4">
                     <div className="text-[10.5px] font-medium uppercase tracking-wider text-[#9A9EB8] mb-2.5 dark:text-slate-400">
-                        Where does your biggest concern live? (optional — select to get a writing prompt)
+                        {isKo
+                            ? '가장 큰 우려가 있는 영역은 어디인가요? (선택사항 — 선택 시 작성 가이드 제공)'
+                            : 'Where does your biggest concern live? (optional — select to get a writing prompt)'}
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        {(isKo ? CATEGORY_CHIPS_KO : CATEGORY_CHIPS).map(({ id, icon, label }) => (
+                        {categoryChips.map(({ id, icon, label }) => (
                             <button
                                 key={id}
                                 type="button"

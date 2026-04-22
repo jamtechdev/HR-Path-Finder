@@ -59,6 +59,13 @@ class CeoRoleRequestController extends Controller
             $user->assignRole('ceo');
         }
 
+        // CEO approval should also unlock app access when beta-approval gate is enabled.
+        if (empty($user->access_granted_at)) {
+            $user->forceFill([
+                'access_granted_at' => now(),
+            ])->save();
+        }
+
         // Associate user with company as CEO
         $company->users()->syncWithoutDetaching([
             $user->id => ['role' => 'ceo'],

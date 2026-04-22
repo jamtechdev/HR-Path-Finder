@@ -25,6 +25,13 @@ function getQuestionMeta(question: DiagnosisQuestion, isKo: boolean) {
 export default function GeneralStep({ questions, data, setData, showErrors = false }: GeneralStepProps) {
     const { isKo } = usePhilosophyText();
     const total = questions.length;
+    const sectionMeta = ((questions[0]?.metadata || {}) as QuestionMetadata);
+    const sectionTitle = (isKo ? sectionMeta.section_title_ko : sectionMeta.section_title) || (isKo ? '일반 질문' : 'General Questions');
+    const sectionDesc =
+        (isKo ? sectionMeta.section_description_ko : sectionMeta.section_description) ||
+        (isKo ? '응답 해석의 정확도를 높이기 위해 전반적인 운영 맥락을 확인하는 섹션입니다.' : 'This section gathers overall operational context to support a balanced and accurate interpretation of your responses.');
+    const calloutTitle = (isKo ? sectionMeta.section_callout_title_ko : sectionMeta.section_callout_title);
+    const calloutBody = (isKo ? sectionMeta.section_callout_body_ko : sectionMeta.section_callout_body);
 
     return (
         <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -38,10 +45,10 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                         {isKo ? '섹션 6 / 8' : 'Step 6 of 8'}
                     </div>
                     <h2 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#0E1628] mb-1.5 dark:text-slate-100">
-                        {isKo ? '일반 질문' : 'General Questions'}
+                        {sectionTitle}
                     </h2>
                     <p className="text-[13px] text-[#4A4E69] font-light leading-relaxed dark:text-slate-200">
-                        {isKo ? '응답 해석의 정확도를 높이기 위해 전반적인 운영 맥락을 확인하는 섹션입니다.' : 'This section gathers overall operational context to support a balanced and accurate interpretation of your responses.'}
+                        {sectionDesc}
                     </p>
                 </div>
             </div>
@@ -51,11 +58,13 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                 <div className="absolute top-[-30px] right-[-20px] w-[110px] h-[110px] rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.2)_0%,transparent_65%)]" />
                 <span className="text-xl flex-shrink-0 relative">🧭</span>
                 <div className="relative min-w-0 flex-1">
-                    <strong className="block text-xs font-medium text-[#E8C96B] mb-0.5">{isKo ? '운영 철학의 위치를 정확히 선택해 주세요.' : 'Your operational philosophy — placed precisely.'}</strong>
+                    <strong className="block text-xs font-medium text-[#E8C96B] mb-0.5">
+                        {calloutTitle || (isKo ? '운영 철학의 위치를 정확히 선택해 주세요.' : 'Your operational philosophy — placed precisely.')}
+                    </strong>
                     <span className="text-[11.5px] text-white/75 font-light">
-                        {isKo
+                        {calloutBody || (isKo
                             ? '각 항목은 두 가지 합리적인 관점으로 구성됩니다. 1(왼쪽)부터 7(오른쪽) 사이에서 가장 가까운 위치를 선택해 주세요.'
-                            : 'Each dimension has two legitimate poles. Place yourself honestly between 1 (far left) and 7 (far right).'}
+                            : 'Each dimension has two legitimate poles. Place yourself honestly between 1 (far left) and 7 (far right).')}
                     </span>
                 </div>
             </div>
@@ -95,7 +104,9 @@ export default function GeneralStep({ questions, data, setData, showErrors = fal
                                     </div>
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <span className="text-sm sm:text-[14.5px] font-medium text-[#1A1A2E] leading-snug dark:text-slate-100">
-                                            {meta.title}
+                                            {(isKo
+                                                ? ((question.metadata as QuestionMetadata)?.question_text_ko as string)
+                                                : ((question.metadata as QuestionMetadata)?.question_text_en as string)) || meta.title}
                                             <span className="text-[#E05A5A] ml-0.5">*</span>
                                         </span>
                                         {answered && (

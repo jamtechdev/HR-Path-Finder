@@ -1,14 +1,29 @@
 import type { StepConfig, GrowthStageConfig, VisionChunkConfig } from './types';
 
 export const STEPS: StepConfig[] = [
-    { id: 'intro', name: 'Welcome', nameKo: '시작', icon: '👋', desc: "Let's begin your management philosophy assessment." },
-    { id: 'management', name: 'Management Philosophy', nameKo: '전략 & 의사결정', icon: '🎯', desc: '경영 전략 수립과 의사결정 방식에 대한 귀하의 철학을 파악합니다.', callout: { title: '전략 철학이 조직 방향성의 기반이 됩니다', body: '이 섹션의 응답은 조직 구조 및 의사결정 체계 설계에 직결됩니다.' } },
-    { id: 'vision', name: 'Vision/Mission/Ideal Talent Type', nameKo: 'Vision/Mission', icon: '🌱', desc: 'Clarify the future direction of your company and the type of talent needed.' },
-    { id: 'growth', name: 'Growth Stage', nameKo: '성장 단계', icon: '📈', desc: 'Identifies your company\'s current growth phase to align structure and people strategy.' },
-    { id: 'leadership', name: 'Leadership', nameKo: '리더십', icon: '👥', desc: 'Examines leadership style and management practices.' },
-    { id: 'general', name: 'General Questions', nameKo: '일반 문항', icon: '📋', desc: 'Gathers overall operational context.' },
-    { id: 'issues', name: 'Organizational Issues', nameKo: '조직 이슈', icon: '⚠️', desc: 'Select issues you agree are relevant from your perspective as CEO.' },
-    { id: 'concerns', name: "CEO's Concerns", nameKo: 'CEO 관심사', icon: '💡', desc: 'Captures key concerns and priorities as CEO.' },
+    { id: 'intro', name: 'Welcome', nameKo: '시작', icon: '👋', desc: "Let's begin your management philosophy assessment.", descKo: '경영 철학 진단을 시작합니다.' },
+    {
+        id: 'management',
+        name: 'Management Philosophy',
+        nameKo: '전략 & 의사결정',
+        icon: '🎯',
+        desc: 'This section identifies your philosophy on management strategy formulation and decision-making.',
+        descKo: '경영 전략 수립과 의사결정 방식에 대한 귀하의 철학을 파악합니다.',
+        callout: {
+            title: 'Strategic philosophy becomes the foundation of organizational direction',
+            body: 'Responses in this section directly shape organizational structure and decision-making design.',
+        },
+        calloutKo: {
+            title: '전략 철학이 조직 방향성의 기반이 됩니다',
+            body: '이 섹션의 응답은 조직 구조 및 의사결정 체계 설계에 직결됩니다.',
+        },
+    },
+    { id: 'vision', name: 'Vision/Mission/Ideal Talent Type', nameKo: 'Vision/Mission', icon: '🌱', desc: 'Clarify the future direction of your company and the type of talent needed.', descKo: '회사의 미래 방향성과 필요한 인재상을 명확히 합니다.' },
+    { id: 'growth', name: 'Growth Stage', nameKo: '성장 단계', icon: '📈', desc: 'Identifies your company\'s current growth phase to align structure and people strategy.', descKo: '회사의 현재 성장 단계를 파악해 조직/인사 전략 정렬의 기준으로 활용합니다.' },
+    { id: 'leadership', name: 'Leadership', nameKo: '리더십', icon: '👥', desc: 'Examines leadership style and management practices.', descKo: '리더십 스타일과 운영 방식을 진단합니다.' },
+    { id: 'general', name: 'General Questions', nameKo: '일반 문항', icon: '📋', desc: 'Gathers overall operational context.', descKo: '전반적인 운영 맥락을 파악합니다.' },
+    { id: 'issues', name: 'Organizational Issues', nameKo: '조직 이슈', icon: '⚠️', desc: 'Select issues you agree are relevant from your perspective as CEO.', descKo: 'CEO 관점에서 공감되는 조직 이슈를 선택합니다.' },
+    { id: 'concerns', name: "CEO's Concerns", nameKo: 'CEO 관심사', icon: '💡', desc: 'Captures key concerns and priorities as CEO.', descKo: 'CEO의 핵심 우려와 우선순위를 수집합니다.' },
 ];
 
 export const GROWTH_STAGES: GrowthStageConfig[] = [
@@ -85,9 +100,39 @@ export const GROWTH_STAGES: GrowthStageConfig[] = [
 ];
 
 export const VISION_CHUNKS: VisionChunkConfig[] = [
-    { icon: '🔭', label: 'Part 1 of 3', name: 'Growth Vision', nameKo: '성장 비전', desc: 'Define the timeline and scale of your company\'s growth ambition.', callout: { title: 'Your growth horizon shapes the entire HR roadmap.', body: 'These answers directly inform how we design your org structure and performance targets.' } },
-    { icon: '🏆', label: 'Part 2 of 3', name: 'Competitive Identity', nameKo: '경쟁 정체성', desc: 'Clarify where you want to win and what you want to stand for.', callout: { title: 'Your competitive stance defines talent profiles and culture.', body: 'These answers shape the type of people and capabilities your organization needs to attract.' } },
-    { icon: '📐', label: 'Part 3 of 3', name: 'Core Values & Metrics', nameKo: '핵심 가치 & 지표', desc: 'Translate your vision into measurable outcomes and irreplaceable value.', callout: { title: 'These answers anchor your HR strategy to what truly matters.', body: 'KPIs and core values defined here will be embedded into your performance and culture framework.' } },
+    {
+        icon: '🔭',
+        label: 'Part 1 of 3',
+        labelKo: '파트 1 / 3',
+        name: 'Growth Vision',
+        nameKo: '성장 비전',
+        desc: 'Define the timeline and scale of your company\'s growth ambition.',
+        descKo: '회사의 성장 목표 시기와 규모를 정의합니다.',
+        callout: { title: 'Your growth horizon shapes the entire HR roadmap.', body: 'These answers directly inform how we design your org structure and performance targets.' },
+        calloutKo: { title: '성장 목표는 HR 로드맵 전체의 기준이 됩니다.', body: '이 응답은 조직 구조와 성과 목표 설계에 직접 반영됩니다.' },
+    },
+    {
+        icon: '🏆',
+        label: 'Part 2 of 3',
+        labelKo: '파트 2 / 3',
+        name: 'Competitive Identity',
+        nameKo: '경쟁 정체성',
+        desc: 'Clarify where you want to win and what you want to stand for.',
+        descKo: '어떤 영역에서 경쟁우위를 만들고 무엇을 지향할지 명확히 합니다.',
+        callout: { title: 'Your competitive stance defines talent profiles and culture.', body: 'These answers shape the type of people and capabilities your organization needs to attract.' },
+        calloutKo: { title: '경쟁 포지셔닝은 인재상과 조직문화를 결정합니다.', body: '이 응답은 필요한 인재 유형과 핵심 역량 설계의 기준이 됩니다.' },
+    },
+    {
+        icon: '📐',
+        label: 'Part 3 of 3',
+        labelKo: '파트 3 / 3',
+        name: 'Core Values & Metrics',
+        nameKo: '핵심 가치 & 지표',
+        desc: 'Translate your vision into measurable outcomes and irreplaceable value.',
+        descKo: '비전을 측정 가능한 성과와 차별적 가치로 구체화합니다.',
+        callout: { title: 'These answers anchor your HR strategy to what truly matters.', body: 'KPIs and core values defined here will be embedded into your performance and culture framework.' },
+        calloutKo: { title: '이 응답은 HR 전략의 핵심 기준을 고정합니다.', body: '여기서 정의한 KPI와 핵심가치는 성과/문화 체계에 반영됩니다.' },
+    },
 ];
 
 export const VISION_CHUNK_SIZE = 3;

@@ -1,18 +1,28 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { ISSUE_CATEGORY_META, MAX_ORGANIZATIONAL_ISSUES } from '../constants';
-import type { HrIssue, SurveyFormData } from '../types';
+import type { DiagnosisQuestion, HrIssue, QuestionMetadata, SurveyFormData } from '../types';
 import { usePhilosophyText } from '../uiText';
 
 interface IssuesStepProps {
+    question?: DiagnosisQuestion;
     hrIssues: HrIssue[];
     data: SurveyFormData;
     setData: <K extends keyof SurveyFormData>(key: K, value: SurveyFormData[K]) => void;
     showError?: boolean;
 }
 
-export default function IssuesStep({ hrIssues, data, setData, showError = false }: IssuesStepProps) {
+export default function IssuesStep({ question, hrIssues, data, setData, showError = false }: IssuesStepProps) {
     const { isKo } = usePhilosophyText();
+    const meta = ((question?.metadata || {}) as QuestionMetadata);
+    const sectionTitle = (isKo ? meta.section_title_ko : meta.section_title) || (isKo ? '조직 이슈' : 'Organizational Issues');
+    const sectionDesc =
+        (isKo ? meta.section_description_ko : meta.section_description) ||
+        (isKo
+            ? '아래 이슈는 HR 담당자가 현재 조직의 핵심 과제로 제시한 항목입니다. CEO 관점에서 공감하는 항목을 선택해 주세요.'
+            : 'These issues have been identified by your HR manager as key challenges currently facing the company. Please select the issues that you also agree are relevant from your perspective as CEO.');
+    const calloutTitle = (isKo ? meta.section_callout_title_ko : meta.section_callout_title);
+    const calloutBody = (isKo ? meta.section_callout_body_ko : meta.section_callout_body);
     const orderedIds = (data.organizational_issues || []).map((id) => id.toString());
     const maxReached = orderedIds.length >= MAX_ORGANIZATIONAL_ISSUES;
     const hasError = showError && orderedIds.length === 0;
@@ -107,12 +117,10 @@ export default function IssuesStep({ hrIssues, data, setData, showError = false 
                         {isKo ? '섹션 7 / 8' : 'Step 7 of 8'}
                     </div>
                     <h2 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#0E1628] dark:text-slate-100 mb-1.5">
-                        {isKo ? '조직 이슈' : 'Organizational Issues'}
+                        {sectionTitle}
                     </h2>
                     <p className="text-[13px] text-[#4A4E69] dark:text-slate-400 font-light leading-relaxed max-w-[580px]">
-                        {isKo
-                            ? '아래 이슈는 HR 담당자가 현재 조직의 핵심 과제로 제시한 항목입니다. CEO 관점에서 공감하는 항목을 선택해 주세요.'
-                            : 'These issues have been identified by your HR manager as key challenges currently facing the company. Please select the issues that you also agree are relevant from your perspective as CEO.'}
+                        {sectionDesc}
                     </p>
                 </div>
             </div>
@@ -123,12 +131,12 @@ export default function IssuesStep({ hrIssues, data, setData, showError = false 
                 <span className="text-xl flex-shrink-0 relative">🎯</span>
                 <div className="relative min-w-0 flex-1">
                     <strong className="block text-xs font-medium text-[#E8C96B] mb-0.5">
-                        {isKo ? '가장 중요하다고 생각하는 이슈를 최대 5개까지 선택해 주세요.' : 'Select up to 5 issues that resonate most with you.'}
+                        {calloutTitle || (isKo ? '가장 중요하다고 생각하는 이슈를 최대 5개까지 선택해 주세요.' : 'Select up to 5 issues that resonate most with you.')}
                     </strong>
                     <span className="text-[11.5px] text-white/50 font-light">
-                        {isKo
+                        {calloutBody || (isKo
                             ? '선택 순서대로 우선순위가 반영됩니다. 첫 번째 선택 항목이 가장 중요한 이슈로 간주됩니다.'
-                            : 'Your selections will be prioritized in the order chosen — the first issue you pick is weighted as most critical.'}
+                            : 'Your selections will be prioritized in the order chosen — the first issue you pick is weighted as most critical.')}
                     </span>
                 </div>
             </div>

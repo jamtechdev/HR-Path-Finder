@@ -25,29 +25,24 @@ export default function VisionStep({
     const { isKo } = usePhilosophyText();
     const chunk = VISION_CHUNKS[currentChunk];
     const questions = getChunkQuestions(currentChunk);
-    const chunkLabel = isKo ? `파트 ${currentChunk + 1} / 3` : chunk.label;
-    const chunkName = isKo ? chunk.nameKo : chunk.name;
-    const chunkDesc = isKo
-        ? [
-              '회사의 성장 목표와 시간 축을 정의합니다.',
-              '어떤 경쟁 정체성으로 승부할지 명확히 합니다.',
-              '핵심 가치와 측정 지표를 구체화합니다.',
-          ][currentChunk] ?? chunk.desc
-        : chunk.desc;
-    const chunkCalloutTitle = isKo
-        ? [
-              '성장 목표는 전체 HR 로드맵을 결정합니다.',
-              '경쟁 포지셔닝은 필요한 인재상과 문화를 결정합니다.',
-              '핵심 가치와 지표는 실행의 기준이 됩니다.',
-          ][currentChunk] ?? chunk.callout.title
-        : chunk.callout.title;
-    const chunkCalloutBody = isKo
-        ? [
-              '이 응답은 조직 구조와 성과목표 설계에 직접 반영됩니다.',
-              '이 응답은 채용/육성 우선순위와 문화 방향에 연결됩니다.',
-              '이 응답은 성과/문화 프레임워크에 기준으로 반영됩니다.',
-          ][currentChunk] ?? chunk.callout.body
-        : chunk.callout.body;
+    const leadMeta = (questions[0]?.metadata || {}) as Record<string, unknown>;
+    const chunkLabel = isKo ? `파트 ${currentChunk + 1} / 3` : `Part ${currentChunk + 1} of 3`;
+    const chunkName =
+        ((isKo ? leadMeta.section_title_ko : leadMeta.section_title) as string) ||
+        ((isKo ? leadMeta.title_ko : leadMeta.title) as string) ||
+        (isKo ? chunk.nameKo : chunk.name);
+    const chunkDesc =
+        ((isKo ? leadMeta.section_description_ko : leadMeta.section_description) as string) ||
+        ((isKo ? leadMeta.description_ko : leadMeta.description) as string) ||
+        (isKo ? (chunk.descKo || chunk.desc) : chunk.desc);
+    const chunkCalloutTitle =
+        ((isKo ? leadMeta.section_callout_title_ko : leadMeta.section_callout_title) as string) ||
+        ((isKo ? leadMeta.callout_title_ko : leadMeta.callout_title) as string) ||
+        (isKo ? (chunk.calloutKo?.title || chunk.callout.title) : chunk.callout.title);
+    const chunkCalloutBody =
+        ((isKo ? leadMeta.section_callout_body_ko : leadMeta.section_callout_body) as string) ||
+        ((isKo ? leadMeta.callout_body_ko : leadMeta.callout_body) as string) ||
+        (isKo ? (chunk.calloutKo?.body || chunk.callout.body) : chunk.callout.body);
 
     return (
         <div className="w-full space-y-6 sm:space-y-7">
@@ -61,16 +56,32 @@ export default function VisionStep({
                     <p className="text-[12px] sm:text-[13px] text-[#4A4E69] dark:text-slate-400 font-light leading-relaxed">{chunkDesc}</p>
                 </div>
             </div>
-            <div className="bg-[#0E1628] rounded-[10px] px-4 sm:px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 relative overflow-hidden">
-                <div className="absolute -top-8 -right-5 w-[100px] h-[100px] rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.2)_0%,transparent_65%)]" />
-                <span className="text-lg flex-shrink-0 relative">💡</span>
-                <div className="relative min-w-0 flex-1">
-                    <strong className="block text-[12px] sm:text-[13px] font-medium text-[#E8C96B] mb-0.5">{chunkCalloutTitle}</strong>
-                    <span className="text-[11px] sm:text-[12px] text-white/55 font-light">{chunkCalloutBody}</span>
+            {(chunkCalloutTitle || chunkCalloutBody) && (
+                <div className="bg-[#0E1628] rounded-[10px] px-4 sm:px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 relative overflow-hidden">
+                    <div className="absolute -top-8 -right-5 w-[100px] h-[100px] rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.2)_0%,transparent_65%)]" />
+                    <span className="text-lg flex-shrink-0 relative">💡</span>
+                    <div className="relative min-w-0 flex-1">
+                        {chunkCalloutTitle && (
+                            <strong className="block text-[12px] sm:text-[13px] font-medium text-[#E8C96B] mb-0.5">
+                                {chunkCalloutTitle}
+                            </strong>
+                        )}
+                        {chunkCalloutBody && (
+                            <span className="text-[11px] sm:text-[12px] text-white/55 font-light">
+                                {chunkCalloutBody}
+                            </span>
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
             <div className="flex gap-1.5 flex-wrap mb-4">
-                {VISION_CHUNKS.map((c, i) => (
+                {VISION_CHUNKS.map((c, i) => {
+                    const tabLeadMeta = (getChunkQuestions(i)[0]?.metadata || {}) as Record<string, unknown>;
+                    const tabLabel =
+                        ((isKo ? tabLeadMeta.section_title_ko : tabLeadMeta.section_title) as string) ||
+                        ((isKo ? tabLeadMeta.title_ko : tabLeadMeta.title) as string) ||
+                        (isKo ? c.nameKo : c.name);
+                    return (
                     <button
                         key={i}
                         type="button"
@@ -79,9 +90,10 @@ export default function VisionStep({
                             i === currentChunk ? 'bg-[#0E1628] border-[#0E1628] text-white' : 'bg-transparent border-[#E2DDD4] dark:border-slate-600 text-[#9A9EB8] dark:text-slate-400 hover:border-[#0E1628]/50 dark:hover:border-slate-500'
                         }`}
                     >
-                            {isKo ? c.nameKo : c.name}
+                            {tabLabel}
                     </button>
-                ))}
+                    );
+                })}
             </div>
             <div className="space-y-3">
                 {questions.map((question, qi) => {
@@ -95,6 +107,10 @@ export default function VisionStep({
                     const isSelectDropdown = isSelect && optionsCount > 4;
                     const isRevenue = question.question_type === 'number';
                     const isKeyword = question.question_type === 'text' && question.question_text.toLowerCase().includes('keyword');
+                    const keywordPresets =
+                        ((isKo
+                            ? (question.metadata as { keyword_presets_ko?: string[] })?.keyword_presets_ko
+                            : (question.metadata as { keyword_presets?: string[] })?.keyword_presets) || KEYWORD_PRESETS);
                     const unit = (question.metadata as { unit?: string })?.unit || 'USD (thousands)';
                     const qNum = currentChunk === 0 ? qi + 1 : currentChunk === 1 ? qi + 4 : qi + 7;
                     return (
@@ -111,7 +127,9 @@ export default function VisionStep({
                                 )}
                             </div>
                             <p className="text-[13px] sm:text-[14px] leading-relaxed text-[#1A1A2E] dark:text-slate-200 mb-3">
-                                {question.question_text}<span className="text-red-500 ml-0.5">*</span>
+                                {((isKo
+                                    ? (question.metadata as Record<string, unknown>)?.question_text_ko
+                                    : (question.metadata as Record<string, unknown>)?.question_text_en) as string) || question.question_text}<span className="text-red-500 ml-0.5">*</span>
                             </p>
                             {isSegment && (
                                 <div className={`flex gap-0 rounded-lg overflow-hidden border ${hasError ? 'border-red-300 dark:border-red-500/60' : 'border-[#E2DDD4] dark:border-slate-600'}`}>
@@ -170,7 +188,7 @@ export default function VisionStep({
                             {isKeyword && (
                                 <>
                                     <div className="flex flex-wrap gap-2 mb-2">
-                                        {KEYWORD_PRESETS.map((preset) => (
+                                        {keywordPresets.map((preset) => (
                                             <button
                                                 key={preset}
                                                 type="button"
@@ -186,7 +204,7 @@ export default function VisionStep({
                                     <Input
                                         type="text"
                                         placeholder={isKo ? '또는 직접 키워드 입력...' : 'Or type your own keyword...'}
-                                        value={typeof val === 'string' && !KEYWORD_PRESETS.includes(val) ? val : ''}
+                                        value={typeof val === 'string' && !keywordPresets.includes(val) ? val : ''}
                                         onChange={(e) => setData('vision_mission', { ...data.vision_mission, [qId]: e.target.value })}
                                         className={`${hasError ? 'border-red-300 focus-visible:ring-red-200 dark:border-red-500/60' : 'border-[#E2DDD4] dark:border-slate-600'} bg-[#FAFAF8] dark:bg-slate-700 text-[#1A1A2E] dark:text-slate-200 placeholder:text-[#9A9EB8] dark:placeholder:text-slate-500`}
                                     />

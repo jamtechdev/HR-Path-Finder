@@ -68,6 +68,10 @@ class CeoPhilosophyController extends Controller
             ->where('is_active', true)
             ->first();
 
+        $issuesQuestion = DiagnosisQuestion::where('category', 'issues')
+            ->where('is_active', true)
+            ->first();
+
         // Load HR-identified issues for CEO to select from
         $hrIssues = HrIssue::where('is_active', true)
             ->orderBy('category')
@@ -93,6 +97,7 @@ class CeoPhilosophyController extends Controller
             'leadershipQuestions' => $leadershipQuestions,
             'generalQuestions' => $generalQuestions,
             'concernsQuestion' => $concernsQuestion,
+            'issuesQuestion' => $issuesQuestion,
             'hrIssues' => $hrIssues,
             'introText' => $introText,
             'diagnosis' => $hrProject->diagnosis,

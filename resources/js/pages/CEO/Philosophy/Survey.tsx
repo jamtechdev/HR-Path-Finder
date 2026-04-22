@@ -42,6 +42,7 @@ interface Props {
     leadershipQuestions: DiagnosisQuestion[];
     generalQuestions: DiagnosisQuestion[];
     concernsQuestion?: DiagnosisQuestion;
+    issuesQuestion?: DiagnosisQuestion;
     hrIssues: HrIssue[];
     introText?: IntroText;
     diagnosis?: { hr_issues?: string[] };
@@ -59,6 +60,7 @@ export default function CeoPhilosophySurvey({
     leadershipQuestions,
     generalQuestions,
     concernsQuestion,
+    issuesQuestion,
     hrIssues,
     introText,
     diagnosis,
@@ -433,6 +435,10 @@ export default function CeoPhilosophySurvey({
             case 'growth':
                 return (
                     <GrowthStep
+                        stepMeta={STEPS[currentStep]}
+                        stepIndex={currentStep}
+                        totalSteps={STEPS.length}
+                        question={growthStageQuestion}
                         value={data.growth_stage}
                         onChange={(value) => setData('growth_stage', value)}
                         showError={showStepErrors}
@@ -459,6 +465,7 @@ export default function CeoPhilosophySurvey({
             case 'issues':
                 return (
                     <IssuesStep
+                        question={issuesQuestion}
                         hrIssues={hrIssues}
                         data={data}
                         setData={setData}
@@ -606,7 +613,7 @@ export default function CeoPhilosophySurvey({
                     </div>
                 </main>
 
-                <div className="fixed bottom-0 left-0 right-0 z-20 flex flex-col items-stretch justify-between gap-3 border-t border-[#E2DDD4] bg-white/95 px-4 py-3 backdrop-blur-md sm:flex-row sm:items-center sm:px-6 sm:py-4 lg:px-10 dark:border-slate-700/70 dark:bg-[#060d1f]/95">
+                <div className="z-20 flex flex-col items-stretch justify-between gap-3 border-t border-[#E2DDD4] bg-white/95 px-4 py-3 backdrop-blur-md sm:flex-row sm:items-center sm:px-6 sm:py-4 lg:px-10 dark:border-slate-700/70 dark:bg-[#060d1f]/95">
                     <span className="text-[12px] text-[#9A9EB8] dark:text-slate-400 order-2 sm:order-1 text-center sm:text-left">
                         {currentStep === 6 ? (
                             <>

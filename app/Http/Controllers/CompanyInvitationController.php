@@ -179,6 +179,7 @@ class CompanyInvitationController extends Controller
                 'email' => $invitation->email,
                 'password' => Hash::make(Str::random(64)),
                 'email_verified_at' => now(),
+                'access_granted_at' => now(),
             ]);
             $user->assignRole('ceo');
         } else {
@@ -192,6 +193,13 @@ class CompanyInvitationController extends Controller
             if (empty($user->email_verified_at)) {
                 $user->forceFill([
                     'email_verified_at' => now(),
+                ])->save();
+            }
+
+            // Ensure invited CEO can pass beta-access gate immediately after invitation acceptance.
+            if (empty($user->access_granted_at)) {
+                $user->forceFill([
+                    'access_granted_at' => now(),
                 ])->save();
             }
         }
