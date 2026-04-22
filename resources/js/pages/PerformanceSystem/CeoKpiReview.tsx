@@ -54,6 +54,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
     const [expandedOrg, setExpandedOrg] = useState<string | null>(null);
     const [successModalOpen, setSuccessModalOpen] = useState(false);
     const [successModalMessage, setSuccessModalMessage] = useState('');
+    const [isSubmittingAction, setIsSubmittingAction] = useState(false);
 
     const kpisByOrganization = kpis.reduce((acc, kpi) => {
         const orgName = kpi.organization_name || '';
@@ -79,8 +80,6 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
     const teamCount = organizations.length;
     const allApproved = totalKpis > 0 && approvedCount === totalKpis;
 
-    // Keep `processing` for button disabled states.
-    // We send explicit payloads with `router.post(...)` (no `setData` timing dependency).
     const { processing } = useForm({
         action: 'approve',
         revision_requests: [] as Array<{ organization_name: string; comment: string }>,
@@ -116,12 +115,13 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
 
     const handleApprove = () => {
         const route = isAdmin ? `/admin/kpi-review/${project.id}` : `/ceo/kpi-review/${project.id}`;
-        // Use router.post with an explicit payload to avoid any `setData` timing race.
+        setIsSubmittingAction(true);
         router.post(
             route,
             { action: 'approve', revision_requests: [] },
             {
                 preserveScroll: true,
+                onFinish: () => setIsSubmittingAction(false),
             },
         );
     };
@@ -135,12 +135,13 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
             return;
         }
         const route = isAdmin ? `/admin/kpi-review/${project.id}` : `/ceo/kpi-review/${project.id}`;
-        // Use router.post with an explicit payload to avoid any `setData` timing race.
+        setIsSubmittingAction(true);
         router.post(
             route,
             { action: 'request_revision', revision_requests: requests },
             {
                 preserveScroll: true,
+                onFinish: () => setIsSubmittingAction(false),
             },
         );
     };
@@ -544,7 +545,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                             type="button"
                             className="ckr-btn ckr-btn-outline"
                             onClick={handleRequestRevision}
-                            disabled={processing || Object.values(revisionRequests).every((v) => !v.trim())}
+                            disabled={processing || isSubmittingAction || Object.values(revisionRequests).every((v) => !v.trim())}
                         >
                             {tx('ceo_kpi.review.request_revision', 'Request Revision')}
                         </button>
@@ -553,7 +554,7 @@ export default function CeoKpiReview({ project, kpis = [], orgChartMappings = []
                                 type="button"
                                 className="ckr-btn ckr-btn-primary"
                                 onClick={handleApprove}
-                                disabled={processing || !everyOrgBalanced}
+                                disabled={processing || isSubmittingAction || !everyOrgBalanced}
                                 title={
                                     !everyOrgBalanced
                                         ? tx(

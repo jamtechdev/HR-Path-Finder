@@ -210,6 +210,8 @@ export default function BenefitsTab({
     fieldErrors = {},
 }: BenefitsTabProps) {
     const { t } = useTranslation();
+    const tt = (key: string, fallback: string, vars?: Record<string, unknown>) =>
+        t(key, { defaultValue: fallback, ...(vars ?? {}) });
     const [selectedConcept, setSelectedConcept] = useState<
         { type: 'item'; item: BenefitItem } | { type: 'strat'; key: string } | null
     >(null);
@@ -223,12 +225,12 @@ export default function BenefitsTab({
         rawRatio > 100 ? 'invalid' : ratio < 5 ? 'below' : ratio > 15 ? 'above' : 'ok';
     const ratioStatusText =
         ratioStatus === 'invalid'
-            ? 'Benefits expense cannot exceed total labor cost (max 100%).'
+            ? tt('compensation_system.benefits.ratio_invalid', 'Benefits expense cannot exceed total labor cost (max 100%).')
             : ratioStatus === 'below'
-            ? 'Below industry average (8–12%)'
+            ? tt('compensation_system.benefits.ratio_below', 'Below industry average (8–12%)')
             : ratioStatus === 'above'
-              ? 'Above industry average — structural review recommended'
-              : 'Within appropriate range';
+              ? tt('compensation_system.benefits.ratio_above', 'Above industry average — structural review recommended')
+              : tt('compensation_system.benefits.ratio_ok', 'Within appropriate range');
 
     const stratSelected = useMemo(
         () => configuration.benefits_strategic_direction?.map((d) => d.value) ?? [],
@@ -327,16 +329,16 @@ export default function BenefitsTab({
             .map((k) => STRAT_OPTIONS.find((o) => o.key === k)?.label ?? k)
             .join(' · ');
         const taxList = taxItems.slice(0, 4).join(', ') + (taxItems.length > 4 ? ` and ${taxItems.length - 4} more` : '');
-        let s = `The company operates <span class="text-emerald-400 font-bold">${count}</span> benefits programs. `;
+        let s = `${tt('compensation_system.benefits.summary_prefix', 'The company operates ')}<span class="text-emerald-400 font-bold">${count}</span> ${tt('compensation_system.benefits.summary_programs', 'benefits programs.') } `;
         if (strats)
-            s += `<span class="text-emerald-400 font-bold">${strats}</span> set as core strategic directions. `;
+            s += `<span class="text-emerald-400 font-bold">${strats}</span> ${tt('compensation_system.benefits.summary_strategic', 'set as core strategic directions.')} `;
         if (taxList)
-            s += `<span class="text-emerald-400 font-bold">${taxList}</span> identified as tax-deductible items for cost optimization. `;
+            s += `<span class="text-emerald-400 font-bold">${taxList}</span> ${tt('compensation_system.benefits.summary_tax', 'identified as tax-deductible items for cost optimization.')} `;
         if (totalLabor > 0)
-            s += `Benefits expense ratio vs. total labor cost: <span class="text-emerald-400 font-bold">${ratio.toFixed(1)}%</span>. `;
-        s += 'All items are systematically managed by category.';
+            s += `${tt('compensation_system.benefits.summary_ratio', 'Benefits expense ratio vs. total labor cost: ')}<span class="text-emerald-400 font-bold">${ratio.toFixed(1)}%</span>. `;
+        s += tt('compensation_system.benefits.summary_tail', 'All items are systematically managed by category.');
         return s;
-    }, [activeItems.size, stratSelected, taxItems, totalLabor, ratio]);
+    }, [activeItems.size, stratSelected, taxItems, totalLabor, ratio, tt]);
 
     const filledCount = useMemo(
         () =>
@@ -361,15 +363,15 @@ export default function BenefitsTab({
                     </span>
                     <div className="font-semibold text-foreground text-sm mb-1">{d.title}</div>
                     <div className="text-[10px] font-bold uppercase text-muted-foreground mb-1">
-                        Target Persona
+                        {tt('compensation_system.benefits.target_persona', 'Target Persona')}
                     </div>
                     <div className="text-xs text-muted-foreground italic mb-2">{d.persona}</div>
                     <div className="text-[10px] font-bold uppercase text-muted-foreground mb-1">
-                        Strategic Focus
+                        {tt('compensation_system.benefits.strategic_focus', 'Strategic Focus')}
                     </div>
                     <div className="text-xs text-muted-foreground mb-2">{d.desc}</div>
                     <div className="text-[10px] font-bold uppercase text-muted-foreground mb-1">
-                        Recommended Priority Items
+                        {tt('compensation_system.benefits.recommended_items', 'Recommended Priority Items')}
                     </div>
                     {d.rec.map((r, i) => (
                         <div key={i} className="flex gap-2 mb-1">
@@ -398,11 +400,11 @@ export default function BenefitsTab({
                     <div className="font-semibold text-foreground text-sm mb-1">{d.title}</div>
                     <p className="text-xs text-muted-foreground leading-relaxed mb-2">{d.desc}</p>
                     <div className="text-[9px] font-bold uppercase text-muted-foreground mb-0.5">
-                        BENEFITS
+                        {tt('compensation_system.benefits.benefits_label', 'BENEFITS')}
                     </div>
                     <div className="text-xs text-muted-foreground mb-2">{d.effect}</div>
                     <div className="text-[9px] font-bold uppercase text-muted-foreground mb-0.5">
-                        CAUTION
+                        {tt('compensation_system.benefits.caution_label', 'CAUTION')}
                     </div>
                     <div className="text-xs text-muted-foreground mb-2">{d.caution}</div>
                     <div className="text-[10px] text-muted-foreground bg-background rounded-md px-2 py-1.5 border-l-2 border-emerald-500">
@@ -413,9 +415,9 @@ export default function BenefitsTab({
         }
         return (
             <p className="text-xs italic text-muted-foreground">
-                Click a benefits card
+                {tt('compensation_system.benefits.click_card', 'Click a benefits card')}
                 <br />
-                to view the detailed guide.
+                {tt('compensation_system.benefits.click_card_suffix', 'to view the detailed guide.')}
             </p>
         );
     }, [selectedConcept]);
@@ -436,17 +438,17 @@ export default function BenefitsTab({
                     <Card className="shadow-sm border rounded-xl overflow-hidden">
                         <CardContent className="p-5">
                             <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3 block">
-                                Benefits Budget Overview
+                                {tt('compensation_system.benefits.budget_overview', 'Benefits Budget Overview')}
                             </Label>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <Label className="text-[10px] font-bold uppercase text-muted-foreground">
-                                        Total Labor Cost (100M KRW)
+                                        {tt('compensation_system.benefits.total_labor', 'Total Labor Cost (100M KRW)')}
                                     </Label>
                                     <Input
                                         type="number"
                                         step={0.1}
-                                        placeholder="e.g. 20"
+                                        placeholder={tt('compensation_system.benefits.eg_20', 'e.g. 20')}
                                         className="mt-1 font-semibold"
                                         value={totalLabor || ''}
                                         onChange={(e) =>
@@ -459,12 +461,12 @@ export default function BenefitsTab({
                                 </div>
                                 <div>
                                     <Label className="text-[10px] font-bold uppercase text-muted-foreground">
-                                        Total Benefits Expense (100M KRW)
+                                        {tt('compensation_system.benefits.total_expense', 'Total Benefits Expense (100M KRW)')}
                                     </Label>
                                     <Input
                                         type="number"
                                         step={0.1}
-                                        placeholder="e.g. 1.5"
+                                        placeholder={tt('compensation_system.benefits.eg_1_5', 'e.g. 1.5')}
                                         className="mt-1 font-semibold"
                                         value={totalBenefit || ''}
                                         onChange={(e) =>
@@ -478,7 +480,7 @@ export default function BenefitsTab({
                                 </div>
                                 <div>
                                     <Label className="text-[10px] font-bold uppercase text-muted-foreground">
-                                        Benefits Expense Ratio
+                                        {tt('compensation_system.benefits.expense_ratio', 'Benefits Expense Ratio')}
                                     </Label>
                                     <div className="text-2xl font-extrabold text-emerald-400 mt-1">
                                         {totalLabor > 0 ? `${ratio.toFixed(2)}%` : '— %'}
@@ -507,7 +509,7 @@ export default function BenefitsTab({
                     <Card className="shadow-sm border rounded-xl overflow-hidden">
                         <CardContent className="p-5">
                             <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2 block">
-                                Benefits Strategic Direction (Select up to 2)
+                                {tt('compensation_system.benefits.strategic_direction', 'Benefits Strategic Direction (Select up to 2)')}
                             </Label>
                             <div className="flex flex-wrap gap-2">
                                 {STRAT_OPTIONS.map((opt) => {
@@ -529,7 +531,7 @@ export default function BenefitsTab({
                                 })}
                             </div>
                             {stratSelected.length === 2 && (
-                                <p className="text-xs text-muted-foreground mt-2">2 selected</p>
+                                <p className="text-xs text-muted-foreground mt-2">{tt('compensation_system.benefits.two_selected', '2 selected')}</p>
                             )}
                         </CardContent>
                     </Card>
@@ -592,12 +594,12 @@ export default function BenefitsTab({
                                                         <div className="flex flex-wrap gap-1 mb-1">
                                                             {item.tax && (
                                                                 <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
-                                                                    💰 Tax Deductible
+                                                                    {tt('compensation_system.benefits.tax_deductible', '💰 Tax Deductible')}
                                                                 </span>
                                                             )}
                                                             {item.rec && (
                                                                 <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">
-                                                                    ⭐ Recommended
+                                                                    {tt('compensation_system.benefits.recommended', '⭐ Recommended')}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -623,7 +625,7 @@ export default function BenefitsTab({
                                                                 />
                                                             </div>
                                                             <p className="text-[9px] text-muted-foreground mt-0.5">
-                                                                Industry avg. adoption: {item.bi}%
+                                                                {tt('compensation_system.benefits.industry_adoption', 'Industry avg. adoption: {{value}}%', { value: item.bi })}
                                                             </p>
                                                         </div>
                                                         {state.active && (
@@ -669,13 +671,13 @@ export default function BenefitsTab({
                         <CardContent className="p-5">
                             <div className="flex items-center justify-between flex-wrap mb-3">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                    Summary Note
+                                    {tt('compensation_system.benefits.summary_note', 'Summary Note')}
                                 </span>
-                                <span className="text-[10px] text-muted-foreground">Auto-generated</span>
+                                <span className="text-[10px] text-muted-foreground">{tt('compensation_system.benefits.auto_generated', 'Auto-generated')}</span>
                             </div>
                             <div className="bg-[#1B2E4B] rounded-xl p-5 text-white">
                                 <div className="text-[10px] font-bold uppercase tracking-wider text-white/50 mb-2">
-                                    Policy Statement
+                                    {tt('compensation_system.benefits.policy_statement', 'Policy Statement')}
                                 </div>
                                 <div
                                     className="text-sm leading-relaxed text-white/90"
@@ -683,12 +685,11 @@ export default function BenefitsTab({
                                         __html:
                                             activeItems.size > 0
                                                 ? summaryHtml
-                                                : '<span class="italic text-white/40">Select benefits items to auto-generate the policy statement.</span>',
+                                                : `<span class="italic text-white/40">${tt('compensation_system.benefits.summary_empty', 'Select benefits items to auto-generate the policy statement.')}</span>`,
                                     }}
                                 />
                                 <div className="text-xs text-white/40 mt-3 pt-3 border-t border-white/10">
-                                    ※ The final HR system design report will include professional consultant
-                                    reviews and recommendations.
+                                    {tt('compensation_system.benefits.report_note', '※ The final HR system design report will include professional consultant reviews and recommendations.')}
                                 </div>
                             </div>
                         </CardContent>
@@ -699,28 +700,28 @@ export default function BenefitsTab({
                 <div className="w-full">
                     <Card className="shadow-sm border rounded-xl overflow-hidden w-full">
                         <CardContent className="p-5">
-                            <div className="font-semibold text-foreground mb-3">Step Purpose</div>
+                            <div className="font-semibold text-foreground mb-3">{tt('compensation_system.benefits.step_purpose', 'Step Purpose')}</div>
                             <ul className="space-y-2 text-xs text-muted-foreground mb-4">
                                 <li className="flex gap-2">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
-                                    Diagnose current benefits across <strong>6 categories</strong>.
+                                    {tt('compensation_system.benefits.purpose_1', 'Diagnose current benefits across 6 categories.')}
                                 </li>
                                 <li className="flex gap-2">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
-                                    <strong>Industry benchmarking data</strong> to identify gaps.
+                                    {tt('compensation_system.benefits.purpose_2', 'Use industry benchmarking data to identify gaps.')}
                                 </li>
                                 <li className="flex gap-2">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
-                                    Identify <strong>tax-deductible</strong> items to maximize cost efficiency.
+                                    {tt('compensation_system.benefits.purpose_3', 'Identify tax-deductible items to maximize cost efficiency.')}
                                 </li>
                                 <li className="flex gap-2">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
-                                    <strong>Budget ratio</strong> updates in real time as you select items.
+                                    {tt('compensation_system.benefits.purpose_4', 'Budget ratio updates in real time as you select items.')}
                                 </li>
                             </ul>
                             <div className="h-px bg-border my-4" />
                             <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                                Option Guide
+                                {tt('compensation_system.benefits.option_guide', 'Option Guide')}
                             </div>
                             {conceptPanel}
                         </CardContent>

@@ -104,7 +104,11 @@ export default function VisionStep({
                         >
                             <div className="text-[10px] font-medium uppercase tracking-widest text-[#9A9EB8] dark:text-slate-400 mb-2">
                                 Q{qNum}
-                                {answered && <span className="float-right text-[#2E9E6B] dark:text-green-400">✓ 응답 완료</span>}
+                                {answered && (
+                                    <span className="float-right text-[#2E9E6B] dark:text-green-400">
+                                        ✓ {isKo ? '응답 완료' : 'Answered'}
+                                    </span>
+                                )}
                             </div>
                             <p className="text-[13px] sm:text-[14px] leading-relaxed text-[#1A1A2E] dark:text-slate-200 mb-3">
                                 {question.question_text}<span className="text-red-500 ml-0.5">*</span>

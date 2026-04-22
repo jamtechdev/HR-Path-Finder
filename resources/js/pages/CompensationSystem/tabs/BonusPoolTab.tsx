@@ -194,6 +194,8 @@ interface BonusPoolTabProps {
 
 export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {} }: BonusPoolTabProps) {
     const { t } = useTranslation();
+    const tt = (key: string, fallback: string, vars?: Record<string, unknown>) =>
+        t(key, { defaultValue: fallback, ...(vars ?? {}) });
     const trigger = configuration.payment_trigger_condition || '';
     const method = configuration.bonus_pool_determination_method || '';
     const criteriaOptions = trigger ? CRITERIA_MAP[trigger] || [] : [];
@@ -262,25 +264,27 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
             ? `${configuration.bonus_pool_finalization_timing} month`
             : '';
 
-        let s = 'The company sets the bonus pool based on ';
+        let s = tt('compensation_system.bonus_pool.summary.prefix', 'The company sets the bonus pool based on ');
         s += `<span class="text-[#5DCAA5] font-bold">${trTxt}</span> as the trigger condition.`;
-        if (crTxt) s += ` The determination criteria is <span class="text-[#5DCAA5] font-bold">${crTxt}</span>.`;
+        if (crTxt) s += tt('compensation_system.bonus_pool.summary.criteria', ' The determination criteria is ') + `<span class="text-[#5DCAA5] font-bold">${crTxt}</span>.`;
 
         if (method === 'ratio' && configuration.ratio_value != null) {
-            s += ` The pool is determined as <span class="text-[#5DCAA5] font-bold">${configuration.ratio_value}%</span> of profit.`;
+            s += tt('compensation_system.bonus_pool.summary.ratio', ' The pool is determined as ') + `<span class="text-[#5DCAA5] font-bold">${configuration.ratio_value}%</span>` + tt('compensation_system.bonus_pool.summary.ratio_suffix', ' of profit.');
         } else if (method === 'range' && configuration.range_min != null && configuration.range_max != null) {
-            s += ` The pool is determined within <span class="text-[#5DCAA5] font-bold">${formatKrWon(configuration.range_min)}~${formatKrWon(configuration.range_max)} (10,000 KRW)</span>.`;
+            s += tt('compensation_system.bonus_pool.summary.range', ' The pool is determined within ') + `<span class="text-[#5DCAA5] font-bold">${formatKrWon(configuration.range_min)}~${formatKrWon(configuration.range_max)} (10,000 KRW)</span>.`;
         } else if (method === 'amount' && configuration.amount_value != null) {
-            s += ` The pool is fixed at <span class="text-[#5DCAA5] font-bold">${formatKrWon(configuration.amount_value)} (10,000 KRW)</span>.`;
+            s += tt('compensation_system.bonus_pool.summary.amount', ' The pool is fixed at ') + `<span class="text-[#5DCAA5] font-bold">${formatKrWon(configuration.amount_value)} (10,000 KRW)</span>.`;
         } else if (meTxt) {
-            s += ` Determination method: <span class="text-[#5DCAA5] font-bold">${meTxt}</span>.`;
+            s += tt('compensation_system.bonus_pool.summary.method', ' Determination method: ') + `<span class="text-[#5DCAA5] font-bold">${meTxt}</span>.`;
         }
 
-        if (scTxt) s += ` Eligible recipients are <span class="text-[#5DCAA5] font-bold">${scTxt}</span>.`;
-        s += pm ? ` Payment is scheduled for <span class="text-[#5DCAA5] font-bold">${pm}</span>.` : ' The payment timing is to be decided.';
-        if (fm) s += ` (Finalization month: <span class="text-[#5DCAA5] font-bold">${fm}</span>).`;
+        if (scTxt) s += tt('compensation_system.bonus_pool.summary.scope', ' Eligible recipients are ') + `<span class="text-[#5DCAA5] font-bold">${scTxt}</span>.`;
+        s += pm
+            ? tt('compensation_system.bonus_pool.summary.payment_month', ' Payment is scheduled for ') + `<span class="text-[#5DCAA5] font-bold">${pm}</span>.`
+            : tt('compensation_system.bonus_pool.summary.payment_tbd', ' The payment timing is to be decided.');
+        if (fm) s += tt('compensation_system.bonus_pool.summary.finalization_month', ' (Finalization month: ') + `<span class="text-[#5DCAA5] font-bold">${fm}</span>).`;
         return s;
-    }, [configuration, trigger, method]);
+    }, [configuration, trigger, method, tt]);
 
     const filledFields = useMemo(
         () =>
@@ -316,13 +320,13 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                     1
                                 </span>
                                 <span className="font-semibold text-[#1B2E4B]">
-                                    Bonus Pool Determination
+                                    {tt('compensation_system.bonus_pool.section1_title', 'Bonus Pool Determination')}
                                 </span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                        Payment Trigger Condition
+                                        {tt('compensation_system.bonus_pool.payment_trigger', 'Payment Trigger Condition')}
                                     </Label>
                                     <Select
                                         value={trigger}
@@ -335,27 +339,27 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                         }}
                                     >
                                         <SelectTrigger className="mt-1">
-                                            <SelectValue placeholder="Select condition" />
+                                            <SelectValue placeholder={tt('compensation_system.bonus_pool.select_condition', 'Select condition')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="profit">
-                                                Paid when profit is generated
+                                                {tt('compensation_system.bonus_pool.trigger_profit', 'Paid when profit is generated')}
                                             </SelectItem>
                                             <SelectItem value="company_target">
-                                                Paid when company-wide targets are achieved
+                                                {tt('compensation_system.bonus_pool.trigger_company_target', 'Paid when company-wide targets are achieved')}
                                             </SelectItem>
                                             <SelectItem value="org_target">
-                                                Paid when organizational targets are achieved
+                                                {tt('compensation_system.bonus_pool.trigger_org_target', 'Paid when organizational targets are achieved')}
                                             </SelectItem>
                                             <SelectItem value="discretion">
-                                                Management discretion (CEO decision)
+                                                {tt('compensation_system.bonus_pool.trigger_discretion', 'Management discretion (CEO decision)')}
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                                 <div>
                                     <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                        Bonus Pool Determination Criteria
+                                        {tt('compensation_system.bonus_pool.criteria', 'Bonus Pool Determination Criteria')}
                                     </Label>
                                     <Select
                                         value={configuration.bonus_pool_determination_criteria || ''}
@@ -371,8 +375,8 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                             <SelectValue
                                                 placeholder={
                                                     trigger
-                                                        ? 'Select criteria'
-                                                        : '— Activate after selecting a trigger —'
+                                                        ? tt('compensation_system.bonus_pool.select_criteria', 'Select criteria')
+                                                        : tt('compensation_system.bonus_pool.criteria_disabled', '— Activate after selecting a trigger —')
                                                 }
                                             />
                                         </SelectTrigger>
@@ -388,7 +392,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                             </div>
                             <div className="mt-4">
                                 <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                    Bonus Pool Determination Method
+                                    {tt('compensation_system.bonus_pool.determination_method', 'Bonus Pool Determination Method')}
                                 </Label>
                                 <Select
                                     value={method}
@@ -400,18 +404,18 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                     }
                                 >
                                     <SelectTrigger className="mt-1">
-                                        <SelectValue placeholder="Select method" />
+                                        <SelectValue placeholder={tt('compensation_system.bonus_pool.select_method', 'Select method')} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="ratio">
-                                            Fixed percentage of profit
+                                            {tt('compensation_system.bonus_pool.method_ratio', 'Fixed percentage of profit')}
                                         </SelectItem>
                                         <SelectItem value="range">
-                                            Range-based determination
+                                            {tt('compensation_system.bonus_pool.method_range', 'Range-based determination')}
                                         </SelectItem>
-                                        <SelectItem value="amount">Fixed amount</SelectItem>
+                                        <SelectItem value="amount">{tt('compensation_system.bonus_pool.method_amount', 'Fixed amount')}</SelectItem>
                                         <SelectItem value="annual">
-                                            Separate determination by business year
+                                            {tt('compensation_system.bonus_pool.method_annual', 'Separate determination by business year')}
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -420,13 +424,13 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                 <div className="mt-4 flex flex-wrap items-center gap-4">
                                     {method === 'ratio' && (
                                         <>
-                                            <Label className="text-sm">Ratio</Label>
+                                            <Label className="text-sm">{tt('compensation_system.bonus_pool.ratio_label', 'Ratio')}</Label>
                                             <Input
                                                 type="number"
                                                 min={0}
                                                 max={100}
                                                 step={0.1}
-                                                placeholder="e.g. 10"
+                                                placeholder={tt('compensation_system.bonus_pool.eg_10', 'e.g. 10')}
                                                 className="max-w-[140px]"
                                                 value={configuration.ratio_value ?? ''}
                                                 onChange={(e) =>
@@ -443,10 +447,10 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                     )}
                                     {method === 'range' && (
                                         <>
-                                            <Label className="text-sm">Min</Label>
+                                            <Label className="text-sm">{tt('compensation_system.bonus_pool.min', 'Min')}</Label>
                                             <Input
                                                 type="number"
-                                                placeholder="Min"
+                                                placeholder={tt('compensation_system.bonus_pool.min', 'Min')}
                                                 className="max-w-[120px]"
                                                 value={configuration.range_min ?? ''}
                                                 onChange={(e) =>
@@ -456,10 +460,10 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                                     })
                                                 }
                                             />
-                                            <Label className="text-sm">~ Max</Label>
+                                            <Label className="text-sm">~ {tt('compensation_system.bonus_pool.max', 'Max')}</Label>
                                             <Input
                                                 type="number"
-                                                placeholder="Max"
+                                                placeholder={tt('compensation_system.bonus_pool.max', 'Max')}
                                                 className="max-w-[120px]"
                                                 value={configuration.range_max ?? ''}
                                                 onChange={(e) =>
@@ -474,10 +478,10 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                     )}
                                     {method === 'amount' && (
                                         <>
-                                            <Label className="text-sm">Amount</Label>
+                                            <Label className="text-sm">{tt('compensation_system.bonus_pool.amount_label', 'Amount')}</Label>
                                             <Input
                                                 type="number"
-                                                placeholder="e.g. 50000"
+                                                placeholder={tt('compensation_system.bonus_pool.eg_50000', 'e.g. 50000')}
                                                 className="max-w-[140px]"
                                                 value={configuration.amount_value ?? ''}
                                                 onChange={(e) =>
@@ -503,13 +507,13 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                     2
                                 </span>
                                 <span className="font-semibold text-[#1B2E4B]">
-                                    Eligibility Determination
+                                    {tt('compensation_system.bonus_pool.section2_title', 'Eligibility Determination')}
                                 </span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                        Eligibility Scope
+                                        {tt('compensation_system.bonus_pool.eligibility_scope', 'Eligibility Scope')}
                                     </Label>
                                     <Select
                                         value={configuration.eligibility_scope || ''}
@@ -518,28 +522,28 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                         }
                                     >
                                         <SelectTrigger className="mt-1">
-                                            <SelectValue placeholder="Select scope" />
+                                            <SelectValue placeholder={tt('compensation_system.bonus_pool.select_scope', 'Select scope')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="all">
-                                                All employees (incl. executives & contractors)
+                                                {tt('compensation_system.bonus_pool.scope_all', 'All employees (incl. executives & contractors)')}
                                             </SelectItem>
                                             <SelectItem value="all_excl">
-                                                All employees (excl. executives & contractors)
+                                                {tt('compensation_system.bonus_pool.scope_all_excl', 'All employees (excl. executives & contractors)')}
                                             </SelectItem>
                                             <SelectItem value="all_exec_incl">
-                                                All employees (incl. executives, excl. contractors)
+                                                {tt('compensation_system.bonus_pool.scope_all_exec_incl', 'All employees (incl. executives, excl. contractors)')}
                                             </SelectItem>
-                                        <SelectItem value="regular">Regular employees only</SelectItem>
-                                        <SelectItem value="grade">By job grade</SelectItem>
-                                        <SelectItem value="org">By organization unit</SelectItem>
-                                        <SelectItem value="other_scope">Other (manual input)</SelectItem>
+                                        <SelectItem value="regular">{tt('compensation_system.bonus_pool.scope_regular', 'Regular employees only')}</SelectItem>
+                                        <SelectItem value="grade">{tt('compensation_system.bonus_pool.scope_grade', 'By job grade')}</SelectItem>
+                                        <SelectItem value="org">{tt('compensation_system.bonus_pool.scope_org', 'By organization unit')}</SelectItem>
+                                        <SelectItem value="other_scope">{tt('compensation_system.bonus_pool.scope_other', 'Other (manual input)')}</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                                 <div>
                                     <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                        Eligibility Criteria
+                                        {tt('compensation_system.bonus_pool.eligibility_criteria', 'Eligibility Criteria')}
                                     </Label>
                                     <Select
                                         value={configuration.eligibility_criteria || ''}
@@ -548,23 +552,23 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                         }
                                     >
                                         <SelectTrigger className="mt-1">
-                                            <SelectValue placeholder="Select criteria" />
+                                            <SelectValue placeholder={tt('compensation_system.bonus_pool.select_criteria', 'Select criteria')} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="yearend">Employees employed at year-end</SelectItem>
-                                            <SelectItem value="announce">Employees employed on the bonus announcement date</SelectItem>
-                                            <SelectItem value="tenure3_abs">Employed for 3+ months</SelectItem>
+                                            <SelectItem value="yearend">{tt('compensation_system.bonus_pool.criteria_yearend', 'Employees employed at year-end')}</SelectItem>
+                                            <SelectItem value="announce">{tt('compensation_system.bonus_pool.criteria_announce', 'Employees employed on the bonus announcement date')}</SelectItem>
+                                            <SelectItem value="tenure3_abs">{tt('compensation_system.bonus_pool.criteria_tenure3_abs', 'Employed for 3+ months')}</SelectItem>
                                             <SelectItem value="tenure3_period">
-                                                Employed for 3+ months within the evaluation period
+                                                {tt('compensation_system.bonus_pool.criteria_tenure3_period', 'Employed for 3+ months within the evaluation period')}
                                             </SelectItem>
-                                            <SelectItem value="other_crit">Other</SelectItem>
+                                            <SelectItem value="other_crit">{tt('compensation_system.bonus_pool.other', 'Other')}</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                             </div>
                             <div className="mt-4">
                                 <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                    Inclusion of Employees on Leave
+                                    {tt('compensation_system.bonus_pool.inclusion_leave', 'Inclusion of Employees on Leave')}
                                 </Label>
                                 <Select
                                     value={configuration.inclusion_of_employees_on_leave || ''}
@@ -576,14 +580,14 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                     }
                                 >
                                     <SelectTrigger className="mt-1">
-                                        <SelectValue placeholder="Select option" />
+                                        <SelectValue placeholder={tt('compensation_system.bonus_pool.select_option', 'Select option')} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="include">
-                                            Included — working days basis
+                                            {tt('compensation_system.bonus_pool.leave_include', 'Included — working days basis')}
                                         </SelectItem>
-                                        <SelectItem value="exclude">Excluded</SelectItem>
-                                        <SelectItem value="other_leave">Other</SelectItem>
+                                        <SelectItem value="exclude">{tt('compensation_system.bonus_pool.leave_exclude', 'Excluded')}</SelectItem>
+                                        <SelectItem value="other_leave">{tt('compensation_system.bonus_pool.other', 'Other')}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -598,13 +602,13 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                     3
                                 </span>
                                 <span className="font-semibold text-[#1B2E4B]">
-                                    Allocation Method
+                                    {tt('compensation_system.bonus_pool.section3_title', 'Allocation Method')}
                                 </span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                        Bonus Calculation Unit
+                                        {tt('compensation_system.bonus_pool.calculation_unit', 'Bonus Calculation Unit')}
                                     </Label>
                                     <Select
                                         value={configuration.bonus_calculation_unit || ''}
@@ -616,24 +620,24 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                         }
                                     >
                                         <SelectTrigger className="mt-1">
-                                            <SelectValue placeholder="Select unit" />
+                                            <SelectValue placeholder={tt('compensation_system.bonus_pool.select_unit', 'Select unit')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="salary_pct">
-                                                Salary-based percentage (% of salary-based calculation)
+                                                {tt('compensation_system.bonus_pool.unit_salary_pct', 'Salary-based percentage (% of salary-based calculation)')}
                                             </SelectItem>
                                             <SelectItem value="band_amount">
-                                                Amount based on job grade & salary band
+                                                {tt('compensation_system.bonus_pool.unit_band_amount', 'Amount based on job grade & salary band')}
                                             </SelectItem>
                                             <SelectItem value="fixed_amount">
-                                                Predefined fixed amount per person
+                                                {tt('compensation_system.bonus_pool.unit_fixed_amount', 'Predefined fixed amount per person')}
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                                 <div>
                                     <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                        Allocation Scope
+                                        {tt('compensation_system.bonus_pool.allocation_scope', 'Allocation Scope')}
                                     </Label>
                                     <Select
                                         value={configuration.allocation_scope || ''}
@@ -645,20 +649,20 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                         }
                                     >
                                         <SelectTrigger className="mt-1">
-                                            <SelectValue placeholder="Select scope" />
+                                            <SelectValue placeholder={tt('compensation_system.bonus_pool.select_scope', 'Select scope')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="equal">
-                                                Equal allocation (company-wide)
+                                                {tt('compensation_system.bonus_pool.alloc_equal', 'Equal allocation (company-wide)')}
                                             </SelectItem>
                                             <SelectItem value="org_diff">
-                                                Differentiated by organization
+                                                {tt('compensation_system.bonus_pool.alloc_org_diff', 'Differentiated by organization')}
                                             </SelectItem>
                                             <SelectItem value="indiv_perf">
-                                                Differentiated by individual performance
+                                                {tt('compensation_system.bonus_pool.alloc_indiv_perf', 'Differentiated by individual performance')}
                                             </SelectItem>
                                             <SelectItem value="mixed">
-                                                Mixed: organization + individual
+                                                {tt('compensation_system.bonus_pool.alloc_mixed', 'Mixed: organization + individual')}
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -666,7 +670,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                             </div>
                             <div className="mt-4">
                                 <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                    Allocation Criteria & Weights
+                                    {tt('compensation_system.bonus_pool.alloc_criteria_weights', 'Allocation Criteria & Weights')}
                                 </Label>
                                 <div className="border rounded-lg divide-y mt-2">
                                     {ALLOC_ITEMS.map(({ id, lbl }) => {
@@ -765,7 +769,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                 )}
                                 {checkedAlloc.length > 0 && totalWeight !== 100 && (
                                     <p className="text-xs text-destructive mt-1">
-                                        ⚠ Allocation weights must total 100% to proceed to the next step.
+                                        {tt('compensation_system.bonus_pool.weight_warning', '⚠ Allocation weights must total 100% to proceed to the next step.')}
                                     </p>
                                 )}
                             </div>
@@ -780,13 +784,13 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                     4
                                 </span>
                                 <span className="font-semibold text-[#1B2E4B]">
-                                    Payment Timing
+                                    {tt('compensation_system.bonus_pool.section4_title', 'Payment Timing')}
                                 </span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                        Bonus Pool Finalization Timing
+                                        {tt('compensation_system.bonus_pool.finalization_timing', 'Bonus Pool Finalization Timing')}
                                     </Label>
                                     <Select
                                         value={configuration.bonus_pool_finalization_timing?.toString() || ''}
@@ -798,12 +802,12 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                         }
                                     >
                                         <SelectTrigger className="mt-1">
-                                            <SelectValue placeholder="Select month" />
+                                            <SelectValue placeholder={tt('compensation_system.bonus_pool.select_month', 'Select month')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {MONTHS.map((m, i) => (
                                                 <SelectItem key={i} value={String(i + 1)}>
-                                                    {m}
+                                                    {tt(`compensation_system.months.${i + 1}`, m)}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -811,7 +815,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                 </div>
                                 <div>
                                     <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                        Bonus Payment Month
+                                        {tt('compensation_system.bonus_pool.payment_month', 'Bonus Payment Month')}
                                     </Label>
                                     <Select
                                         value={configuration.bonus_payment_month?.toString() || ''}
@@ -823,12 +827,12 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                         }
                                     >
                                         <SelectTrigger className="mt-1">
-                                            <SelectValue placeholder="Select month" />
+                                            <SelectValue placeholder={tt('compensation_system.bonus_pool.select_month', 'Select month')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {MONTHS.map((m, i) => (
                                                 <SelectItem key={i} value={String(i + 1)}>
-                                                    {m}
+                                                    {tt(`compensation_system.months.${i + 1}`, m)}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -838,7 +842,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                 <div>
                                     <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                        Calculation Period Start Date
+                                        {tt('compensation_system.bonus_pool.period_start', 'Calculation Period Start Date')}
                                     </Label>
                                     <Input
                                         type="date"
@@ -854,7 +858,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                 </div>
                                 <div>
                                     <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                        Calculation Period End Date
+                                        {tt('compensation_system.bonus_pool.period_end', 'Calculation Period End Date')}
                                     </Label>
                                     <Input
                                         type="date"
@@ -880,24 +884,24 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                     <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-xs font-bold flex items-center justify-center">
                                         5
                                     </span>
-                                    <span className="font-semibold text-[#1B2E4B]">Summary Note</span>
+                                    <span className="font-semibold text-[#1B2E4B]">{tt('compensation_system.bonus_pool.summary_note', 'Summary Note')}</span>
                                 </div>
-                                <span className="text-[10px] text-muted-foreground">Auto-generated</span>
+                                <span className="text-[10px] text-muted-foreground">{tt('compensation_system.bonus_pool.auto_generated', 'Auto-generated')}</span>
                             </div>
                             <div className="bg-[#1B2E4B] rounded-xl p-5 text-white">
                                 <div className="text-[10px] font-bold uppercase tracking-wider text-white/50 mb-2">
-                                    Policy Statement
+                                    {tt('compensation_system.bonus_pool.policy_statement', 'Policy Statement')}
                                 </div>
                                 <div
                                     className="text-sm leading-relaxed text-white/90"
                                     dangerouslySetInnerHTML={{
                                         __html: trigger
                                             ? updateSummary()
-                                            : '<span class="italic text-white/40">Enter the required settings to auto-generate the bonus policy statement.</span>',
+                                            : `<span class="italic text-white/40">${tt('compensation_system.bonus_pool.summary_empty', 'Enter the required settings to auto-generate the bonus policy statement.')}</span>`,
                                     }}
                                 />
                                 <div className="text-xs text-white/40 mt-3 pt-3 border-t border-white/10">
-                                    ※ The final HR system design report will include professional consultant reviews and recommendations.
+                                    {tt('compensation_system.bonus_pool.report_note', '※ The final HR system design report will include professional consultant reviews and recommendations.')}
                                 </div>
                             </div>
                         </CardContent>
@@ -908,28 +912,28 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                 <div className="w-full">
                     <Card className="shadow-sm border rounded-xl overflow-hidden w-full">
                         <CardContent className="p-5">
-                            <div className="font-semibold text-[#1B2E4B] mb-3">Step Purpose</div>
+                            <div className="font-semibold text-[#1B2E4B] mb-3">{tt('compensation_system.bonus_pool.step_purpose', 'Step Purpose')}</div>
                             <ul className="space-y-2 text-sm text-muted-foreground">
                                 <li className="flex gap-2">
                                     <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] mt-1.5 shrink-0" />
-                                    Determine the trigger conditions and size of the bonus pool.
+                                    {tt('compensation_system.bonus_pool.purpose_1', 'Determine the trigger conditions and size of the bonus pool.')}
                                 </li>
                                 <li className="flex gap-2">
                                     <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] mt-1.5 shrink-0" />
-                                    Define the eligible population and qualification criteria.
+                                    {tt('compensation_system.bonus_pool.purpose_2', 'Define the eligible population and qualification criteria.')}
                                 </li>
                                 <li className="flex gap-2">
                                     <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] mt-1.5 shrink-0" />
-                                    Structure the allocation weights for individual and organizational performance.
+                                    {tt('compensation_system.bonus_pool.purpose_3', 'Structure the allocation weights for individual and organizational performance.')}
                                 </li>
                                 <li className="flex gap-2">
                                     <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] mt-1.5 shrink-0" />
-                                    These settings become the basis for calculating individual bonuses later.
+                                    {tt('compensation_system.bonus_pool.purpose_4', 'These settings become the basis for calculating individual bonuses later.')}
                                 </li>
                             </ul>
                             <div className="h-px bg-border my-4" />
                             <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                                Option Guide
+                                {tt('compensation_system.bonus_pool.option_guide', 'Option Guide')}
                             </div>
                             {conceptData ? (
                                 <div className="rounded-lg border bg-muted/30 p-3">
@@ -956,7 +960,7 @@ export default function BonusPoolTab({ configuration, onUpdate, fieldErrors = {}
                                 </div>
                             ) : (
                                 <p className="text-xs italic text-muted-foreground">
-                                    Select an option to view the concept explanation.
+                                    {tt('compensation_system.bonus_pool.select_option_guide', 'Select an option to view the concept explanation.')}
                                 </p>
                             )}
                         </CardContent>

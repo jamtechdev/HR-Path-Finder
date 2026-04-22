@@ -151,7 +151,7 @@ class KpiReviewController extends Controller
             \DB::transaction(function () use ($hrProject, $validated) {
                 foreach ($validated['revision_requests'] as $revision) {
                     OrganizationalKpi::where('hr_project_id', $hrProject->id)
-                        ->where('organization_name', $revision['organization_name'])
+                        ->whereRaw('TRIM(LOWER(organization_name)) = ?', [strtolower(trim((string) $revision['organization_name']))])
                         ->update([
                             'ceo_approval_status' => 'revision_requested',
                             'ceo_revision_comment' => $revision['comment'],

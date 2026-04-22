@@ -1071,11 +1071,13 @@ export default function CompensationSystemIndex({
                                     <CardContent className="p-6">
                                         <div className="text-center py-12">
                                             <DollarSign className="w-16 h-16 mx-auto mb-4 text-primary" />
-                                            <h2 className="text-2xl font-bold mb-2">Compensation & Benefits System Design</h2>
+                                            <h2 className="text-2xl font-bold mb-2">{t('compensation_system.overview_hero_title', { defaultValue: 'Compensation & Benefits System Design' })}</h2>
                                             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                                                Design your complete compensation and benefits framework including base salary structure, pay bands, bonus pools, and benefits programs.
+                                                {t('compensation_system.overview_hero_desc', { defaultValue: 'Design your complete compensation and benefits framework including base salary structure, pay bands, bonus pools, and benefits programs.' })}
                                             </p>
-                                            <Button onClick={() => handleTabChange('snapshot')} size="lg">Start Design →</Button>
+                                            <Button onClick={() => handleTabChange('snapshot')} size="lg">
+                                                {t('compensation_system.start_design_cta', { defaultValue: 'Start Design' })} →
+                                            </Button>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -1263,7 +1265,7 @@ export default function CompensationSystemIndex({
                                         rel="noopener noreferrer"
                                         className="text-xs text-[#6B82A0] hover:text-[#2ec4a0] text-center transition-colors"
                                     >
-                                        Learn about subscription · Powered by BetterCompany
+                                        {t('compensation_system.subscription_link', { defaultValue: 'Learn about subscription · Powered by BetterCompany' })}
                                     </a>
                                 </div>
                             </div>
