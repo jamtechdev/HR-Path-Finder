@@ -88,6 +88,7 @@ export default function OrganizationalCharts({
     const useEmbed = embedMode && embedData != null && embedSetData;
     const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
     const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
+    const lastSyncedChartsRef = useRef('');
 
     const inertiaOrgChartErr =
         typeof internalForm.errors.organizational_charts === 'string'
@@ -99,6 +100,18 @@ export default function OrganizationalCharts({
         Object.entries(chartFiles).forEach(([year, list]) => {
             if (list.length > 0) out[year] = list[0];
         });
+        const sig = JSON.stringify(
+            Object.entries(chartFiles)
+                .map(([year, list]) => {
+                    const f = list[0];
+                    return f
+                        ? `${year}:${f.name}:${f.size}:${f.lastModified}`
+                        : `${year}:none`;
+                })
+                .sort(),
+        );
+        if (lastSyncedChartsRef.current === sig) return;
+        lastSyncedChartsRef.current = sig;
         setData('organizational_charts', out);
     }, [chartFiles, setData]);
 

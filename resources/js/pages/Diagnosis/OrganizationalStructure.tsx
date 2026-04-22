@@ -1,6 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
 import { X, Check } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { DiagnosisFieldErrorMessage } from '@/components/Diagnosis/DiagnosisFieldErrorsContext';
 import FormLayout from '@/components/Diagnosis/FormLayout';
 import { OrgStructureDiagram } from '@/components/Diagnosis/OrgStructureDiagrams';
@@ -102,6 +102,7 @@ export default function OrganizationalStructure({
     const useEmbed = embedMode && embedData != null && embedSetData;
     const data = useEmbed ? { ...internalForm.data, ...embedData } as typeof internalForm.data : internalForm.data;
     const setData = useEmbed ? (k: string, v: unknown) => embedSetData(k, v) : internalForm.setData;
+    const lastSyncedPayloadRef = useRef('');
 
     const inertiaOrgStructureErr = 
         typeof internalForm.errors.org_structure_types === 'string' 
@@ -123,8 +124,15 @@ export default function OrganizationalStructure({
     );
 
     useEffect(() => {
-        setData('org_structure_types', selectedIds);
-        setData('org_structure_explanations', { custom: customNote });
+        const payload = {
+            org_structure_types: selectedIds,
+            org_structure_explanations: { custom: customNote },
+        };
+        const sig = JSON.stringify(payload);
+        if (lastSyncedPayloadRef.current === sig) return;
+        lastSyncedPayloadRef.current = sig;
+        setData('org_structure_types', payload.org_structure_types);
+        setData('org_structure_explanations', payload.org_structure_explanations);
     }, [selectedIds, customNote, setData]);
 
     const toggle = (id: string) => {

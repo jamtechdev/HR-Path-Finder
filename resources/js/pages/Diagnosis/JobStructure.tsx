@@ -3,7 +3,7 @@ import FormLayout from '@/components/Diagnosis/FormLayout';
 import { cn } from '@/lib/utils';
 import { Head, useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { translateStaticOnly } from '@/lib/translateStaticOnly';
 
@@ -190,6 +190,7 @@ export default function JobStructure({
     const setData = useEmbed
         ? (k: string, v: unknown) => embedSetData(k, v)
         : internalForm.setData;
+    const lastSyncedPayloadRef = useRef('');
 
     const inertiaJobStructureErr =
         typeof internalForm.errors.job_categories === 'string'
@@ -200,16 +201,17 @@ export default function JobStructure({
 
     // Sync to form
     useEffect(() => {
-        setData(
-            'job_categories',
-            categories.map((c) => c.nameKey),
-        );
-        setData(
-            'job_functions',
-            categories.flatMap((c) =>
+        const payload = {
+            job_categories: categories.map((c) => c.nameKey),
+            job_functions: categories.flatMap((c) =>
                 c.functions.map((f) => `${c.nameKey}${SEP}${f.name}`),
             ),
-        );
+        };
+        const sig = JSON.stringify(payload);
+        if (lastSyncedPayloadRef.current === sig) return;
+        lastSyncedPayloadRef.current = sig;
+        setData('job_categories', payload.job_categories);
+        setData('job_functions', payload.job_functions);
     }, [categories, setData]);
 
     const addCategory = () => {

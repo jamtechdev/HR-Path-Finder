@@ -3,7 +3,7 @@ import { useDiagnosisDraftHydrate } from '@/hooks/useDiagnosisDraftHydrate';
 import { cn } from '@/lib/utils';
 import { Head, useForm } from '@inertiajs/react';
 import { Check } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -137,6 +137,7 @@ export default function HrIssues({
         }),
         [checked, activeCatIdx, customIssue],
     );
+    const lastSyncedPayloadRef = useRef('');
 
     // Hydrate from draft
     useDiagnosisDraftHydrate(
@@ -168,6 +169,12 @@ export default function HrIssues({
     );
 
     useEffect(() => {
+        const sig = JSON.stringify({
+            hr_issues: payloadData.hr_issues,
+            custom_hr_issues: payloadData.custom_hr_issues,
+        });
+        if (lastSyncedPayloadRef.current === sig) return;
+        lastSyncedPayloadRef.current = sig;
         setData('hr_issues', payloadData.hr_issues);
         setData('custom_hr_issues', payloadData.custom_hr_issues);
     }, [payloadData, setData]);
