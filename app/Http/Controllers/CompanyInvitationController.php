@@ -29,6 +29,18 @@ class CompanyInvitationController extends Controller
         ]);
         $normalizedEmail = mb_strtolower(trim($request->email));
 
+        // Prevent CEO invitation to an email already used as HR manager in this company.
+        $hrManagerEmailInCompany = $company->users()
+            ->wherePivot('role', 'hr_manager')
+            ->whereRaw('LOWER(users.email) = ?', [$normalizedEmail])
+            ->exists();
+
+        if ($hrManagerEmailInCompany) {
+            return back()->withErrors([
+                'email' => __('This email is already assigned to an HR Manager account. Please use a different email address for the CEO invitation.'),
+            ]);
+        }
+
         // Check if user is already a member of the company with CEO role
         $existingUser = User::whereRaw('LOWER(email) = ?', [$normalizedEmail])->first();
         if ($existingUser) {
@@ -380,13 +392,20 @@ class CompanyInvitationController extends Controller
             return back()->withErrors(['error' => 'This invitation has already been accepted.']);
         }
 
-        // Check if invitation is expired
-        if ($invitation->isExpired()) {
-            return back()->withErrors(['error' => 'This invitation has expired. Please create a new invitation.']);
-        }
-
-        // Resend invitation email directly
+        // Keep resend simple: reset invitation state and send again.
         try {
+            if ($invitation->trashed()) {
+                $invitation->restore();
+            }
+
+            $invitation->forceFill([
+                'accepted_at' => null,
+                'temporary_password' => null,
+                'token' => \App\Models\CompanyInvitation::generateToken(),
+                'expires_at' => now()->addDays(7),
+                'inviter_id' => $user->id,
+            ])->save();
+
             \Log::info('Resending CEO Invitation Email', [
                 'invitation_id' => $invitation->id,
                 'email' => $invitation->email,
@@ -403,6 +422,8 @@ class CompanyInvitationController extends Controller
                 'timestamp' => now()->toIso8601String(),
             ]);
 
+            $invitation->load(['company', 'inviter', 'hrProject']);
+
             // Send directly using Mail facade with blade file
             $this->sendInvitationEmail($invitation, $invitation->email);
 
@@ -413,7 +434,7 @@ class CompanyInvitationController extends Controller
                 'sent_at' => now()->toIso8601String(),
             ]);
 
-            return back()->with('success', 'Invitation email has been resent successfully to ' . $invitation->email . '.');
+            return back()->with('success', 'Invitation reset and resent successfully to ' . $invitation->email . '.');
         } catch (\Exception $e) {
             \Log::error('Failed to resend CEO Invitation Email', [
                 'invitation_id' => $invitation->id,
